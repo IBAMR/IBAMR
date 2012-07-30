@@ -502,11 +502,20 @@ HierarchyIntegrator::integrateHierarchy(
 
 void
 HierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double /*current_time*/,
-    const double /*new_time*/,
+    const double current_time,
+    const double new_time,
     const bool /*skip_synchronize_new_state_data*/,
-    const int /*num_cycles*/)
+    const int num_cycles)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(d_current_cycle_num+1 == d_current_num_cycles);
+    TBOX_ASSERT(num_cycles == d_current_num_cycles);
+#else
+    NULL_USE(current_time);
+    NULL_USE(new_time);
+    NULL_USE(num_cycles);
+#endif
     d_current_num_cycles = -1;
     d_current_cycle_num = -1;
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
