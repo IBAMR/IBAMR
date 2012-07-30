@@ -74,12 +74,6 @@ public:
     ~IBExplicitHierarchyIntegrator();
 
     /*!
-     * Returns the number of cycles to perform for the present time step.
-     */
-    int
-    getNumberOfCycles() const;
-
-    /*!
      * Prepare to advance the data from current_time to new_time.
      */
     void

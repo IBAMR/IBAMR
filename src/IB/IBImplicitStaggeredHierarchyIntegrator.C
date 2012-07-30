@@ -94,18 +94,14 @@ IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator(
     return;
 }// ~IBImplicitStaggeredHierarchyIntegrator
 
-int
-IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
-{
-    return std::max(d_num_cycles,d_ins_hier_integrator->getNumberOfCycles());
-}// getNumberOfCycles
-
 void
 IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const int num_cycles)
 {
+    IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
     d_current_time = current_time;
     d_new_time = new_time;
     const int coarsest_ln = 0;
@@ -132,7 +128,16 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Initialize the fluid solver.
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
+    {
+        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                   << "  attempting to perform " << d_current_num_cycles << " cycles of fixed point iteration.\n"
+                   << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                   << "  current implementation requires either that both solvers use the same number of cycles,\n"
+                   << "  or that the IB solver use only a single cycle.\n");
+    }
+    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
 
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
@@ -150,6 +155,12 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(cycle_num < d_current_num_cycles);
+#endif
+    d_current_cycle_num = cycle_num;
+
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
@@ -174,7 +185,18 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     // Solve the incompressible Navier-Stokes equations.
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the modified incompressible Navier-Stokes equations\n";
-    d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    if (d_current_num_cycles > 1)
+    {
+        d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
+    else
+    {
+        const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+        for (int cycle = 0; cycle < ins_num_cycles; ++cycle)
+        {
+            d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+        }
+    }
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
@@ -204,6 +226,8 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
@@ -251,7 +275,8 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Deallocate IB data.
     d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);

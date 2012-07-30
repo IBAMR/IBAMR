@@ -84,29 +84,21 @@ IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
     return;
 }// ~IBExplicitHierarchyIntegrator
 
-int
-IBExplicitHierarchyIntegrator::getNumberOfCycles() const
-{
-    return std::max(d_num_cycles,d_ins_hier_integrator->getNumberOfCycles());
-}// getNumberOfCycles
-
 void
 IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const int num_cycles)
 {
+    IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
 
     // Determine whether there has been a time step size change.
-    static bool skip_check_for_dt_change =
-        MathUtilities<double>::equalEps(d_integrator_time,d_start_time) ||
-        RestartManager::getManager()->isFromRestart();
-    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
-        !MathUtilities<double>::equalEps(dt, d_dt_previous[0]) &&
-        !MathUtilities<double>::equalEps(new_time, d_end_time))
+    static bool skip_check_for_dt_change = MathUtilities<double>::equalEps(d_integrator_time,d_start_time) || RestartManager::getManager()->isFromRestart();
+    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) && !MathUtilities<double>::equalEps(dt, d_dt_previous[0]) && !MathUtilities<double>::equalEps(new_time, d_end_time))
     {
         if (d_error_on_dt_change)
         {
@@ -141,29 +133,61 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Initialize the fluid solver.
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-
-    if (num_cycles == 1)
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
     {
-        // Compute an initial prediction of the updated positions of the
-        // Lagrangian structure.
-        //
-        // NOTE: The velocity should already have been interpolated to the
-        // curvilinear mesh and should not need to be re-interpolated.
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-        d_ib_method_ops->eulerStep(current_time, new_time);
+        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                   << "  attempting to perform " << d_current_num_cycles << " cycles of fixed point iteration.\n"
+                   << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                   << "  current implementation requires either that both solvers use the same number of cycles,\n"
+                   << "  or that the IB solver use only a single cycle.\n");
+    }
+    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
+
+    // Compute the Lagrangian forces and spread them to the Eulerian grid.
+    switch (d_time_stepping_type)
+    {
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
+            d_ib_method_ops->computeLagrangianForce(current_time);
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+            d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+            d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
+            d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+            break;
+        case MIDPOINT_RULE:
+            // intentionally blank
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                       << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                       << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+
     }
 
-    if (d_time_stepping_type == TRAPEZOIDAL_RULE)
+    // Compute an initial prediction of the updated positions of the Lagrangian
+    // structure.
+    //
+    // NOTE: The velocity should already have been interpolated to the
+    // curvilinear mesh and should not need to be re-interpolated.
+    switch (d_time_stepping_type)
     {
-        // Compute the Lagrangian force at the beginning of the time interval
-        // and spread it to the Eulerian grid.
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
-        d_ib_method_ops->computeLagrangianForce(current_time);
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-        d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
-        d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+        case FORWARD_EULER:
+            // intentionally blank
+            break;
+        case MIDPOINT_RULE:
+        case TRAPEZOIDAL_RULE:
+            if (num_cycles == 1)
+            {
+                if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+                d_ib_method_ops->eulerStep(current_time, new_time);
+            }
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                       << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                       << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
     return;
 }// preprocessIntegrateHierarchy
@@ -174,6 +198,12 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(cycle_num < d_current_num_cycles);
+#endif
+    d_current_cycle_num = cycle_num;
+
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
@@ -183,6 +213,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
     {
+        case FORWARD_EULER:
+            // intentionally blank
+            break;
         case MIDPOINT_RULE:
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
             d_ib_method_ops->computeLagrangianForce(half_time);
@@ -225,7 +258,18 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // Solve the incompressible Navier-Stokes equations.
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
-    d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    if (d_current_num_cycles > 1)
+    {
+        d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
+    else
+    {
+        const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+        for (int cycle = 0; cycle < ins_num_cycles; ++cycle)
+        {
+            d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+        }
+    }
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
@@ -291,6 +335,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
@@ -338,7 +384,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Deallocate IB data.
     d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
