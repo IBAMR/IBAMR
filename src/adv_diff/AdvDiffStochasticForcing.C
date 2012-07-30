@@ -395,7 +395,7 @@ AdvDiffStochasticForcing::setDataOnPatch(
                 const Index<NDIM>& ic = i();
                 Index<NDIM> ic_lower(ic); ic_lower(axis) -= 1;
                 SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
-                double f;
+                double f = 0.0;
                 switch (convective_time_stepping_type)
                 {
                     case FORWARD_EULER:
