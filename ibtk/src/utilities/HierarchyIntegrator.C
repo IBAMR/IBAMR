@@ -267,13 +267,14 @@ HierarchyIntegrator::advanceHierarchy(
     d_current_dt = new_time-current_time;
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
-    for (d_current_cycle_num = 0; d_current_cycle_num < d_current_num_cycles; ++d_current_cycle_num)
+    for (int cycle_num = 0; cycle_num < d_current_num_cycles; ++cycle_num)
     {
+        d_current_cycle_num = cycle_num;
         if (d_do_log && d_current_num_cycles != 1)
         {
-            plog << d_object_name << "::advanceHierarchy(): executing cycle " << d_current_cycle_num+1 << " of " << d_current_num_cycles << "\n";
+            plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num+1 << " of " << d_current_num_cycles << "\n";
         }
-        integrateHierarchy(current_time, new_time, d_current_cycle_num);
+        integrateHierarchy(current_time, new_time, cycle_num);
     }
     postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles);
 
