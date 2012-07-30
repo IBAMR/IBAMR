@@ -877,35 +877,26 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(
     return;
 }// initializePatchHierarhcy
 
-int
-INSStaggeredHierarchyIntegrator::getNumberOfCycles() const
-{
-    int num_cycles = d_num_cycles;
-    if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) && is_multistep_time_stepping_type(d_convective_time_stepping_type) && d_init_convective_time_stepping_type != FORWARD_EULER)
-    {
-        num_cycles = std::max(2,num_cycles);
-    }
-    return num_cycles;
-}// getNumberOfCycles
-
 void
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const int num_cycles)
 {
+    INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
-    d_num_cycles_step = num_cycles;
-    if (!d_creeping_flow && (d_num_cycles_step == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
+    d_current_num_cycles = num_cycles;
+    if (!d_creeping_flow && (d_current_num_cycles == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                    << "  time stepping type: " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " requires num_cycles > 1.\n"
-                   << "  at current time step, num_cycles = " << d_num_cycles_step << "\n");
+                   << "  at current time step, num_cycles = " << d_current_num_cycles << "\n");
     }
 
     // Allocate the scratch and new data.
@@ -970,7 +961,16 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Initialize any registered advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
     {
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                       << "  attempting to perform " << d_current_num_cycles << " cycles of fixed point iteration.\n"
+                       << "  number of cycles required by coupled advection-diffusion solver = " << adv_diff_num_cycles << ".\n"
+                       << "  current implementation requires either that both solvers use the same number of cycles,\n"
+                       << "  or that the Navier-Stokes solver use only a single cycle.\n");
+        }
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1057,61 +1057,30 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(cycle_num < d_current_num_cycles);
+#endif
+    d_current_cycle_num = cycle_num;
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt  = new_time-current_time;
     const double rho = d_problem_coefs.getRho();
 
-    // Perform a single step of fixed point iteration.
-
-    // When necessary, update the value of the advection velocity registered
-    // with a coupled advection-diffusion solver and advance those variables
-    // forward in time using the supplied advection velocities.
-    if (cycle_num > 0 && !d_adv_diff_hier_integrator.isNull())
+    // Check to make sure that the number of cycles is what we expect it to be.
+    const int expected_num_cycles = getNumberOfCycles();
+    if (d_current_num_cycles != expected_num_cycles)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        IBAMR_DO_ONCE(
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Index<NDIM>& ilower = patch->getBox().lower();
-                const Index<NDIM>& iupper = patch->getBox().upper();
-                Pointer<SideData<NDIM,double> > U_new_sc_data = patch->getPatchData(d_U_new_idx);
-                Pointer<FaceData<NDIM,double> > U_new_fc_data = patch->getPatchData(U_adv_diff_new_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(U_new_sc_data->getGhostCellWidth().min() == U_new_sc_data->getGhostCellWidth().max());
-                TBOX_ASSERT(U_new_fc_data->getGhostCellWidth().min() == U_new_fc_data->getGhostCellWidth().max());
-#endif
-                const int U_new_sc_gcw = U_new_sc_data->getGhostCellWidth().max();
-                const int U_new_fc_gcw = U_new_fc_data->getGhostCellWidth().max();
-                NAVIER_STOKES_SIDE_TO_FACE_FC(
-                    ilower(0), iupper(0),
-                    ilower(1), iupper(1),
-#if (NDIM == 3)
-                    ilower(2), iupper(2),
-#endif
-                    U_new_sc_data->getPointer(0),
-                    U_new_sc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_new_sc_data->getPointer(2),
-#endif
-                    U_new_sc_gcw,
-                    U_new_fc_data->getPointer(0),
-                    U_new_fc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_new_fc_data->getPointer(2),
-#endif
-                    U_new_fc_gcw);
+                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: num_cycles = " << d_current_num_cycles << " but expected num_cycles = " << expected_num_cycles << ".\n";
             }
-        }
-        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
-        d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
+                      );
     }
-    if (!d_adv_diff_hier_integrator.isNull()) d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+
+    // Perform a single step of fixed point iteration.
 
     // Account for the convective acceleration term.
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
@@ -1130,7 +1099,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             IBAMR_DO_ONCE(
                 {
                     pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_num_cycles << " > 1.\n"
+                         << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
                          << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " only for the first cycle in each time step;\n"
                          << "           using " << enum_to_string<TimeSteppingType>(  convective_time_stepping_type) << " for subsequent cycles\n";
                 }
@@ -1260,6 +1229,71 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
+
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        // Update the state variables maintained by the advection-diffusion
+        // solver.
+        if (d_current_num_cycles > 1)
+        {
+            d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+        }
+
+        // Update the advection velocities used by the advection-diffusion
+        // solver.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Index<NDIM>& ilower = patch->getBox().lower();
+                const Index<NDIM>& iupper = patch->getBox().upper();
+                Pointer<SideData<NDIM,double> > U_new_sc_data = patch->getPatchData(d_U_new_idx);
+                Pointer<FaceData<NDIM,double> > U_new_fc_data = patch->getPatchData(U_adv_diff_new_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(U_new_sc_data->getGhostCellWidth().min() == U_new_sc_data->getGhostCellWidth().max());
+                TBOX_ASSERT(U_new_fc_data->getGhostCellWidth().min() == U_new_fc_data->getGhostCellWidth().max());
+#endif
+                const int U_new_sc_gcw = U_new_sc_data->getGhostCellWidth().max();
+                const int U_new_fc_gcw = U_new_fc_data->getGhostCellWidth().max();
+                NAVIER_STOKES_SIDE_TO_FACE_FC(
+                    ilower(0), iupper(0),
+                    ilower(1), iupper(1),
+#if (NDIM == 3)
+                    ilower(2), iupper(2),
+#endif
+                    U_new_sc_data->getPointer(0),
+                    U_new_sc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_new_sc_data->getPointer(2),
+#endif
+                    U_new_sc_gcw,
+                    U_new_fc_data->getPointer(0),
+                    U_new_fc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_new_fc_data->getPointer(2),
+#endif
+                    U_new_fc_gcw);
+            }
+        }
+        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+        d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
+
+        // Update the state variables maintained by the advection-diffusion
+        // solver.
+        if (d_current_num_cycles == 1)
+        {
+            const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+            for (int cycle_num = 0; cycle_num < adv_diff_num_cycles; ++cycle_num)
+            {
+                d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+            }
+        }
+    }
     return;
 }// integrateHierarchy
 
@@ -1270,6 +1304,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
+    INSHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
     {
@@ -1307,7 +1343,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Deallocate any registered advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
     {
-        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
     return;
 }// postprocessIntegrateHierarchy

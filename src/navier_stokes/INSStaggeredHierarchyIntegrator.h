@@ -102,7 +102,7 @@ public:
      *
      * If the convective operator has not already been constructed, and if the
      * time integrator is not configured to solve the time-dependent (creeping)
-     * Stokes equations, then this function will initialize the type of
+     * Stokes equations, then this function will initialize the default type of
      * convective operator, which may be set in the class input database.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
@@ -212,12 +212,6 @@ public:
     initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Returns the number of cycles to perform for the present time step.
-     */
-    int
-    getNumberOfCycles() const;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -358,12 +352,6 @@ private:
      */
     void
     regridProjection();
-
-    /*!
-     * Value indicating the number of solver cycles to be used for the present
-     * time step.
-     */
-    int d_num_cycles_step;
 
     /*!
      * Hierarchy operations objects.

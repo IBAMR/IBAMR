@@ -71,37 +71,61 @@ public:
     ~INSHierarchyIntegrator();
 
     /*!
-     * Return the type of viscous time integration scheme being employed by the
+     * Set the type of viscous time integration scheme being employed by the
      * incompressible flow solver.
      *
      * Different implementations may support different time stepping schemes.
+     */
+    void
+    setViscousTimeSteppingType(
+        TimeSteppingType viscous_time_stepping_type);
+
+    /*!
+     * Get the type of viscous time integration scheme being employed by the
+     * incompressible flow solver.
      *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * Different implementations may support different time stepping schemes.
      */
     TimeSteppingType
     getViscousTimeSteppingType() const;
 
     /*!
-     * Return the type of convective time integration scheme being employed by the
+     * Set the type of convective time integration scheme being employed by the
      * incompressible flow solver.
      *
      * Different implementations may support different time stepping schemes.
+     */
+    void
+    setConvectiveTimeSteppingType(
+        TimeSteppingType convective_time_stepping_type);
+
+    /*!
+     * Get the type of convective time integration scheme being employed by the
+     * incompressible flow solver.
      *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * Different implementations may support different time stepping schemes.
      */
     TimeSteppingType
     getConvectiveTimeSteppingType() const;
 
     /*!
-     * Return the type of convective time integration scheme being employed by the
+     * Set the type of convective time integration scheme being employed by the
      * incompressible flow solver during the initial time step.
      *
      * Different implementations may support different time stepping schemes.
      *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
+     */
+    void
+    setInitialConvectiveTimeSteppingType(
+        TimeSteppingType init_convective_time_stepping_type) const;
+
+    /*!
+     * Get the type of convective time integration scheme being employed by the
+     * incompressible flow solver during the initial time step.
+     *
+     * Different implementations may support different time stepping schemes.
      *
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
@@ -338,6 +362,12 @@ public:
      */
     virtual SAMRAI::tbox::Pointer<IBTK::LinearSolver>
     getPressureSubdomainSolver() = 0;
+
+    /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int
+    getNumberOfCycles() const;
 
 protected:
     /*!
