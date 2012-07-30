@@ -424,6 +424,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double new_time,
     const int num_cycles)
 {
+    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
@@ -589,6 +591,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(cycle_num < d_current_num_cycles);
+#endif
+    d_current_cycle_num = cycle_num;
+
     const double dt  = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -753,11 +761,13 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double /*current_time*/,
+    const double current_time,
     const double new_time,
-    const bool /*skip_synchronize_new_state_data*/,
-    const int /*num_cycles*/)
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
 {
+    AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     // Update the advection velocity.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)

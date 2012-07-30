@@ -241,10 +241,11 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     const int cycle_num)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(current_time <= new_time);
-    TBOX_ASSERT(d_end_time > d_integrator_time);
-    TBOX_ASSERT(MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(d_current_dt = new_time-current_time);
+    TBOX_ASSERT(cycle_num < d_current_num_cycles);
 #endif
+    d_current_cycle_num = cycle_num;
+
     const double dt = new_time - current_time;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
