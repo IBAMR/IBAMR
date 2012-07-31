@@ -170,6 +170,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
+	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
@@ -303,6 +304,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	libIBTK2d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK2d_a-PoissonFACPreconditionerStrategy.$(OBJEXT) \
+	libIBTK2d_a-PoissonSolver.$(OBJEXT) \
 	libIBTK2d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -432,6 +434,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
+	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
@@ -564,6 +567,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	libIBTK3d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK3d_a-PoissonFACPreconditionerStrategy.$(OBJEXT) \
+	libIBTK3d_a-PoissonSolver.$(OBJEXT) \
 	libIBTK3d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -1106,6 +1110,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.I \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.h \
+	$(top_srcdir)/src/solvers/impls/PoissonSolver.h \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.h \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.I \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
@@ -1237,6 +1242,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
+	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
@@ -1504,6 +1510,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-RobinPhysBdryPatchStrategy.Po@am__quote@
@@ -1620,6 +1627,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-RobinPhysBdryPatchStrategy.Po@am__quote@
@@ -2711,6 +2719,20 @@ libIBTK2d_a-PoissonFACPreconditionerStrategy.obj: $(top_srcdir)/src/solvers/impl
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C' object='libIBTK2d_a-PoissonFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; fi`
+
+libIBTK2d_a-PoissonSolver.o: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonSolver.Tpo -c -o libIBTK2d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PoissonSolver.Tpo $(DEPDIR)/libIBTK2d_a-PoissonSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonSolver.C' object='libIBTK2d_a-PoissonSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
+
+libIBTK2d_a-PoissonSolver.obj: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonSolver.Tpo -c -o libIBTK2d_a-PoissonSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PoissonSolver.Tpo $(DEPDIR)/libIBTK2d_a-PoissonSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonSolver.C' object='libIBTK2d_a-PoissonSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; fi`
 
 libIBTK2d_a-SCLaplaceOperator.o: $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SCLaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SCLaplaceOperator.Tpo -c -o libIBTK2d_a-SCLaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C
@@ -4335,6 +4357,20 @@ libIBTK3d_a-PoissonFACPreconditionerStrategy.obj: $(top_srcdir)/src/solvers/impl
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C' object='libIBTK3d_a-PoissonFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; fi`
+
+libIBTK3d_a-PoissonSolver.o: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonSolver.Tpo -c -o libIBTK3d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PoissonSolver.Tpo $(DEPDIR)/libIBTK3d_a-PoissonSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonSolver.C' object='libIBTK3d_a-PoissonSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
+
+libIBTK3d_a-PoissonSolver.obj: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonSolver.Tpo -c -o libIBTK3d_a-PoissonSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PoissonSolver.Tpo $(DEPDIR)/libIBTK3d_a-PoissonSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonSolver.C' object='libIBTK3d_a-PoissonSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonSolver.C'; fi`
 
 libIBTK3d_a-SCLaplaceOperator.o: $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SCLaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SCLaplaceOperator.Tpo -c -o libIBTK3d_a-SCLaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C

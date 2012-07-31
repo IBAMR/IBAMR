@@ -122,6 +122,7 @@ $(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
+$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
@@ -279,6 +280,7 @@ $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.h \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.I \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.h \
+$(top_srcdir)/src/solvers/impls/PoissonSolver.h \
 $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
