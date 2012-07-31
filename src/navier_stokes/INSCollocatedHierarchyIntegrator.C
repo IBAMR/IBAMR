@@ -859,11 +859,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_hier_math_ops->laplace(
-            U_rhs_idx, U_rhs_var,
-            rhs_spec, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time,
-            0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL),
-            axis, axis);
+        d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, rhs_spec, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), axis, axis);
     }
 
     // Set the initial guess.
@@ -888,12 +884,12 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
                        << "  current implementation requires either that both solvers use the same number of cycles,\n"
                        << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
         const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
-        d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
         d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, d_u_ADV_current_idx);
         d_hier_fc_data_ops->copyData(U_adv_diff_new_idx    , d_u_ADV_current_idx);
     }
@@ -969,6 +965,13 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
     // Perform a single step of fixed point iteration.
 
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        // Update the state variables maintained by the advection-diffusion
+        // solver.
+        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
+
     // Compute the current approximation to the pressure gradient.
     if (cycle_num == 0)
     {
@@ -990,9 +993,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     {
         d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_new_idx);
     }
-    d_hier_math_ops->grad(
-        d_Grad_P_idx, d_Grad_P_var,
-        1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, current_time+0.5*dt);
+    d_hier_math_ops->grad(d_Grad_P_idx, d_Grad_P_var, 1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, current_time+0.5*dt);
     d_hier_cc_data_ops->subtract(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
 
     // Account for the convective acceleration term.
@@ -1202,28 +1203,26 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
     if (!d_adv_diff_hier_integrator.isNull())
     {
-        // Update the state variables maintained by the advection-diffusion
-        // solver.
-        if (d_current_num_cycles > 1)
-        {
-            d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
-        }
-
         // Update the advection velocities used by the advection-diffusion
         // solver.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
         const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
         d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, d_u_ADV_new_idx);
+        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
         d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
 
         // Update the state variables maintained by the advection-diffusion
         // solver.
-        if (d_current_num_cycles == 1)
+        //
+        // NOTE: We already performed cycle 0 above.
+        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        if (d_current_num_cycles != adv_diff_num_cycles)
         {
-            const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-            for (int cycle_num = 0; cycle_num < adv_diff_num_cycles; ++cycle_num)
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(d_current_num_cycles == 1);
+#endif
+            for (int cycle_num = 1; cycle_num < adv_diff_num_cycles; ++cycle_num)
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
             }

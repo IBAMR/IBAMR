@@ -208,6 +208,54 @@ static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Copy data from a side-centered variable to a face-centered variable.
+void
+copy_side_to_face(
+    const int U_fc_idx,
+    const int U_sc_idx,
+    Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Index<NDIM>& ilower = patch->getBox().lower();
+            const Index<NDIM>& iupper = patch->getBox().upper();
+            Pointer<SideData<NDIM,double> > U_sc_data = patch->getPatchData(U_sc_idx);
+            Pointer<FaceData<NDIM,double> > U_fc_data = patch->getPatchData(U_fc_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
+                TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
+#endif
+                const int U_sc_gcw = U_sc_data->getGhostCellWidth().max();
+                const int U_fc_gcw = U_fc_data->getGhostCellWidth().max();
+                NAVIER_STOKES_SIDE_TO_FACE_FC(
+                    ilower(0), iupper(0),
+                    ilower(1), iupper(1),
+#if (NDIM == 3)
+                    ilower(2), iupper(2),
+#endif
+                    U_sc_data->getPointer(0),
+                    U_sc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_sc_data->getPointer(2),
+#endif
+                    U_sc_gcw,
+                    U_fc_data->getPointer(0),
+                    U_fc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_fc_data->getPointer(2),
+#endif
+                    U_fc_gcw);
+        }
+    }
+    return;
+}// copy_side_to_face
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -835,44 +883,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        const int coarsest_ln = 0;
-        const int finest_ln = hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Index<NDIM>& ilower = patch->getBox().lower();
-                const Index<NDIM>& iupper = patch->getBox().upper();
-                Pointer<SideData<NDIM,double> > U_current_sc_data = patch->getPatchData(d_U_current_idx);
-                Pointer<FaceData<NDIM,double> > U_current_fc_data = patch->getPatchData(U_adv_diff_current_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(U_current_sc_data->getGhostCellWidth().min() == U_current_sc_data->getGhostCellWidth().max());
-                TBOX_ASSERT(U_current_fc_data->getGhostCellWidth().min() == U_current_fc_data->getGhostCellWidth().max());
-#endif
-                const int U_current_sc_gcw = U_current_sc_data->getGhostCellWidth().max();
-                const int U_current_fc_gcw = U_current_fc_data->getGhostCellWidth().max();
-                NAVIER_STOKES_SIDE_TO_FACE_FC(
-                    ilower(0), iupper(0),
-                    ilower(1), iupper(1),
-#if (NDIM == 3)
-                    ilower(2), iupper(2),
-#endif
-                    U_current_sc_data->getPointer(0),
-                    U_current_sc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_current_sc_data->getPointer(2),
-#endif
-                    U_current_sc_gcw,
-                    U_current_fc_data->getPointer(0),
-                    U_current_fc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_current_fc_data->getPointer(2),
-#endif
-                    U_current_fc_gcw);
-            }
-        }
+        copy_side_to_face(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
     }
     return;
 }// initializePatchHierarhcy
@@ -970,45 +981,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
                        << "  current implementation requires either that both solvers use the same number of cycles,\n"
                        << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Index<NDIM>& ilower = patch->getBox().lower();
-                const Index<NDIM>& iupper = patch->getBox().upper();
-                Pointer<SideData<NDIM,double> > U_current_sc_data = patch->getPatchData(d_U_current_idx);
-                Pointer<FaceData<NDIM,double> > U_current_fc_data = patch->getPatchData(U_adv_diff_current_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(U_current_sc_data->getGhostCellWidth().min() == U_current_sc_data->getGhostCellWidth().max());
-                TBOX_ASSERT(U_current_fc_data->getGhostCellWidth().min() == U_current_fc_data->getGhostCellWidth().max());
-#endif
-                const int U_current_sc_gcw = U_current_sc_data->getGhostCellWidth().max();
-                const int U_current_fc_gcw = U_current_fc_data->getGhostCellWidth().max();
-                NAVIER_STOKES_SIDE_TO_FACE_FC(
-                    ilower(0), iupper(0),
-                    ilower(1), iupper(1),
-#if (NDIM == 3)
-                    ilower(2), iupper(2),
-#endif
-                    U_current_sc_data->getPointer(0),
-                    U_current_sc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_current_sc_data->getPointer(2),
-#endif
-                    U_current_sc_gcw,
-                    U_current_fc_data->getPointer(0),
-                    U_current_fc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_current_fc_data->getPointer(2),
-#endif
-                    U_current_fc_gcw);
-            }
-        }
+        copy_side_to_face(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
         const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
         d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
@@ -1081,6 +1057,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
 
     // Perform a single step of fixed point iteration.
+
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        // Update the state variables maintained by the advection-diffusion
+        // solver.
+        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
 
     // Account for the convective acceleration term.
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
@@ -1232,63 +1215,26 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     if (!d_adv_diff_hier_integrator.isNull())
     {
-        // Update the state variables maintained by the advection-diffusion
-        // solver.
-        if (d_current_num_cycles > 1)
-        {
-            d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
-        }
-
         // Update the advection velocities used by the advection-diffusion
         // solver.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Index<NDIM>& ilower = patch->getBox().lower();
-                const Index<NDIM>& iupper = patch->getBox().upper();
-                Pointer<SideData<NDIM,double> > U_new_sc_data = patch->getPatchData(d_U_new_idx);
-                Pointer<FaceData<NDIM,double> > U_new_fc_data = patch->getPatchData(U_adv_diff_new_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(U_new_sc_data->getGhostCellWidth().min() == U_new_sc_data->getGhostCellWidth().max());
-                TBOX_ASSERT(U_new_fc_data->getGhostCellWidth().min() == U_new_fc_data->getGhostCellWidth().max());
-#endif
-                const int U_new_sc_gcw = U_new_sc_data->getGhostCellWidth().max();
-                const int U_new_fc_gcw = U_new_fc_data->getGhostCellWidth().max();
-                NAVIER_STOKES_SIDE_TO_FACE_FC(
-                    ilower(0), iupper(0),
-                    ilower(1), iupper(1),
-#if (NDIM == 3)
-                    ilower(2), iupper(2),
-#endif
-                    U_new_sc_data->getPointer(0),
-                    U_new_sc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_new_sc_data->getPointer(2),
-#endif
-                    U_new_sc_gcw,
-                    U_new_fc_data->getPointer(0),
-                    U_new_fc_data->getPointer(1),
-#if (NDIM == 3)
-                    U_new_fc_data->getPointer(2),
-#endif
-                    U_new_fc_gcw);
-            }
-        }
+        const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
+        copy_side_to_face(U_adv_diff_new_idx, d_U_new_idx, d_hierarchy);
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
         d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
 
         // Update the state variables maintained by the advection-diffusion
         // solver.
-        if (d_current_num_cycles == 1)
+        //
+        // NOTE: We already performed cycle 0 above.
+        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        if (d_current_num_cycles != adv_diff_num_cycles)
         {
-            const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-            for (int cycle_num = 0; cycle_num < adv_diff_num_cycles; ++cycle_num)
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(d_current_num_cycles == 1);
+#endif
+            for (int cycle_num = 1; cycle_num < adv_diff_num_cycles; ++cycle_num)
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
             }
