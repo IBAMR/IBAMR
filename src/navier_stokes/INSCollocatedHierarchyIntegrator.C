@@ -1014,7 +1014,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
                     pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
                          << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
                          << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " only for the first cycle in each time step;\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(  convective_time_stepping_type) << " for subsequent cycles\n";
+                         << "           using " << enum_to_string<TimeSteppingType>(  convective_time_stepping_type) << " for subsequent cycles.\n";
                 }
                           );
         }
