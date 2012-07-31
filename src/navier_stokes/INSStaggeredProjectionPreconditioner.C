@@ -101,7 +101,6 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
       d_viscous_time_stepping_type(viscous_time_stepping_type),
-      d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
       d_velocity_helmholtz_solver(velocity_helmholtz_solver),
       d_pressure_poisson_solver(pressure_poisson_solver),
@@ -188,37 +187,8 @@ INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double current_time,
     const double new_time)
 {
-    const double rho    = d_problem_coefs.getRho();
-    const double mu     = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
-    double K = 0.0;
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-            K = 1.0;
-            break;
-        case FORWARD_EULER:
-            K = 0.0;
-            break;
-        case TRAPEZOIDAL_RULE:
-            K = 0.5;
-            break;
-        default:
-            TBOX_ERROR("this statment should not be reached");
-    }
-    if (MathUtilities<double>::equalEps(rho,0.0))
-    {
-        d_pressure_helmholtz_spec.setCConstant( 0.0 );
-        d_pressure_helmholtz_spec.setDConstant(-K*mu);
-    }
-    else
-    {
-        const double dt = d_new_time-d_current_time;
-        d_pressure_helmholtz_spec.setCConstant(1.0+K*dt*lambda/rho);
-        d_pressure_helmholtz_spec.setDConstant(   -K*dt*mu    /rho);
-    }
     return;
 }// setTimeInterval
 
@@ -235,8 +205,8 @@ INSStaggeredProjectionPreconditioner::solveSystem(
 
     // Problem coefficients.
     const double rho    = d_problem_coefs.getRho();
-//  const double mu     = d_problem_coefs.getMu();
-//  const double lambda = d_problem_coefs.getLambda();
+    const double mu     = d_problem_coefs.getMu();
+    const double lambda = d_problem_coefs.getLambda();
     const double dt = d_new_time-d_current_time;
 
     // Get the vector components.
@@ -276,43 +246,40 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     F_scratch_vec->addComponent(d_F_var, d_F_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Solve for u^{*}.
-    d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
+    d_velocity_helmholtz_solver->solveSystem(*U_out_vec, *U_in_vec);
 
-    // Compute F = -(rho/dt)*(P_in + div u^{*}).
-    const double div_fac = (MathUtilities<double>::equalEps(rho,0.0) || MathUtilities<double>::equalEps(dt,0.0) ? 1.0 : rho/dt);
+    // Compute F = -(P_in + div u^{*}).
     const bool u_star_cf_bdry_synch = true;
-    d_hier_math_ops->div(
-        d_F_scratch_idx, d_F_var, // dst
-        -div_fac,                 // alpha
-        U_out_idx, U_out_sc_var,  // src1
-        d_no_fill_op,             // src1_bdry_fill
-        d_new_time,               // src1_bdry_fill_time
-        u_star_cf_bdry_synch,     // src1_cf_bdry_synch
-        -div_fac,                 // beta
-        P_in_idx, P_in_cc_var);   // src2
+    d_hier_math_ops->div(d_F_scratch_idx, d_F_var, -1.0, U_out_idx, U_out_sc_var, d_no_fill_op, d_new_time, u_star_cf_bdry_synch, -1.0, P_in_idx, P_in_cc_var);
 
-    // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
-    d_pressure_poisson_solver->solveSystem(*Phi_scratch_vec,*F_scratch_vec);
+    // Solve -div grad Phi = F = -(P_in + div u^{*}).
+    d_pressure_poisson_solver->solveSystem(*Phi_scratch_vec, *F_scratch_vec);
 
     // Use Phi to project u^{*}.
     const bool u_new_cf_bdry_synch = true;
-    d_hier_math_ops->grad(
-        U_out_idx, U_out_sc_var,         // dst
-        u_new_cf_bdry_synch,             // dst_cf_bdry_synch
-        -1.0/div_fac,                    // alpha
-        d_Phi_scratch_idx, d_Phi_var,    // src1
-        d_Phi_bdry_fill_op,              // src1_bdry_fill
-        0.5*(d_current_time+d_new_time), // src1_bdry_fill_time
-        1.0,                             // beta
-        U_out_idx, U_out_sc_var);        // src2
+    d_hier_math_ops->grad(U_out_idx, U_out_sc_var, u_new_cf_bdry_synch, -1.0, d_Phi_scratch_idx, d_Phi_var, d_Phi_bdry_fill_op, 0.5*(d_current_time+d_new_time), 1.0, U_out_idx, U_out_sc_var);
 
     // Compute P_out.
-    d_hier_math_ops->laplace(
-        P_out_idx, P_out_cc_var,          // dst
-        d_pressure_helmholtz_spec,        // Poisson spec
-        d_Phi_scratch_idx, d_Phi_var,     // src
-        d_no_fill_op,                     // src_bdry_fill
-        0.5*(d_current_time+d_new_time)); // src_bdry_fill_time
+    double K;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            K = 0.0;
+            TBOX_ERROR("this statment should not be reached");
+    }
+    PoissonSpecifications pressure_helmholtz_spec("pressure_helmholtz_spec");
+    pressure_helmholtz_spec.setCConstant(rho/dt+K*lambda);
+    pressure_helmholtz_spec.setDConstant(      -K*mu    );
+    d_hier_math_ops->laplace(P_out_idx, P_out_cc_var, pressure_helmholtz_spec, d_Phi_scratch_idx, d_Phi_var, d_no_fill_op, 0.5*(d_current_time+d_new_time));
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
