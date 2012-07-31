@@ -280,7 +280,6 @@ private:
     // Problem coefficients.
     const INSProblemCoefs& d_problem_coefs;
     const TimeSteppingType d_viscous_time_stepping_type;
-    SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.
     const bool d_normalize_pressure;
