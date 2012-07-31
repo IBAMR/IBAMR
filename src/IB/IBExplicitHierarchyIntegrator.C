@@ -219,7 +219,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 IBAMR_DO_ONCE(
                     {
                         pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                             << "  WARNING: time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n";
+                             << "  WARNING: time_stepping_type = " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n";
                     }
                               );
             }
