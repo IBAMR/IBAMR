@@ -214,7 +214,15 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     switch (d_time_stepping_type)
     {
         case FORWARD_EULER:
-            // intentionally blank
+            if (cycle_num > 0)
+            {
+                IBAMR_DO_ONCE(
+                    {
+                        pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                             << "  WARNING: time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n";
+                    }
+                              );
+            }
             break;
         case MIDPOINT_RULE:
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
@@ -241,7 +249,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                        << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                       << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                       << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute the Lagrangian source/sink strengths and spread them to the
@@ -275,6 +283,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     switch (d_time_stepping_type)
     {
+        case FORWARD_EULER:
+            d_ib_method_ops->eulerStep(current_time, new_time);
+            break;
         case MIDPOINT_RULE:
             d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
@@ -288,7 +299,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                        << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                       << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                       << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute an updated prediction of the updated positions of the Lagrangian
@@ -302,6 +313,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     {
         switch (d_time_stepping_type)
         {
+            case FORWARD_EULER:
+                // intentionally blank
+                break;
             case MIDPOINT_RULE:
                 if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
                 d_ib_method_ops->midpointStep(current_time, new_time);
@@ -313,7 +327,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                            << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                           << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                           << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -341,8 +355,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                               d_ins_hier_integrator->getNewContext());
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
