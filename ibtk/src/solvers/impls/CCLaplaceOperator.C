@@ -50,14 +50,8 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <CellDataFactory.h>
-#include <CellVariable.h>
 #include <HierarchyDataOpsManager.h>
-#include <Variable.h>
-#include <tbox/Database.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -94,12 +88,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const PoissonSpecifications& poisson_spec,
     RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
-    : LaplaceOperator(
-        poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
-        std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef),
-        homogeneous_bc),
-      d_object_name(object_name),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
       d_ncomp(0),
       d_fill_pattern(NULL),
@@ -113,14 +102,9 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
+    // Configure the operator.
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoef(bc_coef);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -136,12 +120,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const PoissonSpecifications& poisson_spec,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : LaplaceOperator(
-        poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
-        bc_coefs,
-        homogeneous_bc),
-      d_object_name(object_name),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
       d_ncomp(0),
       d_fill_pattern(NULL),
@@ -155,14 +134,9 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
+    // Configure the operator.
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -178,12 +152,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const PoissonSpecifications& poisson_spec,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : LaplaceOperator(
-        poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
-        std::vector<RobinBcCoefStrategy<NDIM>*>(bc_coefs.data(),bc_coefs.data()+NDIM),
-        homogeneous_bc),
-      d_object_name(object_name),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
       d_ncomp(0),
       d_fill_pattern(NULL),
@@ -197,14 +166,9 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
+    // Configure the operator.
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -218,8 +182,6 @@ CCLaplaceOperator::CCLaplaceOperator(
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
     return;
 }// ~CCLaplaceOperator()
 

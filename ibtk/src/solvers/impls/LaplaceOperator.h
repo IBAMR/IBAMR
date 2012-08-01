@@ -42,12 +42,6 @@
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -64,9 +58,7 @@ public:
      * \brief Constructor.
      */
     LaplaceOperator(
-        SAMRAI::solv::PoissonSpecifications poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* default_bc_coef,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const std::string& object_name,
         bool homogeneous_bc=false);
 
     /*!
@@ -125,6 +117,7 @@ public:
 
 protected:
     // Problem specification.
+    const std::string d_object_name;
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;

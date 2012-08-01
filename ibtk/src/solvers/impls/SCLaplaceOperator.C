@@ -51,9 +51,6 @@
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
-#include <SideDataFactory.h>
-#include <SideVariable.h>
-#include <tbox/Database.h>
 #include <tbox/TimerManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -91,12 +88,7 @@ SCLaplaceOperator::SCLaplaceOperator(
     const PoissonSpecifications& poisson_spec,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : LaplaceOperator(
-        poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
-        std::vector<RobinBcCoefStrategy<NDIM>*>(bc_coefs.data(),bc_coefs.data()+NDIM),
-        homogeneous_bc),
-      d_object_name(object_name),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
       d_ncomp(0),
       d_fill_pattern(NULL),
@@ -110,14 +102,9 @@ SCLaplaceOperator::SCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
+    // Configure the operator.
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -131,8 +118,6 @@ SCLaplaceOperator::SCLaplaceOperator(
 SCLaplaceOperator::~SCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
     return;
 }// ~SCLaplaceOperator()
 

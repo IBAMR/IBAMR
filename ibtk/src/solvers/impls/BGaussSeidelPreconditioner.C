@@ -47,9 +47,6 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
-// C++ STDLIB INCLUDES
-#include <ostream>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

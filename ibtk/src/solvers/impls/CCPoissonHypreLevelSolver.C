@@ -52,18 +52,12 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <ArrayDataBasicOps.h>
-#include <Index.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
-#include <OutersideData.h>
-#include <SideDataFactory.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
-#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -113,8 +107,7 @@ struct IndexComp
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : PoissonSolver(PoissonSpecifications(d_object_name+"::Poisson specs"), new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,NULL)),
-      d_object_name(object_name),
+    : PoissonSolver(object_name),
       d_is_initialized(false),
       d_hierarchy(),
       d_level_num(-1),
@@ -185,20 +178,6 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
         {
             d_two_norm = input_db->getIntegerWithDefault("two_norm", d_two_norm);
         }
-    }
-
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-    d_grid_aligned_anisotropy = true;
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
 
     // Setup Timers.

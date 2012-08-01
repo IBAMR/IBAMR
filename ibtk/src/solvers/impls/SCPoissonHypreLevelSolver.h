@@ -44,28 +44,6 @@
 // IBTK INCLUDES
 #include <ibtk/PoissonSolver.h>
 
-// SAMRAI INCLUDES
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
-#include <vector>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK

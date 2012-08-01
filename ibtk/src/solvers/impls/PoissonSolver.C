@@ -47,6 +47,9 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
+// SAMRAI INCLUDES
+#include <LocationIndexRobinBcCoefs.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -56,17 +59,26 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonSolver::PoissonSolver(
-    PoissonSpecifications poisson_spec,
-    RobinBcCoefStrategy<NDIM>* default_bc_coef,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const std::string& object_name,
     bool homogeneous_bc)
     : LinearSolver(homogeneous_bc),
-      d_poisson_spec("PoissonSolver::poisson_spec"),
-      d_default_bc_coef(default_bc_coef),
-      d_bc_coefs()
+      d_object_name(object_name),
+      d_poisson_spec(d_object_name+"::poisson_spec"),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
+      d_bc_coefs(1, d_default_bc_coef)
 {
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoefs(bc_coefs);
+    // Initialize the Poisson specifications.
+    d_poisson_spec.setCZero();
+    d_poisson_spec.setDConstant(-1.0);
+
+    // Setup a default boundary condition object that specifies homogeneous
+    // Dirichlet boundary conditions.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
     return;
 }// PoissonSolver()
 

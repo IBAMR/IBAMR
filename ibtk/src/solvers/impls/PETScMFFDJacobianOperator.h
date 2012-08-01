@@ -39,7 +39,6 @@
 #include <petscmat.h>
 
 // IBTK INCLUDES
-#include <ibtk/JacobianOperator.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

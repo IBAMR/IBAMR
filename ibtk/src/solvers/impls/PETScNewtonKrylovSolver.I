@@ -36,9 +36,6 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 
-// SAMRAI INCLUDES
-#include <tbox/Utilities.h>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

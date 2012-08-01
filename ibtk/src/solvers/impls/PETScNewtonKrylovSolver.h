@@ -39,18 +39,8 @@
 #include <petscsnes.h>
 
 // IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-#include <ibtk/JacobianOperator.h>
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

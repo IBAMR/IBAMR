@@ -57,14 +57,9 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
-#include <LocationIndexRobinBcCoefs.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <map>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -147,7 +142,7 @@ struct IndexComp
 CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
-    : PoissonFACPreconditionerStrategy(object_name, PoissonSpecifications(d_object_name+"::poisson_spec"), new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<RobinBcCoefStrategy<NDIM>*>(DEFAULT_DATA_DEPTH,NULL), new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
+    : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
       d_depth(DEFAULT_DATA_DEPTH),
       d_bottom_solver(NULL),
       d_bottom_solver_db(),
@@ -177,22 +172,6 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
 
     // Configure the bottom solver.
     setCoarsestLevelSolverChoice(d_coarse_solver_choice);
-
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setPhysicalBcCoef(d_default_bc_coef);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -232,8 +211,6 @@ void
 CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
     const std::string& coarse_solver_choice)
 {
-    if (d_coarse_solver_choice != coarse_solver_choice) d_bottom_solver.setNull();
-
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
@@ -245,6 +222,7 @@ CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
                    << "  unknown coarse solver type: " << d_coarse_solver_choice << "\n"
                    << "  valid choices are: block_jacobi, hypre, petsc" << std::endl);
     }
+    if (d_coarse_solver_choice != coarse_solver_choice) d_bottom_solver.setNull();
     d_coarse_solver_choice = coarse_solver_choice;
     return;
 }// setCoarsestLevelSolverChoice

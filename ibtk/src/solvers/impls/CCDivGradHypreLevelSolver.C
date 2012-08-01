@@ -50,11 +50,7 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -53,6 +53,7 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <HierarchyDataOpsManager.h>
+#include <LocationIndexRobinBcCoefs.h>
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
@@ -78,17 +79,14 @@ static Timer* t_deallocate_operator_state;
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     const std::string& object_name,
-    PoissonSpecifications poisson_spec,
-    RobinBcCoefStrategy<NDIM>* default_bc_coef,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     Pointer<Variable<NDIM> > scratch_var,
     const int ghost_cell_width,
     const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_poisson_spec(object_name+"::poisson_spec"),
-      d_default_bc_coef(default_bc_coef),
-      d_bc_coefs(),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
+      d_bc_coefs(1, d_default_bc_coef),
       d_gcw(ghost_cell_width),
       d_solution(NULL),
       d_rhs(NULL),
@@ -123,8 +121,18 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_synch_refine_algorithm(),
       d_synch_refine_schedules()
 {
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoefs(bc_coefs);
+    // Initialize the Poisson specifications.
+    d_poisson_spec.setCZero();
+    d_poisson_spec.setDConstant(-1.0);
+
+    // Setup a default boundary condition object that specifies homogeneous
+    // Dirichlet boundary conditions.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
 
     // Get values from the input database.
     if (!input_db.isNull())
@@ -167,7 +175,8 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
                    << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
-    delete d_default_bc_coef;
+    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
+    d_default_bc_coef = NULL;
     return;
 }// ~PoissonFACPreconditionerStrategy
 

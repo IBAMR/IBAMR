@@ -42,12 +42,6 @@
 // SAMRAI INCLUDES
 #include <RefineSchedule.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK

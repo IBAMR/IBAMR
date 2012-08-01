@@ -46,7 +46,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

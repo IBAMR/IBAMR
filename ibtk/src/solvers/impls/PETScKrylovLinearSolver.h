@@ -40,17 +40,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/KrylovLinearSolver.h>
-#include <ibtk/LinearOperator.h>
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
-#include <vector>
 
 /////////////////////////////// FORWARD DECLARATION //////////////////////////
 

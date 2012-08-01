@@ -48,18 +48,15 @@
 #include <private/pcimpl.h>
 
 // IBTK INCLUDES
-#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScMatLOWrapper.h>
 #include <ibtk/PETScPCLSWrapper.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -76,9 +76,6 @@ public:
      */
     PoissonFACPreconditionerStrategy(
         const std::string& object_name,
-        SAMRAI::solv::PoissonSpecifications poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* default_bc_coef,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
         int ghost_cell_width,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);

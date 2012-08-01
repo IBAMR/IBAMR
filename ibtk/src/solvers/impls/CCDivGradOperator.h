@@ -40,14 +40,6 @@
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <PatchHierarchy.h>
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

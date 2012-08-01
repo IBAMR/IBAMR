@@ -40,7 +40,6 @@
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -237,9 +236,6 @@ private:
     CCLaplaceOperator&
     operator=(
         const CCLaplaceOperator& that);
-
-    // Housekeeping.
-    std::string d_object_name;
 
     // Operator parameters.
     bool d_is_initialized;

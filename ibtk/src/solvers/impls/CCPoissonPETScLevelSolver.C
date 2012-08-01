@@ -52,9 +52,6 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -73,30 +70,17 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
     : PETScLevelSolver(object_name, input_db),
-      PoissonSolver(PoissonSpecifications(d_object_name+"::Poisson specs"), new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,NULL)),
+      PoissonSolver(object_name),
       d_context(NULL),
       d_dof_index_idx(-1),
       d_dof_index_var(NULL),
       d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL)
 {
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_dof_index_var = new CellVariable<NDIM,int>(d_object_name + "::dof_index");
+    d_context = var_db->getContext(object_name + "::CONTEXT");
+    d_dof_index_var = new CellVariable<NDIM,int>(object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());

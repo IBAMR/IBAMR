@@ -52,10 +52,7 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

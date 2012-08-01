@@ -38,11 +38,6 @@
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
 // C++ STDLIB INCLUDES
 #include <map>
 

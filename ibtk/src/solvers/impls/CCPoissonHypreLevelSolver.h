@@ -44,26 +44,6 @@
 // IBTK INCLUDES
 #include <ibtk/PoissonSolver.h>
 
-// SAMRAI INCLUDES
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CellData.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <OutersideData.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -408,11 +388,6 @@ private:
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
         double data_time);
 #endif
-
-    /*!
-     * \brief Object name.
-     */
-    std::string d_object_name;
 
     /*!
      * \brief Solver initialization status.

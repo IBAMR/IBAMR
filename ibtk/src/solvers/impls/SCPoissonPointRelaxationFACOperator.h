@@ -39,13 +39,8 @@
 #include <petscmat.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
-#include <ibtk/SCPoissonHypreLevelSolver.h>
-#include <ibtk/SCPoissonPETScLevelSolver.h>
-
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
+#include <ibtk/PoissonSolver.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -250,18 +245,6 @@ private:
         const SCPoissonPointRelaxationFACOperator& that);
 
     /*!
-     * \brief Initialize the hypre bottom solver.
-     */
-    void
-    initializeHypreLevelSolver();
-
-    /*!
-     * \brief Initialize the PETSc bottom solver.
-     */
-    void
-    initializePETScLevelSolver();
-
-    /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch.
      */
@@ -281,12 +264,8 @@ private:
     /*
      * Coarse level solvers and solver parameters.
      */
-    bool d_using_hypre;
-    SAMRAI::tbox::Pointer<SCPoissonHypreLevelSolver> d_hypre_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hypre_db;
-    bool d_using_petsc;
-    SAMRAI::tbox::Pointer<SCPoissonPETScLevelSolver> d_petsc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_petsc_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_bottom_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_bottom_solver_db;
 
     /*
      * Patch overlap data.

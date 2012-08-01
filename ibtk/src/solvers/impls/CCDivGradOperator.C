@@ -50,14 +50,8 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <CellDataFactory.h>
-#include <CellVariable.h>
 #include <HierarchyDataOpsManager.h>
-#include <Variable.h>
-#include <tbox/Database.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
