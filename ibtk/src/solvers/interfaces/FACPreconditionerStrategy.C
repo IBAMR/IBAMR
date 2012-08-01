@@ -74,11 +74,28 @@ FACPreconditionerStrategy::setFACPreconditioner(
 }// setPreconditioner
 
 void
-FACPreconditionerStrategy::setTimeInterval(
-    const double /*current_time*/,
-    const double /*new_time*/)
+FACPreconditionerStrategy::setHomogeneousBc(
+    const bool homogeneous_bc)
 {
-    // intentionally blank
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
+
+void
+FACPreconditionerStrategy::setSolutionTime(
+    const double solution_time)
+{
+    d_solution_time = solution_time;
+    return;
+}// setSolutionTime
+
+void
+FACPreconditionerStrategy::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
     return;
 }// setTimeInterval
 

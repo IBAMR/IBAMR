@@ -181,6 +181,49 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
 }// ~PoissonFACPreconditionerStrategy
 
 void
+PoissonFACPreconditionerStrategy::setPoissonSpecifications(
+    const PoissonSpecifications& poisson_spec)
+{
+    d_poisson_spec = poisson_spec;
+    return;
+}// setPoissonSpecifications
+
+void
+PoissonFACPreconditionerStrategy::setPhysicalBcCoef(
+    RobinBcCoefStrategy<NDIM>* const bc_coef)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
+    return;
+}// setPhysicalBcCoef
+
+void
+PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+    d_bc_coefs.resize(bc_coefs.size());
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
+    {
+        if (bc_coefs[l] != NULL)
+        {
+            d_bc_coefs[l] = bc_coefs[l];
+        }
+        else
+        {
+            d_bc_coefs[l] = d_default_bc_coef;
+        }
+    }
+    return;
+}// setPhysicalBcCoefs
+
+void
+PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
+    return;
+}// setPhysicalBcCoefs
+
+void
 PoissonFACPreconditionerStrategy::setResetLevels(
     const int coarsest_ln,
     const int finest_ln)

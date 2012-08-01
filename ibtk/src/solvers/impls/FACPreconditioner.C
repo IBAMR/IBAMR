@@ -81,10 +81,29 @@ FACPreconditioner::~FACPreconditioner()
 }// ~FACPreconditioner
 
 void
+FACPreconditioner::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    LinearSolver::setHomogeneousBc(homogeneous_bc);
+    d_fac_strategy->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+void
+FACPreconditioner::setSolutionTime(
+    const double solution_time)
+{
+    LinearSolver::setSolutionTime(solution_time);
+    d_fac_strategy->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+void
 FACPreconditioner::setTimeInterval(
     const double current_time,
     const double new_time)
 {
+    LinearSolver::setTimeInterval(current_time, new_time);
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
