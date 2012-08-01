@@ -51,8 +51,6 @@
 #include <CellData.h>
 #include <SideData.h>
 
-// C++ STDLIB INCLUDES
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

@@ -54,10 +54,34 @@ PETScNewtonKrylovSolver::getPETScSNES() const
 }// getPETScSNES
 
 inline void
-PETScNewtonKrylovSolver::setTimeInterval(
-    double current_time,
-    double new_time)
+PETScNewtonKrylovSolver::setHomogeneousBc(
+    const bool homogeneous_bc)
 {
+    NewtonKrylovSolver::setHomogeneousBc(homogeneous_bc);
+    if (!d_F.isNull()) d_F->setHomogeneousBc(homogeneous_bc);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+inline void
+PETScNewtonKrylovSolver::setSolutionTime(
+    const double solution_time)
+{
+    NewtonKrylovSolver::setSolutionTime(solution_time);
+    if (!d_F.isNull()) d_F->setSolutionTime(solution_time);
+    if (!d_J.isNull()) d_J->setSolutionTime(solution_time);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+inline void
+PETScNewtonKrylovSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    NewtonKrylovSolver::setTimeInterval(current_time, new_time);
+    if (!d_F.isNull()) d_F->setTimeInterval(current_time, new_time);
+    if (!d_J.isNull()) d_J->setTimeInterval(current_time, new_time);
     if (!d_krylov_solver.isNull()) d_krylov_solver->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
@@ -66,9 +90,12 @@ inline void
 PETScNewtonKrylovSolver::setOperator(
     SAMRAI::tbox::Pointer<GeneralOperator> F)
 {
+    d_user_provided_function = true;
     SAMRAI::tbox::Pointer<GeneralOperator> F_old = d_F;
     d_F = F;
-    d_user_provided_function = true;
+    d_F->setHomogeneousBc(d_homogeneous_bc);
+    d_F->setSolutionTime(d_solution_time);
+    d_F->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_F != F_old) && !d_F.isNull()) d_F->initializeOperatorState(*d_solver_x, *d_solver_b);
     resetSNESFunction();
     return;
@@ -100,9 +127,12 @@ inline void
 PETScNewtonKrylovSolver::setJacobian(
     SAMRAI::tbox::Pointer<JacobianOperator> J)
 {
+    d_user_provided_jacobian = true;
     SAMRAI::tbox::Pointer<JacobianOperator> J_old = d_J;
     d_J = J;
-    d_user_provided_jacobian = true;
+    d_J->setHomogeneousBc(true);
+    d_J->setSolutionTime(d_solution_time);
+    d_J->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_J != J_old) && !d_J.isNull()) d_J->initializeOperatorState(*d_solver_x, *d_solver_b);
     resetSNESJacobian();
     return;

@@ -56,6 +56,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
@@ -63,12 +64,10 @@
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/SCLaplaceOperator.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
-
-// C++ STDLIB INCLUDES
-#include <limits>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -1700,7 +1699,8 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_op->setPoissonSpecifications(regrid_projection_spec);
     regrid_projection_op->setPhysicalBcCoef(&Phi_bc_coef);
     regrid_projection_op->setHomogeneousBc(true);
-    regrid_projection_op->setTime(d_integrator_time);
+    regrid_projection_op->setSolutionTime(d_integrator_time);
+    regrid_projection_op->setTimeInterval(d_integrator_time, d_integrator_time);
     regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
 
     if (d_regrid_projection_fac_pc_db.isNull())
@@ -1711,7 +1711,8 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     Pointer<CCPoissonPointRelaxationFACOperator> regrid_projection_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Regrid Projection FAC Operator", d_regrid_projection_fac_pc_db);
     regrid_projection_fac_op->setPoissonSpecifications(regrid_projection_spec);
     regrid_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
-    regrid_projection_fac_op->setTime(d_integrator_time);
+    regrid_projection_fac_op->setSolutionTime(d_integrator_time);
+    regrid_projection_fac_op->setTimeInterval(d_integrator_time, d_integrator_time);
     Pointer<FACPreconditioner> regrid_projection_fac_pc = new FACPreconditioner(d_object_name+"::Regrid Projection Preconditioner", regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
 
     PETScKrylovLinearSolver regrid_projection_solver(d_object_name+"::Regrid Projection Krylov Solver", regrid_projection_prefix);
@@ -1940,7 +1941,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_op->setPoissonSpecifications(*d_velocity_spec);
         d_velocity_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_op->setHomogeneousBc(true);
-        d_velocity_op->setTime(new_time);
+        d_velocity_op->setSolutionTime(new_time);
+        d_velocity_op->setTimeInterval(current_time, new_time);
         d_velocity_op->setHierarchyMathOps(d_hier_math_ops);
 
         if (!d_velocity_hypre_pc.isNull())
@@ -1948,14 +1950,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             d_velocity_hypre_pc->setPoissonSpecifications(*d_velocity_spec);
             d_velocity_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
             d_velocity_hypre_pc->setHomogeneousBc(true);
-            d_velocity_hypre_pc->setTime(new_time);
+            d_velocity_hypre_pc->setSolutionTime(new_time);
+            d_velocity_hypre_pc->setTimeInterval(current_time, new_time);
         }
 
         if (!d_velocity_fac_op.isNull())
         {
             d_velocity_fac_op->setPoissonSpecifications(*d_velocity_spec);
             d_velocity_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-            d_velocity_fac_op->setTime(new_time);
+            d_velocity_fac_op->setSolutionTime(new_time);
+            d_velocity_fac_op->setTimeInterval(current_time, new_time);
             if (!(d_velocity_solver_needs_reinit_when_dt_changes && dt_change)) d_velocity_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
         }
 
@@ -1982,7 +1986,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_op->setPoissonSpecifications(*d_pressure_spec);
         d_pressure_op->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_op->setHomogeneousBc(true);
-        d_pressure_op->setTime(current_time+0.5*dt);
+        d_pressure_op->setSolutionTime(current_time+0.5*dt);
+        d_pressure_op->setTimeInterval(current_time, new_time);
         d_pressure_op->setHierarchyMathOps(d_hier_math_ops);
 
         if (!d_pressure_hypre_pc.isNull())
@@ -1990,14 +1995,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             d_pressure_hypre_pc->setPoissonSpecifications(*d_pressure_spec);
             d_pressure_hypre_pc->setPhysicalBcCoef(d_Phi_bc_coef);
             d_pressure_hypre_pc->setHomogeneousBc(true);
-            d_pressure_hypre_pc->setTime(current_time+0.5*dt);
+            d_pressure_hypre_pc->setSolutionTime(current_time+0.5*dt);
+            d_pressure_hypre_pc->setTimeInterval(current_time, new_time);
         }
 
         if (!d_pressure_fac_op.isNull())
         {
             d_pressure_fac_op->setPoissonSpecifications(*d_pressure_spec);
             d_pressure_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-            d_pressure_fac_op->setTime(current_time+0.5*dt);
+            d_pressure_fac_op->setSolutionTime(current_time+0.5*dt);
+            d_pressure_fac_op->setTimeInterval(current_time, new_time);
             if (!(d_pressure_solver_needs_reinit_when_dt_changes && dt_change)) d_pressure_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
         }
 

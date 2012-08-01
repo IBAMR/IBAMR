@@ -51,9 +51,6 @@
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -97,8 +94,6 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     Pointer<HierarchyMathOps> hier_math_ops)
     : d_do_log(false),
       d_is_initialized(false),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
       d_viscous_time_stepping_type(viscous_time_stepping_type),
       d_normalize_pressure(normalize_pressure),
@@ -181,16 +176,6 @@ INSStaggeredProjectionPreconditioner::~INSStaggeredProjectionPreconditioner()
     deallocateSolverState();
     return;
 }// ~INSStaggeredProjectionPreconditioner
-
-void
-INSStaggeredProjectionPreconditioner::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    return;
-}// setTimeInterval
 
 bool
 INSStaggeredProjectionPreconditioner::solveSystem(

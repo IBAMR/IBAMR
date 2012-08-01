@@ -54,9 +54,13 @@ class LinearSolver
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Default constructor.
      */
-    LinearSolver();
+    LinearSolver(
+        bool homogeneous_bc=false,
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty virtual destructor.

@@ -85,6 +85,48 @@ public:
      */
     CartSideRobinPhysBdryOp(
         int patch_data_index,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        bool homogeneous_bc=false);
+
+    /*!
+     * \brief Constructor to fill boundary conditions for vector-valued
+     * quantities.  Distinct boundary condition objects are provided for each
+     * vector component.
+     *
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param bc_coefs            Robin boundary conditions to use with this class.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     */
+    CartSideRobinPhysBdryOp(
+        const std::set<int>& patch_data_indices,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        bool homogeneous_bc=false);
+
+    /*!
+     * \brief Constructor to fill boundary conditions for vector-valued
+     * quantities.  Distinct boundary condition objects are provided for each
+     * vector component.
+     *
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param bc_coefs            Robin boundary conditions to use with this class.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     */
+    CartSideRobinPhysBdryOp(
+        const SAMRAI::hier::ComponentSelector& patch_data_indices,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        bool homogeneous_bc=false);
+
+    /*!
+     * \brief Constructor to fill boundary conditions for vector-valued
+     * quantities.  Distinct boundary condition objects are provided for each
+     * vector component.
+     *
+     * \param patch_data_index  Patch data index requiring ghost cell filling.
+     * \param bc_coefs          Robin boundary conditions to use with this class.
+     * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary conditions.
+     */
+    CartSideRobinPhysBdryOp(
+        int patch_data_index,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         bool homogeneous_bc=false);
 

@@ -118,11 +118,8 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
-    : PoissonFACPreconditionerStrategy(object_name, new SideVariable<NDIM,double>(object_name+"::side_scratch", DEFAULT_DATA_DEPTH), SIDEG, input_db),
+    : PoissonFACPreconditionerStrategy(object_name, PoissonSpecifications(object_name+"::poisson_spec"), new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,NULL), new SideVariable<NDIM,double>(object_name+"::side_scratch", DEFAULT_DATA_DEPTH), SIDEG, input_db),
       d_depth(DEFAULT_DATA_DEPTH),
-      d_poisson_spec(object_name+"::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_bc_coef)),
       d_using_hypre(false),
       d_hypre_solver(NULL),
       d_hypre_db(),
@@ -156,8 +153,9 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
 
     // Initialize the boundary conditions objects.
@@ -175,35 +173,8 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
 SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_bc_coef;
     return;
 }// ~SCPoissonPointRelaxationFACOperator
-
-void
-SCPoissonPointRelaxationFACOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-SCPoissonPointRelaxationFACOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
 
 void
 SCPoissonPointRelaxationFACOperator::setSmootherChoice(
@@ -449,7 +420,8 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
                 TBOX_ERROR("SCPoissonPointRelaxationFACOperator::solveCoarsestLevel()\n"
                            << "  hypre level solver does not support non-scalar-valued data" << std::endl);
             }
-            d_hypre_solver->setTime(d_time);
+            d_hypre_solver->setSolutionTime(d_solution_time);
+            d_hypre_solver->setTimeInterval(d_current_time, d_new_time);
             d_hypre_solver->setInitialGuessNonzero(true);
             d_hypre_solver->setMaxIterations(d_coarse_solver_max_its);
             d_hypre_solver->setRelativeTolerance(d_coarse_solver_tol);
@@ -457,7 +429,8 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         }
         else if (d_using_petsc)
         {
-            d_petsc_solver->setTime(d_time);
+            d_petsc_solver->setSolutionTime(d_solution_time);
+            d_petsc_solver->setTimeInterval(d_current_time, d_new_time);
             d_petsc_solver->setInitialGuessNonzero(true);
             d_petsc_solver->setMaxIterations(d_coarse_solver_max_its);
             d_petsc_solver->setRelativeTolerance(d_coarse_solver_tol);
@@ -504,7 +477,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(
         d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
     d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
-    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_time);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
 
     // Compute the residual, r = f - A*u.
     if (d_hier_math_ops[finest_level_num].isNull())
@@ -513,7 +486,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_time);
+    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
     HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -696,7 +669,8 @@ SCPoissonPointRelaxationFACOperator::initializeHypreLevelSolver()
     // Note that since the bottom solver is solving for the error, it must
     // always employ homogeneous boundary conditions.
     d_hypre_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_hypre_db);
-    d_hypre_solver->setTime(d_time);
+    d_hypre_solver->setSolutionTime(d_solution_time);
+    d_hypre_solver->setTimeInterval(d_current_time, d_new_time);
     d_hypre_solver->setPoissonSpecifications(d_poisson_spec);
     d_hypre_solver->setPhysicalBcCoefs(d_bc_coefs);
     d_hypre_solver->setHomogeneousBc(true);
@@ -721,7 +695,8 @@ SCPoissonPointRelaxationFACOperator::initializePETScLevelSolver()
     // Note that since the bottom solver is solving for the error, it must
     // always employ homogeneous boundary conditions.
     d_petsc_solver = new SCPoissonPETScLevelSolver(d_object_name+"::petsc_solver", d_petsc_db);
-    d_petsc_solver->setTime(d_time);
+    d_petsc_solver->setSolutionTime(d_solution_time);
+    d_petsc_solver->setTimeInterval(d_current_time, d_new_time);
     d_petsc_solver->setPoissonSpecifications(d_poisson_spec);
     d_petsc_solver->setPhysicalBcCoefs(d_bc_coefs);
     d_petsc_solver->setHomogeneousBc(true);

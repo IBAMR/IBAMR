@@ -56,8 +56,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearOperator::LinearOperator(
-    bool homogeneous_bc)
-    : d_homogeneous_bc(homogeneous_bc),
+    bool homogeneous_bc,
+    double solution_time,
+    double current_time,
+    double new_time)
+    : GeneralOperator(homogeneous_bc, solution_time, current_time, new_time),
       d_correcting_rhs(false)
 {
     // intentionally blank
@@ -69,20 +72,6 @@ LinearOperator::~LinearOperator()
     deallocateOperatorState();
     return;
 }// ~LinearOperator()
-
-void
-LinearOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-bool
-LinearOperator::getHomogeneousBc()
-{
-    return d_homogeneous_bc;
-}// getHomogeneousBc
 
 void
 LinearOperator::modifyRhsForInhomogeneousBc(

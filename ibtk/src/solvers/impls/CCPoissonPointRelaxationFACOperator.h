@@ -39,13 +39,8 @@
 #include <petscmat.h>
 
 // IBTK INCLUDES
-#include <ibtk/CCPoissonHypreLevelSolver.h>
-#include <ibtk/CCPoissonPETScLevelSolver.h>
-#include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
-
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
+#include <ibtk/PoissonSolver.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -109,62 +104,6 @@ public:
      * \brief Destructor.
      */
     ~CCPoissonPointRelaxationFACOperator();
-
-    /*!
-     * \name Functions for specifying the Poisson problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar Poisson equation.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    //\}
 
     /*!
      * \name Functions for configuring the solver.
@@ -306,18 +245,6 @@ private:
         const CCPoissonPointRelaxationFACOperator& that);
 
     /*!
-     * \brief Initialize the hypre bottom solvers.
-     */
-    void
-    initializeHypreLevelSolvers();
-
-    /*!
-     * \brief Initialize the PETSc bottom solver.
-     */
-    void
-    initializePETScLevelSolver();
-
-    /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch.
      */
@@ -358,25 +285,10 @@ private:
     int d_depth;
 
     /*
-     * Scalar Poisson equations specifications.
-     */
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-
-    /*
-     * Boundary condition specification objects.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-
-    /*
      * Coarse level solvers and solver parameters.
      */
-    bool d_using_hypre;
-    std::vector<SAMRAI::tbox::Pointer<CCPoissonHypreLevelSolver> > d_hypre_solvers;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hypre_db;
-    bool d_using_petsc;
-    SAMRAI::tbox::Pointer<CCPoissonPETScLevelSolver> d_petsc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_petsc_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_bottom_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_bottom_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.

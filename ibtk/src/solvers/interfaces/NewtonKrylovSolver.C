@@ -55,7 +55,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NewtonKrylovSolver::NewtonKrylovSolver()
+NewtonKrylovSolver::NewtonKrylovSolver(
+    bool homogeneous_bc,
+    double solution_time,
+    double current_time,
+    double new_time)
+    : GeneralSolver(homogeneous_bc, solution_time, current_time, new_time)
 {
     // intentionally blank
     return;

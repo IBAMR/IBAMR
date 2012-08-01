@@ -53,9 +53,6 @@
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -99,8 +96,6 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     : LinearOperator(homogeneous_bc),
       d_object_name(object_name),
       d_is_initialized(false),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_U_fill_pattern(NULL),
       d_P_fill_pattern(NULL),
       d_transaction_comps(),
@@ -110,7 +105,6 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_b(NULL),
       d_problem_coefs(problem_coefs),
       d_viscous_time_stepping_type(viscous_time_stepping_type),
-      d_helmholtz_spec(d_object_name+"::helmholtz_spec"),
       d_U_bc_coefs(U_bc_coefs),
       d_U_bc_helper(U_bc_helper),
       d_P_bc_coef(P_bc_coef),
@@ -143,37 +137,6 @@ INSStaggeredStokesOperator::~INSStaggeredStokesOperator()
     deallocateOperatorState();
     return;
 }// ~INSStaggeredStokesOperator
-
-void
-INSStaggeredStokesOperator::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    const double rho    = d_problem_coefs->getRho();
-    const double mu     = d_problem_coefs->getMu();
-    const double lambda = d_problem_coefs->getLambda();
-    d_current_time = current_time;
-    d_new_time = new_time;
-    const double dt = d_new_time-d_current_time;
-    double K = 0.0;
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-            K = 1.0;
-            break;
-        case FORWARD_EULER:
-            K = 0.0;
-            break;
-        case TRAPEZOIDAL_RULE:
-            K = 0.5;
-            break;
-        default:
-            TBOX_ERROR("this statment should not be reached");
-    }
-    d_helmholtz_spec.setCConstant((rho/dt)+K*lambda);
-    d_helmholtz_spec.setDConstant(        -K*mu    );
-    return;
-}// setTimeInterval
 
 void
 INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
@@ -225,9 +188,32 @@ INSStaggeredStokesOperator::apply(
     //
     //    A*[u;p] = [((rho/dt)*I-K*mu*L)*u + grad p; -div u]
     //
-    // where K is determined by the viscous time stepping scheme (see above).
+    // where K is determined by the viscous time stepping scheme.
+    const double rho    = d_problem_coefs->getRho();
+    const double mu     = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
+    const double dt = d_new_time-d_current_time;
+    double K;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            K = 0;
+            TBOX_ERROR("this statment should not be reached");
+    }
+    PoissonSpecifications helmholtz_spec("helmholtz_spec");
+    helmholtz_spec.setCConstant((rho/dt)+K*lambda);
+    helmholtz_spec.setDConstant(        -K*mu    );
     d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
+    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
     if (homogeneous_bc) d_U_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
 

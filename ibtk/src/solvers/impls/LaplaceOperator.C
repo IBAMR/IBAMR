@@ -61,7 +61,6 @@ LaplaceOperator::LaplaceOperator(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     bool homogeneous_bc)
     : LinearOperator(homogeneous_bc),
-      d_apply_time(0.0),
       d_poisson_spec("LaplaceOperator::poisson_spec"),
       d_default_bc_coef(default_bc_coef),
       d_bc_coefs()
@@ -121,14 +120,6 @@ LaplaceOperator::setPhysicalBcCoefs(
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
-
-void
-LaplaceOperator::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

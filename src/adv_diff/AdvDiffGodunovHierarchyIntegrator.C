@@ -51,9 +51,6 @@
 // SAMRAI INCLUDES
 #include <tbox/NullDatabase.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -440,15 +437,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         d_hier_bdry_fill_ops[l]->fillData(current_time);
         for (int depth = 0; depth < Q_depth; ++depth)
         {
-            d_hier_math_ops->laplace(
-                Q_rhs_scratch_idx, Q_rhs_var,  // Q_rhs(n+1/2)
-                rhs_spec,                      // Poisson spec
-                Q_scratch_idx    , Q_var    ,  // Q(n)
-                d_no_fill_op,                  // don't need to re-fill Q(n) data
-                current_time,                  // Q(n) bdry fill time
-                dt,                            // gamma
-                Q_new_idx        , Q_var    ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                depth, depth, depth);          // dst_depth, src1_depth, src2_depth
+            d_hier_math_ops->laplace(Q_rhs_scratch_idx, Q_rhs_var, rhs_spec, Q_scratch_idx, Q_var, d_no_fill_op, current_time, dt, Q_new_idx, Q_var, depth, depth, depth);
         }
 
         // Initialize the linear solver.
@@ -456,7 +445,8 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
         helmholtz_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_op->setHomogeneousBc(false);
-        helmholtz_op->setTime(new_time);
+        helmholtz_op->setSolutionTime(new_time);
+        helmholtz_op->setTimeInterval(current_time, new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
         Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
         Pointer<FACPreconditioner>                   helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
@@ -469,7 +459,8 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             if (d_using_FAC)
             {
                 helmholtz_fac_op->setPoissonSpecifications(helmholtz_spec);
-                helmholtz_fac_op->setTime(new_time);
+                helmholtz_fac_op->setSolutionTime(new_time);
+                helmholtz_fac_op->setTimeInterval(current_time, new_time);
                 helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
@@ -477,8 +468,13 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
 
         // Solve for Q(n+1).
-        helmholtz_op->setTime(new_time);
-        if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
+        helmholtz_op->setSolutionTime(new_time);
+        helmholtz_op->setTimeInterval(current_time, new_time);
+        if (d_using_FAC)
+        {
+            helmholtz_fac_op->setSolutionTime(new_time);
+            helmholtz_fac_op->setTimeInterval(current_time, new_time);\
+        }
         helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
         if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";

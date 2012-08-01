@@ -56,9 +56,6 @@
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

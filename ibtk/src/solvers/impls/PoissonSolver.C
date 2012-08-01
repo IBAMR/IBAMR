@@ -60,8 +60,7 @@ PoissonSolver::PoissonSolver(
     RobinBcCoefStrategy<NDIM>* default_bc_coef,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     bool homogeneous_bc)
-    : LinearOperator(homogeneous_bc),
-      d_time(0.0),
+    : LinearSolver(homogeneous_bc),
       d_poisson_spec("PoissonSolver::poisson_spec"),
       d_default_bc_coef(default_bc_coef),
       d_bc_coefs()
@@ -73,7 +72,7 @@ PoissonSolver::PoissonSolver(
 
 PoissonSolver::~PoissonSolver()
 {
-    deallocateOperatorState();
+    deallocateSolverState();
     if (d_default_bc_coef != NULL) delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
@@ -121,14 +120,6 @@ PoissonSolver::setPhysicalBcCoefs(
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
-
-void
-PoissonSolver::setTime(
-    const double time)
-{
-    d_time = time;
-    return;
-}// setTime
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

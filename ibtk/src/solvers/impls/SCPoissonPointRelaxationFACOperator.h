@@ -111,35 +111,6 @@ public:
     ~SCPoissonPointRelaxationFACOperator();
 
     /*!
-     * \name Functions for specifying the Poisson problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar Poisson equation.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    //\}
-
-    /*!
      * \name Functions for configuring the solver.
      */
     //\{
@@ -306,17 +277,6 @@ private:
      * Data depth.
      */
     int d_depth;
-
-    /*
-     * Scalar Poisson equations specifications.
-     */
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-
-    /*
-     * Boundary condition specification objects.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
 
     /*
      * Coarse level solvers and solver parameters.

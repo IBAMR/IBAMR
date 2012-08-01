@@ -80,8 +80,6 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
     const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
-      d_current_time(0.0),
-      d_new_time(0.0),
       d_gcw(ghost_cell_width),
       d_solution(NULL),
       d_rhs(NULL),
@@ -178,16 +176,6 @@ INSStaggeredFACPreconditionerStrategy::~INSStaggeredFACPreconditionerStrategy()
     }
     return;
 }// ~INSStaggeredFACPreconditionerStrategy
-
-void
-INSStaggeredFACPreconditionerStrategy::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    return;
-}// setTimeInterval
 
 void
 INSStaggeredFACPreconditionerStrategy::setResetLevels(

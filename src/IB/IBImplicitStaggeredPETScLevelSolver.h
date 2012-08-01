@@ -85,22 +85,6 @@ public:
     ~IBImplicitStaggeredPETScLevelSolver();
 
     /*!
-     * \brief Set the current time interval, for use with the refinement
-     * schedules and boundary condition routines employed by the object.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
      * \brief Initialize the operator.
      */
     void
@@ -221,8 +205,6 @@ private:
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_u_bc_coef;
     blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
-    bool d_homogeneous_bc;
-    double d_current_time, d_new_time;
 
     //\}
 

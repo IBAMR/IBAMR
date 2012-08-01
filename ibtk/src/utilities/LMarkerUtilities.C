@@ -44,9 +44,6 @@
 #define included_SAMRAI_config
 #endif
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>

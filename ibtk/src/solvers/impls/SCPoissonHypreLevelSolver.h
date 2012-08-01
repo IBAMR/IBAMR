@@ -42,7 +42,7 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <ibtk/PoissonSolver.h>
 
 // SAMRAI INCLUDES
 #include <BoundaryBox.h>
@@ -109,7 +109,7 @@ namespace IBTK
  * http://www.llnl.gov/CASC/linear_solvers</A>.
  */
 class SCPoissonHypreLevelSolver
-    : public LinearSolver
+    : public PoissonSolver
 {
 public:
     /*!
@@ -126,49 +126,6 @@ public:
      * \brief Destructor.
      */
     ~SCPoissonHypreLevelSolver();
-
-    /*!
-     * \name Functions for specifying the Poisson problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the scalar Poisson equation specifications.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        double time);
-
-    //\}
 
     /*!
      * \name Linear solver functionality.
@@ -446,23 +403,6 @@ private:
      * Currently, this must be level number 0.
      */
     int d_level_num;
-
-    /*!
-     * \name Problem specification and boundary condition handling.
-     */
-    //\{
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-
-    /*!
-     * \brief Robin boundary coefficient object for physical boundaries and
-     * related data.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
-    bool d_homogeneous_bc;
-    double d_apply_time;
-
-    //\}
 
     /*!
      * \name hypre objects.

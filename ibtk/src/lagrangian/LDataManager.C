@@ -84,7 +84,6 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 #include <functional>
-#include <limits>
 #include <numeric>
 #include <set>
 

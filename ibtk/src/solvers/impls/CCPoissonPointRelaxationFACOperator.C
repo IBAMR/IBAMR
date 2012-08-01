@@ -45,6 +45,8 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/CCPoissonHypreLevelSolver.h>
+#include <ibtk/CCPoissonPETScLevelSolver.h>
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CellNoCornersFillPattern.h>
@@ -55,6 +57,7 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
+#include <LocationIndexRobinBcCoefs.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -144,17 +147,10 @@ struct IndexComp
 CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
-    : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
+    : PoissonFACPreconditionerStrategy(object_name, PoissonSpecifications(d_object_name+"::poisson_spec"), new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<RobinBcCoefStrategy<NDIM>*>(DEFAULT_DATA_DEPTH,NULL), new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
       d_depth(DEFAULT_DATA_DEPTH),
-      d_poisson_spec(object_name+"::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,d_default_bc_coef)),
-      d_using_hypre(false),
-      d_hypre_solvers(d_depth),
-      d_hypre_db(),
-      d_using_petsc(false),
-      d_petsc_solver(NULL),
-      d_petsc_db(),
+      d_bottom_solver(NULL),
+      d_bottom_solver_db(),
       d_using_petsc_smoothers(true),
       d_patch_vec_e(),
       d_patch_vec_f(),
@@ -165,13 +161,17 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     // Get values from the input database.
     if (!input_db.isNull())
     {
+        if (input_db->isDatabase("bottom_solver"))
+        {
+            d_bottom_solver_db = input_db->getDatabase("bottom_solver");
+        }
         if (input_db->isDatabase("hypre_solver"))
         {
-            d_hypre_db = input_db->getDatabase("hypre_solver");
+            d_bottom_solver_db = input_db->getDatabase("hypre_solver");
         }
         if (input_db->isDatabase("petsc_solver"))
         {
-            d_petsc_db = input_db->getDatabase("petsc_solver");
+            d_bottom_solver_db = input_db->getDatabase("petsc_solver");
         }
     }
 
@@ -186,8 +186,9 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
 
     // Initialize the boundary conditions objects.
@@ -205,52 +206,8 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
 CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_bc_coef;
     return;
 }// ~CCPoissonPointRelaxationFACOperator
-
-void
-CCPoissonPointRelaxationFACOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-CCPoissonPointRelaxationFACOperator::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* const bc_coef)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
-    return;
-}// setPhysicalBcCoef
-
-void
-CCPoissonPointRelaxationFACOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
-    {
-        if (bc_coefs[l] != NULL)
-        {
-            d_bc_coefs[l] = bc_coefs[l];
-        }
-        else
-        {
-            d_bc_coefs[l] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-CCPoissonPointRelaxationFACOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
-    return;
-}// setPhysicalBcCoefs
 
 void
 CCPoissonPointRelaxationFACOperator::setSmootherChoice(
@@ -275,6 +232,8 @@ void
 CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
     const std::string& coarse_solver_choice)
 {
+    if (d_coarse_solver_choice != coarse_solver_choice) d_bottom_solver.setNull();
+
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
@@ -287,26 +246,6 @@ CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
                    << "  valid choices are: block_jacobi, hypre, petsc" << std::endl);
     }
     d_coarse_solver_choice = coarse_solver_choice;
-
-    if (d_coarse_solver_choice == "hypre")
-    {
-        d_using_hypre = true;
-    }
-    else
-    {
-        d_using_hypre = false;
-        d_hypre_solvers.clear();
-    }
-
-    if (d_coarse_solver_choice == "petsc")
-    {
-        d_using_petsc = true;
-    }
-    else
-    {
-        d_using_petsc = false;
-        d_petsc_solver.setNull();
-    }
     return;
 }// setCoarsestLevelSolverChoice
 
@@ -509,7 +448,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (!d_using_hypre && !d_using_petsc)
+    if (d_bottom_solver.isNull())
     {
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
     }
@@ -525,25 +464,12 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         {
             residual_level.addComponent(residual.getComponentVariable(comp), residual.getComponentDescriptorIndex(comp), residual.getControlVolumeIndex(comp));
         }
-        if (d_using_hypre)
-        {
-            for (int depth = 0; depth < d_depth; ++depth)
-            {
-                d_hypre_solvers[depth]->setTime(d_time);
-                d_hypre_solvers[depth]->setInitialGuessNonzero(true);
-                d_hypre_solvers[depth]->setMaxIterations(d_coarse_solver_max_its);
-                d_hypre_solvers[depth]->setRelativeTolerance(d_coarse_solver_tol);
-                d_hypre_solvers[depth]->solveSystem(error_level,residual_level);
-            }
-        }
-        else if (d_using_petsc)
-        {
-            d_petsc_solver->setTime(d_time);
-            d_petsc_solver->setInitialGuessNonzero(true);
-            d_petsc_solver->setMaxIterations(d_coarse_solver_max_its);
-            d_petsc_solver->setRelativeTolerance(d_coarse_solver_tol);
-            d_petsc_solver->solveSystem(error_level,residual_level);
-        }
+        d_bottom_solver->setSolutionTime(d_solution_time);
+        d_bottom_solver->setTimeInterval(d_current_time, d_new_time);
+        d_bottom_solver->setInitialGuessNonzero(true);
+        d_bottom_solver->setMaxIterations(d_coarse_solver_max_its);
+        d_bottom_solver->setRelativeTolerance(d_coarse_solver_tol);
+        d_bottom_solver->solveSystem(error_level, residual_level);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
@@ -581,7 +507,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
         d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
     d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
-    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_time);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
 
     // Compute the residual, r = f - A*u.
     if (d_hier_math_ops[finest_level_num].isNull())
@@ -590,7 +516,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_time);
+    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
     HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -640,10 +566,35 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize the bottom solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln)
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "block_jacobi")
     {
-        if (d_using_hypre) initializeHypreLevelSolvers();
-        if (d_using_petsc) initializePETScLevelSolver();
+        SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
+        for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
+        {
+            solution_level.addComponent(d_solution->getComponentVariable(comp), d_solution->getComponentDescriptorIndex(comp), d_solution->getControlVolumeIndex(comp));
+        }
+        SAMRAIVectorReal<NDIM,double> rhs_level(d_rhs->getName()+"::level", d_rhs->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
+        for (int comp = 0; comp < d_rhs->getNumberOfComponents(); ++comp)
+        {
+            rhs_level.addComponent(d_rhs->getComponentVariable(comp), d_rhs->getComponentDescriptorIndex(comp), d_rhs->getControlVolumeIndex(comp));
+        }
+
+        // Note that since the bottom solver is solving for the error, it must
+        // always employ homogeneous boundary conditions.
+        if (d_coarse_solver_choice == "hypre")
+        {
+            d_bottom_solver = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_bottom_solver_db);
+        }
+        else if (d_coarse_solver_choice == "petsc")
+        {
+            d_bottom_solver = new CCPoissonPETScLevelSolver(d_object_name+"::petsc_solver", d_bottom_solver_db);
+        }
+        d_bottom_solver->setSolutionTime(d_solution_time);
+        d_bottom_solver->setTimeInterval(d_current_time, d_new_time);
+        d_bottom_solver->setPoissonSpecifications(d_poisson_spec);
+        d_bottom_solver->setPhysicalBcCoefs(d_bc_coefs);
+        d_bottom_solver->setHomogeneousBc(true);
+        d_bottom_solver->initializeSolverState(solution_level, rhs_level);
     }
 
     // Setup specialized transfer operators.
@@ -797,79 +748,12 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
         d_patch_mat.clear();
         d_patch_bc_box_overlap.clear();
         d_patch_smoother_bc_boxes.clear();
-        if (d_using_hypre)
-        {
-            for (int depth = 0; depth < d_depth; ++depth)
-            {
-                d_hypre_solvers[depth]->deallocateSolverState();
-            }
-        }
-        if (d_using_petsc)
-        {
-            d_petsc_solver->deallocateSolverState();
-        }
+        d_bottom_solver->deallocateSolverState();
     }
     return;
 }// deallocateOperatorStateSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-CCPoissonPointRelaxationFACOperator::initializeHypreLevelSolvers()
-{
-    SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-    for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
-    {
-        solution_level.addComponent(d_solution->getComponentVariable(comp), d_solution->getComponentDescriptorIndex(comp), d_solution->getControlVolumeIndex(comp));
-    }
-    SAMRAIVectorReal<NDIM,double> rhs_level(d_rhs->getName()+"::level", d_rhs->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-    for (int comp = 0; comp < d_rhs->getNumberOfComponents(); ++comp)
-    {
-        rhs_level.addComponent(d_rhs->getComponentVariable(comp), d_rhs->getComponentDescriptorIndex(comp), d_rhs->getControlVolumeIndex(comp));
-    }
-
-    // Note that since the bottom solver is solving for the error, it must
-    // always employ homogeneous boundary conditions.
-    d_hypre_solvers.resize(d_depth);
-    for (int depth = 0; depth < d_depth; ++depth)
-    {
-        std::ostringstream stream;
-        stream << depth;
-        d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
-        d_hypre_solvers[depth]->setDataDepth(depth);
-        d_hypre_solvers[depth]->setTime(d_time);
-        d_hypre_solvers[depth]->setPoissonSpecifications(d_poisson_spec);
-        d_hypre_solvers[depth]->setPhysicalBcCoef(d_bc_coefs[depth]);
-        d_hypre_solvers[depth]->setHomogeneousBc(true);
-        d_hypre_solvers[depth]->initializeSolverState(solution_level, rhs_level);
-    }
-    return;
-}// initializeHypreLevelSolvers
-
-void
-CCPoissonPointRelaxationFACOperator::initializePETScLevelSolver()
-{
-    SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-    for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
-    {
-        solution_level.addComponent(d_solution->getComponentVariable(comp), d_solution->getComponentDescriptorIndex(comp), d_solution->getControlVolumeIndex(comp));
-    }
-    SAMRAIVectorReal<NDIM,double> rhs_level(d_rhs->getName()+"::level", d_rhs->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-    for (int comp = 0; comp < d_rhs->getNumberOfComponents(); ++comp)
-    {
-        rhs_level.addComponent(d_rhs->getComponentVariable(comp), d_rhs->getComponentDescriptorIndex(comp), d_rhs->getControlVolumeIndex(comp));
-    }
-
-    // Note that since the bottom solver is solving for the error, it must
-    // always employ homogeneous boundary conditions.
-    d_petsc_solver = new CCPoissonPETScLevelSolver(d_object_name+"::petsc_solver", d_petsc_db);
-    d_petsc_solver->setTime(d_time);
-    d_petsc_solver->setPoissonSpecifications(d_poisson_spec);
-    d_petsc_solver->setPhysicalBcCoefs(d_bc_coefs);
-    d_petsc_solver->setHomogeneousBc(true);
-    d_petsc_solver->initializeSolverState(solution_level, rhs_level);
-    return;
-}// initializePETScLevelSolver
 
 void
 CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(

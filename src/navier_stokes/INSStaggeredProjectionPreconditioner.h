@@ -82,17 +82,6 @@ public:
     ~INSStaggeredProjectionPreconditioner();
 
     /*!
-     * \brief Set the current time interval.
-     *
-     * \note The time increment dt is not required to equal
-     * new_time-current_time.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -273,9 +262,6 @@ private:
 
     // Whether the operator is initialized.
     bool d_is_initialized;
-
-    // The simulation time.
-    double d_current_time, d_new_time;
 
     // Problem coefficients.
     const INSProblemCoefs& d_problem_coefs;

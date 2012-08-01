@@ -507,6 +507,9 @@ PETScKrylovLinearSolver::resetWrappedKSP(
         Mat petsc_mat;
         ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
         d_A = new PETScMatLOWrapper(d_object_name+"::Mat Wrapper", petsc_mat);
+        d_A->setHomogeneousBc(d_homogeneous_bc);
+        d_A->setSolutionTime(d_solution_time);
+        d_A->setTimeInterval(d_current_time, d_new_time);
     }
 
     if (d_user_provided_pc) resetKSPPC();
@@ -517,6 +520,9 @@ PETScKrylovLinearSolver::resetWrappedKSP(
         PC petsc_pc;
         ierr = KSPGetPC(d_petsc_ksp, &petsc_pc); IBTK_CHKERRQ(ierr);
         d_pc_solver = new PETScPCLSWrapper(d_object_name+"::PC Wrapper", petsc_pc);
+        d_pc_solver->setHomogeneousBc(true);
+        d_pc_solver->setSolutionTime(d_solution_time);
+        d_pc_solver->setTimeInterval(d_current_time, d_new_time);
     }
 
     // Reset the member state variables to correspond to the values used by the

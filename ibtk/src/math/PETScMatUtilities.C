@@ -38,7 +38,6 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/PoissonUtilities.h>
-//#include "PoissonUtilities.h"
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -90,7 +89,7 @@ void
 PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     Mat& mat,
     const PoissonSpecifications& poisson_spec_real,
-    const PoissonSpecifications& poisson_spec_imag,    
+    const PoissonSpecifications& poisson_spec_imag,
     RobinBcCoefStrategy<NDIM>* bc_coef,
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
@@ -105,7 +104,7 @@ void
 PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     Mat& mat,
     const PoissonSpecifications& poisson_spec_real,
-    const PoissonSpecifications& poisson_spec_imag,    
+    const PoissonSpecifications& poisson_spec_imag,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,2*NDIM>& bc_coefs,
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
@@ -262,7 +261,7 @@ void
 PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     Mat& mat,
     const PoissonSpecifications& poisson_spec_real,
-    const PoissonSpecifications& poisson_spec_imag,    
+    const PoissonSpecifications& poisson_spec_imag,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
@@ -379,7 +378,7 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
                 // that the order in which values are set corresponds to that of
                 // the stencil defined above.
                 const int offset          = d*stencil_sz*2;
-		
+
                 mat_vals_real[0]          = matrix_coefs(i,offset);
 		mat_vals_real[stencil_sz] = matrix_coefs(i,offset+stencil_sz);
                 mat_cols_real[0]          = dof_index_real;
@@ -388,9 +387,9 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
                 mat_vals_imag[0]          = matrix_coefs(i,offset+2*stencil_sz);
 		mat_vals_imag[stencil_sz] = matrix_coefs(i,offset+3*stencil_sz);
                 mat_cols_imag[0]          = dof_index_real;
-		mat_cols_imag[stencil_sz] = dof_index_imag;		
-		
-		
+		mat_cols_imag[stencil_sz] = dof_index_imag;
+
+
                 for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
                 {
                     for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -399,11 +398,11 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
 			mat_vals_real[stencil_index+stencil_sz] = matrix_coefs(i,offset+stencil_index+stencil_sz);
                         mat_cols_real[stencil_index] = (*dof_index_data)(i+stencil[stencil_index],d);
 			mat_cols_real[stencil_index+stencil_sz] = (*dof_index_data)(i+stencil[stencil_index],d+1);
-			
+
                         mat_vals_imag[stencil_index] = matrix_coefs(i,offset+2*stencil_sz+stencil_index);
 			mat_vals_imag[stencil_index+stencil_sz] = matrix_coefs(i,offset+stencil_index+3*stencil_sz);
                         mat_cols_imag[stencil_index] = (*dof_index_data)(i+stencil[stencil_index],d);
-			mat_cols_imag[stencil_index+stencil_sz] = (*dof_index_data)(i+stencil[stencil_index],d+1);						
+			mat_cols_imag[stencil_index+stencil_sz] = (*dof_index_data)(i+stencil[stencil_index],d+1);
                     }
                 }
                 ierr = MatSetValues(mat, 1, &dof_index_real, 2*stencil_sz, &mat_cols_real[0], &mat_vals_real[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);

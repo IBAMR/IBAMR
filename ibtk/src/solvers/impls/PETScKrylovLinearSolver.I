@@ -59,10 +59,31 @@ PETScKrylovLinearSolver::getPETScKSP() const
 }// getPETScKSP
 
 inline void
+PETScKrylovLinearSolver::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
+    if (!d_A.isNull()) d_A->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+inline void
+PETScKrylovLinearSolver::setSolutionTime(
+    const double solution_time)
+{
+    KrylovLinearSolver::setSolutionTime(solution_time);
+    if (!d_A.isNull()) d_A->setSolutionTime(solution_time);
+    if (!d_pc_solver.isNull()) d_pc_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+inline void
 PETScKrylovLinearSolver::setTimeInterval(
     const double current_time,
     const double new_time)
 {
+    KrylovLinearSolver::setTimeInterval(current_time, new_time);
+    if (!d_A.isNull()) d_A->setTimeInterval(current_time, new_time);
     if (!d_pc_solver.isNull()) d_pc_solver->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
@@ -71,9 +92,12 @@ inline void
 PETScKrylovLinearSolver::setOperator(
     SAMRAI::tbox::Pointer<LinearOperator> A)
 {
+    d_user_provided_mat = true;
     SAMRAI::tbox::Pointer<LinearOperator> A_old = d_A;
     d_A = A;
-    d_user_provided_mat = true;
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->setSolutionTime(d_solution_time);
+    d_A->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_A != A_old) && !d_A.isNull())
     {
         d_A->initializeOperatorState(*d_solver_x, *d_solver_b);
@@ -92,9 +116,12 @@ inline void
 PETScKrylovLinearSolver::setPreconditioner(
     SAMRAI::tbox::Pointer<LinearSolver> pc_solver)
 {
+    d_user_provided_pc = true;
     SAMRAI::tbox::Pointer<LinearSolver> pc_solver_old = d_pc_solver;
     d_pc_solver = pc_solver;
-    d_user_provided_pc = true;
+    d_pc_solver->setHomogeneousBc(true);
+    d_pc_solver->setSolutionTime(d_solution_time);
+    d_pc_solver->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_pc_solver != pc_solver_old) && !d_pc_solver.isNull())
     {
         d_pc_solver->initializeSolverState(*d_solver_b, *d_solver_b);

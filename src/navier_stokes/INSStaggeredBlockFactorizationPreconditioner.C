@@ -51,9 +51,6 @@
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -97,12 +94,8 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
     Pointer<HierarchyMathOps> hier_math_ops)
     : d_do_log(false),
       d_is_initialized(false),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
       d_viscous_time_stepping_type(viscous_time_stepping_type),
-      d_pressure_helmholtz_spec("INSStaggeredBlockFactorizationPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
       d_velocity_helmholtz_solver(velocity_helmholtz_solver),
       d_pressure_poisson_solver(pressure_poisson_solver),
@@ -184,37 +177,6 @@ INSStaggeredBlockFactorizationPreconditioner::~INSStaggeredBlockFactorizationPre
     return;
 }// ~INSStaggeredBlockFactorizationPreconditioner
 
-void
-INSStaggeredBlockFactorizationPreconditioner::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    const double rho    = d_problem_coefs.getRho();
-    const double mu     = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
-    d_current_time = current_time;
-    d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    double K = 0.0;
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-            K = 1.0;
-            break;
-        case FORWARD_EULER:
-            K = 0.0;
-            break;
-        case TRAPEZOIDAL_RULE:
-            K = 0.0;
-            break;
-        default:
-            TBOX_ERROR("this statement should not be reached\n");
-    }
-    d_pressure_helmholtz_spec.setCConstant(-(rho/d_dt+K*lambda));
-    d_pressure_helmholtz_spec.setDConstant(-(        -K*mu    ));
-    return;
-}// setTimeInterval
-
 bool
 INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
@@ -279,14 +241,32 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     //
     // P_out := -((rho/dt)*I-K*mu*L) * (-L)^{-1} * P_in
     //
-    // where K is determined by the viscous time stepping scheme (see above).
+    // where K is determined by the viscous time stepping scheme.
+    const double rho    = d_problem_coefs.getRho();
+    const double mu     = d_problem_coefs.getMu();
+    const double lambda = d_problem_coefs.getLambda();
+    const double dt = d_new_time-d_current_time;
+    double K;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.0;
+            break;
+        default:
+            K = 0.0;
+            TBOX_ERROR("this statement should not be reached\n");
+    }
+    PoissonSpecifications pressure_helmholtz_spec("pressure_helmholtz_spec");
+    pressure_helmholtz_spec.setCConstant(-(rho/dt+K*lambda));
+    pressure_helmholtz_spec.setDConstant(-(      -K*mu    ));
     d_pressure_poisson_solver->solveSystem(*P_scratch_vec,*P_in_vec);
-    d_hier_math_ops->laplace(
-        P_out_idx, P_out_cc_var,   // dst
-        d_pressure_helmholtz_spec, // Poisson spec
-        d_P_scratch_idx, d_P_var,  // src
-        d_P_bdry_fill_op,          // src_bdry_fill
-        d_current_time+0.5*d_dt);  // src_bdry_fill_time
+    d_hier_math_ops->laplace(P_out_idx, P_out_cc_var, pressure_helmholtz_spec, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_current_time+0.5*dt);
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
@@ -296,15 +276,7 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     // Compute the right-hand-side for the Helmholtz solve.
     d_P_bdry_fill_op->resetTransactionComponent(P_out_transaction_comp);
     static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(
-        d_U_scratch_idx, d_U_var, // dst
-        cf_bdry_synch,            // dst_cf_bdry_synch
-        -1.0,                     // alpha
-        P_out_idx, P_out_cc_var,  // src1
-        d_P_bdry_fill_op,         // src1_bdry_fill
-        d_current_time+0.5*d_dt,  // src1_bdry_fill_time
-        1.0,                      // beta
-        U_in_idx, U_in_sc_var);   // src2
+    d_hier_math_ops->grad(d_U_scratch_idx, d_U_var, cf_bdry_synch, -1.0, P_out_idx, P_out_cc_var, d_P_bdry_fill_op, d_current_time+0.5*dt, 1.0, U_in_idx, U_in_sc_var);
     d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
 
     // Solve the velocity sub-problem.

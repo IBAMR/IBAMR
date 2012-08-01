@@ -55,12 +55,13 @@ class LinearOperator
 {
 public:
     /*!
-     * \brief Constructor.
-     *
-     * \param homogeneous_bc  Boolean that indicates whether the operator should use homogeneous boundary conditions.
+     * \brief Default constructor.
      */
     LinearOperator(
-        bool homogeneous_bc);
+        bool homogeneous_bc=false,
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty destructor.
@@ -71,19 +72,6 @@ public:
      * \name Linear operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Determine whether the boundary conditions are homogeneous.
-     */
-    bool
-    getHomogeneousBc();
 
     /*!
      * \brief Modify y to account for inhomogeneous boundary conditions.
@@ -111,20 +99,12 @@ public:
 
 protected:
     /*
-     * Boolean flags indicating whether the boundary conditions are homogeneous,
-     * and whether the operator is currently correcting a right-hand side vector
-     * to account for inhomogeneous boundary conditions.
+     * Boolean indicating whether the operator is currently correcting a
+     * right-hand side vector to account for inhomogeneous boundary conditions.
      */
-    bool d_homogeneous_bc, d_correcting_rhs;
+    bool d_correcting_rhs;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    LinearOperator();
-
     /*!
      * \brief Copy constructor.
      *

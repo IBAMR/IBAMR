@@ -80,9 +80,6 @@ INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
       d_problem_coefs(problem_coefs),
       d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL))),
       d_u_bc_coefs(),
-      d_homogeneous_bc(true),
-      d_current_time(0.0),
-      d_new_time(0.0),
       d_context(NULL),
       d_u_dof_index_idx(-1),
       d_p_dof_index_idx(-1),
@@ -141,25 +138,6 @@ INSStaggeredPETScLevelSolver::~INSStaggeredPETScLevelSolver()
     delete d_default_u_bc_coef;
     return;
 }// ~INSStaggeredPETScLevelSolver
-
-void
-INSStaggeredPETScLevelSolver::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    return;
-}// setTimeInterval
-
-void
-INSStaggeredPETScLevelSolver::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

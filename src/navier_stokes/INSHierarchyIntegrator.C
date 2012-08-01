@@ -49,9 +49,6 @@
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/namespaces.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

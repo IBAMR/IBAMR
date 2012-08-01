@@ -58,7 +58,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <limits>
 #include <numeric>
 
 // HDF5 INCLUDES

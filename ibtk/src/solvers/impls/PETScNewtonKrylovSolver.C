@@ -410,6 +410,9 @@ PETScNewtonKrylovSolver::common_ctor()
     // Setup linear solver wrapper.
     KSP petsc_ksp = PETSC_NULL;
     d_krylov_solver = new PETScKrylovLinearSolver(d_object_name+"::KSP Wrapper", petsc_ksp, d_options_prefix);
+    d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
+    d_krylov_solver->setSolutionTime(d_solution_time);
+    d_krylov_solver->setTimeInterval(d_current_time, d_new_time);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -488,6 +491,9 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
         void* petsc_snes_func_ctx;
         ierr = SNESGetFunction(d_petsc_snes, PETSC_NULL, &petsc_snes_form_func, &petsc_snes_func_ctx); IBTK_CHKERRQ(ierr);
         d_F = new PETScSNESFunctionGOWrapper(d_object_name+"::SNESFunction Wrapper", d_petsc_snes, petsc_snes_form_func, petsc_snes_func_ctx);
+        d_F->setHomogeneousBc(d_homogeneous_bc);
+        d_F->setSolutionTime(d_solution_time);
+        d_F->setTimeInterval(d_current_time, d_new_time);
     }
 
     if (d_user_provided_jacobian) resetSNESJacobian();
@@ -498,6 +504,9 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
         void* petsc_snes_jac_ctx;
         ierr = SNESGetJacobian(d_petsc_snes, PETSC_NULL, PETSC_NULL, &petsc_snes_form_jac, &petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
         d_J = new PETScSNESJacobianJOWrapper(d_object_name+"::SNESJacobian Wrapper", d_petsc_snes, petsc_snes_form_jac, petsc_snes_jac_ctx);
+        d_J->setHomogeneousBc(true);
+        d_J->setSolutionTime(d_solution_time);
+        d_J->setTimeInterval(d_current_time, d_new_time);
     }
 
     // Setup the KrylovLinearSolver wrapper to use the KSP associated with the

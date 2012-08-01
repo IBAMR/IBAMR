@@ -55,8 +55,16 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralOperator::GeneralOperator()
-    : d_hier_math_ops(NULL),
+GeneralOperator::GeneralOperator(
+    bool homogeneous_bc,
+    double solution_time,
+    double current_time,
+    double new_time)
+    : d_homogeneous_bc(homogeneous_bc),
+      d_solution_time(solution_time),
+      d_current_time(current_time),
+      d_new_time(new_time),
+      d_hier_math_ops(NULL),
       d_hier_math_ops_external(false)
 {
     // intentionally blank
@@ -68,6 +76,32 @@ GeneralOperator::~GeneralOperator()
     deallocateOperatorState();
     return;
 }// ~GeneralOperator()
+
+void
+GeneralOperator::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
+
+void
+GeneralOperator::setSolutionTime(
+    double solution_time)
+{
+    d_solution_time = solution_time;
+    return;
+}// setSolutionTime
+
+void
+GeneralOperator::setTimeInterval(
+    double current_time,
+    double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+}// setTimeInterval
 
 void
 GeneralOperator::setHierarchyMathOps(

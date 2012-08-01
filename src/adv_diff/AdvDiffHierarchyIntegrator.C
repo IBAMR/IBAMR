@@ -55,9 +55,6 @@
 #include <HierarchyDataOpsManager.h>
 #include <tbox/NullDatabase.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)

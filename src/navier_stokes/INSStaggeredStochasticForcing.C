@@ -62,9 +62,6 @@
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC FC_FUNC_(navier_stokes_stochastic_stress_div2d,NAVIER_STOKES_STOCHASTIC_STRESS_DIV2D)

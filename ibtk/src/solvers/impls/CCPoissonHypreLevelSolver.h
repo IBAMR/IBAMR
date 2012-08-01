@@ -42,7 +42,7 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <ibtk/PoissonSolver.h>
 
 // SAMRAI INCLUDES
 #include <BoundaryBox.h>
@@ -120,7 +120,7 @@ namespace IBTK
  * http://www.llnl.gov/CASC/linear_solvers</A>.
  */
 class CCPoissonHypreLevelSolver
-    : public LinearSolver
+    : public PoissonSolver
 {
 public:
     /*!
@@ -137,55 +137,6 @@ public:
      * \brief Destructor.
      */
     ~CCPoissonHypreLevelSolver();
-
-    /*!
-     * \name Functions for specifying the Poisson problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the scalar Poisson equation specifications.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        double time);
-
-    /*!
-     * \brief Set the data depth used for the solution and rhs data.
-     */
-    void
-    setDataDepth(
-        int depth);
-
-    //\}
 
     /*!
      * \name Linear solver functionality.
@@ -431,19 +382,20 @@ private:
         int b_idx);
     void
     copyToHypre(
-        HYPRE_StructVector vector,
+        const std::vector<HYPRE_StructVector>& vectors,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > src_data,
         const SAMRAI::hier::Box<NDIM>& box);
     void
     copyFromHypre(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > dst_data,
-        HYPRE_StructVector vector,
+        const std::vector<HYPRE_StructVector>& vectors,
         const SAMRAI::hier::Box<NDIM>& box);
     void
     destroyHypreSolver();
     void
     deallocateHypreData();
 
+#if 0
     /*!
      * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
      * the case of non-grid-aligned anisotropic problems.
@@ -455,6 +407,7 @@ private:
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
         double data_time);
+#endif
 
     /*!
      * \brief Object name.
@@ -479,33 +432,20 @@ private:
     int d_level_num;
 
     /*!
-     * \name Problem specification and boundary condition handling.
+     * \name Problem specification.
      */
-    //\{
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     bool d_grid_aligned_anisotropy;
-
-    /*!
-     * \brief Robin boundary coefficient object for physical boundaries and
-     * related data.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
-    bool d_homogeneous_bc;
-    double d_apply_time;
-    int d_depth;
-
-    //\}
 
     /*!
      * \name hypre objects.
      */
     //\{
+    unsigned int d_depth;
     HYPRE_StructGrid    d_grid;
     HYPRE_StructStencil d_stencil;
-    HYPRE_StructMatrix  d_matrix;
-    HYPRE_StructVector  d_rhs_vec, d_sol_vec;
-    HYPRE_StructSolver  d_solver, d_precond;
+    std::vector<HYPRE_StructMatrix> d_matrices;
+    std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
+    std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
     std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;

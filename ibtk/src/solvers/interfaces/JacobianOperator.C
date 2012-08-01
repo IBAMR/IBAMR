@@ -55,8 +55,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-JacobianOperator::JacobianOperator()
-    : LinearOperator(/* homogeneous_bc */ true)
+JacobianOperator::JacobianOperator(
+    double solution_time,
+    double current_time,
+    double new_time)
+    : LinearOperator(/*homogeneous_bc*/ true, solution_time, current_time, new_time)
 {
     // intentionally blank
     return;

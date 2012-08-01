@@ -44,9 +44,7 @@
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
-#include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/SideDataSynchronization.h>
 

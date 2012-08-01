@@ -65,9 +65,13 @@ class FACPreconditionerStrategy
 {
 public:
     /*!
-     * \brief Empty default constructor.
+     * \brief Default constructor.
      */
-    FACPreconditionerStrategy();
+    FACPreconditionerStrategy(
+        bool homogeneous_bc=false,
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty virtual desctructor.
@@ -86,11 +90,23 @@ public:
         SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
-     * \brief Set the current time interval (for a time-dependent solver).
-     *
-     * \note An empty default implementation is provided.
+     * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    virtual void
+    void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void
     setTimeInterval(
         double current_time,
         double new_time);
@@ -192,10 +208,12 @@ public:
     deallocateOperatorState();
 
 protected:
-    /*
-     * Pointer to the FACPreconditioner that is using this operator.
-     */
+    // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
+
+    // Solver configuration.
+    bool d_homogeneous_bc;
+    double d_solution_time, d_current_time, d_new_time;
 
 private:
     /*!

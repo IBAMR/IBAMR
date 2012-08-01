@@ -82,14 +82,6 @@ public:
     ~INSStaggeredStokesOperator();
 
     /*!
-     * \brief Set the current time interval.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
      * \brief Implementation of the apply method which supports either
      * homogeneous or inhomogeneous boundary conditions.
      */
@@ -253,7 +245,6 @@ private:
 
     // Operator parameters.
     bool d_is_initialized;
-    double d_current_time, d_new_time, d_dt;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_fill_pattern, d_P_fill_pattern;
@@ -266,7 +257,6 @@ private:
     // Problem specification and mathematical operators.
     const INSProblemCoefs* d_problem_coefs;
     const TimeSteppingType d_viscous_time_stepping_type;
-    SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
     blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;

@@ -45,7 +45,15 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy()
+FACPreconditionerStrategy::FACPreconditionerStrategy(
+    bool homogeneous_bc,
+    double solution_time,
+    double current_time,
+    double new_time)
+    : d_homogeneous_bc(homogeneous_bc),
+      d_solution_time(solution_time),
+      d_current_time(current_time),
+      d_new_time(new_time)
 {
     // intentionally blank
     return;

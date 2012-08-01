@@ -57,7 +57,10 @@ public:
     /*!
      * \brief Default constructor.
      */
-    JacobianOperator();
+    JacobianOperator(
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty destructor.

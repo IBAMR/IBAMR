@@ -78,12 +78,17 @@ static Timer* t_deallocate_operator_state;
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     const std::string& object_name,
+    PoissonSpecifications poisson_spec,
+    RobinBcCoefStrategy<NDIM>* default_bc_coef,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     Pointer<Variable<NDIM> > scratch_var,
     const int ghost_cell_width,
     const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
-      d_time(0.0),
+      d_poisson_spec(object_name+"::poisson_spec"),
+      d_default_bc_coef(default_bc_coef),
+      d_bc_coefs(),
       d_gcw(ghost_cell_width),
       d_solution(NULL),
       d_rhs(NULL),
@@ -118,6 +123,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_synch_refine_algorithm(),
       d_synch_refine_schedules()
 {
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoefs(bc_coefs);
+
     // Get values from the input database.
     if (!input_db.isNull())
     {
@@ -159,16 +167,9 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
                    << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
+    delete d_default_bc_coef;
     return;
 }// ~PoissonFACPreconditionerStrategy
-
-void
-PoissonFACPreconditionerStrategy::setTime(
-    const double time)
-{
-    d_time = time;
-    return;
-}// setTime
 
 void
 PoissonFACPreconditionerStrategy::setResetLevels(
@@ -503,7 +504,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    d_prolongation_refine_schedules[dst_ln]->fillData(d_time);
+    d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     return;
 }// xeqScheduleProlongation
@@ -533,7 +534,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM> >(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
-    d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_time);
+    d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     return;
 }// xeqScheduleGhostFillNoCoarse
@@ -546,7 +547,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM> >(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
-    d_synch_refine_schedules[dst_ln]->fillData(d_time);
+    d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);
     return;
 }// xeqScheduleDataSynch

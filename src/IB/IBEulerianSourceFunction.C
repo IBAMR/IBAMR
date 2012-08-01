@@ -51,9 +51,6 @@
 #include <CellData.h>
 #include <tbox/MathUtilities.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

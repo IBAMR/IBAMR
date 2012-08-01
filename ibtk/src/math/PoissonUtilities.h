@@ -41,11 +41,11 @@
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
-
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -81,7 +81,7 @@ public:
         SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time);
 
     /*!
@@ -94,9 +94,9 @@ public:
         SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         double data_time);
-    
+
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the complex Laplacian.
@@ -107,7 +107,7 @@ public:
         SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,	
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
         double data_time);
 
@@ -121,7 +121,7 @@ public:
         SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,		
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,2*NDIM>& bc_coefs,
         double data_time);
 
@@ -135,10 +135,10 @@ public:
         SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,	
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time);    
-    
+        double data_time);
+
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
@@ -194,7 +194,7 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
         bool homogeneous_bc);
-    
+
     /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a cell-centered discretization of the
@@ -238,7 +238,7 @@ public:
 	const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
-        bool homogeneous_bc);    
+        bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary

@@ -53,11 +53,10 @@
 namespace IBTK
 {
 /*!
- * \brief Class PoissonSolver is an abstract base class for a Poisson-type
- * linear solver.
+ * \brief Class PoissonSolver is an abstract base class for Poisson solvers.
  */
 class PoissonSolver
-    : public LinearSolver
+    : public virtual LinearSolver
 {
 public:
     /*!
@@ -78,7 +77,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void
+    virtual void
     setPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
@@ -91,7 +90,7 @@ public:
      *
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
      */
-    void
+    virtual void
     setPhysicalBcCoef(
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
@@ -105,7 +104,7 @@ public:
      *
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
      */
-    void
+    virtual void
     setPhysicalBcCoefs(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
@@ -119,7 +118,7 @@ public:
      *
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
      */
-    void
+    virtual void
     setPhysicalBcCoefs(
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 

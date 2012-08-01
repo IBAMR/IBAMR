@@ -200,7 +200,7 @@ SCLaplaceOperator::apply(
     d_hier_bdry_fill->resetTransactionComponents(x_transaction_comps);
     const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->fillData(d_apply_time);
+    d_hier_bdry_fill->fillData(d_solution_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator.

@@ -53,9 +53,13 @@ class KrylovLinearSolver
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Default constructor.
      */
-    KrylovLinearSolver();
+    KrylovLinearSolver(
+        bool homogeneous_bc=false,
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty destructor.

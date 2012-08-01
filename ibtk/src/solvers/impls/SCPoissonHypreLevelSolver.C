@@ -90,16 +90,10 @@ static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : d_object_name(object_name),
+    : PoissonSolver(PoissonSpecifications(d_object_name+"::Poisson specs"), new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)), std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,NULL)),
       d_is_initialized(false),
       d_hierarchy(),
       d_level_num(-1),
-      d_poisson_spec(d_object_name+"::Poisson specs"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(true),
-      d_apply_time(0.0),
       d_grid(NULL),
       d_stencil(),
       d_graph(NULL),
@@ -170,13 +164,10 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(d_homogeneous_bc);
-    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -191,51 +182,8 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
 SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
-    delete d_default_bc_coef;
     return;
 }// ~SCPoissonHypreLevelSolver
-
-void
-SCPoissonHypreLevelSolver::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-SCPoissonHypreLevelSolver::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-void
-SCPoissonHypreLevelSolver::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
 
 bool
 SCPoissonHypreLevelSolver::solveSystem(
@@ -480,7 +428,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         const Box<NDIM>& patch_box = patch->getBox();
         const int stencil_sz = d_stencil_offsets.size();
         SideData<NDIM,double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
-        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_apply_time);
+        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
 
         // Copy matrix entries to the hypre matrix structure.
         std::vector<int> stencil_indices(stencil_sz);
@@ -802,7 +750,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         {
             SideData<NDIM,double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_apply_time, d_homogeneous_bc);
+            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
             copyToHypre(d_rhs_vec, Pointer<SideData<NDIM,double> >(&b_adj_data,false), patch_box);
         }
         else

@@ -76,6 +76,9 @@ public:
      */
     PoissonFACPreconditionerStrategy(
         const std::string& object_name,
+        SAMRAI::solv::PoissonSpecifications poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* default_bc_coef,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
         int ghost_cell_width,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
@@ -86,14 +89,53 @@ public:
     ~PoissonFACPreconditionerStrategy();
 
     /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
+     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
+     * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void
-    setTime(
-        double time);
+    virtual void
+    setPoissonSpecifications(
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
-    //\}
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
+     * physical boundary conditions.
+     *
+     * \note \a bc_coef may be NULL.  In this case, default boundary conditions
+     * (as supplied to the class constructor) are employed.
+     *
+     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
+     */
+    virtual void
+    setPhysicalBcCoef(
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * default boundary conditions (as supplied to the class constructor) are
+     * employed for that data depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    virtual void
+    setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * default boundary conditions (as supplied to the class constructor) are
+     * employed for that data depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    virtual void
+    setPhysicalBcCoefs(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \name Functions for configuring the solver.
@@ -326,9 +368,11 @@ protected:
     bool d_is_initialized;
 
     /*
-     * The current time.
+     * Problem specification.
      */
-    double d_time;
+    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
     /*
      * Ghost cell width.

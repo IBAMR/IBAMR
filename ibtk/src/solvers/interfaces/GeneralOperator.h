@@ -42,6 +42,9 @@
 #include <SAMRAIVectorReal.h>
 #include <tbox/DescribedClass.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -56,9 +59,13 @@ class GeneralOperator
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Default constructor.
      */
-    GeneralOperator();
+    GeneralOperator(
+        bool homogeneous_bc=false,
+        double solution_time=std::numeric_limits<double>::quiet_NaN(),
+        double current_time=std::numeric_limits<double>::quiet_NaN(),
+        double new_time=std::numeric_limits<double>::quiet_NaN());
 
     /*!
      * \brief Empty virtual destructor.
@@ -67,16 +74,38 @@ public:
     ~GeneralOperator();
 
     /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
-
-    /*!
      * \name General operator functionality.
      */
     //\{
+
+    /*!
+     * \brief Set whether the solver should use homogeneous boundary conditions.
+     */
+    virtual void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    virtual void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    virtual void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the operator.
+     */
+    virtual void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Compute \f$y=F[x]\f$.
@@ -212,6 +241,10 @@ public:
     //\}
 
 protected:
+    // Operator configuration.
+    bool d_homogeneous_bc;
+    double d_solution_time, d_current_time, d_new_time;
+
     // Mathematical operators.
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external;

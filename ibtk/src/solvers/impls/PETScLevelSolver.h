@@ -65,7 +65,7 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">http://www.mcs.anl.gov/petsc/petsc-as</A>.
  */
 class PETScLevelSolver
-    : public LinearSolver
+    : public virtual LinearSolver
 {
 public:
     /*!

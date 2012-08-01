@@ -90,9 +90,6 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
       d_X_vec(X_vec),
       d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL))),
       d_u_bc_coefs(),
-      d_homogeneous_bc(true),
-      d_current_time(0.0),
-      d_new_time(0.0),
       d_context(NULL),
       d_u_dof_index_idx(-1),
       d_p_dof_index_idx(-1),
@@ -151,25 +148,6 @@ IBImplicitStaggeredPETScLevelSolver::~IBImplicitStaggeredPETScLevelSolver()
     delete d_default_u_bc_coef;
     return;
 }// ~IBImplicitStaggeredPETScLevelSolver
-
-void
-IBImplicitStaggeredPETScLevelSolver::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    return;
-}// setTimeInterval
-
-void
-IBImplicitStaggeredPETScLevelSolver::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 IBImplicitStaggeredPETScLevelSolver::initializeOperator()

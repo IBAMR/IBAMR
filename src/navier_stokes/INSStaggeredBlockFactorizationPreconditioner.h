@@ -83,14 +83,6 @@ public:
     ~INSStaggeredBlockFactorizationPreconditioner();
 
     /*!
-     * \brief Set the current time interval.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -272,13 +264,9 @@ private:
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // The simulation time.
-    double d_current_time, d_new_time, d_dt;
-
     // Problem coefficients.
     const INSProblemCoefs& d_problem_coefs;
     const TimeSteppingType d_viscous_time_stepping_type;
-    SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.
     const bool d_normalize_pressure;

@@ -93,15 +93,6 @@ public:
     ~INSStaggeredFACPreconditionerStrategy();
 
     /*!
-     * \brief Set the current time interval, for use with the refinement
-     * schedules and boundary condition routines employed by the object.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
      * \name Functions for configuring the solver.
      */
     //\{
@@ -332,11 +323,6 @@ protected:
      */
     std::string d_object_name;
     bool d_is_initialized;
-
-    /*
-     * The current time interval.
-     */
-    double d_current_time, d_new_time;
 
     /*
      * Ghost cell width.

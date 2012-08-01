@@ -260,6 +260,51 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp()
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const int patch_data_index,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const bool homogeneous_bc)
+    : RobinPhysBdryPatchStrategy()
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    setPatchDataIndex(patch_data_index);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartSideRobinPhysBdryOp
+
+CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
+    const std::set<int>& patch_data_indices,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const bool homogeneous_bc)
+    : RobinPhysBdryPatchStrategy()
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    setPatchDataIndices(patch_data_indices);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartSideRobinPhysBdryOp
+
+CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
+    const ComponentSelector& patch_data_indices,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const bool homogeneous_bc)
+    : RobinPhysBdryPatchStrategy()
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    setPatchDataIndices(patch_data_indices);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartSideRobinPhysBdryOp
+
+CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
+    const int patch_data_index,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
