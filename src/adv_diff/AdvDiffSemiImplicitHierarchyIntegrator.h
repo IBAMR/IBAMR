@@ -331,11 +331,6 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
-     * Advective CFL condition.
-     */
-    double d_cfl_max;
-
-    /*!
      * Default convective time integration methods.
      */
     TimeSteppingType d_default_convective_time_stepping_type;

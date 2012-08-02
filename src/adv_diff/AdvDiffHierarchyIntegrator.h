@@ -397,6 +397,11 @@ protected:
     bool d_integrator_is_initialized;
 
     /*!
+     * Advective CFL condition.
+     */
+    double d_cfl_max;
+
+    /*!
      * Default diffusion time integration method.
      */
     TimeSteppingType d_default_diffusion_time_stepping_type;

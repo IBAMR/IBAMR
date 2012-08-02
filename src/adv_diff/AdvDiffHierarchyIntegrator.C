@@ -550,6 +550,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_integrator_is_initialized(false),
+      d_cfl_max(0.5),
       d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
       d_default_convective_difference_form(CONSERVATIVE),
       d_u_var(),
@@ -634,7 +635,7 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
                     u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
                     stable_dt);
 #endif
-                dt = std::min(dt,stable_dt);
+                dt = std::min(dt,d_cfl_max*stable_dt);
             }
         }
     }
@@ -721,6 +722,7 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
+    db->putDouble("d_cfl_max", d_cfl_max);
     db->putString("d_default_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type));
     db->putString("d_default_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_default_convective_difference_form));
     return;
@@ -786,6 +788,10 @@ AdvDiffHierarchyIntegrator::getFromInput(
         else if (db->keyExists("default_convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
         else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
     }
+    if      (db->keyExists("cfl_max")) d_cfl_max = db->getDouble("cfl_max");
+    else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
+    if      (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
+    else if (db->keyExists("CFL"    )) d_cfl_max = db->getDouble("CFL"    );
     if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
     if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
     if (db->keyExists("rel_residual_tol")) d_rel_residual_tol = db->getDouble("rel_residual_tol");
@@ -819,6 +825,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
+    d_cfl_max = db->getDouble("d_cfl_max");
     d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_diffusion_time_stepping_type"));
     d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_default_convective_difference_form"));
     return;

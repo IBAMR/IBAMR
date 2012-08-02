@@ -76,7 +76,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     TBOX_ASSERT(!input_db.isNull());
 #endif
     // Default values.
-    d_cfl_max = 0.5;
     d_default_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_init_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_convective_op_type = PPM;
@@ -811,7 +810,6 @@ void
 AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
-    db->putDouble("d_cfl_max", d_cfl_max);
     db->putString("d_default_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type));
     db->putString("d_default_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type));
     db->putString("d_default_convective_op_type", enum_to_string<ConvectiveOperatorType>(d_default_convective_op_type));
@@ -850,10 +848,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
         if      (db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
         else if (db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
     }
-    if      (db->keyExists("cfl_max")) d_cfl_max = db->getDouble("cfl_max");
-    else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
-    if      (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
-    else if (db->keyExists("CFL"    )) d_cfl_max = db->getDouble("CFL"    );
     return;
 }// getFromInput
 
@@ -871,7 +865,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
                    << d_object_name << " not found in restart file." << std::endl);
     }
-    d_cfl_max = db->getDouble("d_cfl_max");
     d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));
     d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_init_convective_time_stepping_type"));
     d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(db->getString("d_default_convective_op_type"));
