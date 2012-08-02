@@ -516,8 +516,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
         helmholtz_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_op->setHomogeneousBc(false);
+#if 0
         helmholtz_op->setSolutionTime(new_time);
         helmholtz_op->setTimeInterval(current_time, new_time);
+#else
+        helmholtz_op->setTime(new_time);
+#endif
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
         Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
         Pointer<FACPreconditioner>                   helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
@@ -528,8 +532,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             if (d_using_FAC)
             {
                 helmholtz_fac_op->setPoissonSpecifications(helmholtz_spec);
+#if 0
                 helmholtz_fac_op->setSolutionTime(new_time);
                 helmholtz_fac_op->setTimeInterval(current_time, new_time);
+#else
+                helmholtz_fac_op->setTime(new_time);
+#endif
                 helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
@@ -723,12 +731,20 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         Pointer<CCLaplaceOperator>                   helmholtz_op     = d_helmholtz_ops    [l];
         Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
         Pointer<KrylovLinearSolver>                  helmholtz_solver = d_helmholtz_solvers[l];
+#if 0
         helmholtz_op->setSolutionTime(new_time);
         helmholtz_op->setTimeInterval(current_time, new_time);
+#else
+        helmholtz_op->setTime(new_time);
+#endif
         if (d_using_FAC)
         {
+#if 0
             helmholtz_fac_op->setSolutionTime(new_time);
             helmholtz_fac_op->setTimeInterval(current_time, new_time);
+#else
+            helmholtz_fac_op->setTime(new_time);
+#endif
         }
         helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
