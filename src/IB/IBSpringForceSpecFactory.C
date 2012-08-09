@@ -95,9 +95,6 @@ IBSpringForceSpec::Factory::unpackStream(
     stream.unpack(&ret_val->d_force_fcn_idxs[0],num_springs);
     stream.unpack(&ret_val->d_stiffnesses[0],num_springs);
     stream.unpack(&ret_val->d_rest_lengths[0],num_springs);
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idxs[0],num_springs);
-#endif
     return ret_val;
 }// unpackStream
 

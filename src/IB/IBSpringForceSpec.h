@@ -121,11 +121,7 @@ public:
         const std::vector<int>& slave_idxs,
         const std::vector<int>& force_fcn_idxs,
         const std::vector<double>& stiffnesses,
-        const std::vector<double>& rest_lengths
-#if ENABLE_SUBDOMAIN_INDICES
-        ,const std::vector<int>& subdomain_idxs
-#endif
-                      );
+        const std::vector<double>& rest_lengths);
 
     /*!
      * \brief Destructor.
@@ -206,22 +202,6 @@ public:
     std::vector<double>&
     getRestingLengths();
 
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * \return A const reference to the subdomain indices associated with this
-     * force spec object.
-     */
-    const std::vector<int>&
-    getSubdomainIndices() const;
-
-    /*!
-     * \return A non-const reference to the subdomain indices associated with
-     * this force spec object.
-     */
-    std::vector<int>&
-    getSubdomainIndices();
-#endif
-
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
@@ -274,13 +254,6 @@ private:
     int d_master_idx;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * The subdomain indices of the force spec object.
-     */
-    std::vector<int> d_subdomain_idxs;
-#endif
 
     /*!
      * \brief A factory class to rebuild IBSpringForceSpec objects from

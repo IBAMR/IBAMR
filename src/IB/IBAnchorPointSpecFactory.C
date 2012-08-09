@@ -90,9 +90,6 @@ IBAnchorPointSpec::Factory::unpackStream(
 {
     Pointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
     stream.unpack(&ret_val->d_node_idx,1);
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idx,1);
-#endif
     return ret_val;
 }// unpackStream
 

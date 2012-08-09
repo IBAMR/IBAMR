@@ -136,10 +136,6 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_spring_rest_length(),
       d_using_uniform_spring_force_fcn_idx(),
       d_uniform_spring_force_fcn_idx(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_spring_subdomain_idx(),
-      d_uniform_spring_subdomain_idx(),
-#endif
       d_enable_xsprings(),
       d_xspring_edge_map(),
       d_xspring_spec_data(),
@@ -149,45 +145,25 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_xspring_rest_length(),
       d_using_uniform_xspring_force_fcn_idx(),
       d_uniform_xspring_force_fcn_idx(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_xspring_subdomain_idx(),
-      d_uniform_xspring_subdomain_idx(),
-#endif
       d_enable_beams(),
       d_beam_spec_data(),
       d_using_uniform_beam_bend_rigidity(),
       d_uniform_beam_bend_rigidity(),
       d_using_uniform_beam_curvature(),
       d_uniform_beam_curvature(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_beam_subdomain_idx(),
-      d_uniform_beam_subdomain_idx(),
-#endif
       d_enable_rods(),
       d_rod_edge_map(),
       d_rod_spec_data(),
       d_using_uniform_rod_properties(),
       d_uniform_rod_properties(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_rod_subdomain_idx(),
-      d_uniform_rod_subdomain_idx(),
-#endif
       d_enable_target_points(),
       d_target_spec_data(),
       d_using_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
       d_using_uniform_target_damping(),
       d_uniform_target_damping(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_target_subdomain_idx(),
-      d_uniform_target_subdomain_idx(),
-#endif
       d_enable_anchor_points(),
       d_anchor_spec_data(),
-#if ENABLE_SUBDOMAIN_INDICES
-      d_using_uniform_anchor_subdomain_idx(),
-      d_uniform_anchor_subdomain_idx(),
-#endif
       d_enable_bdry_mass(),
       d_bdry_mass_spec_data(),
       d_using_uniform_bdry_mass(),
@@ -864,9 +840,6 @@ IBStandardInitializer::readSpringFiles(
                     Edge e;
                     double kappa, length;
                     int force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-                    int subdomain_idx;
-#endif
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << std::endl);
@@ -920,17 +893,10 @@ IBStandardInitializer::readSpringFiles(
                         {
                             force_fcn_idx = 0;  // default force function specification.
                         }
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> subdomain_idx))
-                        {
-                            subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
 
-                    // Modify kappa, length, and subdomain_idx according to
-                    // whether uniform values are to be employed for this
-                    // particular structure.
+                    // Modify kappa and length according to whether uniform
+                    // values are to be employed for this particular structure.
                     if (d_using_uniform_spring_stiffness[ln][j])
                     {
                         kappa = d_uniform_spring_stiffness[ln][j];
@@ -943,12 +909,6 @@ IBStandardInitializer::readSpringFiles(
                     {
                         force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
                     }
-#if ENABLE_SUBDOMAIN_INDICES
-                    if (d_using_uniform_spring_subdomain_idx[ln][j])
-                    {
-                        subdomain_idx = d_uniform_spring_subdomain_idx[ln][j];
-                    }
-#endif
 
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
@@ -979,9 +939,6 @@ IBStandardInitializer::readSpringFiles(
                     spec_data.stiffness     = kappa;
                     spec_data.rest_length   = length;
                     spec_data.force_fcn_idx = force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-                    spec_data.subdomain_idx = subdomain_idx;
-#endif
                     d_spring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
@@ -1069,9 +1026,6 @@ IBStandardInitializer::readXSpringFiles(
                     Edge e;
                     double kappa, length;
                     int force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-                    int subdomain_idx;
-#endif
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << xspring_filename << std::endl);
@@ -1125,17 +1079,10 @@ IBStandardInitializer::readXSpringFiles(
                         {
                             force_fcn_idx = 0;  // default force function specification.
                         }
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> subdomain_idx))
-                        {
-                            subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
 
-                    // Modify kappa, length, and subdomain_idx according to
-                    // whether uniform values are to be employed for this
-                    // particular structure.
+                    // Modify kappa and length according to whether uniform
+                    // values are to be employed for this particular structure.
                     if (d_using_uniform_xspring_stiffness[ln][j])
                     {
                         kappa = d_uniform_xspring_stiffness[ln][j];
@@ -1148,12 +1095,6 @@ IBStandardInitializer::readXSpringFiles(
                     {
                         force_fcn_idx = d_uniform_xspring_force_fcn_idx[ln][j];
                     }
-#if ENABLE_SUBDOMAIN_INDICES
-                    if (d_using_uniform_xspring_subdomain_idx[ln][j])
-                    {
-                        subdomain_idx = d_uniform_xspring_subdomain_idx[ln][j];
-                    }
-#endif
 
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
@@ -1184,9 +1125,6 @@ IBStandardInitializer::readXSpringFiles(
                     spec_data.stiffness     = kappa;
                     spec_data.rest_length   = length;
                     spec_data.force_fcn_idx = force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-                    spec_data.subdomain_idx = subdomain_idx;
-#endif
                     d_xspring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
@@ -1272,9 +1210,6 @@ IBStandardInitializer::readBeamFiles(
                     int prev_idx, curr_idx, next_idx;
                     double bend;
                     blitz::TinyVector<double,NDIM> curv(0.0);
-#if ENABLE_SUBDOMAIN_INDICES
-                    int subdomain_idx;
-#endif
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -1341,17 +1276,10 @@ IBStandardInitializer::readBeamFiles(
                                 curv[d] = c;
                             }
                         }
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> subdomain_idx))
-                        {
-                            subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
 
-                    // Modify bend, curvature, and subdomain_idx according to
-                    // whether uniform values are to be employed for this
-                    // particular structure.
+                    // Modify bend and curvature according to whether uniform
+                    // values are to be employed for this particular structure.
                     if (d_using_uniform_beam_bend_rigidity[ln][j])
                     {
                         bend = d_uniform_beam_bend_rigidity[ln][j];
@@ -1360,12 +1288,6 @@ IBStandardInitializer::readBeamFiles(
                     {
                         curv = d_uniform_beam_curvature[ln][j];
                     }
-#if ENABLE_SUBDOMAIN_INDICES
-                    if (d_using_uniform_beam_subdomain_idx[ln][j])
-                    {
-                        subdomain_idx = d_uniform_beam_subdomain_idx[ln][j];
-                    }
-#endif
 
                     // Check to see if the bending rigidity is zero and, if so,
                     // emit a warning.
@@ -1393,9 +1315,6 @@ IBStandardInitializer::readBeamFiles(
                     spec_data.neighbor_idxs = std::make_pair(next_idx,prev_idx);
                     spec_data.bend_rigidity = bend;
                     spec_data.curvature     = curv;
-#if ENABLE_SUBDOMAIN_INDICES
-                    spec_data.subdomain_idx = subdomain_idx;
-#endif
                     d_beam_spec_data[ln][j].insert(std::make_pair(curr_idx,spec_data));
                 }
 
@@ -1489,9 +1408,6 @@ IBStandardInitializer::readRodFiles(
                     double& kappa1 = properties[7];
                     double& kappa2 = properties[8];
                     double& tau = properties[9];
-#if ENABLE_SUBDOMAIN_INDICES
-                    int subdomain_idx;
-#endif
 
                     if (!std::getline(file_stream, line_string))
                     {
@@ -1630,27 +1546,14 @@ IBStandardInitializer::readRodFiles(
                         {
                             curvature_data_found_in_input = true;
                         }
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> subdomain_idx))
-                        {
-                            subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
 
-                    // Modify properties and subdomain_idx according to whether
-                    // uniform values are to be employed for this particular
-                    // structure.
+                    // Modify properties according to whether uniform values are
+                    // to be employed for this particular structure.
                     if (d_using_uniform_rod_properties[ln][j])
                     {
                         properties = d_uniform_rod_properties[ln][j];
                     }
-#if ENABLE_SUBDOMAIN_INDICES
-                    if (d_using_uniform_rod_subdomain_idx[ln][j])
-                    {
-                        subdomain_idx = d_uniform_rod_subdomain_idx[ln][j];
-                    }
-#endif
 
                     // Correct the node numbers to be in the global Lagrangian
                     // indexing scheme.
@@ -1670,9 +1573,6 @@ IBStandardInitializer::readRodFiles(
                     d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
                     RodSpec rod_spec;
                     rod_spec.properties = properties;
-#if ENABLE_SUBDOMAIN_INDICES
-                    rod_spec.subdomain_idx = subdomain_idx;
-#endif
                     d_rod_spec_data[ln][j].insert(std::make_pair(e,rod_spec));
                 }
 
@@ -1722,9 +1622,6 @@ IBStandardInitializer::readTargetPointFiles(
             TargetSpec default_spec;
             default_spec.stiffness = 0.0;
             default_spec.damping = 0.0;
-#if ENABLE_SUBDOMAIN_INDICES
-            default_spec.subdomain_idx = -1;
-#endif
             d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + extension;
@@ -1800,12 +1697,6 @@ IBStandardInitializer::readTargetPointFiles(
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
                                        << "  target point damping coefficient is negative" << std::endl);
                         }
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> d_target_spec_data[ln][j][n].subdomain_idx))
-                        {
-                            d_target_spec_data[ln][j][n].subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
 
                     // Check to see if the penalty spring constant is zero and,
@@ -1853,15 +1744,6 @@ IBStandardInitializer::readTargetPointFiles(
                         d_target_spec_data[ln][j][k].damping = d_uniform_target_damping[ln][j];
                     }
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_target_subdomain_idx[ln][j])
-                {
-                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
-                    {
-                        d_target_spec_data[ln][j][k].subdomain_idx = d_uniform_target_subdomain_idx[ln][j];
-                    }
-                }
-#endif
             }
 
             // Free the next MPI process to start reading the current file.
@@ -1899,9 +1781,6 @@ IBStandardInitializer::readAnchorPointFiles(
 
             AnchorSpec default_spec;
             default_spec.is_anchor_point = false;
-#if ENABLE_SUBDOMAIN_INDICES
-            default_spec.subdomain_idx = -1;
-#endif
             d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string anchor_point_filename = d_base_filename[ln][j] + extension;
@@ -1959,12 +1838,6 @@ IBStandardInitializer::readAnchorPointFiles(
                         }
 
                         d_anchor_spec_data[ln][j][n].is_anchor_point = true;
-#if ENABLE_SUBDOMAIN_INDICES
-                        if (!(line_stream >> d_anchor_spec_data[ln][j][n].subdomain_idx))
-                        {
-                            d_anchor_spec_data[ln][j][n].subdomain_idx = -1;  // default subdomain index.
-                        }
-#endif
                     }
                 }
 
@@ -1975,18 +1848,6 @@ IBStandardInitializer::readAnchorPointFiles(
                      << "read " << num_anchor_pts << " anchor points from ASCII input file named " << anchor_point_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
-
-            // Modify the anchor point properties according to whether uniform
-            // values are to be employed for this particular structure.
-#if ENABLE_SUBDOMAIN_INDICES
-            if (d_using_uniform_anchor_subdomain_idx[ln][j])
-            {
-                for (int k = 0; k < d_num_vertex[ln][j]; ++k)
-                {
-                    d_anchor_spec_data[ln][j][k].subdomain_idx = d_uniform_anchor_subdomain_idx[ln][j];
-                }
-            }
-#endif
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
@@ -2776,9 +2637,6 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<double> stiffness, rest_length;
-#if ENABLE_SUBDOMAIN_INDICES
-        std::vector<int> subdomain_idxs;
-#endif
         if (d_enable_springs[level_number][j])
         {
             for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
@@ -2802,9 +2660,6 @@ IBStandardInitializer::initializeSpecs(
                 stiffness     .push_back(spec_data.stiffness    );
                 rest_length   .push_back(spec_data.rest_length  );
                 force_fcn_idxs.push_back(spec_data.force_fcn_idx);
-#if ENABLE_SUBDOMAIN_INDICES
-                subdomain_idxs.push_back(spec_data.subdomain_idx);
-#endif
             }
         }
         const unsigned int num_base_filename = d_base_filename[level_number].size();
@@ -2832,18 +2687,11 @@ IBStandardInitializer::initializeSpecs(
                 stiffness     .push_back(spec_data.stiffness    );
                 rest_length   .push_back(spec_data.rest_length  );
                 force_fcn_idxs.push_back(spec_data.force_fcn_idx);
-#if ENABLE_SUBDOMAIN_INDICES
-                subdomain_idxs.push_back(spec_data.subdomain_idx);
-#endif
             }
         }
         if (slave_idxs.size() > 0)
         {
-            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length
-#if ENABLE_SUBDOMAIN_INDICES
-                                                         , subdomain_idxs
-#endif
-                                                         ));
+            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
         }
     }
 
@@ -2853,26 +2701,16 @@ IBStandardInitializer::initializeSpecs(
         std::vector<std::pair<int,int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<blitz::TinyVector<double,NDIM> > beam_mesh_dependent_curvature;
-#if ENABLE_SUBDOMAIN_INDICES
-        std::vector<int> beam_subdomain_idxs;
-#endif
         for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx); it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
             beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
             beam_bend_rigidity.push_back(spec_data.bend_rigidity);
             beam_mesh_dependent_curvature.push_back(spec_data.curvature);
-#if ENABLE_SUBDOMAIN_INDICES
-            beam_subdomain_idxs.push_back(spec_data.subdomain_idx);
-#endif
         }
         if (!beam_neighbor_idxs.empty())
         {
-            vertex_specs.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature
-#if ENABLE_SUBDOMAIN_INDICES
-                                                       , beam_subdomain_idxs
-#endif
-                                                       ));
+            vertex_specs.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
         }
     }
 
@@ -2881,9 +2719,6 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<int> rod_next_idxs;
         std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
-#if ENABLE_SUBDOMAIN_INDICES
-        std::vector<int> rod_subdomain_idxs;
-#endif
         for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx); it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2903,17 +2738,10 @@ IBStandardInitializer::initializeSpecs(
             // The material properties.
             const RodSpec& spec_data = d_rod_spec_data[level_number][j].find(e)->second;
             rod_material_params.push_back(spec_data.properties);
-#if ENABLE_SUBDOMAIN_INDICES
-            rod_subdomain_idxs.push_back(spec_data.subdomain_idx);
-#endif
         }
         if (!rod_next_idxs.empty())
         {
-            vertex_specs.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params
-#if ENABLE_SUBDOMAIN_INDICES
-                                                      , rod_subdomain_idxs
-#endif
-                                                      ));
+            vertex_specs.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params));
         }
     }
 
@@ -2924,15 +2752,8 @@ IBStandardInitializer::initializeSpecs(
         const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
-#if ENABLE_SUBDOMAIN_INDICES
-        const int subdomain_idx = spec_data.subdomain_idx;
-#endif
         const blitz::TinyVector<double,NDIM> X_target = getVertexPosn(point_index, level_number);
-        vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target
-#if ENABLE_SUBDOMAIN_INDICES
-                                                          , subdomain_idx
-#endif
-                                                          ));
+        vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
     }
 
     // Initialize any anchor point specifications associated with the present
@@ -2941,16 +2762,9 @@ IBStandardInitializer::initializeSpecs(
     {
         const AnchorSpec& spec_data = getVertexAnchorSpec(point_index, level_number);
         const bool is_anchor_point = spec_data.is_anchor_point;
-#if ENABLE_SUBDOMAIN_INDICES
-        const int subdomain_idx = spec_data.subdomain_idx;
-#endif
         if (is_anchor_point)
         {
-            vertex_specs.push_back(new IBAnchorPointSpec(mastr_idx
-#if ENABLE_SUBDOMAIN_INDICES
-                                                         , subdomain_idx
-#endif
-                                                         ));
+            vertex_specs.push_back(new IBAnchorPointSpec(mastr_idx));
         }
     }
 
@@ -3027,10 +2841,6 @@ IBStandardInitializer::getFromInput(
     d_uniform_spring_rest_length.resize(d_max_levels);
     d_using_uniform_spring_force_fcn_idx.resize(d_max_levels);
     d_uniform_spring_force_fcn_idx.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_spring_subdomain_idx.resize(d_max_levels);
-    d_uniform_spring_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_xsprings.resize(d_max_levels);
     d_xspring_edge_map.resize(d_max_levels);
@@ -3041,10 +2851,6 @@ IBStandardInitializer::getFromInput(
     d_uniform_xspring_rest_length.resize(d_max_levels);
     d_using_uniform_xspring_force_fcn_idx.resize(d_max_levels);
     d_uniform_xspring_force_fcn_idx.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_xspring_subdomain_idx.resize(d_max_levels);
-    d_uniform_xspring_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_beams.resize(d_max_levels);
     d_beam_spec_data.resize(d_max_levels);
@@ -3052,20 +2858,12 @@ IBStandardInitializer::getFromInput(
     d_uniform_beam_bend_rigidity.resize(d_max_levels);
     d_using_uniform_beam_curvature.resize(d_max_levels);
     d_uniform_beam_curvature.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_beam_subdomain_idx.resize(d_max_levels);
-    d_uniform_beam_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_rods.resize(d_max_levels);
     d_rod_edge_map.resize(d_max_levels);
     d_rod_spec_data.resize(d_max_levels);
     d_using_uniform_rod_properties.resize(d_max_levels);
     d_uniform_rod_properties.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_rod_subdomain_idx.resize(d_max_levels);
-    d_uniform_rod_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_target_points.resize(d_max_levels);
     d_target_spec_data.resize(d_max_levels);
@@ -3073,17 +2871,9 @@ IBStandardInitializer::getFromInput(
     d_uniform_target_stiffness.resize(d_max_levels);
     d_using_uniform_target_damping.resize(d_max_levels);
     d_uniform_target_damping.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_target_subdomain_idx.resize(d_max_levels);
-    d_uniform_target_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_anchor_points.resize(d_max_levels);
     d_anchor_spec_data.resize(d_max_levels);
-#if ENABLE_SUBDOMAIN_INDICES
-    d_using_uniform_anchor_subdomain_idx.resize(d_max_levels);
-    d_uniform_anchor_subdomain_idx.resize(d_max_levels);
-#endif
 
     d_enable_bdry_mass.resize(d_max_levels);
     d_bdry_mass_spec_data.resize(d_max_levels);
@@ -3189,10 +2979,6 @@ IBStandardInitializer::getFromInput(
         d_uniform_spring_rest_length[ln].resize(num_base_filename,-1.0);
         d_using_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,false);
         d_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,-1);
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_spring_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_spring_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_xsprings[ln].resize(num_base_filename,true);
         d_using_uniform_xspring_stiffness[ln].resize(num_base_filename,false);
@@ -3201,44 +2987,24 @@ IBStandardInitializer::getFromInput(
         d_uniform_xspring_rest_length[ln].resize(num_base_filename,-1.0);
         d_using_uniform_xspring_force_fcn_idx[ln].resize(num_base_filename,false);
         d_uniform_xspring_force_fcn_idx[ln].resize(num_base_filename,-1);
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_xspring_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_xspring_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_beams[ln].resize(num_base_filename,true);
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
         d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
         d_uniform_beam_curvature[ln].resize(num_base_filename,blitz::TinyVector<double,NDIM>(0.0));
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_beam_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_beam_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_rods[ln].resize(num_base_filename,true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename,false);
         d_uniform_rod_properties[ln].resize(num_base_filename,blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_rod_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_rod_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_target_points[ln].resize(num_base_filename,true);
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
         d_using_uniform_target_damping[ln].resize(num_base_filename,false);
         d_uniform_target_damping[ln].resize(num_base_filename,-1.0);
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_target_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_target_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_anchor_points[ln].resize(num_base_filename,true);
-#if ENABLE_SUBDOMAIN_INDICES
-        d_using_uniform_anchor_subdomain_idx[ln].resize(num_base_filename,false);
-        d_uniform_anchor_subdomain_idx[ln].resize(num_base_filename,-1);
-#endif
 
         d_enable_bdry_mass[ln].resize(num_base_filename,true);
         d_using_uniform_bdry_mass[ln].resize(num_base_filename,false);
@@ -3323,13 +3089,6 @@ IBStandardInitializer::getFromInput(
                     d_using_uniform_spring_force_fcn_idx[ln][j] = true;
                     d_uniform_spring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_spring_force_fcn_idx");
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_spring_subdomain_idx"))
-                {
-                    d_using_uniform_spring_subdomain_idx[ln][j] = true;
-                    d_uniform_spring_subdomain_idx[ln][j] = sub_db->getInteger("uniform_spring_subdomain_idx");
-                }
-#endif
 
                 if (sub_db->keyExists("uniform_xspring_stiffness"))
                 {
@@ -3356,13 +3115,6 @@ IBStandardInitializer::getFromInput(
                     d_using_uniform_xspring_force_fcn_idx[ln][j] = true;
                     d_uniform_xspring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_xspring_force_fcn_idx");
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_xspring_subdomain_idx"))
-                {
-                    d_using_uniform_xspring_subdomain_idx[ln][j] = true;
-                    d_uniform_xspring_subdomain_idx[ln][j] = sub_db->getInteger("uniform_xspring_subdomain_idx");
-                }
-#endif
 
                 if (sub_db->keyExists("uniform_beam_bend_rigidity"))
                 {
@@ -3379,26 +3131,12 @@ IBStandardInitializer::getFromInput(
                     d_using_uniform_beam_curvature[ln][j] = true;
                     sub_db->getDoubleArray("uniform_beam_curvature", d_uniform_beam_curvature[ln][j].data(), NDIM);
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_beam_subdomain_idx"))
-                {
-                    d_using_uniform_beam_subdomain_idx[ln][j] = true;
-                    d_uniform_beam_subdomain_idx[ln][j] = sub_db->getInteger("uniform_beam_subdomain_idx");
-                }
-#endif
 
                 if (sub_db->keyExists("uniform_rod_properties"))
                 {
                     d_using_uniform_rod_properties[ln][j] = true;
                     sub_db->getDoubleArray("uniform_rod_properties", &d_uniform_rod_properties[ln][j][0], IBRodForceSpec::NUM_MATERIAL_PARAMS);
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_rod_subdomain_idx"))
-                {
-                    d_using_uniform_rod_subdomain_idx[ln][j] = true;
-                    d_uniform_rod_subdomain_idx[ln][j] = sub_db->getInteger("uniform_rod_subdomain_idx");
-                }
-#endif
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
                 {
@@ -3420,21 +3158,7 @@ IBStandardInitializer::getFromInput(
                                    << "  target point spring constant is negative" << std::endl);
                     }
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_target_subdomain_idx"))
-                {
-                    d_using_uniform_target_subdomain_idx[ln][j] = true;
-                    d_uniform_target_subdomain_idx[ln][j] = sub_db->getInteger("uniform_target_subdomain_idx");
-                }
-#endif
 
-#if ENABLE_SUBDOMAIN_INDICES
-                if (sub_db->keyExists("uniform_anchor_subdomain_idx"))
-                {
-                    d_using_uniform_anchor_subdomain_idx[ln][j] = true;
-                    d_uniform_anchor_subdomain_idx[ln][j] = sub_db->getInteger("uniform_anchor_subdomain_idx");
-                }
-#endif
 
                 if (sub_db->keyExists("uniform_bdry_mass"))
                 {
@@ -3491,12 +3215,6 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: UNIFORM spring force functions are being employed for the structure named " << base_filename << "\n";
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_spring_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM spring subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_xsprings[ln][j])
@@ -3517,12 +3235,6 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: UNIFORM crosslink spring force functions are being employed for the structure named " << base_filename << "\n";
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_xspring_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM crosslink spring subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_beams[ln][j])
@@ -3539,12 +3251,6 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: UNIFORM beam curvatures are being employed for the structure named " << base_filename << "\n";
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_beam_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM beam subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_rods[ln][j])
@@ -3557,12 +3263,6 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: UNIFORM rod material properties are being employed for the structure named " << base_filename << "\n";
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_rod_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM rod subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_target_points[ln][j])
@@ -3579,26 +3279,11 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: UNIFORM target point damping factors are being employed for the structure named " << base_filename << "\n";
                 }
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_target_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM target point subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_anchor_points[ln][j])
             {
                 pout << "  NOTE: anchor points are DISABLED for the structure named " << base_filename << "\n";
-            }
-            else
-            {
-#if ENABLE_SUBDOMAIN_INDICES
-                if (d_using_uniform_anchor_subdomain_idx[ln][j])
-                {
-                    pout << "  NOTE: UNIFORM anchor point subdomain indicies are being employed for the structure named " << base_filename << "\n";
-                }
-#endif
             }
 
             if (!d_enable_bdry_mass[ln][j])
