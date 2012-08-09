@@ -1165,9 +1165,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.I \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.h \
-	$(top_srcdir)/src/utilities/Stashable.h \
-	$(top_srcdir)/src/utilities/StashableFactory.h \
-	$(top_srcdir)/src/utilities/StashableManager.h \
 	$(top_srcdir)/src/utilities/Streamable.h \
 	$(top_srcdir)/src/utilities/StreamableFactory.h \
 	$(top_srcdir)/src/utilities/StreamableManager.I \
