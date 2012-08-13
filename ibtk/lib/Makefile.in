@@ -166,6 +166,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
+	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
@@ -302,6 +303,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-KrylovLinearSolverManager.$(OBJEXT) \
 	libIBTK2d_a-LaplaceOperator.$(OBJEXT) \
+	libIBTK2d_a-NewtonKrylovSolverManager.$(OBJEXT) \
 	libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK2d_a-PETScLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
@@ -434,6 +436,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
+	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
@@ -569,6 +572,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-KrylovLinearSolverManager.$(OBJEXT) \
 	libIBTK3d_a-LaplaceOperator.$(OBJEXT) \
+	libIBTK3d_a-NewtonKrylovSolverManager.$(OBJEXT) \
 	libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK3d_a-PETScLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
@@ -1111,6 +1115,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.h \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
+	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.h \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.I \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.h \
@@ -1245,6 +1250,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
+	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
@@ -1498,6 +1504,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NormOps.Po@am__quote@
@@ -1617,6 +1624,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NormOps.Po@am__quote@
@@ -2676,6 +2684,20 @@ libIBTK2d_a-LaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/LaplaceOperator
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK2d_a-LaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
+
+libIBTK2d_a-NewtonKrylovSolverManager.o: $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NewtonKrylovSolverManager.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Tpo -c -o libIBTK2d_a-NewtonKrylovSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Tpo $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' object='libIBTK2d_a-NewtonKrylovSolverManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NewtonKrylovSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+
+libIBTK2d_a-NewtonKrylovSolverManager.obj: $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NewtonKrylovSolverManager.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Tpo -c -o libIBTK2d_a-NewtonKrylovSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Tpo $(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' object='libIBTK2d_a-NewtonKrylovSolverManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NewtonKrylovSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; fi`
 
 libIBTK2d_a-PETScKrylovLinearSolver.o: $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScKrylovLinearSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Tpo -c -o libIBTK2d_a-PETScKrylovLinearSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
@@ -4342,6 +4364,20 @@ libIBTK3d_a-LaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/LaplaceOperator
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK3d_a-LaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
+
+libIBTK3d_a-NewtonKrylovSolverManager.o: $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NewtonKrylovSolverManager.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Tpo -c -o libIBTK3d_a-NewtonKrylovSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Tpo $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' object='libIBTK3d_a-NewtonKrylovSolverManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NewtonKrylovSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+
+libIBTK3d_a-NewtonKrylovSolverManager.obj: $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NewtonKrylovSolverManager.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Tpo -c -o libIBTK3d_a-NewtonKrylovSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Tpo $(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C' object='libIBTK3d_a-NewtonKrylovSolverManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NewtonKrylovSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C'; fi`
 
 libIBTK3d_a-PETScKrylovLinearSolver.o: $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScKrylovLinearSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Tpo -c -o libIBTK3d_a-PETScKrylovLinearSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C

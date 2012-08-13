@@ -1,4 +1,4 @@
-// Filename: KrylovLinearSolverManager.h
+// Filename: NewtonKrylovSolverManager.h
 // Created on 13 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_KrylovLinearSolverManager
-#define included_KrylovLinearSolverManager
+#ifndef included_NewtonKrylovSolverManager
+#define included_NewtonKrylovSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/NewtonKrylovSolver.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -46,24 +46,24 @@
 namespace IBTK
 {
 /*!
- * \brief Class KrylovLinearSolverManager is a singleton manager class to
- * provide access to generic KrylovLinearSolver implementations.
+ * \brief Class NewtonKrylovSolverManager is a singleton manager class to
+ * provide access to generic NewtonKrylovSolver implementations.
  */
-class KrylovLinearSolverManager
+class NewtonKrylovSolverManager
 {
 public:
     /*!
      * Return a pointer to the instance of the solver manager.  Access to
-     * KrylovLinearSolverManager objects is mediated by the getManager()
+     * NewtonKrylovSolverManager objects is mediated by the getManager()
      * function.
      *
      * \return A pointer to the solver manager instance.
      */
-    static KrylovLinearSolverManager*
+    static NewtonKrylovSolverManager*
     getManager();
 
     /*!
-     * Deallocate the KrylovLinearSolverManager instance.
+     * Deallocate the NewtonKrylovSolverManager instance.
      *
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
@@ -72,18 +72,18 @@ public:
     freeManager();
 
     /*!
-     * Allocate a new KrylovLinearSolver object of the specified type.
+     * Allocate a new NewtonKrylovSolver object of the specified type.
      */
-    SAMRAI::tbox::Pointer<KrylovLinearSolver>
+    SAMRAI::tbox::Pointer<NewtonKrylovSolver>
     allocateSolver(
         const std::string& solver_type,
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db=NULL) const;
 
     /*!
-     * Typedef for functions to construct KrylovLinearSolvers.
+     * Typedef for functions to construct NewtonKrylovSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<KrylovLinearSolver> (*SolverMaker)(const std::string& solver_object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
+    typedef SAMRAI::tbox::Pointer<NewtonKrylovSolver> (*SolverMaker)(const std::string& solver_object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
 
     /*!
      * Register a solver factory function with the solver manager class.
@@ -97,12 +97,12 @@ protected:
     /*!
      * \brief Default constructor.
      */
-    KrylovLinearSolverManager();
+    NewtonKrylovSolverManager();
 
     /*!
      * \brief Destructor.
      */
-    ~KrylovLinearSolverManager();
+    ~NewtonKrylovSolverManager();
 
 private:
     /*!
@@ -112,8 +112,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverManager(
-        const KrylovLinearSolverManager& from);
+    NewtonKrylovSolverManager(
+        const NewtonKrylovSolverManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -124,15 +124,15 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverManager&
+    NewtonKrylovSolverManager&
     operator=(
-        const KrylovLinearSolverManager& that);
+        const NewtonKrylovSolverManager& that);
 
     /*!
      * Static data members used to control access to and destruction of
      * singleton data manager instance.
      */
-    static KrylovLinearSolverManager* s_solver_manager_instance;
+    static NewtonKrylovSolverManager* s_solver_manager_instance;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
@@ -145,8 +145,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/KrylovLinearSolverManager.I>
+//#include <ibtk/NewtonKrylovSolverManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovLinearSolverManager
+#endif //#ifndef included_NewtonKrylovSolverManager

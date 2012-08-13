@@ -118,6 +118,17 @@ public:
     ~PETScNewtonKrylovSolver();
 
     /*!
+     * \brief Static function to construct a PETScNewtonKrylovSolver.
+     */
+    static SAMRAI::tbox::Pointer<NewtonKrylovSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        {
+            return new PETScNewtonKrylovSolver(object_name, input_db.isNull() ? "" : input_db->getStringWithDefault("options_prefix", ""));
+        }// allocate_solver
+
+    /*!
      * \name Functions to access the underlying PETSc objects.
      */
     //\{
