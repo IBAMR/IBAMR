@@ -129,6 +129,17 @@ public:
         const std::string& options_prefix="");
 
     /*!
+     * \brief Static function to construct a PETScKrylovLinearSolver.
+     */
+    static SAMRAI::tbox::Pointer<KrylovLinearSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        {
+            return new PETScKrylovLinearSolver(object_name, input_db.isNull() ? "" : input_db->getStringWithDefault("options_prefix", ""));
+        }// allocate_solver
+
+    /*!
      * \brief Destructor.
      */
     ~PETScKrylovLinearSolver();
