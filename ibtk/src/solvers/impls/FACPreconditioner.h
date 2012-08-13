@@ -70,7 +70,7 @@ namespace IBTK
  \endverbatim
 */
 class FACPreconditioner
-    : public LinearSolver
+    : public virtual LinearSolver
 {
 public:
     /*!
@@ -353,41 +353,7 @@ public:
 
     //\}
 
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    FACPreconditioner();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    FACPreconditioner(
-        const FACPreconditioner& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    FACPreconditioner&
-    operator=(
-        const FACPreconditioner& that);
-
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
+protected:
    void
    FACVCycleNoPreSmoothing(
        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
@@ -423,6 +389,41 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_f, d_r;
     bool d_recompute_residual;
     bool d_do_log;
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    FACPreconditioner();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    FACPreconditioner(
+        const FACPreconditioner& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    FACPreconditioner&
+    operator=(
+        const FACPreconditioner& that);
+
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };
 }// namespace IBTK
 

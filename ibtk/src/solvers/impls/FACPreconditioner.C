@@ -226,27 +226,7 @@ FACPreconditioner::deallocateSolverState()
     return;
 }// deallocateSolverState
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-FACPreconditioner::getFromInput(
-    tbox::Pointer<tbox::Database> db)
-{
-    if (db.isNull()) return;
-
-    MGCycleType cycle_type = string_to_enum<MGCycleType>(db->getStringWithDefault("cycle_type", enum_to_string<MGCycleType>(d_cycle_type)));
-    setMGCycleType(cycle_type);
-
-    int num_pre_sweeps = db->getIntegerWithDefault("num_pre_sweeps", d_num_pre_sweeps);
-    setNumPreSmoothingSweeps(num_pre_sweeps);
-
-    int num_post_sweeps = db->getIntegerWithDefault("num_post_sweeps", d_num_post_sweeps);
-    setNumPostSmoothingSweeps(num_post_sweeps);
-
-    bool logging = db->getBoolWithDefault("enable_logging", d_do_log);
-    enableLogging(logging);
-    return;
-}// getFromInput
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 FACPreconditioner::FACVCycleNoPreSmoothing(
@@ -431,6 +411,28 @@ FACPreconditioner::FACFCycle(
     }
     return;
 }// FACFCycle
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+FACPreconditioner::getFromInput(
+    tbox::Pointer<tbox::Database> db)
+{
+    if (db.isNull()) return;
+
+    MGCycleType cycle_type = string_to_enum<MGCycleType>(db->getStringWithDefault("cycle_type", enum_to_string<MGCycleType>(d_cycle_type)));
+    setMGCycleType(cycle_type);
+
+    int num_pre_sweeps = db->getIntegerWithDefault("num_pre_sweeps", d_num_pre_sweeps);
+    setNumPreSmoothingSweeps(num_pre_sweeps);
+
+    int num_post_sweeps = db->getIntegerWithDefault("num_post_sweeps", d_num_post_sweeps);
+    setNumPostSmoothingSweeps(num_post_sweeps);
+
+    bool logging = db->getBoolWithDefault("enable_logging", d_do_log);
+    enableLogging(logging);
+    return;
+}// getFromInput
 
 //////////////////////////////////////////////////////////////////////////////
 
