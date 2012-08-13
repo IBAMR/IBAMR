@@ -146,7 +146,7 @@ const std::string LDataManager::     POSN_DATA_NAME = "X";
 const std::string LDataManager::INIT_POSN_DATA_NAME = "X0";
 const std::string LDataManager::      VEL_DATA_NAME = "U";
 std::map<std::string,LDataManager*> LDataManager::s_data_manager_instances;
-bool LDataManager::s_registered_callback;
+bool LDataManager::s_registered_callback = false;
 unsigned char LDataManager::s_shutdown_priority = 200;
 std::vector<int> LDataManager::s_ao_dummy(1,-1);
 

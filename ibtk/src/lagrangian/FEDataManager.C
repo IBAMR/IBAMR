@@ -149,8 +149,8 @@ const short int FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID  = 0x100 | 0x400;
 const short int FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID  = 0x200 | 0x400;
 const short int FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
 std::map<std::string,FEDataManager*> FEDataManager::s_data_manager_instances;
-bool FEDataManager::s_registered_callback;
-unsigned char FEDataManager::s_shutdown_priority;
+bool FEDataManager::s_registered_callback = false;
+unsigned char FEDataManager::s_shutdown_priority = 200;
 
 FEDataManager*
 FEDataManager::getManager(
@@ -188,7 +188,7 @@ FEDataManager::freeAllManagers()
         it->second = NULL;
     }
     return;
-}// freeManager
+}// freeAllManagers
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
