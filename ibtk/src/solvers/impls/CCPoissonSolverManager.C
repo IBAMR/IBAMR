@@ -44,7 +44,17 @@
 #define included_SAMRAI_config
 #endif
 
+// To avoid compiler warnings related to redefinition of MPICH_SKIP_MPICXX.
+#ifdef MPICH_SKIP_MPICXX
+#undef MPICH_SKIP_MPICXX
+#endif
+
 // IBTK INCLUDES
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
+#include <ibtk/KrylovLinearSolverManager.h>
+#include <ibtk/PoissonFACPreconditioner.h>
+#include <ibtk/PoissonKrylovLinearSolverWrapper.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -80,6 +90,48 @@ CCPoissonSolverManager::freeManager()
     return;
 }// freeManager
 
+namespace
+{
+Pointer<PoissonSolver>
+allocate_default_krylov_solver(
+    const std::string& solver_object_name,
+    Pointer<Database> solver_input_db)
+{
+    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
+    poisson_spec.setCConstant(0.0);
+    poisson_spec.setDConstant(-1.0);
+    Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("DEFAULT", solver_object_name, solver_input_db);
+    krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, NULL));
+    return new PoissonKrylovLinearSolverWrapper(krylov_solver);
+}// allocate_default_krylov_solver
+
+Pointer<PoissonSolver>
+allocate_petsc_krylov_solver(
+    const std::string& solver_object_name,
+    Pointer<Database> solver_input_db)
+{
+    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
+    poisson_spec.setCConstant(0.0);
+    poisson_spec.setDConstant(-1.0);
+    Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("PETSC_KRYLOV_LINEAR_SOLVER", solver_object_name, solver_input_db);
+    krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, NULL));
+    return new PoissonKrylovLinearSolverWrapper(krylov_solver);
+}// allocate_petsc_krylov_solver
+
+Pointer<PoissonSolver>
+allocate_point_relaxation_fac_preconditioner(
+    const std::string& solver_object_name,
+    Pointer<Database> solver_input_db)
+{
+    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
+    poisson_spec.setCConstant(0.0);
+    poisson_spec.setDConstant(-1.0);
+    Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(solver_object_name+"::FACOperator", solver_input_db);
+    fac_operator->setPoissonSpecifications(poisson_spec);
+    return new PoissonFACPreconditioner(solver_object_name, fac_operator);
+}// allocate_point_relaxation_fac_preconditioner
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 Pointer<PoissonSolver>
@@ -111,6 +163,10 @@ CCPoissonSolverManager::registerSolverFactoryFunction(
 CCPoissonSolverManager::CCPoissonSolverManager()
     : d_solver_maker_map()
 {
+    d_solver_maker_map["DEFAULT_KRYLOV_LINEAR_SOLVER"       ] = allocate_default_krylov_solver;
+    d_solver_maker_map["PETSC_KRYLOV_LINEAR_SOLVER"         ] = allocate_petsc_krylov_solver;
+    d_solver_maker_map["DEFAULT_FAC_PRECONDITIONER"         ] = allocate_point_relaxation_fac_preconditioner;
+    d_solver_maker_map["POINT_RELAXATION_FAC_PRECONDITIONER"] = allocate_point_relaxation_fac_preconditioner;
     return;
 }// CCPoissonSolverManager
 

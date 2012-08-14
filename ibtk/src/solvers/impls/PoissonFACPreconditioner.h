@@ -51,8 +51,8 @@ class PoissonFACPreconditionerStrategy;
 namespace IBTK
 {
 /*!
- * \brief Class PoissonFACPreconditioner is a concrete LinearSolver for Poisson
- * solvers.
+ * \brief Class PoissonFACPreconditioner is a FACPreconditioner that has been
+ * specialized for Poisson problems.
 */
 class PoissonFACPreconditioner
     : public FACPreconditioner,
