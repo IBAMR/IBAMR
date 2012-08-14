@@ -49,7 +49,7 @@ namespace IBTK
 PoissonFACPreconditioner::PoissonFACPreconditioner(
     const std::string& object_name,
     Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-    tbox::Pointer<tbox::Database> input_db)
+    Pointer<Database> input_db)
     : FACPreconditioner(object_name, fac_strategy, input_db),
       PoissonSolver(object_name, /*homogeneous_bc*/ true)
 {

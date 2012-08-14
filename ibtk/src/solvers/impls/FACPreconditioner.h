@@ -70,7 +70,7 @@ namespace IBTK
  \endverbatim
 */
 class FACPreconditioner
-    : public virtual LinearSolver
+    : public LinearSolver
 {
 public:
     /*!

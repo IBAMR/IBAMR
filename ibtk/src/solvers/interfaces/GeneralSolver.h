@@ -83,11 +83,24 @@ public:
         bool homogeneous_bc);
 
     /*!
+     * \brief Return whether the solver is using homogeneous boundary
+     * conditions.
+     */
+    virtual bool
+    getHomogeneousBc() const;
+
+    /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
     virtual void
     setSolutionTime(
         double solution_time);
+
+    /*!
+     * \brief Get the time at which the solution is being evaluated.
+     */
+    virtual double
+    getSolutionTime() const;
 
     /*!
      * \brief Set the current time interval.
@@ -96,6 +109,12 @@ public:
     setTimeInterval(
         double current_time,
         double new_time);
+
+    /*!
+     * \brief Get the current time interval.
+     */
+    virtual std::pair<double,double>
+    getTimeInterval() const;
 
     /*!
      * \brief Solve the system of equations.

@@ -1,5 +1,5 @@
-// Filename: KrylovLinearSolver.h
-// Created on 08 Sep 2003 by Boyce Griffith
+// Filename: CCPoissonSolverManager.h
+// Created on 13 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,78 +30,79 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_KrylovLinearSolver
-#define included_KrylovLinearSolver
+#ifndef included_CCPoissonSolverManager
+#define included_CCPoissonSolverManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-#include <ibtk/LinearSolver.h>
+#include <ibtk/PoissonSolver.h>
+
+// C++ STDLIB INCLUDES
+#include <map>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class KrylovLinearSolver provides an abstract interface for the
- * implementation of Krylov subspace solvers for linear problems of the form
- * \f$Ax=b\f$.
+ * \brief Class CCPoissonSolverManager is a singleton manager class to provide
+ * access to generic cell-centered PoissonSolver implementations.
  */
-class KrylovLinearSolver
-    : public virtual LinearSolver
+class CCPoissonSolverManager
 {
 public:
     /*!
+     * Return a pointer to the instance of the solver manager.  Access to
+     * CCPoissonSolverManager objects is mediated by the getManager()
+     * function.
+     *
+     * \return A pointer to the solver manager instance.
+     */
+    static CCPoissonSolverManager*
+    getManager();
+
+    /*!
+     * Deallocate the CCPoissonSolverManager instance.
+     *
+     * It is not necessary to call this function at program termination since it
+     * is automatically called by the ShutdownRegistry class.
+     */
+    static void
+    freeManager();
+
+    /*!
+     * Allocate a new CCPoissonSolver object of the specified type.
+     */
+    SAMRAI::tbox::Pointer<PoissonSolver>
+    allocateSolver(
+        const std::string& solver_type,
+        const std::string& solver_object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db=NULL) const;
+
+    /*!
+     * Typedef for functions to construct cell-centered PoissonSolvers.
+     */
+    typedef SAMRAI::tbox::Pointer<PoissonSolver> (*SolverMaker)(const std::string& solver_object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
+
+    /*!
+     * Register a solver factory function with the solver manager class.
+     */
+    void
+    registerSolverFactoryFunction(
+        const std::string& solver_type,
+        SolverMaker solver_maker);
+
+protected:
+    /*!
      * \brief Default constructor.
      */
-    KrylovLinearSolver(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+    CCPoissonSolverManager();
 
     /*!
-     * \brief Empty destructor.
+     * \brief Destructor.
      */
-    ~KrylovLinearSolver();
-
-    /*!
-     * \name Krylov solver functionality.
-     */
-    //\{
-
-    /*!
-     * \brief Set the linear operator used when solving \f$Ax=b\f$.
-     */
-    virtual void
-    setOperator(
-        SAMRAI::tbox::Pointer<LinearOperator> A) = 0;
-
-    /*!
-     * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
-     */
-    virtual SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const = 0;
-
-    /*!
-     * \brief Set the preconditioner used by the Krylov subspace method when
-     * solving \f$Ax=b\f$.
-     *
-     * \note If the preconditioner is NULL, no preconditioning is performed.
-     */
-    virtual void
-    setPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL) = 0;
-
-    /*!
-     * \brief Retrieve the preconditioner used by the Krylov subspace method
-     * when solving \f$Ax=b\f$.
-     */
-    virtual SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const = 0;
-
-    //\}
+    ~CCPoissonSolverManager();
 
 private:
     /*!
@@ -111,8 +112,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolver(
-        const KrylovLinearSolver& from);
+    CCPoissonSolverManager(
+        const CCPoissonSolverManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -123,16 +124,29 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolver&
+    CCPoissonSolverManager&
     operator=(
-        const KrylovLinearSolver& that);
+        const CCPoissonSolverManager& that);
+
+    /*!
+     * Static data members used to control access to and destruction of
+     * singleton data manager instance.
+     */
+    static CCPoissonSolverManager* s_solver_manager_instance;
+    static bool s_registered_callback;
+    static unsigned char s_shutdown_priority;
+
+    /*!
+     * Mapping from solver type names to solver maker functions.
+     */
+    std::map<std::string,SolverMaker> d_solver_maker_map;
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/KrylovLinearSolver.I>
+//#include <ibtk/CCPoissonSolverManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovLinearSolver
+#endif //#ifndef included_CCPoissonSolverManager
