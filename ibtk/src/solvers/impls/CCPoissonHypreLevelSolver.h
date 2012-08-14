@@ -119,6 +119,17 @@ public:
     ~CCPoissonHypreLevelSolver();
 
     /*!
+     * \brief Static function to construct a CCPoissonHypreLevelSolver.
+     */
+    static SAMRAI::tbox::Pointer<PoissonSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        {
+            return new CCPoissonHypreLevelSolver(object_name, input_db);
+        }// allocate_solver
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{

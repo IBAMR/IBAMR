@@ -51,6 +51,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonHypreLevelSolver.h>
+#include <ibtk/CCPoissonPETScLevelSolver.h>
 #include <ibtk/CCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/KrylovLinearSolverManager.h>
 #include <ibtk/PoissonFACPreconditioner.h>
@@ -167,6 +169,9 @@ CCPoissonSolverManager::CCPoissonSolverManager()
     d_solver_maker_map["PETSC_KRYLOV_LINEAR_SOLVER"         ] = allocate_petsc_krylov_solver;
     d_solver_maker_map["DEFAULT_FAC_PRECONDITIONER"         ] = allocate_point_relaxation_fac_preconditioner;
     d_solver_maker_map["POINT_RELAXATION_FAC_PRECONDITIONER"] = allocate_point_relaxation_fac_preconditioner;
+    d_solver_maker_map["DEFAULT_LEVEL_SOLVER"               ] = CCPoissonHypreLevelSolver::allocate_solver;
+    d_solver_maker_map["HYPRE_LEVEL_SOLVER"                 ] = CCPoissonHypreLevelSolver::allocate_solver;
+    d_solver_maker_map["PETSC_LEVEL_SOLVER"                 ] = CCPoissonPETScLevelSolver::allocate_solver;
     return;
 }// CCPoissonSolverManager
 
