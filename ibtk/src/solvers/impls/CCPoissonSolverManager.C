@@ -44,11 +44,6 @@
 #define included_SAMRAI_config
 #endif
 
-// To avoid compiler warnings related to redefinition of MPICH_SKIP_MPICXX.
-#ifdef MPICH_SKIP_MPICXX
-#undef MPICH_SKIP_MPICXX
-#endif
-
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
