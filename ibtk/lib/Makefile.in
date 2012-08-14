@@ -180,6 +180,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C \
+	$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
@@ -319,6 +320,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonPointRelaxationFACOperator.$(OBJEXT) \
+	libIBTK2d_a-SCPoissonSolverManager.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditionerStrategy.$(OBJEXT) \
 	libIBTK2d_a-GeneralOperator.$(OBJEXT) \
 	libIBTK2d_a-GeneralSolver.$(OBJEXT) \
@@ -454,6 +456,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C \
+	$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
@@ -592,6 +595,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonPointRelaxationFACOperator.$(OBJEXT) \
+	libIBTK3d_a-SCPoissonSolverManager.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditionerStrategy.$(OBJEXT) \
 	libIBTK3d_a-GeneralOperator.$(OBJEXT) \
 	libIBTK3d_a-GeneralSolver.$(OBJEXT) \
@@ -1141,6 +1145,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.h \
+	$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.h \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.h \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.h \
 	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.h \
@@ -1274,6 +1279,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C \
+	$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
@@ -1550,6 +1556,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SCPoissonPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po@am__quote@
@@ -1672,6 +1679,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SCPoissonPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SCPoissonPointRelaxationFACOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po@am__quote@
@@ -2896,6 +2904,20 @@ libIBTK2d_a-SCPoissonPointRelaxationFACOperator.obj: $(top_srcdir)/src/solvers/i
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C' object='libIBTK2d_a-SCPoissonPointRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SCPoissonPointRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; fi`
+
+libIBTK2d_a-SCPoissonSolverManager.o: $(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SCPoissonSolverManager.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Tpo -c -o libIBTK2d_a-SCPoissonSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Tpo $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' object='libIBTK2d_a-SCPoissonSolverManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SCPoissonSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+
+libIBTK2d_a-SCPoissonSolverManager.obj: $(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SCPoissonSolverManager.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Tpo -c -o libIBTK2d_a-SCPoissonSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Tpo $(DEPDIR)/libIBTK2d_a-SCPoissonSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' object='libIBTK2d_a-SCPoissonSolverManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SCPoissonSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; fi`
 
 libIBTK2d_a-FACPreconditionerStrategy.o: $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FACPreconditionerStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Tpo -c -o libIBTK2d_a-FACPreconditionerStrategy.o `test -f '$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C
@@ -4604,6 +4626,20 @@ libIBTK3d_a-SCPoissonPointRelaxationFACOperator.obj: $(top_srcdir)/src/solvers/i
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C' object='libIBTK3d_a-SCPoissonPointRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SCPoissonPointRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C'; fi`
+
+libIBTK3d_a-SCPoissonSolverManager.o: $(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SCPoissonSolverManager.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Tpo -c -o libIBTK3d_a-SCPoissonSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Tpo $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' object='libIBTK3d_a-SCPoissonSolverManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SCPoissonSolverManager.o `test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+
+libIBTK3d_a-SCPoissonSolverManager.obj: $(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SCPoissonSolverManager.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Tpo -c -o libIBTK3d_a-SCPoissonSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Tpo $(DEPDIR)/libIBTK3d_a-SCPoissonSolverManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C' object='libIBTK3d_a-SCPoissonSolverManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SCPoissonSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C'; fi`
 
 libIBTK3d_a-FACPreconditionerStrategy.o: $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FACPreconditionerStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FACPreconditionerStrategy.Tpo -c -o libIBTK3d_a-FACPreconditionerStrategy.o `test -f '$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C

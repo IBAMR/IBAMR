@@ -132,6 +132,7 @@ $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.C \
+$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.C \
 $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 $(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
 $(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
@@ -296,6 +297,7 @@ $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/SCPoissonPointRelaxationFACOperator.h \
+$(top_srcdir)/src/solvers/impls/SCPoissonSolverManager.h \
 $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.h \
 $(top_srcdir)/src/solvers/interfaces/GeneralOperator.h \
 $(top_srcdir)/src/solvers/interfaces/GeneralSolver.h \

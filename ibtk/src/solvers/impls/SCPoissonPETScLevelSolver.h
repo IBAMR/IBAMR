@@ -106,6 +106,17 @@ public:
      */
     ~SCPoissonPETScLevelSolver();
 
+    /*!
+     * \brief Static function to construct a SCPoissonPETScLevelSolver.
+     */
+    static SAMRAI::tbox::Pointer<PoissonSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        {
+            return new SCPoissonPETScLevelSolver(object_name, input_db);
+        }// allocate_solver
+
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
