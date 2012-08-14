@@ -40,7 +40,6 @@
 #include <IntVector.h>
 #include <Patch.h>
 #include <RefinePatchStrategy.h>
-#include <tbox/DescribedClass.h>
 
 // C++ STDLIB INCLUDES
 #include <set>
@@ -57,8 +56,7 @@ namespace IBTK
  * values.
  */
 class CartExtrapPhysBdryOp
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>,
-      public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

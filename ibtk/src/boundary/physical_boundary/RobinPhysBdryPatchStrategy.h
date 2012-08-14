@@ -38,7 +38,6 @@
 // SAMRAI INCLUDES
 #include <RefinePatchStrategy.h>
 #include <RobinBcCoefStrategy.h>
-#include <tbox/DescribedClass.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -60,8 +59,7 @@ namespace IBTK
  * ghost cell values at physical boundaries.
  */
 class RobinPhysBdryPatchStrategy
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>,
-      public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!
