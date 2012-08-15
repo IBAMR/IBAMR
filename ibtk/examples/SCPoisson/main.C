@@ -43,9 +43,9 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonPointRelaxationFACOperator.h>
+#include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -76,17 +76,12 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -194,8 +189,8 @@ main(
         r_vec.setToScalar(0.0);
 
         // Setup exact solutions.
-        muParserCartGridFunction u_fcn("u" , app_initializer->getComponentDatabase("u" ), grid_geometry);
-        muParserCartGridFunction f_fcn("f" , app_initializer->getComponentDatabase("f" ), grid_geometry);
+        muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
+        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
 
         u_fcn .setDataOnPatchHierarchy(e_sc_idx,  e_sc_var, patch_hierarchy, 0.0);
         f_fcn .setDataOnPatchHierarchy(f_sc_idx,  f_sc_var, patch_hierarchy, 0.0);
@@ -204,51 +199,27 @@ main(
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        Pointer<SCLaplaceOperator> laplace_op = new SCLaplaceOperator("laplace op", poisson_spec, bc_coef);
-        PETScKrylovLinearSolver poisson_solver("poisson solver");
-        poisson_solver.setOperator(laplace_op);
+        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs; for (unsigned int d = 0; d < NDIM; ++d) bc_coefs[d] = NULL;
+        Pointer<SCLaplaceOperator> laplace_op = new SCLaplaceOperator("laplace_op", poisson_spec, bc_coefs);
 
-        string solver_choice = input_db->getString("SOLVER_CHOICE");
-        if (gridding_algorithm->getMaxLevels() != 1)
+        string solver_type = input_db->getString("solver_type");
+        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver("poisson_solver", solver_type, solver_db);
+        Pointer<KrylovLinearSolver> p_poisson_solver = poisson_solver;
+        if (!p_poisson_solver.isNull())
         {
-            if (solver_choice != "FAC" && solver_choice != "none") TBOX_ERROR("number of grid levels > 1; this requires solver_choice = ``FAC'' or ``none''");
+            string precond_type = input_db->getString("precond_type");
+            Pointer<Database> precond_db = input_db->getDatabase("precond_db");
+            Pointer<PoissonSolver> poisson_precond = SCPoissonSolverManager::getManager()->allocateSolver("poisson_precond", precond_type, precond_db);
+            p_poisson_solver->setPreconditioner(poisson_precond);
         }
+        poisson_solver->setPoissonSpecifications(poisson_spec);
+        poisson_solver->setPhysicalBcCoefs(bc_coefs);
+        poisson_solver->initializeSolverState(u_vec,f_vec);
 
-        if (solver_choice == "FAC")
-        {
-            Pointer<SCPoissonPointRelaxationFACOperator> poisson_fac_op = new SCPoissonPointRelaxationFACOperator(
-                "SCPoissonPointRelaxationFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_fac_op->setPoissonSpecifications(poisson_spec);
-            Pointer<FACPreconditioner> poisson_fac_pc = new FACPreconditioner(
-                "FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_solver.setPreconditioner(poisson_fac_pc);
-        }
-        else if (solver_choice == "hypre")
-        {
-            Pointer<SCPoissonHypreLevelSolver> poisson_hypre_pc = new SCPoissonHypreLevelSolver(
-                "SCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
-            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_hypre_pc);
-        }
-        else if (solver_choice == "petsc")
-        {
-            Pointer<SCPoissonPETScLevelSolver> poisson_petsc_pc = new SCPoissonPETScLevelSolver(
-                "SCPoissonPETScLevelSolver", app_initializer->getComponentDatabase("PETScPoissonSolver"));
-            poisson_petsc_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_petsc_pc);
-        }
-        else if (solver_choice != "none")
-        {
-            TBOX_ERROR("unknown solver_choice: " << solver_choice << "\n"
-                       << "choices are: FAC, hypre, petsc, none\n");
-        }
-
-        poisson_solver.initializeSolverState(u_vec,f_vec);
-
-        // Solve (I-L)*u = f.
+        // Solve -L*u = f.
         u_vec.setToScalar(0.0);
-        poisson_solver.solveSystem(u_vec,f_vec);
+        poisson_solver->solveSystem(u_vec,f_vec);
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
