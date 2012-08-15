@@ -198,14 +198,11 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!var.isNull());
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!coarsen_op.isNull());
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx,  // destination
-                                           data_idx,  // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -269,11 +266,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(data_idx,  // destination
-                                     data_idx,  // source
-                                     data_idx,  // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+        d_refine_alg->registerRefine(data_idx,  data_idx, data_idx, refine_op, fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (phys_bdry_extrap_type != "NONE")
@@ -373,14 +366,11 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!var.isNull());
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!coarsen_op.isNull());
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx,  // destination
-                                           data_idx,  // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -424,11 +414,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(data_idx,  // destination
-                                     data_idx,  // source
-                                     data_idx,  // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (!d_extrap_bc_ops[comp_idx].isNull())

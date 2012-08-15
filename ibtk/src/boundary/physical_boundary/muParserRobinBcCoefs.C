@@ -286,11 +286,10 @@ muParserRobinBcCoefs::setBcCoefs(
 
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis =  location_index / 2;
-    const Box<NDIM>& bc_coef_box =
-        (fill_acoef_data ? acoef_data->getBox() :
-         fill_bcoef_data ? bcoef_data->getBox() :
-         fill_gcoef_data ? gcoef_data->getBox() :
-         Box<NDIM>());
+    const Box<NDIM>& bc_coef_box = (fill_acoef_data ? acoef_data->getBox() :
+                                    fill_bcoef_data ? bcoef_data->getBox() :
+                                    fill_gcoef_data ? gcoef_data->getBox() :
+                                    Box<NDIM>());
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!fill_acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!fill_bcoef_data || bc_coef_box == bcoef_data->getBox());
