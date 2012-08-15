@@ -431,6 +431,9 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #endif
     if (d_coarse_solver.isNull())
     {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
+#endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
     }
     else
