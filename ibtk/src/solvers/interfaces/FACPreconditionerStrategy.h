@@ -208,6 +208,15 @@ public:
     deallocateOperatorState();
 
 protected:
+    /*!
+     * \brief Return a SAMRAIVectorReal object that corresponds to the given
+     * object but restricted to a single level of the patch hierarchy.
+     */
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    getLevelSAMRAIVectorReal(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& vec,
+        int level_num) const;
+
     // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 

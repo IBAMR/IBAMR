@@ -48,8 +48,7 @@
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/RefinePatchStrategySet.h>
-#include <ibtk/SCPoissonHypreLevelSolver.h>
-#include <ibtk/SCPoissonPETScLevelSolver.h>
+#include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 #include <ibtk/ibtk_utilities.h>
@@ -122,29 +121,36 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     const Pointer<Database> input_db)
     : PoissonFACPreconditionerStrategy(object_name, new SideVariable<NDIM,double>(object_name+"::side_scratch", DEFAULT_DATA_DEPTH), SIDEG, input_db),
       d_depth(DEFAULT_DATA_DEPTH),
-      d_bottom_solver(NULL),
-      d_bottom_solver_db(),
+      d_coarse_solver(NULL),
+      d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
       d_patch_smoother_bc_boxes()
 {
     // Get values from the input database.
     if (!input_db.isNull())
     {
+        if (input_db->isDatabase("coarse_solver"))
+        {
+            d_coarse_solver_db = input_db->getDatabase("coarse_solver");
+        }
         if (input_db->isDatabase("bottom_solver"))
         {
-            d_bottom_solver_db = input_db->getDatabase("bottom_solver");
+            tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
+                       << "         use ``coarse_solver'' input entry instead.\n";
         }
         if (input_db->isDatabase("hypre_solver"))
         {
-            d_bottom_solver_db = input_db->getDatabase("hypre_solver");
+            tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
+                       << "         use ``coarse_solver'' input entry instead.\n";
         }
         if (input_db->isDatabase("petsc_solver"))
         {
-            d_bottom_solver_db = input_db->getDatabase("petsc_solver");
+            tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
+                       << "         use ``coarse_solver'' input entry instead.\n";
         }
     }
 
-    // Create the hypre solver, if needed.
+    // Configure the coarse level solver.
     setCoarsestLevelSolverChoice(d_coarse_solver_choice);
 
     // Setup Timers.
@@ -196,7 +202,7 @@ SCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
                    << "  unknown coarse solver type: " << d_coarse_solver_choice << "\n"
                    << "  valid choices are: block_jacobi, hypre, petsc" << std::endl);
     }
-    if (d_coarse_solver_choice != coarse_solver_choice) d_bottom_solver.setNull();
+    if (d_coarse_solver_choice != coarse_solver_choice) d_coarse_solver.setNull();
     d_coarse_solver_choice = coarse_solver_choice;
     return;
 }// setCoarsestLevelSolverChoice
@@ -364,32 +370,19 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (d_bottom_solver.isNull())
+    if (d_coarse_solver.isNull())
     {
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
     }
     else
     {
-        SAMRAIVectorReal<NDIM,double> error_level(error.getName()+"::level", error.getPatchHierarchy(), coarsest_ln, coarsest_ln);
-        for (int comp = 0; comp < error.getNumberOfComponents(); ++comp)
-        {
-            error_level.addComponent(error.getComponentVariable(comp), error.getComponentDescriptorIndex(comp), error.getControlVolumeIndex(comp));
-        }
-        SAMRAIVectorReal<NDIM,double> residual_level(residual.getName()+"::level", residual.getPatchHierarchy(), coarsest_ln, coarsest_ln);
-        for (int comp = 0; comp < residual.getNumberOfComponents(); ++comp)
-        {
-            residual_level.addComponent(residual.getComponentVariable(comp), residual.getComponentDescriptorIndex(comp), residual.getControlVolumeIndex(comp));
-        }
-        d_bottom_solver->setSolutionTime(d_solution_time);
-        d_bottom_solver->setTimeInterval(d_current_time, d_new_time);
-        d_bottom_solver->setInitialGuessNonzero(true);
-        d_bottom_solver->setMaxIterations(d_coarse_solver_max_its);
-        d_bottom_solver->setRelativeTolerance(d_coarse_solver_tol);
-        d_bottom_solver->solveSystem(error_level,residual_level);
-
-        // Synchronize data along patch boundaries.
-        const int error_idx = error.getComponentDescriptorIndex(0);
-        xeqScheduleDataSynch(error_idx, coarsest_ln);
+        d_coarse_solver->setSolutionTime(d_solution_time);
+        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+        d_coarse_solver->setInitialGuessNonzero(true);
+        d_coarse_solver->setMaxIterations(d_coarse_solver_max_its);
+        d_coarse_solver->setRelativeTolerance(d_coarse_solver_tol);
+        d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
+        xeqScheduleDataSynch(error.getComponentDescriptorIndex(0), coarsest_ln);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
@@ -485,36 +478,18 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
         scratch_pdat_fac->setDefaultDepth(d_depth);
     }
 
-    // Initialize the bottom solvers when needed.
+    // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "block_jacobi")
     {
-        SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-        for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
-        {
-            solution_level.addComponent(d_solution->getComponentVariable(comp), d_solution->getComponentDescriptorIndex(comp), d_solution->getControlVolumeIndex(comp));
-        }
-        SAMRAIVectorReal<NDIM,double> rhs_level(d_rhs->getName()+"::level", d_rhs->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
-        for (int comp = 0; comp < d_rhs->getNumberOfComponents(); ++comp)
-        {
-            rhs_level.addComponent(d_rhs->getComponentVariable(comp), d_rhs->getComponentDescriptorIndex(comp), d_rhs->getControlVolumeIndex(comp));
-        }
-
-        // Note that since the bottom solver is solving for the error, it must
-        // always employ homogeneous boundary conditions.
-        if (d_coarse_solver_choice == "hypre")
-        {
-            d_bottom_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_bottom_solver_db);
-        }
-        else if (d_coarse_solver_choice == "petsc")
-        {
-            d_bottom_solver = new SCPoissonPETScLevelSolver(d_object_name+"::petsc_solver", d_bottom_solver_db);
-        }
-        d_bottom_solver->setSolutionTime(d_solution_time);
-        d_bottom_solver->setTimeInterval(d_current_time, d_new_time);
-        d_bottom_solver->setPoissonSpecifications(d_poisson_spec);
-        d_bottom_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_bottom_solver->setHomogeneousBc(true);
-        d_bottom_solver->initializeSolverState(solution_level, rhs_level);
+        // Note that since the coarse level solver is solving for the error, it
+        // must always employ homogeneous boundary conditions.
+        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_choice, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver->setSolutionTime(d_solution_time);
+        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln), *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
 
     // Setup specialized transfer operators.
@@ -618,7 +593,7 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
     {
         d_patch_bc_box_overlap.clear();
         d_patch_smoother_bc_boxes.clear();
-        d_bottom_solver->deallocateSolverState();
+        d_coarse_solver->deallocateSolverState();
     }
     return;
 }// deallocateOperatorStateSpecialized

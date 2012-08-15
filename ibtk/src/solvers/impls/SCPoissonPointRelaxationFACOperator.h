@@ -84,9 +84,7 @@ namespace IBTK
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
 
- hypre_solver = { ... }                       // SAMRAI::tbox::Database for initializing class SCPoissonHypreLevelSolver
-
- petsc_solver = { ... }                       // SAMRAI::tbox::Database for initializing class SCPoissonPetscLevelSolver
+ coarse_solver = { ... }                      // SAMRAI::tbox::Database for initializing coarse level solver
  \endverbatim
 */
 class SCPoissonPointRelaxationFACOperator
@@ -264,8 +262,8 @@ private:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_bottom_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_bottom_solver_db;
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Patch overlap data.
