@@ -75,15 +75,12 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "additive"                 // see setSmootherChoice()
-
+ smoother_choice = "ADDITIVE"                 // see setSmootherChoice()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
-
- coarse_solver_choice = "block_jacobi"        // see setCoarsestLevelSolverChoice()
+ coarse_solver_choice = "BLOCK_JACOBI"        // see setCoarsestLevelSolverChoice()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
-
  coarse_solver = { ... }                      // SAMRAI::tbox::Database for initializing coarse level solver
  \endverbatim
 */
@@ -112,8 +109,8 @@ public:
      * \brief Specify the smoother type.
      *
      * Select from:
-     * - \c "additive"
-     * - \c "multiplicative"
+     * - \c "ADDITIVE"
+     * - \c "MULTIPLICATIVE"
      *
      * \note The smoother is always additive between processors ("processor
      * block Gauss-Seidel").
@@ -124,11 +121,6 @@ public:
 
     /*!
      * \brief Specify the coarse level solver.
-     *
-     * Select from:
-     * - \c "block_jacobi"
-     * - \c "hypre"
-     * - \c "petsc"
      */
     void
     setCoarsestLevelSolverChoice(

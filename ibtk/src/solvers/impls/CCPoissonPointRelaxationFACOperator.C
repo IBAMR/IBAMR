@@ -203,11 +203,11 @@ CCPoissonPointRelaxationFACOperator::setSmootherChoice(
         TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (smoother_choice != "additive" && smoother_choice != "multiplicative")
+    if (smoother_choice != "ADDITIVE" && smoother_choice != "MULTIPLICATIVE")
     {
         TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
                    << "  unknown smoother type: " << smoother_choice << "\n"
-                   << "  valid choices are: additive, multiplicative" << std::endl);
+                   << "  valid choices are: ADDITIVE, MULTIPLICATIVE" << std::endl);
     }
     d_smoother_choice = smoother_choice;
     return;
@@ -221,12 +221,6 @@ CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
     {
         TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (coarse_solver_choice != "block_jacobi" && coarse_solver_choice != "hypre" && coarse_solver_choice != "petsc")
-    {
-        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
-                   << "  unknown coarse solver type: " << d_coarse_solver_choice << "\n"
-                   << "  valid choices are: block_jacobi, hypre, petsc" << std::endl);
     }
     if (d_coarse_solver_choice != coarse_solver_choice) d_coarse_solver.setNull();
     d_coarse_solver_choice = coarse_solver_choice;
@@ -332,7 +326,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from other local patches.
-            if (d_smoother_choice == "multiplicative")
+            if (d_smoother_choice == "MULTIPLICATIVE")
             {
                 const std::map<int,Box<NDIM> > smoother_bc_boxes = d_patch_smoother_bc_boxes[level_num][patch_counter];
                 for (std::map<int,Box<NDIM> >::const_iterator cit = smoother_bc_boxes.begin(); cit != smoother_bc_boxes.end(); ++cit)
@@ -540,7 +534,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize the coarse level solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "block_jacobi")
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "BLOCK_JACOBI")
     {
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
@@ -628,7 +622,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Get overlap information for re-setting patch boundary conditions during
     // multiplicative smoothing.
-    if (d_smoother_choice == "multiplicative")
+    if (d_smoother_choice == "MULTIPLICATIVE")
     {
         d_patch_smoother_bc_boxes.resize(d_finest_ln+1);
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)

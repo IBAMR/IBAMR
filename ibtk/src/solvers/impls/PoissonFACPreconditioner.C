@@ -69,7 +69,7 @@ PoissonFACPreconditioner::setPoissonSpecifications(
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    p_fac_strategy->setPoissonSpecifications(poisson_spec);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPoissonSpecifications(poisson_spec);
     return;
 }// setPoissonSpecifications
 
@@ -79,7 +79,7 @@ PoissonFACPreconditioner::setPhysicalBcCoef(
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    p_fac_strategy->setPhysicalBcCoef(bc_coef);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoef(bc_coef);
     return;
 }// setPhysicalBcCoef
 
@@ -89,7 +89,7 @@ PoissonFACPreconditioner::setPhysicalBcCoefs(
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
     return;
 }// setPhysicalBcCoefs
 
@@ -99,7 +99,7 @@ PoissonFACPreconditioner::setPhysicalBcCoefs(
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
     return;
 }// setPhysicalBcCoefs
 

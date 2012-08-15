@@ -57,12 +57,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "additive"                 // see setSmootherChoice()
-
+ smoother_choice = "ADDITIVE"                 // see setSmootherChoice()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
-
- coarse_solver_choice = "block_jacobi"        // see setCoarsestLevelSolverChoice()
+ coarse_solver_choice = "BLOCK_JACOBI"        // see setCoarsestLevelSolverChoice()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
  \endverbatim

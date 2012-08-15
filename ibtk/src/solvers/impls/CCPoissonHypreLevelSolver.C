@@ -316,7 +316,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(
     }
     else
     {
-        d_grid_aligned_anisotropy = false;
+        d_grid_aligned_anisotropy = true;
     }
     allocateHypreData();
     if (d_grid_aligned_anisotropy)
