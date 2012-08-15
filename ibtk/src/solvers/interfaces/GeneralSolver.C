@@ -83,6 +83,12 @@ GeneralSolver::setHomogeneousBc(
     return;
 }// setHomogeneousBc
 
+bool
+GeneralSolver::getHomogeneousBc() const
+{
+    return d_homogeneous_bc;
+}// getHomogeneousBc
+
 void
 GeneralSolver::setSolutionTime(
     double solution_time)
@@ -90,6 +96,12 @@ GeneralSolver::setSolutionTime(
     d_solution_time = solution_time;
     return;
 }// setSolutionTime
+
+double
+GeneralSolver::getSolutionTime() const
+{
+    return d_solution_time;
+}// getSolutionTime
 
 void
 GeneralSolver::setTimeInterval(
@@ -100,6 +112,12 @@ GeneralSolver::setTimeInterval(
     d_new_time = new_time;
     return;
 }// setTimeInterval
+
+std::pair<double,double>
+GeneralSolver::getTimeInterval() const
+{
+    return std::make_pair(d_current_time,d_new_time);
+}// getTimeInterval
 
 void
 GeneralSolver::initializeSolverState(
