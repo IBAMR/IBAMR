@@ -75,17 +75,12 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -135,15 +130,13 @@ main(
                 plog << "\n";
 
                 CartExtrapPhysBdryOp constant_fill_op(idx, "CONSTANT");
-                constant_fill_op.setPhysicalBoundaryConditions(
-                    *patch, 0.0, data->getGhostCellWidth());
+                constant_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "constant extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
 
                 CartExtrapPhysBdryOp linear_fill_op(idx, "LINEAR");
-                linear_fill_op.setPhysicalBoundaryConditions(
-                    *patch, 0.0, data->getGhostCellWidth());
+                linear_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "linear extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
@@ -207,8 +200,7 @@ main(
                 dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)+1,2.0*ref_xUpper[NDIM-1]+shift);
 
                 CartCellRobinPhysBdryOp dirichlet_bc_fill_op(idx, &dirichlet_bc_coef);
-                dirichlet_bc_fill_op.setPhysicalBoundaryConditions(
-                    *patch, 0.0, data->getGhostCellWidth());
+                dirichlet_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
@@ -251,8 +243,7 @@ main(
                 neumann_bc_coef.setBoundarySlope(2*(NDIM-1)+1,+2.0);
 
                 CartCellRobinPhysBdryOp neumann_bc_fill_op(idx, &neumann_bc_coef);
-                neumann_bc_fill_op.setPhysicalBoundaryConditions(
-                    *patch, 0.0, data->getGhostCellWidth());
+                neumann_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
