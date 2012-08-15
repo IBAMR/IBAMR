@@ -305,7 +305,11 @@ CCPoissonHypreLevelSolver::initializeSolverState(
     const int x_idx = x.getComponentDescriptorIndex(0);
     Pointer<CellDataFactory<NDIM,double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
-    if (d_poisson_spec.dIsVariable())
+    if (d_poisson_spec.dIsConstant())
+    {
+        d_grid_aligned_anisotropy = true;
+    }
+    else
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<SideDataFactory<NDIM,double> > pdat_factory = var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
@@ -313,10 +317,6 @@ CCPoissonHypreLevelSolver::initializeSolverState(
         TBOX_ASSERT(!pdat_factory.isNull());
 #endif
         d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
-    }
-    else
-    {
-        d_grid_aligned_anisotropy = true;
     }
     allocateHypreData();
     if (d_grid_aligned_anisotropy)
