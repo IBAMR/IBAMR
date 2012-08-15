@@ -167,7 +167,7 @@ CCPoissonSolverManager::CCPoissonSolverManager()
 {
     d_solver_maker_map["DEFAULT_KRYLOV_LINEAR_SOLVER"       ] = allocate_default_krylov_solver;
     d_solver_maker_map["PETSC_KRYLOV_LINEAR_SOLVER"         ] = allocate_petsc_krylov_solver;
-    d_solver_maker_map["DEFAULT_FAC_PRECONDITIONER"         ] = allocate_point_relaxation_fac_preconditioner;
+    d_solver_maker_map["DEFAULT_PRECONDITIONER"             ] = allocate_point_relaxation_fac_preconditioner;
     d_solver_maker_map["POINT_RELAXATION_FAC_PRECONDITIONER"] = allocate_point_relaxation_fac_preconditioner;
     d_solver_maker_map["DEFAULT_LEVEL_SOLVER"               ] = CCPoissonHypreLevelSolver::allocate_solver;
     d_solver_maker_map["HYPRE_LEVEL_SOLVER"                 ] = CCPoissonHypreLevelSolver::allocate_solver;
