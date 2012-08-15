@@ -129,29 +129,29 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        if (input_db->isDatabase("coarse_solver"))
+        if (input_db->isDatabase("coarse_solver_db"))
         {
-            d_coarse_solver_db = input_db->getDatabase("coarse_solver");
+            d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
         }
         if (input_db->isDatabase("bottom_solver"))
         {
             tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("hypre_solver"))
         {
             tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("petsc_solver"))
         {
             tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
     }
 
     // Configure the coarse level solver.
-    setCoarsestLevelSolverChoice(d_coarse_solver_choice);
+    setCoarsestLevelSolverType(d_coarse_solver_type);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -169,37 +169,48 @@ SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 }// ~SCPoissonPointRelaxationFACOperator
 
 void
-SCPoissonPointRelaxationFACOperator::setSmootherChoice(
-    const std::string& smoother_choice)
+SCPoissonPointRelaxationFACOperator::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (smoother_choice != "ADDITIVE" && smoother_choice != "MULTIPLICATIVE")
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
-                   << "  unknown smoother type: " << smoother_choice << "\n"
-                   << "  valid choices are: ADDITIVE, MULTIPLICATIVE" << std::endl);
-    }
-    d_smoother_choice = smoother_choice;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(bc_coefs);
     return;
-}// setSmootherChoice
+}// setPhysicalBcCoefs
 
 void
-SCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
-    const std::string& coarse_solver_choice)
+SCPoissonPointRelaxationFACOperator::setSmootherType(
+    const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (d_coarse_solver_choice != coarse_solver_choice) d_coarse_solver.setNull();
-    d_coarse_solver_choice = coarse_solver_choice;
+    if (smoother_type != "ADDITIVE" && smoother_type != "MULTIPLICATIVE")
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
+                   << "  unknown smoother type: " << smoother_type << "\n"
+                   << "  valid types are: ADDITIVE, MULTIPLICATIVE" << std::endl);
+    }
+    d_smoother_type = smoother_type;
     return;
-}// setCoarsestLevelSolverChoice
+}// setSmootherType
+
+void
+SCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverType(
+    const std::string& coarse_solver_type)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverType():\n"
+                   << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
+    d_coarse_solver_type = coarse_solver_type;
+    return;
+}// setCoarsestLevelSolverType
 
 void
 SCPoissonPointRelaxationFACOperator::smoothError(
@@ -308,7 +319,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Copy updated values from other local patches.
-                if (d_smoother_choice == "MULTIPLICATIVE")
+                if (d_smoother_type == "MULTIPLICATIVE")
                 {
                     const std::map<int,Box<NDIM> > smoother_bc_boxes = d_patch_smoother_bc_boxes[level_num][patch_counter][axis];
                     for (std::map<int,Box<NDIM> >::const_iterator cit = smoother_bc_boxes.begin(); cit != smoother_bc_boxes.end(); ++cit)
@@ -473,11 +484,11 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize the coarse level solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "BLOCK_JACOBI")
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
     {
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
-        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_choice, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
@@ -534,7 +545,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Get overlap information for re-setting patch boundary conditions during
     // multiplicative smoothing.
-    if (d_smoother_choice == "MULTIPLICATIVE")
+    if (d_smoother_type == "MULTIPLICATIVE")
     {
         d_patch_smoother_bc_boxes.resize(d_finest_ln+1);
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)

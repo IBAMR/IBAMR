@@ -99,10 +99,10 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_in_initialize_operator_state(false),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
-      d_smoother_choice("ADDITIVE"),
+      d_smoother_type("ADDITIVE"),
       d_prolongation_method("LINEAR_REFINE"),
       d_restriction_method("CONSERVATIVE_COARSEN"),
-      d_coarse_solver_choice("BLOCK_JACOBI"),
+      d_coarse_solver_type("BLOCK_JACOBI"),
       d_coarse_solver_tol(1.0e-6),
       d_coarse_solver_max_its(10),
       d_context(NULL),
@@ -137,10 +137,10 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        d_smoother_choice = input_db->getStringWithDefault("smoother_choice", d_smoother_choice);
+        d_smoother_type = input_db->getStringWithDefault("smoother_type", d_smoother_type);
         d_prolongation_method = input_db->getStringWithDefault("prolongation_method", d_prolongation_method);
         d_restriction_method = input_db->getStringWithDefault("restriction_method", d_restriction_method);
-        d_coarse_solver_choice = input_db->getStringWithDefault("coarse_solver_choice", d_coarse_solver_choice);
+        d_coarse_solver_type = input_db->getStringWithDefault("coarse_solver_type", d_coarse_solver_type);
         d_coarse_solver_tol = input_db->getDoubleWithDefault("coarse_solver_tolerance", d_coarse_solver_tol);
         d_coarse_solver_max_its = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_its);
     }
@@ -212,14 +212,6 @@ PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(
             d_bc_coefs[l] = d_default_bc_coef;
         }
     }
-    return;
-}// setPhysicalBcCoefs
-
-void
-PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
 

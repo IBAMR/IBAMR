@@ -57,6 +57,9 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
@@ -155,29 +158,29 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        if (input_db->isDatabase("coarse_solver"))
+        if (input_db->isDatabase("coarse_solver_db"))
         {
-            d_coarse_solver_db = input_db->getDatabase("coarse_solver");
+            d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
         }
         if (input_db->isDatabase("bottom_solver"))
         {
             tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("hypre_solver"))
         {
             tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("petsc_solver"))
         {
             tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver'' input entry instead.\n";
+                       << "         use ``coarse_solver_db'' input entry instead.\n";
         }
     }
 
     // Configure the coarse level solver.
-    setCoarsestLevelSolverChoice(d_coarse_solver_choice);
+    setCoarsestLevelSolverType(d_coarse_solver_type);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -195,37 +198,37 @@ CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
 }// ~CCPoissonPointRelaxationFACOperator
 
 void
-CCPoissonPointRelaxationFACOperator::setSmootherChoice(
-    const std::string& smoother_choice)
+CCPoissonPointRelaxationFACOperator::setSmootherType(
+    const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (smoother_choice != "ADDITIVE" && smoother_choice != "MULTIPLICATIVE")
+    if (smoother_type != "ADDITIVE" && smoother_type != "MULTIPLICATIVE")
     {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice():\n"
-                   << "  unknown smoother type: " << smoother_choice << "\n"
-                   << "  valid choices are: ADDITIVE, MULTIPLICATIVE" << std::endl);
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
+                   << "  unknown smoother type: " << smoother_type << "\n"
+                   << "  valid types are: ADDITIVE, MULTIPLICATIVE" << std::endl);
     }
-    d_smoother_choice = smoother_choice;
+    d_smoother_type = smoother_type;
     return;
-}// setSmootherChoice
+}// setSmootherType
 
 void
-CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverChoice(
-    const std::string& coarse_solver_choice)
+CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverType(
+    const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverChoice():\n"
+        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverType():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (d_coarse_solver_choice != coarse_solver_choice) d_coarse_solver.setNull();
-    d_coarse_solver_choice = coarse_solver_choice;
+    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
+    d_coarse_solver_type = coarse_solver_type;
     return;
-}// setCoarsestLevelSolverChoice
+}// setCoarsestLevelSolverType
 
 void
 CCPoissonPointRelaxationFACOperator::smoothError(
@@ -326,7 +329,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from other local patches.
-            if (d_smoother_choice == "MULTIPLICATIVE")
+            if (d_smoother_type == "MULTIPLICATIVE")
             {
                 const std::map<int,Box<NDIM> > smoother_bc_boxes = d_patch_smoother_bc_boxes[level_num][patch_counter];
                 for (std::map<int,Box<NDIM> >::const_iterator cit = smoother_bc_boxes.begin(); cit != smoother_bc_boxes.end(); ++cit)
@@ -534,11 +537,11 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize the coarse level solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_choice != "BLOCK_JACOBI")
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
     {
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_choice, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
@@ -622,7 +625,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Get overlap information for re-setting patch boundary conditions during
     // multiplicative smoothing.
-    if (d_smoother_choice == "MULTIPLICATIVE")
+    if (d_smoother_type == "MULTIPLICATIVE")
     {
         d_patch_smoother_bc_boxes.resize(d_finest_ln+1);
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)

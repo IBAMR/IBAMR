@@ -75,19 +75,6 @@ static const int RELAX_TYPE_JACOBI                       = 0;
 static const int RELAX_TYPE_WEIGHTED_JACOBI              = 1;
 static const int RELAX_TYPE_RB_GAUSS_SEIDEL              = 2;
 static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
-
-template<class T>
-inline blitz::TinyVector<T,NDIM>
-build_tinyvec(
-    const std::vector<T>& vec)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(vec.size() == NDIM);
-#endif
-    blitz::TinyVector<T,NDIM> tinyvec;
-    for (unsigned int d = 0; d < NDIM; ++d) tinyvec[d] = vec[d];
-    return tinyvec;
-}// build_tinyvec
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -176,6 +163,17 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
     if (d_is_initialized) deallocateSolverState();
     return;
 }// ~SCPoissonHypreLevelSolver
+
+void
+SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
+    return;
+}// setPhysicalBcCoefs
 
 bool
 SCPoissonHypreLevelSolver::solveSystem(
@@ -420,7 +418,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         const Box<NDIM>& patch_box = patch->getBox();
         const int stencil_sz = d_stencil_offsets.size();
         SideData<NDIM,double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
-        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, build_tinyvec(d_bc_coefs), d_solution_time);
+        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
 
         // Copy matrix entries to the hypre matrix structure.
         std::vector<int> stencil_indices(stencil_sz);
@@ -742,7 +740,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         {
             SideData<NDIM,double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, build_tinyvec(d_bc_coefs), d_solution_time, d_homogeneous_bc);
+            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
             copyToHypre(d_rhs_vec, Pointer<SideData<NDIM,double> >(&b_adj_data,false), patch_box);
         }
         else

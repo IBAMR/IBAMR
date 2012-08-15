@@ -129,14 +129,6 @@ RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
-    return;
-}// setPhysicalBcCoefs
-
-void
 RobinPhysBdryPatchStrategy::setHomogeneousBc(
     bool homogeneous_bc)
 {

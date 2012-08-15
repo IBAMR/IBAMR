@@ -124,14 +124,6 @@ PoissonSolver::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
-void
-PoissonSolver::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
-    return;
-}// setPhysicalBcCoefs
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

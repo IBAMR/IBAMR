@@ -47,9 +47,6 @@
 #include <PatchHierarchy.h>
 #include <RefineAlgorithm.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -119,28 +116,6 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
-            {
-                // intentionally blank
-                return;
-            }// InterpolationTransactionComponent
-
-        /*!
-         * \brief Alternate constructor.
-         */
-        inline
-        InterpolationTransactionComponent(
-            int data_idx,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
-            bool consistent_type_2_bdry,
-            const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern=NULL)
-            : d_data_idx(data_idx),
-              d_coarsen_op_name(coarsen_op_name),
-              d_phys_bdry_extrap_type(phys_bdry_extrap_type),
-              d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coefs.data(),robin_bc_coefs.data()+NDIM),
               d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
             {
                 // intentionally blank

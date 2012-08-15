@@ -62,19 +62,6 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-
-template<class T>
-inline blitz::TinyVector<T,NDIM>
-build_tinyvec(
-    const std::vector<T>& vec)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(vec.size() == NDIM);
-#endif
-    blitz::TinyVector<T,NDIM> tinyvec;
-    for (unsigned int d = 0; d < NDIM; ++d) tinyvec[d] = vec[d];
-    return tinyvec;
-}// build_tinyvec
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -110,6 +97,17 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
     return;
 }// ~SCPoissonPETScLevelSolver
 
+void
+SCPoissonPETScLevelSolver::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
+    return;
+}// setPhysicalBcCoefs
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -133,7 +131,7 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, build_tinyvec(d_bc_coefs), d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, level);
+    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, level);
     d_petsc_pc = d_petsc_mat;
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
@@ -193,7 +191,7 @@ SCPoissonPETScLevelSolver::setupKSPVecs(
         Pointer<SideData<NDIM,double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-        PoissonUtilities::adjustSCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, build_tinyvec(d_bc_coefs), d_solution_time, d_homogeneous_bc);
+        PoissonUtilities::adjustSCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
     patch_level->deallocatePatchData(b_adj_idx);

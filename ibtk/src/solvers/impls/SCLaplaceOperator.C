@@ -86,7 +86,7 @@ static Timer* t_deallocate_operator_state;
 SCLaplaceOperator::SCLaplaceOperator(
     const std::string& object_name,
     const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
@@ -102,6 +102,10 @@ SCLaplaceOperator::SCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+
     // Configure the operator.
     setPoissonSpecifications(poisson_spec);
     setPhysicalBcCoefs(bc_coefs);
@@ -120,6 +124,17 @@ SCLaplaceOperator::~SCLaplaceOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 }// ~SCLaplaceOperator()
+
+void
+SCLaplaceOperator::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+    LaplaceOperator::setPhysicalBcCoefs(bc_coefs);
+    return;
+}// setPhysicalBcCoefs
 
 void
 SCLaplaceOperator::modifyRhsForInhomogeneousBc(
@@ -155,10 +170,8 @@ SCLaplaceOperator::apply(
                        << "  encountered non-side centered vector components" << std::endl);
         }
 
-        Pointer<SideDataFactory<NDIM,double> > x_factory =
-            x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM,double> > y_factory =
-            y_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM,double> > x_factory = x_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM,double> > y_factory = y_sc_var->getPatchDataFactory();
 
         TBOX_ASSERT(!x_factory.isNull());
         TBOX_ASSERT(!y_factory.isNull());
@@ -197,10 +210,7 @@ SCLaplaceOperator::apply(
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
 
-        d_hier_math_ops->laplace(
-            y_idx, y_sc_var,
-            d_poisson_spec, x_idx, x_sc_var,
-            d_no_fill, 0.0);
+        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_idx, x_sc_var, d_no_fill, 0.0);
     }
 
     IBTK_TIMER_STOP(t_apply);
@@ -246,8 +256,7 @@ SCLaplaceOperator::initializeOperatorState(
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {

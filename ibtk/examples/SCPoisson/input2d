@@ -1,5 +1,3 @@
-SOLVER_CHOICE = "FAC"
-
 u {
    function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))"
 }
@@ -18,6 +16,27 @@ n1 {
    function_1 = "1.0"
 }
 
+solver_type = "PETSC_KRYLOV_LINEAR_SOLVER"
+solver_db {
+   // intentionally blank
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 3
+   prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+   coarse_solver_tolerance = 1.0e-12
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      solver_type       = "Split"
+      split_solver_type = "PFMG"
+      enable_logging    = FALSE
+   }
+}
+
 Main {
 // log file parameters
    log_file_name = "SCPoissonTester2d.log"
@@ -30,38 +49,6 @@ Main {
 
 // timer dump parameters
    timer_enabled = TRUE
-}
-
-HyprePoissonSolver {
-   solver_type           = "Split"
-   split_solver_type     = "PFMG"
-   relative_residual_tol = 1.0e-2
-   max_iterations        = 100
-   enable_logging        = FALSE
-}
-
-PETScPoissonSolver {
-   max_iterations = 100
-   absolute_residual_tol = 0.0
-   relative_residual_tol = 1.0e-10
-   options_prefix = "poisson0_"
-}
-
-FACPoissonSolver {
-   num_pre_sweeps  = 0
-   num_post_sweeps = 3
-   coarse_solver_choice = "hypre"
-   coarse_solver_tolerance = 1.0e-12
-   coarse_solver_max_iterations = 1
-   prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
-   restriction_method  = "CONSERVATIVE_COARSEN"
-   hypre_solver {
-      solver_type           = "Split"
-      split_solver_type     = "PFMG"
-      relative_residual_tol = 1.0e-12
-      max_iterations        = 1
-      enable_logging        = FALSE
-   }
 }
 
 N = 8

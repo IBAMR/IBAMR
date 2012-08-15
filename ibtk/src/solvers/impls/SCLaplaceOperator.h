@@ -67,13 +67,27 @@ public:
     SCLaplaceOperator(
         const std::string& object_name,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.
      */
     ~SCLaplaceOperator();
+
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * default boundary conditions (as supplied to the class constructor) are
+     * employed for that data depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    void
+    setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \name Linear operator functionality.

@@ -199,18 +199,19 @@ main(
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs; for (unsigned int d = 0; d < NDIM; ++d) bc_coefs[d] = NULL;
+        vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
         Pointer<SCLaplaceOperator> laplace_op = new SCLaplaceOperator("laplace_op", poisson_spec, bc_coefs);
+        laplace_op->initializeOperatorState(u_vec,f_vec);
 
         string solver_type = input_db->getString("solver_type");
         Pointer<Database> solver_db = input_db->getDatabase("solver_db");
-        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver("poisson_solver", solver_type, solver_db);
+        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(solver_type, "poisson_solver", solver_db);
         Pointer<KrylovLinearSolver> p_poisson_solver = poisson_solver;
         if (!p_poisson_solver.isNull())
         {
             string precond_type = input_db->getString("precond_type");
             Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-            Pointer<PoissonSolver> poisson_precond = SCPoissonSolverManager::getManager()->allocateSolver("poisson_precond", precond_type, precond_db);
+            Pointer<PoissonSolver> poisson_precond = SCPoissonSolverManager::getManager()->allocateSolver(precond_type, "poisson_precond", precond_db);
             p_poisson_solver->setPreconditioner(poisson_precond);
         }
         poisson_solver->setPoissonSpecifications(poisson_spec);

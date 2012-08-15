@@ -67,6 +67,7 @@ void
 PoissonKrylovLinearSolverWrapper::setPoissonSpecifications(
     const PoissonSpecifications& poisson_spec)
 {
+    PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<LaplaceOperator> p_operator = getOperator();
     if (!p_operator.isNull()) p_operator->setPoissonSpecifications(poisson_spec);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
@@ -78,6 +79,7 @@ void
 PoissonKrylovLinearSolverWrapper::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* bc_coef)
 {
+    PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<LaplaceOperator> p_operator = getOperator();
     if (!p_operator.isNull()) p_operator->setPhysicalBcCoef(bc_coef);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
@@ -89,17 +91,7 @@ void
 PoissonKrylovLinearSolverWrapper::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
-
-void
-PoissonKrylovLinearSolverWrapper::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
+    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<LaplaceOperator> p_operator = getOperator();
     if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
@@ -111,6 +103,7 @@ void
 PoissonKrylovLinearSolverWrapper::setHomogeneousBc(
     bool homogeneous_bc)
 {
+    LinearSolver::setHomogeneousBc(homogeneous_bc);
     d_krylov_solver->setHomogeneousBc(homogeneous_bc);
     return;
 }// setHomogeneousBc
@@ -125,6 +118,7 @@ void
 PoissonKrylovLinearSolverWrapper::setSolutionTime(
     double solution_time)
 {
+    LinearSolver::setSolutionTime(solution_time);
     d_krylov_solver->setSolutionTime(solution_time);
     return;
 }// setSolutionTime
@@ -140,6 +134,7 @@ PoissonKrylovLinearSolverWrapper::setTimeInterval(
     double current_time,
     double new_time)
 {
+    LinearSolver::setTimeInterval(current_time, new_time);
     d_krylov_solver->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval

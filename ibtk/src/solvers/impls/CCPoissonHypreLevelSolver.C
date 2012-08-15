@@ -497,31 +497,30 @@ CCPoissonHypreLevelSolver::allocateHypreData()
 void
 CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 {
+    // Set matrix entries and copy them to the hypre matrix structures.
+    const int stencil_sz = d_stencil_offsets.size();
+    std::vector<int> stencil_indices(stencil_sz);
+    for (int i = 0; i < stencil_sz; ++i)
+    {
+        stencil_indices[i] = i;
+    }
+    std::vector<double> mat_vals(stencil_sz,0.0);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const int stencil_sz = d_stencil_offsets.size();
         CellData<NDIM,double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
-        PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
-
-        // Copy matrix entries to the hypre matrix structures.
-        std::vector<int> stencil_indices(stencil_sz);
-        for (int i = 0; i < stencil_sz; ++i)
+        for (unsigned int k = 0; k < d_depth; ++k)
         {
-            stencil_indices[i] = i;
-        }
-        std::vector<double> mat_vals(stencil_sz,0.0);
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
-        {
-            Index<NDIM> i = b();
-            for (int k = 0; k < stencil_sz; ++k)
+            PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                mat_vals[k] = matrix_coefs(i,k);
-            }
-            for (unsigned int k = 0; k < d_depth; ++k)
-            {
+                Index<NDIM> i = b();
+                for (int j = 0; j < stencil_sz; ++j)
+                {
+                    mat_vals[j] = matrix_coefs(i,j);
+                }
                 HYPRE_StructMatrixSetValues(d_matrices[k], i, stencil_sz, &stencil_indices[0], &mat_vals[0]);
             }
         }

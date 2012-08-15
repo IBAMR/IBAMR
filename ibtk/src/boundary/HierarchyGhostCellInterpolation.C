@@ -297,9 +297,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
-            blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> robin_bc_coefs_vec;
-            for (unsigned int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
-            d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(data_idx, robin_bc_coefs_vec, d_homogeneous_bc);
+            d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(data_idx, robin_bc_coefs, d_homogeneous_bc);
         }
     }
 
@@ -470,9 +468,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
             TBOX_ASSERT(!sc_var.isNull());
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
-            blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> robin_bc_coefs_vec;
-            for (unsigned int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
-            d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs_vec);
+            d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_sc_robin_bc_ops[comp_idx]->setPatchDataIndex(data_idx);
         }
     }

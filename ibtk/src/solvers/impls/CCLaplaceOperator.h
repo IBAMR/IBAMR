@@ -86,21 +86,6 @@ public:
         bool homogeneous_bc=true);
 
     /*!
-     * \brief Constructor for class CCLaplaceOperator initializes the operator
-     * coefficients and boundary conditions for a vector-valued operator.
-     *
-     * \param object_name     String used to register internal variables and for error reporting purposes.
-     * \param poisson_spec    Laplace operator coefficients.
-     * \param bc_coefs        Robin boundary conditions to use with this class.
-     * \param homogeneous_bc  Whether to employ the homogeneous form of the boundary conditions.
-     */
-    CCLaplaceOperator(
-        const std::string& object_name,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        bool homogeneous_bc=true);
-
-    /*!
      * \brief Destructor.
      */
     ~CCLaplaceOperator();

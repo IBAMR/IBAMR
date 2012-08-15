@@ -147,38 +147,6 @@ CCLaplaceOperator::CCLaplaceOperator(
     return;
 }// CCLaplaceOperator()
 
-CCLaplaceOperator::CCLaplaceOperator(
-    const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_is_initialized(false),
-      d_ncomp(0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_hier_cc_data_ops(),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
-{
-    // Configure the operator.
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoefs(bc_coefs);
-
-    // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-                 );
-    return;
-}// CCLaplaceOperator()
-
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
@@ -212,15 +180,17 @@ CCLaplaceOperator::apply(
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
-        TBOX_ASSERT(!x_cc_var.isNull());
-
         Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
-        TBOX_ASSERT(!y_cc_var.isNull());
+        if (x_cc_var.isNull() || y_cc_var.isNull())
+        {
+            TBOX_ERROR(d_object_name << "::apply()\n"
+                       << "  encountered non-cell centered vector components" << std::endl);
+        }
 
         Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(!x_factory.isNull());
-
         Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
+
+        TBOX_ASSERT(!x_factory.isNull());
         TBOX_ASSERT(!y_factory.isNull());
 
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -260,12 +230,7 @@ CCLaplaceOperator::apply(
 
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
-            d_hier_math_ops->laplace(
-                y_idx, y_cc_var,
-                d_poisson_spec, x_idx, x_cc_var,
-                d_no_fill, 0.0,
-                0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL),
-                l, l);
+            d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var, d_no_fill, 0.0, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), l, l);
         }
     }
 
@@ -312,8 +277,7 @@ CCLaplaceOperator::initializeOperatorState(
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {

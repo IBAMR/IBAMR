@@ -102,7 +102,7 @@ allocate_default_krylov_solver(
     PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
     poisson_spec.setCConstant(0.0);
     poisson_spec.setDConstant(-1.0);
-    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs;  for (unsigned int d = 0; d < NDIM; ++d) bc_coefs[d] = NULL;
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
     Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("DEFAULT", solver_object_name, solver_input_db);
     krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, bc_coefs));
     return new PoissonKrylovLinearSolverWrapper(krylov_solver);
@@ -116,7 +116,7 @@ allocate_petsc_krylov_solver(
     PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
     poisson_spec.setCConstant(0.0);
     poisson_spec.setDConstant(-1.0);
-    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs;  for (unsigned int d = 0; d < NDIM; ++d) bc_coefs[d] = NULL;
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
     Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("PETSC_KRYLOV_LINEAR_SOLVER", solver_object_name, solver_input_db);
     krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, bc_coefs));
     return new PoissonKrylovLinearSolverWrapper(krylov_solver);

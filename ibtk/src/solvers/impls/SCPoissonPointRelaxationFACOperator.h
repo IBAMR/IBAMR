@@ -42,6 +42,9 @@
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/PoissonSolver.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <map>
 
@@ -75,10 +78,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "ADDITIVE"                 // see setSmootherChoice()
+ smoother_type = "ADDITIVE"                   // see setSmootherType()
  prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_choice = "BLOCK_JACOBI"        // see setCoarsestLevelSolverChoice()
+ coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
  coarse_solver = { ... }                      // SAMRAI::tbox::Database for initializing coarse level solver
@@ -101,6 +104,20 @@ public:
     ~SCPoissonPointRelaxationFACOperator();
 
     /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * default boundary conditions (as supplied to the class constructor) are
+     * employed for that data depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    void
+    setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
      * \name Functions for configuring the solver.
      */
     //\{
@@ -116,15 +133,15 @@ public:
      * block Gauss-Seidel").
      */
     void
-    setSmootherChoice(
-        const std::string& smoother_choice);
+    setSmootherType(
+        const std::string& smoother_type);
 
     /*!
      * \brief Specify the coarse level solver.
      */
     void
-    setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice);
+    setCoarsestLevelSolverType(
+        const std::string& coarse_solver_type);
 
     //\}
 

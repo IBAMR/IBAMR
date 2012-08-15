@@ -72,20 +72,6 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
 }// constructPatchLevelCCLaplaceOp
 
 void
-PETScMatUtilities::constructPatchLevelCCLaplaceOp(
-    Mat& mat,
-    const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    double data_time,
-    const std::vector<int>& num_dofs_per_proc,
-    const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
-    return;
-}// constructPatchLevelCCLaplaceOp
-
-void
 PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     Mat& mat,
     const PoissonSpecifications& poisson_spec_real,
@@ -99,22 +85,6 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag, std::vector<RobinBcCoefStrategy<NDIM>*>(2,bc_coef), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }// constructPatchLevelCCComplexLaplaceOp
-
-void
-PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
-    Mat& mat,
-    const PoissonSpecifications& poisson_spec_real,
-    const PoissonSpecifications& poisson_spec_imag,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,2*NDIM>& bc_coefs,
-    double data_time,
-    const std::vector<int>& num_dofs_per_proc,
-    const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real,poisson_spec_imag, std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+2*NDIM), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
-    return;
-}// constructPatchLevelCCComplexLaplaceOp
-
 
 void
 PETScMatUtilities::constructPatchLevelCCLaplaceOp(
@@ -421,12 +391,15 @@ void
 PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     Mat& mat,
     const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
     const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     int ierr;
     if (mat != PETSC_NULL)
     {

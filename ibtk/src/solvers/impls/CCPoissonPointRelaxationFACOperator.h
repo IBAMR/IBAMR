@@ -75,10 +75,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "ADDITIVE"                 // see setSmootherChoice()
+ smoother_type = "ADDITIVE"                   // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_choice = "BLOCK_JACOBI"        // see setCoarsestLevelSolverChoice()
+ coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
  coarse_solver = { ... }                      // SAMRAI::tbox::Database for initializing coarse level solver
@@ -116,15 +116,15 @@ public:
      * block Gauss-Seidel").
      */
     void
-    setSmootherChoice(
-        const std::string& smoother_choice);
+    setSmootherType(
+        const std::string& smoother_type);
 
     /*!
      * \brief Specify the coarse level solver.
      */
     void
-    setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice);
+    setCoarsestLevelSolverType(
+        const std::string& coarse_solver_type);
 
     //\}
 

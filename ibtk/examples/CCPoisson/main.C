@@ -160,24 +160,25 @@ main(
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant( 0.0);
+        poisson_spec.setCZero();
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
         Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace_op", poisson_spec, bc_coef);
+        laplace_op->initializeOperatorState(u_vec,f_vec);
 
         string solver_type = input_db->getString("solver_type");
         Pointer<Database> solver_db = input_db->getDatabase("solver_db");
-        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver("poisson_solver", solver_type, solver_db);
+        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(solver_type, "poisson_solver", solver_db);
         Pointer<KrylovLinearSolver> p_poisson_solver = poisson_solver;
         if (!p_poisson_solver.isNull())
         {
             string precond_type = input_db->getString("precond_type");
             Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-            Pointer<PoissonSolver> poisson_precond = CCPoissonSolverManager::getManager()->allocateSolver("poisson_precond", precond_type, precond_db);
+            Pointer<PoissonSolver> poisson_precond = CCPoissonSolverManager::getManager()->allocateSolver(precond_type, "poisson_precond", precond_db);
             p_poisson_solver->setPreconditioner(poisson_precond);
         }
         poisson_solver->setPoissonSpecifications(poisson_spec);
-        poisson_solver->setPhysicalBcCoefs(bc_coef);
+        poisson_solver->setPhysicalBcCoef(bc_coef);
         poisson_solver->initializeSolverState(u_vec,f_vec);
 
         // Solve -L*u = f.

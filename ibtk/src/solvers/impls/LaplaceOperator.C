@@ -84,7 +84,6 @@ LaplaceOperator::LaplaceOperator(
 
 LaplaceOperator::~LaplaceOperator()
 {
-    deallocateOperatorState();
     if (d_default_bc_coef != NULL) delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
@@ -122,14 +121,6 @@ LaplaceOperator::setPhysicalBcCoefs(
             d_bc_coefs[l] = d_default_bc_coef;
         }
     }
-    return;
-}// setPhysicalBcCoefs
-
-void
-LaplaceOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
 

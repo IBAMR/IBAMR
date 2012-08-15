@@ -303,42 +303,6 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     return;
 }// CartSideRobinPhysBdryOp
 
-CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
-    const int patch_data_index,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    const bool homogeneous_bc)
-    : RobinPhysBdryPatchStrategy()
-{
-    setPatchDataIndex(patch_data_index);
-    setPhysicalBcCoefs(bc_coefs);
-    setHomogeneousBc(homogeneous_bc);
-    return;
-}// CartSideRobinPhysBdryOp
-
-CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
-    const std::set<int>& patch_data_indices,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    const bool homogeneous_bc)
-    : RobinPhysBdryPatchStrategy()
-{
-    setPatchDataIndices(patch_data_indices);
-    setPhysicalBcCoefs(bc_coefs);
-    setHomogeneousBc(homogeneous_bc);
-    return;
-}// CartSideRobinPhysBdryOp
-
-CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
-    const ComponentSelector& patch_data_indices,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    const bool homogeneous_bc)
-    : RobinPhysBdryPatchStrategy()
-{
-    setPatchDataIndices(patch_data_indices);
-    setPhysicalBcCoefs(bc_coefs);
-    setHomogeneousBc(homogeneous_bc);
-    return;
-}// CartSideRobinPhysBdryOp
-
 CartSideRobinPhysBdryOp::~CartSideRobinPhysBdryOp()
 {
     // intentionally blank

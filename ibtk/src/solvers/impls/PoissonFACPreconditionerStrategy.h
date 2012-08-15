@@ -57,10 +57,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "ADDITIVE"                 // see setSmootherChoice()
+ smoother_type = "ADDITIVE"                   // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_choice = "BLOCK_JACOBI"        // see setCoarsestLevelSolverChoice()
+ coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
  \endverbatim
@@ -119,20 +119,6 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * default boundary conditions (as supplied to the class constructor) are
-     * employed for that data depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    virtual void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    /*!
      * \name Functions for configuring the solver.
      */
     //\{
@@ -166,15 +152,15 @@ public:
      * \brief Specify the smoother type.
      */
     virtual void
-    setSmootherChoice(
-        const std::string& smoother_choice) = 0;
+    setSmootherType(
+        const std::string& smoother_type) = 0;
 
     /*!
      * \brief Specify the coarse level solver.
      */
     virtual void
-    setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice) = 0;
+    setCoarsestLevelSolverType(
+        const std::string& coarse_solver_type) = 0;
 
     /*!
      * \brief Set tolerance for coarse level solve.
@@ -423,7 +409,7 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_choice;
+    std::string d_smoother_type;
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
@@ -440,7 +426,7 @@ protected:
     /*
      * Coarse level solver parameters.
      */
-    std::string d_coarse_solver_choice;
+    std::string d_coarse_solver_type;
     double d_coarse_solver_tol;
     int d_coarse_solver_max_its;
 

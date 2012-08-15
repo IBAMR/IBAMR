@@ -93,16 +93,6 @@ PoissonFACPreconditioner::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
-void
-PoissonFACPreconditioner::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

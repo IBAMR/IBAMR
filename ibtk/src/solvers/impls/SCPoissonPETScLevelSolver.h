@@ -117,6 +117,20 @@ public:
             return new SCPoissonPETScLevelSolver(object_name, input_db);
         }// allocate_solver
 
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * default boundary conditions (as supplied to the class constructor) are
+     * employed for that data depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    void
+    setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

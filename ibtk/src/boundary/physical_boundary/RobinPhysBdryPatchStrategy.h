@@ -39,9 +39,6 @@
 #include <RefinePatchStrategy.h>
 #include <RobinBcCoefStrategy.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <set>
 #include <vector>
@@ -112,16 +109,6 @@ public:
     void
     setPhysicalBcCoefs(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
-
-    /*!
-     * \brief Reset the Robin boundary condition specification object employed
-     * by this class to set physical boundary conditions.
-     *
-     * \note None of the elements of \a bc_coefs can be NULL.
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
