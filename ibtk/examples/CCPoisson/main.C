@@ -44,10 +44,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonHypreLevelSolver.h>
-#include <ibtk/CCPoissonPETScLevelSolver.h>
-#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -165,47 +163,26 @@ main(
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace op", poisson_spec, bc_coef);
-        PETScKrylovLinearSolver poisson_solver("poisson solver");
-        poisson_solver.setOperator(laplace_op);
-        poisson_solver.setNullspace(true);
+        Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace_op", poisson_spec, bc_coef);
 
-        string solver_choice = input_db->getString("SOLVER_CHOICE");
-        if (gridding_algorithm->getMaxLevels() != 1)
+        string solver_type = input_db->getString("solver_type");
+        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver("poisson_solver", solver_type, solver_db);
+        Pointer<KrylovLinearSolver> p_poisson_solver = poisson_solver;
+        if (!p_poisson_solver.isNull())
         {
-            if (solver_choice != "FAC" && solver_choice != "none") TBOX_ERROR("number of grid levels > 1; this requires solver_choice = ``FAC'' or ``none''");
+            string precond_type = input_db->getString("precond_type");
+            Pointer<Database> precond_db = input_db->getDatabase("precond_db");
+            Pointer<PoissonSolver> poisson_precond = CCPoissonSolverManager::getManager()->allocateSolver("poisson_precond", precond_type, precond_db);
+            p_poisson_solver->setPreconditioner(poisson_precond);
         }
-
-        if (solver_choice == "FAC")
-        {
-            Pointer<CCPoissonPointRelaxationFACOperator> poisson_fac_op = new CCPoissonPointRelaxationFACOperator("CCPoissonPointRelaxationFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_fac_op->setPoissonSpecifications(poisson_spec);
-            Pointer<FACPreconditioner> poisson_fac_pc = new FACPreconditioner("FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_solver.setPreconditioner(poisson_fac_pc);
-        }
-        else if (solver_choice == "hypre")
-        {
-            Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver("CCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
-            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_hypre_pc);
-        }
-        else if (solver_choice == "petsc")
-        {
-            Pointer<CCPoissonPETScLevelSolver> poisson_petsc_pc = new CCPoissonPETScLevelSolver("CCPoissonPETScLevelSolver", app_initializer->getComponentDatabase("PETScPoissonSolver"));
-            poisson_petsc_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_petsc_pc);
-        }
-        else if (solver_choice != "none")
-        {
-            TBOX_ERROR("unknown solver_choice: " << solver_choice << "\n"
-                       << "choices are: FAC, hypre, petsc, none\n");
-        }
-
-        poisson_solver.initializeSolverState(u_vec,f_vec);
+        poisson_solver->setPoissonSpecifications(poisson_spec);
+        poisson_solver->setPhysicalBcCoefs(bc_coef);
+        poisson_solver->initializeSolverState(u_vec,f_vec);
 
         // Solve -L*u = f.
         u_vec.setToScalar(0.0);
-        poisson_solver.solveSystem(u_vec,f_vec);
+        poisson_solver->solveSystem(u_vec,f_vec);
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
