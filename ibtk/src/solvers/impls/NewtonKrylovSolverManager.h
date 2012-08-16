@@ -78,7 +78,7 @@ public:
     allocateSolver(
         const std::string& solver_type,
         const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db=NULL) const;
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db) const;
 
     /*!
      * Typedef for functions to construct NewtonKrylovSolvers.

@@ -151,6 +151,24 @@ CCPoissonSolverManager::allocateSolver(
     return (it->second)(solver_object_name, solver_input_db);
 }// allocateSolver
 
+Pointer<PoissonSolver>
+CCPoissonSolverManager::allocateSolver(
+    const std::string& solver_type,
+    const std::string& solver_object_name,
+    Pointer<Database> solver_input_db,
+    const std::string& precond_type,
+    const std::string& precond_object_name,
+    Pointer<Database> precond_input_db) const
+{
+    Pointer<PoissonSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db);
+    Pointer<KrylovLinearSolver> p_solver = solver;
+    if (!p_solver.isNull())
+    {
+        p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db));
+    }
+    return solver;
+}// allocateSolver
+
 void
 CCPoissonSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
