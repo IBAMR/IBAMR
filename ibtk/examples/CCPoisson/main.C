@@ -45,7 +45,6 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
-#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -168,15 +167,10 @@ main(
 
         string solver_type = input_db->getString("solver_type");
         Pointer<Database> solver_db = input_db->getDatabase("solver_db");
-        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(solver_type, "poisson_solver", solver_db);
-        Pointer<KrylovLinearSolver> p_poisson_solver = poisson_solver;
-        if (!p_poisson_solver.isNull())
-        {
-            string precond_type = input_db->getString("precond_type");
-            Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-            Pointer<PoissonSolver> poisson_precond = CCPoissonSolverManager::getManager()->allocateSolver(precond_type, "poisson_precond", precond_db);
-            p_poisson_solver->setPreconditioner(poisson_precond);
-        }
+        string precond_type = input_db->getString("precond_type");
+        Pointer<Database> precond_db = input_db->getDatabase("precond_db");
+        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(solver_type , "poisson_solver" , solver_db ,
+                                                                                                     precond_type, "poisson_precond", precond_db);
         poisson_solver->setPoissonSpecifications(poisson_spec);
         poisson_solver->setPhysicalBcCoef(bc_coef);
         poisson_solver->initializeSolverState(u_vec,f_vec);
