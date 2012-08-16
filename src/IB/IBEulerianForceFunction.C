@@ -114,11 +114,11 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
 void
 IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
     const int data_idx,
-    Pointer<Variable<NDIM> > var,
+    Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
-    const double data_time,
+    const double /*data_time*/,
     const bool initial_time,
-    Pointer<PatchLevel<NDIM> > level)
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     if (initial_time) return;
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
