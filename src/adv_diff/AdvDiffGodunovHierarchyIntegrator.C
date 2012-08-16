@@ -426,10 +426,10 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                            << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
                            << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
-        PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
-        helmholtz_spec.setCConstant(1.0+K*dt*lambda);
-        helmholtz_spec.setDConstant(   -K*dt*kappa );
-        PoissonSpecifications rhs_spec("rhs_spec");
+        PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
+        solver_spec.setCConstant(1.0+K*dt*lambda);
+        solver_spec.setDConstant(   -K*dt*kappa );
+        PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
         rhs_spec.setCConstant(1.0-(1.0-K)*dt*lambda);
         rhs_spec.setDConstant(   +(1.0-K)*dt*kappa );
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
@@ -441,56 +441,22 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
 
         // Initialize the linear solver.
-        Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
-        helmholtz_op->setPoissonSpecifications(helmholtz_spec);
-        helmholtz_op->setPhysicalBcCoefs(Q_bc_coef);
-        helmholtz_op->setHomogeneousBc(false);
-#if 0
-        helmholtz_op->setSolutionTime(new_time);
-        helmholtz_op->setTimeInterval(current_time, new_time);
-#else
-        helmholtz_op->setTime(new_time);
-#endif
-        helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-        Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
-        Pointer<FACPreconditioner>                   helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        Pointer<KrylovLinearSolver>                  helmholtz_solver = d_helmholtz_solvers[l];
+        Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+        helmholtz_solver->setPoissonSpecifications(solver_spec);
+        helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
+        helmholtz_solver->setHomogeneousBc(false);
+        helmholtz_solver->setSolutionTime(new_time);
+        helmholtz_solver->setTimeInterval(current_time, new_time);
         if (d_helmholtz_solvers_need_init[l])
         {
             if (d_do_log) plog << d_object_name << ": "
                                << "Initializing Helmholtz solvers for variable number " << l
                                << ", dt = " << dt << "\n";
-            if (d_using_FAC)
-            {
-                helmholtz_fac_op->setPoissonSpecifications(helmholtz_spec);
-#if 0
-                helmholtz_fac_op->setSolutionTime(new_time);
-                helmholtz_fac_op->setTimeInterval(current_time, new_time);
-#else
-                helmholtz_fac_op->setTime(new_time);
-#endif
-                helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-            }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
         }
 
         // Solve for Q(n+1).
-#if 0
-        helmholtz_op->setSolutionTime(new_time);
-        helmholtz_op->setTimeInterval(current_time, new_time);
-#else
-        helmholtz_op->setTime(new_time);
-#endif
-        if (d_using_FAC)
-        {
-#if 0
-            helmholtz_fac_op->setSolutionTime(new_time);
-            helmholtz_fac_op->setTimeInterval(current_time, new_time);
-#else
-            helmholtz_fac_op->setTime(new_time);
-#endif
-        }
         helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
         if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";

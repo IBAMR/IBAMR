@@ -49,14 +49,12 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/KrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 #include <tbox/NullDatabase.h>
-
-// C++ STDLIB INCLUDES
-#include <limits>  // XXXX
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -117,15 +115,7 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 
 AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
 {
-    // Deallocate all solver components.
-    //
-    // NOTE: The following code ensures that the solver components are
-    // deallocated in the correct order.
     d_helmholtz_solvers.clear();
-    d_helmholtz_fac_pcs.clear();
-    d_helmholtz_fac_ops.clear();
-    d_helmholtz_ops.clear();
-    d_helmholtz_specs.clear();
     return;
 }// ~AdvDiffHierarchyIntegrator
 
@@ -508,10 +498,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Operators and solvers are maintained for each variable registered with the
     // integrator.
-    d_helmholtz_specs.reserve(d_Q_var.size());
-    d_helmholtz_ops.resize(d_Q_var.size());
-    d_helmholtz_fac_ops.resize(d_Q_var.size());
-    d_helmholtz_fac_pcs.resize(d_Q_var.size());
+    CCPoissonSolverManager* poisson_solver_manager = CCPoissonSolverManager::getManager();
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
     unsigned int l = 0;
@@ -519,24 +506,13 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         const std::string& name = Q_var->getName();
-        d_helmholtz_specs.push_back(PoissonSpecifications(d_object_name+"::Helmholtz Specs::"+name));
-        d_helmholtz_ops[l] = new CCLaplaceOperator(d_object_name+"::Helmholtz Operator::"+name, d_helmholtz_specs[l], d_Q_bc_coef[Q_var]);
-        d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
-        d_helmholtz_solvers[l]->setMaxIterations(d_max_iterations);
-        d_helmholtz_solvers[l]->setAbsoluteTolerance(d_abs_residual_tol);
-        d_helmholtz_solvers[l]->setRelativeTolerance(d_rel_residual_tol);
-        d_helmholtz_solvers[l]->setInitialGuessNonzero(true);
-        d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
-        if (d_using_FAC)
+        d_helmholtz_solvers[l] = poisson_solver_manager->allocateSolver(d_helmholtz_solver_type, d_object_name+"::helmholtz_solver::"+name, d_helmholtz_solver_db);
+        Pointer<KrylovLinearSolver> p_helmholtz_solver = d_helmholtz_solvers[l];
+        if (!p_helmholtz_solver.isNull())
         {
-            d_helmholtz_fac_ops[l] = new CCPoissonPointRelaxationFACOperator(d_object_name+"::FAC Ops::"+name, d_fac_op_db);
-            d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
-            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
-            d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name, d_helmholtz_fac_ops[l], d_fac_pc_db);
-            d_helmholtz_solvers[l]->setPreconditioner(d_helmholtz_fac_pcs[l]);
+            Pointer<PoissonSolver> helmholtz_precond = poisson_solver_manager->allocateSolver(d_helmholtz_precond_type, d_object_name+"::helmholtz_precond::"+name, d_helmholtz_precond_db);
+            p_helmholtz_solver->setPreconditioner(helmholtz_precond);
         }
-
-        // Indicate that the solvers need to be initialized.
         d_helmholtz_solvers_need_init[l] = true;
     }
 
@@ -574,15 +550,11 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_hier_cc_data_ops(NULL),
       d_sol_vecs(),
       d_rhs_vecs(),
-      d_max_iterations(25),
-      d_abs_residual_tol(1.0e-30),
-      d_rel_residual_tol(1.0e-8),
-      d_using_FAC(true),
-      d_helmholtz_ops(),
-      d_helmholtz_specs(),
+      d_helmholtz_solver_type("DEFAULT_KRYLOV_LINEAR_SOLVER"),
+      d_helmholtz_precond_type("DEFAULT_PRECONDITIONER"),
+      d_helmholtz_solver_db(),
+      d_helmholtz_precond_db(),
       d_helmholtz_solvers(),
-      d_helmholtz_fac_ops(),
-      d_helmholtz_fac_pcs(),
       d_helmholtz_solvers_need_init(),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
@@ -795,17 +767,10 @@ AdvDiffHierarchyIntegrator::getFromInput(
     else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
     if      (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
     else if (db->keyExists("CFL"    )) d_cfl_max = db->getDouble("CFL"    );
-    if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
-    if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
-    if (db->keyExists("rel_residual_tol")) d_rel_residual_tol = db->getDouble("rel_residual_tol");
-    if (db->keyExists("using_FAC")) d_using_FAC = db->getBool("using_FAC");
-    if (d_using_FAC)
-    {
-        if      (db->keyExists("FACOp" )) d_fac_op_db = db->getDatabase("FACOp" );
-        else if (db->keyExists("FACOps")) d_fac_op_db = db->getDatabase("FACOps");
-        if      (db->keyExists("FACPreconditioner" )) d_fac_pc_db = db->getDatabase("FACPreconditioner" );
-        else if (db->keyExists("FACPreconditioners")) d_fac_pc_db = db->getDatabase("FACPreconditioners");
-    }
+    if (db->keyExists("helmholtz_solver_type")) d_helmholtz_solver_type = db->getString("helmholtz_solver_type");
+    if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
+    if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
+    if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     return;
 }// getFromInput
 
