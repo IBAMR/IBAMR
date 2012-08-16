@@ -97,17 +97,6 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
     return;
 }// ~SCPoissonPETScLevelSolver
 
-void
-SCPoissonPETScLevelSolver::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

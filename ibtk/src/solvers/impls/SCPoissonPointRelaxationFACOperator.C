@@ -169,17 +169,6 @@ SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 }// ~SCPoissonPointRelaxationFACOperator
 
 void
-SCPoissonPointRelaxationFACOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-    PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
-
-void
 SCPoissonPointRelaxationFACOperator::setSmootherType(
     const std::string& smoother_type)
 {

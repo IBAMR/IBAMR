@@ -34,6 +34,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/namespaces.h>
@@ -69,7 +79,7 @@ PoissonFACPreconditioner::setPoissonSpecifications(
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPoissonSpecifications(poisson_spec);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPoissonSpecifications(d_poisson_spec);
     return;
 }// setPoissonSpecifications
 
@@ -79,7 +89,7 @@ PoissonFACPreconditioner::setPhysicalBcCoef(
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoef(bc_coef);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoef
 
@@ -89,7 +99,7 @@ PoissonFACPreconditioner::setPhysicalBcCoefs(
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(bc_coefs);
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoefs
 

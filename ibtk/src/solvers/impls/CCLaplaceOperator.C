@@ -50,7 +50,6 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
 #include <tbox/TimerManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -97,7 +96,6 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_hier_cc_data_ops(),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
@@ -129,7 +127,6 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_hier_cc_data_ops(),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
@@ -269,11 +266,6 @@ CCLaplaceOperator::initializeOperatorState(
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
 #endif
-
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
 
     if (!d_hier_math_ops_external)
     {

@@ -38,9 +38,6 @@
 // IBTK INCLUDES
 #include <ibtk/LaplaceOperator.h>
 
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsReal.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -74,20 +71,6 @@ public:
      * \brief Destructor.
      */
     ~SCLaplaceOperator();
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * default boundary conditions (as supplied to the class constructor) are
-     * employed for that data depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \name Linear operator functionality.
@@ -232,9 +215,6 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
-
-    // Mathematical operators.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

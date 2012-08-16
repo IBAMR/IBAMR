@@ -69,9 +69,9 @@ PoissonKrylovLinearSolverWrapper::setPoissonSpecifications(
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPoissonSpecifications(poisson_spec);
+    if (!p_operator.isNull()) p_operator->setPoissonSpecifications(d_poisson_spec);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPoissonSpecifications(poisson_spec);
+    if (!p_preconditioner.isNull()) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
 }// setPoissonSpecifications
 
@@ -81,9 +81,9 @@ PoissonKrylovLinearSolverWrapper::setPhysicalBcCoef(
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoef(bc_coef);
+    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(d_bc_coefs);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoef(bc_coef);
+    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoef
 
@@ -93,9 +93,9 @@ PoissonKrylovLinearSolverWrapper::setPhysicalBcCoefs(
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(bc_coefs);
+    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(d_bc_coefs);
     Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(bc_coefs);
+    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoefs
 
@@ -104,7 +104,7 @@ PoissonKrylovLinearSolverWrapper::setHomogeneousBc(
     bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
-    d_krylov_solver->setHomogeneousBc(homogeneous_bc);
+    d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
     return;
 }// setHomogeneousBc
 

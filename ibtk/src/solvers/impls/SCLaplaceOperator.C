@@ -50,7 +50,6 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
 #include <tbox/TimerManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -97,7 +96,6 @@ SCLaplaceOperator::SCLaplaceOperator(
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_hier_sc_data_ops(),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
@@ -124,17 +122,6 @@ SCLaplaceOperator::~SCLaplaceOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 }// ~SCLaplaceOperator()
-
-void
-SCLaplaceOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-    LaplaceOperator::setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
 
 void
 SCLaplaceOperator::modifyRhsForInhomogeneousBc(
@@ -248,11 +235,6 @@ SCLaplaceOperator::initializeOperatorState(
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
 #endif
-
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
-    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
 
     if (!d_hier_math_ops_external)
     {

@@ -164,17 +164,6 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
     return;
 }// ~SCPoissonHypreLevelSolver
 
-void
-SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-    PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    return;
-}// setPhysicalBcCoefs
-
 bool
 SCPoissonHypreLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,

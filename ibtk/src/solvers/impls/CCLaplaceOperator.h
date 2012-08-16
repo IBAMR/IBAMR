@@ -38,9 +38,6 @@
 // IBTK INCLUDES
 #include <ibtk/LaplaceOperator.h>
 
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsReal.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -233,9 +230,6 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
-
-    // Mathematical operators.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
