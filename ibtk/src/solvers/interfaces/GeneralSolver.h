@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/HierarchyMathOps.h>
+
 // SAMRAI INCLUDES
 #include <SAMRAIVectorReal.h>
 #include <tbox/DescribedClass.h>
@@ -115,6 +118,19 @@ public:
      */
     virtual std::pair<double,double>
     getTimeInterval() const;
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the solver.
+     */
+    virtual void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \brief Get the HierarchyMathOps object used by the solver.
+     */
+    virtual SAMRAI::tbox::Pointer<HierarchyMathOps>
+    getHierarchyMathOps() const;
 
     /*!
      * \brief Solve the system of equations.
@@ -249,6 +265,10 @@ protected:
     // Solver configuration.
     bool d_homogeneous_bc;
     double d_solution_time, d_current_time, d_new_time;
+
+    // Mathematical operators.
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    bool d_hier_math_ops_external;
 
 private:
     /*!

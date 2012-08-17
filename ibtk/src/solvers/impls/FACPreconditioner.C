@@ -226,6 +226,138 @@ FACPreconditioner::deallocateSolverState()
     return;
 }// deallocateSolverState
 
+void
+FACPreconditioner::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
+                   << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
+    }
+    return;
+}// setInitialGuessNonzero
+
+bool
+FACPreconditioner::getInitialGuessNonzero() const
+{
+    // intentionally blank
+    return false;
+}// getInitialGuessNonzero
+
+void
+FACPreconditioner::setMaxIterations(
+    int max_iterations)
+{
+    if (max_iterations != 1)
+    {
+        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
+                   << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
+    }
+    return;
+}// setMaxIterations
+
+int
+FACPreconditioner::getMaxIterations() const
+{
+    // intentionally blank
+    return 1;
+}// getMaxIterations
+
+void
+FACPreconditioner::setAbsoluteTolerance(
+    double /*abs_residual_tol*/)
+{
+    // intentionally blank
+    return;
+}//setAbsoluteTolerance
+
+double
+FACPreconditioner::getAbsoluteTolerance() const
+{
+    // intentionally blank
+    return 0.0;
+}// getAbsoluteTolerance
+
+void
+FACPreconditioner::setRelativeTolerance(
+    double /*rel_residual_tol*/)
+{
+    // intentionally blank
+    return;
+}//setRelativeTolerance
+
+double
+FACPreconditioner::getRelativeTolerance() const
+{
+    // intentionally blank
+    return 0.0;
+}// getRelativeTolerance
+
+void
+FACPreconditioner::setMGCycleType(
+    MGCycleType cycle_type)
+{
+    d_cycle_type = cycle_type;
+    return;
+}// setMGCycleType
+
+MGCycleType
+FACPreconditioner::getMGCycleType() const
+{
+    return d_cycle_type;
+}// getMGCycleType
+
+void
+FACPreconditioner::setNumPreSmoothingSweeps(
+    int num_pre_sweeps)
+{
+    d_num_pre_sweeps = num_pre_sweeps;
+    return;
+}// setNumPreSmoothingSweeps
+
+int
+FACPreconditioner::getNumPreSmoothingSweeps() const
+{
+    return d_num_pre_sweeps;
+}// getNumPreSmoothingSweeps
+
+void
+FACPreconditioner::setNumPostSmoothingSweeps(
+    int num_post_sweeps)
+{
+    d_num_post_sweeps = num_post_sweeps;
+    return;
+}// setNumPostSmoothingSweeps
+
+int
+FACPreconditioner::getNumPostSmoothingSweeps() const
+{
+    return d_num_post_sweeps;
+}// getNumPostSmoothingSweeps
+
+int
+FACPreconditioner::getNumIterations() const
+{
+    // intentionally blank
+    return 1;
+}// getNumIterations
+
+double
+FACPreconditioner::getResidualNorm() const
+{
+    // intentionally blank
+    return 0.0;
+}// getResidualNorm
+
+void
+FACPreconditioner::enableLogging(
+    bool enabled)
+{
+    d_do_log = enabled;
+    return;
+}// enableLogging
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

@@ -38,7 +38,6 @@
 // IBTK INCLUDES
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
-#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 // SAMRAI INCLUDES

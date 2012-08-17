@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -137,6 +138,7 @@ PETScMFFDJacobianOperator::getBaseVector() const
         int ierr = SNESGetSolution(snes, &u); IBTK_CHKERRQ(ierr);
         return PETScSAMRAIVectorReal::getSAMRAIVector(u);
     }
+    return Pointer<SAMRAIVectorReal<NDIM,double> >(NULL);
 }// getBaseVector
 
 void

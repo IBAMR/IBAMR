@@ -45,7 +45,9 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScSNESFunctionGOWrapper.h>
 #include <ibtk/PETScSNESJacobianJOWrapper.h>
 #include <ibtk/ibtk_utilities.h>
@@ -166,6 +168,110 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
     }
     return;
 }// ~PETScNewtonKrylovSolver()
+
+const SNES&
+PETScNewtonKrylovSolver::getPETScSNES() const
+{
+    return d_petsc_snes;
+}// getPETScSNES
+
+
+void
+PETScNewtonKrylovSolver::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    NewtonKrylovSolver::setHomogeneousBc(homogeneous_bc);
+    if (!d_F.isNull()) d_F->setHomogeneousBc(homogeneous_bc);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+void
+PETScNewtonKrylovSolver::setSolutionTime(
+    const double solution_time)
+{
+    NewtonKrylovSolver::setSolutionTime(solution_time);
+    if (!d_F.isNull()) d_F->setSolutionTime(solution_time);
+    if (!d_J.isNull()) d_J->setSolutionTime(solution_time);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+void
+PETScNewtonKrylovSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    NewtonKrylovSolver::setTimeInterval(current_time, new_time);
+    if (!d_F.isNull()) d_F->setTimeInterval(current_time, new_time);
+    if (!d_J.isNull()) d_J->setTimeInterval(current_time, new_time);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+void
+PETScNewtonKrylovSolver::setOperator(
+    Pointer<GeneralOperator> F)
+{
+    d_user_provided_function = true;
+    Pointer<GeneralOperator> F_old = d_F;
+    d_F = F;
+    d_F->setHomogeneousBc(d_homogeneous_bc);
+    d_F->setSolutionTime(d_solution_time);
+    d_F->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_F != F_old) && !d_F.isNull()) d_F->initializeOperatorState(*d_solver_x, *d_solver_b);
+    resetSNESFunction();
+    return;
+}// setOperator
+
+Pointer<GeneralOperator>
+PETScNewtonKrylovSolver::getOperator() const
+{
+    return d_F;
+}// getOperator
+
+Pointer<SAMRAIVectorReal<NDIM,double> >
+PETScNewtonKrylovSolver::getSolutionVector() const
+{
+    Vec petsc_x;
+    int ierr = SNESGetSolution(d_petsc_snes, &petsc_x); IBTK_CHKERRQ(ierr);
+    return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
+}// getSolutionVector
+
+Pointer<SAMRAIVectorReal<NDIM,double> >
+PETScNewtonKrylovSolver::getFunctionVector() const
+{
+    Vec petsc_f;
+    int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_f);
+}// getFunctionVector
+
+void
+PETScNewtonKrylovSolver::setJacobian(
+    Pointer<JacobianOperator> J)
+{
+    d_user_provided_jacobian = true;
+    Pointer<JacobianOperator> J_old = d_J;
+    d_J = J;
+    d_J->setHomogeneousBc(true);
+    d_J->setSolutionTime(d_solution_time);
+    d_J->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_J != J_old) && !d_J.isNull()) d_J->initializeOperatorState(*d_solver_x, *d_solver_b);
+    resetSNESJacobian();
+    return;
+}// setJacobian
+
+Pointer<JacobianOperator>
+PETScNewtonKrylovSolver::getJacobian() const
+{
+    return d_J;
+}// getJacobian
+
+Pointer<KrylovLinearSolver>
+PETScNewtonKrylovSolver::getLinearSolver() const
+{
+    return d_krylov_solver;
+}// getLinearSolver
 
 bool
 PETScNewtonKrylovSolver::solveSystem(
@@ -390,6 +496,99 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
+
+void
+PETScNewtonKrylovSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    resetSNESOptions();
+    return;
+}// setMaxIterations
+
+int
+PETScNewtonKrylovSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+PETScNewtonKrylovSolver::setMaxEvaluations(
+    int max_evaluations)
+{
+    d_max_evaluations = max_evaluations;
+    resetSNESOptions();
+    return;
+}// setMaxEvaluations
+
+int
+PETScNewtonKrylovSolver::getMaxEvaluations() const
+{
+    return d_max_evaluations;
+}// getMaxEvaluations
+
+void
+PETScNewtonKrylovSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    resetSNESOptions();
+    return;
+}// setAbsoluteTolerance
+
+double
+PETScNewtonKrylovSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+PETScNewtonKrylovSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    resetSNESOptions();
+    return;
+}// setRelativeTolerance
+
+double
+PETScNewtonKrylovSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+void
+PETScNewtonKrylovSolver::setSolutionTolerance(
+    double solution_tol)
+{
+    d_solution_tol = solution_tol;
+    resetSNESOptions();
+    return;
+}// setSolutionTolerance
+
+double
+PETScNewtonKrylovSolver::getSolutionTolerance() const
+{
+    return d_solution_tol;
+}// getSolutionTolerance
+
+int
+PETScNewtonKrylovSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+int
+PETScNewtonKrylovSolver::getNumLinearIterations() const
+{
+    return d_current_lits;
+}// getNumLinearIterations
+
+double
+PETScNewtonKrylovSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
 
 void
 PETScNewtonKrylovSolver::enableLogging(

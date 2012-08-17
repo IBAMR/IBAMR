@@ -129,7 +129,7 @@ PETScLevelSolver::~PETScLevelSolver()
 void
 PETScLevelSolver::setNullspace(
     bool contains_constant_vector,
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
     d_nullsp_contains_constant_vector = contains_constant_vector;
     d_solver_nullsp_vecs = nullspace_basis_vecs;
@@ -308,6 +308,74 @@ PETScLevelSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
+
+void
+PETScLevelSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+PETScLevelSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+PETScLevelSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+PETScLevelSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+PETScLevelSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+PETScLevelSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+PETScLevelSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+PETScLevelSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+PETScLevelSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+PETScLevelSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
 
 void
 PETScLevelSolver::enableLogging(

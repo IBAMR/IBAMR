@@ -299,6 +299,74 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 }// deallocateSolverState
 
 void
+SCPoissonHypreLevelSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+SCPoissonHypreLevelSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+SCPoissonHypreLevelSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+SCPoissonHypreLevelSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+SCPoissonHypreLevelSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+SCPoissonHypreLevelSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+SCPoissonHypreLevelSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+SCPoissonHypreLevelSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+SCPoissonHypreLevelSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+SCPoissonHypreLevelSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
+
+void
 SCPoissonHypreLevelSolver::enableLogging(
     bool enabled)
 {

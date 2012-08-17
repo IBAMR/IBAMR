@@ -85,6 +85,12 @@ GeneralOperator::setHomogeneousBc(
     return;
 }// setHomogeneousBc
 
+bool
+GeneralOperator::getHomogeneousBc() const
+{
+    return d_homogeneous_bc;
+}// getHomogeneousBc
+
 void
 GeneralOperator::setSolutionTime(
     double solution_time)
@@ -92,6 +98,12 @@ GeneralOperator::setSolutionTime(
     d_solution_time = solution_time;
     return;
 }// setSolutionTime
+
+double
+GeneralOperator::getSolutionTime() const
+{
+    return d_solution_time;
+}// getSolutionTime
 
 void
 GeneralOperator::setTimeInterval(
@@ -103,6 +115,12 @@ GeneralOperator::setTimeInterval(
     return;
 }// setTimeInterval
 
+std::pair<double,double>
+GeneralOperator::getTimeInterval() const
+{
+    return std::make_pair(d_current_time,d_new_time);
+}// getTimeInterval
+
 void
 GeneralOperator::setHierarchyMathOps(
     Pointer<HierarchyMathOps> hier_math_ops)
@@ -111,6 +129,12 @@ GeneralOperator::setHierarchyMathOps(
     d_hier_math_ops_external = !d_hier_math_ops.isNull();
     return;
 }// setHierarchyMathOps
+
+Pointer<HierarchyMathOps>
+GeneralOperator::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+}// getHierarchyMathOps
 
 void
 GeneralOperator::applyAdd(

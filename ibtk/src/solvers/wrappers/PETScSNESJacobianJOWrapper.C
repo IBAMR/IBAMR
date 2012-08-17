@@ -60,6 +60,53 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
+    const std::string& object_name,
+    const SNES& petsc_snes,
+    PetscErrorCode (* const petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
+    void* const petsc_snes_jac_ctx)
+    : d_object_name(object_name),
+      d_is_initialized(false),
+      d_do_log(false),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_jac(PETSC_NULL),
+      d_petsc_snes_form_jac(petsc_snes_form_jac),
+      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_y(PETSC_NULL),
+      d_petsc_z(PETSC_NULL)
+{
+    // intentionally blank
+    return;
+}// PETScSNESJacobianJOWrapper()
+
+PETScSNESJacobianJOWrapper::~PETScSNESJacobianJOWrapper()
+{
+    if (d_is_initialized) deallocateOperatorState();
+    return;
+}// ~PETScSNESJacobianJOWrapper()
+
+const SNES&
+PETScSNESJacobianJOWrapper::getPETScSNES() const
+{
+    return d_petsc_snes;
+}// getPETScSNES
+
+PetscErrorCode
+(*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES,Vec,Mat*,Mat*,MatStructure*,void*)
+{
+    return d_petsc_snes_form_jac;
+}// getPETScSNESFormJacobian
+
+void*
+PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
+{
+    return d_petsc_snes_jac_ctx;
+}// getPETScSNESJacobianContext
+
 void
 PETScSNESJacobianJOWrapper::formJacobian(
     SAMRAIVectorReal<NDIM,double>& x)

@@ -182,6 +182,21 @@ PETScKrylovLinearSolver::~PETScKrylovLinearSolver()
 }// ~PETScKrylovLinearSolver()
 
 void
+PETScKrylovLinearSolver::setKSPType(
+    const std::string& ksp_type)
+{
+    d_ksp_type = ksp_type;
+    resetKSPOptions();
+    return;
+}// setKSPType
+
+const KSP&
+PETScKrylovLinearSolver::getPETScKSP() const
+{
+    return d_petsc_ksp;
+}// getPETScKSP
+
+void
 PETScKrylovLinearSolver::setValidPCShellTypes(
     const std::vector<std::string>& pc_shell_types)
 {
@@ -194,6 +209,103 @@ PETScKrylovLinearSolver::getPCShellType() const
 {
     return d_pc_shell_type;
 }// getPCShellType
+
+void
+PETScKrylovLinearSolver::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
+    if (!d_A.isNull()) d_A->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+void
+PETScKrylovLinearSolver::setSolutionTime(
+    const double solution_time)
+{
+    KrylovLinearSolver::setSolutionTime(solution_time);
+    if (!d_A.isNull()) d_A->setSolutionTime(solution_time);
+    if (!d_pc_solver.isNull()) d_pc_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+void
+PETScKrylovLinearSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    KrylovLinearSolver::setTimeInterval(current_time, new_time);
+    if (!d_A.isNull()) d_A->setTimeInterval(current_time, new_time);
+    if (!d_pc_solver.isNull()) d_pc_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+void
+PETScKrylovLinearSolver::setOperator(
+    Pointer<LinearOperator> A)
+{
+    d_user_provided_mat = true;
+    Pointer<LinearOperator> A_old = d_A;
+    d_A = A;
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->setSolutionTime(d_solution_time);
+    d_A->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_A != A_old) && !d_A.isNull())
+    {
+        d_A->initializeOperatorState(*d_solver_x, *d_solver_b);
+    }
+    resetKSPOperators();
+    return;
+}// setOperator
+
+Pointer<LinearOperator>
+PETScKrylovLinearSolver::getOperator() const
+{
+    return d_A;
+}// getOperator
+
+void
+PETScKrylovLinearSolver::setPreconditioner(
+    Pointer<LinearSolver> pc_solver)
+{
+    d_user_provided_pc = true;
+    Pointer<LinearSolver> pc_solver_old = d_pc_solver;
+    d_pc_solver = pc_solver;
+    d_pc_solver->setHomogeneousBc(true);
+    d_pc_solver->setSolutionTime(d_solution_time);
+    d_pc_solver->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_pc_solver != pc_solver_old) && !d_pc_solver.isNull())
+    {
+        d_pc_solver->initializeSolverState(*d_solver_b, *d_solver_b);
+    }
+    resetKSPPC();
+    return;
+}// setPreconditioner
+
+Pointer<LinearSolver>
+PETScKrylovLinearSolver::getPreconditioner() const
+{
+    return d_pc_solver;
+}// getPreconditioner
+
+void
+PETScKrylovLinearSolver::setNullspace(
+    const bool contains_constant_vector,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(contains_constant_vector || !nullspace_basis_vecs.empty());
+    for (unsigned int k = 0; k < nullspace_basis_vecs.size(); ++k)
+    {
+        TBOX_ASSERT(!nullspace_basis_vecs[k].isNull());
+    }
+#endif
+    deallocateNullspaceData();
+    d_nullsp_contains_constant_vector = contains_constant_vector;
+    d_solver_nullsp_basis = nullspace_basis_vecs;
+    resetKSPNullspace();
+    return;
+}// setNullspace
 
 bool
 PETScKrylovLinearSolver::solveSystem(
@@ -403,6 +515,78 @@ PETScKrylovLinearSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
+
+void
+PETScKrylovLinearSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    resetKSPOptions();
+    return;
+}// setInitialGuessNonzero
+
+bool
+PETScKrylovLinearSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+PETScKrylovLinearSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    resetKSPOptions();
+    return;
+}// setMaxIterations
+
+int
+PETScKrylovLinearSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+PETScKrylovLinearSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    resetKSPOptions();
+    return;
+}// setAbsoluteTolerance
+
+double
+PETScKrylovLinearSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+PETScKrylovLinearSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    resetKSPOptions();
+    return;
+}// setRelativeTolerance
+
+double
+PETScKrylovLinearSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+PETScKrylovLinearSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+PETScKrylovLinearSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
 
 void
 PETScKrylovLinearSolver::enableLogging(

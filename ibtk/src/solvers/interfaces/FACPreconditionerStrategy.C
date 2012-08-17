@@ -75,29 +75,47 @@ FACPreconditionerStrategy::setFACPreconditioner(
 
 void
 FACPreconditionerStrategy::setHomogeneousBc(
-    const bool homogeneous_bc)
+    bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
 }// setHomogeneousBc
 
+bool
+FACPreconditionerStrategy::getHomogeneousBc() const
+{
+    return d_homogeneous_bc;
+}// getHomogeneousBc
+
 void
 FACPreconditionerStrategy::setSolutionTime(
-    const double solution_time)
+    double solution_time)
 {
     d_solution_time = solution_time;
     return;
 }// setSolutionTime
 
+double
+FACPreconditionerStrategy::getSolutionTime() const
+{
+    return d_solution_time;
+}// getSolutionTime
+
 void
 FACPreconditionerStrategy::setTimeInterval(
-    const double current_time,
-    const double new_time)
+    double current_time,
+    double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
     return;
 }// setTimeInterval
+
+std::pair<double,double>
+FACPreconditionerStrategy::getTimeInterval() const
+{
+    return std::make_pair(d_current_time,d_new_time);
+}// getTimeInterval
 
 void
 FACPreconditionerStrategy::initializeOperatorState(

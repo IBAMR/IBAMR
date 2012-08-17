@@ -92,24 +92,43 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void
+    virtual void
     setHomogeneousBc(
         bool homogeneous_bc);
 
     /*!
+     * \brief Return whether the solver is using homogeneous boundary
+     * conditions.
+     */
+    virtual bool
+    getHomogeneousBc() const;
+
+    /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void
+    virtual void
     setSolutionTime(
         double solution_time);
 
     /*!
+     * \brief Get the time at which the solution is being evaluated.
+     */
+    virtual double
+    getSolutionTime() const;
+
+    /*!
      * \brief Set the current time interval.
      */
-    void
+    virtual void
     setTimeInterval(
         double current_time,
         double new_time);
+
+    /*!
+     * \brief Get the current time interval.
+     */
+    virtual std::pair<double,double>
+    getTimeInterval() const;
 
     /*!
      * \brief Restrict the residual from the source vector to the destination

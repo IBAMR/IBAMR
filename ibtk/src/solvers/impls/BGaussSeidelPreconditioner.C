@@ -307,6 +307,94 @@ BGaussSeidelPreconditioner::deallocateSolverState()
     return;
 }// deallocateSolverState
 
+void
+BGaussSeidelPreconditioner::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("BGaussSeidelPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess" << std::endl);
+    }
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+BGaussSeidelPreconditioner::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+BGaussSeidelPreconditioner::setMaxIterations(
+    int max_iterations)
+{
+    if (max_iterations > 1)
+    {
+        TBOX_ERROR("BGaussSeidelPreconditioner::setMaxIterations()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1" << std::endl);
+    }
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+BGaussSeidelPreconditioner::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+BGaussSeidelPreconditioner::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+BGaussSeidelPreconditioner::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+BGaussSeidelPreconditioner::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+BGaussSeidelPreconditioner::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+BGaussSeidelPreconditioner::getNumIterations() const
+{
+    TBOX_WARNING("BGaussSeidelPreconditioner::getNumIterations() not supported" << std::endl);
+    return 0;
+}// getNumIterations
+
+double
+BGaussSeidelPreconditioner::getResidualNorm() const
+{
+    TBOX_WARNING("BGaussSeidelPreconditioner::getResidualNorm() not supported" << std::endl);
+    return 0.0;
+}// getResidualNorm
+
+void
+BGaussSeidelPreconditioner::enableLogging(
+    bool /*enabled*/)
+{
+    TBOX_WARNING("BGaussSeidelPreconditioner::enableLogging() not supported" << std::endl);
+    return;
+}// enableLogging
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >

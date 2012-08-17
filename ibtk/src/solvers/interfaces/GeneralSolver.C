@@ -120,6 +120,21 @@ GeneralSolver::getTimeInterval() const
 }// getTimeInterval
 
 void
+GeneralSolver::setHierarchyMathOps(
+    Pointer<HierarchyMathOps> hier_math_ops)
+{
+    d_hier_math_ops = hier_math_ops;
+    d_hier_math_ops_external = !d_hier_math_ops.isNull();
+    return;
+}// setHierarchyMathOps
+
+Pointer<HierarchyMathOps>
+GeneralSolver::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+}// getHierarchyMathOps
+
+void
 GeneralSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& /*u*/,
     const SAMRAIVectorReal<NDIM,double>& /*r*/)

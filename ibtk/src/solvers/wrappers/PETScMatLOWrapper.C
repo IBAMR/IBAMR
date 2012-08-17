@@ -57,6 +57,37 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+PETScMatLOWrapper::PETScMatLOWrapper(
+    const std::string& object_name,
+    const Mat& petsc_mat)
+    : LinearOperator(/* homogeneous_bc */ false),
+      d_object_name(object_name),
+      d_is_initialized(false),
+      d_do_log(false),
+      d_petsc_mat(petsc_mat),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_y(PETSC_NULL),
+      d_petsc_z(PETSC_NULL)
+{
+    // intentionally blank
+    return;
+}// PETScMatLOWrapper()
+
+PETScMatLOWrapper::~PETScMatLOWrapper()
+{
+    if (d_is_initialized) deallocateOperatorState();
+    return;
+}// ~PETScMatLOWrapper()
+
+const Mat&
+PETScMatLOWrapper::getPETScMat() const
+{
+    return d_petsc_mat;
+}// getPETScMat
+
 void
 PETScMatLOWrapper::apply(
     SAMRAIVectorReal<NDIM,double>& x,

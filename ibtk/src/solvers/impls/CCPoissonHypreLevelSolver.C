@@ -355,6 +355,74 @@ CCPoissonHypreLevelSolver::deallocateSolverState()
 }// deallocateSolverState
 
 void
+CCPoissonHypreLevelSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+CCPoissonHypreLevelSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+CCPoissonHypreLevelSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+CCPoissonHypreLevelSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+CCPoissonHypreLevelSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+CCPoissonHypreLevelSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+CCPoissonHypreLevelSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+CCPoissonHypreLevelSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+CCPoissonHypreLevelSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+CCPoissonHypreLevelSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
+
+void
 CCPoissonHypreLevelSolver::enableLogging(
     bool enabled)
 {

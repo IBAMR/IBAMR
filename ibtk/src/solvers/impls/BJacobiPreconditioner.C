@@ -201,6 +201,94 @@ BJacobiPreconditioner::deallocateSolverState()
     return;
 }// deallocateSolverState
 
+void
+BJacobiPreconditioner::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("BJacobiPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess" << std::endl);
+    }
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+BJacobiPreconditioner::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+BJacobiPreconditioner::setMaxIterations(
+    int max_iterations)
+{
+    if (max_iterations > 1)
+    {
+        TBOX_ERROR("BJacobiPreconditioner::setMaxIterations()\n"
+                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1" << std::endl);
+    }
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+BJacobiPreconditioner::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+BJacobiPreconditioner::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+BJacobiPreconditioner::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+BJacobiPreconditioner::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+BJacobiPreconditioner::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+BJacobiPreconditioner::getNumIterations() const
+{
+    TBOX_WARNING("BJacobiPreconditioner::getNumIterations() not supported" << std::endl);
+    return 0;
+}// getNumIterations
+
+double
+BJacobiPreconditioner::getResidualNorm() const
+{
+    TBOX_WARNING("BJacobiPreconditioner::getResidualNorm() not supported" << std::endl);
+    return 0.0;
+}// getResidualNorm
+
+void
+BJacobiPreconditioner::enableLogging(
+    bool /*enabled*/)
+{
+    TBOX_WARNING("BJacobiPreconditioner::enableLogging() not supported" << std::endl);
+    return;
+}// enableLogging
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

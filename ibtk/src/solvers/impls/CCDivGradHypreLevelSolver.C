@@ -338,6 +338,74 @@ CCDivGradHypreLevelSolver::deallocateSolverState()
 }// deallocateSolverState
 
 void
+CCDivGradHypreLevelSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+CCDivGradHypreLevelSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+CCDivGradHypreLevelSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+CCDivGradHypreLevelSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+CCDivGradHypreLevelSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}//setAbsoluteTolerance
+
+double
+CCDivGradHypreLevelSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+CCDivGradHypreLevelSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}//setRelativeTolerance
+
+double
+CCDivGradHypreLevelSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+CCDivGradHypreLevelSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+CCDivGradHypreLevelSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
+
+void
 CCDivGradHypreLevelSolver::enableLogging(
     bool enabled)
 {
