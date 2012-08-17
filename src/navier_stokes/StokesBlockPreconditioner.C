@@ -62,9 +62,9 @@ namespace IBAMR
 StokesBlockPreconditioner::StokesBlockPreconditioner(
     const std::string& object_name,
     bool needs_velocity_solver,
-    bool needs_pressure_solver,
-    bool homogeneous_bc)
-    : StokesSolver(object_name, homogeneous_bc),
+    bool needs_pressure_solver)
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
+      StokesSolver(object_name, /*homogeneous_bc*/ true),
       d_needs_velocity_solver(needs_velocity_solver),
       d_velocity_solver(),
       d_P_problem_coefs(object_name+"::P_problem_coefs"),

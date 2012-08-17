@@ -53,6 +53,7 @@
 #include <ibamr/INSStaggeredBoxRelaxationFACOperator.h>
 #include <ibamr/INSStaggeredPETScLevelSolver.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
+#include <ibamr/StokesFACPreconditioner.h>
 #include <ibamr/StokesKrylovLinearSolverWrapper.h>
 #include <ibamr/namespaces.h>
 

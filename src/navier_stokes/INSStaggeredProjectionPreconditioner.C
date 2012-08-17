@@ -88,7 +88,7 @@ static Timer* t_deallocate_solver_state;
 INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     const std::string& object_name)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      StokesBlockPreconditioner(object_name, /*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true, /*homogeneous_bc*/ true),
+      StokesBlockPreconditioner(object_name, /*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),

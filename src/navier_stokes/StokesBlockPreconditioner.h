@@ -59,8 +59,7 @@ public:
     StokesBlockPreconditioner(
         const std::string& object_name,
         bool needs_velocity_solver,
-        bool needs_pressure_solver,
-        bool homogeneous_bc=true);
+        bool needs_pressure_solver);
 
     /*!
      * \brief Destructor.
