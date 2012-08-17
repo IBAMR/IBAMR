@@ -99,12 +99,8 @@ allocate_default_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
-    poisson_spec.setCConstant(0.0);
-    poisson_spec.setDConstant(-1.0);
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
     Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("DEFAULT", solver_object_name, solver_input_db);
-    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, bc_coefs));
+    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator"));
     return new PoissonKrylovLinearSolverWrapper(krylov_solver);
 }// allocate_default_krylov_solver
 
@@ -113,12 +109,8 @@ allocate_petsc_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
-    poisson_spec.setCConstant(0.0);
-    poisson_spec.setDConstant(-1.0);
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
     Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("PETSC_KRYLOV_LINEAR_SOLVER", solver_object_name, solver_input_db);
-    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator", poisson_spec, bc_coefs));
+    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::LaplaceOperator"));
     return new PoissonKrylovLinearSolverWrapper(krylov_solver);
 }// allocate_petsc_krylov_solver
 
@@ -127,11 +119,7 @@ allocate_point_relaxation_fac_preconditioner(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    PoissonSpecifications poisson_spec(solver_object_name+"::PoissonSpecifications");
-    poisson_spec.setCConstant(0.0);
-    poisson_spec.setDConstant(-1.0);
     Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(solver_object_name+"::FACOperator", solver_input_db);
-    fac_operator->setPoissonSpecifications(poisson_spec);
     return new PoissonFACPreconditioner(solver_object_name, fac_operator);
 }// allocate_point_relaxation_fac_preconditioner
 }

@@ -150,7 +150,9 @@ main(
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        CCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coef);
+        CCLaplaceOperator laplace_op("laplace op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoef(bc_coef);
         laplace_op.initializeOperatorState(u_vec,f_vec);
         laplace_op.apply(u_vec,f_vec);
 

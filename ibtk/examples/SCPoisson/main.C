@@ -199,8 +199,10 @@ main(
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-        Pointer<SCLaplaceOperator> laplace_op = new SCLaplaceOperator("laplace_op", poisson_spec, bc_coefs);
-        laplace_op->initializeOperatorState(u_vec,f_vec);
+        SCLaplaceOperator laplace_op("laplace_op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
+        laplace_op.initializeOperatorState(u_vec,f_vec);
 
         string solver_type = input_db->getString("solver_type");
         Pointer<Database> solver_db = input_db->getDatabase("solver_db");
@@ -223,7 +225,7 @@ main(
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
-        laplace_op->apply(u_vec,r_vec);
+        laplace_op.apply(u_vec,r_vec);
         r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec. L2Norm() << "\n";

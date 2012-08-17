@@ -84,8 +84,6 @@ static Timer* t_deallocate_operator_state;
 
 CCLaplaceOperator::CCLaplaceOperator(
     const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
     : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
@@ -100,40 +98,8 @@ CCLaplaceOperator::CCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Configure the operator.
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoef(bc_coef);
-
-    // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-                 );
-    return;
-}// CCLaplaceOperator()
-
-CCLaplaceOperator::CCLaplaceOperator(
-    const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_is_initialized(false),
-      d_ncomp(0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
-{
-    // Configure the operator.
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoefs(bc_coefs);
+    // Setup the operator to use default scalar-valued boundary conditions.
+    setPhysicalBcCoef(NULL);
 
     // Setup Timers.
     IBTK_DO_ONCE(

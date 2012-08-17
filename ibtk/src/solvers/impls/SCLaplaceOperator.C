@@ -84,8 +84,6 @@ static Timer* t_deallocate_operator_state;
 
 SCLaplaceOperator::SCLaplaceOperator(
     const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : LaplaceOperator(object_name, homogeneous_bc),
       d_is_initialized(false),
@@ -100,13 +98,8 @@ SCLaplaceOperator::SCLaplaceOperator(
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-
-    // Configure the operator.
-    setPoissonSpecifications(poisson_spec);
-    setPhysicalBcCoefs(bc_coefs);
+    // Setup the operator to use default vector-valued boundary conditions.
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -147,6 +140,7 @@ SCLaplaceOperator::apply(
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
+    TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);

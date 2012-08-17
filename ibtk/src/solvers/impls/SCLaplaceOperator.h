@@ -54,17 +54,10 @@ class SCLaplaceOperator
 public:
     /*!
      * \brief Constructor for class SCLaplaceOperator initializes the operator
-     * coefficients and boundary conditions for a vector-valued operator.
-     *
-     * \param object_name     String used to register internal variables and for error reporting purposes.
-     * \param poisson_spec    Laplace operator coefficients.
-     * \param bc_coefs        Robin boundary conditions to use with this class.
-     * \param homogeneous_bc  Whether to employ the homogeneous form of the boundary conditions.
+     * coefficients and boundary conditions to default values.
      */
     SCLaplaceOperator(
         const std::string& object_name,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=true);
 
     /*!

@@ -36,7 +36,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/LaplaceOperator.h>
-#include <ibtk/PoissonSolver.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

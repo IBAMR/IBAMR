@@ -181,7 +181,9 @@ main(
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-        SCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coefs);
+        SCLaplaceOperator laplace_op("laplace op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec,f_vec);
         laplace_op.apply(u_vec,f_vec);
 
