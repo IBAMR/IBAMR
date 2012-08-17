@@ -67,6 +67,13 @@ public:
     ~NewtonKrylovSolver();
 
     /*!
+     * \brief Set the HierarchyMathOps object used by the solver.
+     */
+    void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
      * \name Newton-Krylov solver functionality.
      */
     //\{

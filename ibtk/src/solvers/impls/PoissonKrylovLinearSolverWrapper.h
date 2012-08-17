@@ -145,6 +145,19 @@ public:
     getTimeInterval() const;
 
     /*!
+     * \brief Set the HierarchyMathOps object used by the solver.
+     */
+    void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \brief Get the HierarchyMathOps object used by the solver.
+     */
+    SAMRAI::tbox::Pointer<HierarchyMathOps>
+    getHierarchyMathOps() const;
+
+    /*!
      * \brief Solve the system of equations.
      */
     bool

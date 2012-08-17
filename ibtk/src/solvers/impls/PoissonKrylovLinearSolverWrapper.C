@@ -104,7 +104,7 @@ void
 PoissonKrylovLinearSolverWrapper::setHomogeneousBc(
     bool homogeneous_bc)
 {
-    LinearSolver::setHomogeneousBc(homogeneous_bc);
+    KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
     d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
     return;
 }// setHomogeneousBc
@@ -119,8 +119,8 @@ void
 PoissonKrylovLinearSolverWrapper::setSolutionTime(
     double solution_time)
 {
-    LinearSolver::setSolutionTime(solution_time);
-    d_krylov_solver->setSolutionTime(solution_time);
+    KrylovLinearSolver::setSolutionTime(solution_time);
+    d_krylov_solver->setSolutionTime(d_solution_time);
     return;
 }// setSolutionTime
 
@@ -135,8 +135,8 @@ PoissonKrylovLinearSolverWrapper::setTimeInterval(
     double current_time,
     double new_time)
 {
-    LinearSolver::setTimeInterval(current_time, new_time);
-    d_krylov_solver->setTimeInterval(current_time, new_time);
+    KrylovLinearSolver::setTimeInterval(current_time, new_time);
+    d_krylov_solver->setTimeInterval(d_current_time, d_new_time);
     return;
 }// setTimeInterval
 
@@ -145,6 +145,21 @@ PoissonKrylovLinearSolverWrapper::getTimeInterval() const
 {
     return d_krylov_solver->getTimeInterval();
 }// getTimeInterval
+
+void
+PoissonKrylovLinearSolverWrapper::setHierarchyMathOps(
+    Pointer<HierarchyMathOps> hier_math_ops)
+{
+    KrylovLinearSolver::setHierarchyMathOps(hier_math_ops);
+    d_krylov_solver->setHierarchyMathOps(d_hier_math_ops);
+    return;
+}// setHierarchyMathOps
+
+Pointer<HierarchyMathOps>
+PoissonKrylovLinearSolverWrapper::getHierarchyMathOps() const
+{
+    return d_krylov_solver->getHierarchyMathOps();
+}// getHierarchyMathOps
 
 bool
 PoissonKrylovLinearSolverWrapper::solveSystem(
@@ -159,6 +174,7 @@ PoissonKrylovLinearSolverWrapper::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
+    KrylovLinearSolver::initializeSolverState(x,b);
     d_krylov_solver->initializeSolverState(x,b);
     return;
 }// initializeSolverState
@@ -166,6 +182,7 @@ PoissonKrylovLinearSolverWrapper::initializeSolverState(
 void
 PoissonKrylovLinearSolverWrapper::deallocateSolverState()
 {
+    KrylovLinearSolver::deallocateSolverState();
     d_krylov_solver->deallocateSolverState();
     return;
 }// deallocateSolverState
@@ -175,7 +192,8 @@ PoissonKrylovLinearSolverWrapper::setNullspace(
     bool contains_constant_vector,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    d_krylov_solver->setNullspace(contains_constant_vector, nullspace_basis_vecs);
+    KrylovLinearSolver::setNullspace(contains_constant_vector, nullspace_basis_vecs);
+    d_krylov_solver->setNullspace(d_nullspace_contains_constant_vector, d_nullspace_basis_vecs);
     return;
 }// setNullspace
 
@@ -183,7 +201,8 @@ void
 PoissonKrylovLinearSolverWrapper::setOperator(
     Pointer<LinearOperator> A)
 {
-    d_krylov_solver->setOperator(A);
+    d_A = A;
+    d_krylov_solver->setOperator(d_A);
     return;
 }// setOperator
 
@@ -197,7 +216,8 @@ void
 PoissonKrylovLinearSolverWrapper::setPreconditioner(
     Pointer<LinearSolver> pc_solver)
 {
-    d_krylov_solver->setPreconditioner(pc_solver);
+    d_pc_solver = pc_solver;
+    d_krylov_solver->setPreconditioner(d_pc_solver);
     return;
 }// setPreconditioner
 
@@ -211,7 +231,8 @@ void
 PoissonKrylovLinearSolverWrapper::setInitialGuessNonzero(
     bool initial_guess_nonzero)
 {
-    d_krylov_solver->setInitialGuessNonzero(initial_guess_nonzero);
+    KrylovLinearSolver::setInitialGuessNonzero(initial_guess_nonzero);
+    d_krylov_solver->setInitialGuessNonzero(d_initial_guess_nonzero);
     return;
 }// setInitialGuessNonzero
 
@@ -225,7 +246,8 @@ void
 PoissonKrylovLinearSolverWrapper::setMaxIterations(
     int max_iterations)
 {
-    d_krylov_solver->setMaxIterations(max_iterations);
+    KrylovLinearSolver::setMaxIterations(max_iterations);
+    d_krylov_solver->setMaxIterations(d_max_iterations);
     return;
 }// setMaxIterations
 
@@ -239,7 +261,8 @@ void
 PoissonKrylovLinearSolverWrapper::setAbsoluteTolerance(
     double abs_residual_tol)
 {
-    d_krylov_solver->setAbsoluteTolerance(abs_residual_tol);
+    KrylovLinearSolver::setAbsoluteTolerance(abs_residual_tol);
+    d_krylov_solver->setAbsoluteTolerance(d_abs_residual_tol);
     return;
 }// setAbsoluteTolerance
 
@@ -253,7 +276,8 @@ void
 PoissonKrylovLinearSolverWrapper::setRelativeTolerance(
     double rel_residual_tol)
 {
-    d_krylov_solver->setRelativeTolerance(rel_residual_tol);
+    KrylovLinearSolver::setRelativeTolerance(rel_residual_tol);
+    d_krylov_solver->setRelativeTolerance(d_rel_residual_tol);
     return;
 }// setRelativeTolerance
 
@@ -279,7 +303,8 @@ void
 PoissonKrylovLinearSolverWrapper::enableLogging(
     bool enabled)
 {
-    d_krylov_solver->enableLogging(enabled);
+    KrylovLinearSolver::enableLogging(enabled);
+    d_krylov_solver->enableLogging(d_enable_logging);
     return;
 }// enableLogging
 
