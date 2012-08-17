@@ -78,9 +78,6 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     MPI_Comm petsc_comm)
     : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
-      d_solver_x(NULL),
-      d_solver_b(NULL),
-      d_solver_r(NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
@@ -90,10 +87,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_petsc_jac (PETSC_NULL),
       d_managing_petsc_snes(true),
       d_user_provided_function(false),
-      d_user_provided_jacobian(false),
-      d_F(NULL),
-      d_J(NULL),
-      d_krylov_solver(NULL)
+      d_user_provided_jacobian(false)
 {
     // Common constructor functionality.
     common_ctor();
@@ -106,9 +100,6 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& options_prefix)
     : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
-      d_solver_x(NULL),
-      d_solver_b(NULL),
-      d_solver_r(NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
@@ -118,10 +109,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_petsc_jac (PETSC_NULL),
       d_managing_petsc_snes(false),
       d_user_provided_function(false),
-      d_user_provided_jacobian(false),
-      d_F(NULL),
-      d_J(NULL),
-      d_krylov_solver(NULL)
+      d_user_provided_jacobian(false)
 {
     if (d_petsc_snes != NULL) resetWrappedSNES(d_petsc_snes);
 
@@ -192,22 +180,11 @@ void
 PETScNewtonKrylovSolver::setOperator(
     Pointer<GeneralOperator> F)
 {
+    NewtonKrylovSolver::setOperator(F);
     d_user_provided_function = true;
-    Pointer<GeneralOperator> F_old = d_F;
-    d_F = F;
-    d_F->setHomogeneousBc(d_homogeneous_bc);
-    d_F->setSolutionTime(d_solution_time);
-    d_F->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_F != F_old) && !d_F.isNull()) d_F->initializeOperatorState(*d_solver_x, *d_solver_b);
     resetSNESFunction();
     return;
 }// setOperator
-
-Pointer<GeneralOperator>
-PETScNewtonKrylovSolver::getOperator() const
-{
-    return d_F;
-}// getOperator
 
 Pointer<SAMRAIVectorReal<NDIM,double> >
 PETScNewtonKrylovSolver::getSolutionVector() const
@@ -229,28 +206,11 @@ void
 PETScNewtonKrylovSolver::setJacobian(
     Pointer<JacobianOperator> J)
 {
+    NewtonKrylovSolver::setJacobian(J);
     d_user_provided_jacobian = true;
-    Pointer<JacobianOperator> J_old = d_J;
-    d_J = J;
-    d_J->setHomogeneousBc(true);
-    d_J->setSolutionTime(d_solution_time);
-    d_J->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_J != J_old) && !d_J.isNull()) d_J->initializeOperatorState(*d_solver_x, *d_solver_b);
     resetSNESJacobian();
     return;
 }// setJacobian
-
-Pointer<JacobianOperator>
-PETScNewtonKrylovSolver::getJacobian() const
-{
-    return d_J;
-}// getJacobian
-
-Pointer<KrylovLinearSolver>
-PETScNewtonKrylovSolver::getLinearSolver() const
-{
-    return d_krylov_solver;
-}// getLinearSolver
 
 bool
 PETScNewtonKrylovSolver::solveSystem(
@@ -276,10 +236,10 @@ PETScNewtonKrylovSolver::solveSystem(
     Pointer<LinearOperator> A = d_F;
     if (!A.isNull())
     {
-        d_solver_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
-        A->modifyRhsForInhomogeneousBc(*d_solver_b);
+        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+        A->modifyRhsForInhomogeneousBc(*d_b);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b)); IBTK_CHKERRQ(ierr);
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_solver_b);
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
     }
     else
     {
@@ -381,23 +341,23 @@ PETScNewtonKrylovSolver::initializeSolverState(
     }
 
     // Setup solution and rhs vectors.
-    d_solver_x = x.cloneVector(x.getName());
-    d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_solver_x, d_petsc_comm);
+    d_x = x.cloneVector(x.getName());
+    d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
-    d_solver_b = b.cloneVector(b.getName());
-    d_solver_b->allocateVectorData();
-    d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_solver_b, d_petsc_comm);
+    d_b = b.cloneVector(b.getName());
+    d_b->allocateVectorData();
+    d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
-    d_solver_r = b.cloneVector(b.getName());
-    d_solver_r->allocateVectorData();
-    d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_solver_r, d_petsc_comm);
+    d_r = b.cloneVector(b.getName());
+    d_r->allocateVectorData();
+    d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_r, d_petsc_comm);
 
     // Setup the nonlinear operator.
-    if (!d_F.isNull()) d_F->initializeOperatorState(*d_solver_x, *d_solver_b);
+    if (!d_F.isNull()) d_F->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_snes || d_user_provided_function) resetSNESFunction();
 
     // Setup the Jacobian.
-    if (!d_J.isNull()) d_J->initializeOperatorState(*d_solver_x, *d_solver_b);
+    if (!d_J.isNull()) d_J->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_snes || d_user_provided_jacobian) resetSNESJacobian();
 
     // Set the SNES options from the PETSc options database.
@@ -415,10 +375,11 @@ PETScNewtonKrylovSolver::initializeSolverState(
     // the SNES solver.
     KSP petsc_ksp;
     ierr = SNESGetKSP(d_petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
-    d_krylov_solver->resetWrappedKSP(petsc_ksp);
+    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    if (!p_krylov_solver.isNull()) p_krylov_solver->resetWrappedKSP(petsc_ksp);
 
     // Setup the Krylov solver.
-    if (!d_krylov_solver.isNull()) d_krylov_solver->initializeSolverState(*d_solver_x, *d_solver_b);
+    if (!d_krylov_solver.isNull()) d_krylov_solver->initializeSolverState(*d_x, *d_b);
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -449,21 +410,21 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = PETSC_NULL;
-    d_solver_x->resetLevels(d_solver_x->getCoarsestLevelNumber(), std::min(d_solver_x->getFinestLevelNumber(),d_solver_x->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solver_x->freeVectorComponents();
-    d_solver_x.setNull();
+    d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_x->getPatchHierarchy()->getFinestLevelNumber()));
+    d_x->freeVectorComponents();
+    d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = PETSC_NULL;
-    d_solver_b->resetLevels(d_solver_b->getCoarsestLevelNumber(), std::min(d_solver_b->getFinestLevelNumber(),d_solver_b->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solver_b->freeVectorComponents();
-    d_solver_b.setNull();
+    d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_b->getPatchHierarchy()->getFinestLevelNumber()));
+    d_b->freeVectorComponents();
+    d_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
     d_petsc_r = PETSC_NULL;
-    d_solver_r->resetLevels(d_solver_r->getCoarsestLevelNumber(), std::min(d_solver_r->getFinestLevelNumber(),d_solver_r->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solver_r->freeVectorComponents();
-    d_solver_r.setNull();
+    d_r->resetLevels(d_r->getCoarsestLevelNumber(), std::min(d_r->getFinestLevelNumber(),d_r->getPatchHierarchy()->getFinestLevelNumber()));
+    d_r->freeVectorComponents();
+    d_r.setNull();
 
     // Destroy the SNES solver.
     if (d_managing_petsc_snes)
@@ -596,7 +557,8 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
     // wrapped SNES object.
     KSP petsc_ksp;
     ierr = SNESGetKSP(d_petsc_snes, &petsc_ksp); IBTK_CHKERRQ(ierr);
-    d_krylov_solver->resetWrappedKSP(petsc_ksp);
+    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    if (!p_krylov_solver.isNull()) p_krylov_solver->resetWrappedKSP(petsc_ksp);
 
     // Reset the member state variables to correspond to the values used by the
     // SNES object.

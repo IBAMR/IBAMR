@@ -218,12 +218,6 @@ public:
         SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
-     * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
-     */
-    SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const;
-
-    /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
      * solving \f$Ax=b\f$.
      *
@@ -232,13 +226,6 @@ public:
     void
     setPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
-
-    /*!
-     * \brief Retrieve the preconditioner used by the Krylov subspace method
-     * when solving \f$Ax=b\f$.
-     */
-    SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const;
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -354,98 +341,6 @@ public:
      */
     void
     deallocateSolverState();
-
-    //\}
-
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
 
     //\}
 
@@ -593,7 +488,6 @@ private:
 
     bool d_reinitializing_solver;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b;
     Vec d_petsc_x, d_petsc_b;
 
     const std::string d_options_prefix;
@@ -605,9 +499,6 @@ private:
     bool d_managing_petsc_ksp;
     bool d_user_provided_mat;
     bool d_user_provided_pc;
-
-    SAMRAI::tbox::Pointer<LinearOperator> d_A;
-    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec;

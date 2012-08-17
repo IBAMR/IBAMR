@@ -176,12 +176,6 @@ public:
         SAMRAI::tbox::Pointer<GeneralOperator> op);
 
     /*!
-     * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
-     */
-    SAMRAI::tbox::Pointer<GeneralOperator>
-    getOperator() const;
-
-    /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
@@ -204,20 +198,6 @@ public:
     void
     setJacobian(
         SAMRAI::tbox::Pointer<JacobianOperator> J);
-
-    /*!
-     * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the
-     * solver.
-     */
-    SAMRAI::tbox::Pointer<JacobianOperator>
-    getJacobian() const;
-
-    /*!
-     * \brief Retrieve the Krylov linear solver used in computing Newton step
-     * directions.
-     */
-    SAMRAI::tbox::Pointer<KrylovLinearSolver>
-    getLinearSolver() const;
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.
@@ -466,7 +446,6 @@ private:
 
     bool d_reinitializing_solver;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b, d_solver_r;
     Vec d_petsc_x, d_petsc_b, d_petsc_r;
 
     const std::string d_options_prefix;
@@ -477,10 +456,6 @@ private:
     bool d_managing_petsc_snes;
     bool d_user_provided_function;
     bool d_user_provided_jacobian;
-
-    SAMRAI::tbox::Pointer<GeneralOperator>         d_F;
-    SAMRAI::tbox::Pointer<JacobianOperator>        d_J;
-    SAMRAI::tbox::Pointer<PETScKrylovLinearSolver> d_krylov_solver;
 };
 }// namespace IBTK
 

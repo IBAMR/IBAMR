@@ -84,8 +84,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_pc_shell_types(),
       d_pc_shell_type("none"),
       d_reinitializing_solver(false),
-      d_solver_x(NULL),
-      d_solver_b(NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_options_prefix(options_prefix),
@@ -96,8 +94,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_managing_petsc_ksp(true),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
-      d_A(NULL),
-      d_pc_solver(NULL),
       d_nullspace_constant_vec(NULL),
       d_petsc_nullspace_constant_vec(PETSC_NULL),
       d_petsc_nullspace_basis_vecs(),
@@ -116,8 +112,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       KrylovLinearSolver(object_name),
       d_ksp_type("none"),
       d_reinitializing_solver(false),
-      d_solver_x(NULL),
-      d_solver_b(NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_options_prefix(options_prefix),
@@ -128,8 +122,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_managing_petsc_ksp(false),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
-      d_A(NULL),
-      d_pc_solver(NULL),
       d_nullspace_constant_vec(NULL),
       d_petsc_nullspace_constant_vec(PETSC_NULL),
       d_petsc_nullspace_basis_vecs(),
@@ -223,49 +215,21 @@ void
 PETScKrylovLinearSolver::setOperator(
     Pointer<LinearOperator> A)
 {
+    KrylovLinearSolver::setOperator(A);
     d_user_provided_mat = true;
-    Pointer<LinearOperator> A_old = d_A;
-    d_A = A;
-    d_A->setHomogeneousBc(d_homogeneous_bc);
-    d_A->setSolutionTime(d_solution_time);
-    d_A->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_A != A_old) && !d_A.isNull())
-    {
-        d_A->initializeOperatorState(*d_solver_x, *d_solver_b);
-    }
     resetKSPOperators();
     return;
 }// setOperator
-
-Pointer<LinearOperator>
-PETScKrylovLinearSolver::getOperator() const
-{
-    return d_A;
-}// getOperator
 
 void
 PETScKrylovLinearSolver::setPreconditioner(
     Pointer<LinearSolver> pc_solver)
 {
+    KrylovLinearSolver::setPreconditioner(pc_solver);
     d_user_provided_pc = true;
-    Pointer<LinearSolver> pc_solver_old = d_pc_solver;
-    d_pc_solver = pc_solver;
-    d_pc_solver->setHomogeneousBc(true);
-    d_pc_solver->setSolutionTime(d_solution_time);
-    d_pc_solver->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_pc_solver != pc_solver_old) && !d_pc_solver.isNull())
-    {
-        d_pc_solver->initializeSolverState(*d_solver_b, *d_solver_b);
-    }
     resetKSPPC();
     return;
 }// setPreconditioner
-
-Pointer<LinearSolver>
-PETScKrylovLinearSolver::getPreconditioner() const
-{
-    return d_pc_solver;
-}// getPreconditioner
 
 void
 PETScKrylovLinearSolver::setNullspace(
@@ -300,8 +264,8 @@ PETScKrylovLinearSolver::solveSystem(
 
     // Solve the system using a PETSc KSP object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    d_solver_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
-    d_A->modifyRhsForInhomogeneousBc(*d_solver_b);
+    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+    d_A->modifyRhsForInhomogeneousBc(*d_b);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b)); IBTK_CHKERRQ(ierr);
 
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
@@ -398,18 +362,18 @@ PETScKrylovLinearSolver::initializeSolverState(
     }
 
     // Setup solution and rhs vectors.
-    d_solver_x = x.cloneVector(x.getName());
-    d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_solver_x, d_petsc_comm);
+    d_x = x.cloneVector(x.getName());
+    d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
-    d_solver_b = b.cloneVector(b.getName());
-    d_solver_b->allocateVectorData();
-    d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_solver_b, d_petsc_comm);
+    d_b = b.cloneVector(b.getName());
+    d_b->allocateVectorData();
+    d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     // Initialize the linear operator and preconditioner objects.
-    if (!d_A.isNull()) d_A->initializeOperatorState(*d_solver_x, *d_solver_b);
+    if (!d_A.isNull()) d_A->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_mat) resetKSPOperators();
 
-    if (!d_pc_solver.isNull()) d_pc_solver->initializeSolverState(*d_solver_x, *d_solver_b);
+    if (!d_pc_solver.isNull()) d_pc_solver->initializeSolverState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_pc) resetKSPPC();
 
     // Set the KSP options from the PETSc options database.
@@ -460,15 +424,15 @@ PETScKrylovLinearSolver::deallocateSolverState()
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = PETSC_NULL;
-    d_solver_x->resetLevels(d_solver_x->getCoarsestLevelNumber(), std::min(d_solver_x->getFinestLevelNumber(),d_solver_x->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solver_x->freeVectorComponents();
-    d_solver_x.setNull();
+    d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_x->getPatchHierarchy()->getFinestLevelNumber()));
+    d_x->freeVectorComponents();
+    d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = PETSC_NULL;
-    d_solver_b->resetLevels(d_solver_b->getCoarsestLevelNumber(), std::min(d_solver_b->getFinestLevelNumber(),d_solver_b->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solver_b->freeVectorComponents();
-    d_solver_b.setNull();
+    d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_b->getPatchHierarchy()->getFinestLevelNumber()));
+    d_b->freeVectorComponents();
+    d_b.setNull();
 
     // Deallocate the nullspace object.
     deallocateNullspaceData();
@@ -721,7 +685,7 @@ PETScKrylovLinearSolver::resetKSPNullspace()
         nullspace_vecs.reserve(1+d_nullspace_basis_vecs.size());
         if (d_nullspace_contains_constant_vector)
         {
-            d_nullspace_constant_vec = d_solver_x->cloneVector(d_solver_x->getName());
+            d_nullspace_constant_vec = d_x->cloneVector(d_x->getName());
             d_nullspace_constant_vec->allocateVectorData();
             d_petsc_nullspace_constant_vec = PETScSAMRAIVectorReal::createPETScVector(d_nullspace_constant_vec, d_petsc_comm);
             ierr = VecSet(d_petsc_nullspace_constant_vec, 1.0); IBTK_CHKERRQ(ierr);

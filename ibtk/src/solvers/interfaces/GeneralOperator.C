@@ -179,6 +179,14 @@ GeneralOperator::deallocateOperatorState()
     return;
 }// deallocateOperatorState
 
+void
+GeneralOperator::enableLogging(
+    bool enabled)
+{
+    d_enable_logging = enabled;
+    return;
+}// enableLogging
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

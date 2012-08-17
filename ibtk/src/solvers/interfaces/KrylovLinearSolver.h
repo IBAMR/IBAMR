@@ -74,13 +74,13 @@ public:
      */
     virtual void
     setOperator(
-        SAMRAI::tbox::Pointer<LinearOperator> A) = 0;
+        SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
      */
     virtual SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const = 0;
+    getOperator() const;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -90,16 +90,22 @@ public:
      */
     virtual void
     setPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL) = 0;
+        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
      * when solving \f$Ax=b\f$.
      */
     virtual SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const = 0;
+    getPreconditioner() const;
 
     //\}
+
+protected:
+    // Solver components.
+    SAMRAI::tbox::Pointer<LinearOperator> d_A;
+    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
 
 private:
     /*!

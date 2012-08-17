@@ -76,13 +76,13 @@ public:
      */
     virtual void
     setOperator(
-        SAMRAI::tbox::Pointer<GeneralOperator> op) = 0;
+        SAMRAI::tbox::Pointer<GeneralOperator> op);
 
     /*!
      * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
      */
     virtual SAMRAI::tbox::Pointer<GeneralOperator>
-    getOperator() const = 0;
+    getOperator() const;
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
@@ -113,21 +113,21 @@ public:
      */
     virtual void
     setJacobian(
-        SAMRAI::tbox::Pointer<JacobianOperator> J) = 0;
+        SAMRAI::tbox::Pointer<JacobianOperator> J);
 
     /*!
      * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the
      * solver.
      */
     virtual SAMRAI::tbox::Pointer<JacobianOperator>
-    getJacobian() const = 0;
+    getJacobian() const;
 
     /*!
      * \brief Retrieve the Krylov linear solver used in computing Newton step
      * directions.
      */
     virtual SAMRAI::tbox::Pointer<KrylovLinearSolver>
-    getLinearSolver() const = 0;
+    getLinearSolver() const;
 
     //\}
 
@@ -232,6 +232,12 @@ public:
     //\}
 
 protected:
+    // Solver components.
+    SAMRAI::tbox::Pointer<GeneralOperator>    d_F;
+    SAMRAI::tbox::Pointer<JacobianOperator>   d_J;
+    SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b, d_r;
+
     // Solver parameters.
     double d_rel_residual_tol;
     double d_abs_residual_tol;

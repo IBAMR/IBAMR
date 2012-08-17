@@ -58,7 +58,11 @@ namespace IBTK
 KrylovLinearSolver::KrylovLinearSolver(
     const std::string& object_name,
     bool homogeneous_bc)
-    : LinearSolver(object_name, homogeneous_bc)
+    : LinearSolver(object_name, homogeneous_bc),
+      d_A(NULL),
+      d_pc_solver(NULL),
+      d_x(NULL),
+      d_b(NULL)
 {
     // intentionally blank
     return;
@@ -69,6 +73,50 @@ KrylovLinearSolver::~KrylovLinearSolver()
     // intentionally blank
     return;
 }// ~KrylovLinearSolver()
+
+void
+KrylovLinearSolver::setOperator(
+    Pointer<LinearOperator> A)
+{
+    Pointer<LinearOperator> A_old = d_A;
+    d_A = A;
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    d_A->setSolutionTime(d_solution_time);
+    d_A->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_A != A_old) && !d_A.isNull())
+    {
+        d_A->initializeOperatorState(*d_x, *d_b);
+    }
+    return;
+}// setOperator
+
+Pointer<LinearOperator>
+KrylovLinearSolver::getOperator() const
+{
+    return d_A;
+}// getOperator
+
+void
+KrylovLinearSolver::setPreconditioner(
+    Pointer<LinearSolver> pc_solver)
+{
+    Pointer<LinearSolver> pc_solver_old = d_pc_solver;
+    d_pc_solver = pc_solver;
+    d_pc_solver->setHomogeneousBc(true);
+    d_pc_solver->setSolutionTime(d_solution_time);
+    d_pc_solver->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_pc_solver != pc_solver_old) && !d_pc_solver.isNull())
+    {
+        d_pc_solver->initializeSolverState(*d_b, *d_b);
+    }
+    return;
+}// setPreconditioner
+
+Pointer<LinearSolver>
+KrylovLinearSolver::getPreconditioner() const
+{
+    return d_pc_solver;
+}// getPreconditioner
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

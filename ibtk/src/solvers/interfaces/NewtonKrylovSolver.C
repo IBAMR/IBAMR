@@ -59,6 +59,12 @@ NewtonKrylovSolver::NewtonKrylovSolver(
     const std::string& object_name,
     bool homogeneous_bc)
     : GeneralSolver(object_name, homogeneous_bc),
+      d_F(NULL),
+      d_J(NULL),
+      d_krylov_solver(NULL),
+      d_x(NULL),
+      d_b(NULL),
+      d_r(NULL),
       d_rel_residual_tol(1.0e-8),
       d_abs_residual_tol(1.0e-50),
       d_solution_tol(1.0e-8),
@@ -77,6 +83,50 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
     // intentionally blank
     return;
 }// ~NewtonKrylovSolver()
+
+void
+NewtonKrylovSolver::setOperator(
+    Pointer<GeneralOperator> F)
+{
+    Pointer<GeneralOperator> F_old = d_F;
+    d_F = F;
+    d_F->setHomogeneousBc(d_homogeneous_bc);
+    d_F->setSolutionTime(d_solution_time);
+    d_F->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_F != F_old) && !d_F.isNull()) d_F->initializeOperatorState(*d_x, *d_b);
+    return;
+}// setOperator
+
+Pointer<GeneralOperator>
+NewtonKrylovSolver::getOperator() const
+{
+    return d_F;
+}// getOperator
+
+void
+NewtonKrylovSolver::setJacobian(
+    Pointer<JacobianOperator> J)
+{
+    Pointer<JacobianOperator> J_old = d_J;
+    d_J = J;
+    d_J->setHomogeneousBc(true);
+    d_J->setSolutionTime(d_solution_time);
+    d_J->setTimeInterval(d_current_time, d_new_time);
+    if (d_is_initialized && (d_J != J_old) && !d_J.isNull()) d_J->initializeOperatorState(*d_x, *d_b);
+    return;
+}// setJacobian
+
+Pointer<JacobianOperator>
+NewtonKrylovSolver::getJacobian() const
+{
+    return d_J;
+}// getJacobian
+
+Pointer<KrylovLinearSolver>
+NewtonKrylovSolver::getLinearSolver() const
+{
+    return d_krylov_solver;
+}// getLinearSolver
 
 void
 NewtonKrylovSolver::setMaxIterations(
