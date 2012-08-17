@@ -320,7 +320,7 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
