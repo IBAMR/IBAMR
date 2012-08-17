@@ -78,7 +78,7 @@ void
 KrylovLinearSolver::setHierarchyMathOps(
     Pointer<HierarchyMathOps> hier_math_ops)
 {
-    KrylovLinearSolver::setHierarchyMathOps(hier_math_ops);
+    LinearSolver::setHierarchyMathOps(hier_math_ops);
     if (!d_A.isNull()) d_A->setHierarchyMathOps(d_hier_math_ops);
     if (!d_pc_solver.isNull()) d_pc_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
