@@ -186,22 +186,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -232,9 +216,6 @@ private:
     PETScSNESFunctionGOWrapper&
     operator=(
         const PETScSNESFunctionGOWrapper& that);
-
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
 
     const SNES d_petsc_snes;
     PetscErrorCode (* const d_petsc_snes_form_func)(SNES,Vec,Vec,void*);

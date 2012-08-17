@@ -326,120 +326,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set the maximum number of nonlinear iterations to use per solve.
-     */
-    void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of nonlinear iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the maximum number of function evaluations to use per solve.
-     */
-    void
-    setMaxEvaluations(
-        int max_evaluations);
-
-    /*!
-     * \brief Get the maximum number of function evaluations to use per solve.
-     */
-    int
-    getMaxEvaluations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    /*!
-     * \brief Set the tolerance in terms of the norm of the change in the
-     * solution between steps.
-     */
-    void
-    setSolutionTolerance(
-        double solution_tol);
-
-    /*!
-     * \brief Get the tolerance in terms of the norm of the change in the
-     * solution between steps.
-     */
-    double
-    getSolutionTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent nonlinear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the number of linear iterations from the most recent
-     * nonlinear solve.
-     */
-    int
-    getNumLinearIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -578,10 +464,7 @@ private:
 
     //\}
 
-    const std::string d_object_name;
-
-    bool d_is_initialized, d_reinitializing_solver;
-    bool d_do_log;
+    bool d_reinitializing_solver;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b, d_solver_r;
     Vec d_petsc_x, d_petsc_b, d_petsc_r;
@@ -598,15 +481,6 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator>         d_F;
     SAMRAI::tbox::Pointer<JacobianOperator>        d_J;
     SAMRAI::tbox::Pointer<PETScKrylovLinearSolver> d_krylov_solver;
-
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    double d_solution_tol;
-    int d_max_iterations;
-    int d_max_evaluations;
-
-    int d_current_its, d_current_lits;
-    double d_current_residual_norm;
 };
 }// namespace IBTK
 

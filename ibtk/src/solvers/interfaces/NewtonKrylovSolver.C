@@ -56,11 +56,17 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NewtonKrylovSolver::NewtonKrylovSolver(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : GeneralSolver(homogeneous_bc, solution_time, current_time, new_time)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : GeneralSolver(object_name, homogeneous_bc),
+      d_rel_residual_tol(1.0e-8),
+      d_abs_residual_tol(1.0e-50),
+      d_solution_tol(1.0e-8),
+      d_max_iterations(50),
+      d_max_evaluations(10000),
+      d_current_its(0),
+      d_current_lits(0),
+      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
     return;
@@ -71,6 +77,94 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
     // intentionally blank
     return;
 }// ~NewtonKrylovSolver()
+
+void
+NewtonKrylovSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+NewtonKrylovSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+NewtonKrylovSolver::setMaxEvaluations(
+    int max_evaluations)
+{
+    d_max_evaluations = max_evaluations;
+    return;
+}// setMaxEvaluations
+
+int
+NewtonKrylovSolver::getMaxEvaluations() const
+{
+    return d_max_evaluations;
+}// getMaxEvaluations
+
+void
+NewtonKrylovSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}// setAbsoluteTolerance
+
+double
+NewtonKrylovSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+NewtonKrylovSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}// setRelativeTolerance
+
+double
+NewtonKrylovSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+void
+NewtonKrylovSolver::setSolutionTolerance(
+    double solution_tol)
+{
+    d_solution_tol = solution_tol;
+    return;
+}// setSolutionTolerance
+
+double
+NewtonKrylovSolver::getSolutionTolerance() const
+{
+    return d_solution_tol;
+}// getSolutionTolerance
+
+int
+NewtonKrylovSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+int
+NewtonKrylovSolver::getNumLinearIterations() const
+{
+    return d_current_lits;
+}// getNumLinearIterations
+
+double
+NewtonKrylovSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

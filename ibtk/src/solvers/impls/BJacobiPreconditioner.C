@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -56,14 +57,15 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BJacobiPreconditioner::BJacobiPreconditioner(
+    const std::string& object_name,
     Pointer<Database> input_db)
-    : d_is_initialized(false),
-      d_pc_map(),
-      d_initial_guess_nonzero(false),
-      d_rel_residual_tol(1.0e-6),
-      d_abs_residual_tol(1.0e-30),
-      d_max_iterations(1)
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
+      d_pc_map()
 {
+    // Setup default options.
+    d_initial_guess_nonzero = false;
+    d_max_iterations = 1;
+
     // Get configuration data from the input database.
     if (!input_db.isNull())
     {
@@ -214,12 +216,6 @@ BJacobiPreconditioner::setInitialGuessNonzero(
     return;
 }// setInitialGuessNonzero
 
-bool
-BJacobiPreconditioner::getInitialGuessNonzero() const
-{
-    return d_initial_guess_nonzero;
-}// getInitialGuessNonzero
-
 void
 BJacobiPreconditioner::setMaxIterations(
     int max_iterations)
@@ -234,60 +230,22 @@ BJacobiPreconditioner::setMaxIterations(
 }// setMaxIterations
 
 int
-BJacobiPreconditioner::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-BJacobiPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}//setAbsoluteTolerance
-
-double
-BJacobiPreconditioner::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-BJacobiPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}//setRelativeTolerance
-
-double
-BJacobiPreconditioner::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-int
 BJacobiPreconditioner::getNumIterations() const
 {
-    TBOX_WARNING("BJacobiPreconditioner::getNumIterations() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING("BJacobiPreconditioner::getNumIterations() not supported" << std::endl);
+                 );
     return 0;
 }// getNumIterations
 
 double
 BJacobiPreconditioner::getResidualNorm() const
 {
-    TBOX_WARNING("BJacobiPreconditioner::getResidualNorm() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING("BJacobiPreconditioner::getResidualNorm() not supported" << std::endl);
+                 );
     return 0.0;
 }// getResidualNorm
-
-void
-BJacobiPreconditioner::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("BJacobiPreconditioner::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

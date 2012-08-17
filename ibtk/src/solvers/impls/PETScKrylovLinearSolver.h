@@ -586,15 +586,12 @@ private:
 
     //\}
 
-    const std::string d_object_name;
-
     std::string d_ksp_type;
 
     std::vector<std::string> d_pc_shell_types;
     std::string d_pc_shell_type;
 
-    bool d_is_initialized, d_reinitializing_solver;
-    bool d_do_log;
+    bool d_reinitializing_solver;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b;
     Vec d_petsc_x, d_petsc_b;
@@ -612,22 +609,10 @@ private:
     SAMRAI::tbox::Pointer<LinearOperator> d_A;
     SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
 
-    bool d_nullsp_contains_constant_vector;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_nullsp_constant;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_solver_nullsp_basis;
-    Vec d_petsc_nullsp_constant;
-    std::vector<Vec> d_petsc_nullsp_basis;
-    bool d_solver_has_attached_nullsp;
-
-    bool d_initial_guess_nonzero;
-
-    double d_rel_residual_tol;
-    double d_abs_residual_tol;
-    double d_divergence_tol;
-    int d_max_iterations;
-
-    int d_current_its;
-    double d_current_residual_norm;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nullspace_constant_vec;
+    Vec d_petsc_nullspace_constant_vec;
+    std::vector<Vec> d_petsc_nullspace_basis_vecs;
+    bool d_solver_has_attached_nullspace;
 };
 }// namespace IBTK
 

@@ -150,22 +150,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -198,7 +182,6 @@ private:
         const CCLaplaceOperator& that);
 
     // Operator parameters.
-    bool d_is_initialized;
     int d_ncomp;
 
     // Cached communications operators.

@@ -56,11 +56,17 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearSolver::LinearSolver(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : GeneralSolver(homogeneous_bc, solution_time, current_time, new_time)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : GeneralSolver(object_name, homogeneous_bc),
+      d_nullspace_contains_constant_vector(false),
+      d_nullspace_basis_vecs(),
+      d_initial_guess_nonzero(true),
+      d_rel_residual_tol(1.0e-5),
+      d_abs_residual_tol(1.0e-50),
+      d_max_iterations(10000),
+      d_current_its(0),
+      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
     return;
@@ -74,12 +80,81 @@ LinearSolver::~LinearSolver()
 
 void
 LinearSolver::setNullspace(
-    const bool /*contains_constant_vector*/,
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& /*nullspace_basis_vecs*/)
+    const bool contains_constant_vector,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    // intentionally blank
+    d_nullspace_contains_constant_vector = contains_constant_vector;
+    d_nullspace_basis_vecs = nullspace_basis_vecs;
     return;
 }// setNullspace
+
+void
+LinearSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+bool
+LinearSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
+
+void
+LinearSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+LinearSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+LinearSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}// setAbsoluteTolerance
+
+double
+LinearSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+LinearSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}// setRelativeTolerance
+
+double
+LinearSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+LinearSolver::getNumIterations() const
+{
+    return d_current_its;
+}// getNumIterations
+
+double
+LinearSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

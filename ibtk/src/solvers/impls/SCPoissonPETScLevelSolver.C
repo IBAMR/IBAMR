@@ -69,7 +69,8 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : PETScLevelSolver(object_name, input_db),
+    : LinearSolver(object_name),
+      PETScLevelSolver(object_name, input_db),
       PoissonSolver(object_name),
       d_context(NULL),
       d_dof_index_idx(-1),

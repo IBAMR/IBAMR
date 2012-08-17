@@ -65,13 +65,11 @@ class FACPreconditionerStrategy
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     FACPreconditionerStrategy(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty virtual desctructor.
@@ -88,6 +86,12 @@ public:
     void
     setFACPreconditioner(
         SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+
+    /*!
+     * \brief Return the object name.
+     */
+    const std::string&
+    getName() const;
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -239,11 +243,25 @@ protected:
     // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
+    // Object name.
+    const std::string d_object_name;
+
     // Solver configuration.
     bool d_homogeneous_bc;
     double d_solution_time, d_current_time, d_new_time;
 
+    // Boolean value to indicate whether the preconditioner is presently
+    // initialized.
+    bool d_is_initialized;
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    FACPreconditionerStrategy();
+
     /*!
      * \brief Copy constructor.
      *

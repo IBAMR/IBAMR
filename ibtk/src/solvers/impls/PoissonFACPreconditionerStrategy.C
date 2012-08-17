@@ -82,8 +82,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     Pointer<Variable<NDIM> > scratch_var,
     const int ghost_cell_width,
     const Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
+    : FACPreconditionerStrategy(object_name),
       d_poisson_spec(object_name+"::poisson_spec"),
       d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef),

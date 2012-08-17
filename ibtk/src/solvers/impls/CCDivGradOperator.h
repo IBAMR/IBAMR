@@ -140,22 +140,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -186,12 +170,6 @@ private:
     CCDivGradOperator&
     operator=(
         const CCDivGradOperator& that);
-
-    // Housekeeping.
-    std::string d_object_name;
-
-    // Operator parameters.
-    bool d_is_initialized;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_scalar_hier_bdry_fill, d_vector_hier_bdry_fill;

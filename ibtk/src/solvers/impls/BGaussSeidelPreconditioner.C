@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -56,17 +57,18 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
+    const std::string& object_name,
     Pointer<Database> input_db)
-    : d_is_initialized(false),
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
       d_pc_map(),
       d_linear_ops_map(),
       d_symmetric_preconditioner(false),
-      d_reverse_order(false),
-      d_initial_guess_nonzero(false),
-      d_rel_residual_tol(1.0e-6),
-      d_abs_residual_tol(1.0e-30),
-      d_max_iterations(1)
+      d_reverse_order(false)
 {
+    // Setup default options.
+    d_initial_guess_nonzero = false;
+    d_max_iterations = 1;
+
     // Get configuration data from the input database.
     if (!input_db.isNull())
     {
@@ -313,18 +315,12 @@ BGaussSeidelPreconditioner::setInitialGuessNonzero(
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR("BGaussSeidelPreconditioner::setInitialGuessNonzero()\n"
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
                    << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess" << std::endl);
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
 }// setInitialGuessNonzero
-
-bool
-BGaussSeidelPreconditioner::getInitialGuessNonzero() const
-{
-    return d_initial_guess_nonzero;
-}// getInitialGuessNonzero
 
 void
 BGaussSeidelPreconditioner::setMaxIterations(
@@ -332,7 +328,7 @@ BGaussSeidelPreconditioner::setMaxIterations(
 {
     if (max_iterations > 1)
     {
-        TBOX_ERROR("BGaussSeidelPreconditioner::setMaxIterations()\n"
+        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
                    << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1" << std::endl);
     }
     d_max_iterations = max_iterations;
@@ -340,60 +336,22 @@ BGaussSeidelPreconditioner::setMaxIterations(
 }// setMaxIterations
 
 int
-BGaussSeidelPreconditioner::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-BGaussSeidelPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}//setAbsoluteTolerance
-
-double
-BGaussSeidelPreconditioner::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-BGaussSeidelPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}//setRelativeTolerance
-
-double
-BGaussSeidelPreconditioner::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-int
 BGaussSeidelPreconditioner::getNumIterations() const
 {
-    TBOX_WARNING("BGaussSeidelPreconditioner::getNumIterations() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl);
+                 );
     return 0;
 }// getNumIterations
 
 double
 BGaussSeidelPreconditioner::getResidualNorm() const
 {
-    TBOX_WARNING("BGaussSeidelPreconditioner::getResidualNorm() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl);
+                 );
     return 0.0;
 }// getResidualNorm
-
-void
-BGaussSeidelPreconditioner::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("BGaussSeidelPreconditioner::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

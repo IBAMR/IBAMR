@@ -50,8 +50,7 @@ FACPreconditioner::FACPreconditioner(
     const std::string& object_name,
     Pointer<FACPreconditionerStrategy> fac_strategy,
     tbox::Pointer<tbox::Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
       d_fac_strategy(fac_strategy),
       d_hierarchy(NULL),
       d_coarsest_ln(0),
@@ -60,9 +59,14 @@ FACPreconditioner::FACPreconditioner(
       d_num_pre_sweeps(1),
       d_num_post_sweeps(1),
       d_f(),
-      d_r(),
-      d_do_log(false)
+      d_r()
 {
+    // Setup default options.
+    d_initial_guess_nonzero = false;
+    d_rel_residual_tol = 1.0e-6;
+    d_abs_residual_tol = 1.0e-30;
+    d_max_iterations = 1;
+
     // Register this class with the FACPreconditionerStrategy object.
     d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
 
@@ -238,13 +242,6 @@ FACPreconditioner::setInitialGuessNonzero(
     return;
 }// setInitialGuessNonzero
 
-bool
-FACPreconditioner::getInitialGuessNonzero() const
-{
-    // intentionally blank
-    return false;
-}// getInitialGuessNonzero
-
 void
 FACPreconditioner::setMaxIterations(
     int max_iterations)
@@ -256,43 +253,6 @@ FACPreconditioner::setMaxIterations(
     }
     return;
 }// setMaxIterations
-
-int
-FACPreconditioner::getMaxIterations() const
-{
-    // intentionally blank
-    return 1;
-}// getMaxIterations
-
-void
-FACPreconditioner::setAbsoluteTolerance(
-    double /*abs_residual_tol*/)
-{
-    // intentionally blank
-    return;
-}//setAbsoluteTolerance
-
-double
-FACPreconditioner::getAbsoluteTolerance() const
-{
-    // intentionally blank
-    return 0.0;
-}// getAbsoluteTolerance
-
-void
-FACPreconditioner::setRelativeTolerance(
-    double /*rel_residual_tol*/)
-{
-    // intentionally blank
-    return;
-}//setRelativeTolerance
-
-double
-FACPreconditioner::getRelativeTolerance() const
-{
-    // intentionally blank
-    return 0.0;
-}// getRelativeTolerance
 
 void
 FACPreconditioner::setMGCycleType(
@@ -335,28 +295,6 @@ FACPreconditioner::getNumPostSmoothingSweeps() const
 {
     return d_num_post_sweeps;
 }// getNumPostSmoothingSweeps
-
-int
-FACPreconditioner::getNumIterations() const
-{
-    // intentionally blank
-    return 1;
-}// getNumIterations
-
-double
-FACPreconditioner::getResidualNorm() const
-{
-    // intentionally blank
-    return 0.0;
-}// getResidualNorm
-
-void
-FACPreconditioner::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -561,7 +499,7 @@ FACPreconditioner::getFromInput(
     int num_post_sweeps = db->getIntegerWithDefault("num_post_sweeps", d_num_post_sweeps);
     setNumPostSmoothingSweeps(num_post_sweeps);
 
-    bool logging = db->getBoolWithDefault("enable_logging", d_do_log);
+    bool logging = db->getBoolWithDefault("enable_logging", d_enable_logging);
     enableLogging(logging);
     return;
 }// getFromInput

@@ -73,13 +73,11 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
-    const std::string& name,
+    const std::string& object_name,
     const std::string& options_prefix,
     MPI_Comm petsc_comm)
-    : d_object_name(name),
-      d_is_initialized(false),
+    : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
-      d_do_log(false),
       d_solver_x(NULL),
       d_solver_b(NULL),
       d_solver_r(NULL),
@@ -95,15 +93,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false),
       d_F(NULL),
       d_J(NULL),
-      d_krylov_solver(NULL),
-      d_abs_residual_tol(PETSC_DEFAULT),
-      d_rel_residual_tol(PETSC_DEFAULT),
-      d_solution_tol(PETSC_DEFAULT),
-      d_max_iterations(PETSC_DEFAULT),
-      d_max_evaluations(PETSC_DEFAULT),
-      d_current_its(0),
-      d_current_lits(0),
-      d_current_residual_norm(0.0)
+      d_krylov_solver(NULL)
 {
     // Common constructor functionality.
     common_ctor();
@@ -111,13 +101,11 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
 }// PETScNewtonKrylovSolver()
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
-    const std::string& name,
+    const std::string& object_name,
     const SNES& petsc_snes,
     const std::string& options_prefix)
-    : d_object_name(name),
-      d_is_initialized(false),
+    : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
-      d_do_log(false),
       d_solver_x(NULL),
       d_solver_b(NULL),
       d_solver_r(NULL),
@@ -133,15 +121,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false),
       d_F(NULL),
       d_J(NULL),
-      d_krylov_solver(NULL),
-      d_abs_residual_tol(PETSC_DEFAULT),
-      d_rel_residual_tol(PETSC_DEFAULT),
-      d_solution_tol(PETSC_DEFAULT),
-      d_max_iterations(PETSC_DEFAULT),
-      d_max_evaluations(PETSC_DEFAULT),
-      d_current_its(0),
-      d_current_lits(0),
-      d_current_residual_norm(0.0)
+      d_krylov_solver(NULL)
 {
     if (d_petsc_snes != NULL) resetWrappedSNES(d_petsc_snes);
 
@@ -174,7 +154,6 @@ PETScNewtonKrylovSolver::getPETScSNES() const
 {
     return d_petsc_snes;
 }// getPETScSNES
-
 
 void
 PETScNewtonKrylovSolver::setHomogeneousBc(
@@ -288,6 +267,9 @@ PETScNewtonKrylovSolver::solveSystem(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_petsc_snes != PETSC_NULL);
 #endif
+    resetSNESOptions();
+    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    if (!p_krylov_solver.isNull()) p_krylov_solver->resetKSPOptions();
 
     // Solve the system using a PETSc SNES object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
@@ -313,7 +295,7 @@ PETScNewtonKrylovSolver::solveSystem(
     SNESConvergedReason reason;
     ierr = SNESGetConvergedReason(d_petsc_snes, &reason); IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
-    if (d_do_log) reportSNESConvergedReason(reason, plog);
+    if (d_enable_logging) reportSNESConvergedReason(reason, plog);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -496,113 +478,18 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
-
-void
-PETScNewtonKrylovSolver::setMaxIterations(
-    int max_iterations)
-{
-    d_max_iterations = max_iterations;
-    resetSNESOptions();
-    return;
-}// setMaxIterations
-
-int
-PETScNewtonKrylovSolver::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-PETScNewtonKrylovSolver::setMaxEvaluations(
-    int max_evaluations)
-{
-    d_max_evaluations = max_evaluations;
-    resetSNESOptions();
-    return;
-}// setMaxEvaluations
-
-int
-PETScNewtonKrylovSolver::getMaxEvaluations() const
-{
-    return d_max_evaluations;
-}// getMaxEvaluations
-
-void
-PETScNewtonKrylovSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    resetSNESOptions();
-    return;
-}// setAbsoluteTolerance
-
-double
-PETScNewtonKrylovSolver::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-PETScNewtonKrylovSolver::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    resetSNESOptions();
-    return;
-}// setRelativeTolerance
-
-double
-PETScNewtonKrylovSolver::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-void
-PETScNewtonKrylovSolver::setSolutionTolerance(
-    double solution_tol)
-{
-    d_solution_tol = solution_tol;
-    resetSNESOptions();
-    return;
-}// setSolutionTolerance
-
-double
-PETScNewtonKrylovSolver::getSolutionTolerance() const
-{
-    return d_solution_tol;
-}// getSolutionTolerance
-
-int
-PETScNewtonKrylovSolver::getNumIterations() const
-{
-    return d_current_its;
-}// getNumIterations
-
-int
-PETScNewtonKrylovSolver::getNumLinearIterations() const
-{
-    return d_current_lits;
-}// getNumLinearIterations
-
-double
-PETScNewtonKrylovSolver::getResidualNorm() const
-{
-    return d_current_residual_norm;
-}// getResidualNorm
-
-void
-PETScNewtonKrylovSolver::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 PETScNewtonKrylovSolver::common_ctor()
 {
+    // Setup default values.
+    d_abs_residual_tol = PETSC_DEFAULT;
+    d_rel_residual_tol = PETSC_DEFAULT;
+    d_solution_tol = PETSC_DEFAULT;
+    d_max_iterations = PETSC_DEFAULT;
+    d_max_evaluations = PETSC_DEFAULT;
+
     // Setup linear solver wrapper.
     KSP petsc_ksp = PETSC_NULL;
     d_krylov_solver = new PETScKrylovLinearSolver(d_object_name+"::KSP Wrapper", petsc_ksp, d_options_prefix);

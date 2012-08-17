@@ -54,13 +54,11 @@ class LinearSolver
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     LinearSolver(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty virtual destructor.
@@ -78,9 +76,7 @@ public:
      *
      * Implementations can require the nullspace basis vectors to be orthogonal
      * but should not assume the basis vectors to be orthonormal.  If the basis
-     * vectors are not orthonormal, the solver may normalize them.
-     *
-     * \note A default implementation is provided which does nothing.
+     * vectors are not orthonormal, the solver may normalize them in place.
      */
     virtual void
     setNullspace(
@@ -99,52 +95,52 @@ public:
      */
     virtual void
     setInitialGuessNonzero(
-        bool initial_guess_nonzero=true) = 0;
+        bool initial_guess_nonzero=true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
      */
     virtual bool
-    getInitialGuessNonzero() const = 0;
+    getInitialGuessNonzero() const;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
     virtual void
     setMaxIterations(
-        int max_iterations) = 0;
+        int max_iterations);
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
      */
     virtual int
-    getMaxIterations() const = 0;
+    getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
     virtual void
     setAbsoluteTolerance(
-        double abs_residual_tol) = 0;
+        double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
     virtual double
-    getAbsoluteTolerance() const = 0;
+    getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
     virtual void
     setRelativeTolerance(
-        double rel_residual_tol) = 0;
+        double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
     virtual double
-    getRelativeTolerance() const = 0;
+    getRelativeTolerance() const;
 
     //\}
 
@@ -157,17 +153,37 @@ public:
      * \brief Return the iteration count from the most recent linear solve.
      */
     virtual int
-    getNumIterations() const = 0;
+    getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
     virtual double
-    getResidualNorm() const = 0;
+    getResidualNorm() const;
 
     //\}
 
+protected:
+    // Nullspace data.
+    bool d_nullspace_contains_constant_vector;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nullspace_basis_vecs;
+
+    // Solver parameters.
+    bool d_initial_guess_nonzero;
+    double d_rel_residual_tol;
+    double d_abs_residual_tol;
+    int d_max_iterations;
+    int d_current_its;
+    double d_current_residual_norm;
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \param from The value to copy to this object.
+     */
+    LinearSolver();
+
     /*!
      * \brief Copy constructor.
      *

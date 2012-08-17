@@ -224,7 +224,6 @@ public:
      */
     //\{
 
-
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
@@ -233,49 +232,11 @@ public:
         bool initial_guess_nonzero=true);
 
     /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
     void
     setMaxIterations(
         int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
 
     /*!
      * \brief Set the multigrid algorithm cycle type.
@@ -320,39 +281,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 protected:
    void
    FACVCycleNoPreSmoothing(
@@ -378,8 +306,6 @@ protected:
        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
        int level_num);
 
-    std::string d_object_name;
-    bool d_is_initialized;
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln;
@@ -388,7 +314,6 @@ protected:
     int d_num_pre_sweeps, d_num_post_sweeps;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_f, d_r;
     bool d_recompute_residual;
-    bool d_do_log;
 
 private:
     /*!

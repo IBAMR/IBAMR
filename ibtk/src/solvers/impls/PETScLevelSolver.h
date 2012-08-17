@@ -209,98 +209,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -355,16 +263,6 @@ protected:
     setupNullspace();
 
     /*!
-     * \brief Object name.
-     */
-    std::string d_object_name;
-
-    /*!
-     * \brief Solver initialization status.
-     */
-    bool d_is_initialized;
-
-    /*!
      * \brief Associated hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -384,29 +282,6 @@ protected:
     MatStructure d_petsc_ksp_ops_flag;
     MatNullSpace d_petsc_nullsp;
     Vec d_petsc_x, d_petsc_b;
-    int d_max_iterations;
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    bool d_initial_guess_nonzero;
-
-    int d_current_its;
-    double d_current_residual_norm;
-
-    bool d_nullsp_contains_constant_vector;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_solver_nullsp_vecs;
-
-    //\}
-
-    /*!
-     * \name Variables for debugging and analysis.
-     */
-    //\{
-
-    /*!
-     * \brief Flag to print solver info.
-     */
-    bool d_enable_logging;
-
     //\}
 
 private:

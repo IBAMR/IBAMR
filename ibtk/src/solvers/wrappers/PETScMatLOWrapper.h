@@ -202,22 +202,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -249,8 +233,6 @@ private:
     operator=(
         const PETScMatLOWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
     const Mat d_petsc_mat;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;

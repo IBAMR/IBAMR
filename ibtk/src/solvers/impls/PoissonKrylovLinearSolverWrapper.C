@@ -48,11 +48,13 @@ namespace IBTK
 
 PoissonKrylovLinearSolverWrapper::PoissonKrylovLinearSolverWrapper(
     Pointer<KrylovLinearSolver> krylov_solver)
-    : KrylovLinearSolver(krylov_solver->getHomogeneousBc(), krylov_solver->getSolutionTime(), krylov_solver->getTimeInterval().first, krylov_solver->getTimeInterval().second),
-      PoissonSolver("PoissonKrylovLinearSolverWrapper", krylov_solver->getHomogeneousBc()),
+    : LinearSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
+      KrylovLinearSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
+      PoissonSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
       d_krylov_solver(krylov_solver)
 {
-    // intentionally blank
+    setSolutionTime(krylov_solver->getSolutionTime());
+    setTimeInterval(krylov_solver->getTimeInterval().first, krylov_solver->getTimeInterval().second);
     return;
 }// PoissonKrylovLinearSolverWrapper
 

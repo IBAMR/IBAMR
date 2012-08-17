@@ -82,8 +82,8 @@ static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : PoissonSolver(object_name),
-      d_is_initialized(false),
+    : LinearSolver(object_name),
+      PoissonSolver(object_name),
       d_hierarchy(),
       d_level_num(-1),
       d_grid(NULL),
@@ -97,25 +97,24 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
       d_solver_type("Split"),
       d_precond_type("none"),
       d_split_solver_type("PFMG"),
-      d_max_iterations(10),
-      d_abs_residual_tol(0.0),
-      d_rel_residual_tol(1.0e-6),
-      d_initial_guess_nonzero(false),
       d_rel_change(0),
       d_num_pre_relax_steps(1),
       d_num_post_relax_steps(1),
       d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI),
       d_skip_relax(1),
-      d_two_norm(1),
-      d_current_its(-1),
-      d_current_residual_norm(-1.0),
-      d_enable_logging(false)
+      d_two_norm(1)
 {
     if (NDIM == 1 || NDIM > 3)
     {
         TBOX_ERROR(d_object_name << "::SCPoissonHypreLevelSolver()"
                    << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
     }
+
+    // Setup default options.
+    d_initial_guess_nonzero = false;
+    d_rel_residual_tol = 1.0e-6;
+    d_abs_residual_tol = 1.0e-30;
+    d_max_iterations = 10;
 
     // Get values from the input database.
     if (!input_db.isNull())
@@ -297,82 +296,6 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
-
-void
-SCPoissonHypreLevelSolver::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
-{
-    d_initial_guess_nonzero = initial_guess_nonzero;
-    return;
-}// setInitialGuessNonzero
-
-bool
-SCPoissonHypreLevelSolver::getInitialGuessNonzero() const
-{
-    return d_initial_guess_nonzero;
-}// getInitialGuessNonzero
-
-void
-SCPoissonHypreLevelSolver::setMaxIterations(
-    int max_iterations)
-{
-    d_max_iterations = max_iterations;
-    return;
-}// setMaxIterations
-
-int
-SCPoissonHypreLevelSolver::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-SCPoissonHypreLevelSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}//setAbsoluteTolerance
-
-double
-SCPoissonHypreLevelSolver::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-SCPoissonHypreLevelSolver::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}//setRelativeTolerance
-
-double
-SCPoissonHypreLevelSolver::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-int
-SCPoissonHypreLevelSolver::getNumIterations() const
-{
-    return d_current_its;
-}// getNumIterations
-
-double
-SCPoissonHypreLevelSolver::getResidualNorm() const
-{
-    return d_current_residual_norm;
-}// getResidualNorm
-
-void
-SCPoissonHypreLevelSolver::enableLogging(
-    bool enabled)
-{
-    d_enable_logging = enabled;
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

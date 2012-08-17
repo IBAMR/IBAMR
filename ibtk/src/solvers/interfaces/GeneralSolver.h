@@ -59,13 +59,11 @@ class GeneralSolver
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     GeneralSolver(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty virtual destructor.
@@ -77,6 +75,12 @@ public:
      * \name General-purpose solver functionality.
      */
     //\{
+
+    /*!
+     * \brief Return the object name.
+     */
+    const std::string&
+    getName() const;
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -257,11 +261,18 @@ public:
      */
     virtual void
     enableLogging(
-        bool enabled=true) = 0;
+        bool enabled=true);
 
     //\}
 
 protected:
+    // Object name.
+    const std::string d_object_name;
+
+    // Boolean value to indicate whether the preconditioner is presently
+    // initialized.
+    bool d_is_initialized;
+
     // Solver configuration.
     bool d_homogeneous_bc;
     double d_solution_time, d_current_time, d_new_time;
@@ -270,7 +281,17 @@ protected:
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external;
 
+    // Logging configuration.
+    bool d_enable_logging;
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    GeneralSolver();
+
     /*!
      * \brief Copy constructor.
      *

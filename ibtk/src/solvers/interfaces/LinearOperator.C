@@ -56,11 +56,9 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearOperator::LinearOperator(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : GeneralOperator(homogeneous_bc, solution_time, current_time, new_time),
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : GeneralOperator(object_name, homogeneous_bc),
       d_correcting_rhs(false)
 {
     // intentionally blank

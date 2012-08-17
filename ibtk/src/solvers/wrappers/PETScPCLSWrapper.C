@@ -47,6 +47,7 @@
 // IBTK INCLUDES
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -60,9 +61,7 @@ namespace IBTK
 PETScPCLSWrapper::PETScPCLSWrapper(
     const std::string& object_name,
     const PC& petsc_pc)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_do_log(false),
+    : LinearSolver(object_name),
       d_petsc_pc(petsc_pc),
       d_x(NULL),
       d_b(NULL),
@@ -135,14 +134,18 @@ void
 PETScPCLSWrapper::setInitialGuessNonzero(
     bool /*initial_guess_nonzero*/)
 {
-    TBOX_WARNING("PETScPCLSWrapper::setInitialGuessNonzero() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported" << std::endl);
+                 );
     return;
 }// setInitialGuessNonzero
 
 bool
 PETScPCLSWrapper::getInitialGuessNonzero() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getInitialGuessNonzero() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported" << std::endl);
+                 );
     return true;
 }// getInitialGuessNonzero
 
@@ -150,14 +153,18 @@ void
 PETScPCLSWrapper::setMaxIterations(
     int /*max_iterations*/)
 {
-    TBOX_WARNING("PETScPCLSWrapper::setMaxIterations() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl);
+                 );
     return;
 }// setMaxIterations
 
 int
 PETScPCLSWrapper::getMaxIterations() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getMaxIterations() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl);
+                 );
     return 0;
 }// getMaxIterations
 
@@ -165,14 +172,18 @@ void
 PETScPCLSWrapper::setAbsoluteTolerance(
     double /*abs_residual_tol*/)
 {
-    TBOX_WARNING("PETScPCLSWrapper::setAbsoluteTolerance() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl);
+                 );
     return;
 }//setAbsoluteTolerance
 
 double
 PETScPCLSWrapper::getAbsoluteTolerance() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getAbsoluteTolerance() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl);
+                 );
     return 0.0;
 }// getAbsoluteTolerance
 
@@ -180,38 +191,38 @@ void
 PETScPCLSWrapper::setRelativeTolerance(
     double /*rel_residual_tol*/)
 {
-    TBOX_WARNING("PETScPCLSWrapper::setRelativeTolerance() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl);
+                 );
     return;
 }//setRelativeTolerance
 
 double
 PETScPCLSWrapper::getRelativeTolerance() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getRelativeTolerance() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl);
+                 );
     return 0.0;
 }// getRelativeTolerance
 
 int
 PETScPCLSWrapper::getNumIterations() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getNumIteratons() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl);
+                 );
     return 0;
 }// getNumIterations
 
 double
 PETScPCLSWrapper::getResidualNorm() const
 {
-    TBOX_WARNING("PETScPCLSWrapper::getResidualNorm() not supported" << std::endl);
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl);
+                 );
     return 0.0;
 }// getResidualNorm
-
-void
-PETScPCLSWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 //////////////////////////////////////////////////////////////////////////////
 

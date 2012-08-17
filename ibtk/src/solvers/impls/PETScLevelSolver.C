@@ -77,25 +77,21 @@ static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 PETScLevelSolver::PETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
+    : LinearSolver(object_name),
       d_hierarchy(),
       d_level_num(-1),
       d_options_prefix(""),
       d_petsc_ksp(PETSC_NULL),
       d_petsc_mat(PETSC_NULL),
       d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL),
-      d_max_iterations(10),
-      d_abs_residual_tol(0.0),
-      d_rel_residual_tol(1.0e-6),
-      d_initial_guess_nonzero(false),
-      d_current_its(-1),
-      d_current_residual_norm(-1.0),
-      d_nullsp_contains_constant_vector(false),
-      d_solver_nullsp_vecs(),
-      d_enable_logging(false)
+      d_petsc_b(PETSC_NULL)
 {
+    // Setup default options.
+    d_initial_guess_nonzero = false;
+    d_rel_residual_tol = 1.0e-6;
+    d_abs_residual_tol = 1.0e-30;
+    d_max_iterations = 10;
+
     // Get values from the input database.
     if (!input_db.isNull())
     {
@@ -131,8 +127,7 @@ PETScLevelSolver::setNullspace(
     bool contains_constant_vector,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    d_nullsp_contains_constant_vector = contains_constant_vector;
-    d_solver_nullsp_vecs = nullspace_basis_vecs;
+    LinearSolver::setNullspace(contains_constant_vector, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
     return;
 }// setNullspace
@@ -263,7 +258,7 @@ PETScLevelSolver::initializeSolverState(
         ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-    if (d_nullsp_contains_constant_vector || !d_solver_nullsp_vecs.empty()) setupNullspace();
+    if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty()) setupNullspace();
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;
@@ -290,7 +285,7 @@ PETScLevelSolver::deallocateSolverState()
         ierr = MatDestroy(&d_petsc_pc); IBTK_CHKERRQ(ierr);
     }
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
-    if (d_nullsp_contains_constant_vector || !d_solver_nullsp_vecs.empty())
+    if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty())
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
@@ -309,82 +304,6 @@ PETScLevelSolver::deallocateSolverState()
     return;
 }// deallocateSolverState
 
-void
-PETScLevelSolver::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
-{
-    d_initial_guess_nonzero = initial_guess_nonzero;
-    return;
-}// setInitialGuessNonzero
-
-bool
-PETScLevelSolver::getInitialGuessNonzero() const
-{
-    return d_initial_guess_nonzero;
-}// getInitialGuessNonzero
-
-void
-PETScLevelSolver::setMaxIterations(
-    int max_iterations)
-{
-    d_max_iterations = max_iterations;
-    return;
-}// setMaxIterations
-
-int
-PETScLevelSolver::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-PETScLevelSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}//setAbsoluteTolerance
-
-double
-PETScLevelSolver::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-PETScLevelSolver::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}//setRelativeTolerance
-
-double
-PETScLevelSolver::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-int
-PETScLevelSolver::getNumIterations() const
-{
-    return d_current_its;
-}// getNumIterations
-
-double
-PETScLevelSolver::getResidualNorm() const
-{
-    return d_current_residual_norm;
-}// getResidualNorm
-
-void
-PETScLevelSolver::enableLogging(
-    bool enabled)
-{
-    d_enable_logging = enabled;
-    return;
-}// enableLogging
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -392,21 +311,25 @@ PETScLevelSolver::setupNullspace()
 {
     int ierr;
     Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
-    std::vector<Vec> petsc_nullsp_vecs(d_solver_nullsp_vecs.size());
-    for (unsigned k = 0; k < d_solver_nullsp_vecs.size(); ++k)
+    std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
+    for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
-        Vec& petsc_nullsp_vec = petsc_nullsp_vecs[k];
-        ierr = MatGetVecs(d_petsc_mat, PETSC_NULL, &petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
-        copyToPETScVec(petsc_nullsp_vec, *d_solver_nullsp_vecs[k], patch_level);
+        Vec& petsc_nullspace_vec = petsc_nullspace_basis_vecs[k];
+        ierr = MatGetVecs(d_petsc_mat, PETSC_NULL, &petsc_nullspace_vec); IBTK_CHKERRQ(ierr);
+        copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k], patch_level);
         double dot;
-        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &dot); IBTK_CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullsp_vec, 1.0/sqrt(dot)); IBTK_CHKERRQ(ierr);
+        ierr = VecDot(petsc_nullspace_vec, petsc_nullspace_vec, &dot); IBTK_CHKERRQ(ierr);
+        ierr = VecScale(petsc_nullspace_vec, 1.0/sqrt(dot)); IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullsp_contains_constant_vector ? PETSC_TRUE : PETSC_FALSE, petsc_nullsp_vecs.size(), (petsc_nullsp_vecs.empty() ? PETSC_NULL : &petsc_nullsp_vecs[0]), &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
+                              d_nullspace_contains_constant_vector ? PETSC_TRUE : PETSC_FALSE,
+                              petsc_nullspace_basis_vecs.size(),
+                              (petsc_nullspace_basis_vecs.empty() ? PETSC_NULL : &petsc_nullspace_basis_vecs[0]), &d_petsc_nullsp);
+    IBTK_CHKERRQ(ierr);
     ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp); IBTK_CHKERRQ(ierr);
-    for (unsigned k = 0; k < d_solver_nullsp_vecs.size(); ++k)
+    for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
-        ierr = VecDestroy(&petsc_nullsp_vecs[k]); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&petsc_nullspace_basis_vecs[k]); IBTK_CHKERRQ(ierr);
     }
     return;
 }// setupNullspace

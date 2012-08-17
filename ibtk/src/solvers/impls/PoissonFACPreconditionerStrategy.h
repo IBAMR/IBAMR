@@ -340,14 +340,6 @@ protected:
     //\}
 
     /*
-     * The object name is used for error reporting purposes.
-     *
-     * The boolean indicates whether this object has been initialized.
-     */
-    std::string d_object_name;
-    bool d_is_initialized;
-
-    /*
      * Problem specification.
      */
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;

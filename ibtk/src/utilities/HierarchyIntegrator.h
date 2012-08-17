@@ -804,7 +804,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_enable_logging;
 
     /*
      * The type of extrapolation to use at physical boundaries when prolonging

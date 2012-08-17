@@ -46,14 +46,14 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FACPreconditionerStrategy::FACPreconditionerStrategy(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : d_homogeneous_bc(homogeneous_bc),
-      d_solution_time(solution_time),
-      d_current_time(current_time),
-      d_new_time(new_time)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : d_object_name(object_name),
+      d_homogeneous_bc(homogeneous_bc),
+      d_solution_time(std::numeric_limits<double>::quiet_NaN()),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_is_initialized(false)
 {
     // intentionally blank
     return;
@@ -72,6 +72,12 @@ FACPreconditionerStrategy::setFACPreconditioner(
     d_preconditioner = preconditioner;
     return;
 }// setPreconditioner
+
+const std::string&
+FACPreconditionerStrategy::getName() const
+{
+    return d_object_name;
+}// getName
 
 void
 FACPreconditionerStrategy::setHomogeneousBc(

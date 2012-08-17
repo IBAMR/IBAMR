@@ -65,9 +65,7 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (* const petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
     void* const petsc_snes_jac_ctx)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_do_log(false),
+    : JacobianOperator(object_name),
       d_petsc_snes(petsc_snes),
       d_petsc_snes_jac(PETSC_NULL),
       d_petsc_snes_form_jac(petsc_snes_form_jac),
@@ -199,14 +197,6 @@ PETScSNESJacobianJOWrapper::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
-
-void
-PETScSNESJacobianJOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 //////////////////////////////////////////////////////////////////////////////
 

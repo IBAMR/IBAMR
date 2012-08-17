@@ -47,6 +47,9 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -56,14 +59,17 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 GeneralSolver::GeneralSolver(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : d_homogeneous_bc(homogeneous_bc),
-      d_solution_time(solution_time),
-      d_current_time(current_time),
-      d_new_time(new_time)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : d_object_name(object_name),
+      d_is_initialized(false),
+      d_homogeneous_bc(homogeneous_bc),
+      d_solution_time(std::numeric_limits<double>::quiet_NaN()),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_hier_math_ops(NULL),
+      d_hier_math_ops_external(false),
+      d_enable_logging(false)
 {
     // intentionally blank
     return;
@@ -74,6 +80,12 @@ GeneralSolver::~GeneralSolver()
     // intentionally blank
     return;
 }// ~GeneralSolver()
+
+const std::string&
+GeneralSolver::getName() const
+{
+    return d_object_name;
+}// getName
 
 void
 GeneralSolver::setHomogeneousBc(
@@ -149,6 +161,14 @@ GeneralSolver::deallocateSolverState()
     // intentionally blank
     return;
 }// deallocateSolverState
+
+void
+GeneralSolver::enableLogging(
+    bool enabled)
+{
+    d_enable_logging = enabled;
+    return;
+}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

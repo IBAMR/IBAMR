@@ -111,7 +111,7 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_max_integrator_steps = std::numeric_limits<int>::max();
     d_regrid_interval = 1;
     d_regrid_mode = STANDARD;
-    d_do_log = false;
+    d_enable_logging = false;
     d_bdry_extrap_type = "LINEAR";
     d_manage_hier_math_ops = true;
 
@@ -253,12 +253,12 @@ HierarchyIntegrator::advanceHierarchy(
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
 
-    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
+    if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
 
     // Regrid the patch hierarchy.
     if (atRegridPoint())
     {
-        if (d_do_log) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
+        if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
         regridHierarchy();
     }
 
@@ -270,7 +270,7 @@ HierarchyIntegrator::advanceHierarchy(
     for (int cycle_num = 0; cycle_num < d_current_num_cycles; ++cycle_num)
     {
         d_current_cycle_num = cycle_num;
-        if (d_do_log && d_current_num_cycles != 1)
+        if (d_enable_logging && d_current_num_cycles != 1)
         {
             plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num+1 << " of " << d_current_num_cycles << "\n";
         }
@@ -293,11 +293,11 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Synchronize the updated data.
-    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
+    if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
     synchronizeHierarchyData(NEW_DATA);
 
     // Reset all time dependent data.
-    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
+    if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierarchyData(new_time);
     return;
 }// advanceHierarchy
@@ -788,7 +788,7 @@ HierarchyIntegrator::putToDatabase(
     db->putInteger("d_num_cycles",d_num_cycles);
     db->putInteger("d_regrid_interval",d_regrid_interval);
     db->putString("d_regrid_mode",enum_to_string<RegridMode>(d_regrid_mode));
-    db->putBool("d_do_log",d_do_log);
+    db->putBool("d_enable_logging",d_enable_logging);
     db->putIntegerArray("d_tag_buffer",d_tag_buffer);
     db->putString("d_bdry_extrap_type",d_bdry_extrap_type);
     putToDatabaseSpecialized(db);
@@ -1252,8 +1252,8 @@ HierarchyIntegrator::getFromInput(
     if (db->keyExists("num_cycles")) d_num_cycles = db->getInteger("num_cycles");
     if (db->keyExists("regrid_interval")) d_regrid_interval = db->getInteger("regrid_interval");
     if (db->keyExists("regrid_mode")) d_regrid_mode = string_to_enum<RegridMode>(db->getString("regrid_mode"));
-    if (db->keyExists("enable_logging")) d_do_log = db->getBool("enable_logging");
-    else if (db->keyExists("do_log")) d_do_log = db->getBool("do_log");
+    if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
+    else if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;
@@ -1299,7 +1299,7 @@ HierarchyIntegrator::getFromRestart()
     d_num_cycles = db->getInteger("d_num_cycles");
     d_regrid_interval = db->getInteger("d_regrid_interval");
     d_regrid_mode = string_to_enum<RegridMode>(db->getString("d_regrid_mode"));
-    d_do_log = db->getBool("d_do_log");
+    d_enable_logging = db->getBool("d_enable_logging");
     d_bdry_extrap_type = db->getString("d_bdry_extrap_type");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
     return;

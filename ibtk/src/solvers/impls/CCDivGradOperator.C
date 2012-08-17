@@ -85,9 +85,7 @@ static Timer* t_deallocate_operator_state;
 
 CCDivGradOperator::CCDivGradOperator(
     const std::string& object_name)
-    : LinearOperator(true),
-      d_object_name(object_name),
-      d_is_initialized(false),
+    : LinearOperator(object_name, /*homogeneous_bc*/ true),
       d_scalar_hier_bdry_fill(NULL),
       d_vector_hier_bdry_fill(NULL),
       d_scalar_scratch_idx(),
@@ -313,14 +311,6 @@ CCDivGradOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-CCDivGradOperator::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("CCDivGradOperator::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

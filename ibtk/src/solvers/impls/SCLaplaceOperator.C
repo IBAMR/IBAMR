@@ -86,7 +86,6 @@ SCLaplaceOperator::SCLaplaceOperator(
     const std::string& object_name,
     const bool homogeneous_bc)
     : LaplaceOperator(object_name, homogeneous_bc),
-      d_is_initialized(false),
       d_ncomp(0),
       d_fill_pattern(NULL),
       d_transaction_comps(),
@@ -298,14 +297,6 @@ SCLaplaceOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-SCLaplaceOperator::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("SCLaplaceOperator::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

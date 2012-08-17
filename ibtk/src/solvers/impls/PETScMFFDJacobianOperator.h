@@ -55,9 +55,10 @@ class PETScMFFDJacobianOperator
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     PETScMFFDJacobianOperator(
+        const std::string& object_name,
         const std::string& options_prefix="");
 
     /*!
@@ -192,23 +193,14 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    PETScMFFDJacobianOperator();
+
     /*!
      * \brief Copy constructor.
      *
@@ -244,7 +236,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
-    bool d_is_initialized;
 };
 }// namespace IBTK
 

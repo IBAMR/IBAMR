@@ -61,8 +61,7 @@ namespace IBTK
 PoissonSolver::PoissonSolver(
     const std::string& object_name,
     bool homogeneous_bc)
-    : LinearSolver(homogeneous_bc),
-      d_object_name(object_name),
+    : LinearSolver(object_name, homogeneous_bc),
       d_poisson_spec(d_object_name+"::poisson_spec"),
       d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef)

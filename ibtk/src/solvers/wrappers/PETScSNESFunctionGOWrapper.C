@@ -62,9 +62,7 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
     void* const petsc_snes_func_ctx)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_do_log(false),
+    : GeneralOperator(object_name),
       d_petsc_snes(petsc_snes),
       d_petsc_snes_form_func(petsc_snes_form_func),
       d_petsc_snes_func_ctx(petsc_snes_func_ctx),
@@ -146,14 +144,6 @@ PETScSNESFunctionGOWrapper::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
-
-void
-PETScSNESFunctionGOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 //////////////////////////////////////////////////////////////////////////////
 

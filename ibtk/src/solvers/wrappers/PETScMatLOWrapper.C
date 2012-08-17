@@ -60,10 +60,7 @@ namespace IBTK
 PETScMatLOWrapper::PETScMatLOWrapper(
     const std::string& object_name,
     const Mat& petsc_mat)
-    : LinearOperator(/* homogeneous_bc */ false),
-      d_object_name(object_name),
-      d_is_initialized(false),
-      d_do_log(false),
+    : LinearOperator(object_name),
       d_petsc_mat(petsc_mat),
       d_x(NULL),
       d_y(NULL),
@@ -121,14 +118,6 @@ PETScMatLOWrapper::applyAdd(
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z); IBTK_CHKERRQ(ierr);
     return;
 }// applyAdd
-
-void
-PETScMatLOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 void
 PETScMatLOWrapper::initializeOperatorState(

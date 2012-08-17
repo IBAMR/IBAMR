@@ -56,11 +56,9 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 KrylovLinearSolver::KrylovLinearSolver(
-    bool homogeneous_bc,
-    double solution_time,
-    double current_time,
-    double new_time)
-    : LinearSolver(homogeneous_bc, solution_time, current_time, new_time)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : LinearSolver(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;

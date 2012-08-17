@@ -54,13 +54,11 @@ class NewtonKrylovSolver
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     NewtonKrylovSolver(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty virtual destructor.
@@ -143,52 +141,52 @@ public:
      */
     virtual void
     setMaxIterations(
-        int max_iterations) = 0;
+        int max_iterations);
 
     /*!
      * \brief Get the maximum number of nonlinear iterations to use per solve.
      */
     virtual int
-    getMaxIterations() const = 0;
+    getMaxIterations() const;
 
     /*!
      * \brief Set the maximum number of function evaluations to use per solve.
      */
     virtual void
     setMaxEvaluations(
-        int max_evaluations) = 0;
+        int max_evaluations);
 
     /*!
      * \brief Get the maximum number of function evaluations to use per solve.
      */
     virtual int
-    getMaxEvaluations() const = 0;
+    getMaxEvaluations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
     virtual void
     setAbsoluteTolerance(
-        double abs_residual_tol) = 0;
+        double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
     virtual double
-    getAbsoluteTolerance() const = 0;
+    getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
     virtual void
     setRelativeTolerance(
-        double rel_residual_tol) = 0;
+        double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
     virtual double
-    getRelativeTolerance() const = 0;
+    getRelativeTolerance() const;
 
     /*!
      * \brief Set the tolerance in terms of the norm of the change in the
@@ -196,14 +194,14 @@ public:
      */
     virtual void
     setSolutionTolerance(
-        double solution_tol) = 0;
+        double solution_tol);
 
     /*!
      * \brief Get the tolerance in terms of the norm of the change in the
      * solution between steps.
      */
     virtual double
-    getSolutionTolerance() const = 0;
+    getSolutionTolerance() const;
 
     //\}
 
@@ -216,24 +214,41 @@ public:
      * \brief Return the iteration count from the most recent nonlinear solve.
      */
     virtual int
-    getNumIterations() const = 0;
+    getNumIterations() const;
 
     /*!
      * \brief Return the number of linear iterations from the most recent
      * nonlinear solve.
      */
     virtual int
-    getNumLinearIterations() const = 0;
+    getNumLinearIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
     virtual double
-    getResidualNorm() const = 0;
+    getResidualNorm() const;
 
     //\}
 
+protected:
+    // Solver parameters.
+    double d_rel_residual_tol;
+    double d_abs_residual_tol;
+    double d_solution_tol;
+    int d_max_iterations;
+    int d_max_evaluations;
+    int d_current_its, d_current_lits;
+    double d_current_residual_norm;
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    NewtonKrylovSolver();
+
     /*!
      * \brief Copy constructor.
      *

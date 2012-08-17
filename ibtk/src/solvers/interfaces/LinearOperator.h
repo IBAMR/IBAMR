@@ -55,13 +55,11 @@ class LinearOperator
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     LinearOperator(
-        bool homogeneous_bc=false,
-        double solution_time=std::numeric_limits<double>::quiet_NaN(),
-        double current_time=std::numeric_limits<double>::quiet_NaN(),
-        double new_time=std::numeric_limits<double>::quiet_NaN());
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty destructor.
@@ -105,6 +103,13 @@ protected:
     bool d_correcting_rhs;
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    LinearOperator();
+
     /*!
      * \brief Copy constructor.
      *
