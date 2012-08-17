@@ -88,6 +88,21 @@ KrylovLinearSolverWrapper::getIsInitialized() const
 }// getIsInitialized
 
 void
+KrylovLinearSolverWrapper::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
+    d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+bool
+KrylovLinearSolverWrapper::getHomogeneousBc() const
+{
+    return d_krylov_solver->getHomogeneousBc();
+}// getHomogeneousBc
+
+void
 KrylovLinearSolverWrapper::setSolutionTime(
     double solution_time)
 {
