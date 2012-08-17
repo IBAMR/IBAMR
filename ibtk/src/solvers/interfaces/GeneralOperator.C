@@ -87,6 +87,12 @@ GeneralOperator::getName() const
     return d_object_name;
 }// getName
 
+bool
+GeneralOperator::getIsInitialized() const
+{
+    return d_is_initialized;
+}// getIsInitialized
+
 void
 GeneralOperator::setHomogeneousBc(
     bool homogeneous_bc)
@@ -168,24 +174,30 @@ GeneralOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& /*in*/,
     const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
-    // intentionally blank
+    d_is_initialized = true;
     return;
 }// initializeOperatorState
 
 void
 GeneralOperator::deallocateOperatorState()
 {
-    // intentionally blank
+    d_is_initialized = false;
     return;
 }// deallocateOperatorState
 
 void
-GeneralOperator::enableLogging(
-    bool enabled)
+GeneralOperator::setLoggingEnabled(
+    bool enable_logging)
 {
-    d_enable_logging = enabled;
+    d_enable_logging = enable_logging;
     return;
-}// enableLogging
+}// setLoggingEnabled
+
+bool
+GeneralOperator::getLoggingEnabled() const
+{
+    return d_enable_logging;
+}// getLoggingEnabled
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

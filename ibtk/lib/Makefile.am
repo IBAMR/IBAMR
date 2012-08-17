@@ -118,6 +118,7 @@ $(top_srcdir)/src/solvers/impls/CCPoissonPointRelaxationFACOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.C \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
+$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -274,6 +275,7 @@ $(top_srcdir)/src/solvers/impls/CCPoissonPointRelaxationFACOperator.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.h \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.h \
+$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.h \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.h \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \

@@ -80,8 +80,21 @@ public:
      */
     virtual void
     setNullspace(
-        bool contains_constant_vector,
+        bool nullspace_containsconstant_vector,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
+
+    /*!
+     * \brief Get whether the nullspace of the linear system contains th
+     * constant vector.
+     */
+    virtual bool
+    getNullspaceContainsConstantVector() const;
+
+    /*!
+     * \brief Get the basis vectors for the nullspace of the linear system.
+     */
+    virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >&
+    getNullspaceBasisVectors() const;
 
     //\}
 

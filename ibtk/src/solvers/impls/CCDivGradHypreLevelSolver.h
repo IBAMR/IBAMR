@@ -76,7 +76,7 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- enable_logging = FALSE         // see enableLogging()
+ enable_logging = FALSE         // see setLoggingEnabled()
  solver_type = "PFMG"           // choices are: "PFMG", "SMG", "PCG", "GMRES", "FlexGMRES" , "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "PFMG", "SMG", "Jacobi", "none"
  max_iterations = 10            // see setMaxIterations()

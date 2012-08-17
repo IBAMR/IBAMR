@@ -66,7 +66,7 @@ namespace IBTK
 
  num_pre_sweeps = 1     // see setNumPreSmoothingSweeps()
  num_post_sweeps = 1    // see setNumPostSmoothingSweeps()
- enable_logging = FALSE // see enableLogging()
+ enable_logging = FALSE // see setLoggingEnabled()
  \endverbatim
 */
 class FACPreconditioner

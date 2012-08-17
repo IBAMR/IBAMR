@@ -78,20 +78,24 @@ public:
     ~FACPreconditionerStrategy();
 
     /*!
-     * \brief Method to allow the FACPreconditioner object to register itself
-     * with the concrete FACPreconditionerStrategy.
-     *
-     * \note A default empty implementation is provided.
-     */
-    void
-    setFACPreconditioner(
-        SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
-
-    /*!
      * \brief Return the object name.
      */
     const std::string&
     getName() const;
+
+    /*!
+     * \brief Return whether the operator is initialized.
+     */
+    virtual bool
+    getIsInitialized() const;
+
+    /*!
+     * \brief Method to allow the FACPreconditioner object to register itself
+     * with the concrete FACPreconditionerStrategy.
+     */
+    virtual void
+    setFACPreconditioner(
+        SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.

@@ -65,19 +65,25 @@ FACPreconditionerStrategy::~FACPreconditionerStrategy()
     return;
 }// ~FACPreconditionerStrategy
 
+const std::string&
+FACPreconditionerStrategy::getName() const
+{
+    return d_object_name;
+}// getName
+
+bool
+FACPreconditionerStrategy::getIsInitialized() const
+{
+    return d_is_initialized;
+}// getIsInitialized
+
 void
 FACPreconditionerStrategy::setFACPreconditioner(
     ConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
-}// setPreconditioner
-
-const std::string&
-FACPreconditionerStrategy::getName() const
-{
-    return d_object_name;
-}// getName
+}// setFACPreconditioner
 
 void
 FACPreconditionerStrategy::setHomogeneousBc(
@@ -128,14 +134,14 @@ FACPreconditionerStrategy::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& /*solution*/,
     const SAMRAIVectorReal<NDIM,double>& /*rhs*/)
 {
-    // intentionally blank
+    d_is_initialized = true;
     return;
 }// initializeOperatorState
 
 void
 FACPreconditionerStrategy::deallocateOperatorState()
 {
-    // intentionally blank
+    d_is_initialized = false;
     return;
 }// deallocateOperatorState
 

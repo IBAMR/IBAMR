@@ -499,8 +499,8 @@ FACPreconditioner::getFromInput(
     int num_post_sweeps = db->getIntegerWithDefault("num_post_sweeps", d_num_post_sweeps);
     setNumPostSmoothingSweeps(num_post_sweeps);
 
-    bool logging = db->getBoolWithDefault("enable_logging", d_enable_logging);
-    enableLogging(logging);
+    bool enable_logging = db->getBoolWithDefault("enable_logging", d_enable_logging);
+    setLoggingEnabled(enable_logging);
     return;
 }// getFromInput
 

@@ -87,6 +87,12 @@ GeneralSolver::getName() const
     return d_object_name;
 }// getName
 
+bool
+GeneralSolver::getIsInitialized() const
+{
+    return d_is_initialized;
+}// getIsInitialized
+
 void
 GeneralSolver::setHomogeneousBc(
     bool homogeneous_bc)
@@ -151,24 +157,30 @@ GeneralSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& /*u*/,
     const SAMRAIVectorReal<NDIM,double>& /*r*/)
 {
-    // intentionally blank
+    d_is_initialized = true;
     return;
 }// initializeSolverState
 
 void
 GeneralSolver::deallocateSolverState()
 {
-    // intentionally blank
+    d_is_initialized = false;
     return;
 }// deallocateSolverState
 
 void
-GeneralSolver::enableLogging(
-    bool enabled)
+GeneralSolver::setLoggingEnabled(
+    bool enable_logging)
 {
-    d_enable_logging = enabled;
+    d_enable_logging = enable_logging;
     return;
-}// enableLogging
+}// setLoggingEnabled
+
+bool
+GeneralSolver::getLoggingEnabled() const
+{
+    return d_enable_logging;
+}// getLoggingEnabled
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

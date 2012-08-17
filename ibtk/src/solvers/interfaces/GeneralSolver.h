@@ -83,6 +83,12 @@ public:
     getName() const;
 
     /*!
+     * \brief Return whether the operator is initialized.
+     */
+    virtual bool
+    getIsInitialized() const;
+
+    /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
     virtual void
@@ -260,8 +266,14 @@ public:
      * \brief Enable or disable logging.
      */
     virtual void
-    enableLogging(
-        bool enabled=true);
+    setLoggingEnabled(
+        bool enable_logging=true);
+
+    /*!
+     * \brief Determine whether logging is enabled or disabled.
+     */
+    virtual bool
+    getLoggingEnabled() const;
 
     //\}
 
