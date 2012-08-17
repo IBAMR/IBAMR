@@ -60,7 +60,8 @@ StokesFACPreconditioner::StokesFACPreconditioner(
     const std::string& object_name,
     Pointer<FACPreconditionerStrategy> fac_strategy,
     Pointer<Database> input_db)
-    : FACPreconditioner(object_name, fac_strategy, input_db),
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
+      FACPreconditioner(object_name, fac_strategy, input_db),
       StokesSolver(object_name, /*homogeneous_bc*/ true)
 {
     // intentionally blank
