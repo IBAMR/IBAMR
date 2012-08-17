@@ -48,9 +48,9 @@ namespace IBAMR
 
 StokesKrylovLinearSolverWrapper::StokesKrylovLinearSolverWrapper(
     Pointer<KrylovLinearSolver> krylov_solver)
-    : KrylovLinearSolver(krylov_solver->getHomogeneousBc(), krylov_solver->getSolutionTime(), krylov_solver->getTimeInterval().first, krylov_solver->getTimeInterval().second),
-      StokesSolver("StokesKrylovLinearSolverWrapper", krylov_solver->getHomogeneousBc()),
-      d_krylov_solver(krylov_solver)
+    : LinearSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
+      KrylovLinearSolverWrapper(krylov_solver),
+      StokesSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc())
 {
     // intentionally blank
     return;

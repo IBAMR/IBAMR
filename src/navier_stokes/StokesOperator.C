@@ -61,8 +61,7 @@ namespace IBAMR
 StokesOperator::StokesOperator(
     const std::string& object_name,
     bool homogeneous_bc)
-    : LinearOperator(homogeneous_bc),
-      d_object_name(object_name),
+    : LinearOperator(object_name, homogeneous_bc),
       d_U_problem_coefs(d_object_name+"::U_problem_coefs"),
       d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
