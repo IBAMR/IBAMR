@@ -47,6 +47,9 @@
 #include <CellData.h>
 #include <SideData.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <numeric>
 
@@ -74,10 +77,9 @@ compute_tangential_extension(
 void
 INSPETScMatUtilities::constructPatchLevelMACStokesOp(
     Mat& mat,
-    const INSProblemCoefs* problem_coefs,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+    const PoissonSpecifications& u_problem_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     double data_time,
-    double dt,
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
@@ -216,9 +218,8 @@ INSPETScMatUtilities::constructPatchLevelMACStokesOp(
 #endif
 
     // Set the matrix coefficients.
-    const double rho    = problem_coefs->getRho();
-    const double mu     = problem_coefs->getMu();
-    const double lambda = problem_coefs->getLambda();
+    const double C = u_problem_coefs.getCConstant();
+    const double D = u_problem_coefs.getDConstant();
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -236,16 +237,15 @@ INSPETScMatUtilities::constructPatchLevelMACStokesOp(
         // account.  Boundary conditions are handled subsequently.
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            // ((rho/dt + lambda/2) I - mu/2 Laplace) u
             std::vector<double> uu_mat_vals(uu_stencil_sz,0.0);
-            uu_mat_vals[0] = rho/dt + 0.5*lambda; // diagonal
+            uu_mat_vals[0] = C; // diagonal
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const double dx_sq = dx[d]*dx[d];
-                uu_mat_vals[2*d+1] -= 0.5*mu/dx_sq; // lower off-diagonal
-                uu_mat_vals[2*d+2] -= 0.5*mu/dx_sq; // upper off-diagonal
-                uu_mat_vals[0    ] += 0.5*mu/dx_sq; // diagonal
-                uu_mat_vals[0    ] += 0.5*mu/dx_sq; // diagonal
+                uu_mat_vals[2*d+1] -= 0.5*D/dx_sq; // lower off-diagonal
+                uu_mat_vals[2*d+2] -= 0.5*D/dx_sq; // upper off-diagonal
+                uu_mat_vals[0    ] += 0.5*D/dx_sq; // diagonal
+                uu_mat_vals[0    ] += 0.5*D/dx_sq; // diagonal
             }
             for (int uu_stencil_index = 0; uu_stencil_index < uu_stencil_sz; ++uu_stencil_index)
             {

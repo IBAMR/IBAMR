@@ -41,9 +41,6 @@
 #include <Variable.h>
 #include <tbox/Pointer.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
@@ -90,7 +87,7 @@ public:
     cacheBcCoefData(
         int u_data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
-        blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);

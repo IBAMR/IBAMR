@@ -40,10 +40,12 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredFACPreconditionerStrategy.h>
-#include <ibamr/INSProblemCoefs.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
+
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -74,38 +76,6 @@ public:
     ~INSStaggeredBoxRelaxationFACOperator();
 
     /*!
-     * \name Functions for specifying the problem coefficients.
-     */
-    //\{
-
-    /*!
-     * \brief Set the INSProblemCoefs object and timestep size used to specify
-     * the coefficients for the time-dependent incompressible Stokes operator.
-     */
-    void
-    setProblemCoefficients(
-        const INSProblemCoefs& problem_coefs);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a U_bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
-     * boundary conditions are employed for the pressure.
-     *
-     * \param U_bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
-
-    //\}
-
-    /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
@@ -128,32 +98,6 @@ public:
         int num_sweeps,
         bool performing_pre_sweeps,
         bool performing_post_sweeps);
-
-    /*!
-     * \brief Solve the residual equation Ae=r on the coarsest level of the
-     * patch hierarchy.
-     *
-     * \param error error vector
-     * \param residual residual vector
-     * \param coarsest_ln coarsest level number
-     */
-    bool
-    solveCoarsestLevel(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int coarsest_ln);
-
-    /*!
-     * \brief Compute the composite-grid residual on the specified range of
-     * levels of the patch hierarchy.
-     */
-    void
-    computeResidual(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int coarsest_level_num,
-        int finest_level_num);
 
     //\}
 
@@ -205,20 +149,6 @@ private:
      */
     INSStaggeredBoxRelaxationFACOperator& operator=(
         const INSStaggeredBoxRelaxationFACOperator& that);
-
-    /*
-     * Problem coefficient specifications.
-     */
-    INSProblemCoefs d_problem_coefs;
-
-    /*
-     * \name Boundary condition handling objects.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_U_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
-
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     /*
      * Box operator data.

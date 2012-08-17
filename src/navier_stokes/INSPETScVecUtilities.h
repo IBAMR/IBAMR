@@ -45,9 +45,6 @@
 // C++ STDLIB INCLUDES
 #include <vector>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR

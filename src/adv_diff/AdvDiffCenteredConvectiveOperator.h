@@ -66,7 +66,7 @@ public:
      * \brief Class constructor.
      */
     AdvDiffCenteredConvectiveOperator(
-        const std::string& operator_name,
+        const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
         const std::string& bdry_extrap_type);
@@ -138,22 +138,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -184,12 +168,6 @@ private:
     AdvDiffCenteredConvectiveOperator&
     operator=(
         const AdvDiffCenteredConvectiveOperator& that);
-
-    // Operator name (needed to generate unique variable names).
-    const std::string d_operator_name;
-
-    // Whether the operator is initialized.
-    bool d_is_initialized;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

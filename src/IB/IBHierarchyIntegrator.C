@@ -320,7 +320,7 @@ IBHierarchyIntegrator::regridHierarchy()
     // Update the workload pre-regridding.
     if (!d_load_balancer.isNull())
     {
-        if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
+        if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
         d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
         d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
     }
@@ -332,15 +332,15 @@ IBHierarchyIntegrator::regridHierarchy()
     }
 
     // Before regridding, begin Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Use the INSHierarchyIntegrator to handle Eulerian data management.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
     HierarchyIntegrator::regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Prune any duplicated markers located in the "invalid" regions of coarser

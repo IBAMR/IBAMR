@@ -1,4 +1,4 @@
-// Filename: INSProblemCoefs.h
+// Filename: StokesSpecifications.h
 // Created on 26 Aug 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSProblemCoefs
-#define included_INSProblemCoefs
+#ifndef included_StokesSpecifications
+#define included_StokesSpecifications
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,11 +43,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSProblemCoefs is a lightweight utility class that is used to
+ * \brief Class StokesSpecifications is a lightweight utility class that is used to
  * specify the physical parameters of the incompressible Navier-Stokes
  * equations.
  */
-class INSProblemCoefs
+class StokesSpecifications
     : public SAMRAI::tbox::DescribedClass
 {
 public:
@@ -55,7 +55,7 @@ public:
      * \brief Default constructor.
      */
     inline
-    INSProblemCoefs(
+    StokesSpecifications(
         double rho=0.0,
         double mu=0.0,
         double lambda=0.0)
@@ -65,32 +65,32 @@ public:
         {
             // intentionally blank
             return;
-        }// INSProblemCoefs
+        }// StokesSpecifications
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    INSProblemCoefs(
-        const INSProblemCoefs& from)
+    StokesSpecifications(
+        const StokesSpecifications& from)
         : d_rho(from.d_rho),
           d_mu(from.d_mu),
           d_lambda(from.d_lambda)
         {
             // intentionally blank
             return;
-        }// INSProblemCoefs
+        }// StokesSpecifications
 
     /*!
      * \brief Destructor.
      */
     inline
-    ~INSProblemCoefs()
+    ~StokesSpecifications()
         {
             // intentionally blank
             return;
-        }// ~INSProblemCoefs
+        }// ~StokesSpecifications
 
     /*!
      * \brief Assignment operator.
@@ -99,8 +99,8 @@ public:
      *
      * \return A reference to this object.
      */
-    INSProblemCoefs& operator=(
-        const INSProblemCoefs& that)
+    StokesSpecifications& operator=(
+        const StokesSpecifications& that)
         {
             if (&that != this)
             {
@@ -186,8 +186,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "INSProblemCoefs.I"
+//#include "StokesSpecifications.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSProblemCoefs
+#endif //#ifndef included_StokesSpecifications

@@ -70,6 +70,7 @@ public:
      * \brief Class constructor.
      */
     INSCollocatedPPMConvectiveOperator(
+        const std::string& object_name,
         ConvectiveDifferencingType difference_form,
         const std::string& bdry_extrap_type);
 
@@ -140,22 +141,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -186,9 +171,6 @@ private:
     INSCollocatedPPMConvectiveOperator&
     operator=(
         const INSCollocatedPPMConvectiveOperator& that);
-
-    // Whether the operator is initialized.
-    bool d_is_initialized;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;

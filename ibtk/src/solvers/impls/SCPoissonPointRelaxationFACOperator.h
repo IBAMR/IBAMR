@@ -84,7 +84,7 @@ namespace IBTK
  coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
- coarse_solver = { ... }                      // SAMRAI::tbox::Database for initializing coarse level solver
+ coarse_solver_db = { ... }                   // SAMRAI::tbox::Database for initializing coarse level solver
  \endverbatim
 */
 class SCPoissonPointRelaxationFACOperator

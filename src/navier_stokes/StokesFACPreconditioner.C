@@ -1,5 +1,5 @@
-// Filename: INSProblemCoefs.C
-// Created on 24 Jul 2008 by Boyce Griffith
+// Filename: StokesFACPreconditioner.C
+// Created on 16 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,11 +30,22 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "StokesFACPreconditioner.h"
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "INSProblemCoefs.h"
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
 
 // IBAMR INCLUDES
+#include <ibamr/StokesFACPreconditionerStrategy.h>
 #include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -45,11 +56,47 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-/////////////////////////////// PROTECTED ////////////////////////////////////
+StokesFACPreconditioner::StokesFACPreconditioner(
+    const std::string& object_name,
+    Pointer<FACPreconditionerStrategy> fac_strategy,
+    Pointer<Database> input_db)
+    : FACPreconditioner(object_name, fac_strategy, input_db),
+      StokesSolver(object_name, /*homogeneous_bc*/ true)
+{
+    // intentionally blank
+    return;
+}// StokesFACPreconditioner
+
+StokesFACPreconditioner::~StokesFACPreconditioner()
+{
+    // intentionally blank
+    return;
+}// ~StokesFACPreconditioner
+
+void
+StokesFACPreconditioner::setVelocityPoissonSpecifications(
+    const PoissonSpecifications& U_problem_coefs)
+{
+    StokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
+    Pointer<StokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
+    return;
+}// setVelocityPoissonSpecifications
+
+void
+StokesFACPreconditioner::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+{
+    StokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
+    Pointer<StokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
+    return;
+}// setPhysicalBcCoefs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-/////////////////////////////// NAMESPACE ////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
 

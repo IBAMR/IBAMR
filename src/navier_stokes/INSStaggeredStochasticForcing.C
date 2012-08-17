@@ -306,7 +306,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
 #endif
 
         // Modify the stress tensor values (if necessary).
-        blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs = d_fluid_solver->getVelocityBoundaryConditions();
+        const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs = d_fluid_solver->getVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
@@ -593,7 +593,7 @@ INSStaggeredStochasticForcing::setDataOnPatch(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     double dV = 1.0; for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
-    const double mu = d_fluid_solver->getINSProblemCoefs()->getMu();
+    const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
     const double scale = d_std*sqrt(2.0*mu/(dt*dV));

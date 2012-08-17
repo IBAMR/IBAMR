@@ -86,43 +86,17 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const std::string& object_name,
-    const INSProblemCoefs* problem_coefs,
-    const TimeSteppingType viscous_time_stepping_type,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
-    Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef,
-    Pointer<HierarchyMathOps> hier_math_ops,
     bool homogeneous_bc)
-    : LinearOperator(homogeneous_bc),
-      d_object_name(object_name),
-      d_is_initialized(false),
+    : StokesOperator(object_name, homogeneous_bc),
+      d_U_bc_helper(Pointer<INSStaggeredPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL),
       d_P_fill_pattern(NULL),
       d_transaction_comps(),
       d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_x(NULL),
-      d_b(NULL),
-      d_problem_coefs(problem_coefs),
-      d_viscous_time_stepping_type(viscous_time_stepping_type),
-      d_U_bc_coefs(U_bc_coefs),
-      d_U_bc_helper(U_bc_helper),
-      d_P_bc_coef(P_bc_coef),
-      d_hier_math_ops(hier_math_ops),
-      d_hier_math_ops_external(!d_hier_math_ops.isNull())
+      d_b(NULL)
 {
-    // Check to make sure the time stepping type is supported.
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-        case FORWARD_EULER:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR("INSStaggeredStokesOperator::INSStaggeredStokesOperator():\n"
-                       << "  unsupported viscous time stepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
-    }
-
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
@@ -137,6 +111,17 @@ INSStaggeredStokesOperator::~INSStaggeredStokesOperator()
     deallocateOperatorState();
     return;
 }// ~INSStaggeredStokesOperator
+
+void
+INSStaggeredStokesOperator::setPhysicalBoundaryHelper(
+    Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!U_bc_helper.isNull());
+#endif
+    d_U_bc_helper = U_bc_helper;
+    return;
+}// setPhysicalBoundaryHelper
 
 void
 INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
@@ -186,34 +171,9 @@ INSStaggeredStokesOperator::apply(
 
     // Compute the action of the operator:
     //
-    //    A*[u;p] = [((rho/dt)*I-K*mu*L)*u + grad p; -div u]
-    //
-    // where K is determined by the viscous time stepping scheme.
-    const double rho    = d_problem_coefs->getRho();
-    const double mu     = d_problem_coefs->getMu();
-    const double lambda = d_problem_coefs->getLambda();
-    const double dt = d_new_time-d_current_time;
-    double K;
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-            K = 1.0;
-            break;
-        case FORWARD_EULER:
-            K = 0.0;
-            break;
-        case TRAPEZOIDAL_RULE:
-            K = 0.5;
-            break;
-        default:
-            K = 0;
-            TBOX_ERROR("this statment should not be reached");
-    }
-    PoissonSpecifications helmholtz_spec("helmholtz_spec");
-    helmholtz_spec.setCConstant((rho/dt)+K*lambda);
-    helmholtz_spec.setDConstant(        -K*mu    );
+    //    A*[u;p] = [((rho/dt+lambda)*I-mu*L)*u + grad p; -div u]
     d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
+    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_U_problem_coefs, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
     if (homogeneous_bc) d_U_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
 
@@ -312,14 +272,6 @@ INSStaggeredStokesOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-INSStaggeredStokesOperator::enableLogging(
-    bool /*enabled*/)
-{
-    // intentionally blank
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

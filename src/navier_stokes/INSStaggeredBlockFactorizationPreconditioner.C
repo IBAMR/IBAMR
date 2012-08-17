@@ -51,6 +51,9 @@
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
 
+// SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -83,45 +86,34 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner(
-    const INSProblemCoefs& problem_coefs,
-    TimeSteppingType viscous_time_stepping_type,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef,
-    const bool normalize_pressure,
-    Pointer<LinearSolver> velocity_helmholtz_solver,
-    Pointer<LinearSolver> pressure_poisson_solver,
-    Pointer<HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
-    Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops,
-    Pointer<HierarchyMathOps> hier_math_ops)
-    : d_do_log(false),
-      d_is_initialized(false),
-      d_problem_coefs(problem_coefs),
-      d_viscous_time_stepping_type(viscous_time_stepping_type),
-      d_normalize_pressure(normalize_pressure),
-      d_velocity_helmholtz_solver(velocity_helmholtz_solver),
-      d_pressure_poisson_solver(pressure_poisson_solver),
-      d_hier_cc_data_ops(hier_cc_data_ops),
-      d_hier_sc_data_ops(hier_sc_data_ops),
-      d_hier_math_ops(hier_math_ops),
-      d_wgt_cc_var(NULL),
-      d_wgt_sc_var(NULL),
-      d_wgt_cc_idx(-1),
-      d_wgt_sc_idx(-1),
-      d_volume(std::numeric_limits<double>::quiet_NaN()),
-      d_P_bc_coef(P_bc_coef),
-      d_P_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
-      d_no_fill_op(NULL),
+    const std::string& object_name)
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
+      StokesBlockPreconditioner(object_name, /*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true, /*homogeneous_bc*/ true),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
+      d_velocity_data_ops(NULL),
+      d_pressure_data_ops(NULL),
+      d_velocity_wgt_idx(-1),
+      d_pressure_wgt_idx(-1),
+      d_hier_math_ops(NULL),
+      d_P_bdry_fill_op(NULL),
+      d_no_fill_op(NULL),
       d_U_var(NULL),
       d_U_scratch_idx(-1),
       d_P_var(NULL),
       d_P_scratch_idx(-1)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSStaggeredBlockFactorizationPreconditionerOperator::CONTEXT");
+    // Present implementation requires zero initial guess and can perform only
+    // one iteration.
+    d_initial_guess_nonzero = false;
+    d_max_iterations = 1;
 
-    const std::string U_var_name = "INSStaggeredBlockFactorizationPreconditioner::U";
+    // Setup variables.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = var_db->getContext(d_object_name+"::CONTEXT");
+
+    const std::string U_var_name = d_object_name+"::U";
     d_U_var = var_db->getVariable(U_var_name);
     if (d_U_var.isNull())
     {
@@ -135,7 +127,7 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
-    const std::string P_var_name = "INSStaggeredBlockFactorizationPreconditioner::P";
+    const std::string P_var_name = d_object_name+"::P";
     d_P_var = var_db->getVariable(P_var_name);
     if (d_P_var.isNull())
     {
@@ -149,18 +141,6 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_P_scratch_idx >= 0);
 #endif
-
-    // Check to make sure the time stepping type is supported.
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-        case FORWARD_EULER:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner():\n"
-                       << "  unsupported viscous time stepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
-    }
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -212,24 +192,24 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Setup the component solver vectors.
     Pointer<SAMRAIVectorReal<NDIM,double> > U_scratch_vec;
-    U_scratch_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
-
-    Pointer<SAMRAIVectorReal<NDIM,double> > P_scratch_vec;
-    P_scratch_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    U_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > U_out_vec;
-    U_out_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
+    U_out_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_velocity_wgt_idx, d_velocity_data_ops);
+
+    Pointer<SAMRAIVectorReal<NDIM,double> > P_scratch_vec;
+    P_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_in_vec;
-    P_in_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_in_vec->addComponent(P_in_cc_var, P_in_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_in_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_in_vec->addComponent(P_in_cc_var, P_in_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_out_vec;
-    P_out_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
+    P_out_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
@@ -239,44 +219,17 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Solve the pressure sub-problem.
     //
-    // P_out := -((rho/dt)*I-K*mu*L) * (-L)^{-1} * P_in
-    //
-    // where K is determined by the viscous time stepping scheme.
-    const double rho    = d_problem_coefs.getRho();
-    const double mu     = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
-    const double dt = d_new_time-d_current_time;
-    double K;
-    switch (d_viscous_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-            K = 1.0;
-            break;
-        case FORWARD_EULER:
-            K = 0.0;
-            break;
-        case TRAPEZOIDAL_RULE:
-            K = 0.0;
-            break;
-        default:
-            K = 0.0;
-            TBOX_ERROR("this statement should not be reached\n");
-    }
-    PoissonSpecifications pressure_helmholtz_spec("pressure_helmholtz_spec");
-    pressure_helmholtz_spec.setCConstant(-(rho/dt+K*lambda));
-    pressure_helmholtz_spec.setDConstant(-(      -K*mu    ));
-    d_pressure_poisson_solver->solveSystem(*P_scratch_vec,*P_in_vec);
-    d_hier_math_ops->laplace(P_out_idx, P_out_cc_var, pressure_helmholtz_spec, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_current_time+0.5*dt);
-    if (d_normalize_pressure)
-    {
-        const double P_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(P_out_idx, d_wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(P_out_idx, P_out_idx, -P_mean);
-    }
+    // P_out := -((rho/dt)*I-mu*L) * (-L)^{-1} * P_in
+    d_pressure_solver->solveSystem(*P_scratch_vec,*P_in_vec);
+    PoissonSpecifications P_helmholtz_spec(d_object_name+"::P_helmholtz_spec");
+    P_helmholtz_spec.setCConstant(-d_U_problem_coefs.getCConstant());
+    P_helmholtz_spec.setDConstant(-d_U_problem_coefs.getDConstant());
+    d_hier_math_ops->laplace(P_out_idx, P_out_cc_var, P_helmholtz_spec, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
 
-    // Compute the right-hand-side for the Helmholtz solve.
+    // Compute the right-hand-side for the velocity solve.
     d_P_bdry_fill_op->resetTransactionComponent(P_out_transaction_comp);
     static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(d_U_scratch_idx, d_U_var, cf_bdry_synch, -1.0, P_out_idx, P_out_cc_var, d_P_bdry_fill_op, d_current_time+0.5*dt, 1.0, U_in_idx, U_in_sc_var);
+    d_hier_math_ops->grad(d_U_scratch_idx, d_U_var, cf_bdry_synch, -1.0, P_out_idx, P_out_cc_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_in_idx, U_in_sc_var);
     d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
 
     // Solve the velocity sub-problem.
@@ -285,7 +238,7 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     //        = (rho/dt)*I-K*mu*L)^{-1} * [U_in - Grad * P_out]
     //
     // where K is determined by the viscous time stepping scheme (see above).
-    d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_scratch_vec);
+    d_velocity_solver->solveSystem(*U_out_vec,*U_scratch_vec);
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
@@ -314,11 +267,21 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
 #else
     NULL_USE(b);
 #endif
-    d_wgt_cc_var = d_hier_math_ops->getCellWeightVariable();
-    d_wgt_sc_var = d_hier_math_ops->getSideWeightVariable();
-    d_wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+
+    // Setup hierarchy operators.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+
+    d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
+    d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
+    d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_velocity_wgt_idx = x.getControlVolumeIndex(0);
+
+    d_pressure_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
+    d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
+    d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_pressure_wgt_idx = x.getControlVolumeIndex(1);
+
+    d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -330,14 +293,8 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx))
-        {
-            level->allocatePatchData(d_U_scratch_idx);
-        }
-        if (!level->checkAllocated(d_P_scratch_idx))
-        {
-            level->allocatePatchData(d_P_scratch_idx);
-        }
+        if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
+        if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
     }
     d_is_initialized = true;
 
@@ -352,18 +309,17 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 
     IBAMR_TIMER_START(t_deallocate_solver_state);
 
-    // Deallocate scratch data.
+    d_velocity_data_ops.setNull();
+    d_pressure_data_ops.setNull();
+    d_velocity_wgt_idx = -1;
+    d_pressure_wgt_idx = -1;
+    d_hier_math_ops.setNull();
+    d_P_bdry_fill_op.setNull();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx))
-        {
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
-        if (level->checkAllocated(d_P_scratch_idx))
-        {
-            level->deallocatePatchData(d_P_scratch_idx);
-        }
+        if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
+        if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
     }
     d_is_initialized = false;
 
@@ -377,18 +333,11 @@ INSStaggeredBlockFactorizationPreconditioner::setInitialGuessNonzero(
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::setInitialGuessNonzero()\n"
+        TBOX_ERROR(d_object_name+"::setInitialGuessNonzero()\n"
                    << "  class IBAMR::INSStaggeredBlockFactorizationPreconditioner requires a zero initial guess" << std::endl);
     }
     return;
 }// setInitialGuessNonzero
-
-bool
-INSStaggeredBlockFactorizationPreconditioner::getInitialGuessNonzero() const
-{
-    // intentionally blank
-    return false;
-}// getInitialGuessNonzero
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setMaxIterations(
@@ -396,69 +345,11 @@ INSStaggeredBlockFactorizationPreconditioner::setMaxIterations(
 {
     if (max_iterations != 1)
     {
-        TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::setMaxIterations()\n"
+        TBOX_ERROR(d_object_name+"::setMaxIterations()\n"
                    << "  class IBAMR::INSStaggeredBlockFactorizationPreconditioner only performs a single iteration" << std::endl);
     }
     return;
 }// setMaxIterations
-
-int
-INSStaggeredBlockFactorizationPreconditioner::getMaxIterations() const
-{
-    // intentionally blank
-    return 1;
-}// getMaxIterations
-
-void
-INSStaggeredBlockFactorizationPreconditioner::setAbsoluteTolerance(
-    double /*abs_residual_tol*/)
-{
-    // intentionally blank
-    return;
-}// setAbsoluteTolerance
-
-double
-INSStaggeredBlockFactorizationPreconditioner::getAbsoluteTolerance() const
-{
-    // intentionally blank
-    return 0.0;
-}// getAbsoluteTolerance
-
-void
-INSStaggeredBlockFactorizationPreconditioner::setRelativeTolerance(
-    double /*rel_residual_tol*/)
-{
-    // intentionally blank
-    return;
-}// setRelativeTolerance
-
-double
-INSStaggeredBlockFactorizationPreconditioner::getRelativeTolerance() const
-{
-    // intentionally blank
-    return 0.0;
-}// getRelativeTolerance
-
-int
-INSStaggeredBlockFactorizationPreconditioner::getNumIterations() const
-{
-    // intentionally blank
-    return 0;
-}// getNumIterations
-
-double
-INSStaggeredBlockFactorizationPreconditioner::getResidualNorm() const
-{
-    return 0.0;
-}// getResidualNorm
-
-void
-INSStaggeredBlockFactorizationPreconditioner::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

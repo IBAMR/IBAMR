@@ -45,13 +45,19 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/INSStaggeredStokesSolverManager.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
+#include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
+#include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
+#include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/SideNoCornersFillPattern.h>
+#include <ibtk/SideSynchCopyFillPattern.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -64,6 +70,19 @@ namespace IBAMR
 
 namespace
 {
+// Type of coarsening to perform prior to setting coarse-fine boundary and
+// physical boundary ghost cell values; used only to evaluate composite grid
+// residuals.
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+
+// Type of extrapolation to use at physical boundaries; used only to evaluate
+// composite grid residuals.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells; used only to evaluate composite grid residuals.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
+
 // Timers.
 static Timer* t_restrict_residual;
 static Timer* t_prolong_error;
@@ -78,8 +97,7 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
     const std::string& object_name,
     const int ghost_cell_width,
     const Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
+    : StokesFACPreconditionerStrategy(object_name),
       d_gcw(ghost_cell_width),
       d_solution(NULL),
       d_rhs(NULL),
@@ -91,14 +109,16 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
       d_in_initialize_operator_state(false),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
-      d_smoother_choice("additive"),
+      d_smoother_type("ADDITIVE"),
       d_U_prolongation_method("CONSTANT_REFINE"),
       d_P_prolongation_method("LINEAR_REFINE"),
       d_U_restriction_method("CONSERVATIVE_COARSEN"),
       d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_coarse_solver_choice("block_jacobi"),
+      d_coarse_solver_type("BLOCK_JACOBI"),
       d_coarse_solver_tol(1.0e-6),
       d_coarse_solver_max_its(10),
+      d_coarse_solver(),
+      d_coarse_solver_db(),
       d_context(NULL),
       d_side_scratch_idx(-1),
       d_cell_scratch_idx(-1),
@@ -124,14 +144,18 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        d_smoother_choice = input_db->getStringWithDefault("smoother_choice", d_smoother_choice);
+        d_smoother_type = input_db->getStringWithDefault("smoother_type", d_smoother_type);
         d_U_prolongation_method = input_db->getStringWithDefault("U_prolongation_method", d_U_prolongation_method);
         d_P_prolongation_method = input_db->getStringWithDefault("P_prolongation_method", d_P_prolongation_method);
         d_U_restriction_method = input_db->getStringWithDefault("U_restriction_method", d_U_restriction_method);
         d_P_restriction_method = input_db->getStringWithDefault("P_restriction_method", d_P_restriction_method);
-        d_coarse_solver_choice = input_db->getStringWithDefault("coarse_solver_choice", d_coarse_solver_choice);
+        d_coarse_solver_type = input_db->getStringWithDefault("coarse_solver_type", d_coarse_solver_type);
         d_coarse_solver_tol = input_db->getDoubleWithDefault("coarse_solver_tolerance", d_coarse_solver_tol);
         d_coarse_solver_max_its = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_its);
+        if (input_db->isDatabase("coarse_solver_db"))
+        {
+            d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
+        }
     }
 
     // Setup scratch variables.
@@ -195,25 +219,31 @@ INSStaggeredFACPreconditionerStrategy::setResetLevels(
 }// setResetLevels
 
 void
-INSStaggeredFACPreconditionerStrategy::setSmootherChoice(
-    const std::string& smoother_choice)
+INSStaggeredFACPreconditionerStrategy::setSmootherType(
+    const std::string& smoother_type)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice()\n"
+        TBOX_ERROR(d_object_name << "::setSmootherType()\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
-    d_smoother_choice = smoother_choice;
+    d_smoother_type = smoother_type;
     return;
-}// setSmootherChoice
+}// setSmootherType
 
 void
-INSStaggeredFACPreconditionerStrategy::setCoarsestLevelSolverChoice(
-    const std::string& coarse_solver_choice)
+INSStaggeredFACPreconditionerStrategy::setCoarsestLevelSolverType(
+    const std::string& coarse_solver_type)
 {
-    d_coarse_solver_choice = coarse_solver_choice;
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverType():\n"
+                   << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
+    d_coarse_solver_type = coarse_solver_type;
     return;
-}// setCoarsestLevelSolverChoice
+}// setCoarsestLevelSolverType
 
 void
 INSStaggeredFACPreconditionerStrategy::setCoarsestLevelSolverTolerance(
@@ -361,6 +391,96 @@ INSStaggeredFACPreconditionerStrategy::prolongErrorAndCorrect(
     return;
 }// prolongErrorAndCorrect
 
+bool
+INSStaggeredFACPreconditionerStrategy::solveCoarsestLevel(
+    SAMRAIVectorReal<NDIM,double>& error,
+    const SAMRAIVectorReal<NDIM,double>& residual,
+    int coarsest_ln)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
+#endif
+    if (d_coarse_solver.isNull())
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
+#endif
+        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
+    }
+    else
+    {
+        d_coarse_solver->setSolutionTime(d_solution_time);
+        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+        d_coarse_solver->setInitialGuessNonzero(true);
+        d_coarse_solver->setMaxIterations(d_coarse_solver_max_its);
+        d_coarse_solver->setRelativeTolerance(d_coarse_solver_tol);
+        d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
+    }
+    return true;
+}// solveCoarsestLevel
+
+void
+INSStaggeredFACPreconditionerStrategy::computeResidual(
+    SAMRAIVectorReal<NDIM,double>& residual,
+    const SAMRAIVectorReal<NDIM,double>& solution,
+    const SAMRAIVectorReal<NDIM,double>& rhs,
+    int coarsest_level_num,
+    int finest_level_num)
+{
+    const int U_res_idx = residual.getComponentDescriptorIndex(0);
+    const int U_sol_idx = solution.getComponentDescriptorIndex(0);
+    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
+
+    const Pointer<SideVariable<NDIM,double> > U_res_sc_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > U_sol_sc_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > U_rhs_sc_var = rhs.getComponentVariable(0);
+
+    const int P_res_idx = residual.getComponentDescriptorIndex(1);
+    const int P_sol_idx = solution.getComponentDescriptorIndex(1);
+    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
+
+    const Pointer<CellVariable<NDIM,double> > P_res_cc_var = residual.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM,double> > P_sol_cc_var = solution.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM,double> > P_rhs_cc_var = rhs.getComponentVariable(1);
+
+    // Fill ghost-cell values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
+    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
+    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
+    {
+        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
+    }
+    else
+    {
+        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
+    }
+    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
+
+    // Compute the residual, r = f - A*u.
+    if (d_hier_math_ops[finest_level_num].isNull())
+    {
+        std::ostringstream stream;
+        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
+        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+    }
+    d_hier_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
+    d_hier_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, d_U_problem_coefs, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
+    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
+    d_hier_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
+    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
+    return;
+}// computeResidual
+
 void
 INSStaggeredFACPreconditionerStrategy::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& solution,
@@ -398,17 +518,31 @@ INSStaggeredFACPreconditionerStrategy::initializeOperatorState(
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln   = solution.getFinestLevelNumber();
 
+    // Setup boundary condition handling objects.
+    d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
+    d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef , false);
+    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
+    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, false);
+    d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
+
+    // Initialize the coarse level solvers when needed.
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
+    {
+        // Note that since the coarse level solver is solving for the error, it
+        // must always employ homogeneous boundary conditions.
+        d_coarse_solver = INSStaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver->setSolutionTime(d_solution_time);
+        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+        d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
+        d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
+        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln), *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    }
+
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_U_bc_op.isNull());
-    TBOX_ASSERT(!d_P_bc_op.isNull());
-    TBOX_ASSERT(!d_U_cf_bdry_op.isNull());
-    TBOX_ASSERT(!d_P_cf_bdry_op.isNull());
-    TBOX_ASSERT(!d_U_op_stencil_fill_pattern.isNull());
-    TBOX_ASSERT(!d_P_op_stencil_fill_pattern.isNull());
-    TBOX_ASSERT(!d_U_synch_fill_pattern.isNull());
-#endif
 
     // Setup level operators.
     d_hier_bdry_fill_ops.resize(d_finest_ln+1, NULL);
@@ -608,6 +742,8 @@ INSStaggeredFACPreconditionerStrategy::deallocateOperatorState()
 
         d_hier_bdry_fill_ops.clear();
         d_hier_math_ops.clear();
+
+        d_coarse_solver->deallocateSolverState();
 
         d_U_prolongation_refine_operator    .setNull();
         d_P_prolongation_refine_operator    .setNull();

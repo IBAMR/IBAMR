@@ -75,19 +75,14 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
     const std::string& object_name,
-    const INSProblemCoefs& problem_coefs,
-    Mat* J_mat,
-    void (*interp_fcn)(double r_lower,double* w),
-    int interp_stencil,
-    Vec* X_vec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     Pointer<Database> input_db)
-    : PETScLevelSolver(object_name, input_db),
-      d_problem_coefs(problem_coefs),
-      d_J_mat(J_mat),
-      d_interp_fcn(interp_fcn),
-      d_interp_stencil(interp_stencil),
-      d_X_vec(X_vec),
+    : LinearSolver(object_name),
+      PETScLevelSolver(object_name, input_db),
+      d_problem_coefs(),
+      d_J_mat(NULL),
+      d_interp_fcn(NULL),
+      d_interp_stencil(0),
+      d_X_vec(NULL),
       d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL))),
       d_u_bc_coefs(),
       d_context(NULL),
@@ -106,6 +101,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
         d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
 
+#if 0  // XXXX
     // Initialize the boundary conditions objects.
     setHomogeneousBc(d_homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -119,6 +115,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
             d_u_bc_coefs[d] = d_default_u_bc_coef;
         }
     }
+#endif
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -226,7 +223,8 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
-    INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_stokes_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_dt, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
+    TBOX_ASSERT(false);  // XXXX
+//  INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_stokes_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();

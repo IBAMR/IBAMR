@@ -57,6 +57,7 @@ public:
      * \brief Class constructor.
      */
     ConvectiveOperator(
+        const std::string& object_name,
         ConvectiveDifferencingType difference_form);
 
     /*!

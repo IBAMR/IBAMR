@@ -49,12 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
-#include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
-#include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/SideNoCornersFillPattern.h>
-#include <ibtk/SideSynchCopyFillPattern.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -66,19 +61,6 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values; used only to evaluate composite grid
-// residuals.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries; used only to evaluate
-// composite grid residuals.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells; used only to evaluate composite grid residuals.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 inline int
 compute_side_index(
@@ -113,17 +95,15 @@ compute_cell_index(
 void
 buildBoxOperator(
     Mat& A,
-    const INSProblemCoefs& problem_coefs,
-    const double dt,
+    const PoissonSpecifications& U_problem_coefs,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
     const blitz::TinyVector<double,NDIM>& dx)
 {
     int ierr;
 
-    const double rho = problem_coefs.getRho();
-    const double mu = problem_coefs.getMu();
-    const double lambda = problem_coefs.getLambda();
+    const double C = U_problem_coefs.getCConstant();
+    const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
     blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
@@ -202,7 +182,7 @@ buildBoxOperator(
             std::vector<double> mat_vals(U_stencil_sz,0.0);
 
             mat_cols[0] = mat_row;
-            mat_vals[0] = (rho/dt) + 0.5*lambda;
+            mat_vals[0] = C;
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -213,9 +193,9 @@ buildBoxOperator(
                 mat_cols[2*d+1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2*d+2] = compute_side_index(u_rght, ghost_box, axis);
 
-                mat_vals[    0] +=      mu/(dx[d]*dx[d]);
-                mat_vals[2*d+1]  = -0.5*mu/(dx[d]*dx[d]);
-                mat_vals[2*d+2]  = -0.5*mu/(dx[d]*dx[d]);
+                mat_vals[    0] +=  2.0*D/(dx[d]*dx[d]);
+                mat_vals[2*d+1]  =     -D/(dx[d]*dx[d]);
+                mat_vals[2*d+2]  =     -D/(dx[d]*dx[d]);
             }
 
             Index<NDIM> shift = 0;
@@ -297,15 +277,14 @@ modifyRhsForBcs(
     Vec& v,
     const SideData<NDIM,double>& U_data,
     const CellData<NDIM,double>& P_data,
-    const INSProblemCoefs& problem_coefs,
-    const double /*dt*/,
+    const PoissonSpecifications& U_problem_coefs,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
     const double* const dx)
 {
     int ierr;
 
-    const double mu = problem_coefs.getMu();
+    const double D = U_problem_coefs.getDConstant();
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -322,11 +301,11 @@ modifyRhsForBcs(
                 const Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(v, idx, +0.5*mu*U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower))/(dx[d]*dx[d]), ADD_VALUES); IBTK_CHKERRQ(ierr);
+                    ierr = VecSetValue(v, idx, +D*U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower))/(dx[d]*dx[d]), ADD_VALUES); IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(v, idx, +0.5*mu*U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower))/(dx[d]*dx[d]), ADD_VALUES); IBTK_CHKERRQ(ierr);
+                    ierr = VecSetValue(v, idx, +D*U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower))/(dx[d]*dx[d]), ADD_VALUES); IBTK_CHKERRQ(ierr);
                 }
             }
 
@@ -428,11 +407,6 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
     : INSStaggeredFACPreconditionerStrategy(object_name, GHOSTS, input_db),
-      d_problem_coefs(),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
-      d_U_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
-      d_P_bc_coef(d_default_P_bc_coef),
       d_box_op(),
       d_box_e(),
       d_box_r(),
@@ -440,65 +414,15 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
       d_patch_side_bc_box_overlap(),
       d_patch_cell_bc_box_overlap()
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions for the velocity and homogeneous Neumann
-    // boundary conditions for the pressure.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
-        d_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
-        d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef),d_default_P_bc_coef);
+    // intentionally blank
     return;
 }// INSStaggeredBoxRelaxationFACOperator
 
 INSStaggeredBoxRelaxationFACOperator::~INSStaggeredBoxRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_U_bc_coef;
-    delete d_default_P_bc_coef;
     return;
 }// ~INSStaggeredBoxRelaxationFACOperator
-
-void
-INSStaggeredBoxRelaxationFACOperator::setProblemCoefficients(
-    const INSProblemCoefs& problem_coefs)
-{
-    d_problem_coefs = problem_coefs;
-    return;
-}// setProblemCoefficients
-
-void
-INSStaggeredBoxRelaxationFACOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (U_bc_coefs[d] != NULL)
-        {
-            d_U_bc_coefs[d] = U_bc_coefs[d];
-        }
-        else
-        {
-            d_U_bc_coefs[d] = d_default_U_bc_coef;
-        }
-    }
-
-    if (P_bc_coef != NULL)
-    {
-        d_P_bc_coef = P_bc_coef;
-    }
-    else
-    {
-        d_P_bc_coef = d_default_P_bc_coef;
-    }
-    return;
-}// setPhysicalBcCoefs
 
 void
 INSStaggeredBoxRelaxationFACOperator::smoothError(
@@ -512,7 +436,6 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     if (num_sweeps == 0) return;
 
     int ierr;
-    const double dt = d_new_time-d_current_time;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
@@ -661,7 +584,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
                 const Box<NDIM> box(i,i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_problem_coefs, dt, box, box, dx);
+                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
                 ierr = KSPSolve(ksp, r, e);  IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);
             }
@@ -673,88 +596,6 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     return;
 }// smoothError
 
-bool
-INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
-    SAMRAIVectorReal<NDIM,double>& error,
-    const SAMRAIVectorReal<NDIM,double>& residual,
-    int coarsest_ln)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
-#endif
-    smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
-    return true;
-}// solveCoarsestLevel
-
-void
-INSStaggeredBoxRelaxationFACOperator::computeResidual(
-    SAMRAIVectorReal<NDIM,double>& residual,
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs,
-    int coarsest_level_num,
-    int finest_level_num)
-{
-    const int U_res_idx = residual.getComponentDescriptorIndex(0);
-    const int U_sol_idx = solution.getComponentDescriptorIndex(0);
-    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
-
-    const Pointer<SideVariable<NDIM,double> > U_res_sc_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM,double> > U_sol_sc_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM,double> > U_rhs_sc_var = rhs.getComponentVariable(0);
-
-    const int P_res_idx = residual.getComponentDescriptorIndex(1);
-    const int P_sol_idx = solution.getComponentDescriptorIndex(1);
-    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
-
-    const Pointer<CellVariable<NDIM,double> > P_res_cc_var = residual.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM,double> > P_sol_cc_var = solution.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM,double> > P_rhs_cc_var = rhs.getComponentVariable(1);
-
-    // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, true);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, true);
-    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
-    std::vector<InterpolationTransactionComponent> U_P_components(2);
-    U_P_components[0] = U_scratch_component;
-    U_P_components[1] = P_scratch_component;
-    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
-    {
-        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
-    }
-    else
-    {
-        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
-    }
-    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
-    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
-
-    // Compute the residual, r = f - A*u.
-    if (d_hier_math_ops[finest_level_num].isNull())
-    {
-        std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
-        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
-    }
-    d_hier_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
-    const double dt = d_new_time-d_current_time;
-    PoissonSpecifications helmholtz_spec("");
-    helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
-    helmholtz_spec.setDConstant(        -0.5*mu    );
-    d_hier_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, helmholtz_spec, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
-    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
-    d_hier_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
-    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
-    return;
-}// computeResidual
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -764,15 +605,6 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
-    // Setup boundary condition handling objects.
-    d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
-    d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef , false);
-    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
-    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, false);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, false);
-    d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
-
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln+1);
     d_box_e.resize(d_finest_ln+1);
@@ -789,8 +621,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
         {
             dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
         }
-        const double dt = d_new_time-d_current_time;
-        buildBoxOperator(d_box_op[ln], d_problem_coefs, dt, box, box, dx);
+        buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
         ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);  IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);

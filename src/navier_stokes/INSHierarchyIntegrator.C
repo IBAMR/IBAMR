@@ -108,28 +108,29 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
 }// registerAdvDiffHierarchyIntegrator
 
 void
-INSHierarchyIntegrator::setINSProblemCoefs(
-    INSProblemCoefs problem_coefs)
+INSHierarchyIntegrator::setStokesSpecifications(
+    StokesSpecifications problem_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_problem_coefs = problem_coefs;
     return;
-}// setINSProblemCoefs
+}// setStokesSpecifications
 
-const INSProblemCoefs*
-INSHierarchyIntegrator::getINSProblemCoefs() const
+const StokesSpecifications*
+INSHierarchyIntegrator::getStokesSpecifications() const
 {
     return &d_problem_coefs;
-}// getINSProblemCoefs
+}// getStokesSpecifications
 
 void
 INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
     return;
@@ -214,7 +215,7 @@ INSHierarchyIntegrator::getAdvectionVelocityVariable() const
     return d_U_adv_diff_var;
 }// getAdvectionVelocityVariable
 
-blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>
+std::vector<RobinBcCoefStrategy<NDIM>*>
 INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
@@ -285,49 +286,37 @@ INSHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
 
 void
 INSHierarchyIntegrator::setConvectiveOperator(
-    Pointer<ConvectiveOperator> convective_op,
-    const bool needs_reinit_when_dt_changes)
+    Pointer<ConvectiveOperator> convective_op)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_convective_op = convective_op;
     d_creeping_flow = d_convective_op.isNull();
-    d_convective_op_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;
 }// setConvectiveOperator
 
 void
 INSHierarchyIntegrator::setVelocitySubdomainSolver(
-    Pointer<LaplaceOperator> velocity_op,
-    Pointer<LinearSolver> velocity_solver,
-    const bool needs_reinit_when_dt_changes)
+    Pointer<PoissonSolver> velocity_solver)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_velocity_op.isNull());
     TBOX_ASSERT(d_velocity_solver.isNull());
 #endif
-    d_velocity_op = velocity_op;
     d_velocity_solver = velocity_solver;
-    d_velocity_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;
 }// setVelocitySubdomainSolver
 
 void
 INSHierarchyIntegrator::setPressureSubdomainSolver(
-    Pointer<LaplaceOperator> pressure_op,
-    Pointer<LinearSolver> pressure_solver,
-    const bool needs_reinit_when_dt_changes)
+    Pointer<PoissonSolver> pressure_solver)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_pressure_op.isNull());
     TBOX_ASSERT(d_pressure_solver.isNull());
 #endif
-    d_pressure_op = pressure_op;
     d_pressure_solver = pressure_solver;
-    d_pressure_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;
 }// setPressureSubdomainSolver
 
@@ -360,7 +349,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
       d_U_init(NULL),
       d_P_init(NULL),
       d_default_bc_coefs(d_object_name+"::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
@@ -401,7 +390,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         d_default_bc_coefs.setBoundaryValue(2*d  ,0.0);
         d_default_bc_coefs.setBoundaryValue(2*d+1,0.0);
     }
-    registerPhysicalBoundaryConditions(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(&d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,&d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -570,28 +559,45 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("output_Q")) d_output_Q = db->getBool("output_Q");
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
-    if      (db->keyExists("VelocityHypreSolver"              )) d_velocity_hypre_pc_db = db->getDatabase("VelocityHypreSolver");
-    else if (db->keyExists("VelocityHyprePreconditioner"      )) d_velocity_hypre_pc_db = db->getDatabase("VelocityHyprePreconditioner");
-    else if (db->keyExists("HelmholtzHypreSolver"             )) d_velocity_hypre_pc_db = db->getDatabase("HelmholtzHypreSolver");
-    else if (db->keyExists("HelmholtzHyprePreconditioner"     )) d_velocity_hypre_pc_db = db->getDatabase("HelmholtzHyprePreconditioner");
-    if      (db->keyExists("VelocityFACSolver"                )) d_velocity_fac_pc_db   = db->getDatabase("VelocityFACSolver");
-    else if (db->keyExists("VelocityFACPreconditioner"        )) d_velocity_fac_pc_db   = db->getDatabase("VelocityFACPreconditioner");
-    else if (db->keyExists("HelmholtzFACSolver"               )) d_velocity_fac_pc_db   = db->getDatabase("HelmholtzFACSolver");
-    else if (db->keyExists("HelmholtzFACPreconditioner"       )) d_velocity_fac_pc_db   = db->getDatabase("HelmholtzFACPreconditioner");
-    if      (db->keyExists("PressureHypreSolver"              )) d_pressure_hypre_pc_db = db->getDatabase("PressureHypreSolver");
-    else if (db->keyExists("PressureHyprePreconditioner"      )) d_pressure_hypre_pc_db = db->getDatabase("PressureHyprePreconditioner");
-    else if (db->keyExists("PoissonHypreSolver"               )) d_pressure_hypre_pc_db = db->getDatabase("PoissonHypreSolver");
-    else if (db->keyExists("PoissonHyprePreconditioner"       )) d_pressure_hypre_pc_db = db->getDatabase("PoissonHyprePreconditioner");
-    if      (db->keyExists("PressureFACSolver"                )) d_pressure_fac_pc_db   = db->getDatabase("PressureFACSolver");
-    else if (db->keyExists("PressureFACPreconditioner"        )) d_pressure_fac_pc_db   = db->getDatabase("PressureFACPreconditioner");
-    else if (db->keyExists("PoissonFACSolver"                 )) d_pressure_fac_pc_db   = db->getDatabase("PoissonFACSolver");
-    else if (db->keyExists("PoissonFACPreconditioner"         )) d_pressure_fac_pc_db   = db->getDatabase("PoissonFACPreconditioner");
-    if      (db->keyExists("RegridProjectionFACSolver"        )) d_regrid_projection_fac_pc_db = db->getDatabase("RegridProjectionFACSolver");
-    else if (db->keyExists("RegridProjectionFACPreconditioner")) d_regrid_projection_fac_pc_db = db->getDatabase("RegridProjectionFACPreconditioner");
-    else if (db->keyExists("PressureFACSolver"                )) d_regrid_projection_fac_pc_db = db->getDatabase("PressureFACSolver");
-    else if (db->keyExists("PressureFACPreconditioner"        )) d_regrid_projection_fac_pc_db = db->getDatabase("PressureFACPreconditioner");
-    else if (db->keyExists("PoissonFACSolver"                 )) d_regrid_projection_fac_pc_db = db->getDatabase("PoissonFACSolver");
-    else if (db->keyExists("PoissonFACPreconditioner"         )) d_regrid_projection_fac_pc_db = db->getDatabase("PoissonFACPreconditioner");
+
+    if (db->keyExists("velocity_solver_type")) d_velocity_solver_type = db->getString("velocity_solver_type");
+    if (db->keyExists("velocity_precond_type")) d_velocity_precond_type = db->getString("velocity_precond_type");
+    if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
+    if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
+    if (!d_velocity_solver_db.isNull() && !d_velocity_solver_db->keyExists("options_prefix"))
+    {
+        d_velocity_solver_db->putString("options_prexix", "velocity_");
+    }
+    if (!d_velocity_precond_db.isNull() && !d_velocity_precond_db->keyExists("options_prefix"))
+    {
+        d_velocity_precond_db->putString("options_prexix", "velocity_pc_");
+    }
+
+    if (db->keyExists("pressure_solver_type")) d_pressure_solver_type = db->getString("pressure_solver_type");
+    if (db->keyExists("pressure_precond_type")) d_pressure_precond_type = db->getString("pressure_precond_type");
+    if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
+    if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
+    if (!d_pressure_solver_db.isNull() && !d_pressure_solver_db->keyExists("options_prefix"))
+    {
+        d_pressure_solver_db->putString("options_prexix", "pressure_");
+    }
+    if (!d_pressure_precond_db.isNull() && !d_pressure_precond_db->keyExists("options_prefix"))
+    {
+        d_pressure_precond_db->putString("options_prexix", "pressure_pc_");
+    }
+
+    if (db->keyExists("regrid_projection_solver_type")) d_regrid_projection_solver_type = db->getString("regrid_projection_solver_type");
+    if (db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
+    if (db->keyExists("regrid_projection_solver_db")) d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
+    if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
+    if (!d_regrid_projection_solver_db.isNull() && !d_regrid_projection_solver_db->keyExists("options_prefix"))
+    {
+        d_regrid_projection_solver_db->putString("options_prexix", "regrid_projection_");
+    }
+    if (!d_regrid_projection_precond_db.isNull() && !d_regrid_projection_precond_db->keyExists("options_prefix"))
+    {
+        d_regrid_projection_precond_db->putString("options_prexix", "regrid_projection_pc_");
+    }
     return;
 }// getFromInput
 

@@ -206,13 +206,11 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
-    const std::string& operator_name,
+    const std::string& object_name,
     Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form,
     const std::string& bdry_extrap_type)
-    : ConvectiveOperator(difference_form),
-      d_operator_name(operator_name),
-      d_is_initialized(false),
+    : ConvectiveOperator(object_name, difference_form),
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
       d_bdry_extrap_type(bdry_extrap_type),
@@ -237,11 +235,11 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext(d_operator_name + "::CONTEXT");
+    Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
     d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, GADVECTG);
     Pointer<CellDataFactory<NDIM,double> > Q_pdat_fac = d_Q_var->getPatchDataFactory();
     d_Q_data_depth = Q_pdat_fac->getDefaultDepth();
-    const std::string q_extrap_var_name = d_operator_name + "::q_extrap";
+    const std::string q_extrap_var_name = d_object_name + "::q_extrap";
     d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
     if (d_q_extrap_var.isNull())
     {
@@ -255,7 +253,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_q_extrap_idx >= 0);
 #endif
-    const std::string q_flux_var_name = d_operator_name + "::q_flux";
+    const std::string q_flux_var_name = d_object_name + "::q_flux";
     d_q_flux_var = var_db->getVariable(q_flux_var_name);
     if (d_q_flux_var.isNull())
     {
@@ -636,14 +634,6 @@ AdvDiffPPMConvectiveOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-AdvDiffPPMConvectiveOperator::enableLogging(
-    bool /*enabled*/)
-{
-    // intentionally blank
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -36,14 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
+#include <ibamr/StokesOperator.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
-#include <ibamr/ibamr_enums.h>
-
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-#include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/HierarchyMathOps.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,7 +54,7 @@ namespace IBAMR
  * \see INSStaggeredHierarchyIntegrator
  */
 class INSStaggeredStokesOperator
-    : public IBTK::LinearOperator
+    : public StokesOperator
 {
 public:
     /*!
@@ -68,18 +62,20 @@ public:
      */
     INSStaggeredStokesOperator(
         const std::string& object_name,
-        const INSProblemCoefs* problem_coefs,
-        TimeSteppingType viscous_time_stepping_type,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
-        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops=SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>(),
         bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.
      */
     ~INSStaggeredStokesOperator();
+
+    /*!
+     * \brief Set the StokesSpecifications object and timestep size used to specify
+     * the coefficients for the time-dependent incompressible Stokes operator.
+     */
+    virtual void
+    setPhysicalBoundaryHelper(
+        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -193,22 +189,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -240,11 +220,8 @@ private:
     operator=(
         const INSStaggeredStokesOperator& that);
 
-    // Housekeeping.
-    std::string d_object_name;
-
-    // Operator parameters.
-    bool d_is_initialized;
+    // Boundary condition helper object.
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_fill_pattern, d_P_fill_pattern;
@@ -253,15 +230,6 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
-
-    // Problem specification and mathematical operators.
-    const INSProblemCoefs* d_problem_coefs;
-    const TimeSteppingType d_viscous_time_stepping_type;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    const bool d_hier_math_ops_external;
 };
 }// namespace IBAMR
 

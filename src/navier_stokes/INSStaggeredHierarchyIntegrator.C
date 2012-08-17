@@ -56,15 +56,15 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/NewtonKrylovSolver.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/PETScKrylovLinearSolver.h>  // XXXX
 #include <ibtk/RefinePatchStrategySet.h>
-#include <ibtk/SCLaplaceOperator.h>
+#include <ibtk/SCPoissonSolverManager.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -317,26 +317,13 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_op_type"));
     else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_operator_type"));
 
-    // Set all solver components to null.
-    d_velocity_spec = NULL;
-    d_velocity_op = NULL;
-    d_velocity_hypre_pc = NULL;
-    d_velocity_fac_op = NULL;
-    d_velocity_fac_pc = NULL;
-
-    d_pressure_spec = NULL;
-    d_pressure_op = NULL;
-    d_pressure_hypre_pc = NULL;
-    d_pressure_fac_op = NULL;
-    d_pressure_fac_pc = NULL;
-
     // Setup physical boundary conditions objects.
     d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs,dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef));
     }
-    d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -378,15 +365,16 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     d_P_bc_coef = NULL;
     delete d_fill_after_regrid_phys_bdry_bc_op;
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
-    delete d_velocity_spec;
-    d_velocity_spec = NULL;
-    delete d_pressure_spec;
-    d_pressure_spec = NULL;
+    d_velocity_solver.setNull();
+    d_pressure_solver.setNull();
     if (!d_U_rhs_vec.isNull()) d_U_rhs_vec->freeVectorComponents();
     if (!d_U_adv_vec.isNull()) d_U_adv_vec->freeVectorComponents();
     if (!d_N_vec    .isNull()) d_N_vec    ->freeVectorComponents();
     if (!d_P_rhs_vec.isNull()) d_P_rhs_vec->freeVectorComponents();
-    if (!d_nul_vec  .isNull()) d_nul_vec  ->freeVectorComponents();
+    for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
+    {
+        if (!d_nul_vecs[k].isNull()) d_nul_vecs[k]->freeVectorComponents();
+    }
     for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
     {
         if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
@@ -394,7 +382,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
-blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
 INSStaggeredHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
@@ -418,263 +406,66 @@ INSStaggeredHierarchyIntegrator::getConvectiveOperator()
         switch (d_default_convective_op_type)
         {
             case CENTERED:
-                d_convective_op = new INSStaggeredCenteredConvectiveOperator(d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
+                d_convective_op = new INSStaggeredCenteredConvectiveOperator(d_object_name+"::convective_op", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
                 break;
             case PPM:
-                d_convective_op = new INSStaggeredPPMConvectiveOperator(d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
+                d_convective_op = new INSStaggeredPPMConvectiveOperator(d_object_name+"::convective_op", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
                 break;
             default:
                 TBOX_ERROR("INSStaggeredHierarchyIntegrator::getConvectiveOperator():\n"
                            << "  unsupported convective operator type: " << d_default_convective_op_type << " \n"
                            << "  valid choices are: CENTERED, PPM\n");
         }
-        d_convective_op_needs_reinit_when_dt_changes = false;
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
 }// getConvectiveOperator
 
-Pointer<LinearSolver>
+Pointer<PoissonSolver>
 INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (d_velocity_solver.isNull())
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_gridding_alg.isNull());
-#endif
-        static const std::string velocity_prefix = "velocity_";
-        d_velocity_spec = new PoissonSpecifications(d_object_name+"::velocity_spec");
-        d_velocity_op = new SCLaplaceOperator(d_object_name+"::Velocity Subdomain Operator", *d_velocity_spec, d_U_star_bc_coefs, true);
-        d_velocity_solver = new PETScKrylovLinearSolver(d_object_name+"::Velocity Subdomain Krylov Solver", velocity_prefix);
-        d_velocity_solver->setInitialGuessNonzero(false);
-        d_velocity_solver->setAbsoluteTolerance(1.0e-30);
-        d_velocity_solver->setRelativeTolerance(1.0e-01);
-        d_velocity_solver->setMaxIterations(25);
-        Pointer<PETScKrylovLinearSolver> p_velocity_solver = d_velocity_solver;
-        p_velocity_solver->setOperator(d_velocity_op);
-        static const size_t len = 255;
-        char velocity_pc_type_str[len];
-        PetscBool flg;
-        int ierr = PetscOptionsGetString("velocity_", "-pc_type", velocity_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
-        std::string velocity_pc_type = "shell";
-        if (flg)
-        {
-            velocity_pc_type = std::string(velocity_pc_type_str);
-        }
-        if (!(velocity_pc_type == "none" || velocity_pc_type == "shell"))
-        {
-            TBOX_ERROR(d_object_name << "::getVelocitySubdomainSolver():\n" <<
-                       "  invalid velocity preconditioner type: " << velocity_pc_type << "\n"
-                       "  valid velocity preconditioner types: shell, none" << std::endl);
-        }
-        if (velocity_pc_type != "none")
-        {
-            if (d_gridding_alg->getMaxLevels() == 1)
-            {
-                if (d_velocity_hypre_pc_db.isNull())
-                {
-                    TBOX_WARNING(d_object_name << "::getVelocitySubdomainSolver():\n" <<
-                                 "  velocity hypre pc solver database is null." << std::endl);
-                }
-                d_velocity_hypre_pc = new SCPoissonHypreLevelSolver(d_object_name+"::Velocity Subdomain Preconditioner", d_velocity_hypre_pc_db);
-                d_velocity_hypre_pc->setPoissonSpecifications(*d_velocity_spec);
-                p_velocity_solver->setPreconditioner(d_velocity_hypre_pc);
-            }
-            else
-            {
-                if (d_velocity_fac_pc_db.isNull())
-                {
-                    TBOX_WARNING(d_object_name << "::getVelocitySubdomainSolver():\n" <<
-                                 "  velocity fac pc solver database is null." << std::endl);
-                }
-                d_velocity_fac_op = new SCPoissonPointRelaxationFACOperator(d_object_name+"::Velocity Subdomain FAC Operator", d_velocity_fac_pc_db);
-                d_velocity_fac_op->setPoissonSpecifications(*d_velocity_spec);
-                d_velocity_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Velocity Subdomain Preconditioner", d_velocity_fac_op, d_velocity_fac_pc_db);
-                p_velocity_solver->setPreconditioner(d_velocity_fac_pc);
-            }
-            p_velocity_solver->setKSPType("richardson");
-        }
-        else
-        {
-            if (d_gridding_alg->getMaxLevels() == 1)
-            {
-                p_velocity_solver->setKSPType("cg");
-            }
-            else
-            {
-                p_velocity_solver->setKSPType("gmres");
-            }
-        }
-        d_velocity_solver_needs_reinit_when_dt_changes = true;
-        d_velocity_solver_needs_init = true;
+        d_velocity_solver = SCPoissonSolverManager::getManager()->allocateSolver(
+            d_velocity_solver_type , d_object_name+"::velocity_solver" , d_velocity_solver_db ,
+            d_velocity_precond_type, d_object_name+"::velocity_precond", d_velocity_precond_db);
     }
     return d_velocity_solver;
 }// getVelocitySubdomainSolver
 
-Pointer<LinearSolver>
+Pointer<PoissonSolver>
 INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (d_pressure_solver.isNull())
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_gridding_alg.isNull());
-#endif
-        static const std::string pressure_prefix = "pressure_";
-        d_pressure_spec = new PoissonSpecifications(d_object_name+"::pressure_spec");
-        d_pressure_op = new CCLaplaceOperator(d_object_name+"::Pressure Subdomain Operator", *d_pressure_spec, d_Phi_bc_coef, true);
-        d_pressure_solver = new PETScKrylovLinearSolver(d_object_name+"::Pressure Subdomain Krylov Solver", pressure_prefix);
-        d_pressure_solver->setInitialGuessNonzero(false);
-        d_pressure_solver->setAbsoluteTolerance(1.0e-30);
-        d_pressure_solver->setRelativeTolerance(1.0e-01);
-        d_pressure_solver->setMaxIterations(25);
-        Pointer<PETScKrylovLinearSolver> p_pressure_solver = d_pressure_solver;
-        p_pressure_solver->setOperator(d_pressure_op);
-        if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure);
-        static const size_t len = 255;
-        char pressure_pc_type_str[len];
-        PetscBool flg;
-        int ierr = PetscOptionsGetString("pressure_", "-pc_type", pressure_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
-        std::string pressure_pc_type = "shell";
-        if (flg)
-        {
-            pressure_pc_type = std::string(pressure_pc_type_str);
-        }
-        if (!(pressure_pc_type == "none" || pressure_pc_type == "shell"))
-        {
-            TBOX_ERROR(d_object_name << "::getPressureSubdomainSolver():\n" <<
-                       "  invalid pressure preconditioner type: " << pressure_pc_type << "\n"
-                       "  valid pressure preconditioner types: shell, none" << std::endl);
-        }
-        if (pressure_pc_type != "none")
-        {
-            if (d_gridding_alg->getMaxLevels() == 1)
-            {
-                if (d_pressure_hypre_pc_db.isNull())
-                {
-                    TBOX_WARNING(d_object_name << "::getPressureSubdomainSolver():\n" <<
-                                 "  Pressure hypre PC solver database is null." << std::endl);
-                }
-                d_pressure_hypre_pc = new CCPoissonHypreLevelSolver(d_object_name+"::Pressure Subdomain Preconditioner", d_pressure_hypre_pc_db);
-                d_pressure_hypre_pc->setPoissonSpecifications(*d_pressure_spec);
-                p_pressure_solver->setPreconditioner(d_pressure_hypre_pc);
-            }
-            else
-            {
-                if (d_pressure_fac_pc_db.isNull())
-                {
-                    TBOX_WARNING(d_object_name << "::getPressureSubdomainSolver():\n" <<
-                                 "  Pressure FAC PC solver database is null." << std::endl);
-                }
-                d_pressure_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Pressure Subdomain FAC Operator", d_pressure_fac_pc_db);
-                d_pressure_fac_op->setPoissonSpecifications(*d_pressure_spec);
-                d_pressure_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Pressure Subdomain Preconditioner", d_pressure_fac_op, d_pressure_fac_pc_db);
-                p_pressure_solver->setPreconditioner(d_pressure_fac_pc);
-            }
-            p_pressure_solver->setKSPType("richardson");
-        }
-        else
-        {
-            if (d_gridding_alg->getMaxLevels() == 1)
-            {
-                p_pressure_solver->setKSPType("cg");
-            }
-            else
-            {
-                p_pressure_solver->setKSPType("gmres");
-            }
-        }
-        d_pressure_solver_needs_reinit_when_dt_changes = false;
-        d_pressure_solver_needs_init = true;
+        d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_pressure_solver_type , d_object_name+"::pressure_solver" , d_pressure_solver_db ,
+            d_pressure_precond_type, d_object_name+"::pressure_precond", d_pressure_precond_db);
     }
     return d_pressure_solver;
 }// getPressureSubdomainSolver
 
 void
 INSStaggeredHierarchyIntegrator::setStokesSolver(
-    Pointer<GeneralOperator> stokes_op,
-    Pointer<GeneralSolver> stokes_solver,
-    const bool needs_reinit_when_dt_changes)
+    Pointer<StokesSolver> stokes_solver)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_stokes_op.isNull());
     TBOX_ASSERT(d_stokes_solver.isNull());
 #endif
-    d_stokes_op = stokes_op;
     d_stokes_solver = stokes_solver;
-    d_stokes_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     d_stokes_solver_needs_init = true;
     return;
 }// setStokesSolver
 
-Pointer<GeneralSolver>
+Pointer<StokesSolver>
 INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (d_stokes_solver.isNull())
     {
-        const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_viscous_time_stepping_type, d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef, d_hier_math_ops);
-        d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
-        Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
-        p_stokes_solver->setInitialGuessNonzero(true);
-        p_stokes_solver->setOperator(d_stokes_op);
-        p_stokes_solver->setPreconditioner(getStokesPreconditioner());
-        p_stokes_solver->setKSPType("fgmres");
-        d_stokes_solver_needs_reinit_when_dt_changes = false;
-        d_stokes_solver_needs_init = true;
+        TBOX_ERROR("ack!\n");
     }
     return d_stokes_solver;
 }// getStokesSolver
-
-void
-INSStaggeredHierarchyIntegrator::setStokesPreconditioner(
-    Pointer<LinearSolver> stokes_pc,
-    const bool needs_reinit_when_dt_changes)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_stokes_pc.isNull());
-#endif
-    d_stokes_pc = stokes_pc;
-    d_stokes_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
-    d_stokes_solver_needs_init = true;
-    if (!d_stokes_solver.isNull())
-    {
-        Pointer<KrylovLinearSolver> p_stokes_krylov_solver = d_stokes_solver;
-        if (!p_stokes_krylov_solver.isNull())
-        {
-            Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
-            if (!p_stokes_newton_solver.isNull()) p_stokes_krylov_solver = p_stokes_newton_solver->getLinearSolver();
-        }
-        if (!p_stokes_krylov_solver.isNull()) p_stokes_krylov_solver->setPreconditioner(d_stokes_pc);
-    }
-    return;
-}// setStokesPreconditioner
-
-Pointer<LinearSolver>
-INSStaggeredHierarchyIntegrator::getStokesPreconditioner()
-{
-    if (d_stokes_pc.isNull())
-    {
-        static const size_t len = 255;
-        char stokes_pc_type_str[len];
-        PetscBool flg;
-        int ierr = PetscOptionsGetString("stokes_", "-pc_type", stokes_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
-        std::string stokes_pc_type = "shell";
-        if (flg)
-        {
-            stokes_pc_type = std::string(stokes_pc_type_str);
-        }
-        if (!(stokes_pc_type == "none" || stokes_pc_type == "shell"))
-        {
-            TBOX_ERROR(d_object_name << "::getStokesPreconditioner():\n" <<
-                       "  invalid stokes preconditioner type: " << stokes_pc_type << "\n"
-                       "  valid stokes preconditioner types: shell, none" << std::endl);
-        }
-        d_stokes_pc = new INSStaggeredProjectionPreconditioner(d_problem_coefs, d_viscous_time_stepping_type, d_Phi_bc_coef, d_normalize_pressure, getVelocitySubdomainSolver(), getPressureSubdomainSolver(), d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
-        d_stokes_solver_needs_reinit_when_dt_changes = false;
-        d_stokes_solver_needs_init = true;
-    }
-    return d_stokes_pc;
-}// getStokesPreconditioner
 
 void
 INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -938,12 +729,12 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Setup inhomogeneous boundary conditions.
     d_U_bc_helper->clearBcCoefData();
     d_U_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
-    Pointer<LinearOperator> p_stokes_op = d_stokes_op;
-    if (!p_stokes_op.isNull())
+    d_stokes_solver->setHomogeneousBc(false);
+    Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
+    if (!p_stokes_solver.isNull())
     {
-        p_stokes_op->setHomogeneousBc(false);
-        p_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
-        p_stokes_op->setHomogeneousBc(true);
+        p_stokes_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_U_rhs_vec);
+        p_stokes_solver->setHomogeneousBc(true);
     }
 
     // Initialize any registered advection-diffusion solver.
@@ -1232,7 +1023,7 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
     {
-        if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
         synchronizeHierarchyData(NEW_DATA);
     }
 
@@ -1682,50 +1473,25 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the regrid Poisson solver.
-    const std::string regrid_projection_prefix = "regrid_projection_";
+    Pointer<PoissonSolver> regrid_projection_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_regrid_projection_solver_type , d_object_name+"::regrid_projection_solver" , d_regrid_projection_solver_db ,
+            d_regrid_projection_precond_type, d_object_name+"::regrid_projection_precond", d_regrid_projection_precond_db);
+    PoissonSpecifications regrid_projection_spec(d_object_name+"::regrid_projection_spec");
+    regrid_projection_spec.setCZero();
+    regrid_projection_spec.setDConstant(-1.0);
     LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         Phi_bc_coef.setBoundarySlope(2*d  ,0.0);
         Phi_bc_coef.setBoundarySlope(2*d+1,0.0);
     }
-
-    PoissonSpecifications regrid_projection_spec(d_object_name+"::regrid_projection_spec");
-    regrid_projection_spec.setCZero();
-    regrid_projection_spec.setDConstant(-1.0);
-
-    Pointer<CCLaplaceOperator> regrid_projection_op = new CCLaplaceOperator(d_object_name+"::Regrid Projection Operator", regrid_projection_spec, &Phi_bc_coef, true);
-    regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
-    regrid_projection_op->setPoissonSpecifications(regrid_projection_spec);
-    regrid_projection_op->setPhysicalBcCoef(&Phi_bc_coef);
-    regrid_projection_op->setHomogeneousBc(true);
-    regrid_projection_op->setSolutionTime(d_integrator_time);
-    regrid_projection_op->setTimeInterval(d_integrator_time, d_integrator_time);
-    regrid_projection_op->setHierarchyMathOps(d_hier_math_ops);
-
-    if (d_regrid_projection_fac_pc_db.isNull())
-    {
-        TBOX_WARNING(d_object_name << "::regridHierarchy():\n" <<
-                     "  regrid projection pressure fac pc solver database is null." << std::endl);
-    }
-    Pointer<CCPoissonPointRelaxationFACOperator> regrid_projection_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Regrid Projection FAC Operator", d_regrid_projection_fac_pc_db);
-    regrid_projection_fac_op->setPoissonSpecifications(regrid_projection_spec);
-    regrid_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
-    regrid_projection_fac_op->setSolutionTime(d_integrator_time);
-    regrid_projection_fac_op->setTimeInterval(d_integrator_time, d_integrator_time);
-    Pointer<FACPreconditioner> regrid_projection_fac_pc = new FACPreconditioner(d_object_name+"::Regrid Projection Preconditioner", regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
-
-    PETScKrylovLinearSolver regrid_projection_solver(d_object_name+"::Regrid Projection Krylov Solver", regrid_projection_prefix);
-    regrid_projection_solver.setOperator(regrid_projection_op);
-    regrid_projection_solver.setPreconditioner(regrid_projection_fac_pc);
-
-    // Set some default options.
-    regrid_projection_solver.setKSPType("fgmres");
-    regrid_projection_solver.setAbsoluteTolerance(1.0e-12);
-    regrid_projection_solver.setRelativeTolerance(1.0e-08);
-    regrid_projection_solver.setMaxIterations(25);
-    regrid_projection_solver.setNullspace(true);
-    regrid_projection_solver.setInitialGuessNonzero(false);
+    regrid_projection_solver->setPoissonSpecifications(regrid_projection_spec);
+    regrid_projection_solver->setPhysicalBcCoef(&Phi_bc_coef);
+    regrid_projection_solver->setHomogeneousBc(true);
+    regrid_projection_solver->setSolutionTime(d_integrator_time);
+    regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
+    regrid_projection_solver->setNullspace(true);
+    regrid_projection_solver->setInitialGuessNonzero(false);
 
     // Allocate temporary data.
     ComponentSelector scratch_idxs;
@@ -1743,7 +1509,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);
 
     // Solve the projection pressure-Poisson problem.
-    regrid_projection_solver.solveSystem(sol_vec,rhs_vec);
+    regrid_projection_solver->solveSystem(sol_vec,rhs_vec);
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -1815,10 +1581,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]);
     if (dt_change)
     {
-        if (d_convective_op_needs_reinit_when_dt_changes)   d_convective_op_needs_init = true;
-        if (d_velocity_solver_needs_reinit_when_dt_changes) d_velocity_solver_needs_init = true;
-        if (d_pressure_solver_needs_reinit_when_dt_changes) d_pressure_solver_needs_init = true;
-        if (d_stokes_solver_needs_reinit_when_dt_changes)   d_stokes_solver_needs_init = true;
+        d_velocity_solver_needs_init = true;
+        d_stokes_solver_needs_init = true;
     }
 
     // Setup solver vectors.
@@ -1850,24 +1614,44 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var,P_rhs_idx,wgt_cc_idx,d_hier_cc_data_ops);
 
+        d_nul_vecs.resize((d_normalize_pressure ? 1 : 0) + (MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0));
+        d_U_nul_vecs.resize(MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0);
         if (d_normalize_pressure)
         {
-            if (!d_nul_vec.isNull()) d_nul_vec->freeVectorComponents();
-            d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
-            d_nul_vec->allocateVectorData(current_time);
-            d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
-            d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
+            if (!d_nul_vecs[0].isNull()) d_nul_vecs[0]->freeVectorComponents();
+            d_nul_vecs[0] = d_sol_vec->cloneVector(d_object_name+"::nul_vec_p");
+            d_nul_vecs[0]->allocateVectorData(current_time);
+            d_hier_sc_data_ops->setToScalar(d_nul_vecs[0]->getComponentDescriptorIndex(0), 0.0);
+            d_hier_cc_data_ops->setToScalar(d_nul_vecs[0]->getComponentDescriptorIndex(1), 1.0);
         }
-
         if (MathUtilities<double>::equalEps(rho, 0.0))
         {
-            d_U_nul_vecs.resize(NDIM);
+            const int offset = (d_normalize_pressure ? 1 : 0);
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                if (!d_nul_vecs[k+offset].isNull()) d_nul_vecs[k+offset]->freeVectorComponents();
+                std::ostringstream stream;
+                stream << k;
+                d_nul_vecs[k+offset] = d_sol_vec->cloneVector(d_object_name+"::nul_vec_U_"+stream.str());
+                d_nul_vecs[k+offset]->allocateVectorData(current_time);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM,double> > nul_data = patch->getPatchData(d_nul_vecs[k+offset]->getComponentDescriptorIndex(0));
+                        nul_data->fillAll(0.0);
+                        nul_data->getArrayData(k).fillAll(1.0);
+                    }
+                }
+            }
             for (unsigned int k = 0; k < NDIM; ++k)
             {
                 if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
                 std::ostringstream stream;
                 stream << k;
-                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_"+stream.str());
+                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_U"+stream.str());
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
@@ -1911,7 +1695,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup convective operator.
     if (!d_convective_op.isNull() && d_convective_op_needs_init)
     {
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
+        if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         d_convective_op_needs_init = false;
@@ -1935,44 +1719,21 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             default:
                 TBOX_ERROR("this statment should not be reached");
         }
-        d_velocity_spec->setCConstant((rho/dt)+K*lambda);
-        d_velocity_spec->setDConstant(        -K*mu    );
-
-        d_velocity_op->setPoissonSpecifications(*d_velocity_spec);
-        d_velocity_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-        d_velocity_op->setHomogeneousBc(true);
-        d_velocity_op->setSolutionTime(new_time);
-        d_velocity_op->setTimeInterval(current_time, new_time);
-        d_velocity_op->setHierarchyMathOps(d_hier_math_ops);
-
-        if (!d_velocity_hypre_pc.isNull())
+        PoissonSpecifications velocity_solver_spec(d_object_name+"::velocity_solver_spec");
+        velocity_solver_spec.setCConstant((rho/dt)+K*lambda);
+        velocity_solver_spec.setDConstant(        -K*mu    );
+        d_velocity_solver->setPoissonSpecifications(velocity_solver_spec);
+        d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
+        d_velocity_solver->setSolutionTime(new_time);
+        d_velocity_solver->setTimeInterval(current_time, new_time);
+        d_velocity_solver->setInitialGuessNonzero(true);
+        if (!d_U_nul_vecs.empty())
         {
-            d_velocity_hypre_pc->setPoissonSpecifications(*d_velocity_spec);
-            d_velocity_hypre_pc->setPhysicalBcCoefs(d_U_star_bc_coefs);
-            d_velocity_hypre_pc->setHomogeneousBc(true);
-            d_velocity_hypre_pc->setSolutionTime(new_time);
-            d_velocity_hypre_pc->setTimeInterval(current_time, new_time);
-        }
-
-        if (!d_velocity_fac_op.isNull())
-        {
-            d_velocity_fac_op->setPoissonSpecifications(*d_velocity_spec);
-            d_velocity_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-            d_velocity_fac_op->setSolutionTime(new_time);
-            d_velocity_fac_op->setTimeInterval(current_time, new_time);
-            if (!(d_velocity_solver_needs_reinit_when_dt_changes && dt_change)) d_velocity_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-        }
-
-        d_velocity_solver->setInitialGuessNonzero(false);
-        Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
-        if (!p_velocity_solver.isNull()) p_velocity_solver->setOperator(d_velocity_op);
-        if (MathUtilities<double>::equalEps(rho, 0.0))
-        {
-            p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+            d_velocity_solver->setNullspace(false, d_U_nul_vecs);
         }
         if (d_velocity_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing velocity subdomain solver" << std::endl;
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing velocity subdomain solver" << std::endl;
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec,*d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
         }
@@ -1980,64 +1741,46 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
 
     if (!d_pressure_solver.isNull())
     {
-        d_pressure_spec->setCZero();
-        d_pressure_spec->setDConstant(-1.0);
-
-        d_pressure_op->setPoissonSpecifications(*d_pressure_spec);
-        d_pressure_op->setPhysicalBcCoef(d_Phi_bc_coef);
-        d_pressure_op->setHomogeneousBc(true);
-        d_pressure_op->setSolutionTime(current_time+0.5*dt);
-        d_pressure_op->setTimeInterval(current_time, new_time);
-        d_pressure_op->setHierarchyMathOps(d_hier_math_ops);
-
-        if (!d_pressure_hypre_pc.isNull())
+        PoissonSpecifications pressure_solver_spec(d_object_name+"::pressure_solver_spec");
+        pressure_solver_spec.setCZero();
+        pressure_solver_spec.setDConstant(-1.0);
+        d_pressure_solver->setPoissonSpecifications(pressure_solver_spec);
+        d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
+        d_pressure_solver->setSolutionTime(current_time+0.5*dt);
+        d_pressure_solver->setTimeInterval(current_time, new_time);
+        d_pressure_solver->setInitialGuessNonzero(true);
+        if (d_normalize_pressure)
         {
-            d_pressure_hypre_pc->setPoissonSpecifications(*d_pressure_spec);
-            d_pressure_hypre_pc->setPhysicalBcCoef(d_Phi_bc_coef);
-            d_pressure_hypre_pc->setHomogeneousBc(true);
-            d_pressure_hypre_pc->setSolutionTime(current_time+0.5*dt);
-            d_pressure_hypre_pc->setTimeInterval(current_time, new_time);
+            d_pressure_solver->setNullspace(true);
         }
-
-        if (!d_pressure_fac_op.isNull())
-        {
-            d_pressure_fac_op->setPoissonSpecifications(*d_pressure_spec);
-            d_pressure_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-            d_pressure_fac_op->setSolutionTime(current_time+0.5*dt);
-            d_pressure_fac_op->setTimeInterval(current_time, new_time);
-            if (!(d_pressure_solver_needs_reinit_when_dt_changes && dt_change)) d_pressure_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
-        }
-
-        d_pressure_solver->setInitialGuessNonzero(false);
-        Pointer<KrylovLinearSolver> p_pressure_solver = d_pressure_solver;
-        if (!p_pressure_solver.isNull()) p_pressure_solver->setOperator(d_pressure_op);
         if (d_pressure_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing pressure subdomain solver" << std::endl;
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing pressure subdomain solver" << std::endl;
             d_pressure_solver->initializeSolverState(*d_P_scratch_vec,*d_P_rhs_vec);
             d_pressure_solver_needs_init = false;
         }
     }
 
     // Setup Stokes solver.
-    Pointer<INSStaggeredStokesOperator> p_stokes_op = d_stokes_op;
-    if (!p_stokes_op.isNull()) p_stokes_op->setTimeInterval(current_time,new_time);
-    if (!d_stokes_pc.isNull()) d_stokes_pc->setTimeInterval(current_time,new_time);
+    d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);
+    if (!d_nul_vecs.empty())
+    {
+        Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
+        if (!p_stokes_linear_solver.isNull())
+        {
+            Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+            if (!p_stokes_newton_solver.isNull()) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
+        }
+        if (!p_stokes_linear_solver.isNull())
+        {
+            p_stokes_linear_solver->setNullspace(false, d_nul_vecs);
+        }
+    }
     if (d_stokes_solver_needs_init)
     {
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver" << std::endl;
+        if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver" << std::endl;
         d_stokes_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
-        if (d_normalize_pressure)
-        {
-            Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
-            if (!p_stokes_linear_solver.isNull())
-            {
-                Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
-                if (!p_stokes_newton_solver.isNull()) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
-            }
-            if (!p_stokes_linear_solver.isNull()) p_stokes_linear_solver->setNullspace(false, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >(1, d_nul_vec));
-        }
         d_stokes_solver_needs_init = false;
     }
     return;

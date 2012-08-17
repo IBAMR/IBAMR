@@ -38,15 +38,10 @@
 // PETSc INCLUDES
 #include <petscmat.h>
 
-// IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
-
 // SAMRAI INCLUDES
 #include <PatchLevel.h>
+#include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -76,10 +71,9 @@ public:
     static void
     constructPatchLevelMACStokesOp(
         Mat& mat,
-        const INSProblemCoefs* problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+        const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         double data_time,
-        double dt,
         const std::vector<int>& num_dofs_per_proc,
         int u_dof_index_idx,
         int p_dof_index_idx,

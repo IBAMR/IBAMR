@@ -38,16 +38,10 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConvectiveOperator.h>
-#include <ibamr/INSProblemCoefs.h>
-
-// IBTK INCLUDES
-#include <ibtk/LaplaceOperator.h>
+#include <ibamr/StokesSpecifications.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -145,15 +139,15 @@ public:
      * Set the problem coefficients used by the solver.
      */
     void
-    setINSProblemCoefs(
-        INSProblemCoefs problem_coefs);
+    setStokesSpecifications(
+        StokesSpecifications problem_coefs);
 
     /*!
      * Get a const pointer to the problem coefficients object used by the
      * solver.
      */
-    const INSProblemCoefs*
-    getINSProblemCoefs() const;
+    const StokesSpecifications*
+    getStokesSpecifications() const;
 
     /*!
      * Supply a physical boundary conditions specificaion for the velocity
@@ -161,7 +155,7 @@ public:
      */
     void
     registerPhysicalBoundaryConditions(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * Supply initial conditions for the velocity field.
@@ -234,7 +228,7 @@ public:
      * Get a vector of pointers to the intermediate velocity boundary condition
      * specification objects.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
     getIntermediateVelocityBoundaryConditions() const;
 
     /*!
@@ -295,15 +289,10 @@ public:
      * If the supplied operator is NULL, then the integrator will solve the
      * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
      * equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * operator needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setConvectiveOperator(
-        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -319,16 +308,10 @@ public:
 
     /*!
      * Register a solver for the velocity subsystem.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setVelocitySubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> velocity_op,
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_solver,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
@@ -337,21 +320,15 @@ public:
      * If the velocity subdomain solver has not already been constructed, then
      * this function will initialize a default solver.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getVelocitySubdomainSolver() = 0;
 
     /*!
      * Register a solver for the pressure subsystem.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setPressureSubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> pressure_op,
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_solver,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
@@ -360,7 +337,7 @@ public:
      * If the pressure subdomain solver has not already been constructed, then
      * this function will initialize a default solver.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getPressureSubdomainSolver() = 0;
 
     /*!
@@ -438,7 +415,7 @@ protected:
     /*!
      * Problem coeficients.
      */
-    INSProblemCoefs d_problem_coefs;
+    StokesSpecifications d_problem_coefs;
 
     /*
      * The AdvDiffHierarchyIntegrator is used to provide time integration
@@ -500,7 +477,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs, d_U_star_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
@@ -514,19 +491,20 @@ protected:
     ConvectiveDifferencingType d_default_convective_difference_form;
     std::string d_default_convective_bdry_extrap_type;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
-    bool d_convective_op_needs_reinit_when_dt_changes;
+    bool d_convective_op_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_velocity_op;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_velocity_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_hypre_pc_db, d_velocity_fac_pc_db;
-    bool d_velocity_solver_needs_reinit_when_dt_changes;
+    std::string d_velocity_solver_type, d_velocity_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_solver_db, d_velocity_precond_db;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
+    bool d_velocity_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_pressure_op;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_pressure_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_hypre_pc_db, d_pressure_fac_pc_db;
-    bool d_pressure_solver_needs_reinit_when_dt_changes;
+    std::string d_pressure_solver_type, d_pressure_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_solver_db, d_pressure_precond_db;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+    bool d_pressure_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_fac_pc_db;
+    std::string d_regrid_projection_solver_type, d_regrid_projection_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db, d_regrid_projection_precond_db;
 
 private:
     /*!

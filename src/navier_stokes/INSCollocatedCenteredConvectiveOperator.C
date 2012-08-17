@@ -198,10 +198,10 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
+    const std::string& object_name,
     const ConvectiveDifferencingType difference_form,
     const std::string& bdry_extrap_type)
-    : ConvectiveOperator(difference_form),
-      d_is_initialized(false),
+    : ConvectiveOperator(object_name, difference_form),
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
       d_bdry_extrap_type(bdry_extrap_type),
@@ -615,14 +615,6 @@ INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-INSCollocatedCenteredConvectiveOperator::enableLogging(
-    bool /*enabled*/)
-{
-    // intentionally blank
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

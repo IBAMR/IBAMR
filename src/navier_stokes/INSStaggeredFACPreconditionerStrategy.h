@@ -35,14 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
+// IBAMR INCLUDES
+#include <ibamr/StokesFACPreconditionerStrategy.h>
+#include <ibamr/StokesSolver.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 
@@ -63,20 +63,19 @@ namespace IBAMR
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_choice = "additive"                   // see setSmootherChoice()
-
+ smoother_type = "ADDITIVE"                     // see setSmootherType()
  U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
  P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
  U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
  P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
-
- coarse_solver_choice = "block_jacobi"          // see setCoarsestLevelSolverChoice()
+ coarse_solver_type = "BLOCK_JACOBI"            // see setCoarsestLevelSolverType()
  coarse_solver_tolerance = 1.0e-6               // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10              // see setCoarsestLevelSolverMaxIterations()
+ coarse_solver_db = { ... }                     // SAMRAI::tbox::Database for initializing coarse level solver
  \endverbatim
 */
 class INSStaggeredFACPreconditionerStrategy
-    : public IBTK::FACPreconditionerStrategy
+    : public StokesFACPreconditionerStrategy
 {
 public:
     /*!
@@ -126,15 +125,15 @@ public:
      * \brief Specify the smoother type.
      */
     virtual void
-    setSmootherChoice(
-        const std::string& smoother_choice) = 0;
+    setSmootherType(
+        const std::string& smoother_type);
 
     /*!
      * \brief Specify the coarse level solver.
      */
     virtual void
-    setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice) = 0;
+    setCoarsestLevelSolverType(
+        const std::string& coarse_solver_type);
 
     /*!
      * \brief Set tolerance for coarse level solve.
@@ -222,6 +221,32 @@ public:
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
         int dst_ln);
+
+    /*!
+     * \brief Solve the residual equation Ae=r on the coarsest level of the
+     * patch hierarchy.
+     *
+     * \param error error vector
+     * \param residual residual vector
+     * \param coarsest_ln coarsest level number
+     */
+    bool
+    solveCoarsestLevel(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
+        int coarsest_ln);
+
+    /*!
+     * \brief Compute the composite-grid residual on the specified range of
+     * levels of the patch hierarchy.
+     */
+    void
+    computeResidual(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+        int coarsest_level_num,
+        int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -317,17 +342,9 @@ protected:
     //\}
 
     /*
-     * The object name is used for error reporting purposes.
-     *
-     * The boolean indicates whether this object has been initialized.
-     */
-    std::string d_object_name;
-    bool d_is_initialized;
-
-    /*
      * Ghost cell width.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_gcw;
+    const int d_gcw;
 
     /*!
      * \name Hierarchy-dependent objects.
@@ -372,7 +389,7 @@ protected:
     /*
      * The kind of smoothing to perform.
      */
-    std::string d_smoother_choice;
+    std::string d_smoother_type;
 
     /*
      * The names of the refinement operators used to prolong the coarse grid
@@ -389,9 +406,11 @@ protected:
     /*
      * Coarse level solver parameters.
      */
-    std::string d_coarse_solver_choice;
+    std::string d_coarse_solver_type;
     double d_coarse_solver_tol;
     int d_coarse_solver_max_its;
+    SAMRAI::tbox::Pointer<StokesSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     //\}
 

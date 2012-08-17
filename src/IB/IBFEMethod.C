@@ -51,7 +51,6 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
 
 // LIBMESH INCLUDES
 #include <boundary_info.h>
@@ -1873,8 +1872,8 @@ IBFEMethod::correctRigidBodyVelocity()
     Pointer<CellVariable<NDIM,double> > p_var = d_ib_solver->getPressureVariable();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, d_ib_solver->getNewContext()    );
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getScratchContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getNewContext()    );
+//  const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getScratchContext());
+//  const int p_new_idx     = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getNewContext()    );
 
     // Force the Eulerian velocity field to agree with the constrained body
     // velocities.
@@ -1902,100 +1901,8 @@ IBFEMethod::correctRigidBodyVelocity()
 
     if (!d_do_constraint_projection) return;
 
-    // Project the corrected Eulerian velocity field.
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<HierarchyDataOpsReal<NDIM,double> > hier_cc_data_ops = getPressureHierarchyDataOps();
-    Pointer<HierarchyMathOps> hier_math_ops = getHierarchyMathOps();
-    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const double volume = hier_math_ops->getVolumeOfPhysicalDomain();
+    TBOX_ERROR("constraint projection currently not implemented.\n");  // XXXX
 
-    // Setup a variable to store the right-hand-side value for the corrected
-    // pressure.
-    int p_rhs_idx = var_db->registerClonedPatchDataIndex(p_var, p_scratch_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(p_rhs_idx, d_new_time);
-    }
-
-    // Setup the solver vectors.
-    SAMRAIVectorReal<NDIM,double> sol_vec(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-    sol_vec.addComponent(p_var, p_scratch_idx, wgt_cc_idx, hier_cc_data_ops);
-
-    SAMRAIVectorReal<NDIM,double> rhs_vec(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec.addComponent(p_var, p_rhs_idx    , wgt_cc_idx, hier_cc_data_ops);
-
-    // Setup the projection Poisson solver.
-    const std::string correction_projection_prefix = "correction_projection_";
-    LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        Phi_bc_coef.setBoundarySlope(2*d  ,0.0);
-        Phi_bc_coef.setBoundarySlope(2*d+1,0.0);
-    }
-
-    PoissonSpecifications correction_projection_spec(d_object_name+"::correction_projection_spec");
-    correction_projection_spec.setCZero();
-    correction_projection_spec.setDConstant(-1.0);
-
-    Pointer<CCLaplaceOperator> correction_projection_op = new CCLaplaceOperator(d_object_name+"::Correction Projection Operator", correction_projection_spec, &Phi_bc_coef, true);
-    correction_projection_op->setHierarchyMathOps(getPressureHierarchyDataOps());
-    correction_projection_op->setPoissonSpecifications(correction_projection_spec);
-    correction_projection_op->setPhysicalBcCoef(&Phi_bc_coef);
-    correction_projection_op->setHomogeneousBc(true);
-    correction_projection_op->setTime(d_new_time);
-    correction_projection_op->setHierarchyMathOps(getHierarchyMathOps());
-
-    if (d_correction_projection_fac_pc_db.isNull())
-    {
-        TBOX_WARNING(d_object_name << "::correctionHierarchy():\n" <<
-                     "  correction projection pressure fac pc solver database is null." << std::endl);
-    }
-    Pointer<CCPoissonPointRelaxationFACOperator> correction_projection_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Correction Projection FAC Operator", d_correction_projection_fac_pc_db);
-    correction_projection_fac_op->setPoissonSpecifications(correction_projection_spec);
-    correction_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
-    correction_projection_fac_op->setTime(d_new_time);
-    Pointer<FACPreconditioner> correction_projection_fac_pc = new FACPreconditioner(d_object_name+"::Correction Projection Preconditioner", correction_projection_fac_op, d_correction_projection_fac_pc_db);
-
-    PETScKrylovLinearSolver correction_projection_solver(d_object_name+"::Correction Projection Krylov Solver", correction_projection_prefix);
-    correction_projection_solver.setOperator(correction_projection_op);
-    correction_projection_solver.setPreconditioner(correction_projection_fac_pc);
-
-    // Set some default options.
-    correction_projection_solver.setKSPType("fgmres");
-    correction_projection_solver.setAbsoluteTolerance(1.0e-12);
-    correction_projection_solver.setRelativeTolerance(1.0e-08);
-    correction_projection_solver.setMaxIterations(25);
-    correction_projection_solver.setNullspace(true);
-    correction_projection_solver.setInitialGuessNonzero(false);
-
-    // Setup the right-hand-side vector for the projection-Poisson solve.
-    Pointer<HierarchyGhostCellInterpolation> no_fill_op(NULL);
-    hier_math_ops->div(p_rhs_idx, p_var, -1.0, u_new_idx, u_var, no_fill_op, d_new_time, /*synch_cf_bdry*/ false);
-    const double div_u_mean = (1.0/volume)*hier_cc_data_ops->integral(p_rhs_idx, wgt_cc_idx);
-    hier_cc_data_ops->addScalar(p_rhs_idx, p_rhs_idx, -div_u_mean);
-
-    // Solve the projection pressure-Poisson problem.
-    correction_projection_solver.solveSystem(sol_vec,rhs_vec);
-
-    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(p_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false, &Phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
-    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
-    Phi_bdry_bc_fill_op->fillData(d_new_time);
-    hier_math_ops->grad(u_new_idx, u_var, /*synch_cf_bdry*/ true, -1.0, p_scratch_idx, p_var, no_fill_op, d_new_time, +1.0, u_new_idx, u_var);
-    hier_cc_data_ops->add(p_new_idx, p_new_idx, p_scratch_idx);
-
-    // Clean up scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(p_rhs_idx);
-    }
-    var_db->removePatchDataIndex(p_rhs_idx);
     return;
 }// correctRigidBodyVelocity
 

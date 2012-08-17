@@ -48,6 +48,9 @@
 #include <SideData.h>
 #include <SideVariable.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <numeric>
 

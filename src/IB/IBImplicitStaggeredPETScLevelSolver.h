@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
+#include <ibamr/StokesSpecifications.h>
 
 // IBTK INCLUDES
 #include <ibtk/PETScLevelSolver.h>
@@ -71,12 +71,6 @@ public:
      */
     IBImplicitStaggeredPETScLevelSolver(
         const std::string& object_name,
-        const INSProblemCoefs& problem_coefs,
-        Mat* J_mat,
-        void (*interp_fcn)(double r_lower,double* w),
-        int interp_stencil,
-        Vec* X_vec,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
@@ -182,7 +176,7 @@ private:
     /*
      * Problem coefficient specifications.
      */
-    INSProblemCoefs d_problem_coefs;
+    StokesSpecifications d_problem_coefs;
     double d_dt;
 
     /*!
@@ -204,7 +198,7 @@ private:
      * data.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_u_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
 
     //\}
 

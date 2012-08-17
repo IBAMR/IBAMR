@@ -516,9 +516,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         helmholtz_solver->setTimeInterval(current_time, new_time);
         if (d_helmholtz_solvers_need_init[l])
         {
-            if (d_do_log) plog << d_object_name << ": "
-                               << "Initializing Helmholtz solvers for variable number " << l
-                               << ", dt = " << dt << "\n";
+            if (d_enable_logging)
+            {
+                plog << d_object_name << ": "
+                     << "Initializing Helmholtz solvers for variable number " << l
+                     << ", dt = " << dt << "\n";
+            }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
         }
@@ -710,8 +713,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
         helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
         if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
         {
             pout << d_object_name << "::integrateHierarchy():"

@@ -36,13 +36,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
+#include <ibamr/StokesSpecifications.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -75,8 +75,8 @@ public:
      * class constructor.
      */
     INSProjectionBcCoef(
-        const INSProblemCoefs* problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const StokesSpecifications* problem_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
@@ -85,14 +85,14 @@ public:
     ~INSProjectionBcCoef();
 
     /*!
-     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * \brief Set the StokesSpecifications object used by this boundary condition
      * specification object.
      *
      * \param problem_coefs   Problem coefficients
      */
     void
-    setINSProblemCoefs(
-        const INSProblemCoefs* problem_coefs);
+    setStokesSpecifications(
+        const StokesSpecifications* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -102,7 +102,7 @@ public:
      */
     void
     setPhysicalBoundaryConditions(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set the current time interval.
@@ -234,7 +234,7 @@ private:
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
     /*
      * The patch data index corresponding to the current value of P.

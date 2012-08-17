@@ -149,9 +149,9 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         case FORWARD_EULER:
         case TRAPEZOIDAL_RULE:
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
             d_ib_method_ops->computeLagrangianForce(current_time);
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
             d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
@@ -180,7 +180,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         case TRAPEZOIDAL_RULE:
             if (num_cycles == 1)
             {
-                if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+                if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
                 d_ib_method_ops->eulerStep(current_time, new_time);
             }
             break;
@@ -225,9 +225,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             }
             break;
         case MIDPOINT_RULE:
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
             d_ib_method_ops->computeLagrangianForce(half_time);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
             break;
@@ -238,9 +238,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 // force computed here would be the same as that computed above
                 // in preprocessIntegrateHierarchy(), so we don't bother to
                 // recompute it.
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+                if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
                 d_ib_method_ops->computeLagrangianForce(new_time);
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+                if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
                 d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
                 d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), new_time);
                 d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
@@ -256,16 +256,16 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // Eulerian grid.
     if (d_ib_method_ops->hasFluidSources())
     {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
         d_ib_method_ops->computeLagrangianFluidSource(half_time);
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
         d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
         d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
     if (d_current_num_cycles > 1)
     {
         d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
@@ -288,12 +288,12 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             break;
         case MIDPOINT_RULE:
             d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
             d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
             break;
         case TRAPEZOIDAL_RULE:
             d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
             d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
             break;
         default:
@@ -306,7 +306,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // structure.
     if (d_current_num_cycles > 1 && d_current_cycle_num == 0)
     {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
         d_ib_method_ops->eulerStep(current_time, new_time);
     }
     else
@@ -317,11 +317,11 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 // intentionally blank
                 break;
             case MIDPOINT_RULE:
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
+                if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
                 d_ib_method_ops->midpointStep(current_time, new_time);
                 break;
             case TRAPEZOIDAL_RULE:
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian trapezoidal-rule step\n";
+                if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian trapezoidal-rule step\n";
                 d_ib_method_ops->trapezoidalStep(current_time, new_time);
                 break;
             default:
@@ -335,7 +335,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     // fluid sources or sinks.
     if (d_ib_method_ops->hasFluidSources())
     {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
@@ -359,13 +359,13 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+    if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
     d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
     {
-        if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
         synchronizeHierarchyData(NEW_DATA);
     }
 
@@ -393,8 +393,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     }
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
     d_regrid_cfl_estimate += cfl_max;
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
+    if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+    if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();

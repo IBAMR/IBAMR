@@ -69,12 +69,12 @@ namespace IBAMR
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const unsigned int comp_idx,
-    const INSProblemCoefs* problem_coefs,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const StokesSpecifications* problem_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_problem_coefs(problem_coefs),
-      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_target_idx(-1),
@@ -92,17 +92,20 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
 }// ~INSStaggeredVelocityBcCoef
 
 void
-INSStaggeredVelocityBcCoef::setINSProblemCoefs(
-    const INSProblemCoefs* problem_coefs)
+INSStaggeredVelocityBcCoef::setStokesSpecifications(
+    const StokesSpecifications* problem_coefs)
 {
     d_problem_coefs = problem_coefs;
     return;
-}// setINSProblemCoefs
+}// setStokesSpecifications
 
 void
 INSStaggeredVelocityBcCoef::setPhysicalBoundaryConditions(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     d_bc_coefs = bc_coefs;
     return;
 }// setPhysicalBoundaryConditions

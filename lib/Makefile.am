@@ -23,7 +23,7 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+$(top_srcdir)/src/navier_stokes/StokesSpecifications.C \
 $(top_srcdir)/src/utilities/RNG.C
 
 if LIBMESH_ENABLED
@@ -32,7 +32,7 @@ $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 endif
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
+$(top_srcdir)/src/navier_stokes/StokesSpecifications.h \
 $(top_srcdir)/src/utilities/RNG.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
@@ -110,7 +110,14 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStokesSolverManager.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+$(top_srcdir)/src/navier_stokes/StokesBlockPreconditioner.C \
+$(top_srcdir)/src/navier_stokes/StokesFACPreconditioner.C \
+$(top_srcdir)/src/navier_stokes/StokesFACPreconditionerStrategy.C \
+$(top_srcdir)/src/navier_stokes/StokesKrylovLinearSolverWrapper.C \
+$(top_srcdir)/src/navier_stokes/StokesOperator.C \
+$(top_srcdir)/src/navier_stokes/StokesSolver.C \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 $(top_srcdir)/src/utilities/ConvectiveOperator.C
 
@@ -183,7 +190,14 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStokesSolverManager.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+$(top_srcdir)/src/navier_stokes/StokesBlockPreconditioner.h \
+$(top_srcdir)/src/navier_stokes/StokesFACPreconditioner.h \
+$(top_srcdir)/src/navier_stokes/StokesFACPreconditionerStrategy.h \
+$(top_srcdir)/src/navier_stokes/StokesKrylovLinearSolverWrapper.h \
+$(top_srcdir)/src/navier_stokes/StokesOperator.h \
+$(top_srcdir)/src/navier_stokes/StokesSolver.h \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 $(top_srcdir)/src/utilities/ConvectiveOperator.h
 

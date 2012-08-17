@@ -35,34 +35,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// PETSC INCLUDE
+#include <petscsys.h>
+
 // IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
+#include <ibamr/StokesSolver.h>
 
 // IBTK INCLUDES
 #include <ibtk/PETScLevelSolver.h>
 
 // SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
 #include <RefineSchedule.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPETScLevelSolver is a concrete LinearSolver for a
- * staggered-grid (MAC) discretization of the incompressible Stokes operator.
+ * \brief Class INSStaggeredPETScLevelSolver is a concrete PETScLevelSolver for
+ * a staggered-grid (MAC) discretization of the incompressible Stokes equations.
  *
  * \see INSStaggeredHierarchyIntegrator
  */
 class INSStaggeredPETScLevelSolver
-    : public IBTK::PETScLevelSolver
+    : public IBTK::PETScLevelSolver,
+      public StokesSolver
 {
 public:
     /*!
@@ -70,14 +67,28 @@ public:
      */
     INSStaggeredPETScLevelSolver(
         const std::string& object_name,
-        const INSProblemCoefs& problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
      */
     ~INSStaggeredPETScLevelSolver();
+
+    /*!
+     * \brief Solver name string.
+     */
+    static const std::string SOLVER_TYPE_NAME;
+
+    /*!
+     * \brief Static function to construct a CCPoissonPETScLevelSolver.
+     */
+    static SAMRAI::tbox::Pointer<StokesSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        {
+            return new INSStaggeredPETScLevelSolver(object_name, input_db);
+        }// allocate_solver
 
 protected:
     /*!
@@ -156,26 +167,6 @@ private:
     INSStaggeredPETScLevelSolver&
     operator=(
         const INSStaggeredPETScLevelSolver& that);
-
-    /*!
-     * \name Problem specification and boundary condition handling.
-     */
-    //\{
-
-    /*
-     * Problem coefficient specifications.
-     */
-    INSProblemCoefs d_problem_coefs;
-    double d_dt;
-
-    /*!
-     * \brief Boundary coefficient object for physical boundaries and related
-     * data.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_u_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
-
-    //\}
 
     /*!
      * \name PETSc objects.

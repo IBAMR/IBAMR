@@ -50,7 +50,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonSolverManager.h>
-#include <ibtk/KrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -506,13 +505,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         const std::string& name = Q_var->getName();
-        d_helmholtz_solvers[l] = poisson_solver_manager->allocateSolver(d_helmholtz_solver_type, d_object_name+"::helmholtz_solver::"+name, d_helmholtz_solver_db);
-        Pointer<KrylovLinearSolver> p_helmholtz_solver = d_helmholtz_solvers[l];
-        if (!p_helmholtz_solver.isNull())
-        {
-            Pointer<PoissonSolver> helmholtz_precond = poisson_solver_manager->allocateSolver(d_helmholtz_precond_type, d_object_name+"::helmholtz_precond::"+name, d_helmholtz_precond_db);
-            p_helmholtz_solver->setPreconditioner(helmholtz_precond);
-        }
+        d_helmholtz_solvers[l] = poisson_solver_manager->allocateSolver(
+            d_helmholtz_solver_type , d_object_name+"::helmholtz_solver::" +name, d_helmholtz_solver_db ,
+            d_helmholtz_precond_type, d_object_name+"::helmholtz_precond::"+name, d_helmholtz_precond_db);
         d_helmholtz_solvers_need_init[l] = true;
     }
 
@@ -771,6 +766,14 @@ AdvDiffHierarchyIntegrator::getFromInput(
     if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
     if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
     if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
+    if (!d_helmholtz_solver_db.isNull() && !d_helmholtz_solver_db->keyExists("options_prefix"))
+    {
+        d_helmholtz_solver_db->putString("options_prexix", "adv_diff_");
+    }
+    if (!d_helmholtz_precond_db.isNull() && !d_helmholtz_precond_db->keyExists("options_prefix"))
+    {
+        d_helmholtz_precond_db->putString("options_prexix", "adv_diff_pc_");
+    }
     return;
 }// getFromInput
 

@@ -35,17 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsys.h>
-
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
+#include <ibamr/StokesSolver.h>
 
 // IBTK INCLUDES
-#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/SCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/SideDataSynchronization.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -82,7 +78,7 @@ public:
      * Get a vector of pointers to the true velocity boundary condition
      * specification objects.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
     getVelocityBoundaryConditions() const;
 
     /*!
@@ -109,75 +105,30 @@ public:
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the velocity subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getVelocitySubdomainSolver();
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the pressure subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getPressureSubdomainSolver();
 
     /*!
      * Register a solver for the time-dependent incompressible Stokes equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setStokesSolver(
-        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> stokes_op,
-        SAMRAI::tbox::Pointer<IBTK::GeneralSolver> stokes_solver,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<StokesSolver> stokes_solver);
 
     /*!
      * Get the solver for the time-dependent incompressible Stokes equations
      * used by this solver class.
-     *
-     * If the solver has not already been constructed, then this function will
-     * initialize a default solver, which is currently a PETScKrylovLinearSolver
-     * preconditioned by the default Stokes preconditioner provided by
-     * getStokesPreconditioner().  If a user-specified preconditioner has
-     * already been registered with the integrator, that preconditioner is used
-     * in place of the default preconditioner.
      */
-    SAMRAI::tbox::Pointer<IBTK::GeneralSolver>
+    SAMRAI::tbox::Pointer<StokesSolver>
     getStokesSolver();
-
-    /*!
-     * Register a preconditioner for the time-dependent incompressible Stokes
-     * equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * preconditioner needs to be explicitly reinitialized when the time step
-     * size changes.
-     */
-    void
-    setStokesPreconditioner(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
-        bool needs_reinit_when_dt_changes);
-
-    /*!
-     * Get the preconditioner for the time-dependent incompressible Stokes
-     * equations used by this solver class.
-     *
-     * If the preconditioner has not already been constructed, then this
-     * function will initialize a default preconditioner, which is currently
-     * INSStaggeredProjectionPreconditioner.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
-    getStokesPreconditioner();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -362,7 +313,7 @@ private:
      * Boundary condition and data synchronization operators.
      */
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
@@ -379,28 +330,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
 
-    bool d_convective_op_needs_init;
-
-    SAMRAI::solv::PoissonSpecifications*                             d_velocity_spec;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver>           d_velocity_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonPointRelaxationFACOperator> d_velocity_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>                   d_velocity_fac_pc;
-    bool d_velocity_solver_needs_init;
-
-    SAMRAI::solv::PoissonSpecifications*                             d_pressure_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver>           d_pressure_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_pressure_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>                   d_pressure_fac_pc;
-    bool d_pressure_solver_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::GeneralSolver>   d_stokes_solver;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>    d_stokes_pc;
-    bool d_stokes_solver_needs_reinit_when_dt_changes, d_stokes_solver_needs_init;
+    std::string d_stokes_solver_type, d_stokes_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
+    SAMRAI::tbox::Pointer<StokesSolver> d_stokes_solver;
+    bool d_stokes_solver_needs_init;
 
     /*!
      * Fluid solver variables.
