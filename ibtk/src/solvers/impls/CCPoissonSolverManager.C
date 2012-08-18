@@ -64,8 +64,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CCPoissonSolverManager::DEFAULT_KRYLOV_LINEAR_SOLVER        = "DEFAULT_KRYLOV_LINEAR_SOLVER";
-const std::string CCPoissonSolverManager::PETSC_KRYLOV_LINEAR_SOLVER          = "PETSC_KRYLOV_LINEAR_SOLVER";
+const std::string CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER               = "DEFAULT_KRYLOV_SOLVER";
+const std::string CCPoissonSolverManager::PETSC_KRYLOV_SOLVER                 = "PETSC_KRYLOV_SOLVER";
 const std::string CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER          = "DEFAULT_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER = "POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER                = "DEFAULT_LEVEL_SOLVER";
@@ -106,9 +106,10 @@ allocate_default_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("DEFAULT", solver_object_name, solver_input_db);
+    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver(KrylovLinearSolverManager::getManager()->allocateSolver(
+                                                                CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER, solver_object_name, solver_input_db));
     krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return new PoissonKrylovLinearSolverWrapper(krylov_solver);
+    return krylov_solver;
 }// allocate_default_krylov_solver
 
 Pointer<PoissonSolver>
@@ -116,9 +117,10 @@ allocate_petsc_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    Pointer<KrylovLinearSolver> krylov_solver = KrylovLinearSolverManager::getManager()->allocateSolver("PETSC_KRYLOV_LINEAR_SOLVER", solver_object_name, solver_input_db);
+    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver(KrylovLinearSolverManager::getManager()->allocateSolver(
+                                                                CCPoissonSolverManager::PETSC_KRYLOV_SOLVER, solver_object_name, solver_input_db));
     krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return new PoissonKrylovLinearSolverWrapper(krylov_solver);
+    return krylov_solver;
 }// allocate_petsc_krylov_solver
 }
 
@@ -176,8 +178,8 @@ CCPoissonSolverManager::registerSolverFactoryFunction(
 CCPoissonSolverManager::CCPoissonSolverManager()
     : d_solver_maker_map()
 {
-    registerSolverFactoryFunction(DEFAULT_KRYLOV_LINEAR_SOLVER       , allocate_default_krylov_solver);
-    registerSolverFactoryFunction(PETSC_KRYLOV_LINEAR_SOLVER         , allocate_petsc_krylov_solver);
+    registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER              , allocate_default_krylov_solver);
+    registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER                , allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER         , CCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER, CCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER               , CCPoissonHypreLevelSolver::allocate_solver);

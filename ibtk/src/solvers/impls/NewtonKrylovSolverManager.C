@@ -59,8 +59,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string NewtonKrylovSolverManager::DEFAULT_NEWTON_KRYLOV_SOLVER = "DEFAULT_NEWTON_KRYLOV_SOLVER";
-const std::string NewtonKrylovSolverManager::PETSC_NEWTON_KRYLOV_SOLVER   = "PETSC_NEWTON_KRYLOV_SOLVER";
+const std::string NewtonKrylovSolverManager::DEFAULT = "DEFAULT";
+const std::string NewtonKrylovSolverManager::PETSC   = "PETSC";
 
 NewtonKrylovSolverManager* NewtonKrylovSolverManager::s_solver_manager_instance = NULL;
 bool NewtonKrylovSolverManager::s_registered_callback = false;
@@ -125,8 +125,8 @@ NewtonKrylovSolverManager::registerSolverFactoryFunction(
 NewtonKrylovSolverManager::NewtonKrylovSolverManager()
     : d_solver_maker_map()
 {
-    registerSolverFactoryFunction(DEFAULT_NEWTON_KRYLOV_SOLVER, PETScNewtonKrylovSolver::allocate_solver);
-    registerSolverFactoryFunction(PETSC_NEWTON_KRYLOV_SOLVER  , PETScNewtonKrylovSolver::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT, PETScNewtonKrylovSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC  , PETScNewtonKrylovSolver::allocate_solver);
     return;
 }// NewtonKrylovSolverManager
 

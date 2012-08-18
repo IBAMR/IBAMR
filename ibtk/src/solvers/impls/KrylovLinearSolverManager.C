@@ -59,8 +59,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string KrylovLinearSolverManager::DEFAULT_KRYLOV_LINEAR_SOLVER = "DEFAULT_KRYLOV_LINEAR_SOLVER";
-const std::string KrylovLinearSolverManager::PETSC_KRYLOV_LINEAR_SOLVER   = "PETSC_KRYLOV_LINEAR_SOLVER";
+const std::string KrylovLinearSolverManager::DEFAULT = "DEFAULT";
+const std::string KrylovLinearSolverManager::PETSC   = "PETSC";
 
 KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = NULL;
 bool KrylovLinearSolverManager::s_registered_callback = false;
@@ -125,8 +125,8 @@ KrylovLinearSolverManager::registerSolverFactoryFunction(
 KrylovLinearSolverManager::KrylovLinearSolverManager()
     : d_solver_maker_map()
 {
-    registerSolverFactoryFunction(DEFAULT_KRYLOV_LINEAR_SOLVER, PETScKrylovLinearSolver::allocate_solver);
-    registerSolverFactoryFunction(PETSC_KRYLOV_LINEAR_SOLVER  , PETScKrylovLinearSolver::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT, PETScKrylovLinearSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC  , PETScKrylovLinearSolver::allocate_solver);
     return;
 }// KrylovLinearSolverManager
 

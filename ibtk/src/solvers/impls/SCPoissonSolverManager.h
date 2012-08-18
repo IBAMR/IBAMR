@@ -55,8 +55,8 @@ public:
     /*!
      * Default Krylov solver types automatically provided by the manager class.
      */
-    static const std::string DEFAULT_KRYLOV_LINEAR_SOLVER;
-    static const std::string PETSC_KRYLOV_LINEAR_SOLVER;
+    static const std::string DEFAULT_KRYLOV_SOLVER;
+    static const std::string PETSC_KRYLOV_SOLVER;
 
     /*!
      * Default FAC preconditioner types automatically provided by the manager

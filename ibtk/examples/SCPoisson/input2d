@@ -16,7 +16,7 @@ n1 {
    function_1 = "1.0"
 }
 
-solver_type = "PETSC_KRYLOV_LINEAR_SOLVER"
+solver_type = "PETSC_KRYLOV_SOLVER"
 solver_db {
    // intentionally blank
 }

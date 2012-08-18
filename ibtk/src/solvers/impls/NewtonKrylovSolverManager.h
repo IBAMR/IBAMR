@@ -56,8 +56,8 @@ public:
      * Default Newton-Krylov solver types automatically provided by the manager
      * class.
      */
-    static const std::string DEFAULT_NEWTON_KRYLOV_SOLVER;
-    static const std::string PETSC_NEWTON_KRYLOV_SOLVER;
+    static const std::string DEFAULT;
+    static const std::string PETSC;
 
     /*!
      * Return a pointer to the instance of the solver manager.  Access to

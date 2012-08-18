@@ -6,7 +6,7 @@ f {
    function = "(3*(2*PI)^2)*sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
 }
 
-solver_type = "PETSC_KRYLOV_LINEAR_SOLVER"
+solver_type = "PETSC_KRYLOV_SOLVER"
 solver_db {
    // intentionally blank
 }
