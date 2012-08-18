@@ -110,8 +110,8 @@ allocate_default_krylov_solver(
         KrylovLinearSolverManager::getManager()->allocateSolver(
             KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db);
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_wrapper = new PoissonKrylovLinearSolverWrapper(krylov_solver);
-    krylov_solver_wrapper->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return krylov_solver_wrapper;
+    krylov_wrapper->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
+    return krylov_wrapper;
 }// allocate_default_krylov_solver
 
 Pointer<PoissonSolver>
@@ -123,8 +123,8 @@ allocate_petsc_krylov_solver(
         KrylovLinearSolverManager::getManager()->allocateSolver(
             KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db);
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_wrapper = new PoissonKrylovLinearSolverWrapper(krylov_solver);
-    krylov_solver_wrapper->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return krylov_solver_wrapper;
+    krylov_wrapper->setOperator(new CCLaplaceOperator(solver_object_name+"::laplace_operator"));
+    return krylov_wrapper;
 }// allocate_petsc_krylov_solver
 }
 
