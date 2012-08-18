@@ -74,14 +74,14 @@ static Timer* t_deallocate_solver_state;
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& object_name,
-    const std::string& options_prefix,
+    Pointer<Database> input_db,
     MPI_Comm petsc_comm)
     : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
-      d_options_prefix(options_prefix),
+      d_options_prefix(""),
       d_petsc_comm(petsc_comm),
       d_petsc_snes(PETSC_NULL),
       d_petsc_jac (PETSC_NULL),
@@ -89,6 +89,25 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_function(false),
       d_user_provided_jacobian(false)
 {
+    // Setup default values.
+    d_options_prefix = "";
+    d_max_iterations = 50;
+    d_abs_residual_tol = 1.0e-50;
+    d_rel_residual_tol = 1.0e-8;
+    d_solution_tol = 1.0e-8;
+    d_enable_logging = false;
+
+    // Get values from the input database.
+    if (!input_db.isNull())
+    {
+        d_options_prefix = input_db->getStringWithDefault("options_prefix", d_options_prefix);
+        d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
+        d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
+        d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
+        d_solution_tol = input_db->getDoubleWithDefault("solution_tol", d_solution_tol);
+        d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+    }
+
     // Common constructor functionality.
     common_ctor();
     return;
@@ -96,14 +115,13 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& object_name,
-    const SNES& petsc_snes,
-    const std::string& options_prefix)
+    const SNES& petsc_snes)
     : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
-      d_options_prefix(options_prefix),
+      d_options_prefix(""),
       d_petsc_comm(PETSC_COMM_WORLD),
       d_petsc_snes(petsc_snes),
       d_petsc_jac (PETSC_NULL),
@@ -112,8 +130,6 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false)
 {
     if (d_petsc_snes != NULL) resetWrappedSNES(d_petsc_snes);
-
-    // Common constructor functionality.
     common_ctor();
     return;
 }// PETScNewtonKrylovSolver()
@@ -136,6 +152,14 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
     }
     return;
 }// ~PETScNewtonKrylovSolver()
+
+void
+PETScKrylovLinearSolver::setOptionsPrefix(
+    const std::string& options_prefix)
+{
+    d_options_prefix = options_prefix;
+    return;
+}// setOptionsPrefix
 
 const SNES&
 PETScNewtonKrylovSolver::getPETScSNES() const
@@ -361,10 +385,7 @@ PETScNewtonKrylovSolver::initializeSolverState(
     if (d_managing_petsc_snes || d_user_provided_jacobian) resetSNESJacobian();
 
     // Set the SNES options from the PETSc options database.
-    if (!d_options_prefix.empty())
-    {
-        ierr = SNESSetOptionsPrefix(d_petsc_snes, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
-    }
+    ierr = SNESSetOptionsPrefix(d_petsc_snes, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     ierr = SNESSetFromOptions(d_petsc_snes); IBTK_CHKERRQ(ierr);
 
     // Reset the member state variables to correspond to the values used by the
@@ -444,16 +465,9 @@ PETScNewtonKrylovSolver::deallocateSolverState()
 void
 PETScNewtonKrylovSolver::common_ctor()
 {
-    // Setup default values.
-    d_abs_residual_tol = PETSC_DEFAULT;
-    d_rel_residual_tol = PETSC_DEFAULT;
-    d_solution_tol = PETSC_DEFAULT;
-    d_max_iterations = PETSC_DEFAULT;
-    d_max_evaluations = PETSC_DEFAULT;
-
     // Setup linear solver wrapper.
     KSP petsc_ksp = PETSC_NULL;
-    d_krylov_solver = new PETScKrylovLinearSolver(d_object_name+"::KSP Wrapper", petsc_ksp, d_options_prefix);
+    d_krylov_solver = new PETScKrylovLinearSolver(d_object_name+"::KSP Wrapper", petsc_ksp);
     d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
     d_krylov_solver->setSolutionTime(d_solution_time);
     d_krylov_solver->setTimeInterval(d_current_time, d_new_time);
@@ -525,6 +539,11 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
 
     // Set d_petsc_comm to be the MPI communicator used by the supplied SNES.
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_snes), &d_petsc_comm); IBTK_CHKERRQ(ierr);
+
+    // Set d_options_prefix to correspond to that used by the supplied SNES.
+    const char* options_prefix;
+    ierr = SNESGetOptionsPrefix(d_petsc_snes, &options_prefix); IBTK_CHKERRQ(ierr);
+    d_options_prefix = options_prefix;
 
     // Setup the function and Jacobian.
     if (d_user_provided_function) resetSNESFunction();

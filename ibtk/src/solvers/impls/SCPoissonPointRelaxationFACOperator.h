@@ -39,8 +39,8 @@
 #include <petscmat.h>
 
 // IBTK INCLUDES
+#include <ibtk/PoissonFACPreconditioner.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
-#include <ibtk/PoissonSolver.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -102,6 +102,20 @@ public:
      * \brief Destructor.
      */
     ~SCPoissonPointRelaxationFACOperator();
+
+    /*!
+     * \brief Static function to construct a PoissonFACPreconditioner with a
+     * SCPoissonPointRelaxationFACOperator FAC strategy.
+     */
+    static SAMRAI::tbox::Pointer<PoissonSolver>
+    allocate_solver(
+        const std::string& solver_object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db)
+        {
+            SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
+                new SCPoissonPointRelaxationFACOperator(solver_object_name+"::fac_operator", solver_input_db);
+            return new PoissonFACPreconditioner(solver_object_name, fac_operator);
+        }// allocate
 
     /*!
      * \name Functions for configuring the solver.

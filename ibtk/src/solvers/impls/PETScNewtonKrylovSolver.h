@@ -84,7 +84,7 @@ public:
      * PETSc SNES solver framework.
      *
      * \param object_name     Name of the solver
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
+     * \param input_db        Solver configuration
      * \param petsc_comm      MPI communicator
      *
      * \note The value of \a petsc_comm is used to specify the MPI communicator
@@ -92,7 +92,7 @@ public:
      */
     PETScNewtonKrylovSolver(
         const std::string& object_name,
-        const std::string& options_prefix="",
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
 
     /*!
@@ -101,7 +101,6 @@ public:
      *
      * \param object_name     Name of the solver
      * \param petsc_snes      PETSc SNES object
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
      *
      * \note This constructor initializes a PETScNewtonKrylovSolver object that
      * acts as a "wrapper" for the provided SNES object.  Note that memory
@@ -109,8 +108,7 @@ public:
      */
     PETScNewtonKrylovSolver(
         const std::string& object_name,
-        const SNES& petsc_snes,
-        const std::string& options_prefix="");
+        const SNES& petsc_snes);
 
     /*!
      * \brief Destructor.
@@ -125,8 +123,15 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
         {
-            return new PETScNewtonKrylovSolver(object_name, input_db.isNull() ? "" : input_db->getStringWithDefault("options_prefix", ""));
+            return new PETScNewtonKrylovSolver(object_name, input_db);
         }// allocate_solver
+
+    /*!
+     * \brief Set the options prefix used by this PETSc solver object.
+     */
+    void
+    setOptionsPrefix(
+        const std::string& options_prefix);
 
     /*!
      * \name Functions to access the underlying PETSc objects.
@@ -448,7 +453,7 @@ private:
 
     Vec d_petsc_x, d_petsc_b, d_petsc_r;
 
-    const std::string d_options_prefix;
+    std::string d_options_prefix;
 
     MPI_Comm d_petsc_comm;
     SNES     d_petsc_snes;

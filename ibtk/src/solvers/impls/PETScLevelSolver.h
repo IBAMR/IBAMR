@@ -84,6 +84,13 @@ public:
     ~PETScLevelSolver();
 
     /*!
+     * \brief Set the KSP type.
+     */
+    void
+    setKSPType(
+        const std::string& ksp_type);
+
+    /*!
      * \brief Set the options prefix used by this PETSc solver object.
      */
     void
@@ -276,6 +283,7 @@ protected:
      * \name PETSc objects.
      */
     //\{
+    std::string d_ksp_type;
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc;

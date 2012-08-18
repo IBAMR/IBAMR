@@ -76,17 +76,17 @@ static Timer* t_deallocate_solver_state;
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const std::string& object_name,
-    const std::string& options_prefix,
+    Pointer<Database> input_db,
     MPI_Comm petsc_comm)
     : LinearSolver(object_name),
       KrylovLinearSolver(object_name),
-      d_ksp_type("gmres"),
+      d_ksp_type(KSPGMRES),
       d_pc_shell_types(),
       d_pc_shell_type("none"),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
-      d_options_prefix(options_prefix),
+      d_options_prefix(""),
       d_petsc_comm  (petsc_comm),
       d_petsc_ksp   (PETSC_NULL),
       d_petsc_mat   (PETSC_NULL),
@@ -99,6 +99,27 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
+    // Setup default values.
+    d_options_prefix = "";
+    d_max_iterations = 10000;
+    d_abs_residual_tol = 1.0e-50;
+    d_rel_residual_tol = 1.0e-5;
+    d_ksp_type = KSPGMRES;
+    d_initial_guess_nonzero = true;
+    d_enable_logging = false;
+
+    // Get values from the input database.
+    if (!input_db.isNull())
+    {
+        d_options_prefix = input_db->getStringWithDefault("options_prefix", d_options_prefix);
+        d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
+        d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
+        d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
+        d_ksp_type = input_db->getStringWithDefault("ksp_type", d_ksp_type);
+        d_initial_guess_nonzero = input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
+        d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+    }
+
     // Common constructor functionality.
     common_ctor();
     return;
@@ -106,15 +127,14 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const std::string& object_name,
-    const KSP& petsc_ksp,
-    const std::string& options_prefix)
+    const KSP& petsc_ksp)
     : LinearSolver(object_name),
       KrylovLinearSolver(object_name),
       d_ksp_type("none"),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
-      d_options_prefix(options_prefix),
+      d_options_prefix(""),
       d_petsc_comm  (PETSC_COMM_WORLD),
       d_petsc_ksp   (petsc_ksp),
       d_petsc_mat   (PETSC_NULL),
@@ -128,8 +148,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_solver_has_attached_nullspace(false)
 {
     if (d_petsc_ksp != NULL) resetWrappedKSP(d_petsc_ksp);
-
-    // Common constructor functionality.
     common_ctor();
     return;
 }// PETScKrylovLinearSolver()
@@ -160,6 +178,14 @@ PETScKrylovLinearSolver::setKSPType(
     d_ksp_type = ksp_type;
     return;
 }// setKSPType
+
+void
+PETScKrylovLinearSolver::setOptionsPrefix(
+    const std::string& options_prefix)
+{
+    d_options_prefix = options_prefix;
+    return;
+}// setOptionsPrefix
 
 const KSP&
 PETScKrylovLinearSolver::getPETScKSP() const
@@ -377,10 +403,7 @@ PETScKrylovLinearSolver::initializeSolverState(
     if (d_managing_petsc_ksp || d_user_provided_pc) resetKSPPC();
 
     // Set the KSP options from the PETSc options database.
-    if (!d_options_prefix.empty())
-    {
-        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
-    }
+    ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
 
     // Reset the member state variables to correspond to the values used by the
@@ -457,12 +480,6 @@ PETScKrylovLinearSolver::deallocateSolverState()
 void
 PETScKrylovLinearSolver::common_ctor()
 {
-    // Setup default values.
-    d_initial_guess_nonzero = false;
-    d_rel_residual_tol = PETSC_DEFAULT;
-    d_abs_residual_tol = PETSC_DEFAULT;
-    d_max_iterations = PETSC_DEFAULT;
-
     // Setup Timers.
     IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::PETScKrylovLinearSolver::solveSystem()");
@@ -541,8 +558,16 @@ PETScKrylovLinearSolver::resetWrappedKSP(
     ierr = KSPGetType(d_petsc_ksp, &ksp_type); IBTK_CHKERRQ(ierr);
     d_ksp_type = std::string(ksp_type);
 
+    // Set d_options_prefix to correspond to that used by the supplied KSP.
+    const char* options_prefix;
+    ierr = KSPGetOptionsPrefix(d_petsc_ksp, &options_prefix); IBTK_CHKERRQ(ierr);
+    d_options_prefix = options_prefix;
+
     // Setup operators and preconditioners.
-    if (d_user_provided_mat) resetKSPOperators();
+    if (d_user_provided_mat)
+    {
+        resetKSPOperators();
+    }
     else
     {
         // Create a LinearOperator wrapper to correspond to the PETSc Mat used
@@ -555,7 +580,10 @@ PETScKrylovLinearSolver::resetWrappedKSP(
         d_A->setTimeInterval(d_current_time, d_new_time);
     }
 
-    if (d_user_provided_pc) resetKSPPC();
+    if (d_user_provided_pc)
+    {
+        resetKSPPC();
+    }
     else
     {
         // Create a LinearSolver wrapper to correspond to the PETSc PC used by

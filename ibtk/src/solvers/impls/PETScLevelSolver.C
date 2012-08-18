@@ -80,6 +80,7 @@ PETScLevelSolver::PETScLevelSolver(
     : LinearSolver(object_name),
       d_hierarchy(),
       d_level_num(-1),
+      d_ksp_type(KSPGMRES),
       d_options_prefix(""),
       d_petsc_ksp(PETSC_NULL),
       d_petsc_mat(PETSC_NULL),
@@ -87,10 +88,13 @@ PETScLevelSolver::PETScLevelSolver(
       d_petsc_b(PETSC_NULL)
 {
     // Setup default options.
-    d_initial_guess_nonzero = false;
-    d_rel_residual_tol = 1.0e-6;
-    d_abs_residual_tol = 1.0e-30;
-    d_max_iterations = 10;
+    d_options_prefix = "";
+    d_max_iterations = 10000;
+    d_abs_residual_tol = 1.0e-50;
+    d_rel_residual_tol = 1.0e-5;
+    d_ksp_type = KSPGMRES;
+    d_initial_guess_nonzero = true;
+    d_enable_logging = false;
 
     // Get values from the input database.
     if (!input_db.isNull())
@@ -99,6 +103,7 @@ PETScLevelSolver::PETScLevelSolver(
         d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
         d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
         d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
+        d_ksp_type = input_db->getStringWithDefault("ksp_type", d_ksp_type);
         d_initial_guess_nonzero = input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
         d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
     }
@@ -121,6 +126,22 @@ PETScLevelSolver::~PETScLevelSolver()
     }
     return;
 }// ~PETScLevelSolver
+
+void
+PETScLevelSolver::setKSPType(
+    const std::string& ksp_type)
+{
+    d_ksp_type = ksp_type;
+    return;
+}// setKSPType
+
+void
+PETScLevelSolver::setOptionsPrefix(
+    const std::string& options_prefix)
+{
+    d_options_prefix = options_prefix;
+    return;
+}// setOptionsPrefix
 
 void
 PETScLevelSolver::setNullspace(
@@ -253,10 +274,8 @@ PETScLevelSolver::initializeSolverState(
     int ierr;
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
-    if (!d_options_prefix.empty())
-    {
-        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
-    }
+    ierr = KSPSetType(d_petsc_ksp, d_ksp_type.c_str()); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
     if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty()) setupNullspace();
 

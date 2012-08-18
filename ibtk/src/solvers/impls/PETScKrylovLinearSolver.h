@@ -100,7 +100,7 @@ public:
      * PETSc KSP solver framework.
      *
      * \param object_name     Name of the solver
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
+     * \param input_db        Solver configuration
      * \param petsc_comm      MPI communicator
      *
      * \note The value of \a petsc_comm is used to specify the MPI communicator
@@ -108,7 +108,7 @@ public:
      */
     PETScKrylovLinearSolver(
         const std::string& object_name,
-        const std::string& options_prefix="",
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
 
     /*!
@@ -117,7 +117,6 @@ public:
      *
      * \param object_name     Name of the solver
      * \param petsc_ksp       PETSc KSP object
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
      *
      * \note This constructor initializes a PETScKrylovLinearSolver object that
      * acts as a "wrapper" for the provided KSP object.  Note that memory
@@ -125,8 +124,12 @@ public:
      */
     PETScKrylovLinearSolver(
         const std::string& object_name,
-        const KSP& petsc_ksp,
-        const std::string& options_prefix="");
+        const KSP& petsc_ksp);
+
+    /*!
+     * \brief Destructor.
+     */
+    ~PETScKrylovLinearSolver();
 
     /*!
      * \brief Static function to construct a PETScKrylovLinearSolver.
@@ -136,13 +139,8 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
         {
-            return new PETScKrylovLinearSolver(object_name, input_db.isNull() ? "" : input_db->getStringWithDefault("options_prefix", ""));
+            return new PETScKrylovLinearSolver(object_name, input_db);
         }// allocate_solver
-
-    /*!
-     * \brief Destructor.
-     */
-    ~PETScKrylovLinearSolver();
 
     /*!
      * \brief Set the KSP type.
@@ -150,6 +148,13 @@ public:
     void
     setKSPType(
         const std::string& ksp_type);
+
+    /*!
+     * \brief Set the options prefix used by this PETSc solver object.
+     */
+    void
+    setOptionsPrefix(
+        const std::string& options_prefix);
 
     /*!
      * \brief Set a list of valid preconditioner types, set via the
@@ -490,7 +495,7 @@ private:
 
     Vec d_petsc_x, d_petsc_b;
 
-    const std::string d_options_prefix;
+    std::string d_options_prefix;
 
     MPI_Comm     d_petsc_comm;
     KSP          d_petsc_ksp;
