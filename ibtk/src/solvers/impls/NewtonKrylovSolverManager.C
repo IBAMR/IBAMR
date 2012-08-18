@@ -59,6 +59,9 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const std::string NewtonKrylovSolverManager::DEFAULT_NEWTON_KRYLOV_SOLVER = "DEFAULT_NEWTON_KRYLOV_SOLVER";
+const std::string NewtonKrylovSolverManager::PETSC_NEWTON_KRYLOV_SOLVER   = "PETSC_NEWTON_KRYLOV_SOLVER";
+
 NewtonKrylovSolverManager* NewtonKrylovSolverManager::s_solver_manager_instance = NULL;
 bool NewtonKrylovSolverManager::s_registered_callback = false;
 unsigned char NewtonKrylovSolverManager::s_shutdown_priority = 200;
@@ -108,6 +111,11 @@ NewtonKrylovSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
     SolverMaker solver_maker)
 {
+    if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
+    {
+        pout << "NewtonKrylovSolverManager::registerSolverFactoryFunction():\n"
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
+    }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
 }// registerSolverFactoryFunction
@@ -117,8 +125,8 @@ NewtonKrylovSolverManager::registerSolverFactoryFunction(
 NewtonKrylovSolverManager::NewtonKrylovSolverManager()
     : d_solver_maker_map()
 {
-    d_solver_maker_map["DEFAULT"] = PETScNewtonKrylovSolver::allocate_solver;
-    d_solver_maker_map["PETSC_NEWTON_KRYLOV_SOLVER"] = PETScNewtonKrylovSolver::allocate_solver;
+    registerSolverFactoryFunction(DEFAULT_NEWTON_KRYLOV_SOLVER, PETScNewtonKrylovSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC_NEWTON_KRYLOV_SOLVER  , PETScNewtonKrylovSolver::allocate_solver);
     return;
 }// NewtonKrylovSolverManager
 

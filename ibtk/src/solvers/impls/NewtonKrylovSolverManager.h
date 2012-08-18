@@ -53,6 +53,13 @@ class NewtonKrylovSolverManager
 {
 public:
     /*!
+     * Default Newton-Krylov solver types automatically provided by the manager
+     * class.
+     */
+    static const std::string DEFAULT_NEWTON_KRYLOV_SOLVER;
+    static const std::string PETSC_NEWTON_KRYLOV_SOLVER;
+
+    /*!
      * Return a pointer to the instance of the solver manager.  Access to
      * NewtonKrylovSolverManager objects is mediated by the getManager()
      * function.

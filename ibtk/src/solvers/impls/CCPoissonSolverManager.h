@@ -53,6 +53,26 @@ class CCPoissonSolverManager
 {
 public:
     /*!
+     * Default Krylov solver types automatically provided by the manager class.
+     */
+    static const std::string DEFAULT_KRYLOV_LINEAR_SOLVER;
+    static const std::string PETSC_KRYLOV_LINEAR_SOLVER;
+
+    /*!
+     * Default FAC preconditioner types automatically provided by the manager
+     * class.
+     */
+    static const std::string DEFAULT_FAC_PRECONDITIONER;
+    static const std::string POINT_RELAXATION_FAC_PRECONDITIONER;
+
+    /*!
+     * Default level solver types automatically provided by the manager class.
+     */
+    static const std::string DEFAULT_LEVEL_SOLVER;
+    static const std::string HYPRE_LEVEL_SOLVER;
+    static const std::string PETSC_LEVEL_SOLVER;
+
+    /*!
      * Return a pointer to the instance of the solver manager.  Access to
      * CCPoissonSolverManager objects is mediated by the getManager()
      * function.

@@ -59,6 +59,9 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const std::string KrylovLinearSolverManager::DEFAULT_KRYLOV_LINEAR_SOLVER = "DEFAULT_KRYLOV_LINEAR_SOLVER";
+const std::string KrylovLinearSolverManager::PETSC_KRYLOV_LINEAR_SOLVER   = "PETSC_KRYLOV_LINEAR_SOLVER";
+
 KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = NULL;
 bool KrylovLinearSolverManager::s_registered_callback = false;
 unsigned char KrylovLinearSolverManager::s_shutdown_priority = 200;
@@ -108,6 +111,11 @@ KrylovLinearSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
     SolverMaker solver_maker)
 {
+    if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
+    {
+        pout << "KrylovLinearSolverManager::registerSolverFactoryFunction():\n"
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
+    }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
 }// registerSolverFactoryFunction
@@ -117,8 +125,8 @@ KrylovLinearSolverManager::registerSolverFactoryFunction(
 KrylovLinearSolverManager::KrylovLinearSolverManager()
     : d_solver_maker_map()
 {
-    d_solver_maker_map["DEFAULT"] = PETScKrylovLinearSolver::allocate_solver;
-    d_solver_maker_map["PETSC_KRYLOV_LINEAR_SOLVER"] = PETScKrylovLinearSolver::allocate_solver;
+    registerSolverFactoryFunction(DEFAULT_KRYLOV_LINEAR_SOLVER, PETScKrylovLinearSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC_KRYLOV_LINEAR_SOLVER  , PETScKrylovLinearSolver::allocate_solver);
     return;
 }// KrylovLinearSolverManager
 
