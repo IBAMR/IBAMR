@@ -106,11 +106,12 @@ allocate_default_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
+    Pointer<KrylovLinearSolver> krylov_solver =
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return krylov_solver;
+            KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db);
+    Pointer<PoissonKrylovLinearSolverWrapper> krylov_wrapper = new PoissonKrylovLinearSolverWrapper(krylov_solver);
+    krylov_solver_wrapper->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
+    return krylov_solver_wrapper;
 }// allocate_default_krylov_solver
 
 Pointer<PoissonSolver>
@@ -118,11 +119,12 @@ allocate_petsc_krylov_solver(
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db)
 {
-    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
+    Pointer<KrylovLinearSolver> krylov_solver =
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
-    return krylov_solver;
+            KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db);
+    Pointer<PoissonKrylovLinearSolverWrapper> krylov_wrapper = new PoissonKrylovLinearSolverWrapper(krylov_solver);
+    krylov_solver_wrapper->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
+    return krylov_solver_wrapper;
 }// allocate_petsc_krylov_solver
 }
 
