@@ -482,6 +482,8 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     }
     d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_hier_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
+    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
     if (d_hier_math_ops[finest_level_num].isNull())
