@@ -107,7 +107,7 @@ allocate_default_krylov_solver(
     Pointer<Database> solver_input_db)
 {
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver(KrylovLinearSolverManager::getManager()->allocateSolver(
-                                                                SCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER, solver_object_name, solver_input_db));
+                                                                KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db));
     krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
     return krylov_solver;
 }// allocate_default_krylov_solver
@@ -118,7 +118,7 @@ allocate_petsc_krylov_solver(
     Pointer<Database> solver_input_db)
 {
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver(KrylovLinearSolverManager::getManager()->allocateSolver(
-                                                                SCPoissonSolverManager::PETSC_KRYLOV_SOLVER, solver_object_name, solver_input_db));
+                                                                KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db));
     krylov_solver->setOperator(new SCLaplaceOperator(solver_object_name+"::laplace_operator"));
     return krylov_solver;
 }// allocate_petsc_krylov_solver
