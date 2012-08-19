@@ -403,7 +403,10 @@ PETScKrylovLinearSolver::initializeSolverState(
     if (d_managing_petsc_ksp || d_user_provided_pc) resetKSPPC();
 
     // Set the KSP options from the PETSc options database.
-    ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    if (d_options_prefix != "")
+    {
+        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
 
     // Reset the member state variables to correspond to the values used by the

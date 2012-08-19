@@ -385,7 +385,10 @@ PETScNewtonKrylovSolver::initializeSolverState(
     if (d_managing_petsc_snes || d_user_provided_jacobian) resetSNESJacobian();
 
     // Set the SNES options from the PETSc options database.
-    ierr = SNESSetOptionsPrefix(d_petsc_snes, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    if (d_options_prefix != "")
+    {
+        ierr = SNESSetOptionsPrefix(d_petsc_snes, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    }
     ierr = SNESSetFromOptions(d_petsc_snes); IBTK_CHKERRQ(ierr);
 
     // Reset the member state variables to correspond to the values used by the

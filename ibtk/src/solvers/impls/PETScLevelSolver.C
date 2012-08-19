@@ -275,7 +275,10 @@ PETScLevelSolver::initializeSolverState(
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     ierr = KSPSetType(d_petsc_ksp, d_ksp_type.c_str()); IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    if (d_options_prefix != "")
+    {
+        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+    }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullspace();
 
