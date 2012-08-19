@@ -107,11 +107,11 @@ public:
      * \brief Constructor.
      *
      * \param object_name  Name of object.
-     * \param input_db     Optional SAMRAI::tbox::Database for input.
+     * \param input_db     Database for input.
      */
     CCPoissonHypreLevelSolver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.

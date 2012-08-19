@@ -79,7 +79,7 @@ public:
     FACPreconditioner(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * Destructor.
