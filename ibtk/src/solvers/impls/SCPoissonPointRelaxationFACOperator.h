@@ -114,7 +114,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db)
         {
             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-                new SCPoissonPointRelaxationFACOperator(solver_object_name+"::fac_operator", solver_input_db);
+                new SCPoissonPointRelaxationFACOperator(solver_object_name+"::SCPoissonPointRelaxationFACOperator", solver_input_db);
             return new PoissonFACPreconditioner(solver_object_name, fac_operator, solver_input_db);
         }// allocate
 
