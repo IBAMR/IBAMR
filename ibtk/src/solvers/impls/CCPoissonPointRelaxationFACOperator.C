@@ -701,7 +701,7 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
         d_patch_mat.clear();
         d_patch_bc_box_overlap.clear();
         d_patch_smoother_bc_boxes.clear();
-        d_coarse_solver->deallocateSolverState();
+        if (!d_coarse_solver.isNull()) d_coarse_solver->deallocateSolverState();
     }
     return;
 }// deallocateOperatorStateSpecialized
