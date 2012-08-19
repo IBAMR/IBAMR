@@ -228,8 +228,6 @@ public:
      * setJacobian(), they are also initialized by initializeSolverState().
      *
      * \see deallocateSolverState
-     *
-     * \note A default implementation is provided which does nothing.
      */
     virtual void
     initializeSolverState(
@@ -249,8 +247,6 @@ public:
      * setJacobian(), they are also deallocated by deallocateSolverState().
      *
      * \see initializeSolverState
-     *
-     * \note A default implementation is provided which does nothing.
      */
     virtual void
     deallocateSolverState();
@@ -274,6 +270,13 @@ public:
      */
     virtual bool
     getLoggingEnabled() const;
+
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
 
     //\}
 

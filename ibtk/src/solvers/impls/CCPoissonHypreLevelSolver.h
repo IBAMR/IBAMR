@@ -338,10 +338,6 @@ private:
     std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;
-    int d_max_iterations;
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    bool d_initial_guess_nonzero;
     int d_rel_change;
     int d_num_pre_relax_steps, d_num_post_relax_steps;
     int d_memory_use;
@@ -349,9 +345,6 @@ private:
     int d_relax_type;
     int d_skip_relax;
     int d_two_norm;
-
-    int d_current_its;
-    double d_current_residual_norm;
     //\}
 };
 }// namespace IBTK

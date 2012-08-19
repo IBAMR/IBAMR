@@ -81,9 +81,10 @@ namespace IBTK
  smoother_type = "ADDITIVE"                   // see setSmootherType()
  prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
- coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
- coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
+ coarse_solver_type = "BLOCK_JACOBI"          // see setCoarseSolverType()
+ coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
+ coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
+ coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
  coarse_solver_db = { ... }                   // SAMRAI::tbox::Database for initializing coarse level solver
  \endverbatim
 */
@@ -140,7 +141,7 @@ public:
      * \brief Specify the coarse level solver.
      */
     void
-    setCoarsestLevelSolverType(
+    setCoarseSolverType(
         const std::string& coarse_solver_type);
 
     //\}
@@ -262,11 +263,6 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         int component_axis,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*
-     * Data depth.
-     */
-    int d_depth;
 
     /*
      * Coarse level solvers and solver parameters.

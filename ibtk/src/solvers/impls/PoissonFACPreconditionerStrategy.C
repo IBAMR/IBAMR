@@ -93,8 +93,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_level_data_ops(),
-      d_hier_bdry_fill_ops(),
-      d_hier_math_ops(),
+      d_level_bdry_fill_ops(),
+      d_level_math_ops(),
       d_in_initialize_operator_state(false),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
@@ -102,8 +102,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_prolongation_method("LINEAR_REFINE"),
       d_restriction_method("CONSERVATIVE_COARSEN"),
       d_coarse_solver_type("BLOCK_JACOBI"),
-      d_coarse_solver_tol(1.0e-6),
-      d_coarse_solver_max_its(10),
+      d_coarse_solver_rel_residual_tol(1.0e-5),
+      d_coarse_solver_abs_residual_tol(1.0e-50),
+      d_coarse_solver_max_iterations(10),
       d_context(NULL),
       d_bc_op(NULL),
       d_cf_bdry_op(),
@@ -140,8 +141,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
         d_prolongation_method = input_db->getStringWithDefault("prolongation_method", d_prolongation_method);
         d_restriction_method = input_db->getStringWithDefault("restriction_method", d_restriction_method);
         d_coarse_solver_type = input_db->getStringWithDefault("coarse_solver_type", d_coarse_solver_type);
-        d_coarse_solver_tol = input_db->getDoubleWithDefault("coarse_solver_tolerance", d_coarse_solver_tol);
-        d_coarse_solver_max_its = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_its);
+        d_coarse_solver_rel_residual_tol = input_db->getDoubleWithDefault("coarse_solver_rel_residual_tolerance", d_coarse_solver_rel_residual_tol);
+        d_coarse_solver_abs_residual_tol = input_db->getDoubleWithDefault("coarse_solver_abs_residual_tolerance", d_coarse_solver_abs_residual_tol);
+        d_coarse_solver_max_iterations = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_iterations);
     }
 
     // Setup scratch variables.
@@ -232,20 +234,20 @@ PoissonFACPreconditionerStrategy::setResetLevels(
 }// setResetLevels
 
 void
-PoissonFACPreconditionerStrategy::setCoarsestLevelSolverTolerance(
-    double coarse_solver_tol)
+PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(
+    double coarse_solver_rel_residual_tol)
 {
-    d_coarse_solver_tol = coarse_solver_tol;
+    d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
-}// setCoarsestLevelSolverTolerance
+}// setCoarseSolverRelativeTolerance
 
 void
-PoissonFACPreconditionerStrategy::setCoarsestLevelSolverMaxIterations(
-    int coarse_solver_max_its)
+PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(
+    int coarse_solver_max_iterations)
 {
-    d_coarse_solver_max_its = coarse_solver_max_its;
+    d_coarse_solver_max_iterations = coarse_solver_max_iterations;
     return;
-}// setCoarsestLevelSolverMaxIterations
+}// setCoarseSolverMaxIterations
 
 void
 PoissonFACPreconditionerStrategy::setProlongationMethod(
@@ -388,15 +390,15 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln+1);
-    d_hier_bdry_fill_ops.resize(d_finest_ln+1, NULL);
-    d_hier_math_ops.resize(d_finest_ln+1, NULL);
+    d_level_bdry_fill_ops.resize(d_finest_ln+1, NULL);
+    d_level_math_ops.resize(d_finest_ln+1, NULL);
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var, d_hierarchy, /*get_unique*/ true);
         d_level_data_ops[ln]->resetLevels(ln,ln);
-        d_hier_bdry_fill_ops[ln].setNull();
-        d_hier_math_ops[ln].setNull();
+        d_level_bdry_fill_ops[ln].setNull();
+        d_level_math_ops[ln].setNull();
     }
 
     // Allocate scratch data.
@@ -502,8 +504,8 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
         d_coarsest_ln = -1;
         d_finest_ln   = -1;
 
-        d_hier_bdry_fill_ops.clear();
-        d_hier_math_ops.clear();
+        d_level_bdry_fill_ops.clear();
+        d_level_math_ops.clear();
 
         d_prolongation_refine_operator      .setNull();
         d_prolongation_refine_patch_strategy.setNull();

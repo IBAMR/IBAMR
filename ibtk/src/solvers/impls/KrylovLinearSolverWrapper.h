@@ -167,7 +167,7 @@ public:
      */
     void
     setNullspace(
-        bool contains_constant_vector,
+        bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
 
     /*!

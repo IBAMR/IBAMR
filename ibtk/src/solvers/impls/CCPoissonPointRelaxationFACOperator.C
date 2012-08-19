@@ -145,7 +145,6 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
     : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
-      d_depth(DEFAULT_DATA_DEPTH),
       d_coarse_solver(NULL),
       d_coarse_solver_db(),
       d_using_petsc_smoothers(true),
@@ -180,7 +179,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     }
 
     // Configure the coarse level solver.
-    setCoarsestLevelSolverType(d_coarse_solver_type);
+    setCoarseSolverType(d_coarse_solver_type);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -217,18 +216,18 @@ CCPoissonPointRelaxationFACOperator::setSmootherType(
 }// setSmootherType
 
 void
-CCPoissonPointRelaxationFACOperator::setCoarsestLevelSolverType(
+CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setCoarsestLevelSolverType():\n"
+        TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
                    << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
     return;
-}// setCoarsestLevelSolverType
+}// setCoarseSolverType
 
 void
 CCPoissonPointRelaxationFACOperator::smoothError(
@@ -323,6 +322,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -355,7 +355,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                 // boundary conditions are properly handled.
                 residual_data->getArrayData().copy(error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
 
-                for (int depth = 0; depth < d_depth; ++depth)
+                for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
                     // Setup the PETSc Vec wrappers for the given patch data and
                     // data depth.
@@ -394,7 +394,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                 // Smooth the error via Gauss-Seidel.
                 const double& alpha = d_poisson_spec.getDConstant();
                 const double& beta  = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
-                for (int depth = 0; depth < d_depth; ++depth)
+                for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
                     double* const U = error_data->getPointer(depth);
                     const int U_ghosts = (error_data->getGhostCellWidth()).max();
@@ -434,15 +434,16 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
 #endif
-        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
+        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     else
     {
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setInitialGuessNonzero(true);
-        d_coarse_solver->setMaxIterations(d_coarse_solver_max_its);
-        d_coarse_solver->setRelativeTolerance(d_coarse_solver_tol);
+        d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
+        d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
+        d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
@@ -471,28 +472,28 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
+    if (d_level_bdry_fill_ops[finest_level_num].isNull())
     {
-        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     else
     {
-        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
+        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
-    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
-    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-    d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
+    d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
-    if (d_hier_math_ops[finest_level_num].isNull())
+    if (d_level_math_ops[finest_level_num].isNull())
     {
         std::ostringstream stream;
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
-        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+    d_level_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
     HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -531,15 +532,9 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
                    << "  rhs      data depth = " << rhs_pdat_fac     ->getDefaultDepth() << std::endl);
     }
 
-    const int old_depth = d_depth;
-    d_depth = solution_pdat_fac->getDefaultDepth();
-
-    if (d_depth != old_depth)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellDataFactory<NDIM,double> > scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
-        scratch_pdat_fac->setDefaultDepth(d_depth);
-    }
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideDataFactory<NDIM,double> > scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
+    scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")

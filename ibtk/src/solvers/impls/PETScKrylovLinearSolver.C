@@ -259,11 +259,11 @@ PETScKrylovLinearSolver::setPreconditioner(
 
 void
 PETScKrylovLinearSolver::setNullspace(
-    const bool contains_constant_vector,
+    const bool contains_constant_vec,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
     deallocateNullspaceData();
-    KrylovLinearSolver::setNullspace(contains_constant_vector, nullspace_basis_vecs);
+    KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     resetKSPNullspace();
     return;
 }// setNullspace
@@ -295,7 +295,7 @@ PETScKrylovLinearSolver::solveSystem(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b)); IBTK_CHKERRQ(ierr);
 
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_its); IBTK_CHKERRQ(ierr);
+    ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations); IBTK_CHKERRQ(ierr);
     ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm); IBTK_CHKERRQ(ierr);
 
     // Determine the convergence reason.
@@ -706,12 +706,12 @@ PETScKrylovLinearSolver::resetKSPNullspace()
     int ierr;
     PetscBool flg;
     ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg); IBTK_CHKERRQ(ierr);
-    if (flg == PETSC_TRUE) d_nullspace_contains_constant_vector = true;
-    if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty())
+    if (flg == PETSC_TRUE) d_nullspace_contains_constant_vec = true;
+    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
     {
         std::vector<Vec> nullspace_vecs;
         nullspace_vecs.reserve(1+d_nullspace_basis_vecs.size());
-        if (d_nullspace_contains_constant_vector)
+        if (d_nullspace_contains_constant_vec)
         {
             d_nullspace_constant_vec = d_x->cloneVector(d_x->getName());
             d_nullspace_constant_vec->allocateVectorData();
@@ -816,7 +816,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
     TBOX_ASSERT(!krylov_solver->d_A.isNull());
 #endif
@@ -836,7 +836,7 @@ PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
     TBOX_ASSERT(!krylov_solver->d_A.isNull());
 #endif
@@ -855,7 +855,7 @@ PETScKrylovLinearSolver::MatGetVecs_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
 #endif
     if (right != PETSC_NULL)
@@ -883,7 +883,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
     TBOX_ASSERT(!krylov_solver->d_pc_solver.isNull());
 #endif

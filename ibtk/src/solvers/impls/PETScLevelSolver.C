@@ -145,10 +145,10 @@ PETScLevelSolver::setOptionsPrefix(
 
 void
 PETScLevelSolver::setNullspace(
-    bool contains_constant_vector,
+    bool contains_constant_vec,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    LinearSolver::setNullspace(contains_constant_vector, nullspace_basis_vecs);
+    LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
     return;
 }// setNullspace
@@ -185,7 +185,7 @@ PETScLevelSolver::solveSystem(
     if (d_enable_logging)
     {
         plog << d_object_name << "::solveSystem(): solver " << (converged ? "converged" : "diverged") << "\n"
-             << "iterations = " << d_current_its << "\n"
+             << "iterations = " << d_current_iterations << "\n"
              << "residual norm = " << d_current_residual_norm << std::endl;
     }
 
@@ -277,7 +277,7 @@ PETScLevelSolver::initializeSolverState(
     ierr = KSPSetType(d_petsc_ksp, d_ksp_type.c_str()); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-    if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty()) setupNullspace();
+    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullspace();
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;
@@ -304,7 +304,7 @@ PETScLevelSolver::deallocateSolverState()
         ierr = MatDestroy(&d_petsc_pc); IBTK_CHKERRQ(ierr);
     }
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
-    if (d_nullspace_contains_constant_vector || !d_nullspace_basis_vecs.empty())
+    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
@@ -341,7 +341,7 @@ PETScLevelSolver::setupNullspace()
         ierr = VecScale(petsc_nullspace_vec, 1.0/sqrt(dot)); IBTK_CHKERRQ(ierr);
     }
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
-                              d_nullspace_contains_constant_vector ? PETSC_TRUE : PETSC_FALSE,
+                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               petsc_nullspace_basis_vecs.size(),
                               (petsc_nullspace_basis_vecs.empty() ? PETSC_NULL : &petsc_nullspace_basis_vecs[0]), &d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);

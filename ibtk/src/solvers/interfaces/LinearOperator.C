@@ -75,9 +75,18 @@ void
 LinearOperator::modifyRhsForInhomogeneousBc(
     SAMRAIVectorReal<NDIM,double>& /*y*/)
 {
-    TBOX_WARNING("LinearOperator::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
+    TBOX_WARNING(d_object_name << "::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
     return;
 }// modifyRhsForInhomogeneousBc
+
+void
+LinearOperator::printClassData(
+    std::ostream& stream)
+{
+    GeneralOperator::printClassData(stream);
+    stream << "correcting_rhs = " << d_correcting_rhs << "\n";
+    return;
+}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

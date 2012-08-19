@@ -59,9 +59,10 @@ namespace IBTK
  smoother_type = "ADDITIVE"                   // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_type = "BLOCK_JACOBI"          // see setCoarsestLevelSolverType()
- coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
- coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
+ coarse_solver_type = "BLOCK_JACOBI"          // see setCoarseSolverType()
+ coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
+ coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
+ coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
  \endverbatim
 */
 class PoissonFACPreconditionerStrategy
@@ -158,30 +159,45 @@ public:
      * \brief Specify the coarse level solver.
      */
     virtual void
-    setCoarsestLevelSolverType(
+    setCoarseSolverType(
         const std::string& coarse_solver_type) = 0;
 
     /*!
-     * \brief Set tolerance for coarse level solve.
-     *
-     * If the coarse level solver uses a convergence tolerance parameter, the
-     * specified value is used.  If the coarse level solver does not use such a
-     * stopping parameter, implementations are free to ignore this value.
-     */
-    void
-    setCoarsestLevelSolverTolerance(
-        double coarse_solver_tol);
-
-    /*!
-     * \brief Set the maximum number of iterations for the coarsest level solve.
+     * \brief Set the maximum number of iterations for the coarse level solve.
      *
      * If the coarse level solver uses a maximum number of iterations parameter,
      * the specified value is used.  If the coarse level solver does not use
      * such a stopping parameter, implementations are free to ignore this value.
      */
     void
-    setCoarsestLevelSolverMaxIterations(
-        int coarse_solver_max_its);
+    setCoarseSolverMaxIterations(
+        int coarse_solver_max_iterations);
+
+    /*!
+     * \brief Set the absolute residual tolerance for convergence for coarse
+     * level solve.
+     *
+     * If the coarse level solver uses a absolute convergence tolerance
+     * parameter, the specified value is used.  If the coarse level solver does
+     * not use such a stopping parameter, implementations are free to ignore
+     * this value.
+     */
+    void
+    setCoarseSolverAbsoluteTolerance(
+        double coarse_solver_abs_residual_tol);
+
+    /*!
+     * \brief Set the relative residual tolerance for convergence for coarse
+     * level solve.
+     *
+     * If the coarse level solver uses a relative convergence tolerance
+     * parameter, the specified value is used.  If the coarse level solver does
+     * not use such a stopping parameter, implementations are free to ignore
+     * this value.
+     */
+    void
+    setCoarseSolverRelativeTolerance(
+        double coarse_solver_rel_residual_tol);
 
     /*!
      * \brief Set the name of the prolongation method.
@@ -381,8 +397,8 @@ protected:
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_hier_math_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -418,8 +434,9 @@ protected:
      * Coarse level solver parameters.
      */
     std::string d_coarse_solver_type;
-    double d_coarse_solver_tol;
-    int d_coarse_solver_max_its;
+    double d_coarse_solver_rel_residual_tol;
+    double d_coarse_solver_abs_residual_tol;
+    int d_coarse_solver_max_iterations;
 
     //\}
 

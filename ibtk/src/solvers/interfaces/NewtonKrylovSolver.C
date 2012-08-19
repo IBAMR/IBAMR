@@ -70,8 +70,8 @@ NewtonKrylovSolver::NewtonKrylovSolver(
       d_solution_tol(1.0e-8),
       d_max_iterations(50),
       d_max_evaluations(10000),
-      d_current_its(0),
-      d_current_lits(0),
+      d_current_iterations(0),
+      d_current_linear_iterations(0),
       d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
@@ -212,13 +212,13 @@ NewtonKrylovSolver::getSolutionTolerance() const
 int
 NewtonKrylovSolver::getNumIterations() const
 {
-    return d_current_its;
+    return d_current_iterations;
 }// getNumIterations
 
 int
 NewtonKrylovSolver::getNumLinearIterations() const
 {
-    return d_current_lits;
+    return d_current_linear_iterations;
 }// getNumLinearIterations
 
 double

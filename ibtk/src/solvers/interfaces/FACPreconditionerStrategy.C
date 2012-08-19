@@ -49,11 +49,11 @@ FACPreconditionerStrategy::FACPreconditionerStrategy(
     const std::string& object_name,
     bool homogeneous_bc)
     : d_object_name(object_name),
+      d_is_initialized(false),
       d_homogeneous_bc(homogeneous_bc),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_is_initialized(false)
+      d_new_time(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
     return;
@@ -161,6 +161,20 @@ FACPreconditionerStrategy::getLevelSAMRAIVectorReal(
     }
     return level_vec;
 }// getLevelSAMRAIVectorReal
+
+void
+FACPreconditionerStrategy::printClassData(
+    std::ostream& stream)
+{
+    stream << "\n"
+           << "object_name = " << d_object_name << "\n"
+           << "is_initialized = " << d_is_initialized << "\n"
+           << "homogeneous_bc = " << d_homogeneous_bc << "\n"
+           << "solution_time = " << d_solution_time << "\n"
+           << "current_time = " << d_current_time << "\n"
+           << "new_time = " << d_new_time << "\n";
+    return;
+}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -95,6 +95,20 @@ public:
 
     //\}
 
+    /*!
+     * \name Logging functions.
+     */
+    //\{
+
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
+
+    //\}
+
 protected:
     /*
      * Boolean indicating whether the operator is currently correcting a

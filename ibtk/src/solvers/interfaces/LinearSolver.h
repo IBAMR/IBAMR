@@ -80,7 +80,7 @@ public:
      */
     virtual void
     setNullspace(
-        bool nullspace_containsconstant_vector,
+        bool nullspace_containsconstant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
 
     /*!
@@ -176,18 +176,32 @@ public:
 
     //\}
 
-protected:
-    // Nullspace data.
-    bool d_nullspace_contains_constant_vector;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nullspace_basis_vecs;
+    /*!
+     * \name Logging functions.
+     */
+    //\{
 
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
+
+    //\}
+
+protected:
     // Solver parameters.
     bool d_initial_guess_nonzero;
     double d_rel_residual_tol;
     double d_abs_residual_tol;
     int d_max_iterations;
-    int d_current_its;
+    int d_current_iterations;
     double d_current_residual_norm;
+
+    // Nullspace data.
+    bool d_nullspace_contains_constant_vec;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nullspace_basis_vecs;
 
 private:
     /*!

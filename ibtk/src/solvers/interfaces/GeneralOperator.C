@@ -199,6 +199,23 @@ GeneralOperator::getLoggingEnabled() const
     return d_enable_logging;
 }// getLoggingEnabled
 
+void
+GeneralOperator::printClassData(
+    std::ostream& stream)
+{
+    stream << "\n"
+           << "object_name = " << d_object_name << "\n"
+           << "is_initialized = " << d_is_initialized << "\n"
+           << "homogeneous_bc = " << d_homogeneous_bc << "\n"
+           << "solution_time = " << d_solution_time << "\n"
+           << "current_time = " << d_current_time << "\n"
+           << "new_time = " << d_new_time << "\n"
+           << "hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
+           << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
+           << "enable_logging = " << d_enable_logging << "\n";
+    return;
+}// printClassData
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

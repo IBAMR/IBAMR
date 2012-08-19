@@ -231,8 +231,6 @@ public:
      *
      * \param in input vector
      * \param out output vector
-     *
-     * \note The default implementation is empty.
      */
     virtual void
     initializeOperatorState(
@@ -248,8 +246,6 @@ public:
      * deallocated.
      *
      * \see initializeOperatorState
-     *
-     * \note A default implementation is provided which does nothing.
      */
     virtual void
     deallocateOperatorState();
@@ -273,6 +269,13 @@ public:
      */
     virtual bool
     getLoggingEnabled() const;
+
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
 
     //\}
 

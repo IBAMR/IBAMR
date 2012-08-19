@@ -271,8 +271,8 @@ PETScNewtonKrylovSolver::solveSystem(
     }
 
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    ierr = SNESGetIterationNumber(d_petsc_snes, &d_current_its); IBTK_CHKERRQ(ierr);
-    ierr = SNESGetLinearSolveIterations(d_petsc_snes, &d_current_lits); IBTK_CHKERRQ(ierr);
+    ierr = SNESGetIterationNumber(d_petsc_snes, &d_current_iterations); IBTK_CHKERRQ(ierr);
+    ierr = SNESGetLinearSolveIterations(d_petsc_snes, &d_current_linear_iterations); IBTK_CHKERRQ(ierr);
     ierr = SNESGetFunctionNorm(d_petsc_snes, &d_current_residual_norm); IBTK_CHKERRQ(ierr);
 
     // Determine the convergence reason.
@@ -645,7 +645,7 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver != NULL);
     TBOX_ASSERT(!newton_solver->d_F.isNull());
 #endif
@@ -665,7 +665,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver != NULL);
 #endif
     if (newton_solver->d_J.isNull())
@@ -694,7 +694,7 @@ PETScNewtonKrylovSolver::MatVecMult_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver != NULL);
     TBOX_ASSERT(!newton_solver->d_J.isNull());
 #endif
@@ -714,7 +714,7 @@ PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver != NULL);
     TBOX_ASSERT(!newton_solver->d_J.isNull());
 #endif
@@ -733,7 +733,7 @@ PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if (DEBUG_CHECK_ASSERTIONS)
+#ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver != NULL);
 #endif
     if (right != PETSC_NULL)

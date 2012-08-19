@@ -218,7 +218,7 @@ CCDivGradHypreLevelSolver::solveSystem(
                 {
                     plog << d_object_name << "::solveSystem(): solver " << (converged_mode ? "converged" : "diverged") << "\n"
                          << "chkbrd_mode_id = " << chkbrd_mode_id << "\n"
-                         << "iterations = " << d_current_its << "\n"
+                         << "iterations = " << d_current_iterations << "\n"
                          << "residual norm = " << d_current_residual_norm << std::endl;
                 }
                 converged = converged && converged_mode;
@@ -842,7 +842,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructPFMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructPFMGSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructPFMGGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructPFMGGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "SMG")
@@ -850,7 +850,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructSMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructSMGSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructSMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructSMGGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructSMGGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructSMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "PCG")
@@ -859,7 +859,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructPCGSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructPCGSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_StructPCGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructPCGGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructPCGGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructPCGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "GMRES")
@@ -868,7 +868,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_StructGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "FlexGMRES")
@@ -877,7 +877,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructFlexGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructFlexGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_StructFlexGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructFlexGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructFlexGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructFlexGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "LGMRES")
@@ -886,7 +886,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructLGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructLGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_StructLGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructLGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructLGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructLGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "BiCGSTAB")
@@ -895,7 +895,7 @@ CCDivGradHypreLevelSolver::solveSystem(
         HYPRE_StructBiCGSTABSetTol(d_solver, d_rel_residual_tol);
         HYPRE_StructBiCGSTABSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_StructBiCGSTABSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_StructBiCGSTABGetNumIterations(d_solver, &d_current_its);
+        HYPRE_StructBiCGSTABGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_StructBiCGSTABGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
 

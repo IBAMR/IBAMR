@@ -217,8 +217,6 @@ public:
 
     /*!
      * \brief Initialize any hierarchy-dependent data.
-     *
-     * \note A default empty implementation is provided.
      */
     virtual void
     initializeOperatorState(
@@ -228,11 +226,23 @@ public:
     /*!
      * \brief Deallocate any hierarchy-dependent data initialized by
      * initializeOperatorState().
-     *
-     * \note A default empty implementation is provided.
      */
     virtual void
     deallocateOperatorState();
+
+    /*!
+     * \name Logging functions.
+     */
+    //\{
+
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
+
+    //\}
 
 protected:
     /*!
@@ -250,13 +260,13 @@ protected:
     // Object name.
     const std::string d_object_name;
 
-    // Solver configuration.
-    bool d_homogeneous_bc;
-    double d_solution_time, d_current_time, d_new_time;
-
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
     bool d_is_initialized;
+
+    // Solver configuration.
+    bool d_homogeneous_bc;
+    double d_solution_time, d_current_time, d_new_time;
 
 private:
     /*!

@@ -251,7 +251,7 @@ protected:
     double d_solution_tol;
     int d_max_iterations;
     int d_max_evaluations;
-    int d_current_its, d_current_lits;
+    int d_current_iterations, d_current_linear_iterations;
     double d_current_residual_norm;
 
 private:

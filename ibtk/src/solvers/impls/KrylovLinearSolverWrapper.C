@@ -70,7 +70,7 @@ KrylovLinearSolverWrapper::KrylovLinearSolverWrapper(
 
     // Second, we set those fields for which there are no setter methods.
     d_is_initialized = krylov_solver->getIsInitialized();
-    d_current_its = krylov_solver->getNumIterations();
+    d_current_iterations = krylov_solver->getNumIterations();
     d_current_residual_norm = krylov_solver->getResidualNorm();
     return;
 }// KrylovLinearSolverWrapper
@@ -176,11 +176,11 @@ KrylovLinearSolverWrapper::deallocateSolverState()
 
 void
 KrylovLinearSolverWrapper::setNullspace(
-    bool contains_constant_vector,
+    bool contains_constant_vec,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    KrylovLinearSolver::setNullspace(contains_constant_vector, nullspace_basis_vecs);
-    d_krylov_solver->setNullspace(d_nullspace_contains_constant_vector, d_nullspace_basis_vecs);
+    KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
+    d_krylov_solver->setNullspace(d_nullspace_contains_constant_vec, d_nullspace_basis_vecs);
     return;
 }// setNullspace
 

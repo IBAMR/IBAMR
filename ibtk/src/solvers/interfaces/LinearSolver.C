@@ -59,13 +59,13 @@ LinearSolver::LinearSolver(
     const std::string& object_name,
     bool homogeneous_bc)
     : GeneralSolver(object_name, homogeneous_bc),
-      d_nullspace_contains_constant_vector(false),
+      d_nullspace_contains_constant_vec(false),
       d_nullspace_basis_vecs(),
       d_initial_guess_nonzero(true),
       d_rel_residual_tol(1.0e-5),
       d_abs_residual_tol(1.0e-50),
       d_max_iterations(10000),
-      d_current_its(0),
+      d_current_iterations(0),
       d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
@@ -80,10 +80,10 @@ LinearSolver::~LinearSolver()
 
 void
 LinearSolver::setNullspace(
-    const bool nullspace_containsconstant_vector,
+    const bool nullspace_containsconstant_vec,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    d_nullspace_contains_constant_vector = nullspace_containsconstant_vector;
+    d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
     d_nullspace_basis_vecs = nullspace_basis_vecs;
     return;
 }// setNullspace
@@ -99,7 +99,7 @@ LinearSolver::setInitialGuessNonzero(
 bool
 LinearSolver::getNullspaceContainsConstantVector() const
 {
-    return d_nullspace_contains_constant_vector;
+    return d_nullspace_contains_constant_vec;
 }// getNullspaceContainsConstantVector
 
 const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >&
@@ -159,7 +159,7 @@ LinearSolver::getRelativeTolerance() const
 int
 LinearSolver::getNumIterations() const
 {
-    return d_current_its;
+    return d_current_iterations;
 }// getNumIterations
 
 double
@@ -167,6 +167,22 @@ LinearSolver::getResidualNorm() const
 {
     return d_current_residual_norm;
 }// getResidualNorm
+
+void
+LinearSolver::printClassData(
+    std::ostream& stream)
+{
+    GeneralSolver::printClassData(stream);
+    stream << "initial_guess_nonzero = " << d_initial_guess_nonzero << "\n"
+           << "rel_residual_tol = " << d_rel_residual_tol << "\n"
+           << "abs_residual_tol = " << d_abs_residual_tol << "\n"
+           << "max_iterations = " << d_max_iterations << "\n"
+           << "current_iterations = " << d_current_iterations << "\n"
+           << "current_residual_norm = " << d_current_residual_norm << "\n"
+           << "nullspace_contains_constant_vec = " << d_nullspace_contains_constant_vec << "\n"
+           << "nullspace_basis_vecs.size() = " << d_nullspace_basis_vecs.size() << "\n";
+    return;
+}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
