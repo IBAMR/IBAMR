@@ -157,8 +157,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -298,8 +296,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
-	libIBTK2d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
-	libIBTK2d_a-CCDivGradOperator.$(OBJEXT) \
 	libIBTK2d_a-CCLaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -435,8 +431,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -575,8 +569,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
-	libIBTK3d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
-	libIBTK3d_a-CCDivGradOperator.$(OBJEXT) \
 	libIBTK3d_a-CCLaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -1117,8 +1109,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.h \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.h \
-	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.h \
-	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.h \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.h \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.h \
@@ -1245,8 +1235,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -1441,8 +1429,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-AppInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCPoissonPETScLevelSolver.Po@am__quote@
@@ -1565,8 +1551,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCPoissonPETScLevelSolver.Po@am__quote@
@@ -2574,34 +2558,6 @@ libIBTK2d_a-BJacobiPreconditioner.obj: $(top_srcdir)/src/solvers/impls/BJacobiPr
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C' object='libIBTK2d_a-BJacobiPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-BJacobiPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; fi`
-
-libIBTK2d_a-CCDivGradHypreLevelSolver.o: $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCDivGradHypreLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Tpo -c -o libIBTK2d_a-CCDivGradHypreLevelSolver.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Tpo $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' object='libIBTK2d_a-CCDivGradHypreLevelSolver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCDivGradHypreLevelSolver.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-
-libIBTK2d_a-CCDivGradHypreLevelSolver.obj: $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCDivGradHypreLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Tpo -c -o libIBTK2d_a-CCDivGradHypreLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Tpo $(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' object='libIBTK2d_a-CCDivGradHypreLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCDivGradHypreLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; fi`
-
-libIBTK2d_a-CCDivGradOperator.o: $(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCDivGradOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Tpo -c -o libIBTK2d_a-CCDivGradOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Tpo $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' object='libIBTK2d_a-CCDivGradOperator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCDivGradOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-
-libIBTK2d_a-CCDivGradOperator.obj: $(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCDivGradOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Tpo -c -o libIBTK2d_a-CCDivGradOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Tpo $(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' object='libIBTK2d_a-CCDivGradOperator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCDivGradOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; fi`
 
 libIBTK2d_a-CCLaplaceOperator.o: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCLaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Tpo -c -o libIBTK2d_a-CCLaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C
@@ -4310,34 +4266,6 @@ libIBTK3d_a-BJacobiPreconditioner.obj: $(top_srcdir)/src/solvers/impls/BJacobiPr
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C' object='libIBTK3d_a-BJacobiPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-BJacobiPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C'; fi`
-
-libIBTK3d_a-CCDivGradHypreLevelSolver.o: $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCDivGradHypreLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Tpo -c -o libIBTK3d_a-CCDivGradHypreLevelSolver.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Tpo $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' object='libIBTK3d_a-CCDivGradHypreLevelSolver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCDivGradHypreLevelSolver.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-
-libIBTK3d_a-CCDivGradHypreLevelSolver.obj: $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCDivGradHypreLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Tpo -c -o libIBTK3d_a-CCDivGradHypreLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Tpo $(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C' object='libIBTK3d_a-CCDivGradHypreLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCDivGradHypreLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C'; fi`
-
-libIBTK3d_a-CCDivGradOperator.o: $(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCDivGradOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Tpo -c -o libIBTK3d_a-CCDivGradOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Tpo $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' object='libIBTK3d_a-CCDivGradOperator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCDivGradOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-
-libIBTK3d_a-CCDivGradOperator.obj: $(top_srcdir)/src/solvers/impls/CCDivGradOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCDivGradOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Tpo -c -o libIBTK3d_a-CCDivGradOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Tpo $(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C' object='libIBTK3d_a-CCDivGradOperator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCDivGradOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C'; fi`
 
 libIBTK3d_a-CCLaplaceOperator.o: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCLaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Tpo -c -o libIBTK3d_a-CCLaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C

@@ -109,8 +109,6 @@ $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
-$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
-$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -266,8 +264,6 @@ $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.h \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.h \
-$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.h \
-$(top_srcdir)/src/solvers/impls/CCDivGradOperator.h \
 $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.h \
