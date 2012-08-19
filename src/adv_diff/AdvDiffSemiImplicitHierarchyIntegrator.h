@@ -131,12 +131,12 @@ public:
      */
     void
     setDefaultConvectiveOperatorType(
-        ConvectiveOperatorType op_type);
+        const std::string& op_type);
 
     /*!
      * \brief Get the default convective operator type used by the solver.
      */
-    ConvectiveOperatorType
+    const std::string&
     getDefaultConvectiveOperatorType() const;
 
     /*!
@@ -212,13 +212,13 @@ public:
     void
     setConvectiveOperatorType(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        ConvectiveOperatorType op_type);
+        const std::string& op_type);
 
     /*!
      * \brief Get the convective operator type used by the solver for a
      * particular transported quantity Q.
      */
-    ConvectiveOperatorType
+    const std::string&
     getConvectiveOperatorType(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
@@ -242,16 +242,11 @@ public:
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * operator needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setConvectiveOperator(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
 
     /*!
      * Get the convective operator being used by this solver class for a
@@ -339,7 +334,7 @@ protected:
     /*!
      * Default convective operator settings.
      */
-    ConvectiveOperatorType d_default_convective_op_type;
+    std::string d_default_convective_op_type;
     std::string d_default_convective_bdry_extrap_type;
 
     /*
@@ -354,10 +349,10 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_N_map, d_Q_N_old_map;
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveOperatorType> d_Q_convective_op_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::string> d_Q_convective_op_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::string> d_Q_convective_bdry_extrap_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<ConvectiveOperator> > d_Q_convective_op;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_convective_op_needs_init, d_Q_convective_op_needs_reinit_when_dt_changes;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_convective_op_needs_init;
 
 private:
     /*!

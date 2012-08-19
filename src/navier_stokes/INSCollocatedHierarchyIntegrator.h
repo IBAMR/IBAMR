@@ -41,9 +41,6 @@
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// IBTK INCLUDES
-#include <ibtk/CCDivGradHypreLevelSolver.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR

@@ -243,12 +243,12 @@ public:
      */
     void
     setDefaultConvectiveOperatorType(
-        ConvectiveOperatorType op_type);
+        const std::string& op_type);
 
     /*!
      * \brief Get the default convective operator type used by the solver.
      */
-    ConvectiveOperatorType
+    const std::string&
     getDefaultConvectiveOperatorType() const;
 
     /*!
@@ -487,7 +487,7 @@ protected:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    ConvectiveOperatorType d_default_convective_op_type;
+    std::string d_default_convective_op_type;
     ConvectiveDifferencingType d_default_convective_difference_form;
     std::string d_default_convective_bdry_extrap_type;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;

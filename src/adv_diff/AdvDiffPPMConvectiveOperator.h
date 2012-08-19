@@ -81,6 +81,19 @@ public:
     ~AdvDiffPPMConvectiveOperator();
 
     /*!
+     * \brief Static function to construct an AdvDiffPPMConvectiveOperator.
+     */
+    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    allocate_operator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        ConvectiveDifferencingType difference_form,
+        const std::string& bdry_extrap_type)
+        {
+            return new AdvDiffPPMConvectiveOperator(object_name, Q_var, difference_form, bdry_extrap_type);
+        }// allocate_operator
+
+    /*!
      * \brief Compute the action of the convective operator.
      */
     void

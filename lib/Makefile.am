@@ -82,6 +82,7 @@ $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
 $(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -91,6 +92,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
+$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
@@ -101,6 +103,7 @@ $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredFACPreconditionerStrategy.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C \
@@ -162,6 +165,7 @@ $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
 $(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
@@ -171,6 +175,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
@@ -181,6 +186,7 @@ $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredFACPreconditionerStrategy.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.h \

@@ -463,6 +463,12 @@ INSStaggeredFACPreconditionerStrategy::computeResidual(
     }
     d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_hier_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
+    InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    std::vector<InterpolationTransactionComponent> default_U_P_components(2);
+    U_P_components[0] = default_U_scratch_component;
+    U_P_components[1] = default_P_scratch_component;
+    d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(default_U_P_components);
 
     // Compute the residual, r = f - A*u.
     if (d_hier_math_ops[finest_level_num].isNull())

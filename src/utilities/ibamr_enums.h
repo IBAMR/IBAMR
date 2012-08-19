@@ -66,36 +66,6 @@ enum_to_string(
 }// enum_to_string
 
 /*!
- * \brief Enumerated type for different convective operator types.
- */
-enum ConvectiveOperatorType
-{
-    CENTERED,
-    PPM,
-    UNKNOWN_CONVECTIVE_OPERATOR_TYPE=-1
-};
-
-template<>
-inline ConvectiveOperatorType
-string_to_enum<ConvectiveOperatorType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "CENTERED") == 0) return CENTERED;
-    if (strcasecmp(val.c_str(), "PPM"     ) == 0) return PPM;
-    return UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<ConvectiveOperatorType>(
-    ConvectiveOperatorType val)
-{
-    if (val == CENTERED) return "CENTERED";
-    if (val == PPM      ) return "PPM";
-    return "UNKNOWN_CONVECTIVE_OPERATOR_TYPE";
-}// enum_to_string
-
-/*!
  * \brief Enumerated type for different convective differencing schemes.
  */
 enum ConvectiveDifferencingType
@@ -130,70 +100,6 @@ enum_to_string<ConvectiveDifferencingType>(
     if (val == SKEW_SYMMETRIC) return "SKEW_SYMMETRIC";
     return "UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE";
 }// enum_to_string
-
-#if 0
-/*!
- * \brief Enumerated type for different types of normal boundary conditions for
- * the incompressible Navier-Stokes equations.
- */
-enum INSNormalBoundaryConditionsType
-{
-    PRESSURE,
-    TRUE_STRESS,
-    UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE=-1
-};
-
-template<>
-inline INSNormalBoundaryConditionsType
-string_to_enum<INSNormalBoundaryConditionsType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "PRESSURE"   ) == 0) return PRESSURE;
-    if (strcasecmp(val.c_str(), "TRUE_STRESS") == 0) return TRUE_STRESS;
-    return UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<INSNormalBoundaryConditionsType>(
-    INSNormalBoundaryConditionsType val)
-{
-    if (val == PRESSURE   ) return "PRESSURE";
-    if (val == TRUE_STRESS) return "TRUE_STRESS";
-    return "UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE";
-}// enum_to_string
-
-/*!
- * \brief Enumerated type for different types of tangential boundary conditions for
- * the incompressible Navier-Stokes equations.
- */
-enum INSTangentialBoundaryConditionsType
-{
-    NATURAL,
-    TRUE_STRESS,
-    UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE=-1
-};
-
-template<>
-inline INSTangentialBoundaryConditionsType
-string_to_enum<INSTangentialBoundaryConditionsType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "NATURAL"    ) == 0) return NATURAL;
-    if (strcasecmp(val.c_str(), "TRUE_STRESS") == 0) return TRUE_STRESS;
-    return UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<INSTangentialBoundaryConditionsType>(
-    INSTangentialBoundaryConditionsType val)
-{
-    if (val == NATURAL    ) return "NATURAL";
-    if (val == TRUE_STRESS) return "TRUE_STRESS";
-    return "UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE";
-}// enum_to_string
-#endif
 
 /*!
  * \brief Enumerated type for different basic time stepping schemes.
@@ -319,42 +225,6 @@ enum_to_string<StochasticStressTensorType>(
     if (val == SYMMETRIC          ) return "SYMMETRIC";
     if (val == SYMMETRIC_TRACELESS) return "SYMMETRIC_TRACELESS";
     return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
-}// enum_to_string
-
-/*!
- * \brief Enumerated type for different Stokes preconditioners.
- */
-enum StokesPreconditionerType
-{
-    NONE,
-    PROJECTION_METHOD,
-    VANKA,
-    BLOCK_FACTORIZATION,
-    UNKNOWN_STOKES_PRECONDITIONER_TYPE=-1
-};
-
-template<>
-inline StokesPreconditionerType
-string_to_enum<StokesPreconditionerType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "NONE"               ) == 0) return NONE;
-    if (strcasecmp(val.c_str(), "PROJECTION_METHOD"  ) == 0) return PROJECTION_METHOD;
-    if (strcasecmp(val.c_str(), "VANKA"              ) == 0) return VANKA;
-    if (strcasecmp(val.c_str(), "BLOCK_FACTORIZATION") == 0) return BLOCK_FACTORIZATION;
-    return UNKNOWN_STOKES_PRECONDITIONER_TYPE;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<StokesPreconditionerType>(
-    StokesPreconditionerType val)
-{
-    if (val == NONE               ) return "NONE";
-    if (val == PROJECTION_METHOD  ) return "PROJECTION_METHOD";
-    if (val == VANKA              ) return "VANKA";
-    if (val == BLOCK_FACTORIZATION) return "BLOCK_FACTORIZATION";
-    return "UNKNOWN_STOKES_PRECONDITIONER_TYPE";
 }// enum_to_string
 
 }// namespace IBAMR

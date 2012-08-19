@@ -80,6 +80,19 @@ public:
     ~INSCollocatedPPMConvectiveOperator();
 
     /*!
+     * \brief Static function to construct an
+     * INSCollocatedPPMConvectiveOperator.
+     */
+    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    allocate_operator(
+        const std::string& object_name,
+        ConvectiveDifferencingType difference_form,
+        const std::string& bdry_extrap_type)
+        {
+            return new INSCollocatedPPMConvectiveOperator(object_name, difference_form, bdry_extrap_type);
+        }// allocate_operator
+
+    /*!
      * \brief Compute the action of the convective operator.
      */
     void

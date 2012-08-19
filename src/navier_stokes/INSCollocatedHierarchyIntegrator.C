@@ -47,8 +47,7 @@
 // IBAMR INCLUDES
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
-#include <ibamr/INSCollocatedCenteredConvectiveOperator.h>
-#include <ibamr/INSCollocatedPPMConvectiveOperator.h>
+#include <ibamr/INSCollocatedConvectiveOperatorManager.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -225,11 +224,11 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     }
 
     // Check to see whether the convective operator type has been set.
-    d_default_convective_op_type = PPM;
-    if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_op_type"));
-    else if (input_db->keyExists("convective_operator_type"))         d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_operator_type"));
-    else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_op_type"));
-    else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_operator_type"));
+    d_default_convective_op_type = INSCollocatedConvectiveOperatorManager::DEFAULT;
+    if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = input_db->getString("convective_op_type");
+    else if (input_db->keyExists("convective_operator_type"))         d_default_convective_op_type = input_db->getString("convective_operator_type");
+    else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = input_db->getString("default_convective_op_type");
+    else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = input_db->getString("default_convective_operator_type");
 
     // Check to see what kind of projection method to use.
     d_projection_method_type = PRESSURE_INCREMENT;
@@ -297,19 +296,9 @@ INSCollocatedHierarchyIntegrator::getConvectiveOperator()
     }
     else if (d_convective_op.isNull())
     {
-        switch (d_default_convective_op_type)
-        {
-            case CENTERED:
-                d_convective_op = new INSCollocatedCenteredConvectiveOperator(d_object_name+"::convective_op", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
-                break;
-            case PPM:
-                d_convective_op = new INSCollocatedPPMConvectiveOperator(d_object_name+"::convective_op", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
-                break;
-            default:
-                TBOX_ERROR("INSCollocatedHierarchyIntegrator::getConvectiveOperator():\n"
-                           << "  unsupported convective operator type: " << d_default_convective_op_type << " \n"
-                           << "  valid choices are: CENTERED, PPM\n");
-        }
+        INSCollocatedConvectiveOperatorManager* convective_op_manager = INSCollocatedConvectiveOperatorManager::getManager();
+        d_convective_op = convective_op_manager->allocateOperator(
+            d_default_convective_op_type, d_object_name+"::ConvectiveOperator", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
@@ -789,7 +778,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
                 d_hier_cc_data_ops->setToScalar(d_P_scratch_idx, 0.0);
                 break;
             default:
-                TBOX_ERROR("INSCollocatedPPMCollocatedHierarchyIntegrator::integrateHierarchy():\n"
+                TBOX_ERROR("INSCollocatedHierarchyIntegrator::integrateHierarchy():\n"
                            << "  unsupported projection method type: " << enum_to_string<ProjectionMethodType>(d_projection_method_type) << " \n"
                            << "  valid choices are: PRESSURE_INCREMENT, PRESSURE_UPDATE\n");
         }
