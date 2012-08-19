@@ -81,8 +81,6 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     : LinearSolver(object_name),
       KrylovLinearSolver(object_name),
       d_ksp_type(KSPGMRES),
-      d_pc_shell_types(),
-      d_pc_shell_type("none"),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
@@ -192,20 +190,6 @@ PETScKrylovLinearSolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 }// getPETScKSP
-
-void
-PETScKrylovLinearSolver::setValidPCShellTypes(
-    const std::vector<std::string>& pc_shell_types)
-{
-    d_pc_shell_types = pc_shell_types;
-    return;
-}// setValidPCShellTypes
-
-const std::string&
-PETScKrylovLinearSolver::getPCShellType() const
-{
-    return d_pc_shell_type;
-}// getPCShellType
 
 void
 PETScKrylovLinearSolver::setHomogeneousBc(
@@ -692,8 +676,7 @@ PETScKrylovLinearSolver::resetKSPPC()
         ierr = PCSetType(petsc_pc, PCSHELL); IBTK_CHKERRQ(ierr);
         ierr = PCShellSetContext(petsc_pc, static_cast<void*>(this)); IBTK_CHKERRQ(ierr);
         ierr = PCShellSetApply(petsc_pc, PETScKrylovLinearSolver::PCApply_SAMRAI); IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetName(petsc_pc, "PETScKrylovLinearSolver PC"); IBTK_CHKERRQ(ierr);
-        petsc_pc->ops->setfromoptions = PCShellSetFromOptions_SAMRAI;
+        ierr = PCShellSetName(petsc_pc, d_pc_solver->getName().c_str()); IBTK_CHKERRQ(ierr);
     }
     else
     {
@@ -745,8 +728,9 @@ PETScKrylovLinearSolver::resetKSPNullspace()
     }
     else if (d_solver_has_attached_nullspace)
     {
-        TBOX_ERROR(d_object_name << "::resetKSPNullspace():\n"
-                   << "  it is not possible to remove the nullspace from a PETSc KSP object\n");
+        static const PetscBool has_cnst = PETSC_FALSE;
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, PETSC_NULL, &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
     return;
 }// resetKSPNullspace
@@ -778,36 +762,6 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     d_petsc_nullspace_basis_vecs.clear();
     return;
 }// deallocateNullspaceData
-
-PetscErrorCode
-PETScKrylovLinearSolver::PCShellSetFromOptions_SAMRAI(
-    PC pc)
-{
-    PetscErrorCode ierr;
-    void* p_ctx;
-    ierr = PCShellGetContext(pc, &p_ctx); IBTK_CHKERRQ(ierr);
-    PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-    if (!krylov_solver->d_pc_shell_types.empty())
-    {
-        std::vector<const char*> pc_shell_types(krylov_solver->d_pc_shell_types.size());
-        for (unsigned int k = 0; k < krylov_solver->d_pc_shell_types.size(); ++k)
-        {
-            pc_shell_types[k] = krylov_solver->d_pc_shell_types[k].c_str();
-        }
-        int pc_shell_type;
-        PetscBool pc_shell_type_set;
-        ierr = PetscOptionsEList("-pc_shell_type","Type of shell preconditioner","PCSetFromOptions",&pc_shell_types[0],pc_shell_types.size(),pc_shell_types[0],&pc_shell_type,&pc_shell_type_set); IBTK_CHKERRQ(ierr);
-        if (pc_shell_type_set)
-        {
-            krylov_solver->d_pc_shell_type = krylov_solver->d_pc_shell_types[pc_shell_type];
-        }
-        else
-        {
-            krylov_solver->d_pc_shell_type = krylov_solver->d_pc_shell_types[0];
-        }
-    }
-    PetscFunctionReturn(0);
-}// PCShellSetFromOptions_SAMRAI
 
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(

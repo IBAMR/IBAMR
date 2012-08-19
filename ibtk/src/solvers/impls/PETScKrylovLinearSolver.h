@@ -157,25 +157,6 @@ public:
         const std::string& options_prefix);
 
     /*!
-     * \brief Set a list of valid preconditioner types, set via the
-     * -pc_shell_type options database flag.
-     */
-    void
-    setValidPCShellTypes(
-        const std::vector<std::string>& pc_shell_types);
-
-    /*!
-     * \brief Get the preconditioner type, set via the -pc_shell_type options
-     * database flag.
-     *
-     * \note If the PC type is not PCSHELL, or if no preconditioner types have
-     * been registered with the solver via setValidPCShellTypes, this method
-     * will return the value "none".
-     */
-    const std::string&
-    getPCShellType() const;
-
-    /*!
      * \name Functions to access the underlying PETSc objects.
      */
     //\{
@@ -440,13 +421,6 @@ private:
     //\{
 
     /*!
-     * \brief Set PC options from the PETSc options database.
-     */
-    static PetscErrorCode
-    PCShellSetFromOptions_SAMRAI(
-        PC pc);
-
-    /*!
      * \brief Compute the matrix vector product \f$y=Ax\f$.
      */
     static PetscErrorCode
@@ -487,9 +461,6 @@ private:
     //\}
 
     std::string d_ksp_type;
-
-    std::vector<std::string> d_pc_shell_types;
-    std::string d_pc_shell_type;
 
     bool d_reinitializing_solver;
 
