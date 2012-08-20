@@ -321,15 +321,13 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
     if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
     if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
-    if (!d_stokes_solver_db.isNull() && !d_stokes_solver_db->keyExists("options_prefix"))
+    if (d_stokes_solver_db.isNull()) d_stokes_solver_db = new MemoryDatabase(d_object_name+"::stokes_solver_db");
+    if (!d_stokes_solver_db->keyExists("options_prefix"))
     {
         d_stokes_solver_db->putString("options_prefix", "stokes_");
     }
-    if (!d_stokes_solver_db.isNull() && !d_stokes_solver_db->keyExists("ksp_type"))
-    {
-        d_stokes_solver_db->putString("ksp_type", "fgmres");
-    }
-    if (!d_stokes_precond_db.isNull() && !d_stokes_precond_db->keyExists("options_prefix"))
+    if (d_stokes_precond_db.isNull()) d_stokes_precond_db = new MemoryDatabase(d_object_name+"::stokes_precond_db");
+    if (!d_stokes_precond_db->keyExists("options_prefix"))
     {
         d_stokes_precond_db->putString("options_prefix", "stokes_pc_");
     }
@@ -337,6 +335,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     // Setup physical boundary conditions objects.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
+    d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs,dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef));

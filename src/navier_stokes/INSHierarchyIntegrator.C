@@ -394,6 +394,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,&d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
+    d_U_star_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
@@ -567,11 +568,13 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("velocity_precond_type")) d_velocity_precond_type = db->getString("velocity_precond_type");
     if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
     if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
-    if (!d_velocity_solver_db.isNull() && !d_velocity_solver_db->keyExists("options_prefix"))
+    if (d_velocity_solver_db.isNull()) d_velocity_solver_db = new MemoryDatabase(d_object_name+"::velocity_solver_db");
+    if (!d_velocity_solver_db->keyExists("options_prefix"))
     {
         d_velocity_solver_db->putString("options_prefix", "velocity_");
     }
-    if (!d_velocity_precond_db.isNull() && !d_velocity_precond_db->keyExists("options_prefix"))
+    if (d_velocity_precond_db.isNull()) d_velocity_precond_db = new MemoryDatabase(d_object_name+"::velocity_precond_db");
+    if (!d_velocity_precond_db->keyExists("options_prefix"))
     {
         d_velocity_precond_db->putString("options_prefix", "velocity_pc_");
     }
@@ -580,11 +583,13 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("pressure_precond_type")) d_pressure_precond_type = db->getString("pressure_precond_type");
     if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
     if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
-    if (!d_pressure_solver_db.isNull() && !d_pressure_solver_db->keyExists("options_prefix"))
+    if (d_pressure_solver_db.isNull()) d_pressure_solver_db = new MemoryDatabase(d_object_name+"::pressure_solver_db");
+    if (!d_pressure_solver_db->keyExists("options_prefix"))
     {
         d_pressure_solver_db->putString("options_prefix", "pressure_");
     }
-    if (!d_pressure_precond_db.isNull() && !d_pressure_precond_db->keyExists("options_prefix"))
+    if (d_pressure_precond_db.isNull()) d_pressure_precond_db = new MemoryDatabase(d_object_name+"::pressure_precond_db");
+    if (!d_pressure_precond_db->keyExists("options_prefix"))
     {
         d_pressure_precond_db->putString("options_prefix", "pressure_pc_");
     }
@@ -593,15 +598,17 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
     if (db->keyExists("regrid_projection_solver_db")) d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
     if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
-    if (!d_regrid_projection_solver_db.isNull() && !d_regrid_projection_solver_db->keyExists("options_prefix"))
+    if (d_regrid_projection_solver_db.isNull()) d_regrid_projection_solver_db = new MemoryDatabase(d_object_name+"::regrid_projection_solver_db");
+    if (!d_regrid_projection_solver_db->keyExists("options_prefix"))
     {
         d_regrid_projection_solver_db->putString("options_prefix", "regrid_projection_");
     }
-    if (!d_regrid_projection_precond_db.isNull() && !d_regrid_projection_precond_db->keyExists("options_prefix"))
+    if (d_regrid_projection_precond_db.isNull()) d_regrid_projection_precond_db = new MemoryDatabase(d_object_name+"::regrid_projection_precond_db");
+    if (!d_regrid_projection_precond_db->keyExists("options_prefix"))
     {
         d_regrid_projection_precond_db->putString("options_prefix", "regrid_projection_pc_");
     }
-    return;
+   return;
 }// getFromInput
 
 void

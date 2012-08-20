@@ -14,7 +14,7 @@ START_TIME         = 0.0e0                // initial simulation time
 END_TIME           = 0.125                // final simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
 NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
-CONVECTIVE_OP_TYPE = "PPM"                    // convective differencing discretization type
+CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX            = 0.3                  // maximum CFL number
@@ -120,69 +120,49 @@ INSCollocatedHierarchyIntegrator {
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
 
-   VelocityHypreSolver {
-      solver_type           = "PFMG"
-      rap_type              = 0
-      relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 2
-      num_post_relax_steps  = 2
-      relative_residual_tol = 1.0e-12
-      max_iterations        = 1
-      enable_logging        = FALSE
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_solver_db {
+      ksp_type = "richardson"
    }
 
-   VelocityFACSolver {
+   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_precond_db {
       num_pre_sweeps  = 0
-      num_post_sweeps = 1
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-12
-      coarse_solver_max_iterations = 1
+      num_post_sweeps = 3
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      hypre_solver {
-         solver_type           = "PFMG"
-         rap_type              = 0
-         relax_type            = 2
-         skip_relax            = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
-         relative_residual_tol = 1.0e-12
-         max_iterations        = 1
-         enable_logging        = FALSE
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
       }
    }
 
-   PressureHypreSolver {
-      solver_type           = "PFMG"
-      rap_type              = 0
-      relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 2
-      num_post_relax_steps  = 2
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
-      enable_logging        = FALSE
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_solver_db {
+      ksp_type = "richardson"
    }
 
-   PressureFACSolver {
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-12
-      coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      hypre_solver {
-         solver_type           = "PFMG"
-         rap_type              = 0
-         relax_type            = 2
-         skip_relax            = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
-         relative_residual_tol = 1.0e-12
-         max_iterations        = 1
-         enable_logging        = FALSE
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
       }
    }
 }
@@ -210,61 +190,48 @@ INSStaggeredHierarchyIntegrator {
    output_Div_U               = OUTPUT_DIV_U
    enable_logging             = ENABLE_LOGGING
 
-   VelocityHypreSolver {
-      solver_type           = "Split"
-      split_solver_type     = "PFMG"
-      relative_residual_tol = 1.0e-12
-      max_iterations        = 1
-      enable_logging        = FALSE
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_solver_db {
+      ksp_type = "richardson"
    }
 
-   VelocityFACSolver {
+   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_precond_db {
       num_pre_sweeps  = 0
-      num_post_sweeps = 1
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-12
-      coarse_solver_max_iterations = 1
-      prolongation_method = "CONSTANT_REFINE"
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      hypre_solver {
-         solver_type           = "Split"
-         split_solver_type     = "PFMG"
-         relative_residual_tol = 1.0e-12
-         max_iterations        = 1
-         enable_logging        = FALSE
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "Split"
+         split_solver_type    = "PFMG"
+         enable_logging       = FALSE
       }
    }
 
-   PressureHypreSolver {
-      solver_type           = "PFMG"
-      rap_type              = 0
-      relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 2
-      num_post_relax_steps  = 2
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
-      enable_logging        = FALSE
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_solver_db {
+      ksp_type = "richardson"
    }
 
-   PressureFACSolver {
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
-      coarse_solver_choice = "hypre"
-      coarse_solver_tolerance = 1.0e-12
-      coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      hypre_solver {
-         solver_type           = "PFMG"
-         rap_type              = 0
-         relax_type            = 2
-         skip_relax            = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
-         relative_residual_tol = 1.0e-12
-         max_iterations        = 1
-         enable_logging        = FALSE
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
       }
    }
 }
