@@ -444,6 +444,15 @@ protected:
     bool d_normalize_pressure;
 
     /*!
+     * This boolean value determines whether the velocity is normalized to have
+     * zero mean (i.e., discrete integral) at the end of each timestep.
+     *
+     * This parameter only affects the case in which rho=0 (i.e. the steady
+     * Stokes equations).
+     */
+    bool d_normalize_velocity;
+
+    /*!
      * This boolean value determines whether the convective acceleration term is
      * included in the momentum equation.  (If it is not, this solver
      * effectively solves the so-called creeping Stokes equations.)
@@ -487,9 +496,9 @@ protected:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    std::string d_default_convective_op_type;
-    ConvectiveDifferencingType d_default_convective_difference_form;
-    std::string d_default_convective_bdry_extrap_type;
+    std::string d_convective_op_type;
+    ConvectiveDifferencingType d_convective_difference_form;
+    std::string d_convective_bdry_extrap_type;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_init;
 

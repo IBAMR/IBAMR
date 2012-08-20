@@ -236,7 +236,7 @@ INSHierarchyIntegrator::setCreepingFlow(
 #endif
     d_creeping_flow = creeping_flow;
     d_convective_op.setNull();
-    d_default_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
+    d_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
     return;
 }// setCreepingFlow
 
@@ -255,14 +255,14 @@ INSHierarchyIntegrator::setDefaultConvectiveOperatorType(
     TBOX_ASSERT(d_convective_op.isNull());
     TBOX_ASSERT(!d_creeping_flow);
 #endif
-    d_default_convective_op_type = op_type;
+    d_convective_op_type = op_type;
     return;
 }// setDefaultConvectiveOperatorType
 
 const std::string&
 INSHierarchyIntegrator::getDefaultConvectiveOperatorType() const
 {
-    return d_default_convective_op_type;
+    return d_convective_op_type;
 }// getDefaultConvectiveOperatorType
 
 void
@@ -274,14 +274,14 @@ INSHierarchyIntegrator::setDefaultConvectiveDifferencingType(
     TBOX_ASSERT(d_convective_op.isNull());
     TBOX_ASSERT(!d_creeping_flow);
 #endif
-    d_default_convective_difference_form = difference_form;
+    d_convective_difference_form = difference_form;
     return;
 }// setDefaultConvectiveDifferencingType
 
 ConvectiveDifferencingType
 INSHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
 {
-    return d_default_convective_difference_form;
+    return d_convective_difference_form;
 }// getDefaultConvectiveDifferencingType
 
 void
@@ -363,9 +363,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
     d_normalize_pressure = false;
-    d_default_convective_op_type = "DEFAULT";
-    d_default_convective_difference_form = ADVECTIVE;
-    d_default_convective_bdry_extrap_type = "LINEAR";
+    d_normalize_velocity = false;
+    d_convective_op_type = "DEFAULT";
+    d_convective_difference_form = ADVECTIVE;
+    d_convective_bdry_extrap_type = "LINEAR";
     d_creeping_flow = false;
     d_regrid_max_div_growth_factor = 1.1;
     d_U_scale = 1.0;
@@ -459,8 +460,9 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(
     if (d_Omega_abs_thresh.size() > 0) db->putDoubleArray("d_Omega_abs_thresh",d_Omega_abs_thresh);
     db->putDouble("d_Omega_max",d_Omega_max);
     db->putBool("d_normalize_pressure",d_normalize_pressure);
-    db->putString("d_default_convective_op_type",d_default_convective_op_type);
-    db->putString("d_default_convective_difference_form",enum_to_string<ConvectiveDifferencingType>(d_default_convective_difference_form));
+    db->putBool("d_normalize_velocity",d_normalize_velocity);
+    db->putString("d_convective_op_type",d_convective_op_type);
+    db->putString("d_convective_difference_form",enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
     db->putBool("d_creeping_flow",d_creeping_flow);
     db->putDouble("d_regrid_max_div_growth_factor",d_regrid_max_div_growth_factor);
     db->putDouble("d_U_scale",d_U_scale);
@@ -535,16 +537,17 @@ INSHierarchyIntegrator::getFromInput(
     else if (db->keyExists("omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("omega_abs_thresh");
     else if (db->keyExists("vorticity_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
     if (db->keyExists("normalize_pressure")) d_normalize_pressure = db->getBool("normalize_pressure");
-    if      (db->keyExists("convective_op_type"))               d_default_convective_op_type = db->getString("convective_op_type");
-    else if (db->keyExists("convective_operator_type"))         d_default_convective_op_type = db->getString("convective_operator_type");
-    else if (db->keyExists("default_convective_op_type"))       d_default_convective_op_type = db->getString("default_convective_op_type");
-    else if (db->keyExists("default_convective_operator_type")) d_default_convective_op_type = db->getString("default_convective_operator_type");
-    if      (db->keyExists("convective_difference_form"))         d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
-    else if (db->keyExists("convective_difference_type"))         d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
-    else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
-    else if (db->keyExists("default_convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
-    if      (db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
-    else if (db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
+    if (db->keyExists("normalize_velocity")) d_normalize_velocity = db->getBool("normalize_velocity");
+    if      (db->keyExists("convective_op_type"))               d_convective_op_type = db->getString("convective_op_type");
+    else if (db->keyExists("convective_operator_type"))         d_convective_op_type = db->getString("convective_operator_type");
+    else if (db->keyExists("default_convective_op_type"))       d_convective_op_type = db->getString("default_convective_op_type");
+    else if (db->keyExists("default_convective_operator_type")) d_convective_op_type = db->getString("default_convective_operator_type");
+    if      (db->keyExists("convective_difference_form"))         d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
+    else if (db->keyExists("convective_difference_type"))         d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
+    else if (db->keyExists("default_convective_difference_form")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
+    else if (db->keyExists("default_convective_difference_type")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
+    if      (db->keyExists("convective_bdry_extrap_type"))         d_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
+    else if (db->keyExists("default_convective_bdry_extrap_type")) d_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
     if (db->keyExists("creeping_flow")) d_creeping_flow = db->getBool("creeping_flow");
     if (db->keyExists("regrid_max_div_growth_factor")) d_regrid_max_div_growth_factor = db->getDouble("regrid_max_div_growth_factor");
     if (db->keyExists("U_scale")) d_U_scale = db->getDouble("U_scale");
@@ -566,11 +569,11 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
     if (!d_velocity_solver_db.isNull() && !d_velocity_solver_db->keyExists("options_prefix"))
     {
-        d_velocity_solver_db->putString("options_prexix", "velocity_");
+        d_velocity_solver_db->putString("options_prefix", "velocity_");
     }
     if (!d_velocity_precond_db.isNull() && !d_velocity_precond_db->keyExists("options_prefix"))
     {
-        d_velocity_precond_db->putString("options_prexix", "velocity_pc_");
+        d_velocity_precond_db->putString("options_prefix", "velocity_pc_");
     }
 
     if (db->keyExists("pressure_solver_type")) d_pressure_solver_type = db->getString("pressure_solver_type");
@@ -579,11 +582,11 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     if (!d_pressure_solver_db.isNull() && !d_pressure_solver_db->keyExists("options_prefix"))
     {
-        d_pressure_solver_db->putString("options_prexix", "pressure_");
+        d_pressure_solver_db->putString("options_prefix", "pressure_");
     }
     if (!d_pressure_precond_db.isNull() && !d_pressure_precond_db->keyExists("options_prefix"))
     {
-        d_pressure_precond_db->putString("options_prexix", "pressure_pc_");
+        d_pressure_precond_db->putString("options_prefix", "pressure_pc_");
     }
 
     if (db->keyExists("regrid_projection_solver_type")) d_regrid_projection_solver_type = db->getString("regrid_projection_solver_type");
@@ -592,11 +595,11 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
     if (!d_regrid_projection_solver_db.isNull() && !d_regrid_projection_solver_db->keyExists("options_prefix"))
     {
-        d_regrid_projection_solver_db->putString("options_prexix", "regrid_projection_");
+        d_regrid_projection_solver_db->putString("options_prefix", "regrid_projection_");
     }
     if (!d_regrid_projection_precond_db.isNull() && !d_regrid_projection_precond_db->keyExists("options_prefix"))
     {
-        d_regrid_projection_precond_db->putString("options_prexix", "regrid_projection_pc_");
+        d_regrid_projection_precond_db->putString("options_prefix", "regrid_projection_pc_");
     }
     return;
 }// getFromInput
@@ -635,8 +638,9 @@ INSHierarchyIntegrator::getFromRestart()
     else d_Omega_abs_thresh.resizeArray(0);
     d_Omega_max = db->getDouble("d_Omega_max");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
-    d_default_convective_op_type = db->getString("d_default_convective_op_type");
-    d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_default_convective_difference_form"));
+    d_normalize_velocity = db->getBool("d_normalize_velocity");
+    d_convective_op_type = db->getString("d_convective_op_type");
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
     d_creeping_flow = db->getBool("d_creeping_flow");
     d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     d_U_scale = db->getDouble("d_U_scale");

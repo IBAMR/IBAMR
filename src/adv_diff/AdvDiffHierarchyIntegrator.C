@@ -768,11 +768,11 @@ AdvDiffHierarchyIntegrator::getFromInput(
     if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     if (!d_helmholtz_solver_db.isNull() && !d_helmholtz_solver_db->keyExists("options_prefix"))
     {
-        d_helmholtz_solver_db->putString("options_prexix", "adv_diff_");
+        d_helmholtz_solver_db->putString("options_prefix", "adv_diff_");
     }
     if (!d_helmholtz_precond_db.isNull() && !d_helmholtz_precond_db->keyExists("options_prefix"))
     {
-        d_helmholtz_precond_db->putString("options_prexix", "adv_diff_pc_");
+        d_helmholtz_precond_db->putString("options_prefix", "adv_diff_pc_");
     }
     return;
 }// getFromInput

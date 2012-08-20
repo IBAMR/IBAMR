@@ -224,11 +224,11 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     }
 
     // Check to see whether the convective operator type has been set.
-    d_default_convective_op_type = INSCollocatedConvectiveOperatorManager::DEFAULT;
-    if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = input_db->getString("convective_op_type");
-    else if (input_db->keyExists("convective_operator_type"))         d_default_convective_op_type = input_db->getString("convective_operator_type");
-    else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = input_db->getString("default_convective_op_type");
-    else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = input_db->getString("default_convective_operator_type");
+    d_convective_op_type = INSCollocatedConvectiveOperatorManager::DEFAULT;
+    if      (input_db->keyExists("convective_op_type"))               d_convective_op_type = input_db->getString("convective_op_type");
+    else if (input_db->keyExists("convective_operator_type"))         d_convective_op_type = input_db->getString("convective_operator_type");
+    else if (input_db->keyExists("default_convective_op_type"))       d_convective_op_type = input_db->getString("default_convective_op_type");
+    else if (input_db->keyExists("default_convective_operator_type")) d_convective_op_type = input_db->getString("default_convective_operator_type");
 
     // Check to see what kind of projection method to use.
     d_projection_method_type = PRESSURE_INCREMENT;
@@ -298,7 +298,7 @@ INSCollocatedHierarchyIntegrator::getConvectiveOperator()
     {
         INSCollocatedConvectiveOperatorManager* convective_op_manager = INSCollocatedConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(
-            d_default_convective_op_type, d_object_name+"::ConvectiveOperator", d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
+            d_convective_op_type, d_object_name+"::ConvectiveOperator", d_convective_difference_form, d_convective_bdry_extrap_type);
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
@@ -312,6 +312,7 @@ INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
         d_velocity_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_velocity_solver_type , d_object_name+"::velocity_solver" , d_velocity_solver_db ,
             d_velocity_precond_type, d_object_name+"::velocity_precond", d_velocity_precond_db);
+        d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
 }// getVelocitySubdomainSolver
@@ -324,6 +325,7 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
         d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_pressure_solver_type , d_object_name+"::pressure_solver" , d_pressure_solver_db ,
             d_pressure_precond_type, d_object_name+"::pressure_precond", d_pressure_precond_db);
+        d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
 }// getPressureSubdomainSolver
@@ -1494,6 +1496,27 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
+    double K = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
+    PoissonSpecifications U_problem_coefs(d_object_name+"::U_problem_coefs");
+    U_problem_coefs.setCConstant((rho/dt)+K*lambda);
+    U_problem_coefs.setDConstant(        -K*mu    );
+    PoissonSpecifications P_problem_coefs(d_object_name+"::P_problem_coefs");
+    P_problem_coefs.setCZero();
+    P_problem_coefs.setDConstant(-1.0);
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
@@ -1522,8 +1545,8 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_N_vec       = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec"      );
         d_Phi_rhs_vec = d_Phi_vec      ->cloneVector(d_object_name+"::Phi_rhs_vec");
 
-        d_U_nul_vecs.resize(MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0);
-        if (MathUtilities<double>::equalEps(rho, 0.0))
+        d_U_nul_vecs.resize(d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0);
+        if (d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0))
         {
             for (unsigned int k = 0; k < NDIM; ++k)
             {
@@ -1563,7 +1586,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup convective operator.
     if (!d_convective_op.isNull() && d_convective_op_needs_init)
     {
-        if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing convective operator" << std::endl;
+        if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         d_convective_op_needs_init = false;
@@ -1572,25 +1595,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup subdomain solvers.
     if (!d_velocity_solver.isNull())
     {
-        double K = 0.0;
-        switch (d_viscous_time_stepping_type)
-        {
-            case BACKWARD_EULER:
-                K = 1.0;
-                break;
-            case FORWARD_EULER:
-                K = 0.0;
-                break;
-            case TRAPEZOIDAL_RULE:
-                K = 0.5;
-                break;
-            default:
-                TBOX_ERROR("this statment should not be reached");
-        }
-        PoissonSpecifications velocity_solver_spec(d_object_name+"::velocity_solver_spec");
-        velocity_solver_spec.setCConstant((rho/dt)+K*lambda);
-        velocity_solver_spec.setDConstant(        -K*mu    );
-        d_velocity_solver->setPoissonSpecifications(velocity_solver_spec);
+        d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
@@ -1601,7 +1606,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         }
         if (d_velocity_solver_needs_init)
         {
-            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing velocity subdomain solver" << std::endl;
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing velocity subdomain solver" << std::endl;
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec,*d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
         }
@@ -1609,10 +1614,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
 
     if (!d_pressure_solver.isNull())
     {
-        PoissonSpecifications pressure_solver_spec(d_object_name+"::pressure_solver_spec");
-        pressure_solver_spec.setCZero();
-        pressure_solver_spec.setDConstant(-1.0);
-        d_pressure_solver->setPoissonSpecifications(pressure_solver_spec);
+        d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(current_time+0.5*dt);
         d_pressure_solver->setTimeInterval(current_time, new_time);
@@ -1624,7 +1626,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         }
         if (d_pressure_solver_needs_init)
         {
-            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing pressure subdomain solver" << std::endl;
+            if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing pressure subdomain solver" << std::endl;
             d_pressure_solver->initializeSolverState(*d_Phi_vec,*d_Phi_rhs_vec);
             d_pressure_solver_needs_init = false;
         }
