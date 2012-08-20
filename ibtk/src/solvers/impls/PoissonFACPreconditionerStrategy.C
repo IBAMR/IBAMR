@@ -234,6 +234,14 @@ PoissonFACPreconditionerStrategy::setResetLevels(
 }// setResetLevels
 
 void
+PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(
+    int coarse_solver_max_iterations)
+{
+    d_coarse_solver_max_iterations = coarse_solver_max_iterations;
+    return;
+}// setCoarseSolverMaxIterations
+
+void
 PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(
     double coarse_solver_rel_residual_tol)
 {
@@ -242,12 +250,12 @@ PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(
 }// setCoarseSolverRelativeTolerance
 
 void
-PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(
-    int coarse_solver_max_iterations)
+PoissonFACPreconditionerStrategy::setCoarseSolverAbsoluteTolerance(
+    double coarse_solver_abs_residual_tol)
 {
-    d_coarse_solver_max_iterations = coarse_solver_max_iterations;
+    d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
-}// setCoarseSolverMaxIterations
+}// setCoarseSolverAbsoluteTolerance
 
 void
 PoissonFACPreconditionerStrategy::setProlongationMethod(
