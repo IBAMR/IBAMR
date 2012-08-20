@@ -40,10 +40,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/ibamr_enums.h>
-#include <ibamr/ibamr_utilities.h>
+#include <ibamr/ibamr_utilities.h>  // needed for less<SAMRAI::tbox::Pointer<T> >
 
 // IBTK INCLUDES
-#include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/PoissonSolver.h>
 

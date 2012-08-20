@@ -48,7 +48,6 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
-#include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/ibamr_utilities.h>
@@ -316,7 +315,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = input_db->getString("default_convective_operator_type");
 
     // Setup physical boundary conditions objects.
-    d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
+    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -435,7 +434,7 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 
 void
 INSStaggeredHierarchyIntegrator::setStokesSolver(
-    Pointer<StokesSolver> stokes_solver)
+    Pointer<StaggeredStokesSolver> stokes_solver)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_stokes_solver.isNull());
@@ -445,7 +444,7 @@ INSStaggeredHierarchyIntegrator::setStokesSolver(
     return;
 }// setStokesSolver
 
-Pointer<StokesSolver>
+Pointer<StaggeredStokesSolver>
 INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (d_stokes_solver.isNull())
@@ -715,8 +714,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
 
     // Setup inhomogeneous boundary conditions.
-    d_U_bc_helper->clearBcCoefData();
-    d_U_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
+    d_bc_helper->clearBcCoefData();
+    d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
     d_stokes_solver->setHomogeneousBc(false);
     Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     if (!p_stokes_solver.isNull())
@@ -929,7 +928,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
     // boundary condition takes precedence).
-    d_U_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ true);
+    d_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ true);
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
@@ -939,7 +938,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_side_synch_op->synchronizeData(current_time);
 
     // Enforce Dirichlet boundary conditions.
-    d_U_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
+    d_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));

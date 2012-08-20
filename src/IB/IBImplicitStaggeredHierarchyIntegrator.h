@@ -41,6 +41,7 @@
 // IBAMR INCLUDES
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/StaggeredStokesOperator.h>
 
 // IBTK INCLUDES
 #include <ibtk/NewtonKrylovSolver.h>
@@ -168,7 +169,7 @@ private:
     getFromRestart();
 
     double d_current_time, d_new_time;
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+    SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_F_op;
     SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_J_op;
     Mat d_J_mat;

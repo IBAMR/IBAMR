@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBImplicitStaggeredPETScLevelSolver.h>
+#include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -318,7 +319,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
     TBOX_ERROR("need to add U bc helper . . . ?\n");
-//  d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, TRAPEZOIDAL_RULE, U_bc_coefs, NULL, P_bc_coef, buildHierarchyMathOps(hierarchy));
+//  d_stokes_op = new StaggeredStokesOperator(d_object_name+"::StaggeredStokesOperator", problem_coefs, TRAPEZOIDAL_RULE, U_bc_coefs, NULL, P_bc_coef, buildHierarchyMathOps(hierarchy));
     Pointer<NewtonKrylovSolver> modified_stokes_solver = NULL; // new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
     d_F_op = new IBImplicitStaggeredHierarchyIntegrator::Operator(this);
     modified_stokes_solver->setOperator(d_F_op);
@@ -406,7 +407,7 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
     const int f_half_idx = y.getComponentDescriptorIndex(0);
 
     // Compute the "fluid" part of the operator.
-    Pointer<INSStaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
+    Pointer<StaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
     stokes_op->setTimeInterval(current_time, new_time);
     stokes_op->apply(/* homogeneous_bc */ true, x, y);
 
@@ -508,7 +509,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::apply(
     const int f_half_idx = y.getComponentDescriptorIndex(0);
 
     // Compute the "fluid" part of the operator.
-    Pointer<INSStaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
+    Pointer<StaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
     stokes_op->setTimeInterval(current_time, new_time);
     stokes_op->apply(/* homogeneous_bc */ true, x, y);
 

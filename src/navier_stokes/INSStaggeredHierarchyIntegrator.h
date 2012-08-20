@@ -37,9 +37,8 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
-#include <ibamr/StokesSolver.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/StaggeredStokesSolver.h>
 
 // IBTK INCLUDES
 #include <ibtk/SideDataSynchronization.h>
@@ -121,13 +120,13 @@ public:
      */
     void
     setStokesSolver(
-        SAMRAI::tbox::Pointer<StokesSolver> stokes_solver);
+        SAMRAI::tbox::Pointer<StaggeredStokesSolver> stokes_solver);
 
     /*!
      * Get the solver for the time-dependent incompressible Stokes equations
      * used by this solver class.
      */
-    SAMRAI::tbox::Pointer<StokesSolver>
+    SAMRAI::tbox::Pointer<StaggeredStokesSolver>
     getStokesSolver();
 
     /*!
@@ -312,7 +311,7 @@ private:
     /*
      * Boundary condition and data synchronization operators.
      */
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
@@ -336,7 +335,7 @@ private:
 
     std::string d_stokes_solver_type, d_stokes_precond_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
-    SAMRAI::tbox::Pointer<StokesSolver> d_stokes_solver;
+    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
 
     /*!

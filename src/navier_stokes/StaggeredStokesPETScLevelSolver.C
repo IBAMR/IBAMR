@@ -1,5 +1,5 @@
-// Filename: IBImplicitStaggeredPETScLevelSolver.C
-// Created on 16 Apr 2012 by Boyce Griffith
+// Filename: StaggeredStokesPETScLevelSolver.C
+// Created on 08 Sep 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBImplicitStaggeredPETScLevelSolver.h"
+#include "StaggeredStokesPETScLevelSolver.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -52,10 +52,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/PETScMatUtilities.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
 #include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -73,18 +71,12 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
+StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db)
-    : LinearSolver(object_name),
+    : LinearSolver(object_name, /*homogeneous_bc*/ true),
       PETScLevelSolver(object_name, input_db),
-      d_problem_coefs(),
-      d_J_mat(NULL),
-      d_interp_fcn(NULL),
-      d_interp_stencil(0),
-      d_X_vec(NULL),
-      d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL))),
-      d_u_bc_coefs(),
+      StaggeredStokesSolver(object_name, /*homogeneous_bc*/ true),
       d_context(NULL),
       d_u_dof_index_idx(-1),
       d_p_dof_index_idx(-1),
@@ -93,34 +85,10 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
       d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL)
 {
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_u_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-#if 0  // XXXX
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(d_homogeneous_bc);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (u_bc_coefs[d] != NULL)
-        {
-            d_u_bc_coefs[d] = u_bc_coefs[d];
-        }
-        else
-        {
-            d_u_bc_coefs[d] = d_default_u_bc_coef;
-        }
-    }
-#endif
-
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_u_dof_index_var = new SideVariable<NDIM,int>(d_object_name + "::u_dof_index");
+    d_context = var_db->getContext(object_name + "::CONTEXT");
+    d_u_dof_index_var = new SideVariable<NDIM,int>(object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
@@ -128,7 +96,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
-    d_p_dof_index_var = new CellVariable<NDIM,int>(d_object_name + "::p_dof_index");
+    d_p_dof_index_var = new CellVariable<NDIM,int>(object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
@@ -137,78 +105,18 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
     }
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
     return;
-}// IBImplicitStaggeredPETScLevelSolver
+}// StaggeredStokesPETScLevelSolver
 
-IBImplicitStaggeredPETScLevelSolver::~IBImplicitStaggeredPETScLevelSolver()
+StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
-    delete d_default_u_bc_coef;
     return;
-}// ~IBImplicitStaggeredPETScLevelSolver
-
-void
-IBImplicitStaggeredPETScLevelSolver::initializeOperator()
-{
-    int ierr;
-
-    // Setup PETSc objects.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    PETScMatUtilities::constructPatchLevelSCInterpOp(d_R_mat, d_interp_fcn, d_interp_stencil, *d_X_vec, d_num_dofs_per_proc, d_u_dof_index_idx, level);
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(d_level_num)->getRatio();
-    const double* const dx_coarsest = geometry->getDx();
-    double vol = 1.0;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        vol *= dx_coarsest[d]/static_cast<double>(ratio(d));
-    }
-    ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_INITIAL_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatAXPY(d_petsc_mat, 1.0/vol, d_RtJR_mat, DIFFERENT_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
-    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
-    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
-    return;
-}// initializeOperator
-
-void
-IBImplicitStaggeredPETScLevelSolver::updateOperator()
-{
-    int ierr;
-
-    // Setup PETSc objects.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(d_level_num)->getRatio();
-    const double* const dx_coarsest = geometry->getDx();
-    double vol = 1.0;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        vol *= dx_coarsest[d]/static_cast<double>(ratio(d));
-    }
-    ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_REUSE_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatZeroEntries(d_petsc_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatAXPY(d_petsc_mat, 1.0, d_stokes_mat, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    ierr = MatAXPY(d_petsc_mat, 1.0/vol, d_RtJR_mat, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    ierr = MatCopy(d_petsc_mat, d_petsc_pc, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
-    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
-    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
-    return;
-}// updateOperator
+}// ~StaggeredStokesPETScLevelSolver
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
+StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& /*b*/)
 {
@@ -223,16 +131,14 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(false);  // XXXX
-//  StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_stokes_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
-    ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs, d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
     ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
+    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
@@ -241,7 +147,7 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
 }// initializeSolverStateSpecialized
 
 void
-IBImplicitStaggeredPETScLevelSolver::deallocateSolverStateSpecialized()
+StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -251,7 +157,7 @@ IBImplicitStaggeredPETScLevelSolver::deallocateSolverStateSpecialized()
 }// deallocateSolverStateSpecialized
 
 void
-IBImplicitStaggeredPETScLevelSolver::copyToPETScVec(
+StaggeredStokesPETScLevelSolver::copyToPETScVec(
     Vec& petsc_x,
     SAMRAIVectorReal<NDIM,double>& x,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -263,7 +169,7 @@ IBImplicitStaggeredPETScLevelSolver::copyToPETScVec(
 }// copyToPETScVec
 
 void
-IBImplicitStaggeredPETScLevelSolver::copyFromPETScVec(
+StaggeredStokesPETScLevelSolver::copyFromPETScVec(
     Vec& petsc_x,
     SAMRAIVectorReal<NDIM,double>& x,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -275,7 +181,7 @@ IBImplicitStaggeredPETScLevelSolver::copyFromPETScVec(
 }// copyFromPETScVec
 
 void
-IBImplicitStaggeredPETScLevelSolver::setupKSPVecs(
+StaggeredStokesPETScLevelSolver::setupKSPVecs(
     Vec& petsc_x,
     Vec& petsc_b,
     SAMRAIVectorReal<NDIM,double>& x,

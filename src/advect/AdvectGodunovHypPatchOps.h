@@ -38,7 +38,7 @@
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/ibamr_enums.h>
-#include <ibamr/ibamr_utilities.h>
+#include <ibamr/ibamr_utilities.h>  // needed for less<SAMRAI::tbox::Pointer<T> >
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
