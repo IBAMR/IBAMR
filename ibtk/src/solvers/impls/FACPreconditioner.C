@@ -317,9 +317,10 @@ FACPreconditioner::FACVCycleNoPreSmoothing(
         // Recursively call the FAC algorithm.
         FACVCycleNoPreSmoothing(u, f, level_num-1);
 
-        // Prolong the error from the next coarser level and correct the
-        // solution on the current level.
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        // Prolong the error from the next coarser level.  Because we did not
+        // perform any presmoothing, we do not need to correct the solution on
+        // the current level.
+        d_fac_strategy->prolongError(u, u, level_num);
 
         // Smooth error on the current level.
         if (d_num_post_sweeps > 0)

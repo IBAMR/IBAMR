@@ -242,20 +242,20 @@ PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(
 }// setCoarseSolverMaxIterations
 
 void
-PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(
-    double coarse_solver_rel_residual_tol)
-{
-    d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
-    return;
-}// setCoarseSolverRelativeTolerance
-
-void
 PoissonFACPreconditionerStrategy::setCoarseSolverAbsoluteTolerance(
     double coarse_solver_abs_residual_tol)
 {
     d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
 }// setCoarseSolverAbsoluteTolerance
+
+void
+PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(
+    double coarse_solver_rel_residual_tol)
+{
+    d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
+    return;
+}// setCoarseSolverRelativeTolerance
 
 void
 PoissonFACPreconditionerStrategy::setProlongationMethod(

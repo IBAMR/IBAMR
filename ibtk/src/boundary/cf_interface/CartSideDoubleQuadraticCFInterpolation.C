@@ -277,6 +277,11 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
             const unsigned int location_index = bdry_box.getLocationIndex();
+            const int* const indicator0 = indicator_data->getPointer(0);
+            const int* const indicator1 = indicator_data->getPointer(1);
+#if (NDIM == 3)
+            const int* const indicator2 = indicator_data->getPointer(2);
+#endif
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U_fine0 = fdata->getPointer(0,depth);
@@ -288,11 +293,6 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
                 const double* const U_crse1 = cdata->getPointer(1,depth);
 #if (NDIM == 3)
                 const double* const U_crse2 = cdata->getPointer(2,depth);
-#endif
-                const int* const indicator0 = indicator_data->getPointer(0,depth);
-                const int* const indicator1 = indicator_data->getPointer(1,depth);
-#if (NDIM == 3)
-                const int* const indicator2 = indicator_data->getPointer(2,depth);
 #endif
                 SC_QUAD_TANGENTIAL_INTERPOLATION_FC(
                     U_fine0, U_fine1,
@@ -505,6 +505,11 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
             const unsigned int location_index = bdry_box.getLocationIndex();
+            const int* const indicator0 = indicator_data->getPointer(0);
+            const int* const indicator1 = indicator_data->getPointer(1);
+#if (NDIM == 3)
+            const int* const indicator2 = indicator_data->getPointer(2);
+#endif
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U0 = data->getPointer(0,depth);
@@ -516,11 +521,6 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
                 const double* const W1 = data_copy.getPointer(1,depth);
 #if (NDIM == 3)
                 const double* const W2 = data_copy.getPointer(2,depth);
-#endif
-                const int* const indicator0 = indicator_data->getPointer(0,depth);
-                const int* const indicator1 = indicator_data->getPointer(1,depth);
-#if (NDIM == 3)
-                const int* const indicator2 = indicator_data->getPointer(2,depth);
 #endif
                 SC_QUAD_NORMAL_INTERPOLATION_FC(
                     U0, U1,
