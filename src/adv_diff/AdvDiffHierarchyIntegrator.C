@@ -122,28 +122,28 @@ void
 AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(
     TimeSteppingType default_diffusion_time_stepping_type)
 {
-    d_default_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
+    d_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
     return;
 }// setDefaultDiffusionTimeSteppingType
 
 TimeSteppingType
 AdvDiffHierarchyIntegrator::getDefaultDiffusionTimeSteppingType() const
 {
-    return d_default_diffusion_time_stepping_type;
+    return d_diffusion_time_stepping_type;
 }// getDefaultDiffusionTimeSteppingType
 
 void
 AdvDiffHierarchyIntegrator::setDefaultConvectiveDifferencingType(
     ConvectiveDifferencingType default_convective_difference_form)
 {
-    d_default_convective_difference_form = default_convective_difference_form;
+    d_convective_difference_form = default_convective_difference_form;
     return;
 }// setDefaultConvectiveDifferencingType
 
 ConvectiveDifferencingType
 AdvDiffHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
 {
-    return d_default_convective_difference_form;
+    return d_convective_difference_form;
 }// getDefaultConvectiveDifferencingType
 
 void
@@ -261,8 +261,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     d_Q_F_map[Q_var] = NULL;
     d_Q_rhs_var.insert(Q_rhs_var);
     d_Q_Q_rhs_map[Q_var] = Q_rhs_var;
-    d_Q_diffusion_time_stepping_type[Q_var] = d_default_diffusion_time_stepping_type;
-    d_Q_difference_form[Q_var] = d_default_convective_difference_form;
+    d_Q_diffusion_time_stepping_type[Q_var] = d_diffusion_time_stepping_type;
+    d_Q_difference_form[Q_var] = d_convective_difference_form;
     d_Q_diffusion_coef[Q_var] = 0.0;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = NULL;
@@ -525,8 +525,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_integrator_is_initialized(false),
       d_cfl_max(0.5),
-      d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
-      d_default_convective_difference_form(CONSERVATIVE),
+      d_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
+      d_convective_difference_form(CONSERVATIVE),
       d_u_var(),
       d_u_is_div_free(),
       d_u_fcn(),
@@ -693,8 +693,8 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
 #endif
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("d_cfl_max", d_cfl_max);
-    db->putString("d_default_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type));
-    db->putString("d_default_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_default_convective_difference_form));
+    db->putString("d_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type));
+    db->putString("d_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
     return;
 }// putToDatabaseSpecialized
 
@@ -749,28 +749,34 @@ AdvDiffHierarchyIntegrator::getFromInput(
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        if      (db->keyExists("diffusion_time_stepping_type")) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
-        else if (db->keyExists("diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
-        else if (db->keyExists("default_diffusion_time_stepping_type")) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_time_stepping_type"));
-        else if (db->keyExists("default_diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_timestepping_type") );
-        if      (db->keyExists("convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
-        else if (db->keyExists("convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
-        else if (db->keyExists("default_convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
-        else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
+        if      (db->keyExists("diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
+        else if (db->keyExists("diffusion_timestepping_type" )) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
+        else if (db->keyExists("default_diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_time_stepping_type"));
+        else if (db->keyExists("default_diffusion_timestepping_type" )) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_timestepping_type") );
+        if      (db->keyExists("convective_difference_type")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
+        else if (db->keyExists("convective_difference_form")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
+        else if (db->keyExists("default_convective_difference_type")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
+        else if (db->keyExists("default_convective_difference_form")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
     }
     if      (db->keyExists("cfl_max")) d_cfl_max = db->getDouble("cfl_max");
     else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
     if      (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
     else if (db->keyExists("CFL"    )) d_cfl_max = db->getDouble("CFL"    );
-    if (db->keyExists("helmholtz_solver_type")) d_helmholtz_solver_type = db->getString("helmholtz_solver_type");
-    if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
-    if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
-    if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
-    if (!d_helmholtz_solver_db.isNull() && !d_helmholtz_solver_db->keyExists("options_prefix"))
+    if      (db->keyExists("solver_type"          )) d_helmholtz_solver_type = db->getString("solver_type"          );
+    else if (db->keyExists("helmholtz_solver_type")) d_helmholtz_solver_type = db->getString("helmholtz_solver_type");
+    if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
+    else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
+    if      (db->keyExists("solver_db"          )) d_helmholtz_solver_db = db->getDatabase("solver_db"          );
+    else if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
+    if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
+    else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
+    if (d_helmholtz_solver_db.isNull()) d_helmholtz_solver_db = new MemoryDatabase(d_object_name+"::helmholtz_solver_db");
+    if (!d_helmholtz_solver_db->keyExists("options_prefix"))
     {
         d_helmholtz_solver_db->putString("options_prefix", "adv_diff_");
     }
-    if (!d_helmholtz_precond_db.isNull() && !d_helmholtz_precond_db->keyExists("options_prefix"))
+    if (d_helmholtz_precond_db.isNull()) d_helmholtz_precond_db = new MemoryDatabase(d_object_name+"::helmholtz_precond_db");
+    if (!d_helmholtz_precond_db->keyExists("options_prefix"))
     {
         d_helmholtz_precond_db->putString("options_prefix", "adv_diff_pc_");
     }
@@ -797,8 +803,8 @@ AdvDiffHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     d_cfl_max = db->getDouble("d_cfl_max");
-    d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_diffusion_time_stepping_type"));
-    d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_default_convective_difference_form"));
+    d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_diffusion_time_stepping_type"));
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
     return;
 }// getFromRestart
 

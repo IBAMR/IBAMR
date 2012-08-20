@@ -226,6 +226,10 @@ CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
+    if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
+    {
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
+    }
     return;
 }// setCoarseSolverType
 
@@ -541,7 +545,6 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     {
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);

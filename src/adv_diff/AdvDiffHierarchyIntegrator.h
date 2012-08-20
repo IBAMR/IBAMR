@@ -402,12 +402,12 @@ protected:
     /*!
      * Default diffusion time integration method.
      */
-    TimeSteppingType d_default_diffusion_time_stepping_type;
+    TimeSteppingType d_diffusion_time_stepping_type;
 
     /*!
      * Default convective differencing type.
      */
-    ConvectiveDifferencingType d_default_convective_difference_form;
+    ConvectiveDifferencingType d_convective_difference_form;
 
     /*!
      * Advection velocity data.
