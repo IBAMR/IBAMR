@@ -5,16 +5,12 @@ REF_RATIO  = 2   // refinement ratio between levels
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
-SOLVER_TYPE = "CENTERED"
-
 GodunovAdvector {
    // intentionally blank
 }
 
 AdvDiffGodunovHierarchyIntegrator {
    enable_logging = TRUE
-
-   tag_buffer = 1
 
    start_time            = 0.0e0    // initial simulation time
    end_time              = 0.2      // final simulation time
@@ -43,53 +39,27 @@ AdvDiffGodunovHierarchyIntegrator {
       use_ghosts_to_compute_dt = FALSE
    }
 
-   max_iterations = 50
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-10
-   using_FAC = TRUE
-
-   FACOps {
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      prolongation_method = "CONSTANT_REFINE"
+   helmholtz_solver_type = "PETSC_KRYLOV_SOLVER"
+   helmholtz_solver_db {
+      ksp_type = "fgmres"
    }
 
-   FACPreconditioners {
+   helmholtz_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   helmholtz_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
-   }
-}
-
-AdvDiffSemiImplicitHierarchyIntegrator {
-   enable_logging = TRUE
-
-   tag_buffer = 1
-
-   start_time            = 0.0e0    // initial simulation time
-   end_time              = 0.2      // final simulation time
-   grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // effectively disable regridding
-   cfl                   = 0.975e0
-
-   max_iterations = 50
-   abs_residual_tol = 1.0e-30
-   rel_residual_tol = 1.0e-10
-   using_FAC = TRUE
-
-   FACOps {
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-6
-      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      prolongation_method = "CONSTANT_REFINE"
-   }
-
-   FACPreconditioners {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_tolerance = 1.0e-12
+      coarse_solver_abs_tolerance = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
    }
 }
 
@@ -111,7 +81,7 @@ UFunction {
 }
 
 Main {
-   solver_type = SOLVER_TYPE
+   solver_type = "GODUNOV"
 
 // log file parameters
    log_file_name               = "adv_diff2d.log"
