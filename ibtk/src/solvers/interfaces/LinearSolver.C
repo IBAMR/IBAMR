@@ -59,14 +59,14 @@ LinearSolver::LinearSolver(
     const std::string& object_name,
     bool homogeneous_bc)
     : GeneralSolver(object_name, homogeneous_bc),
-      d_nullspace_contains_constant_vec(false),
-      d_nullspace_basis_vecs(),
       d_initial_guess_nonzero(true),
       d_rel_residual_tol(1.0e-5),
       d_abs_residual_tol(1.0e-50),
       d_max_iterations(10000),
       d_current_iterations(0),
-      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
+      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
+      d_nullspace_contains_constant_vec(false),
+      d_nullspace_basis_vecs()
 {
     // intentionally blank
     return;
