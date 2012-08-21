@@ -101,7 +101,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
       d_P_bdry_fill_op(NULL),
       d_no_fill_op(NULL),
       d_U_var(NULL),
-      d_U_scratch_idx(-1),
+      d_F_U_mod_idx(-1),
       d_P_var(NULL),
       d_P_scratch_idx(-1)
 {
@@ -119,14 +119,14 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     if (d_U_var.isNull())
     {
         d_U_var = new SideVariable<NDIM,double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(SIDEG));
+        d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(SIDEG));
     }
     else
     {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+        d_F_U_mod_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_U_scratch_idx >= 0);
+    TBOX_ASSERT(d_F_U_mod_idx >= 0);
 #endif
     const std::string P_var_name = d_object_name+"::P";
     d_P_var = var_db->getVariable(P_var_name);
@@ -173,75 +173,108 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     x.setToScalar(0.0,false);
 
     // Get the vector components.
-    const int U_in_idx = b.getComponentDescriptorIndex(0);
-    const int P_in_idx = b.getComponentDescriptorIndex(1);
+    const int F_U_idx = b.getComponentDescriptorIndex(0);
+    const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable<NDIM> >& U_in_var = b.getComponentVariable(0);
-    const Pointer<Variable<NDIM> >& P_in_var = b.getComponentVariable(1);
+    const Pointer<Variable<NDIM> >& F_U_var = b.getComponentVariable(0);
+    const Pointer<Variable<NDIM> >& F_P_var = b.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM,double> > U_in_sc_var = U_in_var;
-    Pointer<CellVariable<NDIM,double> > P_in_cc_var = P_in_var;
+    Pointer<SideVariable<NDIM,double> > F_U_sc_var = F_U_var;
+    Pointer<CellVariable<NDIM,double> > F_P_cc_var = F_P_var;
 
-    const int U_out_idx = x.getComponentDescriptorIndex(0);
-    const int P_out_idx = x.getComponentDescriptorIndex(1);
+    const int U_idx = x.getComponentDescriptorIndex(0);
+    const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable<NDIM> >& U_out_var = x.getComponentVariable(0);
-    const Pointer<Variable<NDIM> >& P_out_var = x.getComponentVariable(1);
+    const Pointer<Variable<NDIM> >& U_var = x.getComponentVariable(0);
+    const Pointer<Variable<NDIM> >& P_var = x.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM,double> > U_out_sc_var = U_out_var;
-    Pointer<CellVariable<NDIM,double> > P_out_cc_var = P_out_var;
+    Pointer<SideVariable<NDIM,double> > U_sc_var = U_var;
+    Pointer<CellVariable<NDIM,double> > P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    Pointer<SAMRAIVectorReal<NDIM,double> > U_scratch_vec;
-    U_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_velocity_wgt_idx, d_velocity_data_ops);
+    Pointer<SAMRAIVectorReal<NDIM,double> > F_U_mod_vec;
+    F_U_mod_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_U_mod_vec->addComponent(d_U_var, d_F_U_mod_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > U_out_vec;
-    U_out_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_velocity_wgt_idx, d_velocity_data_ops);
+    Pointer<SAMRAIVectorReal<NDIM,double> > U_vec;
+    U_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_scratch_vec;
     P_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > P_in_vec;
-    P_in_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_in_vec->addComponent(P_in_cc_var, P_in_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+    Pointer<SAMRAIVectorReal<NDIM,double> > F_P_vec;
+    F_P_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::F_P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_P_vec->addComponent(F_P_cc_var, F_P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > P_out_vec;
-    P_out_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+    Pointer<SAMRAIVectorReal<NDIM,double> > P_vec;
+    P_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent     P_out_transaction_comp(      P_out_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
+    InterpolationTransactionComponent         P_transaction_comp(          P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
 
-    // Solve the pressure sub-problem.
+    // (1) Solve the pressure sub-problem.
     //
-    // P_out := -((rho/dt)*I-mu*L) * (-L)^{-1} * P_in
-    d_pressure_solver->solveSystem(*P_scratch_vec,*P_in_vec);
-    PoissonSpecifications P_helmholtz_spec(d_object_name+"::P_helmholtz_spec");
-    P_helmholtz_spec.setCConstant(-d_U_problem_coefs.getCConstant());
-    P_helmholtz_spec.setDConstant(-d_U_problem_coefs.getDConstant());
-    d_hier_math_ops->laplace(P_out_idx, P_out_cc_var, P_helmholtz_spec, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
+    // P := -(C*I+D*L) * (-L)^{-1} * F_P
+    //
+    // NOTE: When C=0, then
+    //
+    // P := -(D*L) * (-L)^{-1} * F_P
+    //    = D*F_P
+    if (d_U_problem_coefs.cIsZero())
+    {
+        d_pressure_data_ops->scale(P_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
+    }
+    else
+    {
+        d_pressure_solver->setInitialGuessNonzero(false);
+        d_pressure_solver->setHomogeneousBc(true);
+        d_pressure_solver->solveSystem(*P_scratch_vec,*F_P_vec);
+        d_hier_math_ops->laplace(P_idx, P_cc_var, d_U_problem_coefs, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
+        d_pressure_data_ops->scale(P_idx, -1.0, P_idx);
+    }
 
-    // Compute the right-hand-side for the velocity solve.
-    d_P_bdry_fill_op->resetTransactionComponent(P_out_transaction_comp);
+    // (2) Solve the velocity sub-problem.
+    //
+    // U := (C*I+D*L)^{-1} * [F_U + Grad * (C*I+D*L) * (-L)^{-1} * F_P]
+    //    = (C*I+D*L)^{-1} * [F_U - Grad * P]
+    d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
     static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(d_U_scratch_idx, d_U_var, cf_bdry_synch, -1.0, P_out_idx, P_out_cc_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_in_idx, U_in_sc_var);
+    d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
     d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
+    d_velocity_solver->setInitialGuessNonzero(false);
+    d_velocity_solver->setHomogeneousBc(true);
+    d_velocity_solver->solveSystem(*U_vec,*F_U_mod_vec);
 
-    // Solve the velocity sub-problem.
-    //
-    // U_out := (rho/dt)*I-K*mu*L)^{-1} * [U_in + Grad * ((rho/dt)*I-K*mu*L) * (-L)^{-1} * P_in]
-    //        = (rho/dt)*I-K*mu*L)^{-1} * [U_in - Grad * P_out]
-    //
-    // where K is determined by the viscous time stepping scheme (see above).
-    d_velocity_solver->solveSystem(*U_out_vec,*U_scratch_vec);
+    // (3) Account for any nullspace vectors.
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = d_velocity_solver->getNullspaceBasisVectors();
+    if (!U_nul_vecs.empty())
+    {
+        for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+        {
+            const double alpha = U_vec->dot(U_nul_vecs[k])/U_nul_vecs[k]->dot(U_nul_vecs[k]);
+            U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+        }
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_velocity_solver->getNullspaceContainsConstantVector());
+#endif
+    if (d_pressure_solver->getNullspaceContainsConstantVector())
+    {
+        const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+        const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
+        d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_pressure_solver->getNullspaceBasisVectors().empty());
+#endif
 
-    // Deallocate the solver (if necessary).
+// Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
     IBAMR_TIMER_STOP(t_solve_system);
@@ -288,13 +321,14 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
+    d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx);
+        if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
         if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
     }
     d_is_initialized = true;
@@ -319,7 +353,7 @@ StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx)) level->deallocatePatchData(d_U_scratch_idx);
+        if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
         if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
     }
     d_is_initialized = false;

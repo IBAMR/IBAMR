@@ -751,13 +751,13 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
         default:
             TBOX_ERROR("this statment should not be reached");
     }
-    PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-    rhs_spec.setCConstant((rho/dt)-K_rhs*lambda);
-    rhs_spec.setDConstant(        +K_rhs*mu    );
+    PoissonSpecifications U_rhs_problem_coefs(d_object_name+"::U_rhs_problem_coefs");
+    U_rhs_problem_coefs.setCConstant((rho/dt)-K_rhs*lambda);
+    U_rhs_problem_coefs.setDConstant(        +K_rhs*mu    );
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<SideVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, rhs_spec, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time);
+    d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -770,7 +770,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     if (!p_stokes_solver.isNull())
     {
-        p_stokes_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_U_rhs_vec);
+        p_stokes_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vec);
         p_stokes_solver->setHomogeneousBc(true);
     }
 
@@ -976,9 +976,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_sc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(0), d_U_new_idx);
     d_hier_cc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(1), d_P_new_idx);
 
-    // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
-    // boundary condition takes precedence).
-    d_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ true);
+    // Enforce Dirichlet boundary conditions.
+    d_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
+    d_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
@@ -986,9 +986,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
-
-    // Enforce Dirichlet boundary conditions.
-    d_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
@@ -1826,6 +1823,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         if (!p_stokes_block_pc.isNull())
         {
             p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
+            p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef);
         }
     }
     if (d_stokes_solver_needs_init)

@@ -191,21 +191,6 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(
 }// setPhysicalBoundaryHelper
 
 void
-StaggeredStokesOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (d_homogeneous_bc) return;
-
-    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
-    // inhomogeneous boundary conditions.
-    d_correcting_rhs = true;
-    apply(*d_x,*d_b);
-    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-    d_correcting_rhs = false;
-    return;
-}// modifyRhsForInhomogeneousBc
-
-void
 StaggeredStokesOperator::apply(
     const bool homogeneous_bc,
     SAMRAIVectorReal<NDIM,double>& x,
@@ -214,35 +199,39 @@ StaggeredStokesOperator::apply(
     IBAMR_TIMER_START(t_apply);
 
     // Get the vector components.
-    const int U_in_idx  = x.getComponentDescriptorIndex(0);
-    const int P_in_idx  = x.getComponentDescriptorIndex(1);
-    const int U_out_idx = y.getComponentDescriptorIndex(0);
-    const int P_out_idx = y.getComponentDescriptorIndex(1);
+    const int   U_idx = x.getComponentDescriptorIndex(0);
+    const int   P_idx = x.getComponentDescriptorIndex(1);
+    const int A_U_idx = y.getComponentDescriptorIndex(0);
+    const int A_P_idx = y.getComponentDescriptorIndex(1);
+    const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<NDIM,double> > U_in_sc_var  = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM,double> > P_in_cc_var  = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM,double> > U_out_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM,double> > P_out_cc_var = y.getComponentVariable(1);
+    Pointer<SideVariable<NDIM,double> >   U_sc_var = x.getComponentVariable(0);
+    Pointer<CellVariable<NDIM,double> >   P_cc_var = x.getComponentVariable(1);
+    Pointer<SideVariable<NDIM,double> > A_U_sc_var = y.getComponentVariable(0);
+    Pointer<CellVariable<NDIM,double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> x_components(2);
-    x_components[0] = InterpolationTransactionComponent(U_in_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    x_components[1] = InterpolationTransactionComponent(P_in_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
-    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    if (P_bc_coef != NULL) P_bc_coef->setVelocityNewPatchDataIndex(U_in_idx);
+    std::vector<InterpolationTransactionComponent> transaction_comps(2);
+    transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0), x.getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
+    transaction_comps[1] = InterpolationTransactionComponent(x.getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
+    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->resetTransactionComponents(x_components);
+    d_hier_bdry_fill->fillData(d_solution_time);
+    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
+    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    if (P_bc_coef != NULL) P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
+    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_new_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
     //
-    //    A*[u;p] = [((rho/dt+lambda)*I-mu*L)*u + grad p; -div u]
-    d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_U_problem_coefs, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
-    d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
-    if (homogeneous_bc) d_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
+    // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
+    d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, d_new_time);
+    d_hier_math_ops->laplace(A_U_idx, A_U_sc_var, d_U_problem_coefs, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
+    d_hier_math_ops->div(A_P_idx, A_P_cc_var, -1.0, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
+    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     IBAMR_TIMER_STOP(t_apply);
     return;
@@ -270,18 +259,15 @@ StaggeredStokesOperator::initializeOperatorState(
     // Setup solution and rhs vectors.
     d_x = in .cloneVector(in .getName());
     d_b = out.cloneVector(out.getName());
-
     d_x->allocateVectorData();
-    d_x->setToScalar(0.0);
-    d_b->allocateVectorData();
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    d_transaction_comps[1] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
+    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0), in.getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
+    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();

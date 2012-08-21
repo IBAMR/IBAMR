@@ -193,7 +193,7 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
-    int d_U_scratch_idx;
+    int d_F_U_mod_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
     int d_P_scratch_idx;
 };

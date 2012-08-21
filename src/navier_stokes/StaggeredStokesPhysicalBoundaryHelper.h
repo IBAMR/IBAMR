@@ -81,6 +81,17 @@ public:
         int finest_ln=-1) const;
 
     /*!
+     * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
+     * boundaries.
+     */
+    void
+    copyDataAtDirichletBoundaries(
+        int u_out_data_idx,
+        int u_in_data_idx,
+        int coarsest_level_number=-1,
+        int finest_ln=-1) const;
+
+    /*!
      * \brief Cache boundary coefficient data.
      */
     void

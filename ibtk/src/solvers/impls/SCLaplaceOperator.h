@@ -71,25 +71,6 @@ public:
     //\{
 
     /*!
-     * \brief Modify y to account for inhomogeneous boundary conditions.
-     *
-     * Before calling this function, the form of the vector y should be set
-     * properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in this vector should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * \note The operator MUST be initialized prior to calling
-     * modifyRhsForInhomogeneousBc.
-     *
-     * \see initializeOperatorState
-     *
-     * \param y output: y=Ax
-     */
-    void
-    modifyRhsForInhomogeneousBc(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-    /*!
      * \brief Compute y=Ax.
      *
      * Before calling this function, the form of the vectors x and y should be

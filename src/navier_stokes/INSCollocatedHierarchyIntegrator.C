@@ -643,15 +643,15 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
         default:
             TBOX_ERROR("this statment should not be reached");
     }
-    PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-    rhs_spec.setCConstant((rho/dt)-K_rhs*lambda);
-    rhs_spec.setDConstant(        +K_rhs*mu    );
+    PoissonSpecifications U_rhs_problem_coefs(d_object_name+"::U_rhs_problem_coefs");
+    U_rhs_problem_coefs.setCConstant((rho/dt)-K_rhs*lambda);
+    U_rhs_problem_coefs.setDConstant(        +K_rhs*mu    );
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<CellVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, rhs_spec, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), axis, axis);
+        d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), axis, axis);
     }
 
     // Set the initial guess.

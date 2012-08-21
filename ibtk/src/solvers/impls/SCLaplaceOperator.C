@@ -116,21 +116,6 @@ SCLaplaceOperator::~SCLaplaceOperator()
 }// ~SCLaplaceOperator()
 
 void
-SCLaplaceOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (d_homogeneous_bc) return;
-
-    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
-    // inhomogeneous boundary conditions.
-    d_correcting_rhs = true;
-    apply(*d_x,*d_b);
-    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-    d_correcting_rhs = false;
-    return;
-}// modifyRhsForInhomogeneousBc
-
-void
 SCLaplaceOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
@@ -169,13 +154,13 @@ SCLaplaceOperator::apply(
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> x_transaction_comps;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
-        x_transaction_comps.push_back(x_component);
+        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp), x.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        transaction_comps.push_back(x_component);
     }
-    d_hier_bdry_fill->resetTransactionComponents(x_transaction_comps);
+    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
@@ -187,8 +172,8 @@ SCLaplaceOperator::apply(
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
 
-        const int x_idx = x.getComponentDescriptorIndex(comp);
-        const int y_idx = y.getComponentDescriptorIndex(comp);
+        const int x_idx = d_x->getComponentDescriptorIndex(comp);
+        const int y_idx =    y.getComponentDescriptorIndex(comp);
 
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_idx, x_sc_var, d_no_fill, 0.0);
     }
@@ -210,10 +195,7 @@ SCLaplaceOperator::initializeOperatorState(
     // Setup solution and rhs vectors.
     d_x = in .cloneVector(in .getName());
     d_b = out.cloneVector(out.getName());
-
     d_x->allocateVectorData();
-    d_x->setToScalar(0.0);
-    d_b->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy   = in.getPatchHierarchy();
@@ -250,7 +232,7 @@ SCLaplaceOperator::initializeOperatorState(
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), in.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 

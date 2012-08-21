@@ -131,6 +131,54 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDirichletBcs(
 }// enforceDirichletBcs
 
 void
+StaggeredStokesPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
+    const int u_out_data_idx,
+    const int u_in_data_idx,
+    const int coarsest_ln,
+    const int finest_ln) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_hierarchy.isNull());
+#endif
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const int patch_num = p();
+            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
+            Pointer<SideData<NDIM,double> > u_out_data = patch->getPatchData(u_out_data_idx);
+            Pointer<SideData<NDIM,double> >  u_in_data = patch->getPatchData( u_in_data_idx);
+
+            // Lookup the boundary fill boxes.
+            const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
+            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+
+            // Copy data at Dirichlet boundaries.
+            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+                const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
+                ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+                for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+                {
+                    const Index<NDIM>& i = it();
+                    if (bdry_locs_data(i,0))
+                    {
+                        (*u_out_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = (*u_in_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower));
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// copyDataAtDirichletBoundaries
+
+void
 StaggeredStokesPhysicalBoundaryHelper::cacheBcCoefData(
     const int u_data_idx,
     const Pointer<Variable<NDIM> > u_var,
