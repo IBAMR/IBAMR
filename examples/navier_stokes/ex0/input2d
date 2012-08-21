@@ -121,11 +121,10 @@ INSCollocatedHierarchyIntegrator {
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
 
    velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-   velocity_solver_db {
-      ksp_type = "richardson"
-   }
-
    velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "fgmres"
+   }
    velocity_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
@@ -144,12 +143,33 @@ INSCollocatedHierarchyIntegrator {
    }
 
    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
    pressure_solver_db {
-      ksp_type = "richardson"
+      ksp_type = "fgmres"
+   }
+   pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
    }
 
-   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   pressure_precond_db {
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   regrid_projection_solver_db {
+      ksp_type = "fgmres"
+   }
+   regrid_projection_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
       prolongation_method = "LINEAR_REFINE"
@@ -190,16 +210,22 @@ INSStaggeredHierarchyIntegrator {
    output_Div_U               = OUTPUT_DIV_U
    enable_logging             = ENABLE_LOGGING
 
-   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-   velocity_solver_db {
-      ksp_type = "richardson"
+   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
+   stokes_precond_type = "PROJECTION_PRECONDITIONER"
+   stokes_solver_db {
+      ksp_type = "fgmres"
    }
 
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
    velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+   }
    velocity_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
+      prolongation_method = "CONSTANT_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
       coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-12
@@ -213,12 +239,34 @@ INSStaggeredHierarchyIntegrator {
    }
 
    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
    pressure_solver_db {
       ksp_type = "richardson"
+      max_iterations = 1
+   }
+   pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
    }
 
-   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   pressure_precond_db {
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   regrid_projection_solver_db {
+      ksp_type = "fgmres"
+   }
+   regrid_projection_precond_db {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
       prolongation_method = "LINEAR_REFINE"
