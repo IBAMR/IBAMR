@@ -350,7 +350,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
