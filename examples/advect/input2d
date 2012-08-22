@@ -1,3 +1,6 @@
+// physical parameters
+L = 1.0
+
 // grid spacing parameters
 MAX_LEVELS = 4                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
