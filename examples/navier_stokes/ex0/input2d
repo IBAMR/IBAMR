@@ -1,6 +1,7 @@
 // physical parameters
-MU = 1.0e-2                               // fluid viscosity
+MU  = 1.0e-2                              // fluid viscosity
 RHO = 1.0                                 // fluid density
+L   = 1.0
 
 // grid spacing parameters
 MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
