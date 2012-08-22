@@ -28,8 +28,8 @@ precond_db {
    prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
    restriction_method  = "CONSERVATIVE_COARSEN"
    coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-   coarse_solver_rel_tolerance = 1.0e-12
-   coarse_solver_abs_tolerance = 1.0e-50
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
    coarse_solver_max_iterations = 1
    coarse_solver_db {
       solver_type       = "Split"
