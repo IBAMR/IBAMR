@@ -199,12 +199,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_current_dt = new_time-current_time);
-    TBOX_ASSERT(cycle_num < d_current_num_cycles);
-#endif
-    d_current_cycle_num = cycle_num;
-
+    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
@@ -219,7 +214,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             {
                 IBAMR_DO_ONCE(
                     {
-                        pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                        pout << "IBExplicitHierarchyIntegrator::integrateHierarchy():\n"
                              << "  WARNING: time_stepping_type = " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << " but num_cycles = " << d_current_num_cycles << " > 1.\n";
                     }
                               );
@@ -273,10 +268,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     }
     else
     {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_current_num_cycles == 1);
+#endif
         const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-        for (int cycle = 0; cycle < ins_num_cycles; ++cycle)
+        for (int ins_cycle_num = 0; ins_cycle_num < ins_num_cycles; ++ins_cycle_num)
         {
-            d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+            d_ins_hier_integrator->integrateHierarchy(current_time, new_time, ins_cycle_num);
         }
     }
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
@@ -285,7 +283,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     switch (d_time_stepping_type)
     {
         case FORWARD_EULER:
-            d_ib_method_ops->eulerStep(current_time, new_time);
+            // intentionally blank
             break;
         case MIDPOINT_RULE:
             d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
@@ -350,8 +348,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

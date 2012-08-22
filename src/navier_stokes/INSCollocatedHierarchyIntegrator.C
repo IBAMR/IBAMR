@@ -615,7 +615,6 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
-    d_current_num_cycles = num_cycles;
     if ((d_current_num_cycles == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
@@ -748,12 +747,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_current_dt = new_time-current_time);
-    TBOX_ASSERT(cycle_num < d_current_num_cycles);
-#endif
-    d_current_cycle_num = cycle_num;
-
+    INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const int coarsest_ln = 0;
     const int finest_ln   = d_hierarchy->getFinestLevelNumber();
     const double dt       = new_time-current_time;

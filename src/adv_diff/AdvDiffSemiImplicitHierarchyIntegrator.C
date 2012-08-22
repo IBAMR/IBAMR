@@ -564,12 +564,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_current_dt = new_time-current_time);
-    TBOX_ASSERT(cycle_num < d_current_num_cycles);
-#endif
-    d_current_cycle_num = cycle_num;
-
+    AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt  = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 

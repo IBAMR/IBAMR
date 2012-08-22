@@ -269,7 +269,6 @@ HierarchyIntegrator::advanceHierarchy(
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
     for (int cycle_num = 0; cycle_num < d_current_num_cycles; ++cycle_num)
     {
-        d_current_cycle_num = cycle_num;
         if (d_enable_logging && d_current_num_cycles != 1)
         {
             plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num+1 << " of " << d_current_num_cycles << "\n";
@@ -486,6 +485,10 @@ HierarchyIntegrator::preprocessIntegrateHierarchy(
     d_current_num_cycles = num_cycles;
     d_current_cycle_num = -1;
     d_current_dt = new_time-current_time;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_current_num_cycles > 0);
+    TBOX_ASSERT(d_current_dt > 0.0);
+#endif
     return;
 }// preprocessIntegrateHierarchy
 
@@ -493,11 +496,18 @@ void
 HierarchyIntegrator::integrateHierarchy(
     const double current_time,
     const double new_time,
-    const int num_cycles)
+    const int cycle_num)
 {
-    d_current_num_cycles = num_cycles;
-    d_current_cycle_num = -1;
-    d_current_dt = new_time-current_time;
+    ++d_current_cycle_num;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time-current_time));
+    TBOX_ASSERT(d_current_cycle_num == cycle_num);
+    TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
+#else
+    NULL_USE(current_time);
+    NULL_USE(new_time);
+    NULL_USE(cycle_num);
+#endif
     return;
 }// integrateHierarchy
 
@@ -509,9 +519,9 @@ HierarchyIntegrator::postprocessIntegrateHierarchy(
     const int num_cycles)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_current_dt = new_time-current_time);
-    TBOX_ASSERT(d_current_cycle_num+1 == d_current_num_cycles);
+    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time-current_time));
     TBOX_ASSERT(num_cycles == d_current_num_cycles);
+    TBOX_ASSERT(d_current_cycle_num+1 == d_current_num_cycles);
 #else
     NULL_USE(current_time);
     NULL_USE(new_time);

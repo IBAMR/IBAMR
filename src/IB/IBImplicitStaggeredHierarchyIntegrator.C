@@ -155,12 +155,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_current_dt = new_time-current_time);
-    TBOX_ASSERT(cycle_num < d_current_num_cycles);
-#endif
-    d_current_cycle_num = cycle_num;
-
+    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
