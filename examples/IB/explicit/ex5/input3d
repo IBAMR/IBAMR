@@ -1,78 +1,88 @@
-SEED = 0                                           // random-number generator seed (0 for clock)
-OUTPUT_LEVEL = 2                                   // -1=none, 0=txt, 1=silo+txt, 2=visit+silo+txt, 3=visit+SAMRAI+silo+txt, >3=verbose
+// ---------------------------------------------------------------------------
 
-// system size
-NX = 64                                            // grid size x axis
-NY = 64                                            // grid size y axis
-NZ = 64                                            // grid size z axis
-N_STEPS = 100                                      // number of time steps
+// random-number generator parameters
+SEED = 0                                 // RNG seed (0 for clock)
 
-// discretization parameters
-H = 1.0                                            // Cartesian grid spacing
-DT = 1.0                                           // time step size
-PERIODIC_X = 1
-PERIODIC_Y = 1
-PERIODIC_Z = 1
+// ---------------------------------------------------------------------------
 
 // physical parameters
-kT = 1.0                                           // temperature
-MU = 1.0                                           // shear viscosity
-RHO = 1.0                                          // mass density
+kT  = 1.0                                // temperature
+MU  = 1.0                                // viscosity (shear)
+RHO = 1.0                                // density
+
+// ---------------------------------------------------------------------------
 
 // fluctuation parameters
-STD_U = 0.01                                       // scaling of velocity fluctuations (<<1 linearizes the fluctuations)
+STD_U = 1.0                              // scaling of velocity fluctuations (<<1 linearizes the fluctuations)
+
+// ---------------------------------------------------------------------------
+
+// discretization parameters
+DT         = 10.0                        // time step size
+N_STEPS    = 100                         // number of time steps
+H          = 10.0                        // grid spacing
+NX         = 64                          // number of grid cells (x axis)
+NY         = 64                          // number of grid cells (y axis)
+NZ         = 64                          // number of grid cells (z axis)
+PERIODIC_X = 1
+PERIODIC_Y = 1
+PERIODIC_z = 1
+
+// ---------------------------------------------------------------------------
 
 // solver parameters
-DELTA_FUNCTION                = "IB_4"             // name of the delta function (e.g. IB_3 or IB_4)
-START_TIME                    = 0.0e0              // initial simulation time
-END_TIME                      = N_STEPS            // final simulation time
-GROW_DT                       = 1.0e0              // growth factor for timesteps
-NUM_CYCLES                    = 1                  // number of cycles of fixed-point iteration
-IB_TIME_STEPPING_TYPE         = "MIDPOINT_RULE"    // time stepping rule for IB points
-VISCOUS_TIME_STEPPING_TYPE    = "CRANK_NICOLSON"   // viscous time stepping rule
-CREEPING_FLOW                 = TRUE               // whether to use the creeping Stokes equations (no v*grad(v) term)
-CONVECTIVE_TIME_STEPPING_TYPE = "TRAPEZOIDAL_RULE" // convective time stepping rule (if NUM_CYCLES>1)
-CONVECTIVE_OP_TYPE            = "CENTERED"         // convective differencing discretization type
-CONVECTIVE_FORM               = "CONSERVATIVE"     // how to compute the convective terms
-NORMALIZE_PRESSURE            = TRUE               // whether to explicitly force the pressure to have mean zero
-CFL_MAX                       = 0.5                // maximum CFL number
-ERROR_ON_DT_CHANGE            = TRUE               // whether to emit an error message if the time step size changes
-TAG_BUFFER                    = 1                  // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL           = 0.5                // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                      = TRUE
-OUTPUT_P                      = FALSE
-OUTPUT_F                      = FALSE
-OUTPUT_OMEGA                  = FALSE
-OUTPUT_DIV_U                  = FALSE
-ENABLE_LOGGING                = TRUE
+DELTA_FUNCTION      = "IB_4"             // "IB_3", "IB_4", or "IB_6"
+START_TIME          = 0.0e0              // initial simulation time
+END_TIME            = N_STEPS*DT         // final simulation time
+GROW_DT             = 1.0e0              // growth factor for timesteps
+NUM_CYCLES          = 1                  // number of cycles of fixed-point iteration
+IB_TS_TYPE          = "MIDPOINT_RULE"    // time stepping rule for IB points
+VISCOUS_TS_TYPE     = "CRANK_NICOLSON"   // viscous time stepping rule
+CREEPING_FLOW       = TRUE               // whether to use the creeping Stokes equations (no v*grad(v) term)
+CONVECTIVE_TS_TYPE  = "TRAPEZOIDAL_RULE" // convective time stepping rule (if NUM_CYCLES>1)
+CONVECTIVE_OP_TYPE  = "CENTERED"         // convective differencing discretization type
+CONVECTIVE_FORM     = "CONSERVATIVE"     // how to compute the convective terms
+NORMALIZE_PRESSURE  = TRUE               // whether to explicitly force the pressure to have mean zero
+CFL_MAX             = 0.5                // maximum CFL number
+ERROR_ON_DT_CHANGE  = TRUE               // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING   = FALSE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER          = 1                  // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL = 0.5                // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+
+// ---------------------------------------------------------------------------
+
+// output parameters
+OUTPUT_LEVEL = 1                         // -1=none, 0=txt, 1=silo+txt, 2=visit+silo+txt, 3=visit+SAMRAI+silo+txt, >3=verbose
+VISIT_DUMP_INTERVAL = 10                 // how often to write Eulerian   viz files (if OUTPUT_LEVEL> 0)
+DATA_DUMP_INTERVAL  = 10                 // how often to write Lagrangian viz files (if OUTPUT_LEVEL>=0)
+OUTPUT_U            = TRUE
+OUTPUT_P            = FALSE
+OUTPUT_F            = FALSE
+OUTPUT_OMEGA        = FALSE
+OUTPUT_DIV_U        = FALSE
+ENABLE_LOGGING      = TRUE
+
+// ---------------------------------------------------------------------------
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (NX - 1,NY - 1,NZ - 1) ]
-   x_lo         = 0.0 , 0.0 , 0.0          // lower end of computational domain.
-   x_up         = NX*H, NY*H, NZ*H         // upper end of computational domain.
+   x_lo         = 0.0 , 0.0 , 0.0
+   x_up         = NX*H, NY*H, NZ*H
    periodic_dimension = PERIODIC_X, PERIODIC_Y, PERIODIC_Z
 }
 
 GriddingAlgorithm {
-   max_levels = 1             // maximum number of levels in hierarchy.
-
+   max_levels = 1
    largest_patch_size {
-      level_0 = 512, 512, 512 // largest patch allowed in hierarchy
-                              // all finer levels will use same values as level_0...
+      level_0 = 512, 512, 512
    }
-
    smallest_patch_size {
-      level_0 =   8,   8,   8 // smallest patch allowed in hierarchy
-                              // all finer levels will use same values as level_0...
+      level_0 =   8,   8,   8
    }
-
-   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
 }
 
 IBHierarchyIntegrator {
-   time_stepping_type  = IB_TIME_STEPPING_TYPE
+   time_stepping_type  = IB_TS_TYPE
    start_time          = START_TIME
    end_time            = END_TIME
    grow_dt             = GROW_DT
@@ -90,10 +100,10 @@ IBMethod {
 }
 
 IBStandardInitializer {
-   max_levels = 1
-   structure_names = "points3d"  // name of input file(s) to read for structure data (in this case points3d.vertex)
+   max_levels      = 1
+   structure_names = "points3d"
    points3d {
-      level_number = max_levels - 1
+      level_number = 0
    }
 }
 
@@ -103,14 +113,15 @@ INSStaggeredHierarchyIntegrator {
    start_time                    = START_TIME
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
-   viscous_time_stepping_type    = VISCOUS_TIME_STEPPING_TYPE
-   convective_time_stepping_type = CONVECTIVE_TIME_STEPPING_TYPE
+   viscous_time_stepping_type    = VISCOUS_TS_TYPE
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
    convective_op_type            = CONVECTIVE_OP_TYPE
    convective_difference_form    = CONVECTIVE_FORM
    creeping_flow                 = CREEPING_FLOW
    normalize_pressure            = NORMALIZE_PRESSURE
    cfl                           = CFL_MAX
    dt_max                        = DT
+   using_vorticity_tagging       = VORTICITY_TAGGING
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -119,34 +130,36 @@ INSStaggeredHierarchyIntegrator {
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
 
-   VelocityHypreSolver {
-      solver_type           = "Split"
-      split_solver_type     = "PFMG"
-      relative_residual_tol = 1.0e-12
-      max_iterations        = 1
-      enable_logging        = FALSE
+   // Stokes solver configuration
+   stokes_solver_type   = "PETSC_KRYLOV_LINEAR_SOLVER"
+   stokes_precond_type  = "PROJECTION_PRECONDITIONER"
+
+   // velocity (momentum) subdomain solver configuration
+   velocity_solver_type = "HYPRE_LEVEL_SOLVER"
+   velocity_solver_db {
+      solver_type       = "Split"
+      split_solver_type = "PFMG"
+      max_iterations    = 1
    }
 
-   PressureHypreSolver {
-      solver_type           = "PFMG"
-      rap_type              = 0
-      relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 2
-      num_post_relax_steps  = 2
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
-      enable_logging        = FALSE
+   // pressure subdomain solver configuration
+   pressure_solver_type = "HYPRE_LEVEL_SOLVER"
+   pressure_solver_db {
+      solver_type          = "PFMG"
+      num_pre_relax_steps  = 1
+      num_post_relax_steps = 1
+      max_iterations       = 1
    }
 }
 
 INSStaggeredStochasticForcing {
-   stress_tensor_type = "SYMMETRIC"
+   stress_tensor_type  = "SYMMETRIC"
    velocity_bc_scaling = sqrt(2.0)
    traction_bc_scaling = 0.0
-   std = STD_U * sqrt(kT)
-   num_rand_vals = 1
-   weights_0 = 1.0
+   std                 = STD_U * sqrt(kT / H)
+   num_rand_vals       = 1
+   weights_0           = 1.0
+   weights_1           = 1.0
 }
 
 LoadBalancer {
@@ -161,20 +174,20 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 10                         // zero to turn off
+   viz_dump_interval           = VISIT_DUMP_INTERVAL
    viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0                          // zero to turn off
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IB3d"
 
 // postprocessing data dump parameters
-   data_dump_interval          = 10                         // zero to turn off
+   data_dump_interval          = DATA_DUMP_INTERVAL
    data_dump_dirname           = "data_IB3d"
 
 // timer dump parameters
-   timer_dump_interval         = 0                          // zero to turn off
+   timer_dump_interval         = 0
 }
 
 StandardTagAndInitialize {
@@ -189,9 +202,12 @@ TimerManager{
    timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
 }
 
-// NOTE: Boundary condition specifications are not used along periodic boundaries.
+// For purely periodic BCs the information below is not used.
 
-VelocityBcCoefs_0 {  // u = 0 along all boundaries
+// The input below sets zero velocity boundaries along nonperiodic
+// dimensions.
+
+VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -214,7 +230,7 @@ VelocityBcCoefs_0 {  // u = 0 along all boundaries
    gcoef_function_5 = "0.0"
 }
 
-VelocityBcCoefs_1 {  // v = 0 along all boundaries
+VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -237,7 +253,7 @@ VelocityBcCoefs_1 {  // v = 0 along all boundaries
    gcoef_function_5 = "0.0"
 }
 
-VelocityBcCoefs_2 {  // w = 0 along all boundaries
+VelocityBcCoefs_2 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
