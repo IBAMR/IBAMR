@@ -1,4 +1,6 @@
 // physical parameters
+L     = 2.5                                        // width  of computational domain
+H     = 0.41                                       // height of computational domain
 RHO   = 1.0e3
 MU    = 1.0
 U_BAR = 2.0
@@ -7,14 +9,12 @@ D     = 0.1
 RE    = U_BAR*D*RHO/MU
 
 // grid spacing parameters
-L = 2.5                                            // width  of computational domain
-H = 0.41                                           // height of computational domain
 MAX_LEVELS = 1                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
 N = 41                                             // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
-DX0 = 1.0/N                                        // mesh width on coarsest grid level
-DX  = 1.0/NFINEST                                  // mesh width on finest   grid level
+DX0 = L/N                                          // mesh width on coarsest grid level
+DX  = L/NFINEST                                    // mesh width on finest   grid level
 MFAC = 1.0                                         // ratio of Lagrangian mesh width to Cartesian mesh width
 BLOCK_ELEM_TYPE = "QUAD4"                          // type of element to use for discretization of the circular block
 BEAM_ELEM_TYPE  = "QUAD4"                          // type of element to use for discretization of the thin beam
@@ -52,7 +52,6 @@ ENABLE_LOGGING             = TRUE
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
-USE_EXACT_PROJECTION_METHOD = FALSE
 
 // model parameters
 MU_S = 2.0e6
@@ -75,7 +74,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0 , 0.5*(1.0-cos(0.5*pi*t)) , 1.0)"
+   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0,0.5*(1.0-cos(0.5*pi*t)),1.0)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -143,7 +142,6 @@ INSCollocatedHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
-   use_exact_projection_method   = USE_EXACT_PROJECTION_METHOD
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -177,34 +175,34 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "VisIt" , "ExodusII"
-   viz_dump_interval           = int(NFINEST*32.0/CFL_MAX/41.0) // zero to turn off
+   viz_writer                  = "VisIt","ExodusII"
+   viz_dump_interval           = int(NFINEST*32.0/CFL_MAX/41.0)
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0                          // zero to turn off
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = 1                          // zero to turn off
+   data_dump_interval          = 1
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters
-   timer_dump_interval         = 0                          // zero to turn off
+   timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (int((L/H)*N) - 1,N - 1) ]
-   x_lo         =  0 , 0  // lower end of computational domain.
-   x_up         =  L , H  // upper end of computational domain.
-   periodic_dimension = 0 , 0
+   domain_boxes = [ (0,0),(int((L/H)*N) - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,H
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_1 = REF_RATIO,REF_RATIO
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
       level_4 = REF_RATIO,REF_RATIO
@@ -212,21 +210,14 @@ GriddingAlgorithm {
       level_6 = REF_RATIO,REF_RATIO
       level_7 = REF_RATIO,REF_RATIO
    }
-
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
-
    smallest_patch_size {
-      level_0 =  8,  8 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =   8,  8  // all finer levels will use same values as level_0
    }
-
-   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
+   efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.80e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
@@ -243,5 +234,5 @@ TimerManager{
    print_total = TRUE
    print_threshold = 0.1
 
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }

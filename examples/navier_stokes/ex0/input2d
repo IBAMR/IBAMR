@@ -74,20 +74,20 @@ VelocityBcCoefs_0 {
 VelocityBcCoefs_1 {
    nu = MU/RHO
 
-   acoef_function_0 = "1.0" // V_acoef_0
-   acoef_function_1 = "1.0" // V_acoef_1
-   acoef_function_2 = "1.0" // V_acoef_2
-   acoef_function_3 = "1.0" // V_acoef_3
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "0.0" // V_bcoef_0
-   bcoef_function_1 = "0.0" // V_bcoef_1
-   bcoef_function_2 = "0.0" // V_bcoef_2
-   bcoef_function_3 = "0.0" // V_bcoef_3
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = V // V_gcoef_0
-   gcoef_function_1 = V // V_gcoef_1
-   gcoef_function_2 = V // V_gcoef_2
-   gcoef_function_3 = V // V_gcoef_3
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
 }
 
 PressureInitialConditions {
@@ -109,7 +109,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25 , 0.125
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
@@ -202,7 +202,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25 , 0.125
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
    output_U                      = OUTPUT_U
@@ -295,46 +295,40 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = NFINEST/8   // zero to turn off
+   viz_dump_interval           = NFINEST/8
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0           // zero to turn off
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_INS2d"
 
 // timer dump parameters
-   timer_dump_interval         = 0           // zero to turn off
+   timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =  0, 0          // lower end of computational domain.
-   x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 0, 0
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_1 = REF_RATIO,REF_RATIO
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
    }
-
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
-
    smallest_patch_size {
-      level_0 =  4,  4 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =   4,  4  // all finer levels will use same values as level_0
    }
-
-   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
@@ -342,7 +336,7 @@ StandardTagAndInitialize {
    RefineBoxes {
 //    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
 //    level_0 = [(0,0),(N/2 - 1,N/2 - 1)]
-      level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+      level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
    }
 }
 
@@ -353,8 +347,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }

@@ -1,23 +1,21 @@
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
-REF_RATIO  = 2   // refinement ratio between levels
-
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 AdvDiffSemiImplicitHierarchyIntegrator {
-   enable_logging = TRUE
+   start_time           = 0.0e0  // initial simulation time
+   end_time             = 0.2    // final simulation time
+   grow_dt              = 2.0e0  // growth factor for timesteps
+   max_integrator_steps = 10000  // max number of simulation timesteps
+   regrid_interval      = 10000  // effectively disable regridding
+   cfl                  = 0.25
+   enable_logging       = TRUE
 
-   start_time            = 0.0e0    // initial simulation time
-   end_time              = 0.2      // final simulation time
-   grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // effectively disable regridding
-   cfl                   = 0.25e0
-
-   convective_difference_type = "CENTERED"
-   convective_difference_form = "CONSERVATIVE"
-   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_difference_type         = "PPM"
+   convective_difference_form         = "CONSERVATIVE"
+   convective_time_stepping_type      = "ADAMS_BASHFORTH"
    init_convective_time_stepping_type = "MIDPOINT_RULE"
    num_cycles = 1
 
@@ -51,15 +49,15 @@ QInit {
 }
 
 LocationIndexRobinBcCoefs {
-   boundary_0 = "value", "0.0"  // x lower boundary
-   boundary_1 = "value", "0.0"  // x upper boundary
-   boundary_2 = "value", "0.0"  // y lower boundary
-   boundary_3 = "value", "0.0"  // y upper boundary
+   boundary_0 = "value","0.0"
+   boundary_1 = "value","0.0"
+   boundary_2 = "value","0.0"
+   boundary_3 = "value","0.0"
 }
 
 UFunction {
    init_type = "UNIFORM"
-   uniform_u = 10.0 , -5.0
+   uniform_u = 10.0,-5.0
 }
 
 Main {
@@ -71,43 +69,37 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = NFINEST/8   // zero to turn off
+   viz_dump_interval           = NFINEST/8
    viz_dump_dirname            = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0           // zero to turn off
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_adv_diff2d"
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         =  0, 0          // lower end of computational domain.
-   x_up         =  1, 1          // upper end of computational domain.
-   periodic_dimension = 1, 1
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 1,1
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_1 = REF_RATIO,REF_RATIO
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
    }
-
    largest_patch_size {
-      level_0 = 512, 512  // largest patch allowed in hierarchy
-                          // all finer levels will use same values as level_0...
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
-
    smallest_patch_size {
-      level_0 =   4,   4  // smallest patch allowed in hierarchy
-                          // all finer levels will use same values as level_0...
+      level_0 =   4,  4  // all finer levels will use same values as level_0
    }
-
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
-   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
-                                  // boxes < efficiency * vol of large box
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
@@ -126,8 +118,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }

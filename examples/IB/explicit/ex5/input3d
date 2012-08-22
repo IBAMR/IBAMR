@@ -31,7 +31,7 @@ PERIODIC_z = 1
 // ---------------------------------------------------------------------------
 
 // solver parameters
-DELTA_FUNCTION      = "IB_4"             // "IB_3", "IB_4", or "IB_6"
+DELTA_FUNCTION      = "IB_4"             // "IB_3","IB_4",or "IB_6"
 START_TIME          = 0.0e0              // initial simulation time
 END_TIME            = N_STEPS*DT         // final simulation time
 GROW_DT             = 1.0e0              // growth factor for timesteps
@@ -52,7 +52,7 @@ REGRID_CFL_INTERVAL = 0.5                // regrid whenever any material point c
 // ---------------------------------------------------------------------------
 
 // output parameters
-OUTPUT_LEVEL = 1                         // -1=none, 0=txt, 1=silo+txt, 2=visit+silo+txt, 3=visit+SAMRAI+silo+txt, >3=verbose
+OUTPUT_LEVEL = 1                         // -1=none,0=txt,1=silo+txt,2=visit+silo+txt,3=visit+SAMRAI+silo+txt,>3=verbose
 VISIT_DUMP_INTERVAL = 10                 // how often to write Eulerian   viz files (if OUTPUT_LEVEL> 0)
 DATA_DUMP_INTERVAL  = 10                 // how often to write Lagrangian viz files (if OUTPUT_LEVEL>=0)
 OUTPUT_U            = TRUE
@@ -65,19 +65,19 @@ ENABLE_LOGGING      = TRUE
 // ---------------------------------------------------------------------------
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0) , (NX - 1,NY - 1,NZ - 1) ]
-   x_lo         = 0.0 , 0.0 , 0.0
-   x_up         = NX*H, NY*H, NZ*H
-   periodic_dimension = PERIODIC_X, PERIODIC_Y, PERIODIC_Z
+   domain_boxes = [ (0,0,0),(NX - 1,NY - 1,NZ - 1) ]
+   x_lo = 0   ,0   ,0
+   x_up = NX*H,NY*H,NZ*H
+   periodic_dimension = PERIODIC_X,PERIODIC_Y,PERIODIC_Z
 }
 
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = 512, 512, 512
+      level_0 = 512,512,512
    }
    smallest_patch_size {
-      level_0 =   8,   8,   8
+      level_0 =   8,  8,  8
    }
 }
 
@@ -196,10 +196,9 @@ StandardTagAndInitialize {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
 
 // For purely periodic BCs the information below is not used.

@@ -12,7 +12,7 @@ MAX_LEVELS = 1                                 // maximum number of levels in lo
 REF_RATIO  = 4                                 // refinement ratio between levels
 N = 64                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
-DX_FINEST = 1.0/NFINEST
+DX_FINEST = L/NFINEST
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
@@ -41,7 +41,6 @@ ENABLE_LOGGING      = TRUE
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
-USE_EXACT_PROJECTION_METHOD = FALSE
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -85,7 +84,7 @@ VelocityBcCoefs_1 {
 PressureInitialConditions {
    R = 0.25
    mu = K
-   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 <= R^2 , mu*(1/R - pi*R) , -mu*pi*R )"
+   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 <= R^2,mu*(1/R - pi*R),-mu*pi*R )"
 }
 
 IBHierarchyIntegrator {
@@ -140,7 +139,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25 , 0.125
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -150,7 +149,6 @@ INSCollocatedHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
-   use_exact_projection_method   = USE_EXACT_PROJECTION_METHOD
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -166,7 +164,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25 , 0.125
+   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -185,52 +183,46 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = int(END_TIME/(50*DT))      // zero to turn off
+   viz_dump_interval           = int(END_TIME/(50*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0                          // zero to turn off
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = int(END_TIME/(100*DT))     // zero to turn off
+   data_dump_interval          = int(END_TIME/(100*DT))
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters
-   timer_dump_interval         = 0                          // zero to turn off
+   timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = 0, 0               // lower end of computational domain.
-   x_up         = L, L               // upper end of computational domain.
-   periodic_dimension = 1, 1
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 1,1
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_1 = REF_RATIO,REF_RATIO
       level_2 = REF_RATIO,REF_RATIO
       level_3 = REF_RATIO,REF_RATIO
       level_4 = REF_RATIO,REF_RATIO
       level_5 = REF_RATIO,REF_RATIO
    }
-
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
-
    smallest_patch_size {
-      level_0 =  8,  8 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =   8,  8  // all finer levels will use same values as level_0
    }
-
-   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
@@ -244,8 +236,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
