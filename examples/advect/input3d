@@ -74,7 +74,7 @@ Main {
 CartesianGeometry {
    domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
    x_lo = 0,0,0
-   x_up = 1,1,1
+   x_up = L,L,L
    periodic_dimension = 1,1,1
 }
 
