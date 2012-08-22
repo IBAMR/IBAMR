@@ -137,13 +137,13 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        d_smoother_type = input_db->getStringWithDefault("smoother_type", d_smoother_type);
-        d_prolongation_method = input_db->getStringWithDefault("prolongation_method", d_prolongation_method);
-        d_restriction_method = input_db->getStringWithDefault("restriction_method", d_restriction_method);
-        d_coarse_solver_type = input_db->getStringWithDefault("coarse_solver_type", d_coarse_solver_type);
-        d_coarse_solver_rel_residual_tol = input_db->getDoubleWithDefault("coarse_solver_rel_residual_tolerance", d_coarse_solver_rel_residual_tol);
-        d_coarse_solver_abs_residual_tol = input_db->getDoubleWithDefault("coarse_solver_abs_residual_tolerance", d_coarse_solver_abs_residual_tol);
-        d_coarse_solver_max_iterations = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_iterations);
+        if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
+        if (input_db->keyExists("prolongation_method")) d_prolongation_method = input_db->getString("prolongation_method");
+        if (input_db->keyExists("restriction_method")) d_restriction_method = input_db->getString("restriction_method");
+        if (input_db->keyExists("coarse_solver_type")) d_coarse_solver_type = input_db->getString("coarse_solver_type");
+        if (input_db->keyExists("coarse_solver_rel_residual_tol")) d_coarse_solver_rel_residual_tol = input_db->getDouble("coarse_solver_rel_residual_tolerance");
+        if (input_db->keyExists("coarse_solver_abs_residual_tol")) d_coarse_solver_abs_residual_tol = input_db->getDouble("coarse_solver_abs_residual_tolerance");
+        if (input_db->keyExists("coarse_solver_max_iterations")) d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
     }
 
     // Setup scratch variables.

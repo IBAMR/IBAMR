@@ -70,10 +70,10 @@ BJacobiPreconditioner::BJacobiPreconditioner(
     if (!input_db.isNull())
     {
         // LinearSolver options.
-        setInitialGuessNonzero(input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero));
-        setRelativeTolerance(input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol));
-        setAbsoluteTolerance(input_db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol));
-        setMaxIterations(input_db->getIntegerWithDefault("max_iterations", d_max_iterations));
+        if (input_db->keyExists("initial_guess_nonzero")) setInitialGuessNonzero(input_db->getBool("initial_guess_nonzero"));
+        if (input_db->keyExists("rel_residual_tol")) setRelativeTolerance(input_db->getDouble("rel_residual_tol"));
+        if (input_db->keyExists("abs_residual_tol")) setAbsoluteTolerance(input_db->getDouble("abs_residual_tol"));
+        if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
 }// BJacobiPreconditioner()

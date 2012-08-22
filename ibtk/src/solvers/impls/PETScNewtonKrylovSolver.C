@@ -100,12 +100,12 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        d_options_prefix = input_db->getStringWithDefault("options_prefix", d_options_prefix);
-        d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
-        d_abs_residual_tol = input_db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
-        d_rel_residual_tol = input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
-        d_solution_tol = input_db->getDoubleWithDefault("solution_tol", d_solution_tol);
-        d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
+        if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
+        if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
+        if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
+        if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
+        if (input_db->keyExists("solution_tol")) d_solution_tol = input_db->getDouble("solution_tol");
+        if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
     }
 
     // Common constructor functionality.

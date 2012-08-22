@@ -491,17 +491,10 @@ FACPreconditioner::getFromInput(
 {
     if (db.isNull()) return;
 
-    MGCycleType cycle_type = string_to_enum<MGCycleType>(db->getStringWithDefault("cycle_type", enum_to_string<MGCycleType>(d_cycle_type)));
-    setMGCycleType(cycle_type);
-
-    int num_pre_sweeps = db->getIntegerWithDefault("num_pre_sweeps", d_num_pre_sweeps);
-    setNumPreSmoothingSweeps(num_pre_sweeps);
-
-    int num_post_sweeps = db->getIntegerWithDefault("num_post_sweeps", d_num_post_sweeps);
-    setNumPostSmoothingSweeps(num_post_sweeps);
-
-    bool enable_logging = db->getBoolWithDefault("enable_logging", d_enable_logging);
-    setLoggingEnabled(enable_logging);
+    if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
+    if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
+    if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
+    if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
 }// getFromInput
 

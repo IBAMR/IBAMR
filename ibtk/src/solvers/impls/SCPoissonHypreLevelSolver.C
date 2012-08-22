@@ -119,31 +119,31 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     // Get values from the input database.
     if (!input_db.isNull())
     {
-        d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
-        d_solver_type = input_db->getStringWithDefault("solver_type", d_solver_type);
-        d_precond_type = input_db->getStringWithDefault("precond_type", d_precond_type);
-        d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
-        d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
-        d_rel_residual_tol = input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
-        d_initial_guess_nonzero = input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
-        d_rel_change = input_db->getIntegerWithDefault("rel_change", d_rel_change);
+        if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+        if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
+        if (input_db->keyExists("precond_type")) d_precond_type = input_db->getString("precond_type");
+        if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
+        if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
+        if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
+        if (input_db->keyExists("initial_guess_nonzero")) d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
+        if (input_db->keyExists("rel_change")) d_rel_change = input_db->getInteger("rel_change");
 
         if (d_solver_type == "SysPFMG" || d_precond_type == "SysPFMG")
         {
-            d_num_pre_relax_steps = input_db->getIntegerWithDefault("num_pre_relax_steps", d_num_pre_relax_steps);
-            d_num_post_relax_steps = input_db->getIntegerWithDefault("num_post_relax_steps", d_num_post_relax_steps);
-            d_relax_type = input_db->getIntegerWithDefault("relax_type", d_relax_type);
-            d_skip_relax = input_db->getIntegerWithDefault("skip_relax", d_skip_relax);
+            if (input_db->keyExists("num_pre_relax_steps")) d_num_pre_relax_steps = input_db->getInteger("num_pre_relax_steps");
+            if (input_db->keyExists("num_post_relax_steps")) d_num_post_relax_steps = input_db->getInteger("num_post_relax_steps");
+            if (input_db->keyExists("relax_type")) d_relax_type = input_db->getInteger("relax_type");
+            if (input_db->keyExists("skip_relax")) d_skip_relax = input_db->getInteger("skip_relax");
         }
 
         if (d_solver_type == "Split" || d_precond_type == "Split")
         {
-            d_split_solver_type = input_db->getStringWithDefault("split_solver_type", d_split_solver_type);
+            if (input_db->keyExists("split_solver_type")) d_split_solver_type = input_db->getString("split_solver_type");
         }
 
         if (d_solver_type == "PCG")
         {
-            d_two_norm = input_db->getIntegerWithDefault("two_norm", d_two_norm);
+            if (input_db->keyExists("two_norm")) d_two_norm = input_db->getInteger("two_norm");
         }
     }
 

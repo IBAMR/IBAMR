@@ -582,9 +582,9 @@ LEInteractor::setFromDatabase(
     Pointer<Database> db)
 {
     if (db.isNull()) return;
-    const std::string debug_sort_mode_str = db->getStringWithDefault("debug_sort_mode", "NO_SORT");
-    const std::string precision_mode_str = db->getStringWithDefault("precision_mode", "DOUBLE");
 
+    std::string debug_sort_mode_str = "NO_SORT";
+    if (db->keyExists("debug_sort_mode")) debug_sort_mode_str = db->getString("debug_sort_mode");
     if (debug_sort_mode_str == "NO_SORT")
     {
         s_sort_mode = NO_SORT;
@@ -604,6 +604,8 @@ LEInteractor::setFromDatabase(
                    << "   Choices are: NO_SORT, SORT_INCREASING_LAG_IDX, SORT_DECREASING_LAG_IDX.\n");
     }
 
+    std::string precision_mode_str = "DOUBLE";
+    if (db->keyExists("precision_mode")) precision_mode_str = db->getString("precision_mode");
     if (precision_mode_str == "DOUBLE")
     {
         s_precision_mode = DOUBLE;

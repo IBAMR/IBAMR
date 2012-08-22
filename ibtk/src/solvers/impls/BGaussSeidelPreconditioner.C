@@ -73,14 +73,14 @@ BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
     if (!input_db.isNull())
     {
         // Block Gauss-Seidel options.
-        d_symmetric_preconditioner = input_db->getBoolWithDefault("symmetric_preconditioner", d_symmetric_preconditioner);
-        d_reverse_order = input_db->getBoolWithDefault("reverse_order", d_reverse_order);
+        if (input_db->keyExists("symmetric_preconditioner")) d_symmetric_preconditioner = input_db->getBool("symmetric_preconditioner");
+        if (input_db->keyExists("reverse_order")) d_reverse_order = input_db->getBool("reverse_order");
 
         // LinearSolver options.
-        setInitialGuessNonzero(input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero));
-        setRelativeTolerance(input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol));
-        setAbsoluteTolerance(input_db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol));
-        setMaxIterations(input_db->getIntegerWithDefault("max_iterations", d_max_iterations));
+        if (input_db->keyExists("initial_guess_nonzero")) setInitialGuessNonzero(input_db->getBool("initial_guess_nonzero"));
+        if (input_db->keyExists("rel_residual_tol")) setRelativeTolerance(input_db->getDouble("rel_residual_tol"));
+        if (input_db->keyExists("abs_residual_tol")) setAbsoluteTolerance(input_db->getDouble("abs_residual_tol"));
+        if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
 }// BGaussSeidelPreconditioner()

@@ -2988,7 +2988,7 @@ LDataManager::getFromRestart()
 
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        const int n_lstructs = level_db->getIntegerWithDefault("n_lstructs",0);
+        const int n_lstructs = level_db->getInteger("n_lstructs");
         std::vector<int> lstruct_ids(n_lstructs), lstruct_lag_idx_range_first(n_lstructs), lstruct_lag_idx_range_second(n_lstructs), lstruct_activation(n_lstructs);
         std::vector<std::string> lstruct_names(n_lstructs);
         if (n_lstructs > 0)
@@ -3020,7 +3020,7 @@ LDataManager::getFromRestart()
             d_last_lag_idx_to_strct_id_map[level_number][cit->second.second-1] = cit->first;
         }
 
-        const int n_ldata_names = level_db->getIntegerWithDefault("n_ldata_names",0);
+        const int n_ldata_names = level_db->getInteger("n_ldata_names");
         std::vector<std::string> ldata_names(n_ldata_names);
         if (!ldata_names.empty())
         {
