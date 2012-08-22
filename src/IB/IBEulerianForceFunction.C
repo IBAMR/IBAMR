@@ -120,7 +120,6 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
     const bool initial_time,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    if (initial_time) return;
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_data.isNull());
@@ -130,7 +129,12 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
 #endif
-
+    if (initial_time)
+    {
+        if (!f_cc_data.isNull()) f_cc_data->fillAll(0.0);
+        if (!f_sc_data.isNull()) f_sc_data->fillAll(0.0);
+        return;
+    }
     Pointer<PatchData<NDIM> > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_ib_data.isNull());
