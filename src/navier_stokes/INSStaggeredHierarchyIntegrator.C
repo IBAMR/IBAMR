@@ -1784,7 +1784,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        d_velocity_solver->setInitialGuessNonzero(true);
+        d_velocity_solver->setInitialGuessNonzero(false);
         if (!d_U_nul_vecs.empty())
         {
             d_velocity_solver->setNullspace(false, d_U_nul_vecs);
@@ -1803,7 +1803,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(current_time+0.5*dt);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        d_pressure_solver->setInitialGuessNonzero(true);
+        d_pressure_solver->setInitialGuessNonzero(false);
         if (d_normalize_pressure)
         {
             d_pressure_solver->setNullspace(true);
