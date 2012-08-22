@@ -645,12 +645,10 @@ IBStandardInitializer::initializeLSiloDataWriter(
             }
         }
 
-        bool registered_xspring_edge_map = false;
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
             if (d_xspring_edge_map[level_number][j].size() > 0)
             {
-                registered_xspring_edge_map = true;
                 const std::string postfix = "_xmesh";
                 d_silo_writer->registerUnstructuredMesh(
                     d_base_filename[level_number][j] + postfix,
@@ -2802,7 +2800,7 @@ IBStandardInitializer::getFromInput(
 
     // Determine whether to use "batons" to prevent multiple MPI processes from
     // reading the same file at once.
-    d_use_file_batons = db->getBoolWithDefault("use_file_batons",d_use_file_batons);
+    if (db->keyExists("use_file_batons")) d_use_file_batons = db->getBool("use_file_batons");
 
     // Determine the (maximum) number of levels in the locally refined grid.
     // Note that each piece of the Lagrangian structure must be assigned to a

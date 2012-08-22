@@ -1329,11 +1329,11 @@ AdvectGodunovHypPatchOps::getFromInput(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    d_compute_init_velocity  = db->getBoolWithDefault("compute_init_velocity" , d_compute_init_velocity);
-    d_compute_half_velocity  = db->getBoolWithDefault("compute_half_velocity" , d_compute_half_velocity);
-    d_compute_final_velocity = db->getBoolWithDefault("compute_final_velocity", d_compute_final_velocity);
+    if (db->keyExists("compute_init_velocity")) d_compute_init_velocity = db->getBool("compute_init_velocity");
+    if (db->keyExists("compute_half_velocity")) d_compute_half_velocity = db->getBool("compute_half_velocity");
+    if (db->keyExists("compute_final_velocity")) d_compute_final_velocity = db->getBool("compute_final_velocity");
 
-    d_extrap_type = db->getStringWithDefault("extrap_type", d_extrap_type);
+    if (db->keyExists("extrap_type")) d_extrap_type = db->getString("extrap_type");
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
         TBOX_ERROR("AdvectGodunovHypPatchOps::getFromInput():\n"

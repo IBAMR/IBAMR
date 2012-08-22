@@ -1641,14 +1641,15 @@ IBMethod::getFromInput(
     {
         if (db->isString("interp_delta_fcn") && db->isString("spread_delta_fcn"))
         {
-            d_interp_delta_fcn = db->getStringWithDefault("interp_delta_fcn", d_interp_delta_fcn);
-            d_spread_delta_fcn = db->getStringWithDefault("spread_delta_fcn", d_spread_delta_fcn);
+            d_interp_delta_fcn = db->getString("interp_delta_fcn");
+            d_spread_delta_fcn = db->getString("spread_delta_fcn");
         }
-        else
+        else if (db->keyExists("delta_fcn"))
         {
-            d_interp_delta_fcn = db->getStringWithDefault("delta_fcn", d_interp_delta_fcn);
-            d_spread_delta_fcn = db->getStringWithDefault("delta_fcn", d_spread_delta_fcn);
+            d_interp_delta_fcn = db->getString("delta_fcn");
+            d_spread_delta_fcn = db->getString("delta_fcn");
         }
+
         if (db->isInteger("min_ghost_cell_width"))
         {
             d_ghosts = db->getInteger("min_ghost_cell_width");
@@ -1657,6 +1658,7 @@ IBMethod::getFromInput(
         {
             d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
+
         if (db->isBool("normalize_source_strength")) d_normalize_source_strength = db->getBool("normalize_source_strength");
     }
     if      (db->keyExists("do_log"        )) d_do_log = db->getBool("do_log"        );

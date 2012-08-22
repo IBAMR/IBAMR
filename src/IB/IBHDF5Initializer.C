@@ -2079,7 +2079,7 @@ IBHDF5Initializer::getFromInput(
 #endif
     // Determine whether to use "batons" to prevent multiple MPI processes from
     // reading the same file at once.
-    d_use_file_batons = db->getBoolWithDefault("use_file_batons",d_use_file_batons);
+    if (db->keyExists("use_file_batons")) d_use_file_batons = db->getBool("use_file_batons");
 
     // Determine the (maximum) number of levels in the locally refined grid.
     // Note that each piece of the Lagrangian structure must be assigned to a

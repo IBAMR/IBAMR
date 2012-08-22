@@ -66,10 +66,17 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
     : CartGridFunction(object_name),
       d_grid_geometry(grid_geometry),
       d_u_var(NULL),
-      d_u_ctx(NULL)
+      d_u_ctx(NULL),
+      d_kappa(0),
+      d_forcing_enabled(),
+      d_width()
 {
+    d_forcing_enabled[0] = blitz::TinyVector<bool,NDIM>(false);
+    d_forcing_enabled[1] = blitz::TinyVector<bool,NDIM>(false);
+    d_width[0] = blitz::TinyVector<double,NDIM>(0.0);
+    d_width[1] = blitz::TinyVector<double,NDIM>(0.0);
     if (input_db.isNull()) return;
-    d_kappa = input_db->getDoubleWithDefault("kappa",0.0);
+    if (input_db->keyExists("kappa")) d_kappa = input_db->getDouble("kappa");
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -92,7 +99,7 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
         std::ostringstream lower_width_stream;
         lower_width_stream << "lower_width_" << axis;
         const std::string lower_width_key = lower_width_stream.str();
-        d_width[0][axis] = input_db->getDoubleWithDefault(lower_width_key, 0.0);
+        if (input_db->keyExists(lower_width_key)) d_width[0][axis] = input_db->getDouble(lower_width_key);
 
         std::ostringstream upper_forcing_stream;
         upper_forcing_stream << "upper_forcing_" << axis;
@@ -108,7 +115,7 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
         std::ostringstream upper_width_stream;
         upper_width_stream << "upper_width_" << axis;
         const std::string upper_width_key = upper_width_stream.str();
-        d_width[1][axis] = input_db->getDoubleWithDefault(upper_width_key, 0.0);
+        if (input_db->keyExists(upper_width_key)) d_width[1][axis] = input_db->getDouble(upper_width_key);
     }
     return;
 }// SpongeLayerForceFunction

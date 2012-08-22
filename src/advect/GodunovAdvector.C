@@ -730,7 +730,7 @@ GodunovAdvector::getFromInput(
     TBOX_ASSERT(!db.isNull());
 #endif
 #if (NDIM == 3)
-    d_using_full_ctu = db->getBoolWithDefault("using_full_ctu", d_using_full_ctu);
+    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
 #else
     NULL_USE(db);
 #endif

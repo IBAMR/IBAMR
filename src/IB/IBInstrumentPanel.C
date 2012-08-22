@@ -1296,16 +1296,16 @@ IBInstrumentPanel::getFromInput(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    d_plot_directory_name = db->getStringWithDefault("plot_directory_name", d_plot_directory_name);
-    d_output_log_file = db->getBoolWithDefault("output_log_file", d_output_log_file);
+    if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
+    if (db->keyExists("output_log_file")) d_output_log_file = db->getBool("output_log_file");
     if (d_output_log_file)
     {
-        d_log_file_name = db->getStringWithDefault("log_file_name", d_log_file_name);
+        if (db->keyExists("log_file_name")) d_log_file_name = db->getString("log_file_name");
     }
-    d_flow_conv = db->getDoubleWithDefault("flow_conv", d_flow_conv);
-    d_pres_conv = db->getDoubleWithDefault("pres_conv", d_pres_conv);
-    d_flow_units = db->getStringWithDefault("flow_units", d_flow_units);
-    d_pres_units = db->getStringWithDefault("pres_units", d_pres_units);
+    if (db->keyExists("flow_conv")) d_flow_conv = db->getDouble("flow_conv");
+    if (db->keyExists("pres_conv")) d_pres_conv = db->getDouble("pres_conv");
+    if (db->keyExists("flow_units")) d_flow_units = db->getString("flow_units");
+    if (db->keyExists("pres_units")) d_pres_units = db->getString("pres_units");
     return;
 }// getFromInput
 
