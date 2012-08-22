@@ -93,6 +93,11 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    if (initial_time)
+    {
+        d_ib_solver->d_hier_velocity_data_ops->setToScalar(data_idx, 0.0);
+        return;
+    }
     if (!d_ib_solver->d_body_force_fcn.isNull())
     {
         d_ib_solver->d_body_force_fcn->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
@@ -101,7 +106,6 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
     {
         d_ib_solver->d_hier_velocity_data_ops->setToScalar(data_idx, 0.0);
     }
-
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =(finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
