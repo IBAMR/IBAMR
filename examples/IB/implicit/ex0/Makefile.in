@@ -402,16 +402,10 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
-EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers \
-	generate_curve2d.m generate_shell2d.m curve2d_64.vertex \
+EXTRA_DIST = input2d generate_curve2d.m curve2d_64.vertex \
 	curve2d_128.vertex curve2d_256.vertex curve2d_512.vertex \
 	curve2d_64.spring curve2d_128.spring curve2d_256.spring \
-	curve2d_512.spring shell2d_64.vertex shell2d_128.vertex \
-	shell2d_256.vertex shell2d_64.spring shell2d_128.spring \
-	shell2d_256.spring shell2d_radial_64.vertex \
-	shell2d_radial_128.vertex shell2d_radial_256.vertex \
-	shell2d_radial_64.spring shell2d_radial_128.spring \
-	shell2d_radial_256.spring ##shell2d_radial_512.spring
+	curve2d_512.spring
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.C
@@ -696,19 +690,15 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d{,.shell,.shell_circum_fibers} $(PWD) ; \
+	  cp -f $(srcdir)/input2d $(PWD) ; \
 	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
-	  cp -f $(srcdir)/shell2d_radial_{64,128,256}.{vertex,spring} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input2d{,.shell,.shell_circum_fibers} ; \
+	  rm -f $(builddir)/input2d ; \
 	  rm -f $(builddir)/curve2d_{64,128,256,512}.{vertex,spring} ; \
-	  rm -f $(builddir)/shell2d_{64,128,256}.{vertex,spring} ; \
-	  rm -f $(builddir)/shell2d_radial_{64,128,256}.{vertex,spring} ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
