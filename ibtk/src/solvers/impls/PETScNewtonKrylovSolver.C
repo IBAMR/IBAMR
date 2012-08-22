@@ -102,8 +102,8 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     {
         d_options_prefix = input_db->getStringWithDefault("options_prefix", d_options_prefix);
         d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
-        d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
-        d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
+        d_abs_residual_tol = input_db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
+        d_rel_residual_tol = input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
         d_solution_tol = input_db->getDoubleWithDefault("solution_tol", d_solution_tol);
         d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
     }

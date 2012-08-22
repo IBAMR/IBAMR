@@ -81,9 +81,10 @@ namespace IBTK
  enable_logging = FALSE         // see setLoggingEnabled()
  solver_type = "PFMG"           // choices are: "PFMG", "SMG", "PCG", "GMRES", "FlexGMRES" , "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "PFMG", "SMG", "Jacobi", "none"
- max_iterations = 10            // see setMaxIterations()
- absolute_residual_tol = 0.0    // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
- relative_residual_tol = 1.0e-6 // see setRelativeTolerance()
+ max_iterations = 25            // see setMaxIterations()
+ abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
+ rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
+ initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
  rel_change = 0                 // see hypre User's Manual
  num_pre_relax_steps = 1        // number of pre-sweeps (only used by SMG or PFMG solver or preconditioner)
  num_post_relax_steps = 1       // number of post-sweeps (only used by SMG or PFMG solver or preconditioner)
@@ -96,8 +97,8 @@ namespace IBTK
  *
  * \em hypre is developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  For more information about
- * \em hypre, see <A HREF="http://www.llnl.gov/CASC/linear_solvers">
- * http://www.llnl.gov/CASC/linear_solvers</A>.
+ * \em hypre, see <A
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
 class CCPoissonHypreLevelSolver
     : public PoissonSolver

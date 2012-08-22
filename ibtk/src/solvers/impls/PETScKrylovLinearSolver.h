@@ -70,7 +70,7 @@ namespace IBTK
  *   within the present IBTK solver framework.  However, this <em>does not
  *   mean</em> that preconditioners cannot be used with the
  *   PETScKrylovLinearSolver class; see, for instance, classes FACPreconditioner
- *   and CCPoissonFACOperator.  \par
+ *   and CCPoissonPointRelaxationFACOperator.  \par
  * - Users have the \em option of supplying the PETScKrylovLinearSolver class
  *   constructor with a KSP object.  It is important to emphasize that doing so
  *   is optional.  When a KSP object is provided to the class constructor, the
@@ -84,10 +84,21 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied KSP object is properly
  *   destroyed via KSPDestroy().
  *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ options_prefix = ""           // see setOptionsPrefix()
+ ksp_type = "gmres"            // see setKSPType()
+ initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
+ rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
+ abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
+ max_iterations = 10000        // see setMaxIterations()
+ enable_logging = FALSE        // see setLoggingEnabled()
+ \endverbatim
+ *
  * PETSc is developed in the Mathematics and Computer Science (MCS) Division at
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">
- * http://www-unix.mcs.anl.gov/petsc</A>.
+ * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
 class PETScKrylovLinearSolver
     : public KrylovLinearSolver

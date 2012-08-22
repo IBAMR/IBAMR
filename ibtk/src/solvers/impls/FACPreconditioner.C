@@ -56,15 +56,15 @@ FACPreconditioner::FACPreconditioner(
       d_coarsest_ln(0),
       d_finest_ln(0),
       d_cycle_type(V_CYCLE),
-      d_num_pre_sweeps(1),
-      d_num_post_sweeps(1),
+      d_num_pre_sweeps(0),
+      d_num_post_sweeps(2),
       d_f(),
       d_r()
 {
     // Setup default options.
     d_initial_guess_nonzero = false;
-    d_rel_residual_tol = 1.0e-6;
-    d_abs_residual_tol = 1.0e-30;
+    d_rel_residual_tol = 1.0e-5;
+    d_abs_residual_tol = 1.0e-50;
     d_max_iterations = 1;
 
     // Register this class with the FACPreconditionerStrategy object.

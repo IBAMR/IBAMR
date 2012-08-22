@@ -79,12 +79,26 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
+ enable_logging = FALSE         // see setLoggingEnabled()
+ solver_type = "Split"          // choices are: "Split", "SysPFMG", "PCG", "GMRES", "FlexGMRES" , "LGMRES", "BiCGSTAB"
+ precond_type = "none"          // choices are: "Split", "SysPFMG"
+ split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
+ max_iterations = 25            // see setMaxIterations()
+ abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
+ rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
+ initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
+ rel_change = 0                 // see hypre User's Manual (only used by SysPFMG or PCG solver)
+ num_pre_relax_steps = 1        // number of pre-sweeps (only used by SysPFMG solver)
+ num_post_relax_steps = 1       // number of post-sweeps (only used by SysPFMG solver)
+ relax_type = 1                 // see hypre User's Manual (only used by SysPFMG solver or preconditioner)
+ skip_relax = 1                 // see hypre User's Manual (only used by SysPFMG solver or preconditioner)
+ two_norm = 1                   // see hypre User's Manual (only used by PCG solver)
  \endverbatim
  *
  * \em hypre is developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  For more information about
- * \em hypre, see <A HREF="http://www.llnl.gov/CASC/linear_solvers">
- * http://www.llnl.gov/CASC/linear_solvers</A>.
+ * \em hypre, see <A
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
 class SCPoissonHypreLevelSolver
     : public PoissonSolver

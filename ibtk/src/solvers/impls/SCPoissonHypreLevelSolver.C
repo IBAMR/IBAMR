@@ -112,9 +112,9 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
 
     // Setup default options.
     d_initial_guess_nonzero = false;
-    d_rel_residual_tol = 1.0e-6;
-    d_abs_residual_tol = 1.0e-30;
-    d_max_iterations = 10;
+    d_rel_residual_tol = 1.0e-5;
+    d_abs_residual_tol = 1.0e-50;
+    d_max_iterations = 25;
 
     // Get values from the input database.
     if (!input_db.isNull())
@@ -124,7 +124,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
         d_precond_type = input_db->getStringWithDefault("precond_type", d_precond_type);
         d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
         d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
-        d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
+        d_rel_residual_tol = input_db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
         d_initial_guess_nonzero = input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
         d_rel_change = input_db->getIntegerWithDefault("rel_change", d_rel_change);
 

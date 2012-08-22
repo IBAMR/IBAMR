@@ -64,9 +64,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- num_pre_sweeps = 1     // see setNumPreSmoothingSweeps()
- num_post_sweeps = 1    // see setNumPostSmoothingSweeps()
- enable_logging = FALSE // see setLoggingEnabled()
+ cycle_type = "V_CYCLE"  // see setMGCycleType()
+ num_pre_sweeps = 0      // see setNumPreSmoothingSweeps()
+ num_post_sweeps = 2     // see setNumPostSmoothingSweeps()
+ enable_logging = FALSE  // see setLoggingEnabled()
  \endverbatim
 */
 class FACPreconditioner

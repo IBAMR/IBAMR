@@ -156,7 +156,7 @@ StaggeredStokesSolverManager::allocateSolver(
         TBOX_ERROR("StaggeredStokesSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
-    return (it->second)(solver_object_name, solver_input_db);
+    return (it->second)(solver_object_name, solver_input_db.isNull() ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
 }// allocateSolver
 
 Pointer<StaggeredStokesSolver>
@@ -180,14 +180,16 @@ StaggeredStokesSolverManager::allocateSolver(
 void
 StaggeredStokesSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
-    SolverMaker solver_maker)
+    SolverMaker solver_maker,
+    Pointer<Database> default_input_db)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "StaggeredStokesSolverManager::registerSolverFactoryFunction():\n"
              << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
-    d_solver_maker_map[solver_type] = solver_maker;
+    d_solver_maker_map    [solver_type] = solver_maker;
+    d_default_input_db_map[solver_type] = default_input_db;
     return;
 }// registerSolverFactoryFunction
 

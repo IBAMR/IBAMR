@@ -223,6 +223,22 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
         }
     }
 
+    // Check to see whether the solver types have been set.
+    d_velocity_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    d_velocity_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    if (input_db->keyExists("velocity_solver_type") ) d_velocity_solver_type  = input_db->getString("velocity_solver_type");
+    if (input_db->keyExists("velocity_precond_type")) d_velocity_precond_type = input_db->getString("velocity_precond_type");
+
+    d_pressure_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    if (input_db->keyExists("pressure_solver_type") ) d_pressure_solver_type  = input_db->getString("pressure_solver_type");
+    if (input_db->keyExists("pressure_precond_type")) d_pressure_precond_type = input_db->getString("pressure_precond_type");
+
+    d_regrid_projection_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    if (input_db->keyExists("regrid_projection_solver_type") ) d_regrid_projection_solver_type  = input_db->getString("regrid_projection_solver_type");
+    if (input_db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
+
     // Check to see whether the convective operator type has been set.
     d_convective_op_type = INSCollocatedConvectiveOperatorManager::DEFAULT;
     if      (input_db->keyExists("convective_op_type"))               d_convective_op_type = input_db->getString("convective_op_type");

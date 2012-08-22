@@ -154,6 +154,22 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
       d_patch_bc_box_overlap(),
       d_patch_smoother_bc_boxes()
 {
+    // Set some default values.
+    if (!input_db->keyExists("smoother_type")) d_smoother_type = "ADDITIVE";
+    if (!input_db->keyExists("prolongation_method")) d_prolongation_method = "LINEAR_REFINE";
+    if (!input_db->keyExists("restriction_method") ) d_restriction_method  = "CONSERVATIVE_COARSEN";
+    if (!input_db->keyExists("coarse_solver_type") ) d_coarse_solver_type  = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
+    if (!input_db->keyExists("coarse_solver_rel_residual_tol")) d_coarse_solver_rel_residual_tol = 1.0e-5;
+    if (!input_db->keyExists("coarse_solver_abs_residual_tol")) d_coarse_solver_abs_residual_tol = 1.0e-50;
+    if (!input_db->keyExists("coarse_solver_max_iterations")) d_coarse_solver_max_iterations = 1;
+    if (!input_db->keyExists("coarse_solver_db") && d_coarse_solver_type == CCPoissonSolverManager::HYPRE_LEVEL_SOLVER)
+    {
+        d_coarse_solver_db = new MemoryDatabase(object_name+"::coarse_solver_db");
+        d_coarse_solver_db->putString("solver_type", "PFMG");
+        d_coarse_solver_db->putInteger("num_pre_relax_steps", 0);
+        d_coarse_solver_db->putInteger("num_post_relax_steps", 2);
+    }
+
     // Get values from the input database.
     if (!input_db.isNull())
     {

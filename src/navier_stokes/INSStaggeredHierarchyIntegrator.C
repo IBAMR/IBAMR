@@ -270,6 +270,27 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         new CellVariable<NDIM,double>(object_name+"::Q"),
         register_for_restart)
 {
+    // Check to see whether the solver types have been set.
+    d_stokes_solver_type  = StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER;
+    d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
+    if (input_db->keyExists("stokes_solver_type") ) d_stokes_solver_type  = input_db->getString("stokes_solver_type");
+    if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
+
+    d_velocity_solver_type  = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_velocity_precond_type = "none";
+    if (input_db->keyExists("velocity_solver_type") ) d_velocity_solver_type  = input_db->getString("velocity_solver_type");
+    if (input_db->keyExists("velocity_precond_type")) d_velocity_precond_type = input_db->getString("velocity_precond_type");
+
+    d_pressure_solver_type  = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_pressure_precond_type = "none";
+    if (input_db->keyExists("pressure_solver_type") ) d_pressure_solver_type  = input_db->getString("pressure_solver_type");
+    if (input_db->keyExists("pressure_precond_type")) d_pressure_precond_type = input_db->getString("pressure_precond_type");
+
+    d_regrid_projection_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    if (input_db->keyExists("regrid_projection_solver_type") ) d_regrid_projection_solver_type  = input_db->getString("regrid_projection_solver_type");
+    if (input_db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
+
     // Check to make sure the time stepping types are supported.
     switch (d_viscous_time_stepping_type)
     {

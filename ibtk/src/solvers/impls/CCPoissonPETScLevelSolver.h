@@ -74,11 +74,13 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- max_iterations = 10            // see setMaxIterations()
- absolute_residual_tol = 0.0    // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
- relative_residual_tol = 1.0e-6 // see setRelativeTolerance()
- enable_logging = FALSE         // see setLoggingEnabled()
- options_prefix = "petsc_"      // see setOptionsPrefix()
+ options_prefix = ""           // see setOptionsPrefix()
+ ksp_type = "gmres"            // see setKSPType()
+ initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
+ rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
+ abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
+ max_iterations = 10000        // see setMaxIterations()
+ enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and

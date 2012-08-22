@@ -70,10 +70,20 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied SNES object is properly
  *   destroyed via SNESDestroy().
  *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ options_prefix = ""           // see setOptionsPrefix()
+ rel_residual_tol = 1.0e-8     // see setRelativeTolerance()
+ abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
+ solution_tol = 1.0e-8         // see setSolutionTolerance()
+ max_iterations = 50           // see setMaxIterations()
+ enable_logging = FALSE        // see setLoggingEnabled()
+ \endverbatim
+ *
  * PETSc is developed in the Mathematics and Computer Science (MCS) Division at
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">
- * http://www-unix.mcs.anl.gov/petsc</A>.
+ * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
 class PETScNewtonKrylovSolver
     : public NewtonKrylovSolver

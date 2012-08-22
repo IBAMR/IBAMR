@@ -119,7 +119,10 @@ public:
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<PoissonSolver> (*SolverMaker)(const std::string& solver_object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
+    typedef SAMRAI::tbox::Pointer<PoissonSolver>
+    (*SolverMaker)(
+        const std::string& solver_object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
 
     /*!
      * Register a solver factory function with the solver manager class.
@@ -127,7 +130,8 @@ public:
     void
     registerSolverFactoryFunction(
         const std::string& solver_type,
-        SolverMaker solver_maker);
+        SolverMaker solver_maker,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> default_input_db=NULL);
 
 protected:
     /*!
@@ -176,6 +180,7 @@ private:
      * Mapping from solver type names to solver maker functions.
      */
     std::map<std::string,SolverMaker> d_solver_maker_map;
+    std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> > d_default_input_db_map;
 };
 }// namespace IBTK
 
