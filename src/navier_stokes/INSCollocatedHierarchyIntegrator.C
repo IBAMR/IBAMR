@@ -1018,9 +1018,9 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(d_current_num_cycles == 1);
 #endif
-            for (int cycle_num = 1; cycle_num < adv_diff_num_cycles; ++cycle_num)
+            for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
             {
-                d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+                d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
             }
         }
     }
