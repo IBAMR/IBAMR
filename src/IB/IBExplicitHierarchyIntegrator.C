@@ -432,6 +432,7 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+    return;
 }// initializeHierarchyIntegrator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
