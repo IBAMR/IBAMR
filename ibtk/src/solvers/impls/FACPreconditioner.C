@@ -122,7 +122,7 @@ FACPreconditioner::solveSystem(
     if (deallocate_after_solve) initializeSolverState(u,f);
 
     // Set the initial guess to equal zero.
-    u.setToScalar(0.0,false);
+    u.setToScalar(0.0, /*interior_only*/ false);
 
     // Keep track of whether we need to (re-)compute the residual.  Because u is
     // initialized to equal zero, the initial residual is precisely the

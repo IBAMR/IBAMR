@@ -122,7 +122,7 @@ BJacobiPreconditioner::solveSystem(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_initial_guess_nonzero == false);
 #endif
-    x.setToScalar(0.0,false);
+    x.setToScalar(0.0, /*interior_only*/ false);
 
     for (int comp = 0; comp < x.getNumberOfComponents(); ++comp)
     {

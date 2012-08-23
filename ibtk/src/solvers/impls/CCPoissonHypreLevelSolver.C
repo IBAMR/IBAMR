@@ -202,11 +202,13 @@ CCPoissonHypreLevelSolver::solveSystem(
 {
     IBTK_TIMER_START(t_solve_system);
 
-    if (d_enable_logging) plog << d_object_name << "::solveSystem():" << std::endl;
-
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
+
+    // Ensure the initial guess is zero when appropriate.  (hypre does not
+    // reliably honor the SetZeroGuess settings.)
+    if (!d_initial_guess_nonzero) x.setToScalar(0.0, /*interior_only*/ false);
 
     // Solve the system using the hypre solver.
     static const int comp = 0;
