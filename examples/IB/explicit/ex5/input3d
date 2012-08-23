@@ -26,7 +26,7 @@ NY         = 64                          // number of grid cells (y axis)
 NZ         = 64                          // number of grid cells (z axis)
 PERIODIC_X = 1
 PERIODIC_Y = 1
-PERIODIC_z = 1
+PERIODIC_Z = 1
 
 // ---------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ INSStaggeredHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
 
    // Stokes solver configuration
-   stokes_solver_type   = "PETSC_KRYLOV_LINEAR_SOLVER"
+   stokes_solver_type   = "PETSC_KRYLOV_SOLVER"
    stokes_precond_type  = "PROJECTION_PRECONDITIONER"
 
    // velocity (momentum) subdomain solver configuration
