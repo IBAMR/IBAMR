@@ -454,12 +454,15 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex7/Makefile
   examples/adv_diff/Makefile
   examples/adv_diff/ex0/Makefile
+  examples/adv_diff/ex1/Makefile
   examples/advect/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/ex0/Makefile
   examples/navier_stokes/ex1/Makefile
   examples/navier_stokes/ex2/Makefile
   examples/navier_stokes/ex3/Makefile
+  examples/navier_stokes/ex4/Makefile
+  examples/navier_stokes/ex5/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
