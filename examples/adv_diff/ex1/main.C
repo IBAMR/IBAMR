@@ -42,21 +42,12 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/INSCollocatedHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/AdvDiffGodunovHierarchyIntegrator.h>
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
-// Function prototypes
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> ins_integrator,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -85,7 +76,7 @@ main(
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -107,42 +98,30 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> time_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
-        if (solver_type == "STAGGERED")
+        Pointer<AdvDiffHierarchyIntegrator> time_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
+        if (solver_type == "GODUNOV")
         {
-            time_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+            time_integrator = new AdvDiffGodunovHierarchyIntegrator("AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"));
         }
-        else if (solver_type == "COLLOCATED")
+        else if (solver_type == "SEMI_IMPLICIT")
         {
-            time_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator("AdvDiffSemiImplicitHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         }
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: COLLOCATED, STAGGERED");
+                       "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
-            "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
-        time_integrator->registerPressureInitialConditions(p_init);
+        Pointer<CartGridFunction> u_init = new muParserCartGridFunction("u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -161,24 +140,35 @@ main(
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;
                 const string bc_coefs_name = bc_coefs_name_stream.str();
-
                 ostringstream bc_coefs_db_name_stream;
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         // Create body force function specification objects (when necessary).
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
-                "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
+            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
+
+        // Setup the advected and diffused quantity.
+        Pointer<FaceVariable<NDIM,double> > u_adv_var = new FaceVariable<NDIM,double>("u_adv");
+        time_integrator->registerAdvectionVelocity(u_adv_var);
+        time_integrator->registerAdvectionVelocityFunction(u_adv_var, u_init);
+        const ConvectiveDifferencingType difference_form = IBAMR::string_to_enum<ConvectiveDifferencingType>(
+            main_db->getStringWithDefault("difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+        pout << "solving the advection-diffusion equation in " << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+        Pointer<CellVariable<NDIM,double> > U_var = new CellVariable<NDIM,double>("U",NDIM);
+        const double nu = input_db->getDouble("MU")/input_db->getDouble("RHO");
+        time_integrator->registerTransportedQuantity(U_var);
+        time_integrator->setAdvectionVelocity(U_var, u_adv_var);
+        time_integrator->setDiffusionCoefficient(U_var, kappa);
+        time_integrator->setConvectiveDifferencingType(U_var, difference_form);
+        time_integrator->setInitialConditions(U_var, u_init);
+        time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -265,28 +255,18 @@ main(
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
-
-        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
-
-        const Pointer<Variable<NDIM> > p_var = time_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
-
-        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
+        const Pointer<VariableContext> U_ctx = time_integrator->getCurrentContext();
+        const int U_idx = var_db->mapVariableAndContextToIndex(U_var, U_ctx);
+        const int U_cloned_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cloned_idx, loop_time);
         }
 
-        u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt);
+        u_init->setDataOnPatchHierarchy(U_cloned_idx, U_var, patch_hierarchy, loop_time);
 
         HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -294,35 +274,12 @@ main(
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
-        if (!u_cc_var.isNull())
-        {
-            HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-            pout << "Error in u at time " << loop_time << ":\n"
-                 << "  L1-norm:  " << hier_cc_data_ops. L1Norm(u_idx,wgt_cc_idx)  << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops. L2Norm(u_idx,wgt_cc_idx)  << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx,wgt_cc_idx) << "\n";
-        }
-
-        Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-        if (!u_sc_var.isNull())
-        {
-            HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-            pout << "Error in u at time " << loop_time << ":\n"
-                 << "  L1-norm:  " << hier_sc_data_ops. L1Norm(u_idx,wgt_sc_idx)  << "\n"
-                 << "  L2-norm:  " << hier_sc_data_ops. L2Norm(u_idx,wgt_sc_idx)  << "\n"
-                 << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx,wgt_sc_idx) << "\n";
-        }
-
         HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
-        pout << "Error in p at time " << loop_time-0.5*dt << ":\n"
-             << "  L1-norm:  " << hier_cc_data_ops. L1Norm(p_idx,wgt_cc_idx)  << "\n"
-             << "  L2-norm:  " << hier_cc_data_ops. L2Norm(p_idx,wgt_cc_idx)  << "\n"
-             << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_cc_idx) << "\n"
-             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+        hier_cc_data_ops.subtract(U_idx, U_idx, U_cloned_idx);
+        pout << "Error in u at time " << loop_time << ":\n"
+             << "  L1-norm:  " << hier_cc_data_ops. L1Norm(U_idx,wgt_cc_idx)  << "\n"
+             << "  L2-norm:  " << hier_cc_data_ops. L2Norm(U_idx,wgt_cc_idx)  << "\n"
+             << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx,wgt_cc_idx) << "\n";
 
         if (dump_viz_data && uses_visit)
         {
@@ -331,7 +288,7 @@ main(
         }
 
         // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) delete U_bc_coefs[d];
 
     }// cleanup dynamically allocated objects prior to shutdown
 
@@ -339,30 +296,3 @@ main(
     PetscFinalize();
     return 0;
 }// main
-
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> ins_integrator,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(), ins_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getPressureVariable(), ins_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-    return;
-}// output_data

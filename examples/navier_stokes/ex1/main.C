@@ -53,7 +53,7 @@
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_integrator,
+    Pointer<INSHierarchyIntegrator> ins_integrator,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname);
@@ -271,7 +271,7 @@ main(
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_integrator,
+    Pointer<INSHierarchyIntegrator> ins_integrator,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname)
