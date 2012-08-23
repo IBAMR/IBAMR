@@ -251,20 +251,20 @@ HierarchyIntegrator::advanceHierarchy(
         pout << "WARNING: reducing dt so that current_time+dt = end_time.\n";
         dt = d_end_time-d_integrator_time;
     }
+    const double current_time = d_integrator_time;
+    const double new_time = d_integrator_time+dt;
     if (dt < 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy(): time step size dt is negative.\n");
     }
-    else if (MathUtilities<double>::equalEps(dt, 0.0))
+    else if (dt == 0.0)
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy(): time step size dt is zero.\n");
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_integrator_time+dt <= d_end_time);
-#endif
-    const double current_time = d_integrator_time;
-    const double new_time = d_integrator_time+dt;
-
+    else if (current_time == new_time || MathUtilities<double>::equalEps(current_time,new_time))
+    {
+        TBOX_ERROR(d_object_name << "::advanceHierarchy(): time step size dt is zero to machine precision.\n");
+    }
     if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
 
     // Regrid the patch hierarchy.
