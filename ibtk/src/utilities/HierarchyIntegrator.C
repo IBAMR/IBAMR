@@ -244,10 +244,22 @@ HierarchyIntegrator::initializePatchHierarchy(
 
 void
 HierarchyIntegrator::advanceHierarchy(
-    const double dt)
+    double dt)
 {
+    if (d_integrator_time+dt > d_end_time)
+    {
+        pout << "WARNING: reducing dt so that current_time+dt = end_time.\n";
+        dt = d_end_time-d_integrator_time;
+    }
+    if (dt < 0.0)
+    {
+        TBOX_ERROR(d_object_name << "::advanceHierarchy(): time step size dt is negative.\n");
+    }
+    else if (MathUtilities<double>::equalEps(dt, 0.0))
+    {
+        TBOX_ERROR(d_object_name << "::advanceHierarchy(): time step size dt is zero.\n");
+    }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(dt > 0.0);
     TBOX_ASSERT(d_integrator_time+dt <= d_end_time);
 #endif
     const double current_time = d_integrator_time;
