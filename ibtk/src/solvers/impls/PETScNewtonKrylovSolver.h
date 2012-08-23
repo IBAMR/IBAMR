@@ -48,8 +48,8 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScNewtonKrylovSolver provides a NewtonKrylovSolver interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> inexact
- * Newton-Krylov iterative nonlinear solver (SNES).
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> inexact Newton-Krylov
+ * iterative nonlinear solver (SNES).
  *
  * This solver class provides access to inexact Newton-Krylov methods, including
  * line search and trust region Newton methods, using the PETSc SNES nonlinear

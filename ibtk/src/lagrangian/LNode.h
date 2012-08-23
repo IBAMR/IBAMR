@@ -47,8 +47,8 @@ namespace IBTK
  * \brief Class LNode is the basic element of an LMesh.
  *
  * Class LNode provides Lagrangian and <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> indexing information and
- * data storage for a single node of a Lagrangian mesh.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information and data
+ * storage for a single node of a Lagrangian mesh.
  */
 class LNode
     : public LNodeIndex

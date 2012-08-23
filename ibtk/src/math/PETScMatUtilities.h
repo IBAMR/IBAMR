@@ -52,7 +52,7 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScMatUtilities provides utility functions for <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Mat objects.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat objects.
  */
 class PETScMatUtilities
 {

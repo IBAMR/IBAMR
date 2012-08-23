@@ -54,7 +54,7 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScSNESFunctionGOWrapper provides a GeneralOperator interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
  * function.
  */
 class PETScSNESFunctionGOWrapper

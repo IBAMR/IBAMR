@@ -51,7 +51,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class StaggeredStokesPETScVecUtilities provides utility functions for
- * <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Vec objects.
+ * <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Vec objects.
  */
 class StaggeredStokesPETScVecUtilities
 {

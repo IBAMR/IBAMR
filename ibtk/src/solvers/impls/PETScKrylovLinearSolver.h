@@ -54,14 +54,13 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScKrylovLinearSolver provides a KrylovLinearSolver interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Krylov subspace
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Krylov subspace
  * iterative linear solver (KSP).
  *
  * This solver class provides access to a large number of Krylov subspace
  * solvers for linear problems of the form \f$Ax=b\f$ using the PETSc KSP linear
  * solver interface.  See <A
- * HREF="http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/linearsolvertable.html">
- * http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/linearsolvertable.html</A>
+ * HREF="http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html">http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html</A>
  * for a complete list of the Krylov solvers provided by this class.  Note that
  * solver configuration is typically done at runtime via command line options.
  *

@@ -52,7 +52,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class StaggeredStokesPETScMatUtilities provides utility functions for
- * <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Mat objects.
+ * <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat objects.
  */
 class StaggeredStokesPETScMatUtilities
 {
