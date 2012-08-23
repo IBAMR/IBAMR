@@ -52,7 +52,7 @@ namespace IBTK
  * \brief Class CCPoissonHypreLevelSolver is a concrete LinearSolver for solving
  * elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot
  * D \nabla) u$} = f \f$ on a \em single SAMRAI::hier::PatchLevel using <A
- * HREF="http://www.llnl.gov/CASC/linear_solvers">hypre</A>.
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">hypre</A>.
  *
  * This solver class uses the \em hypre library to solve linear equations of the
  * form \f$ (C I + \nabla \cdot D \nabla ) u = f \f$, where \f$C\f$ is a
