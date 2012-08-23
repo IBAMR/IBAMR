@@ -255,15 +255,18 @@ HierarchyIntegrator::advanceHierarchy(
     const double new_time = d_integrator_time+dt;
     if (dt < 0.0)
     {
-        TBOX_ERROR(d_object_name << "::advanceHierarchy(): at time = " << d_integrator_time << " time step size dt is negative.\n");
+        TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
+                   << "  at time = " << d_integrator_time << " time step size dt = " << dt << ".\n");
     }
     else if (dt == 0.0)
     {
-        TBOX_ERROR(d_object_name << "::advanceHierarchy(): at time = " << d_integrator_time << " time step size dt is zero.\n");
+        TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
+                   << "  at time = " << d_integrator_time << " time step size dt = " << dt << ".\n");
     }
     else if (current_time == new_time || MathUtilities<double>::equalEps(current_time,new_time))
     {
-        TBOX_ERROR(d_object_name << "::advanceHierarchy(): at time = " << d_integrator_time << " time step size dt is zero to machine precision.\n");
+        TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
+                   << "  at time = " << d_integrator_time << " time step size dt = " << dt << " is zero to machine precision.\n");
     }
     if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
 
