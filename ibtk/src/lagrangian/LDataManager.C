@@ -1128,6 +1128,19 @@ LDataManager::beginDataRedistribution(
                 finest_ln   <= d_finest_ln);
 #endif
 
+    // Emit warnings if things seem to be out of synch.
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        if (!d_level_contains_lag_data[level_number]) continue;
+        if (d_needs_synch[level_number])
+        {
+            TBOX_WARNING("LDataManager::beginDataRedistribution():\n" <<
+                         "\tLData is not synchronized with LNodeSetData.\n" <<
+                         "\tLagrangian node position data is probably invalid!\n");
+        }
+    }
+
+    // Ensure that no IB points manage to escape the computational domain.
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
     blitz::TinyVector<double,NDIM> grid_length;
@@ -1135,65 +1148,72 @@ LDataManager::beginDataRedistribution(
     {
         grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift();
-
+    std::vector<blitz::Array<IntVector<NDIM>,1> > periodic_offset_data(finest_ln+1);
+    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
-
-        if (d_needs_synch[level_number])
-        {
-            TBOX_WARNING("LDataManager::beginDataRedistribution():\n" <<
-                         "\tLData is not synchronized with LNodeSetData.\n" <<
-                         "\tLagrangian node position data is probably invalid!\n");
-        }
-
-        // Ensure that no IB points manage to escape the computational domain.
-        //
+        d_lag_mesh_data[level_number][POSN_DATA_NAME]->beginGhostUpdate();
+    }
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        if (!d_level_contains_lag_data[level_number]) continue;
+        d_lag_mesh_data[level_number][POSN_DATA_NAME]->endGhostUpdate();
         // NOTE: We cannot use LMesh data structures here because they have not
         // been (re-)initialized yet.
-        blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
         static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
+        periodic_offset_data[level_number].resize(X_data.extent(0));
+        displacement_data   [level_number].resize(X_data.extent(0));
+        const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(d_hierarchy->getPatchLevel(level_number)->getRatio());
+        for (int local_idx = 0; local_idx < X_data.extent(0); ++local_idx)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM> patch_box = patch->getBox();
-            Pointer<LNodeSetData> lag_node_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(patch_box); it != lag_node_idx_data->data_end(); ++it)
+            double* const X = &X_data(local_idx,0);
+            IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
+            blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const LNode* const node_idx = *it;
-                const int local_idx = node_idx->getLocalPETScIndex();
-                double* const X = &X_data(local_idx,0);
-                for (unsigned int d = 0; d < NDIM; ++d)
+                periodic_offset[d] = 0;
+                displacement   [d] = 0.0;
+                if (periodic_shift[d] == 0)
                 {
-                    if (periodic_shift[d] == 0)
+                    X[d] = std::max(X[d],grid_x_lower[d]+edge_tol);
+                    X[d] = std::min(X[d],grid_x_upper[d]-edge_tol);
+                }
+                else
+                {
+                    while (X[d]+displacement[d] < grid_x_lower[d])
                     {
-                        X[d] = std::max(X[d],grid_x_lower[d]+edge_tol);
-                        X[d] = std::min(X[d],grid_x_upper[d]-edge_tol);
+                        periodic_offset[d] += periodic_shift[d];
+                        displacement   [d] += grid_length   [d];
                     }
+                    while (X[d]+displacement[d] >= grid_x_upper[d])
+                    {
+                        periodic_offset[d] -= periodic_shift[d];
+                        displacement[d]    -= grid_length[d];
+                    }
+                    X[d] += displacement[d];
                 }
             }
         }
         d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
-
-        // Begin updating the ghost values of the Lagrangian nodal positions.
-        d_lag_mesh_data[level_number][POSN_DATA_NAME]->beginGhostUpdate();
     }
 
+    // Update the index patch data.
+    //
+    // We only keep nodes whose new locations are in the patch interior.
+    // That is to say, we only keep the nodes that the patch will own
+    // after redistribution.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
-
-        // Finish updating the ghost values of the Lagrangian nodal positions.
-        d_lag_mesh_data[level_number][POSN_DATA_NAME]->endGhostUpdate();
-
-        // Update the index patch data on the level.
         blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            Pointer<LNodeSetData>     new_idx_data = new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const CellIndex<NDIM>& patch_lower = patch_box.lower();
@@ -1201,100 +1221,36 @@ LDataManager::beginDataRedistribution(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
-            const bool touches_periodic_bdry = patch_geom->getTouchesPeriodicBoundary();
-
-            Pointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<LNodeSetData> new_idx_data = new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
-
-            // Initialize LNodeSet objects for each cell index in the patch
-            // interior that will contain the LNode objects AFTER
-            // redistribution.
-            //
-            // We only keep nodes whose new locations are in the patch interior.
-            // That is to say, we only keep the nodes that the patch will own
-            // after redistribution.
-            const Box<NDIM> cfl_box = Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH));
-            for (LNodeSetData::CellIterator it(cfl_box); it; it++)
+            for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
             {
                 const Index<NDIM>& old_cell_idx = *it;
                 LNodeSet* const old_node_set = current_idx_data->getItem(old_cell_idx);
-                if (old_node_set != NULL)
+                if (old_node_set)
                 {
-                    const bool patch_owns_node_at_old_loc = patch_box.contains(old_cell_idx);
-                    const IntVector<NDIM>& periodic_offset = old_node_set->getPeriodicOffset();
-                    blitz::TinyVector<double,NDIM> X_shifted;
                     for (LNodeSet::iterator n = old_node_set->begin(); n != old_node_set->end(); ++n)
                     {
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx->getLocalPETScIndex();
                         double* const X = &X_data(local_idx,0);
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                        if (patch_box.contains(new_cell_idx))
                         {
-                            X_shifted[d] = X[d] + static_cast<double>(periodic_offset(d))*patch_dx[d];
-                        }
-
-                        const bool patch_owns_node_at_new_loc =
-                            ((  patch_x_lower[0] <= X_shifted[0])&&(X_shifted[0] < patch_x_upper[0]))
-#if (NDIM > 1)
-                            &&((patch_x_lower[1] <= X_shifted[1])&&(X_shifted[1] < patch_x_upper[1]))
-#if (NDIM > 2)
-                            &&((patch_x_lower[2] <= X_shifted[2])&&(X_shifted[2] < patch_x_upper[2]))
-#endif
-#endif
-                            ;
-
-                        if (patch_owns_node_at_new_loc)
-                        {
-                            if (periodic_offset != IntVector<NDIM>(0))
-                            {
-                                blitz::TinyVector<double,NDIM> displacement(0.0);
-                                for (unsigned int d = 0; d < NDIM; ++d)
-                                {
-                                    displacement[d] = static_cast<double>(periodic_offset(d))*patch_dx[d];
-                                }
-                                node_idx->registerPeriodicShift(periodic_offset,displacement);
-                            }
-
-                            const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X_shifted, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                            if (!new_idx_data->isElement(new_cell_idx))
-                            {
-                                new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
-                            }
+                            const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
+                            const blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+                            if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, displacement);
+                            if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
                             LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
                             new_node_set->push_back(node_idx);
-                        }
-
-                        // If a node enters or leaves the patch via a periodic
-                        // boundary, we have to make sure that its location is
-                        // properly updated.
-                        if (touches_periodic_bdry && (patch_owns_node_at_old_loc || patch_owns_node_at_new_loc))
-                        {
-                            static const int lower = 0;
-                            static const int upper = 1;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                if      (patch_geom->getTouchesPeriodicBoundary(d,lower) && X[d] < grid_x_lower[d])
-                                {
-                                    X[d] += grid_length[d];
-                                }
-                                else if (patch_geom->getTouchesPeriodicBoundary(d,upper) && X[d] >= grid_x_upper[d])
-                                {
-                                    X[d] -= grid_length[d];
-                                }
-                            }
                         }
                     }
                 }
             }
-
-            // Sort the LNode objects according to their Lagrangian indices.
             for (LNodeSetData::SetIterator it(*new_idx_data); it; it++)
             {
-                LNodeSet& node_set = *it;
+                LNodeSet::DataSet& node_set = (*it).getDataSet();
                 std::sort(node_set.begin(), node_set.end(), LNodeIndexLagrangianIndexComp());
+                node_set.erase(std::unique(node_set.begin(), node_set.end(), LNodeIndexLagrangianIndexEqual()), node_set.end());
             }
-
-            // Swap the old and new patch data pointers.
             patch->setPatchData(d_lag_node_index_current_idx, new_idx_data);
         }
         d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();

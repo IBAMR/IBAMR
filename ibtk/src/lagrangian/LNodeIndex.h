@@ -364,6 +364,90 @@ struct LNodeIndexLocalPETScIndexComp
         }// operator()
 };
 
+/*!
+ * \brief Comparison functor to check for equality between Lagrangian indices.
+ */
+struct LNodeIndexLagrangianIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
+            TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
+#endif
+            return lhs.getLagrangianIndex()==rhs.getLagrangianIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to check for equality between global PETSc indices.
+ */
+struct LNodeIndexGlobalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
+#endif
+            return lhs.getGlobalPETScIndex()==rhs.getGlobalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to check for equality between local PETSc indices.
+ */
+struct LNodeIndexLocalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
+#endif
+            return lhs.getLocalPETScIndex()==rhs.getLocalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
