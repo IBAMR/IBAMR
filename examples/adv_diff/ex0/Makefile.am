@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.C QInit.C QInit.h UFunction.C UFunction.h
-EXTRA_DIST = input2d.godunov input2d.semi_implicit input3d.godunov input3d.semi_implicit
+EXTRA_DIST = input2d input3d
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
@@ -23,11 +23,11 @@ main3d_SOURCES = $(SOURCES)
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d.{godunov,semi_implicit} $(PWD) ; \
+	  cp -f $(srcdir)/input[23]d $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d.{godunov,semi_implicit} ; \
+	  rm -f $(builddir)/input[23]d ; \
 	fi ;
