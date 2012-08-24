@@ -28,13 +28,19 @@ ENABLE_LOGGING     = TRUE
 U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
-mGP0 = "-4*sin(4*PI*(X_0-t))*PI*exp(-16*PI^2*nu*t)"  // - d/dX_0 P
-mGP1 = "-4*sin(4*PI*(X_1-t))*PI*exp(-16*PI^2*nu*t)"  // - d/dX_1 P
+mGP0 = "-4*PI*sin(4*PI*(X_0-t))*exp(-16*PI*PI*nu*t)"  // - d/dX_0 P
+mGP1 = "-4*PI*sin(4*PI*(X_1-t))*exp(-16*PI*PI*nu*t)"  // - d/dX_1 P
 
 VelocityInitialConditions {
    nu = MU/RHO
    function_0 = U
    function_1 = V
+}
+
+ForcingFunction {
+   nu = MU/RHO
+   function_0 = mGP0
+   function_1 = mGP1
 }
 
 VelocityBcCoefs_0 {
@@ -75,10 +81,8 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = V
 }
 
-ForcingFunction {
-   nu = MU/RHO
-   function_0 = mGP0
-   function_1 = mGP1
+GodunovAdvector {
+   // intentionally blank
 }
 
 AdvDiffGodunovHierarchyIntegrator {

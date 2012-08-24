@@ -701,7 +701,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         int u_current_idx, u_new_idx, u_scratch_idx;
-        registerVariable(u_current_idx, u_new_idx, u_scratch_idx, u_var,  face_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_u_fcn[u_var]);
+        registerVariable(u_current_idx, u_new_idx, u_scratch_idx, u_var, face_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_u_fcn[u_var]);
     }
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
