@@ -86,15 +86,15 @@ GodunovAdvector {
 }
 
 AdvDiffGodunovHierarchyIntegrator {
-   start_time                    = START_TIME
-   end_time                      = END_TIME
-   grow_dt                       = GROW_DT
-   convective_difference_form    = CONVECTIVE_FORM
-   cfl                           = CFL_MAX
-   dt_max                        = DT_MAX
-   tag_buffer                    = TAG_BUFFER
-   regrid_interval               = REGRID_INTERVAL
-   enable_logging                = ENABLE_LOGGING
+   start_time                 = START_TIME
+   end_time                   = END_TIME
+   grow_dt                    = GROW_DT
+   convective_difference_form = CONVECTIVE_FORM
+   cfl                        = CFL_MAX
+   dt_max                     = DT_MAX
+   tag_buffer                 = TAG_BUFFER
+   regrid_interval            = REGRID_INTERVAL
+   enable_logging             = ENABLE_LOGGING
 
    AdvDiffGodunovHypPatchOps {
       compute_init_velocity  = TRUE
