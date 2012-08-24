@@ -491,6 +491,23 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Operators and solvers are maintained for each variable registered with the
     // integrator.
+    if (d_helmholtz_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_helmholtz_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_helmholtz_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_helmholtz_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_helmholtz_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_helmholtz_precond_db->putInteger("max_iterations", 1);
+    }
     CCPoissonSolverManager* poisson_solver_manager = CCPoissonSolverManager::getManager();
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
@@ -539,8 +556,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_hier_cc_data_ops(NULL),
       d_sol_vecs(),
       d_rhs_vecs(),
-      d_helmholtz_solver_type(CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER),
-      d_helmholtz_precond_type(CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER),
+      d_helmholtz_solver_type(CCPoissonSolverManager::UNDEFINED),
+      d_helmholtz_precond_type(CCPoissonSolverManager::UNDEFINED),
       d_helmholtz_solver_db(),
       d_helmholtz_precond_db(),
       d_helmholtz_solvers(),
@@ -765,19 +782,22 @@ AdvDiffHierarchyIntegrator::getFromInput(
     {
         if      (db->keyExists("solver_db"          )) d_helmholtz_solver_db = db->getDatabase("solver_db"          );
         else if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
+        if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
+        else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
+        if (db->keyExists("precond_type") || db->keyExists("helmholtz_precond_type"))
+        {
+            if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
+            else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
+        }
+    }
+    else if (db->keyExists("precond_type") || db->keyExists("helmholtz_precond_type"))
+    {
+        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (d_helmholtz_solver_db.isNull()) d_helmholtz_solver_db = new MemoryDatabase(d_object_name+"::helmholtz_solver_db");
     if (!d_helmholtz_solver_db->keyExists("options_prefix"))
     {
         d_helmholtz_solver_db->putString("options_prefix", "adv_diff_");
-    }
-
-    if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
-    else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
-    if (db->keyExists("precond_type") || db->keyExists("helmholtz_precond_type"))
-    {
-        if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
-        else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     }
     if (d_helmholtz_precond_db.isNull()) d_helmholtz_precond_db = new MemoryDatabase(d_object_name+"::helmholtz_precond_db");
     if (!d_helmholtz_precond_db->keyExists("options_prefix"))

@@ -568,17 +568,20 @@ INSHierarchyIntegrator::getFromInput(
     {
         d_velocity_solver_type = db->getString("velocity_solver_type");
         if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
+        if (db->keyExists("velocity_precond_type"))
+        {
+            d_velocity_precond_type = db->getString("velocity_precond_type");
+            if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
+        }
+    }
+    else if (db->keyExists("velocity_precond_type"))
+    {
+        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (d_velocity_solver_db.isNull()) d_velocity_solver_db = new MemoryDatabase(d_object_name+"::velocity_solver_db");
     if (!d_velocity_solver_db->keyExists("options_prefix"))
     {
-        d_velocity_solver_db->putString("options_prefix", "velocity_pc_");
-    }
-
-    if (db->keyExists("velocity_precond_type"))
-    {
-        d_velocity_precond_type = db->getString("velocity_precond_type");
-        if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
+        d_velocity_solver_db->putString("options_prefix", "velocity_");
     }
     if (d_velocity_precond_db.isNull()) d_velocity_precond_db = new MemoryDatabase(d_object_name+"::velocity_precond_db");
     if (!d_velocity_precond_db->keyExists("options_prefix"))
@@ -590,17 +593,20 @@ INSHierarchyIntegrator::getFromInput(
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
         if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
+        if (db->keyExists("pressure_precond_type"))
+        {
+            d_pressure_precond_type = db->getString("pressure_precond_type");
+            if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
+        }
+    }
+    else if (db->keyExists("pressure_precond_type"))
+    {
+        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (d_pressure_solver_db.isNull()) d_pressure_solver_db = new MemoryDatabase(d_object_name+"::pressure_solver_db");
     if (!d_pressure_solver_db->keyExists("options_prefix"))
     {
-        d_pressure_solver_db->putString("options_prefix", "pressure_pc_");
-    }
-
-    if (db->keyExists("pressure_precond_type"))
-    {
-        d_pressure_precond_type = db->getString("pressure_precond_type");
-        if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
+        d_pressure_solver_db->putString("options_prefix", "pressure_");
     }
     if (d_pressure_precond_db.isNull()) d_pressure_precond_db = new MemoryDatabase(d_object_name+"::pressure_precond_db");
     if (!d_pressure_precond_db->keyExists("options_prefix"))
@@ -612,17 +618,20 @@ INSHierarchyIntegrator::getFromInput(
     {
         d_regrid_projection_solver_type = db->getString("regrid_projection_solver_type");
         if (db->keyExists("regrid_projection_solver_db")) d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
+        if (db->keyExists("regrid_projection_precond_type"))
+        {
+            d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
+            if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
+        }
+    }
+    else if (db->keyExists("regrid_projection_precond_type"))
+    {
+        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (d_regrid_projection_solver_db.isNull()) d_regrid_projection_solver_db = new MemoryDatabase(d_object_name+"::regrid_projection_solver_db");
     if (!d_regrid_projection_solver_db->keyExists("options_prefix"))
     {
-        d_regrid_projection_solver_db->putString("options_prefix", "regrid_projection_pc_");
-    }
-
-    if (db->keyExists("regrid_projection_precond_type"))
-    {
-        d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
-        if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
+        d_regrid_projection_solver_db->putString("options_prefix", "regrid_projection_");
     }
     if (d_regrid_projection_precond_db.isNull()) d_regrid_projection_precond_db = new MemoryDatabase(d_object_name+"::regrid_projection_precond_db");
     if (!d_regrid_projection_precond_db->keyExists("options_prefix"))

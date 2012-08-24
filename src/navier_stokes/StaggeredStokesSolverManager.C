@@ -68,6 +68,7 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const std::string StaggeredStokesSolverManager::UNDEFINED                          = "UNDEFINED";
 const std::string StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER              = "DEFAULT_KRYLOV_SOLVER";
 const std::string StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER                = "PETSC_KRYLOV_SOLVER";
 const std::string StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER       = "DEFAULT_BLOCK_PRECONDITIONER";

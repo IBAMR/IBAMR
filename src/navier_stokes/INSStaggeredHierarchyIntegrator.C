@@ -271,23 +271,23 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         register_for_restart)
 {
     // Check to see whether the solver types have been set.
-    d_stokes_solver_type  = StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER;
-    d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
+    d_stokes_solver_type  = StaggeredStokesSolverManager::UNDEFINED;
+    d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;
     if (input_db->keyExists("stokes_solver_type") ) d_stokes_solver_type  = input_db->getString("stokes_solver_type");
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
 
-    d_velocity_solver_type  = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    d_velocity_precond_type = "none";
+    d_velocity_solver_type  = SCPoissonSolverManager::UNDEFINED;
+    d_velocity_precond_type = SCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("velocity_solver_type") ) d_velocity_solver_type  = input_db->getString("velocity_solver_type");
     if (input_db->keyExists("velocity_precond_type")) d_velocity_precond_type = input_db->getString("velocity_precond_type");
 
-    d_pressure_solver_type  = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    d_pressure_precond_type = "none";
+    d_pressure_solver_type  = CCPoissonSolverManager::UNDEFINED;
+    d_pressure_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("pressure_solver_type") ) d_pressure_solver_type  = input_db->getString("pressure_solver_type");
     if (input_db->keyExists("pressure_precond_type")) d_pressure_precond_type = input_db->getString("pressure_precond_type");
 
-    d_regrid_projection_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
-    d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_regrid_projection_solver_type  = CCPoissonSolverManager::UNDEFINED;
+    d_regrid_projection_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("regrid_projection_solver_type") ) d_regrid_projection_solver_type  = input_db->getString("regrid_projection_solver_type");
     if (input_db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
 
@@ -342,17 +342,20 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     {
         d_stokes_solver_type = input_db->getString("stokes_solver_type");
         if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
+        if (input_db->keyExists("stokes_precond_type"))
+        {
+            d_stokes_precond_type = input_db->getString("stokes_precond_type");
+            if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
+        }
+    }
+    else if (input_db->keyExists("stokes_precond_type"))
+    {
+        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (d_stokes_solver_db.isNull()) d_stokes_solver_db = new MemoryDatabase(d_object_name+"::stokes_solver_db");
     if (!d_stokes_solver_db->keyExists("options_prefix"))
     {
-        d_stokes_solver_db->putString("options_prefix", "stokes_pc_");
-    }
-
-    if (input_db->keyExists("stokes_precond_type"))
-    {
-        d_stokes_precond_type = input_db->getString("stokes_precond_type");
-        if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
+        d_stokes_solver_db->putString("options_prefix", "stokes_");
     }
     if (d_stokes_precond_db.isNull()) d_stokes_precond_db = new MemoryDatabase(d_object_name+"::stokes_precond_db");
     if (!d_stokes_precond_db->keyExists("options_prefix"))
@@ -515,6 +518,63 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    // Setup solvers.
+    if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
+    {
+        d_stokes_solver_type = StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
+    {
+        d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_FACTORIZATION_PRECONDITIONER;
+        d_stokes_precond_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_velocity_solver_type == SCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_velocity_solver_type = SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_velocity_solver_type = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_velocity_solver_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_pressure_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_pressure_solver_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_regrid_projection_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_regrid_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_regrid_projection_precond_db->putInteger("max_iterations", 1);
+    }
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();

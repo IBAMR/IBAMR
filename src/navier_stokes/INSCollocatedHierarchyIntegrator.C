@@ -224,18 +224,18 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     }
 
     // Check to see whether the solver types have been set.
-    d_velocity_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
-    d_velocity_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_velocity_solver_type  = CCPoissonSolverManager::UNDEFINED;
+    d_velocity_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("velocity_solver_type") ) d_velocity_solver_type  = input_db->getString("velocity_solver_type");
     if (input_db->keyExists("velocity_precond_type")) d_velocity_precond_type = input_db->getString("velocity_precond_type");
 
-    d_pressure_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
-    d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_pressure_solver_type  = CCPoissonSolverManager::UNDEFINED;
+    d_pressure_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("pressure_solver_type") ) d_pressure_solver_type  = input_db->getString("pressure_solver_type");
     if (input_db->keyExists("pressure_precond_type")) d_pressure_precond_type = input_db->getString("pressure_precond_type");
 
-    d_regrid_projection_solver_type  = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
-    d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+    d_regrid_projection_solver_type  = CCPoissonSolverManager::UNDEFINED;
+    d_regrid_projection_precond_type = CCPoissonSolverManager::UNDEFINED;
     if (input_db->keyExists("regrid_projection_solver_type") ) d_regrid_projection_solver_type  = input_db->getString("regrid_projection_solver_type");
     if (input_db->keyExists("regrid_projection_precond_type")) d_regrid_projection_precond_type = input_db->getString("regrid_projection_precond_type");
 
@@ -401,6 +401,61 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         // (3)      GP(n+1/2) = GP(n-1/2) + Grad_h Phi
         //
         // This possibility has not been investigated at this point.
+    }
+
+    // Setup solvers.
+    if (d_velocity_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_velocity_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_velocity_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_velocity_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_velocity_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_velocity_precond_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_pressure_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_pressure_precond_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_regrid_projection_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_regrid_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+    }
+    if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_regrid_projection_precond_db->putInteger("max_iterations", 1);
     }
 
     // Obtain the Hierarchy data operations objects.
