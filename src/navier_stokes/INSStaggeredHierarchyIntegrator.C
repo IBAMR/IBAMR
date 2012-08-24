@@ -338,14 +338,21 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     else if (input_db->keyExists("default_convective_operator_type")) d_convective_op_type = input_db->getString("default_convective_operator_type");
 
     // Setup Stokes solver options.
-    if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
-    if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
-    if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
-    if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
+    if (input_db->keyExists("stokes_solver_type"))
+    {
+        d_stokes_solver_type = input_db->getString("stokes_solver_type");
+        if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
+    }
     if (d_stokes_solver_db.isNull()) d_stokes_solver_db = new MemoryDatabase(d_object_name+"::stokes_solver_db");
     if (!d_stokes_solver_db->keyExists("options_prefix"))
     {
-        d_stokes_solver_db->putString("options_prefix", "stokes_");
+        d_stokes_solver_db->putString("options_prefix", "stokes_pc_");
+    }
+
+    if (input_db->keyExists("stokes_precond_type"))
+    {
+        d_stokes_precond_type = input_db->getString("stokes_precond_type");
+        if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
     }
     if (d_stokes_precond_db.isNull()) d_stokes_precond_db = new MemoryDatabase(d_object_name+"::stokes_precond_db");
     if (!d_stokes_precond_db->keyExists("options_prefix"))

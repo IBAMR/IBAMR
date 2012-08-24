@@ -747,27 +747,37 @@ AdvDiffHierarchyIntegrator::getFromInput(
         else if (db->keyExists("diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
         else if (db->keyExists("default_diffusion_time_stepping_type")) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_time_stepping_type"));
         else if (db->keyExists("default_diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_timestepping_type") );
+
         if      (db->keyExists("convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
         else if (db->keyExists("convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
         else if (db->keyExists("default_convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
         else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
     }
+
     if      (db->keyExists("cfl_max")) d_cfl_max = db->getDouble("cfl_max");
     else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
-    if      (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
+    else if (db->keyExists("cfl"    )) d_cfl_max = db->getDouble("cfl"    );
     else if (db->keyExists("CFL"    )) d_cfl_max = db->getDouble("CFL"    );
+
     if      (db->keyExists("solver_type"          )) d_helmholtz_solver_type = db->getString("solver_type"          );
     else if (db->keyExists("helmholtz_solver_type")) d_helmholtz_solver_type = db->getString("helmholtz_solver_type");
-    if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
-    else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
-    if      (db->keyExists("solver_db"          )) d_helmholtz_solver_db = db->getDatabase("solver_db"          );
-    else if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
-    if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
-    else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
+    if (db->keyExists("solver_type") || db->keyExists("helmholtz_solver_type"))
+    {
+        if      (db->keyExists("solver_db"          )) d_helmholtz_solver_db = db->getDatabase("solver_db"          );
+        else if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
+    }
     if (d_helmholtz_solver_db.isNull()) d_helmholtz_solver_db = new MemoryDatabase(d_object_name+"::helmholtz_solver_db");
     if (!d_helmholtz_solver_db->keyExists("options_prefix"))
     {
         d_helmholtz_solver_db->putString("options_prefix", "adv_diff_");
+    }
+
+    if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
+    else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
+    if (db->keyExists("precond_type") || db->keyExists("helmholtz_precond_type"))
+    {
+        if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
+        else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
     }
     if (d_helmholtz_precond_db.isNull()) d_helmholtz_precond_db = new MemoryDatabase(d_object_name+"::helmholtz_precond_db");
     if (!d_helmholtz_precond_db->keyExists("options_prefix"))
