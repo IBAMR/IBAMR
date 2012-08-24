@@ -4,13 +4,13 @@ RHO = 1.0                                 // fluid density
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
 N = 32                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
 // solver parameters
-SOLVER_TYPE        = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
+SOLVER_TYPE        = "SEMI_IMPLICIT"      // the fluid solver to use (GODUNOV or SEMI_IMPLICIT)
 START_TIME         = 0.0e0                // initial simulation time
 END_TIME           = 0.5                  // final simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
@@ -21,25 +21,18 @@ CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX            = 0.3                  // maximum CFL number
 DT_MAX             = 0.25/NFINEST         // maximum timestep size
-VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL    = 10000000             // effectively disable regridding
-OUTPUT_U           = TRUE
-OUTPUT_P           = TRUE
-OUTPUT_F           = FALSE
-OUTPUT_OMEGA       = TRUE
-OUTPUT_DIV_U       = TRUE
 ENABLE_LOGGING     = TRUE
-
-// collocated solver parameters
-PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
-SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 // exact solution function expressions
 U = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
 V = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*sin(2*PI*(X_0-t)) + A*cos(2*PI*(X_2-t)))"
 W = "1.0 + exp(-4.0*PI*PI*nu*t)*(B*cos(2*PI*(X_0-t)) + C*sin(2*PI*(X_1-t)))"
 P = "-exp(-8.0*PI*PI*nu*t)*(A*C*cos(2*PI*(X_1-t))*sin(2*PI*(X_2-t)) + A*B*sin(2*PI*(X_0-t))*cos(2*PI*(X_2-t)) + B*C*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))"
+mGP0 = "exp(-8.0*PI^2*nu*t)*(2*A*B*cos(2*PI*(X_0-t))*PI*cos(2*PI*(X_2-t))-2*B*C*sin(2*PI*(X_0-t))*PI*sin(2*PI*(X_1-t)))"  // - d/dX_0 P
+mGP1 = "exp(-8.0*PI^2*nu*t)*(-2*A*C*sin(2*PI*(X_1-t))*PI*sin(2*PI*(X_2-t))+2*B*C*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*PI)" // - d/dX_1 P
+mGP2 = "exp(-8.0*PI^2*nu*t)*(2*A*C*cos(2*PI*(X_1-t))*cos(2*PI*(X_2-t))*PI-2*A*B*sin(2*PI*(X_0-t))*sin(2*PI*(X_2-t))*PI)"  // -d/dX_2 P
 
 VelocityInitialConditions {
    nu = MU/RHO
@@ -53,6 +46,9 @@ VelocityInitialConditions {
 
 VelocityBcCoefs_0 {
    nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -78,6 +74,9 @@ VelocityBcCoefs_0 {
 
 VelocityBcCoefs_1 {
    nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -103,6 +102,9 @@ VelocityBcCoefs_1 {
 
 VelocityBcCoefs_2 {
    nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -126,17 +128,47 @@ VelocityBcCoefs_2 {
    gcoef_function_5 = W
 }
 
-PressureInitialConditions {
+ForcingFunction {
    nu = MU/RHO
    A = 1.0
    B = 1.0
    C = 1.0
-   function = P
+   function_0 = mGP0
+   function_1 = mGP1
+   function_2 = mGP2
 }
 
-INSCollocatedHierarchyIntegrator {
-   mu                            = MU
-   rho                           = RHO
+GodunovAdvector {
+   // intentionally blank
+}
+
+AdvDiffGodunovHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   convective_difference_form    = CONVECTIVE_FORM
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   enable_logging                = ENABLE_LOGGING
+
+   AdvDiffGodunovHypPatchOps {
+      compute_init_velocity  = TRUE
+      compute_half_velocity  = TRUE
+      compute_final_velocity = FALSE
+      extrap_type = "LINEAR"
+   }
+
+   HyperbolicLevelIntegrator {
+      cfl                      = CFL_MAX
+      cfl_init                 = CFL_MAX
+      lag_dt_computation       = TRUE
+      use_ghosts_to_compute_dt = FALSE
+   }
+}
+
+AdvDiffSemiImplicitHierarchyIntegrator {
    start_time                    = START_TIME
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
@@ -144,203 +176,29 @@ INSCollocatedHierarchyIntegrator {
    convective_time_stepping_type = CONVECTIVE_TS_TYPE
    convective_op_type            = CONVECTIVE_OP_TYPE
    convective_difference_form    = CONVECTIVE_FORM
-   normalize_pressure            = NORMALIZE_PRESSURE
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
-   using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25,0.125
    tag_buffer                    = TAG_BUFFER
    regrid_interval               = REGRID_INTERVAL
-   output_U                      = OUTPUT_U
-   output_P                      = OUTPUT_P
-   output_F                      = OUTPUT_F
-   output_Omega                  = OUTPUT_OMEGA
-   output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
-   projection_method_type        = PROJECTION_METHOD_TYPE
-   use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
-
-   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   velocity_solver_db {
-      ksp_type = "fgmres"
-   }
-   velocity_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
-   }
-
-   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   pressure_solver_db {
-      ksp_type = "fgmres"
-   }
-   pressure_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
-   }
-
-   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
-   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   regrid_projection_solver_db {
-      ksp_type = "fgmres"
-   }
-   regrid_projection_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
-   }
-}
-
-INSStaggeredHierarchyIntegrator {
-   mu                            = MU
-   rho                           = RHO
-   start_time                    = START_TIME
-   end_time                      = END_TIME
-   grow_dt                       = GROW_DT
-   num_cycles                    = NUM_CYCLES
-   convective_time_stepping_type = CONVECTIVE_TS_TYPE
-   convective_op_type            = CONVECTIVE_OP_TYPE
-   convective_difference_form    = CONVECTIVE_FORM
-   normalize_pressure            = NORMALIZE_PRESSURE
-   cfl                           = CFL_MAX
-   dt_max                        = DT_MAX
-   using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25,0.125
-   tag_buffer                    = TAG_BUFFER
-   regrid_interval               = REGRID_INTERVAL
-   output_U                      = OUTPUT_U
-   output_P                      = OUTPUT_P
-   output_F                      = OUTPUT_F
-   output_Omega                  = OUTPUT_OMEGA
-   output_Div_U                  = OUTPUT_DIV_U
-   enable_logging                = ENABLE_LOGGING
-
-   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
-   stokes_precond_type = "PROJECTION_PRECONDITIONER"
-   stokes_solver_db {
-      ksp_type = "fgmres"
-   }
-
-   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   velocity_solver_db {
-      ksp_type = "richardson"
-      max_iterations = 1
-   }
-   velocity_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "CONSTANT_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "Split"
-         split_solver_type    = "PFMG"
-         enable_logging       = FALSE
-      }
-   }
-
-   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   pressure_solver_db {
-      ksp_type = "richardson"
-      max_iterations = 1
-   }
-   pressure_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
-   }
-
-   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
-   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   regrid_projection_solver_db {
-      ksp_type = "fgmres"
-   }
-   regrid_projection_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
-   }
 }
 
 Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "INS3d.log"
+   log_file_name               = "adv_diff3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = NFINEST/8
-   viz_dump_dirname            = "viz_INS3d"
+   viz_dump_dirname            = "viz_adv_diff3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_INS3d"
+   restart_dump_dirname        = "restart_adv_diff3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
