@@ -526,7 +526,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     }
     if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
     {
-        d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_FACTORIZATION_PRECONDITIONER;
+        d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
         d_stokes_precond_db->putInteger("max_iterations", 1);
     }
 
