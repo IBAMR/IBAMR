@@ -159,6 +159,7 @@ main(
             Pointer<CartGridFunction> F_fcn = new muParserCartGridFunction("F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
             time_integrator->setSourceTermFunction(F_var, F_fcn);
+            time_integrator->setSourceTerm(U_var, F_var);
         }
         const double nu = input_db->getDouble("MU")/input_db->getDouble("RHO");
         time_integrator->setDiffusionCoefficient(U_var, nu);
