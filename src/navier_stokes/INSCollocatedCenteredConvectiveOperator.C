@@ -310,7 +310,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        d_ghostfill_scheds[ln]->fillData(0.0);
+        d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)

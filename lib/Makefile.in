@@ -157,6 +157,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
@@ -247,6 +248,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	libIBAMR2d_a-AdvectGodunovHypPatchOps.$(OBJEXT) \
@@ -337,6 +339,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
@@ -427,6 +430,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	libIBAMR3d_a-AdvectGodunovHypPatchOps.$(OBJEXT) \
@@ -539,6 +543,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
@@ -955,6 +960,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
@@ -1031,6 +1037,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
@@ -1189,6 +1196,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectGodunovHypPatchOps.Po@am__quote@
@@ -1265,6 +1273,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectGodunovHypPatchOps.Po@am__quote@
@@ -1965,6 +1974,20 @@ libIBAMR2d_a-AdvDiffPPMConvectiveOperator.obj: $(top_srcdir)/src/adv_diff/AdvDif
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C' object='libIBAMR2d_a-AdvDiffPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; fi`
+
+libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.o: $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Tpo -c -o libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' object='libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+
+libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.obj: $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Tpo -c -o libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' object='libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; fi`
 
 libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C
@@ -3029,6 +3052,20 @@ libIBAMR3d_a-AdvDiffPPMConvectiveOperator.obj: $(top_srcdir)/src/adv_diff/AdvDif
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C' object='libIBAMR3d_a-AdvDiffPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C'; fi`
+
+libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.o: $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Tpo -c -o libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' object='libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+
+libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.obj: $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Tpo -c -o libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C' object='libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C'; fi`
 
 libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C

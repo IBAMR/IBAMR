@@ -69,6 +69,7 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type);
 
     /*!
@@ -84,9 +85,10 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type)
         {
-            return new AdvDiffCenteredConvectiveOperator(object_name, Q_var, difference_form, bdry_extrap_type);
+            return new AdvDiffCenteredConvectiveOperator(object_name, Q_var, difference_form, bc_coefs, bdry_extrap_type);
         }// allocate_operator
 
     /*!
@@ -188,6 +190,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     const std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.

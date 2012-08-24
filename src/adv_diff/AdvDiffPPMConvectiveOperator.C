@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/AdvDiffPhysicalBoundaryUtilities.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
@@ -209,10 +210,12 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
     const std::string& object_name,
     Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const std::string& bdry_extrap_type)
     : ConvectiveOperator(object_name, difference_form),
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
+      d_bc_coefs(bc_coefs),
       d_bdry_extrap_type(bdry_extrap_type),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
@@ -308,7 +311,7 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        d_ghostfill_scheds[ln]->fillData(0.0);
+        d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -342,6 +345,9 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
             CellData<NDIM,double>  dQ_data(patch_box, 1, Q_data_gcw);
             CellData<NDIM,double> Q_L_data(patch_box, 1, Q_data_gcw);
             CellData<NDIM,double> Q_R_data(patch_box, 1, Q_data_gcw);
+
+            // Enforce physical boundary conditions at inflow boundaries.
+            AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time);
 
             // Extrapolate from cell centers to cell faces.
             for (unsigned int d = 0; d < d_Q_data_depth; ++d)

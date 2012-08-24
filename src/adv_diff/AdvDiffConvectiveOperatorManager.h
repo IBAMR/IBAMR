@@ -89,15 +89,18 @@ public:
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator> (*OperatorMaker)(
+    typedef SAMRAI::tbox::Pointer<ConvectiveOperator>
+    (*OperatorMaker)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type);
 
     /*!

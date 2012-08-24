@@ -321,8 +321,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
     if (d_Q_convective_op[Q_var].isNull())
     {
         AdvDiffConvectiveOperatorManager* convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
-        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(
-            d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_difference_form[Q_var], d_Q_convective_bdry_extrap_type[Q_var]);
+        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var], d_Q_convective_bdry_extrap_type[Q_var]);
         d_Q_convective_op_needs_init[Q_var] = true;
     }
     return d_Q_convective_op[Q_var];
