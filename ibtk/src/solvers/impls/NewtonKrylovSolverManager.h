@@ -53,6 +53,11 @@ class NewtonKrylovSolverManager
 {
 public:
     /*!
+     * Key to use for "undefined" solver types.
+     */
+    static const std::string UNDEFINED;
+
+    /*!
      * Default Newton-Krylov solver types automatically provided by the manager
      * class.
      */

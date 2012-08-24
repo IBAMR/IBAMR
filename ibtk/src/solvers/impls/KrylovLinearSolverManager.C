@@ -59,8 +59,9 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string KrylovLinearSolverManager::DEFAULT = "DEFAULT";
-const std::string KrylovLinearSolverManager::PETSC   = "PETSC";
+const std::string KrylovLinearSolverManager::UNDEFINED = "UNDEFINED";
+const std::string KrylovLinearSolverManager::DEFAULT   = "DEFAULT";
+const std::string KrylovLinearSolverManager::PETSC     = "PETSC";
 
 KrylovLinearSolverManager* KrylovLinearSolverManager::s_solver_manager_instance = NULL;
 bool KrylovLinearSolverManager::s_registered_callback = false;

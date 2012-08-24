@@ -64,6 +64,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+const std::string CCPoissonSolverManager::UNDEFINED                           = "UNDEFINED";
 const std::string CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER               = "DEFAULT_KRYLOV_SOLVER";
 const std::string CCPoissonSolverManager::PETSC_KRYLOV_SOLVER                 = "PETSC_KRYLOV_SOLVER";
 const std::string CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER          = "DEFAULT_FAC_PRECONDITIONER";

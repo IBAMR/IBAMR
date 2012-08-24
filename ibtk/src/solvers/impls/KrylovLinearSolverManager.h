@@ -53,6 +53,11 @@ class KrylovLinearSolverManager
 {
 public:
     /*!
+     * Key to use for "undefined" solver types.
+     */
+    static const std::string UNDEFINED;
+
+    /*!
      * Default Krylov solver types automatically provided by the manager class.
      */
     static const std::string DEFAULT;

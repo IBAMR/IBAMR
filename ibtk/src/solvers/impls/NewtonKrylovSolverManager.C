@@ -59,8 +59,9 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string NewtonKrylovSolverManager::DEFAULT = "DEFAULT";
-const std::string NewtonKrylovSolverManager::PETSC   = "PETSC";
+const std::string NewtonKrylovSolverManager::UNDEFINED = "UNDEFINED";
+const std::string NewtonKrylovSolverManager::DEFAULT   = "DEFAULT";
+const std::string NewtonKrylovSolverManager::PETSC     = "PETSC";
 
 NewtonKrylovSolverManager* NewtonKrylovSolverManager::s_solver_manager_instance = NULL;
 bool NewtonKrylovSolverManager::s_registered_callback = false;
