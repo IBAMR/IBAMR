@@ -319,15 +319,16 @@ muParserCartGridFunction::setDataOnPatch(
                 for (FaceIterator<NDIM> ic(patch_box,axis); ic; ic++)
                 {
                     const FaceIndex<NDIM>& i = ic();
+                    const Index<NDIM>& cell_idx = i.toCell(1);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
                         }
                         else
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
                         }
                     }
                     (*fc_data)(i,data_depth) = d_parsers[function_depth].Eval();
