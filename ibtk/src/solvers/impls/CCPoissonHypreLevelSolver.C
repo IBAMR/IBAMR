@@ -1333,111 +1333,15 @@ CCPoissonHypreLevelSolver::deallocateHypreData()
     d_stencil = NULL;
     for (unsigned int k = 0; k < d_depth; ++k)
     {
-        if (d_matrices[k] ) HYPRE_StructMatrixDestroy(d_matrices[k]);
+        if (d_matrices[k]) HYPRE_StructMatrixDestroy(d_matrices[k]);
         if (d_sol_vecs[k]) HYPRE_StructVectorDestroy(d_sol_vecs[k]);
         if (d_rhs_vecs[k]) HYPRE_StructVectorDestroy(d_rhs_vecs[k]);
-        d_matrices[k]  = NULL;
+        d_matrices[k] = NULL;
         d_sol_vecs[k] = NULL;
         d_rhs_vecs[k] = NULL;
     }
     return;
 }// deallocateHypreData
-
-#if 0
-void
-CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
-    Pointer<Patch<NDIM> > patch,
-    CellData<NDIM,double>& rhs_data,
-    const PoissonSpecifications& poisson_spec,
-    RobinBcCoefStrategy<NDIM>* bc_coef,
-    double data_time)
-{
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-    const Array<BoundaryBox<NDIM> > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    OutersideData<NDIM,double> D_data(patch_box, 1);
-    if (!poisson_spec.dIsConstant())
-    {
-        D_data.copy(*patch->getPatchData(poisson_spec.getDPatchDataId()));
-    }
-    else
-    {
-        D_data.fillAll(poisson_spec.getDConstant());
-    }
-
-    // Modify the rhs entries to account for inhomogeneous boundary conditions.
-    //
-    // Here, we follow the same linear extrapolation approach implemented in
-    // class CartesianRobinBcHelper.  Namely, with u_i denoting
-    // the interior cell, u_o denoting the ghost cell, and u_b and u_n denoting
-    // the value and normal derivative of u at the boundary,
-    //
-    //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
-    //
-    // Now, if
-    //
-    //     a*u_b + b*u_n = g
-    //
-    // then, with u_i = 0,
-    //
-    //     u_o = 2*h*g/(2*b + a*h)
-    //
-    // so that the boundary flux is
-    //
-    //     (u_i - u_o)/h = -2*g/(2*b + h*a)
-    //
-    // In this loop, we modify the rhs entries appropriately.
-    const int n_bdry_boxes = codim1_boxes.size();
-    for (int n = 0; n < n_bdry_boxes; ++n)
-    {
-        const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
-        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
-        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
-
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-        if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(false);
-        bc_coef->setBcCoefs(
-            acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-            *patch, trimmed_bdry_box, data_time);
-
-        const unsigned int location_index = bdry_box.getLocationIndex();
-        const unsigned int bdry_normal_axis =  location_index / 2;
-        const bool bdry_upper_side = (location_index % 2) != 0;
-        const int bdry_side = (bdry_upper_side ? 1 : 0);
-
-        // i_s_bdry: side index located on physical boundary
-        //
-        // i_c_intr: cell index located adjacent to physical boundary in the
-        // patch interior
-        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-        {
-            const Index<NDIM>& i_s_bdry = b();
-            const double& a = acoef_data(i_s_bdry,0);
-            const double& b = bcoef_data(i_s_bdry,0);
-            const double& g = gcoef_data(i_s_bdry,0);
-            const double& h = dx[bdry_normal_axis];
-
-            Index<NDIM> i_c_intr = i_s_bdry;
-            if (bdry_upper_side)
-            {
-                i_c_intr(bdry_normal_axis) -= 1;
-            }
-            rhs_data(i_c_intr) += (D_data.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,bdry_normal_axis)/h)*(-2.0*g)/(2.0*b+h*a);
-        }
-    }
-    return;
-}// adjustBoundaryRhsEntries_nonaligned
-#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
