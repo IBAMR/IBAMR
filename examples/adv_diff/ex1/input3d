@@ -18,7 +18,6 @@ NUM_CYCLES         = 1                    // number of cycles of fixed-point ite
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
 CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
-NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX            = 0.3                  // maximum CFL number
 DT_MAX             = 0.25/NFINEST         // maximum timestep size
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
