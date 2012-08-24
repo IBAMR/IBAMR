@@ -48,6 +48,9 @@
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
+
 // SAMRAI INCLUDES
 #include <tbox/NullDatabase.h>
 
@@ -239,6 +242,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
+    const double half_time = current_time+0.5*dt;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -353,7 +357,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         if (!F_fcn.isNull() && F_fcn->isTimeDependent())
         {
             const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
-            F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time+0.5*dt);
+            F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, half_time);
         }
     }
 
@@ -422,17 +426,17 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                            << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
-        solver_spec.setCConstant(1.0+K*dt*lambda);
-        solver_spec.setDConstant(   -K*dt*kappa );
+        solver_spec.setCConstant(1.0/dt+K*lambda);
+        solver_spec.setDConstant(      -K*kappa );
         PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
-        rhs_spec.setCConstant(1.0-(1.0-K)*dt*lambda);
-        rhs_spec.setDConstant(   +(1.0-K)*dt*kappa );
+        rhs_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
+        rhs_spec.setDConstant(      +(1.0-K)*kappa );
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
         d_hier_bdry_fill_ops[l]->fillData(current_time);
         for (int depth = 0; depth < Q_depth; ++depth)
         {
-            d_hier_math_ops->laplace(Q_rhs_scratch_idx, Q_rhs_var, rhs_spec, Q_scratch_idx, Q_var, d_no_fill_op, current_time, dt, Q_new_idx, Q_var, depth, depth, depth);
+            d_hier_math_ops->laplace(Q_rhs_scratch_idx, Q_rhs_var, rhs_spec, Q_scratch_idx, Q_var, d_no_fill_op, current_time, 1.0, Q_new_idx, Q_var, depth, depth, depth);
         }
 
         // Initialize the linear solver.
@@ -447,11 +451,19 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             if (d_enable_logging)
             {
                 plog << d_object_name << ": "
-                     << "Initializing Helmholtz solvers for variable number " << l
-                     << ", dt = " << dt << "\n";
+                     << "Initializing Helmholtz solvers for variable number " << l << "\n";
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
+        }
+
+        // Setup inhomogeneous boundary conditions.
+        helmholtz_solver->setHomogeneousBc(false);
+        Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
+        if (!p_helmholtz_solver.isNull())
+        {
+            p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
+            p_helmholtz_solver->setHomogeneousBc(true);
         }
 
         // Solve for Q(n+1).

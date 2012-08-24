@@ -904,6 +904,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
             getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
         }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+        d_convective_op->setSolutionTime(current_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
@@ -926,10 +927,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const int cycle_num)
 {
     INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt  = new_time-current_time;
-    const double rho = d_problem_coefs.getRho();
+    const int coarsest_ln  = 0;
+    const int finest_ln    = d_hierarchy->getFinestLevelNumber();
+    const double dt        = new_time-current_time;
+    const double half_time = current_time+0.5*dt;
+    const double rho       = d_problem_coefs.getRho();
 
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
@@ -981,13 +983,16 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         if (cycle_num > 0)
         {
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
+            double apply_time = std::numeric_limits<double>::quiet_NaN();
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
                 d_hier_sc_data_ops->linearSum(U_adv_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+                apply_time = half_time;
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
                 d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
+                apply_time = new_time;
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
@@ -1000,6 +1005,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
                 getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
             }
             d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+            d_convective_op->setSolutionTime(apply_time);
             d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         }
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -1024,7 +1030,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Account for body forcing terms.
     if (!d_F_fcn.isNull())
     {
-        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, current_time+0.5*dt);
+        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
         d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
@@ -1034,7 +1040,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx    , d_Q_var, d_hierarchy, new_time    );
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
-        d_Q_bdry_bc_fill_op->fillData(current_time+0.5*dt);
+        d_Q_bdry_bc_fill_op->fillData(half_time);
         if (!d_creeping_flow)
         {
             d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
@@ -1686,15 +1692,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     const double current_time,
     const double new_time)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const int coarsest_ln   = 0;
+    const int finest_ln     = d_hierarchy->getFinestLevelNumber();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    const double dt = new_time-current_time;
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const double rho    = d_problem_coefs.getRho();
-    const double mu     = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double dt         = new_time-current_time;
+    const double half_time  = current_time+0.5*dt;
+    const int wgt_cc_idx    = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const int wgt_sc_idx    = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+    const double rho        = d_problem_coefs.getRho();
+    const double mu         = d_problem_coefs.getMu();
+    const double lambda     = d_problem_coefs.getLambda();
     double K = 0.0;
     switch (d_viscous_time_stepping_type)
     {
@@ -1866,7 +1873,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     {
         d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
-        d_pressure_solver->setSolutionTime(current_time+0.5*dt);
+        d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
         d_pressure_solver->setInitialGuessNonzero(false);
         if (d_normalize_pressure)

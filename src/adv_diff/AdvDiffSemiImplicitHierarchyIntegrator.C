@@ -49,6 +49,9 @@
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
+
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 #include <tbox/NullDatabase.h>
@@ -479,11 +482,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
                 TBOX_ERROR("this statment should not be reached");
         }
         PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
-        solver_spec.setCConstant(1.0+K*dt*lambda);
-        solver_spec.setDConstant(   -K*dt*kappa );
+        solver_spec.setCConstant(1.0/dt+K*lambda);
+        solver_spec.setDConstant(      -K*kappa );
         PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
-        rhs_spec.setCConstant(1.0-(1.0-K)*dt*lambda);
-        rhs_spec.setDConstant(   +(1.0-K)*dt*kappa );
+        rhs_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
+        rhs_spec.setDConstant(      +(1.0-K)*kappa );
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
         d_hier_bdry_fill_ops[l]->fillData(current_time);
@@ -504,8 +507,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             if (d_enable_logging)
             {
                 plog << d_object_name << ": "
-                     << "Initializing Helmholtz solvers for variable number " << l
-                     << ", dt = " << dt << "\n";
+                     << "Initializing Helmholtz solvers for variable number " << l << "\n";
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
@@ -539,21 +541,31 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx);
+            d_Q_convective_op[Q_var]->setSolutionTime(current_time);
             d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
             const int N_old_new_idx = var_db->mapVariableAndContextToIndex(N_old_var, getNewContext());
             d_hier_cc_data_ops->copyData(N_old_new_idx, N_scratch_idx);
             if (convective_time_stepping_type == FORWARD_EULER)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
 
         // Set the initial guess.
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_current_idx);
+
+        // Setup inhomogeneous boundary conditions.
+        helmholtz_solver->setHomogeneousBc(false);
+        Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
+        if (!p_helmholtz_solver.isNull())
+        {
+            p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
+            p_helmholtz_solver->setHomogeneousBc(true);
+        }
     }
     return;
 }// preprocessIntegrateHierarchy
@@ -565,7 +577,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     const int cycle_num)
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-    const double dt  = new_time-current_time;
+    const double dt = new_time-current_time;
+    const double half_time = current_time+0.5*dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
@@ -651,6 +664,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
                     const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
                     const int Q_new_idx     = var_db->mapVariableAndContextToIndex(Q_var, getNewContext()    );
                     d_hier_cc_data_ops->linearSum(Q_scratch_idx, 0.5, Q_current_idx, 0.5, Q_new_idx);
+                    d_Q_convective_op[Q_var]->setSolutionTime(half_time);
                     d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
                 }
                 else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
@@ -660,6 +674,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
                     const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
                     const int Q_new_idx     = var_db->mapVariableAndContextToIndex(Q_var, getNewContext()    );
                     d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_new_idx);
+                    d_Q_convective_op[Q_var]->setSolutionTime(new_time);
                     d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
                 }
             }
@@ -674,19 +689,19 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             }
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
 
         // Account for forcing terms.
         if (!d_F_fcn[F_var].isNull())
         {
-            d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, current_time+0.5*dt);
-            d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, dt, F_scratch_idx, Q_rhs_scratch_idx);
+            d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, half_time);
+            d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
         }
 
         // Solve for Q(n+1).
@@ -707,16 +722,16 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +1.0*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +0.5*dt, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
         if (!d_F_fcn[F_var].isNull())
         {
-            d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -dt, F_scratch_idx, Q_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, F_scratch_idx, Q_rhs_scratch_idx);
             d_hier_cc_data_ops->copyData(F_new_idx, F_scratch_idx);
         }
     }
