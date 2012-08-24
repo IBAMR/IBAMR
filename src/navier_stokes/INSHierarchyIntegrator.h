@@ -239,31 +239,31 @@ public:
     getProjectionBoundaryConditions() const;
 
     /*!
-     * \brief Set the default convective operator type to be used by the solver.
+     * \brief Set the convective operator type to be used by the solver.
      */
     void
-    setDefaultConvectiveOperatorType(
+    setConvectiveOperatorType(
         const std::string& op_type);
 
     /*!
-     * \brief Get the default convective operator type used by the solver.
+     * \brief Get the convective operator type used by the solver.
      */
     const std::string&
-    getDefaultConvectiveOperatorType() const;
+    getConvectiveOperatorType() const;
 
     /*!
-     * \brief Set the default convective differencing form to be used by the
+     * \brief Set the convective differencing form to be used by the
      * solver.
      */
     void
-    setDefaultConvectiveDifferencingType(
+    setConvectiveDifferencingType(
         ConvectiveDifferencingType difference_form);
 
     /*!
-     * \brief Get the default convective differencing form used by the solver.
+     * \brief Get the convective differencing form used by the solver.
      */
     ConvectiveDifferencingType
-    getDefaultConvectiveDifferencingType() const;
+    getConvectiveDifferencingType() const;
 
     /*!
      * \brief Set whether the integrator solves the time-dependent (creeping)

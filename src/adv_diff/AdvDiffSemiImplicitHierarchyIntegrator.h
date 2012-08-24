@@ -328,14 +328,14 @@ protected:
     /*!
      * Default convective time integration methods.
      */
-    TimeSteppingType d_convective_time_stepping_type;
-    TimeSteppingType d_init_convective_time_stepping_type;
+    TimeSteppingType d_default_convective_time_stepping_type;
+    TimeSteppingType d_default_init_convective_time_stepping_type;
 
     /*!
      * Default convective operator settings.
      */
-    std::string d_convective_op_type;
-    std::string d_convective_bdry_extrap_type;
+    std::string d_default_convective_op_type;
+    std::string d_default_convective_bdry_extrap_type;
 
     /*
      * Hierarchy operations objects.

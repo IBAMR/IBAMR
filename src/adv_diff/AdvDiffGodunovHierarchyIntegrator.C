@@ -104,7 +104,7 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     }
 
     // Check to make sure the time stepping types are supported.
-    switch (d_diffusion_time_stepping_type)
+    switch (d_default_diffusion_time_stepping_type)
     {
         case BACKWARD_EULER:
         case FORWARD_EULER:
@@ -112,7 +112,7 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
             break;
         default:
             TBOX_ERROR(d_object_name << "::AdvDiffGodunovHierarchyIntegrator():\n"
-                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
+                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
                        << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;

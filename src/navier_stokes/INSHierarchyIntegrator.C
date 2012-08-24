@@ -247,7 +247,7 @@ INSHierarchyIntegrator::getCreepingFlow() const
 }// getCreepingFlow
 
 void
-INSHierarchyIntegrator::setDefaultConvectiveOperatorType(
+INSHierarchyIntegrator::setConvectiveOperatorType(
     const std::string& op_type)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -257,16 +257,16 @@ INSHierarchyIntegrator::setDefaultConvectiveOperatorType(
 #endif
     d_convective_op_type = op_type;
     return;
-}// setDefaultConvectiveOperatorType
+}// setConvectiveOperatorType
 
 const std::string&
-INSHierarchyIntegrator::getDefaultConvectiveOperatorType() const
+INSHierarchyIntegrator::getConvectiveOperatorType() const
 {
     return d_convective_op_type;
-}// getDefaultConvectiveOperatorType
+}// getConvectiveOperatorType
 
 void
-INSHierarchyIntegrator::setDefaultConvectiveDifferencingType(
+INSHierarchyIntegrator::setConvectiveDifferencingType(
     ConvectiveDifferencingType difference_form)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -276,13 +276,13 @@ INSHierarchyIntegrator::setDefaultConvectiveDifferencingType(
 #endif
     d_convective_difference_form = difference_form;
     return;
-}// setDefaultConvectiveDifferencingType
+}// setConvectiveDifferencingType
 
 ConvectiveDifferencingType
-INSHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
+INSHierarchyIntegrator::getConvectiveDifferencingType() const
 {
     return d_convective_difference_form;
-}// getDefaultConvectiveDifferencingType
+}// getConvectiveDifferencingType
 
 void
 INSHierarchyIntegrator::setConvectiveOperator(

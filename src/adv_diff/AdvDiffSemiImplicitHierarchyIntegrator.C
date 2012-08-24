@@ -75,10 +75,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     TBOX_ASSERT(!input_db.isNull());
 #endif
     // Default values.
-    d_convective_time_stepping_type = MIDPOINT_RULE;
-    d_init_convective_time_stepping_type = MIDPOINT_RULE;
-    d_convective_op_type = AdvDiffConvectiveOperatorManager::DEFAULT;
-    d_convective_bdry_extrap_type = "LINEAR";
+    d_default_convective_time_stepping_type = MIDPOINT_RULE;
+    d_default_init_convective_time_stepping_type = MIDPOINT_RULE;
+    d_default_convective_op_type = AdvDiffConvectiveOperatorManager::DEFAULT;
+    d_default_convective_bdry_extrap_type = "LINEAR";
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -86,7 +86,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
     // Check to make sure the time stepping types are supported.
-    switch (d_diffusion_time_stepping_type)
+    switch (d_default_diffusion_time_stepping_type)
     {
         case BACKWARD_EULER:
         case FORWARD_EULER:
@@ -94,11 +94,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
             break;
         default:
             TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
+                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
                        << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 
-    switch (d_convective_time_stepping_type)
+    switch (d_default_convective_time_stepping_type)
     {
         case ADAMS_BASHFORTH:
         case FORWARD_EULER:
@@ -107,13 +107,13 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
             break;
         default:
             TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                       << "  unsupported default convective time stepping type: " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
+                       << "  unsupported default convective time stepping type: " << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type) << " \n"
                        << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
-    if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
+    if (is_multistep_time_stepping_type(d_default_convective_time_stepping_type))
     {
-        switch (d_init_convective_time_stepping_type)
+        switch (d_default_init_convective_time_stepping_type)
         {
             case FORWARD_EULER:
             case MIDPOINT_RULE:
@@ -121,7 +121,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                           << "  unsupported default initial convective time stepping type: " << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
+                           << "  unsupported default initial convective time stepping type: " << enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type) << " \n"
                            << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
@@ -138,56 +138,56 @@ void
 AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveTimeSteppingType(
     TimeSteppingType default_convective_time_stepping_type)
 {
-    d_convective_time_stepping_type = default_convective_time_stepping_type;
+    d_default_convective_time_stepping_type = default_convective_time_stepping_type;
     return;
 }// setDefaultConvectiveTimeSteppingType
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveTimeSteppingType() const
 {
-    return d_convective_time_stepping_type;
+    return d_default_convective_time_stepping_type;
 }// getDefaultConvectiveTimeSteppingType
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setDefaultInitialConvectiveTimeSteppingType(
     TimeSteppingType default_init_convective_time_stepping_type)
 {
-    d_init_convective_time_stepping_type = default_init_convective_time_stepping_type;
+    d_default_init_convective_time_stepping_type = default_init_convective_time_stepping_type;
     return;
 }// setDefaultInitialConvectiveTimeSteppingType
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultInitialConvectiveTimeSteppingType() const
 {
-    return d_init_convective_time_stepping_type;
+    return d_default_init_convective_time_stepping_type;
 }// getDefaultInitialConvectiveTimeSteppingType
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorType(
     const std::string& op_type)
 {
-    d_convective_op_type = op_type;
+    d_default_convective_op_type = op_type;
     return;
 }// setDefaultConvectiveOperatorType
 
 const std::string&
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorType() const
 {
-    return d_convective_op_type;
+    return d_default_convective_op_type;
 }// getDefaultConvectiveOperatorType
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorBoundaryExtrapolation(
     const std::string& bdry_extrap_type)
 {
-    d_convective_bdry_extrap_type = bdry_extrap_type;
+    d_default_convective_bdry_extrap_type = bdry_extrap_type;
     return;
 }// setDefaultConvectiveOperatorBoundaryExtrapolation
 
 const std::string&
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorBoundaryExtrapolation() const
 {
-    return d_convective_bdry_extrap_type;
+    return d_default_convective_bdry_extrap_type;
 }// getDefaultConvectiveOperatorBoundaryExtrapolation
 
 void
@@ -197,10 +197,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
     AdvDiffHierarchyIntegrator::registerTransportedQuantity(Q_var);
 
     // Set default values.
-    d_Q_convective_time_stepping_type[Q_var] = d_convective_time_stepping_type;
-    d_Q_init_convective_time_stepping_type[Q_var] = d_init_convective_time_stepping_type;
-    d_Q_convective_op_type[Q_var] = d_convective_op_type;
-    d_Q_convective_bdry_extrap_type[Q_var] = d_convective_bdry_extrap_type;
+    d_Q_convective_time_stepping_type[Q_var] = d_default_convective_time_stepping_type;
+    d_Q_init_convective_time_stepping_type[Q_var] = d_default_init_convective_time_stepping_type;
+    d_Q_convective_op_type[Q_var] = d_default_convective_op_type;
+    d_Q_convective_bdry_extrap_type[Q_var] = d_default_convective_bdry_extrap_type;
     d_Q_convective_op[Q_var] = NULL;
     d_Q_convective_op_needs_init[Q_var] = false;
     return;
@@ -771,10 +771,10 @@ void
 AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
-    db->putString("d_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_convective_time_stepping_type));
-    db->putString("d_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type));
-    db->putString("d_convective_op_type", d_convective_op_type);
-    db->putString("d_convective_bdry_extrap_type", d_convective_bdry_extrap_type);
+    db->putString("d_default_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type));
+    db->putString("d_default_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type));
+    db->putString("d_default_convective_op_type", d_default_convective_op_type);
+    db->putString("d_default_convective_bdry_extrap_type", d_default_convective_bdry_extrap_type);
     AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 }// putToDatabaseSpecialized
@@ -791,23 +791,23 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
 #endif
     if (!is_from_restart)
     {
-        if      (db->keyExists("convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
-        else if (db->keyExists("convective_timestepping_type" )) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_timestepping_type") );
-        else if (db->keyExists("default_convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_time_stepping_type"));
-        else if (db->keyExists("default_convective_timestepping_type" )) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_timestepping_type") );
+        if      (db->keyExists("convective_time_stepping_type")) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
+        else if (db->keyExists("convective_timestepping_type" )) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_timestepping_type") );
+        else if (db->keyExists("default_convective_time_stepping_type")) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_time_stepping_type"));
+        else if (db->keyExists("default_convective_timestepping_type" )) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_timestepping_type") );
 
-        if      (db->keyExists("init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
-        else if (db->keyExists("init_convective_timestepping_type" )) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type") );
-        else if (db->keyExists("default_init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_time_stepping_type"));
-        else if (db->keyExists("default_init_convective_timestepping_type" )) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_timestepping_type") );
+        if      (db->keyExists("init_convective_time_stepping_type")) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
+        else if (db->keyExists("init_convective_timestepping_type" )) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type") );
+        else if (db->keyExists("default_init_convective_time_stepping_type")) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_time_stepping_type"));
+        else if (db->keyExists("default_init_convective_timestepping_type" )) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_timestepping_type") );
 
-        if      (db->keyExists("convective_op_type"))               d_convective_op_type = db->getString("convective_op_type");
-        else if (db->keyExists("convective_operator_type"))         d_convective_op_type = db->getString("convective_operator_type");
-        else if (db->keyExists("default_convective_op_type"))       d_convective_op_type = db->getString("default_convective_op_type");
-        else if (db->keyExists("default_convective_operator_type")) d_convective_op_type = db->getString("default_convective_operator_type");
+        if      (db->keyExists("convective_op_type"))               d_default_convective_op_type = db->getString("convective_op_type");
+        else if (db->keyExists("convective_operator_type"))         d_default_convective_op_type = db->getString("convective_operator_type");
+        else if (db->keyExists("default_convective_op_type"))       d_default_convective_op_type = db->getString("default_convective_op_type");
+        else if (db->keyExists("default_convective_operator_type")) d_default_convective_op_type = db->getString("default_convective_operator_type");
 
-        if      (db->keyExists("convective_bdry_extrap_type"))         d_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
-        else if (db->keyExists("default_convective_bdry_extrap_type")) d_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
+        if      (db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
+        else if (db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
     }
     return;
 }// getFromInput
@@ -826,10 +826,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
                    << d_object_name << " not found in restart file." << std::endl);
     }
-    d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_convective_time_stepping_type"));
-    d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_init_convective_time_stepping_type"));
-    d_convective_op_type = db->getString("d_convective_op_type");
-    d_convective_bdry_extrap_type = db->getString("d_convective_bdry_extrap_type");
+    d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));
+    d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_init_convective_time_stepping_type"));
+    d_default_convective_op_type = db->getString("d_default_convective_op_type");
+    d_default_convective_bdry_extrap_type = db->getString("d_default_convective_bdry_extrap_type");
     return;
 }// getFromRestart
 

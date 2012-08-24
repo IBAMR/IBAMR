@@ -313,7 +313,7 @@ public:
      * that has been registered with the hierarchy integrator.
      */
     void
-    setPhysicalBcCoefs(
+    setPhysicalBcCoef(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
 
@@ -324,7 +324,7 @@ public:
     void
     setPhysicalBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef);
 
     /*!
      * Get objects used to provide boundary conditions for a scalar- or
@@ -402,12 +402,12 @@ protected:
     /*!
      * Default diffusion time integration method.
      */
-    TimeSteppingType d_diffusion_time_stepping_type;
+    TimeSteppingType d_default_diffusion_time_stepping_type;
 
     /*!
      * Default convective differencing type.
      */
-    ConvectiveDifferencingType d_convective_difference_form;
+    ConvectiveDifferencingType d_default_convective_difference_form;
 
     /*!
      * Advection velocity data.
