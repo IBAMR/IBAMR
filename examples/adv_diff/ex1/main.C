@@ -88,21 +88,20 @@ main(
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
 
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
+
+        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<AdvDiffHierarchyIntegrator> time_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
+        const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            time_integrator = new AdvDiffGodunovHierarchyIntegrator("AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"));
+            Pointer<GodunovAdvector> predictor = new GodunovAdvector("GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+            time_integrator = new AdvDiffGodunovHierarchyIntegrator("AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
@@ -147,26 +146,22 @@ main(
             }
         }
 
-        // Create body force function specification objects (when necessary).
-        if (input_db->keyExists("ForcingFunction"))
-        {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceFunction(f_fcn);
-        }
-
         // Setup the advected and diffused quantity.
         Pointer<FaceVariable<NDIM,double> > u_adv_var = new FaceVariable<NDIM,double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
-        time_integrator->registerAdvectionVelocityFunction(u_adv_var, u_init);
-        const ConvectiveDifferencingType difference_form = IBAMR::string_to_enum<ConvectiveDifferencingType>(
-            main_db->getStringWithDefault("difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        pout << "solving the advection-diffusion equation in " << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+        time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         Pointer<CellVariable<NDIM,double> > U_var = new CellVariable<NDIM,double>("U",NDIM);
-        const double nu = input_db->getDouble("MU")/input_db->getDouble("RHO");
         time_integrator->registerTransportedQuantity(U_var);
         time_integrator->setAdvectionVelocity(U_var, u_adv_var);
-        time_integrator->setDiffusionCoefficient(U_var, kappa);
-        time_integrator->setConvectiveDifferencingType(U_var, difference_form);
+        if (input_db->keyExists("ForcingFunction"))
+        {
+            Pointer<FaceVariable<NDIM,double> > f_var = new FaceVariable<NDIM,double>("f");
+            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
+            time_integrator->registerSourceTerm(f_var);
+            time_integrator->setSourceTermFunction(f_var, f_fcn);
+        }
+        const double nu = input_db->getDouble("MU")/input_db->getDouble("RHO");
+        time_integrator->setDiffusionCoefficient(U_var, nu);
         time_integrator->setInitialConditions(U_var, u_init);
         time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
 
@@ -242,10 +237,6 @@ main(
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy, time_integrator, iteration_num, loop_time, postproc_data_dump_dirname);
-            }
         }
 
         // Determine the accuracy of the computed solution.
@@ -272,11 +263,10 @@ main(
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-        const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
         HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(U_idx, U_idx, U_cloned_idx);
-        pout << "Error in u at time " << loop_time << ":\n"
+        pout << "Error in U at time " << loop_time << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops. L1Norm(U_idx,wgt_cc_idx)  << "\n"
              << "  L2-norm:  " << hier_cc_data_ops. L2Norm(U_idx,wgt_cc_idx)  << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx,wgt_cc_idx) << "\n";
@@ -288,7 +278,7 @@ main(
         }
 
         // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete U_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     }// cleanup dynamically allocated objects prior to shutdown
 
