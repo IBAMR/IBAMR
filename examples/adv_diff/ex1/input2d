@@ -86,14 +86,9 @@ GodunovAdvector {
 }
 
 AdvDiffGodunovHierarchyIntegrator {
-   mu                            = MU
-   rho                           = RHO
    start_time                    = START_TIME
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
-   num_cycles                    = NUM_CYCLES
-   convective_time_stepping_type = CONVECTIVE_TS_TYPE
-   convective_op_type            = CONVECTIVE_OP_TYPE
    convective_difference_form    = CONVECTIVE_FORM
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
@@ -117,8 +112,6 @@ AdvDiffGodunovHierarchyIntegrator {
 }
 
 AdvDiffSemiImplicitHierarchyIntegrator {
-   mu                            = MU
-   rho                           = RHO
    start_time                    = START_TIME
    end_time                      = END_TIME
    grow_dt                       = GROW_DT

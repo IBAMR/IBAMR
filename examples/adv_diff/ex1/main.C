@@ -119,7 +119,7 @@ main(
         Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
-        // Create initial condition specification objects.
+        // Create an initial condition specification object.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction("u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
@@ -147,12 +147,17 @@ main(
         }
 
         // Setup the advected and diffused quantity.
+        Pointer<CellVariable<NDIM,double> > U_var = new CellVariable<NDIM,double>("U",NDIM);
+        time_integrator->registerTransportedQuantity(U_var);
+        time_integrator->setDiffusionCoefficient(U_var, input_db->getDouble("MU")/input_db->getDouble("RHO"));
+        time_integrator->setInitialConditions(U_var, u_init);
+        time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
+
         Pointer<FaceVariable<NDIM,double> > u_adv_var = new FaceVariable<NDIM,double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
-        Pointer<CellVariable<NDIM,double> > U_var = new CellVariable<NDIM,double>("U",NDIM);
-        time_integrator->registerTransportedQuantity(U_var);
         time_integrator->setAdvectionVelocity(U_var, u_adv_var);
+
         if (input_db->keyExists("ForcingFunction"))
         {
             Pointer<CellVariable<NDIM,double> > F_var = new CellVariable<NDIM,double>("F",NDIM);
@@ -161,10 +166,6 @@ main(
             time_integrator->setSourceTermFunction(F_var, F_fcn);
             time_integrator->setSourceTerm(U_var, F_var);
         }
-        const double nu = input_db->getDouble("MU")/input_db->getDouble("RHO");
-        time_integrator->setDiffusionCoefficient(U_var, nu);
-        time_integrator->setInitialConditions(U_var, u_init);
-        time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
