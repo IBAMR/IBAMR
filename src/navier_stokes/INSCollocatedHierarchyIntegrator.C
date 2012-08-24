@@ -897,6 +897,8 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     // Solve for U(*) and compute u_ADV(*).
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_velocity_solver->solveSystem(*d_U_scratch_vec, *d_U_rhs_vec);
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): velocity solve number of iterations = " << d_velocity_solver->getNumIterations() << "\n";
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): velocity solve residual norm        = " << d_velocity_solver->getResidualNorm()  << "\n";
     d_hier_math_ops->interp(
         d_u_ADV_scratch_idx, d_u_ADV_var, /*synch_cf_bdry*/ true,
         d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
@@ -921,6 +923,8 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
     }
     d_pressure_solver->solveSystem(*d_Phi_vec, *d_Phi_rhs_vec);
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): pressure solve number of iterations = " << d_pressure_solver->getNumIterations() << "\n";
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): pressure solve residual norm        = " << d_pressure_solver->getResidualNorm()  << "\n";
     d_hier_math_ops->grad(
         d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, /*synch_cf_bdry*/ true,
         1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, current_time+0.5*dt);
@@ -1435,6 +1439,8 @@ INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec,rhs_vec);
+    if (d_enable_logging) plog << d_object_name << "::regridProjection(): projection solve number of iterations = " << regrid_projection_solver->getNumIterations() << "\n";
+    if (d_enable_logging) plog << d_object_name << "::regridProjection(): projection solve residual norm        = " << regrid_projection_solver->getResidualNorm()  << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;

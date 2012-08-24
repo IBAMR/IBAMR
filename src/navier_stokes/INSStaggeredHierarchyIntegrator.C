@@ -1004,6 +1004,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations() << "\n";
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()  << "\n";
 
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
@@ -1566,6 +1568,8 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec,rhs_vec);
+    if (d_enable_logging) plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = " << regrid_projection_solver->getNumIterations() << "\n";
+    if (d_enable_logging) plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = " << regrid_projection_solver->getResidualNorm()  << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
