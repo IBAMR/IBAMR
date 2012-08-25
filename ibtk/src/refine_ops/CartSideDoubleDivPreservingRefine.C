@@ -376,9 +376,4 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 
 }// namespace IBTK
 
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CartSideDoubleDivPreservingRefine>;
-
 //////////////////////////////////////////////////////////////////////////////
