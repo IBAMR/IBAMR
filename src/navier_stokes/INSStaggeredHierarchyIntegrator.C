@@ -522,7 +522,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup solvers.
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
     {
-        d_stokes_solver_type = StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER;
+        d_stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
+        d_stokes_solver_db->putString("ksp_type", "fgmres");
     }
     if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
     {
@@ -532,30 +533,42 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_velocity_solver_type == SCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
-        if (max_levels == 1)
-        {
-            d_velocity_solver_type = SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
-        }
-        else
-        {
-            d_velocity_solver_type = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-        }
-        d_velocity_solver_db->putInteger("max_iterations", 1);
+        d_velocity_solver_type = SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
+        d_velocity_solver_db->putString("ksp_type", "richardson");
+        d_velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
-
-    if (d_pressure_solver_type == CCPoissonSolverManager::UNDEFINED)
+    if (d_velocity_precond_type == SCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
-            d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+            d_velocity_precond_type = SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
         }
         else
         {
-            d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+            d_velocity_precond_type = SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
         }
-        d_pressure_solver_db->putInteger("max_iterations", 1);
+        d_velocity_precond_db->putInteger("max_iterations", 1);
+    }
+
+    if (d_pressure_solver_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        d_pressure_solver_type = CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
+        d_pressure_solver_db->putString("ksp_type", "richardson");
+        d_pressure_solver_db->putDouble("rel_residual_tol", 1.0e-1);
+    }
+    if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
+    {
+        const int max_levels = gridding_alg->getMaxLevels();
+        if (max_levels == 1)
+        {
+            d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+        }
+        else
+        {
+            d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+        }
+        d_pressure_precond_db->putInteger("max_iterations", 1);
     }
 
     if (d_regrid_projection_solver_type == CCPoissonSolverManager::UNDEFINED)
