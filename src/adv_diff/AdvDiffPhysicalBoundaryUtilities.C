@@ -97,7 +97,15 @@ AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
         static const IntVector<NDIM> gcw_to_fill = 1;
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d != bdry_normal_axis)
+            {
+                bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), patch_box.lower(d));
+                bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
+            }
+        }
         ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
         ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
         ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
