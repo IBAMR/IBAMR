@@ -100,32 +100,24 @@ main(
         const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            Pointer<GodunovAdvector> predictor = new GodunovAdvector(
-                "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
-            time_integrator = new AdvDiffGodunovHierarchyIntegrator(
-                "AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
+            Pointer<GodunovAdvector> predictor = new GodunovAdvector("GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+            time_integrator = new AdvDiffGodunovHierarchyIntegrator("AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
-            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
-                "AdvDiffSemiImplicitHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator("AdvDiffSemiImplicitHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         }
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
                        "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Setup the advection velocity.
         Pointer<FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
@@ -136,23 +128,20 @@ main(
         time_integrator->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn,false));
 
         // Setup the advected and diffused quantity.
-        const ConvectiveDifferencingType difference_form =
-            IBAMR::string_to_enum<ConvectiveDifferencingType>(
-                main_db->getStringWithDefault(
-                    "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+        const ConvectiveDifferencingType difference_form = IBAMR::string_to_enum<ConvectiveDifferencingType>(
+            main_db->getStringWithDefault("difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
         Pointer<CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-            "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
+        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef("physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         const double kappa = app_initializer->getComponentDatabase("QInit")->getDouble("kappa");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setAdvectionVelocity(Q_var, u_var);
         time_integrator->setDiffusionCoefficient(Q_var, kappa);
         time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
         time_integrator->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init,false));
-        time_integrator->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
+        time_integrator->setPhysicalBcCoef(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -184,8 +173,7 @@ main(
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
