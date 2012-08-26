@@ -71,7 +71,7 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setPhysicalBoundaryConditions(bc_coefs);
+    setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSIntermediateVelocityBcCoef
@@ -91,7 +91,7 @@ INSIntermediateVelocityBcCoef::setStokesSpecifications(
 }// setStokesSpecifications
 
 void
-INSIntermediateVelocityBcCoef::setPhysicalBoundaryConditions(
+INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -99,7 +99,7 @@ INSIntermediateVelocityBcCoef::setPhysicalBoundaryConditions(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBoundaryConditions
+}// setPhysicalBcCoefs
 
 void
 INSIntermediateVelocityBcCoef::setTimeInterval(

@@ -115,7 +115,7 @@ public:
      * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setPhysicalBoundaryConditions(
+    setPhysicalBcCoefs(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!

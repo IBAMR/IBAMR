@@ -72,7 +72,7 @@ INSProjectionBcCoef::INSProjectionBcCoef(
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setPhysicalBoundaryConditions(bc_coefs);
+    setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSProjectionBcCoef
@@ -92,7 +92,7 @@ INSProjectionBcCoef::setStokesSpecifications(
 }// setStokesSpecifications
 
 void
-INSProjectionBcCoef::setPhysicalBoundaryConditions(
+INSProjectionBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -100,7 +100,7 @@ INSProjectionBcCoef::setPhysicalBoundaryConditions(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBoundaryConditions
+}// setPhysicalBcCoefs
 
 void
 INSProjectionBcCoef::setTimeInterval(

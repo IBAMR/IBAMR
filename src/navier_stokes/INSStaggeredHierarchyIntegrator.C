@@ -1835,22 +1835,22 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
-        U_bc_coef->setPhysicalBoundaryConditions(d_bc_coefs);
+        U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setTimeInterval(current_time,new_time);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
-        U_star_bc_coef->setPhysicalBoundaryConditions(d_bc_coefs);
+        U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setTimeInterval(current_time,new_time);
     }
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setPhysicalBoundaryConditions(d_bc_coefs);
+    P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setVelocityCurrentPatchDataIndex(d_U_current_idx);
     P_bc_coef->setVelocityNewPatchDataIndex(d_U_new_idx);
     P_bc_coef->setTimeInterval(current_time,new_time);
     INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
-    Phi_bc_coef->setPhysicalBoundaryConditions(d_bc_coefs);
+    Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
     // Setup convective operator.
