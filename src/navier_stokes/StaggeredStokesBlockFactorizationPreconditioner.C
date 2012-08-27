@@ -226,7 +226,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     //
     // P := -(D*L) * (-L)^{-1} * F_P
     //    = D*F_P
-    if (d_U_problem_coefs.cIsZero())
+    if (d_U_problem_coefs.cIsZero() || MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0))
     {
         d_pressure_data_ops->scale(P_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }

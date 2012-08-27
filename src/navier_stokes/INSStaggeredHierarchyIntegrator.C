@@ -1747,6 +1747,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     }
 
     // Setup solver vectors.
+    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {
         d_U_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
@@ -1774,9 +1776,6 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_rhs_vec->addComponent(d_U_var,U_rhs_idx,wgt_sc_idx,d_hier_sc_data_ops);
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var,P_rhs_idx,wgt_cc_idx,d_hier_cc_data_ops);
-
-        const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
-        const bool has_pressure_nullspace = d_normalize_pressure;
 
         for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
         {
@@ -1915,7 +1914,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     }
     if (p_stokes_linear_solver)
     {
-        if (d_has_velocity_nullspace || d_has_pressure_nullspace)
+        if (has_velocity_nullspace || has_pressure_nullspace)
         {
             p_stokes_linear_solver->setNullspace(false, d_nul_vecs);
         }

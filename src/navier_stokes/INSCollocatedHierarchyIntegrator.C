@@ -1605,6 +1605,8 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     }
 
     // Setup solver vectors.
+    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {
         d_U_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
@@ -1622,9 +1624,6 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_U_adv_vec   = d_U_scratch_vec->cloneVector(d_object_name+"::U_adv_vec"  );
         d_N_vec       = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec"      );
         d_Phi_rhs_vec = d_Phi_vec      ->cloneVector(d_object_name+"::Phi_rhs_vec");
-
-        const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
-        const bool has_pressure_nullspace = d_normalize_pressure;
 
         for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
         {

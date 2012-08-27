@@ -225,7 +225,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     d_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->setHomogeneousBc(true);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
-    if (d_U_problem_coefs.cIsZero())
+    if (d_U_problem_coefs.cIsZero() || MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0))
     {
         d_pressure_data_ops->scale(P_idx, -d_U_problem_coefs.getDConstant(), d_F_Phi_idx);
     }
