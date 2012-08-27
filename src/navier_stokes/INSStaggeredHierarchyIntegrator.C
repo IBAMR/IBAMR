@@ -1775,10 +1775,11 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var,P_rhs_idx,wgt_cc_idx,d_hier_cc_data_ops);
 
-        d_nul_vecs.resize((d_normalize_pressure ? 1 : 0) + (MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0));
-        d_U_nul_vecs.resize(d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0);
+        d_nul_vecs.clear();
+        d_U_nul_vecs.clear();
         if (d_normalize_pressure)
         {
+            d_nul_vecs.resize(d_nul_vecs.size()+1);
             if (!d_nul_vecs[0].isNull()) d_nul_vecs[0]->freeVectorComponents();
             d_nul_vecs[0] = d_sol_vec->cloneVector(d_object_name+"::nul_vec_p");
             d_nul_vecs[0]->allocateVectorData(current_time);
@@ -1787,6 +1788,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         }
         if (d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0))
         {
+            d_nul_vecs.resize(d_nul_vecs.size()+NDIM);
             const int offset = (d_normalize_pressure ? 1 : 0);
             for (unsigned int k = 0; k < NDIM; ++k)
             {
@@ -1807,6 +1809,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                     }
                 }
             }
+            d_U_nul_vecs.resize(d_U_nul_vecs.size()+NDIM);
             for (unsigned int k = 0; k < NDIM; ++k)
             {
                 if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();

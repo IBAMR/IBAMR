@@ -1623,9 +1623,10 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_N_vec       = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec"      );
         d_Phi_rhs_vec = d_Phi_vec      ->cloneVector(d_object_name+"::Phi_rhs_vec");
 
-        d_U_nul_vecs.resize(d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0) ? NDIM : 0);
+        d_U_nul_vecs.clear();
         if (d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0))
         {
+            d_U_nul_vecs.resize(d_U_nul_vecs.size()+NDIM);
             for (unsigned int k = 0; k < NDIM; ++k)
             {
                 if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
