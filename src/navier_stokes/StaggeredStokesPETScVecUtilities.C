@@ -78,17 +78,17 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
     Pointer<Variable<NDIM> > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
-    if (!u_data_sc_var.isNull() && !p_data_cc_var.isNull())
+    if (u_data_sc_var && p_data_cc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
-        TBOX_ASSERT(!u_dof_index_sc_var.isNull());
+        TBOX_ASSERT(u_dof_index_sc_var);
         Pointer<Variable<NDIM> > p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
         Pointer<CellVariable<NDIM,int> > p_dof_index_cc_var = p_dof_index_var;
-        TBOX_ASSERT(!p_dof_index_cc_var.isNull());
+        TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
     }
@@ -118,20 +118,20 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
     Pointer<Variable<NDIM> > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
-    if (!u_data_sc_var.isNull() && !p_data_cc_var.isNull())
+    if (u_data_sc_var && p_data_cc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
-        TBOX_ASSERT(!u_dof_index_sc_var.isNull());
+        TBOX_ASSERT(u_dof_index_sc_var);
         Pointer<Variable<NDIM> > p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
         Pointer<CellVariable<NDIM,int> > p_dof_index_cc_var = p_dof_index_var;
-        TBOX_ASSERT(!p_dof_index_cc_var.isNull());
+        TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
-        if (!data_synch_sched.isNull())
+        if (data_synch_sched)
         {
             Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
@@ -146,7 +146,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
         TBOX_ERROR("StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec():\n"
                    << "  unsupported data centering types for variables " << u_data_var->getName() << " and " << p_data_var->getName() << "\n");
     }
-    if (!ghost_fill_sched.isNull())
+    if (ghost_fill_sched)
     {
         Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
@@ -173,7 +173,7 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
     Pointer<RefineSchedule<NDIM> > data_synch_sched;
-    if (!u_data_sc_var.isNull() && !p_data_cc_var.isNull())
+    if (u_data_sc_var && p_data_cc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
         data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL, new SideSynchCopyFillPattern());
@@ -210,12 +210,10 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
     Pointer<Variable<NDIM> > u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
     Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
-    TBOX_ASSERT(!u_dof_index_sc_var.isNull());
     Pointer<Variable<NDIM> > p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
     Pointer<CellVariable<NDIM,int> > p_dof_index_cc_var = p_dof_index_var;
-    TBOX_ASSERT(!p_dof_index_cc_var.isNull());
-    if (!u_dof_index_sc_var.isNull() && !p_dof_index_cc_var.isNull())
+    if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
     }

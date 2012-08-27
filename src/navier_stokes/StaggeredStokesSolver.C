@@ -139,7 +139,7 @@ StaggeredStokesSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!bc_helper.isNull());
+    TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;
     return;

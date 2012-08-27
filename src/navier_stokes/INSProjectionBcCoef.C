@@ -142,14 +142,14 @@ INSProjectionBcCoef::setBcCoefs(
     {
         TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
-    TBOX_ASSERT(!acoef_data.isNull());
-    TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(acoef_data);
+    TBOX_ASSERT(bcoef_data);
 #endif
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    if (!gcoef_data.isNull()) TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
 #endif
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index   = bdry_box.getLocationIndex();
@@ -160,9 +160,9 @@ INSProjectionBcCoef::setBcCoefs(
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    const bool set_acoef_vals = !acoef_data.isNull();
-    const bool set_bcoef_vals = !bcoef_data.isNull();
-    const bool set_gcoef_vals = !gcoef_data.isNull();
+    const bool set_acoef_vals = acoef_data;
+    const bool set_bcoef_vals = bcoef_data;
+    const bool set_gcoef_vals = gcoef_data;
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();

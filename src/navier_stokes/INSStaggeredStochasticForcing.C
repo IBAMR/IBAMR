@@ -165,7 +165,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(
       d_W_ec_idxs()
 #endif
 {
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("stress_tensor_type")) d_stress_tensor_type = string_to_enum<StochasticStressTensorType>(input_db->getString("stress_tensor_type"));
         if (input_db->keyExists("std")) d_std = input_db->getDouble("std");

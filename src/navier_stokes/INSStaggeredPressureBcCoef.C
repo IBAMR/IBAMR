@@ -170,9 +170,9 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     }
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_new_time) ||
                 MathUtilities<double>::equalEps(fill_time,half_time));
-    TBOX_ASSERT(!acoef_data.isNull());
-    TBOX_ASSERT(!bcoef_data.isNull());
-    TBOX_ASSERT(!gcoef_data.isNull());
+    TBOX_ASSERT(acoef_data);
+    TBOX_ASSERT(bcoef_data);
+    TBOX_ASSERT(gcoef_data);
 #else
     NULL_USE(fill_time);
 #endif
@@ -191,20 +191,14 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 
     // Modify the velocity boundary conditions to correspond to pressure
     // boundary conditions.
-    Pointer<SideData<NDIM,double> > u_current_data =
-        patch.checkAllocated(d_u_current_idx)
-        ? patch.getPatchData(d_u_current_idx)
-        : Pointer<PatchData<NDIM> >(NULL);
+    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(d_u_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_current_data.isNull());
+    TBOX_ASSERT(u_current_data);
     TBOX_ASSERT(u_current_data->getGhostCellWidth().max() == u_current_data->getGhostCellWidth().min());
 #endif
-    Pointer<SideData<NDIM,double> > u_new_data =
-        patch.checkAllocated(d_u_new_idx)
-        ? patch.getPatchData(d_u_new_idx)
-        : Pointer<PatchData<NDIM> >(NULL);
+    Pointer<SideData<NDIM,double> > u_new_data = patch.getPatchData(d_u_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_new_data.isNull());
+    TBOX_ASSERT(u_new_data);
     TBOX_ASSERT(u_new_data->getGhostCellWidth().max() == u_new_data->getGhostCellWidth().min());
 #endif
     const Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();

@@ -157,7 +157,7 @@ StaggeredStokesSolverManager::allocateSolver(
         TBOX_ERROR("StaggeredStokesSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
-    return (it->second)(solver_object_name, solver_input_db.isNull() ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
+    return (it->second)(solver_object_name, !solver_input_db ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
 }// allocateSolver
 
 Pointer<StaggeredStokesSolver>
@@ -171,10 +171,7 @@ StaggeredStokesSolverManager::allocateSolver(
 {
     Pointer<StaggeredStokesSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db);
     Pointer<KrylovLinearSolver> p_solver = solver;
-    if (!p_solver.isNull())
-    {
-        p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db));
-    }
+    if (p_solver) p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db));
     return solver;
 }// allocateSolver
 

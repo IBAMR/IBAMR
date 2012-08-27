@@ -229,7 +229,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
 
     const std::string U_var_name = "INSCollocatedCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var.isNull())
+    if (!d_U_var)
     {
         d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
@@ -243,7 +243,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
 #endif
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
     d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
-    if (d_u_extrap_var.isNull())
+    if (!d_u_extrap_var)
     {
         d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
@@ -257,7 +257,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
 #endif
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
     d_u_flux_var = var_db->getVariable(u_flux_var_name);
-    if (d_u_flux_var.isNull())
+    if (!d_u_flux_var)
     {
         d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));

@@ -88,7 +88,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDirichletBcs(
     const int finest_ln) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
@@ -138,7 +138,7 @@ StaggeredStokesPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
     const int finest_ln) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
@@ -188,7 +188,7 @@ StaggeredStokesPhysicalBoundaryHelper::cacheBcCoefData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
@@ -203,7 +203,7 @@ StaggeredStokesPhysicalBoundaryHelper::cacheBcCoefData(
         }
     }
 
-    if (!d_hierarchy.isNull()) clearBcCoefData();
+    if (d_hierarchy) clearBcCoefData();
 
     d_hierarchy = hierarchy;
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();

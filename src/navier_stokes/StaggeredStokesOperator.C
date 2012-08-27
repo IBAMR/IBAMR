@@ -184,7 +184,7 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!bc_helper.isNull());
+    TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;
     return;
@@ -281,7 +281,7 @@ StaggeredStokesOperator::initializeOperatorState(
 #ifdef DEBUG_CHECK_ASSERTIONS
     else
     {
-        TBOX_ASSERT(!d_hier_math_ops.isNull());
+        TBOX_ASSERT(d_hier_math_ops);
     }
 #endif
 

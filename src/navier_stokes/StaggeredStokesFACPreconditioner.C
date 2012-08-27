@@ -80,7 +80,7 @@ StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
+    if (p_fac_strategy) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
     return;
 }// setVelocityPoissonSpecifications
 
@@ -91,7 +91,7 @@ StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
+    if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     return;
 }// setPhysicalBcCoefs
 
@@ -101,7 +101,7 @@ StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (!p_fac_strategy.isNull()) p_fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
+    if (p_fac_strategy) p_fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 }// setPhysicalBoundaryHelper
 

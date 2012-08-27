@@ -144,7 +144,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 #endif
     // Set the unmodified velocity bc coefs.
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-    if (d_homogeneous_bc) if (!gcoef_data.isNull()) gcoef_data->fillAll(0.0);
+    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
 }// setBcCoefs
 

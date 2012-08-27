@@ -181,7 +181,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
 
     const std::string U_var_name = "INSStaggeredCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var.isNull())
+    if (!d_U_var)
     {
         d_U_var = new SideVariable<NDIM,double>(U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));

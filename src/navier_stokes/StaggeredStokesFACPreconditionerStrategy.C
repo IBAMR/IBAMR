@@ -111,8 +111,8 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_hier_bdry_fill_ops(),
-      d_hier_math_ops(),
+      d_level_bdry_fill_ops(),
+      d_level_math_ops(),
       d_in_initialize_operator_state(false),
       d_coarsest_reset_ln(-1),
       d_finest_reset_ln(-1),
@@ -150,7 +150,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_synch_refine_schedules()
 {
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("U_prolongation_method")) d_U_prolongation_method = input_db->getString("U_prolongation_method");
@@ -255,7 +255,7 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!bc_helper.isNull());
+    TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;
     return;
@@ -302,7 +302,7 @@ StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
-    if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
+    if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
         d_coarse_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
     }
@@ -381,18 +381,16 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(
 
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
+        HierarchySideDataOpsReal<NDIM,double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
-        hier_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
+        level_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
     }
-
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
+        HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
-        hier_sc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
+        level_cc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
     }
-
     xeqScheduleRestriction(dst_idxs, src_idxs, dst_ln);
 
     IBAMR_TIMER_STOP(t_restrict_residual);
@@ -445,19 +443,19 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(
     static const bool interior_only = false;
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
-        hier_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, interior_only);
+        HierarchySideDataOpsReal<NDIM,double> level_sc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
+        level_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, interior_only);
     }
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM,double> hier_sc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
-        hier_sc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, interior_only);
+        HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
+        level_cc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, interior_only);
     }
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
-    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    hier_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, interior_only);
-    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    hier_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, interior_only);
+    HierarchySideDataOpsReal<NDIM,double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
+    level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, interior_only);
+    HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
+    level_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, interior_only);
 
     IBAMR_TIMER_STOP(t_prolong_error_and_correct);
     return;
@@ -472,7 +470,7 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (d_coarse_solver.isNull())
+    if (!d_coarse_solver)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
@@ -525,38 +523,38 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
-    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
+    if (!d_level_bdry_fill_ops[finest_level_num])
     {
-        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     else
     {
-        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
+        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
     }
-    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
-    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
     InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
     InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     U_P_components[0] = default_U_scratch_component;
     U_P_components[1] = default_P_scratch_component;
-    d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(default_U_P_components);
+    d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponents(default_U_P_components);
 
     // Compute the residual, r = f - A*u.
-    if (d_hier_math_ops[finest_level_num].isNull())
+    if (!d_level_math_ops[finest_level_num])
     {
         std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
-        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+        stream << d_object_name << "::level_math_ops_" << finest_level_num;
+        d_level_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_hier_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
-    d_hier_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, d_U_problem_coefs, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
-    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
-    d_hier_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
-    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
+    d_level_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
+    d_level_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, d_U_problem_coefs, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
+    HierarchySideDataOpsReal<NDIM,double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    level_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
+    d_level_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
+    HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    level_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
     return;
 }// computeResidual
 
@@ -624,12 +622,12 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
     // Setup level operators.
-    d_hier_bdry_fill_ops.resize(d_finest_ln+1, NULL);
-    d_hier_math_ops.resize(d_finest_ln+1, NULL);
+    d_level_bdry_fill_ops.resize(d_finest_ln+1, NULL);
+    d_level_math_ops.resize(d_finest_ln+1, NULL);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        d_hier_bdry_fill_ops[ln].setNull();
-        d_hier_math_ops[ln].setNull();
+        d_level_bdry_fill_ops[ln].setNull();
+        d_level_math_ops[ln].setNull();
     }
 
     // Allocate scratch data.
@@ -819,10 +817,10 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_coarsest_ln = -1;
         d_finest_ln   = -1;
 
-        d_hier_bdry_fill_ops.clear();
-        d_hier_math_ops.clear();
+        d_level_bdry_fill_ops.clear();
+        d_level_math_ops.clear();
 
-        if (!d_coarse_solver.isNull()) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
 
         d_U_prolongation_refine_operator    .setNull();
         d_P_prolongation_refine_operator    .setNull();

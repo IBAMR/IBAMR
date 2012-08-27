@@ -68,9 +68,9 @@ StaggeredStokesKrylovLinearSolverWrapper::setVelocityPoissonSpecifications(
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
     Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 }// setVelocityPoissonSpecifications
 
@@ -81,9 +81,9 @@ StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBcCoefs(
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
+    if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
+    if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
 }// setPhysicalBcCoefs
 
@@ -93,9 +93,9 @@ StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBoundaryHelper(
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
+    if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
     Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
+    if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 }// setPhysicalBoundaryHelper
 

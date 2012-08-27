@@ -107,7 +107,7 @@ StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    if (!d_velocity_solver.isNull()) d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
+    if (d_velocity_solver) d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
     return;
 }// setVelocityPoissonSpecifications
 
@@ -137,7 +137,7 @@ StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(
     const PoissonSpecifications& P_problem_coefs)
 {
     d_P_problem_coefs = P_problem_coefs;
-    if (!d_pressure_solver.isNull()) d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
+    if (d_pressure_solver) d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
     return;
 }// setPressurePoissonSpecifications
 
@@ -150,8 +150,8 @@ StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
 #endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    if (!d_velocity_solver.isNull()) d_velocity_solver->setPhysicalBcCoefs(d_U_bc_coefs);
-    if (!d_pressure_solver.isNull()) d_pressure_solver->setPhysicalBcCoef(d_P_bc_coef);
+    if (d_velocity_solver) d_velocity_solver->setPhysicalBcCoefs(d_U_bc_coefs);
+    if (d_pressure_solver) d_pressure_solver->setPhysicalBcCoef(d_P_bc_coef);
     return;
 }// setPhysicalBcCoefs
 

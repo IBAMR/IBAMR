@@ -75,47 +75,49 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
     d_forcing_enabled[1] = blitz::TinyVector<bool,NDIM>(false);
     d_width[0] = blitz::TinyVector<double,NDIM>(0.0);
     d_width[1] = blitz::TinyVector<double,NDIM>(0.0);
-    if (input_db.isNull()) return;
-    if (input_db->keyExists("kappa")) d_kappa = input_db->getDouble("kappa");
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (!input_db)
     {
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (input_db->keyExists("kappa")) d_kappa = input_db->getDouble("kappa");
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            d_forcing_enabled[0][axis][d] = false;
-            d_forcing_enabled[1][axis][d] = false;
-        }
-
-        std::ostringstream lower_forcing_stream;
-        lower_forcing_stream << "lower_forcing_" << axis;
-        const std::string lower_forcing_key = lower_forcing_stream.str();
-        if (input_db->keyExists(lower_forcing_key))
-        {
-            tbox::Array<int> lower_forcing_comps = input_db->getIntegerArray(lower_forcing_key);
-            for (int k = 0; k < lower_forcing_comps.size(); ++k)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                d_forcing_enabled[0][axis][lower_forcing_comps[k]] = true;
+                d_forcing_enabled[0][axis][d] = false;
+                d_forcing_enabled[1][axis][d] = false;
             }
-        }
-        std::ostringstream lower_width_stream;
-        lower_width_stream << "lower_width_" << axis;
-        const std::string lower_width_key = lower_width_stream.str();
-        if (input_db->keyExists(lower_width_key)) d_width[0][axis] = input_db->getDouble(lower_width_key);
 
-        std::ostringstream upper_forcing_stream;
-        upper_forcing_stream << "upper_forcing_" << axis;
-        const std::string upper_forcing_key = upper_forcing_stream.str();
-        if (input_db->keyExists(upper_forcing_key))
-        {
-            tbox::Array<int> upper_forcing_comps = input_db->getIntegerArray(upper_forcing_key);
-            for (int k = 0; k < upper_forcing_comps.size(); ++k)
+            std::ostringstream lower_forcing_stream;
+            lower_forcing_stream << "lower_forcing_" << axis;
+            const std::string lower_forcing_key = lower_forcing_stream.str();
+            if (input_db->keyExists(lower_forcing_key))
             {
-                d_forcing_enabled[1][axis][upper_forcing_comps[k]] = true;
+                tbox::Array<int> lower_forcing_comps = input_db->getIntegerArray(lower_forcing_key);
+                for (int k = 0; k < lower_forcing_comps.size(); ++k)
+                {
+                    d_forcing_enabled[0][axis][lower_forcing_comps[k]] = true;
+                }
             }
+            std::ostringstream lower_width_stream;
+            lower_width_stream << "lower_width_" << axis;
+            const std::string lower_width_key = lower_width_stream.str();
+            if (input_db->keyExists(lower_width_key)) d_width[0][axis] = input_db->getDouble(lower_width_key);
+
+            std::ostringstream upper_forcing_stream;
+            upper_forcing_stream << "upper_forcing_" << axis;
+            const std::string upper_forcing_key = upper_forcing_stream.str();
+            if (input_db->keyExists(upper_forcing_key))
+            {
+                tbox::Array<int> upper_forcing_comps = input_db->getIntegerArray(upper_forcing_key);
+                for (int k = 0; k < upper_forcing_comps.size(); ++k)
+                {
+                    d_forcing_enabled[1][axis][upper_forcing_comps[k]] = true;
+                }
+            }
+            std::ostringstream upper_width_stream;
+            upper_width_stream << "upper_width_" << axis;
+            const std::string upper_width_key = upper_width_stream.str();
+            if (input_db->keyExists(upper_width_key)) d_width[1][axis] = input_db->getDouble(upper_width_key);
         }
-        std::ostringstream upper_width_stream;
-        upper_width_stream << "upper_width_" << axis;
-        const std::string upper_width_key = upper_width_stream.str();
-        if (input_db->keyExists(upper_width_key)) d_width[1][axis] = input_db->getDouble(upper_width_key);
     }
     return;
 }// SpongeLayerForceFunction
@@ -153,18 +155,18 @@ SpongeLayerForceFunction::setDataOnPatch(
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_data.isNull());
+    TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
+    TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
-    if (!f_cc_data.isNull()) f_cc_data->fillAll(0.0);
-    if (!f_sc_data.isNull()) f_sc_data->fillAll(0.0);
+    if (f_cc_data) f_cc_data->fillAll(0.0);
+    if (f_sc_data) f_sc_data->fillAll(0.0);
     if (initial_time) return;
-    if (!f_cc_data.isNull()) setDataOnPatchCell(data_idx, patch);
-    if (!f_sc_data.isNull()) setDataOnPatchSide(data_idx, patch);
+    if (f_cc_data) setDataOnPatchCell(data_idx, patch);
+    if (f_sc_data) setDataOnPatchSide(data_idx, patch);
     return;
 }// setDataOnPatch
 

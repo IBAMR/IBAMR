@@ -116,28 +116,28 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
 
     const std::string Phi_var_name = d_object_name+"::Phi";
     d_Phi_var = var_db->getVariable(Phi_var_name);
-    if (d_Phi_var.isNull())
+    if (d_Phi_var)
     {
-        d_Phi_var = new CellVariable<NDIM,double>(Phi_var_name);
-        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
+        d_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Phi_var, context);
     }
     else
     {
-        d_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Phi_var, context);
+        d_Phi_var = new CellVariable<NDIM,double>(Phi_var_name);
+        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
 #endif
     const std::string F_var_name = d_object_name+"::F";
     d_F_Phi_var = var_db->getVariable(F_var_name);
-    if (d_F_Phi_var.isNull())
+    if (d_F_Phi_var)
     {
-        d_F_Phi_var = new CellVariable<NDIM,double>(F_var_name);
-        d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
+        d_F_Phi_idx = var_db->mapVariableAndContextToIndex(d_F_Phi_var, context);
     }
     else
     {
-        d_F_Phi_idx = var_db->mapVariableAndContextToIndex(d_F_Phi_var, context);
+        d_F_Phi_var = new CellVariable<NDIM,double>(F_var_name);
+        d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
     }
 #ifdef DEBFG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_F_Phi_idx >= 0);

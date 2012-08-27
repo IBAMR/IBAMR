@@ -116,7 +116,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
 
     const std::string U_var_name = d_object_name+"::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var.isNull())
+    if (!d_U_var)
     {
         d_U_var = new SideVariable<NDIM,double>(U_var_name);
         d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(SIDEG));
@@ -130,7 +130,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
 #endif
     const std::string P_var_name = d_object_name+"::P";
     d_P_var = var_db->getVariable(P_var_name);
-    if (d_P_var.isNull())
+    if (!d_P_var)
     {
         d_P_var = new CellVariable<NDIM,double>(P_var_name);
         d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector<NDIM>(CELLG));

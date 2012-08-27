@@ -157,7 +157,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
-    if (gcoef_data.isNull()) return;
+    if (!gcoef_data) return;
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
@@ -165,25 +165,22 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     // Modify Neumann boundary conditions to correspond to traction (stress)
     // boundary conditions.
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!acoef_data.isNull());
-    TBOX_ASSERT(!bcoef_data.isNull());
-    TBOX_ASSERT(!gcoef_data.isNull());
+    TBOX_ASSERT(acoef_data);
+    TBOX_ASSERT(bcoef_data);
+    TBOX_ASSERT(gcoef_data);
 #endif
     const unsigned int location_index   = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index/2;
-    const bool is_lower        = location_index%2 == 0;
+    const bool is_lower = location_index%2 == 0;
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    Pointer<SideData<NDIM,double> > u_data =
-        patch.checkAllocated(d_target_idx)
-        ? patch.getPatchData(d_target_idx)
-        : Pointer<PatchData<NDIM> >(NULL);
+    Pointer<SideData<NDIM,double> > u_data = patch.getPatchData(d_target_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_data.isNull());
+    TBOX_ASSERT(u_data);
     TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
 #endif
     const Box<NDIM>& ghost_box = u_data->getGhostBox();
