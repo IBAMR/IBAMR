@@ -217,7 +217,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
     }
-    else if (!dof_index_sc_var.isNull()) constructPatchLevelDOFIndices_side(num_dofs_per_proc, dof_index_idx, patch_level);
+    else if (!dof_index_sc_var.isNull())
+    {
+        constructPatchLevelDOFIndices_side(num_dofs_per_proc, dof_index_idx, patch_level);
+    }
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
