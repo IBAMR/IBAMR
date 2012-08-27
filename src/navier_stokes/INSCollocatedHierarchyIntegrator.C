@@ -292,13 +292,13 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
-    if (!d_U_rhs_vec  .isNull()) d_U_rhs_vec  ->freeVectorComponents();
-    if (!d_U_adv_vec  .isNull()) d_U_adv_vec  ->freeVectorComponents();
-    if (!d_N_vec      .isNull()) d_N_vec      ->freeVectorComponents();
-    if (!d_Phi_rhs_vec.isNull()) d_Phi_rhs_vec->freeVectorComponents();
+    if (d_U_rhs_vec  ) d_U_rhs_vec  ->freeVectorComponents();
+    if (d_U_adv_vec  ) d_U_adv_vec  ->freeVectorComponents();
+    if (d_N_vec      ) d_N_vec      ->freeVectorComponents();
+    if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
     for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
     {
-        if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
+        if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
     }
     return;
 }// ~INSCollocatedHierarchyIntegrator
@@ -310,7 +310,7 @@ INSCollocatedHierarchyIntegrator::getConvectiveOperator()
     {
         d_convective_op.setNull();
     }
-    else if (d_convective_op.isNull())
+    else if (!d_convective_op)
     {
         INSCollocatedConvectiveOperatorManager* convective_op_manager = INSCollocatedConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(
@@ -323,7 +323,7 @@ INSCollocatedHierarchyIntegrator::getConvectiveOperator()
 Pointer<PoissonSolver>
 INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 {
-    if (d_velocity_solver.isNull())
+    if (!d_velocity_solver)
     {
         d_velocity_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_velocity_solver_type , d_object_name+"::velocity_solver" , d_velocity_solver_db ,
@@ -336,7 +336,7 @@ INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 Pointer<PoissonSolver>
 INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 {
-    if (d_pressure_solver.isNull())
+    if (!d_pressure_solver)
     {
         d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_pressure_solver_type , d_object_name+"::pressure_solver" , d_pressure_solver_db ,
@@ -487,7 +487,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
                      "LINEAR_REFINE",
                      d_P_init);
 
-    if (!d_F_fcn.isNull())
+    if (d_F_fcn)
     {
         registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx,
                          d_F_var, cell_ghosts,
@@ -502,7 +502,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         d_F_scratch_idx = -1;
     }
 
-    if (!d_Q_fcn.isNull())
+    if (d_Q_fcn)
     {
         registerVariable(d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx,
                          d_Q_var, cell_ghosts,
@@ -537,7 +537,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     registerVariable(        d_Phi_idx,         d_Phi_var, cell_ghosts);
     registerVariable(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,   no_ghosts);
     registerVariable(d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var,   no_ghosts);
-    if (!d_Q_fcn.isNull())
+    if (d_Q_fcn)
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
     }
@@ -547,7 +547,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Register variables for plotting.
-    if (!d_visit_writer.isNull())
+    if (d_visit_writer)
     {
         if (d_output_U)
         {
@@ -565,7 +565,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
             d_visit_writer->registerPlotQuantity("P", "SCALAR", d_P_current_idx, 0, d_P_scale);
         }
 
-        if (!d_F_fcn.isNull() && d_output_F)
+        if (d_F_fcn && d_output_F)
         {
             d_visit_writer->registerPlotQuantity("F", "VECTOR", d_F_current_idx, 0, d_F_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -576,7 +576,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
 
-        if (!d_Q_fcn.isNull() && d_output_Q)
+        if (d_Q_fcn && d_output_Q)
         {
             d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
@@ -647,7 +647,7 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
 
     // When necessary, initialize the value of the advection velocity registered
     // with a coupled advection-diffusion solver.
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
@@ -732,14 +732,14 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Setup inhomogeneous boundary conditions.
     d_velocity_solver->setHomogeneousBc(false);
     Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
-    if (!p_velocity_solver.isNull())
+    if (p_velocity_solver)
     {
         p_velocity_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_U_rhs_vec);
         p_velocity_solver->setHomogeneousBc(true);
     }
 
     // Initialize any registered advection-diffusion solver.
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
@@ -828,7 +828,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
     // Perform a single step of fixed point iteration.
 
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         // Update the state variables maintained by the advection-diffusion
         // solver.
@@ -933,14 +933,14 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     }
 
     // Account for body forcing terms.
-    if (!d_F_fcn.isNull())
+    if (d_F_fcn)
     {
         d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
         d_hier_cc_data_ops->add(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
     // Account for internal source/sink distributions.
-    if (!d_Q_fcn.isNull())
+    if (d_Q_fcn)
     {
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx    , d_Q_var, d_hierarchy, new_time    );
@@ -1051,18 +1051,18 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
             d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), +0.5*rho, N_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
     }
-    if (!d_F_fcn.isNull())
+    if (d_F_fcn)
     {
         d_hier_cc_data_ops->subtract(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_cc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
-    if (!d_Q_fcn.isNull())
+    if (d_Q_fcn)
     {
         d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->add(d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
 
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
@@ -1136,7 +1136,7 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
     d_Phi_rhs_vec->deallocateVectorData();
 
     // Deallocate any registered advection-diffusion solver.
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
@@ -1189,13 +1189,13 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -1271,11 +1271,11 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #else
     NULL_USE(coarsest_level);
@@ -1304,7 +1304,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
-    if (!d_Q_fcn.isNull())
+    if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1331,9 +1331,9 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
     const bool /*uses_richardson_extrapolation_too*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -1613,26 +1613,33 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_Phi_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::Phi_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_Phi_vec->addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (!d_U_rhs_vec  .isNull()) d_U_rhs_vec  ->freeVectorComponents();
-        if (!d_U_adv_vec  .isNull()) d_U_adv_vec ->freeVectorComponents();
-        if (!d_N_vec      .isNull()) d_N_vec      ->freeVectorComponents();
-        if (!d_Phi_rhs_vec.isNull()) d_Phi_rhs_vec->freeVectorComponents();
+        if (d_U_rhs_vec  ) d_U_rhs_vec  ->freeVectorComponents();
+        if (d_U_adv_vec  ) d_U_adv_vec ->freeVectorComponents();
+        if (d_N_vec      ) d_N_vec      ->freeVectorComponents();
+        if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
 
         d_U_rhs_vec   = d_U_scratch_vec->cloneVector(d_object_name+"::U_rhs_vec"  );
         d_U_adv_vec   = d_U_scratch_vec->cloneVector(d_object_name+"::U_adv_vec"  );
         d_N_vec       = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec"      );
         d_Phi_rhs_vec = d_Phi_vec      ->cloneVector(d_object_name+"::Phi_rhs_vec");
 
-        d_U_nul_vecs.clear();
-        if (d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0))
+        const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+        const bool has_pressure_nullspace = d_normalize_pressure;
+
+        for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
         {
-            d_U_nul_vecs.resize(d_U_nul_vecs.size()+NDIM);
+            if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
+        }
+        const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
+        d_U_nul_vecs.resize(n_U_nul_vecs);
+
+        if (has_velocity_nullspace)
+        {
             for (unsigned int k = 0; k < NDIM; ++k)
             {
-                if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
                 std::ostringstream stream;
                 stream << k;
-                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_U"+stream.str());
+                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_U_"+stream.str());
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
@@ -1663,7 +1670,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
     // Setup convective operator.
-    if (!d_convective_op.isNull() && d_convective_op_needs_init)
+    if (d_convective_op && d_convective_op_needs_init)
     {
         if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
@@ -1672,14 +1679,14 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     }
 
     // Setup subdomain solvers.
-    if (!d_velocity_solver.isNull())
+    if (d_velocity_solver)
     {
         d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
         d_velocity_solver->setInitialGuessNonzero(true);
-        if (!d_U_nul_vecs.empty())
+        if (has_velocity_nullspace)
         {
             d_velocity_solver->setNullspace(false, d_U_nul_vecs);
         }
@@ -1691,7 +1698,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         }
     }
 
-    if (!d_pressure_solver.isNull())
+    if (d_pressure_solver)
     {
         d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
@@ -1699,7 +1706,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_solver->setTimeInterval(current_time, new_time);
         d_pressure_solver->setInitialGuessNonzero(true);
         Pointer<KrylovLinearSolver> p_pressure_solver = d_pressure_solver;
-        if (d_normalize_pressure)
+        if (has_pressure_nullspace)
         {
             d_pressure_solver->setNullspace(true);
         }

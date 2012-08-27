@@ -98,12 +98,12 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!adv_diff_hier_integrator.isNull());
+    TBOX_ASSERT(adv_diff_hier_integrator);
 #endif
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
     registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
     d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
-    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, d_Q_fcn.isNull());
+    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
     return;
 }// registerAdvDiffHierarchyIntegrator
 
@@ -177,10 +177,10 @@ INSHierarchyIntegrator::registerFluidSourceFunction(
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_Q_fcn = Q_fcn;
-    if (!d_adv_diff_hier_integrator.isNull())
+    if (d_adv_diff_hier_integrator)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = getAdvectionVelocityVariable();
-        d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(u_var, d_Q_fcn.isNull());
+        d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(u_var, !d_Q_fcn);
     }
     return;
 }// registerFluidSourceFunction
@@ -252,7 +252,7 @@ INSHierarchyIntegrator::setConvectiveOperatorType(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_convective_op.isNull());
+    TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
 #endif
     d_convective_op_type = op_type;
@@ -271,7 +271,7 @@ INSHierarchyIntegrator::setConvectiveDifferencingType(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_convective_op.isNull());
+    TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
 #endif
     d_convective_difference_form = difference_form;
@@ -290,9 +290,10 @@ INSHierarchyIntegrator::setConvectiveOperator(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(!d_convective_op);
 #endif
     d_convective_op = convective_op;
-    d_creeping_flow = d_convective_op.isNull();
+    d_creeping_flow = !d_convective_op;
     return;
 }// setConvectiveOperator
 
@@ -302,7 +303,7 @@ INSHierarchyIntegrator::setVelocitySubdomainSolver(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_velocity_solver.isNull());
+    TBOX_ASSERT(!d_velocity_solver);
 #endif
     d_velocity_solver = velocity_solver;
     return;
@@ -314,7 +315,7 @@ INSHierarchyIntegrator::setPressureSubdomainSolver(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
-    TBOX_ASSERT(d_pressure_solver.isNull());
+    TBOX_ASSERT(!d_pressure_solver);
 #endif
     d_pressure_solver = pressure_solver;
     return;
@@ -404,7 +405,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
@@ -578,12 +579,12 @@ INSHierarchyIntegrator::getFromInput(
     {
         TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
-    if (d_velocity_solver_db.isNull()) d_velocity_solver_db = new MemoryDatabase(d_object_name+"::velocity_solver_db");
+    if (!d_velocity_solver_db) d_velocity_solver_db = new MemoryDatabase(d_object_name+"::velocity_solver_db");
     if (!d_velocity_solver_db->keyExists("options_prefix"))
     {
         d_velocity_solver_db->putString("options_prefix", "velocity_");
     }
-    if (d_velocity_precond_db.isNull()) d_velocity_precond_db = new MemoryDatabase(d_object_name+"::velocity_precond_db");
+    if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase(d_object_name+"::velocity_precond_db");
     if (!d_velocity_precond_db->keyExists("options_prefix"))
     {
         d_velocity_precond_db->putString("options_prefix", "velocity_pc_");
@@ -603,12 +604,12 @@ INSHierarchyIntegrator::getFromInput(
     {
         TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
-    if (d_pressure_solver_db.isNull()) d_pressure_solver_db = new MemoryDatabase(d_object_name+"::pressure_solver_db");
+    if (!d_pressure_solver_db) d_pressure_solver_db = new MemoryDatabase(d_object_name+"::pressure_solver_db");
     if (!d_pressure_solver_db->keyExists("options_prefix"))
     {
         d_pressure_solver_db->putString("options_prefix", "pressure_");
     }
-    if (d_pressure_precond_db.isNull()) d_pressure_precond_db = new MemoryDatabase(d_object_name+"::pressure_precond_db");
+    if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase(d_object_name+"::pressure_precond_db");
     if (!d_pressure_precond_db->keyExists("options_prefix"))
     {
         d_pressure_precond_db->putString("options_prefix", "pressure_pc_");
@@ -628,12 +629,12 @@ INSHierarchyIntegrator::getFromInput(
     {
         TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
-    if (d_regrid_projection_solver_db.isNull()) d_regrid_projection_solver_db = new MemoryDatabase(d_object_name+"::regrid_projection_solver_db");
+    if (!d_regrid_projection_solver_db) d_regrid_projection_solver_db = new MemoryDatabase(d_object_name+"::regrid_projection_solver_db");
     if (!d_regrid_projection_solver_db->keyExists("options_prefix"))
     {
         d_regrid_projection_solver_db->putString("options_prefix", "regrid_projection_");
     }
-    if (d_regrid_projection_precond_db.isNull()) d_regrid_projection_precond_db = new MemoryDatabase(d_object_name+"::regrid_projection_precond_db");
+    if (!d_regrid_projection_precond_db) d_regrid_projection_precond_db = new MemoryDatabase(d_object_name+"::regrid_projection_precond_db");
     if (!d_regrid_projection_precond_db->keyExists("options_prefix"))
     {
         d_regrid_projection_precond_db->putString("options_prefix", "regrid_projection_pc_");
