@@ -182,7 +182,7 @@ c
      &                    fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
      &                    fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
      &                    F(i0,i1,i2))
-                  enddo
+                  endif
                enddo
             enddo
          enddo
