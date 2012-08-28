@@ -134,13 +134,10 @@ SCLaplaceOperator::apply(
             TBOX_ERROR(d_object_name << "::apply()\n"
                        << "  encountered non-side centered vector components" << std::endl);
         }
-
         Pointer<SideDataFactory<NDIM,double> > x_factory = x_sc_var->getPatchDataFactory();
         Pointer<SideDataFactory<NDIM,double> > y_factory = y_sc_var->getPatchDataFactory();
-
         TBOX_ASSERT(!x_factory.isNull());
         TBOX_ASSERT(!y_factory.isNull());
-
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -171,11 +168,11 @@ SCLaplaceOperator::apply(
     {
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
-
-        const int x_idx = d_x->getComponentDescriptorIndex(comp);
-        const int y_idx =    y.getComponentDescriptorIndex(comp);
-
-        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_idx, x_sc_var, d_no_fill, 0.0);
+        const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
+        const int y_idx = y.getComponentDescriptorIndex(comp);
+        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
+        const int x_idx = x.getComponentDescriptorIndex(comp);
+        d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
     IBTK_TIMER_STOP(t_apply);
@@ -220,6 +217,14 @@ SCLaplaceOperator::initializeOperatorState(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!d_hier_math_ops.isNull());
 #endif
+    }
+
+    // Setup cached BC data.
+    d_bc_helpers.resize(d_ncomp);
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp] = new StaggeredPhysicalBoundaryHelper();
+        d_bc_helpers[comp]->cacheBcCoefData(d_x->getComponentDescriptorIndex(comp), d_x->getComponentVariable(comp), d_bc_coefs, d_solution_time, IntVector<NDIM>(1), d_hierarchy);
     }
 
     // Setup the interpolation transaction information.

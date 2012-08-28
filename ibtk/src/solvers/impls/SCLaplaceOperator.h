@@ -37,6 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LaplaceOperator.h>
+#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -176,6 +177,9 @@ private:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
+
+    // Dirichlet boundary condition utilities.
+    std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
 };
 }// namespace IBTK
 

@@ -133,13 +133,10 @@ CCLaplaceOperator::apply(
             TBOX_ERROR(d_object_name << "::apply()\n"
                        << "  encountered non-cell centered vector components" << std::endl);
         }
-
         Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
         Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
-
         TBOX_ASSERT(!x_factory.isNull());
         TBOX_ASSERT(!y_factory.isNull());
-
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -171,10 +168,8 @@ CCLaplaceOperator::apply(
     {
         Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
         Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
-
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
-
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
             d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var, d_no_fill, 0.0, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), l, l);

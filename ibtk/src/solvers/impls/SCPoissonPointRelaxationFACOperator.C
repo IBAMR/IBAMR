@@ -60,9 +60,11 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define GS_SMOOTH_FC FC_FUNC(gssmooth2d,GSSMOOTH2D)
+#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask2d,GSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
 #define GS_SMOOTH_FC FC_FUNC(gssmooth3d,GSSMOOTH3D)
+#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask3d,GSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
@@ -73,6 +75,19 @@ extern "C"
         double* U, const int& U_gcw,
         const double& alpha, const double& beta,
         const double* F, const int& F_gcw,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const double* dx, const int& sweeps);
+
+    void
+    GS_SMOOTH_MASK_FC(
+        double* U, const int& U_gcw,
+        const double& alpha, const double& beta,
+        const double* F, const int& F_gcw,
+        const int* mask, const int& mask_gcw,
         const int& ilower0, const int& iupper0,
         const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
@@ -170,6 +185,18 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
 
     // Configure the coarse level solver.
     setCoarseSolverType(d_coarse_solver_type);
+
+    // Construct a variable to store any needed masking data.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM,int> > mask_var = new SideVariable<NDIM,int>(object_name+"::mask");
+    if (var_db->checkVariableExists(mask_var->getName()))
+    {
+        mask_var = var_db->getVariable(mask_var->getName());
+        d_mask_idx = var_db->mapVariableAndContextToIndex(mask_var, d_context);
+        var_db->removePatchDataIndex(d_mask_idx);
+    }
+    IntVector<NDIM> no_ghosts = 0;
+    d_mask_idx = var_db->registerVariableAndContext(mask_var, d_context, no_ghosts);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -324,14 +351,15 @@ SCPoissonPointRelaxationFACOperator::smoothError(
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
+            Pointer<SideData<NDIM,int> > mask_data = patch->getPatchData(d_mask_idx);
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            // Copy updated values from other local patches.
+            if (d_smoother_type == "MULTIPLICATIVE")
             {
-                // Copy updated values from other local patches.
-                if (d_smoother_type == "MULTIPLICATIVE")
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const std::map<int,Box<NDIM> > smoother_bc_boxes = d_patch_smoother_bc_boxes[level_num][patch_counter][axis];
                     for (std::map<int,Box<NDIM> >::const_iterator cit = smoother_bc_boxes.begin(); cit != smoother_bc_boxes.end(); ++cit)
@@ -343,10 +371,20 @@ SCPoissonPointRelaxationFACOperator::smoothError(
                         error_data->getArrayData(axis).copy(src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
                     }
                 }
+            }
 
-                // Smooth the error using Gauss-Seidel.
-                const double& alpha = d_poisson_spec.getDConstant();
-                const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            // Enforce any Dirichlet boundary conditions.
+            const bool patch_has_dirichlet_bdry = d_bc_helper->patchHasDirichletBoundary(patch);
+            if (patch_has_dirichlet_bdry)
+            {
+                d_bc_helper->copyDataAtDirichletBoundaries(error_data, residual_data, patch);
+            }
+
+            // Smooth the error using Gauss-Seidel.
+            const double& alpha = d_poisson_spec.getDConstant();
+            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
                 const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
                 for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
@@ -354,17 +392,36 @@ SCPoissonPointRelaxationFACOperator::smoothError(
                     const int U_ghosts = (error_data->getGhostCellWidth()).max();
                     const double* const F = residual_data->getPointer(axis,depth);
                     const int F_ghosts = (residual_data->getGhostCellWidth()).max();
+                    const int* const mask = mask_data->getPointer(axis,depth);
+                    const int mask_ghosts = (mask_data->getGhostCellWidth()).max();
                     static const int its = 1;
-                    GS_SMOOTH_FC(
-                        U, U_ghosts,
-                        alpha, beta,
-                        F, F_ghosts,
-                        side_patch_box.lower(0), side_patch_box.upper(0),
-                        side_patch_box.lower(1), side_patch_box.upper(1),
+                    if (patch_has_dirichlet_bdry && d_bc_helper->patchHasDirichletBoundaryAxis(patch, axis))
+                    {
+                        GS_SMOOTH_MASK_FC(
+                            U, U_ghosts,
+                            alpha, beta,
+                            F, F_ghosts,
+                            mask, mask_ghosts,
+                            side_patch_box.lower(0), side_patch_box.upper(0),
+                            side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                        side_patch_box.lower(2), side_patch_box.upper(2),
+                            side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
-                        dx, its);
+                            dx, its);
+                    }
+                    else
+                    {
+                        GS_SMOOTH_FC(
+                            U, U_ghosts,
+                            alpha, beta,
+                            F, F_ghosts,
+                            side_patch_box.lower(0), side_patch_box.upper(0),
+                            side_patch_box.lower(1), side_patch_box.upper(1),
+#if (NDIM == 3)
+                            side_patch_box.lower(2), side_patch_box.upper(2),
+#endif
+                            dx, its);
+                    }
                 }
             }
         }
@@ -494,6 +551,16 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideDataFactory<NDIM,double> > scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
+
+    // Setup cached BC data.
+    d_bc_helper = new StaggeredPhysicalBoundaryHelper();
+    d_bc_helper->cacheBcCoefData(d_scratch_idx, solution_var, d_bc_coefs, d_solution_time, d_gcw, d_hierarchy);
+    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+    }
+    d_bc_helper->setupMaskingFunction(d_mask_idx);
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")

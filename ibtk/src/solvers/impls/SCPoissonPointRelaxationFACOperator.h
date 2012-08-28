@@ -35,12 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
 // IBTK INCLUDES
 #include <ibtk/PoissonFACPreconditioner.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
+#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -252,18 +250,6 @@ private:
     SCPoissonPointRelaxationFACOperator& operator=(
         const SCPoissonPointRelaxationFACOperator& that);
 
-    /*!
-     * \brief Construct a matrix corresponding to a Laplace operator restricted
-     * to a single patch.
-     */
-    static void
-    buildPatchLaplaceOperator(
-        Mat& A,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        int component_axis,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
     /*
      * Coarse level solvers and solver parameters.
      */
@@ -275,6 +261,12 @@ private:
      */
     std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
     std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_smoother_bc_boxes;
+
+    /*
+     * Dirichlet boundary condition utilities.
+     */
+    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    int d_mask_idx;
 };
 }// namespace IBTK
 

@@ -134,7 +134,7 @@ public:
      * boundaries.
      */
     bool
-    patchHasDirichletBoundaries(
+    patchHasDirichletBoundary(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
@@ -142,7 +142,7 @@ public:
      * boundaries in the specified coordinate axis.
      */
     bool
-    patchHasDirichletBoundaries(
+    patchHasDirichletBoundaryAxis(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const unsigned int axis) const;
 
