@@ -225,6 +225,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     d_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->setHomogeneousBc(true);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
+    d_Phi_bdry_fill_op->fillData(d_pressure_solver->getSolutionTime());
     if (d_U_problem_coefs.cIsZero() || MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0))
     {
         d_pressure_data_ops->scale(P_idx, -d_U_problem_coefs.getDConstant(), d_F_Phi_idx);
@@ -237,7 +238,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     // (3) Evaluate U in terms of U^* and Phi.
     //
     // U := U^* - Grad Phi
-    d_hier_math_ops->grad(U_idx, U_sc_var, /*cf_bdry_synch*/ true, -1.0, d_Phi_scratch_idx, d_Phi_var, d_Phi_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_idx, U_sc_var);
+    d_hier_math_ops->grad(U_idx, U_sc_var, /*cf_bdry_synch*/ true, -1.0, d_Phi_scratch_idx, d_Phi_var, d_no_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_idx, U_sc_var);
 
     // (4) Account for any nullspace vectors.
     const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = d_velocity_solver->getNullspaceBasisVectors();
