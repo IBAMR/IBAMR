@@ -238,15 +238,16 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
         d_hier_math_ops->laplace(P_idx, P_cc_var, d_U_problem_coefs, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
         d_pressure_data_ops->scale(P_idx, -1.0, P_idx);
     }
+    d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
+    d_P_bdry_fill_op->fillData(d_pressure_solver->getSolutionTime());
+    d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
 
     // (2) Solve the velocity sub-problem.
     //
     // U := (C*I+D*L)^{-1} * [F_U + Grad * (C*I+D*L) * (-L)^{-1} * F_P]
     //    = (C*I+D*L)^{-1} * [F_U - Grad * P]
-    d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
     static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
-    d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
+    d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_no_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
     d_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->setHomogeneousBc(true);
     d_velocity_solver->solveSystem(*U_vec,*F_U_mod_vec);
