@@ -1408,6 +1408,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             //     (u_b - u_o)/h = -2*g/b
             //
             // In this loop, we modify the rhs entries appropriately.
+            //
+            // NOTE: At Dirichlet boundaries, boundary values are provided by
+            // the right-hand side vector.
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
@@ -1416,11 +1419,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
                 const double& g = gcoef_data(i,0);
                 const double& h = dx[bdry_normal_axis];
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                if (b == 0.0)
-                {
-                    rhs_data(i_s_bdry) = g/a;
-                }
-                else
+                if (b != 0.0)
                 {
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(!MathUtilities<double>::equalEps(b,0.0));
