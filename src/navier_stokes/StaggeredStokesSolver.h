@@ -37,7 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
-#include <ibamr/StaggeredPhysicalBoundaryHelper.h>
+#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 // SAMRAI INCLUDES
 #include <PoissonSpecifications.h>
