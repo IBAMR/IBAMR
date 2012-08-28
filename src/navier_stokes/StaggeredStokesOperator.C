@@ -96,7 +96,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
-      d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
+      d_bc_helper(Pointer<StaggeredPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL),
       d_P_fill_pattern(NULL),
       d_transaction_comps(),
@@ -181,7 +181,7 @@ StaggeredStokesOperator::setPhysicalBcCoefs(
 
 void
 StaggeredStokesOperator::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_helper);

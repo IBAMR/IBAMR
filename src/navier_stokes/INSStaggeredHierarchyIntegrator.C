@@ -364,7 +364,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     }
 
     // Setup physical boundary conditions objects.
-    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+    d_bc_helper = new StaggeredPhysicalBoundaryHelper();
     d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)

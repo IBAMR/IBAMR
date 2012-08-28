@@ -35,11 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
-
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
+#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -103,7 +101,7 @@ public:
      */
     virtual void
     setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+        SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -210,7 +208,7 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_fill_pattern, d_P_fill_pattern;

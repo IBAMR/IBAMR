@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 
 // IBTK INCLUDES
@@ -125,7 +124,7 @@ public:
      */
     virtual void
     setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+        SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Functions for configuring the solver.
@@ -404,7 +403,7 @@ protected:
     /*
      * Boundary condition helper object.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> d_bc_helper;
 
     /*
      * Ghost cell width.

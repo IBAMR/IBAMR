@@ -136,7 +136,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(
 
 void
 StaggeredStokesSolver::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_helper);

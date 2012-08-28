@@ -97,7 +97,7 @@ StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
 
 void
 StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
