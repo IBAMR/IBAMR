@@ -117,7 +117,6 @@ $(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
@@ -199,7 +198,6 @@ $(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.h \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \

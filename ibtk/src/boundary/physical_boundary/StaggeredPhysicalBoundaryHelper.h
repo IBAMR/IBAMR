@@ -1,4 +1,4 @@
-// Filename: StaggeredStokesPhysicalBoundaryHelper.h
+// Filename: StaggeredPhysicalBoundaryHelper.h
 // Created on 22 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesPhysicalBoundaryHelper
-#define included_StaggeredStokesPhysicalBoundaryHelper
+#ifndef included_StaggeredPhysicalBoundaryHelper
+#define included_StaggeredPhysicalBoundaryHelper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,26 +47,25 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /*!
- * \brief Class StaggeredStokesPhysicalBoundaryHelper provides helper functions
- * to enforce physical boundary conditions for a staggered grid discretization
- * of the incompressible Stokes equations.
+ * \brief Class StaggeredPhysicalBoundaryHelper provides helper functions
+ * to enforce physical boundary conditions for a staggered grid discretizations.
  */
-class StaggeredStokesPhysicalBoundaryHelper
+class StaggeredPhysicalBoundaryHelper
     : SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    StaggeredStokesPhysicalBoundaryHelper();
+    StaggeredPhysicalBoundaryHelper();
 
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesPhysicalBoundaryHelper();
+    ~StaggeredPhysicalBoundaryHelper();
 
     /*!
      * \brief Enforce Dirichlet boundary conditions on the physical boundary
@@ -117,8 +116,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPhysicalBoundaryHelper(
-        const StaggeredStokesPhysicalBoundaryHelper& from);
+    StaggeredPhysicalBoundaryHelper(
+        const StaggeredPhysicalBoundaryHelper& from);
 
     /*!
      * \brief Assignment operator.
@@ -129,9 +128,9 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPhysicalBoundaryHelper&
+    StaggeredPhysicalBoundaryHelper&
     operator=(
-        const StaggeredStokesPhysicalBoundaryHelper& that);
+        const StaggeredPhysicalBoundaryHelper& that);
 
     /*!
      * Cached hierarchy-related information.
@@ -141,12 +140,12 @@ private:
     std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs;
     std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
 };
-}// namespace IBAMR
+}// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.I>
+//#include <ibtk/StaggeredPhysicalBoundaryHelper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesPhysicalBoundaryHelper
+#endif //#ifndef included_StaggeredPhysicalBoundaryHelper

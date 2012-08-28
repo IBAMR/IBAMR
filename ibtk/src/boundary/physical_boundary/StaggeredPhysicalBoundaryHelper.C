@@ -1,4 +1,4 @@
-// Filename: StaggeredStokesPhysicalBoundaryHelper.C
+// Filename: StaggeredPhysicalBoundaryHelper.C
 // Created on 22 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "StaggeredStokesPhysicalBoundaryHelper.h"
+#include "StaggeredPhysicalBoundaryHelper.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
 #endif
 
 #ifndef included_SAMRAI_config
@@ -44,12 +44,10 @@
 #define included_SAMRAI_config
 #endif
 
-// IBAMR INCLUDES
-#include <ibamr/namespaces.h>
-
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
@@ -59,29 +57,29 @@
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
+StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper()
     : d_hierarchy(NULL),
       d_dirichlet_bdry_locs(),
       d_dirichlet_bdry_vals()
 {
     // intentionally blank
     return;
-}// StaggeredStokesPhysicalBoundaryHelper
+}// StaggeredPhysicalBoundaryHelper
 
-StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
+StaggeredPhysicalBoundaryHelper::~StaggeredPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;
-}// ~StaggeredStokesPhysicalBoundaryHelper
+}// ~StaggeredPhysicalBoundaryHelper
 
 void
-StaggeredStokesPhysicalBoundaryHelper::enforceDirichletBcs(
+StaggeredPhysicalBoundaryHelper::enforceDirichletBcs(
     const int u_data_idx,
     const bool homogeneous_bcs,
     const int coarsest_ln,
@@ -131,7 +129,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDirichletBcs(
 }// enforceDirichletBcs
 
 void
-StaggeredStokesPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
+StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
     const int u_out_data_idx,
     const int u_in_data_idx,
     const int coarsest_ln,
@@ -179,7 +177,7 @@ StaggeredStokesPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
 }// copyDataAtDirichletBoundaries
 
 void
-StaggeredStokesPhysicalBoundaryHelper::cacheBcCoefData(
+StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const int u_data_idx,
     const Pointer<Variable<NDIM> > u_var,
     std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -271,7 +269,7 @@ StaggeredStokesPhysicalBoundaryHelper::cacheBcCoefData(
 }// cacheBcCoefData
 
 void
-StaggeredStokesPhysicalBoundaryHelper::clearBcCoefData()
+StaggeredPhysicalBoundaryHelper::clearBcCoefData()
 {
     d_hierarchy.setNull();
     d_physical_codim1_boxes.clear();
@@ -286,6 +284,6 @@ StaggeredStokesPhysicalBoundaryHelper::clearBcCoefData()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+}// namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

@@ -113,6 +113,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C \
+	$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -256,6 +257,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-ExtendedRobinBcCoefStrategy.$(OBJEXT) \
 	libIBTK2d_a-PhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBTK2d_a-RobinPhysBdryPatchStrategy.$(OBJEXT) \
+	libIBTK2d_a-StaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBTK2d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
@@ -387,6 +389,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C \
+	$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -529,6 +532,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-ExtendedRobinBcCoefStrategy.$(OBJEXT) \
 	libIBTK3d_a-PhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBTK3d_a-RobinPhysBdryPatchStrategy.$(OBJEXT) \
+	libIBTK3d_a-StaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBTK3d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
@@ -1038,6 +1042,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.h \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.h \
 	$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.h \
+	$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
@@ -1191,6 +1196,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
 	$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C \
+	$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -1537,6 +1543,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableFactory.Po@am__quote@
@@ -1659,6 +1666,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableFactory.Po@am__quote@
@@ -1942,6 +1950,20 @@ libIBTK2d_a-RobinPhysBdryPatchStrategy.obj: $(top_srcdir)/src/boundary/physical_
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C' object='libIBTK2d_a-RobinPhysBdryPatchStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-RobinPhysBdryPatchStrategy.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; fi`
+
+libIBTK2d_a-StaggeredPhysicalBoundaryHelper.o: $(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-StaggeredPhysicalBoundaryHelper.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Tpo -c -o libIBTK2d_a-StaggeredPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' object='libIBTK2d_a-StaggeredPhysicalBoundaryHelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-StaggeredPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+
+libIBTK2d_a-StaggeredPhysicalBoundaryHelper.obj: $(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-StaggeredPhysicalBoundaryHelper.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Tpo -c -o libIBTK2d_a-StaggeredPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBTK2d_a-StaggeredPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' object='libIBTK2d_a-StaggeredPhysicalBoundaryHelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-StaggeredPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; fi`
 
 libIBTK2d_a-muParserRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-muParserRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-muParserRobinBcCoefs.Tpo -c -o libIBTK2d_a-muParserRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
@@ -3650,6 +3672,20 @@ libIBTK3d_a-RobinPhysBdryPatchStrategy.obj: $(top_srcdir)/src/boundary/physical_
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C' object='libIBTK3d_a-RobinPhysBdryPatchStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-RobinPhysBdryPatchStrategy.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C'; fi`
+
+libIBTK3d_a-StaggeredPhysicalBoundaryHelper.o: $(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-StaggeredPhysicalBoundaryHelper.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Tpo -c -o libIBTK3d_a-StaggeredPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' object='libIBTK3d_a-StaggeredPhysicalBoundaryHelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-StaggeredPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+
+libIBTK3d_a-StaggeredPhysicalBoundaryHelper.obj: $(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-StaggeredPhysicalBoundaryHelper.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Tpo -c -o libIBTK3d_a-StaggeredPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBTK3d_a-StaggeredPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C' object='libIBTK3d_a-StaggeredPhysicalBoundaryHelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-StaggeredPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C'; fi`
 
 libIBTK3d_a-muParserRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-muParserRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-muParserRobinBcCoefs.Tpo -c -o libIBTK3d_a-muParserRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C

@@ -65,6 +65,7 @@ $(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.C \
 $(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 $(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
 $(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.C \
+$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -193,6 +194,7 @@ $(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.h \
 $(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.h \
 $(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.h \
 $(top_srcdir)/src/boundary/physical_boundary/RobinPhysBdryPatchStrategy.h \
+$(top_srcdir)/src/boundary/physical_boundary/StaggeredPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
