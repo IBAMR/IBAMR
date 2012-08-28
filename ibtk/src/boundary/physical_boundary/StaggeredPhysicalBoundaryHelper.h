@@ -38,6 +38,7 @@
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
+#include <SideData.h>
 #include <Variable.h>
 #include <tbox/Pointer.h>
 
@@ -80,8 +81,18 @@ public:
         int finest_ln=-1) const;
 
     /*!
+     * \brief Enforce Dirichlet boundary conditions on the physical boundary on
+     * a single patch using the cached boundary data.
+     */
+    void
+    enforceDirichletBcs(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data,
+        bool homogeneous_bcs,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
-     * boundaries.
+     * boundaries over the specified range of levels in the patch hierarchy.
      */
     void
     copyDataAtDirichletBoundaries(
@@ -89,6 +100,51 @@ public:
         int u_in_data_idx,
         int coarsest_level_number=-1,
         int finest_ln=-1) const;
+
+    /*!
+     * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
+     * boundaries on a single patch.
+     */
+    void
+    copyDataAtDirichletBoundaries(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_out_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_in_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Setup a masking function over the specified range of levels in the
+     * patch hierarchy.
+     */
+    void
+    setupMaskingFunction(
+        int mask_data_idx,
+        int coarsest_level_number=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * \brief Setup a masking function on a single patch.
+     */
+    void
+    setupMaskingFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,int> > u_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Return a boolean value indicating whether a patch has Dirichlet
+     * boundaries.
+     */
+    bool
+    patchHasDirichletBoundaries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Return a boolean value indicating whether a patch has Dirichlet
+     * boundaries in the specified coordinate axis.
+     */
+    bool
+    patchHasDirichletBoundaries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const unsigned int axis) const;
 
     /*!
      * \brief Cache boundary coefficient data.
