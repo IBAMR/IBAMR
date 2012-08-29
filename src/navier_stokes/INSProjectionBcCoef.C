@@ -68,7 +68,8 @@ INSProjectionBcCoef::INSProjectionBcCoef(
     const StokesSpecifications* problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
+    : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
     setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
@@ -102,6 +103,14 @@ INSProjectionBcCoef::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
+INSProjectionBcCoef::setSolutionTime(
+    double solution_time)
+{
+    d_solution_time = solution_time;
+    return;
+}// setSolutionTime
+
+void
 INSProjectionBcCoef::setTimeInterval(
     double /*current_time*/,
     double /*new_time*/)
@@ -118,7 +127,7 @@ INSProjectionBcCoef::setBcCoefs(
     const Pointer<Variable<NDIM> >& variable,
     const Patch<NDIM>& patch,
     const BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
+    double /*fill_time*/) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -137,7 +146,7 @@ INSProjectionBcCoef::setBcCoefs(
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index   = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index/2;
-    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, d_solution_time);
 
     // Update the boundary condition coefficients.  Specifically, normal
     // velocity boundary conditions are converted into Neumann conditions for

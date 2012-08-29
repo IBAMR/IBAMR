@@ -74,9 +74,7 @@ INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_problem_coefs(NULL),
-      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN())
+      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
@@ -110,12 +108,19 @@ INSStaggeredVelocityBcCoef::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-INSStaggeredVelocityBcCoef::setTimeInterval(
-    const double current_time,
-    const double new_time)
+INSStaggeredVelocityBcCoef::setSolutionTime(
+    const double /*solution_time*/)
 {
-    d_current_time = current_time;
-    d_new_time = new_time;
+    // intentionally blank
+    return;
+}// setSolutionTime
+
+void
+INSStaggeredVelocityBcCoef::setTimeInterval(
+    const double /*current_time*/,
+    const double /*new_time*/)
+{
+    // intentionally blank
     return;
 }// setTimeInterval
 
@@ -145,8 +150,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
-    // Modify Neumann boundary conditions to correspond to traction (stress)
-    // boundary conditions.
+    // Where appropriate, update Neumann boundary conditions to correspond to
+    // tangential traction (stress) boundary conditions.
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
@@ -184,59 +189,14 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // intentionally blank
+            // intentionally blank.
         }
         else if (traction_bc)
         {
             if (d_comp_idx == bdry_normal_axis)
             {
-                Index<NDIM> i_intr0 = i;
-                Index<NDIM> i_intr1 = i;
-
-                if (is_lower)
-                {
-                    i_intr0(bdry_normal_axis) += 0;
-                    i_intr1(bdry_normal_axis) += 1;
-                }
-                else
-                {
-                    i_intr0(bdry_normal_axis) -= 1;
-                    i_intr1(bdry_normal_axis) -= 2;
-                }
-
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    if (d != bdry_normal_axis)
-                    {
-                        i_intr0(d) = std::max(i_intr0(d),ghost_box.lower()(d));
-                        i_intr0(d) = std::min(i_intr0(d),ghost_box.upper()(d));
-
-                        i_intr1(d) = std::max(i_intr1(d),ghost_box.lower()(d));
-                        i_intr1(d) = std::min(i_intr1(d),ghost_box.upper()(d));
-                    }
-                }
-
-                // Specify a Neumann boundary condition which corresponds to a
-                // finite difference approximation to the divergence free
-                // condition at the boundary of the domain using extrapolated
-                // values of the tangential velocities.
-                double du_norm_dx_norm = 0.0;
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    if (axis != bdry_normal_axis)
-                    {
-                        const SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SideIndex<NDIM>::Upper);
-                        const SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SideIndex<NDIM>::Upper);
-                        const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
-
-                        const SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SideIndex<NDIM>::Lower);
-                        const SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SideIndex<NDIM>::Lower);
-                        const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
-
-                        du_norm_dx_norm -= (u_tan_upper-u_tan_lower)/dx[axis];
-                    }
-                }
-                gamma = (is_lower ? -1.0 : +1.0)*du_norm_dx_norm;
+                // intentionally blank; "exact" divergence-free conditions are
+                // imposed after filling all other ghost cell values.
             }
             else
             {

@@ -48,7 +48,6 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
-#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
@@ -362,11 +361,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
 
     // Setup physical boundary conditions objects.
     d_bc_helper = new StaggeredPhysicalBoundaryHelper();
-    d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs,dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef));
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
     }
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
@@ -405,8 +403,6 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete d_U_bc_coefs[d];
         d_U_bc_coefs[d] = NULL;
     }
-    delete d_P_bc_coef;
-    d_P_bc_coef = NULL;
     delete d_fill_after_regrid_phys_bdry_bc_op;
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     d_velocity_solver.setNull();
@@ -431,12 +427,6 @@ INSStaggeredHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 }// getVelocityBoundaryConditions
-
-RobinBcCoefStrategy<NDIM>*
-INSStaggeredHierarchyIntegrator::getPressureBoundaryConditions() const
-{
-    return d_P_bc_coef;
-}// getPressureBoundaryConditions
 
 Pointer<ConvectiveOperator>
 INSStaggeredHierarchyIntegrator::getConvectiveOperator()
@@ -1836,6 +1826,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         INSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
         U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
+        U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time,new_time);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1843,17 +1834,13 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
+        U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time,new_time);
     }
-    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setStokesSpecifications(&d_problem_coefs);
-    P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
-    P_bc_coef->setTimeInterval(current_time,new_time);
-    P_bc_coef->setVelocityCurrentPatchDataIndex(d_U_current_idx);
-    P_bc_coef->setVelocityNewPatchDataIndex(d_U_scratch_idx);
     INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
     Phi_bc_coef->setStokesSpecifications(&d_problem_coefs);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
+    Phi_bc_coef->setSolutionTime(0.5*(current_time+new_time));
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
     // Setup convective operator.
@@ -1906,7 +1893,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
 
     // Setup Stokes solver.
     d_stokes_solver->setVelocityPoissonSpecifications(U_problem_coefs);
-    d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
+    d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_Phi_bc_coef);
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);

@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
@@ -219,8 +218,6 @@ StaggeredStokesOperator::apply(
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
-    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    if (P_bc_coef != NULL) P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_new_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);

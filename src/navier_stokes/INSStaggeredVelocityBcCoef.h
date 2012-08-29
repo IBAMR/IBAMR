@@ -106,6 +106,13 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
      * \brief Set the current time interval.
      */
     void
@@ -225,11 +232,6 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-
-    /*
-     * The current time interval.
-     */
-    double d_current_time, d_new_time;
 };
 }// namespace IBAMR
 

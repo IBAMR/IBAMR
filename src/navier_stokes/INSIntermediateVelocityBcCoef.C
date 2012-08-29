@@ -101,6 +101,14 @@ INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
+INSIntermediateVelocityBcCoef::setSolutionTime(
+    double /*solution_time*/)
+{
+    // intentionally blank
+    return;
+}// setSolutionTime
+
+void
 INSIntermediateVelocityBcCoef::setTimeInterval(
     double /*current_time*/,
     double /*new_time*/)
