@@ -175,13 +175,13 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
@@ -265,13 +265,13 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
-	libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBlockPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesFACPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.$(OBJEXT) \
+	libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScMatUtilities.$(OBJEXT) \
@@ -355,13 +355,13 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
@@ -445,13 +445,13 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
-	libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBlockPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesFACPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.$(OBJEXT) \
+	libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScMatUtilities.$(OBJEXT) \
@@ -557,13 +557,13 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
-	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.h \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
@@ -973,13 +973,13 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
-	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.h \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
@@ -1049,13 +1049,13 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
@@ -1244,13 +1244,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScMatUtilities.Po@am__quote@
@@ -1320,13 +1320,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScMatUtilities.Po@am__quote@
@@ -2218,20 +2218,6 @@ libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
 
-libIBAMR2d_a-SpongeLayerForceFunction.o: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SpongeLayerForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR2d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' object='libIBAMR2d_a-SpongeLayerForceFunction.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-
-libIBAMR2d_a-SpongeLayerForceFunction.obj: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SpongeLayerForceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR2d_a-SpongeLayerForceFunction.obj `if test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' object='libIBAMR2d_a-SpongeLayerForceFunction.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SpongeLayerForceFunction.obj `if test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; fi`
-
 libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Tpo -c -o libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -2315,6 +2301,20 @@ libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/nav
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
+
+libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' object='libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+
+libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' object='libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; fi`
 
 libIBAMR2d_a-StaggeredStokesOperator.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOperator.Tpo -c -o libIBAMR2d_a-StaggeredStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C
@@ -3282,20 +3282,6 @@ libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
 
-libIBAMR3d_a-SpongeLayerForceFunction.o: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SpongeLayerForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR3d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' object='libIBAMR3d_a-SpongeLayerForceFunction.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-
-libIBAMR3d_a-SpongeLayerForceFunction.obj: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SpongeLayerForceFunction.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR3d_a-SpongeLayerForceFunction.obj `if test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' object='libIBAMR3d_a-SpongeLayerForceFunction.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SpongeLayerForceFunction.obj `if test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C'; fi`
-
 libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Tpo -c -o libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -3379,6 +3365,20 @@ libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/nav
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
+
+libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' object='libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+
+libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' object='libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C'; fi`
 
 libIBAMR3d_a-StaggeredStokesOperator.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOperator.Tpo -c -o libIBAMR3d_a-StaggeredStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C
