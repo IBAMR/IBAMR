@@ -141,33 +141,16 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 
                 // Determine the ghost cell value so that the divergence of the
                 // velocity field is zero in the ghost cell.
+                SideIndex<NDIM> i_g_s(i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                (*u_data)(i_g_s) = 0.0;
                 double div_u_g = 0.0;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    if (axis == bdry_normal_axis)
-                    {
-                        if (is_lower)
-                        {
-                            div_u_g += +(*u_data)(SideIndex<NDIM>(i_g,axis,SideIndex<NDIM>::Upper))/dx[axis];
-                        }
-                        else
-                        {
-                            div_u_g += -(*u_data)(SideIndex<NDIM>(i_g,axis,SideIndex<NDIM>::Lower))/dx[axis];
-                        }
-                    }
-                    else
-                    {
-                        div_u_g += ((*u_data)(SideIndex<NDIM>(i_g,axis,SideIndex<NDIM>::Upper)) - (*u_data)(SideIndex<NDIM>(i_g,axis,SideIndex<NDIM>::Lower)))/dx[axis];
-                    }
+                    const SideIndex<NDIM> i_g_s_upper(i_g,axis,SideIndex<NDIM>::Upper);
+                    const SideIndex<NDIM> i_g_s_lower(i_g,axis,SideIndex<NDIM>::Lower);
+                    div_u_g += ((*u_data)(i_g_s_upper)-(*u_data)(i_g_s_lower))*dx[bdry_normal_axis]/dx[axis];
                 }
-                if (is_lower)
-                {
-                    (*u_data)(SideIndex<NDIM>(i_g,bdry_normal_axis,SideIndex<NDIM>::Lower)) = +div_u_g*dx[bdry_normal_axis];
-                }
-                else
-                {
-                    (*u_data)(SideIndex<NDIM>(i_g,bdry_normal_axis,SideIndex<NDIM>::Upper)) = -div_u_g*dx[bdry_normal_axis];
-                }
+                (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0)*div_u_g;
             }
         }
     }
@@ -244,10 +227,18 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalTractionBoundaryConditions(
                 }
 
                 // The boundary condition is -p + 2*mu*du_n/dx_n = g.
-                const SideIndex<NDIM> i_s_upper(is_lower ? i_i : i_g, bdry_normal_axis, SideIndex<NDIM>::Upper);
-                const SideIndex<NDIM> i_s_lower(is_lower ? i_g : i_i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                const double du_norm_current_dx_norm = ((*u_current_data)(i_s_upper)-(*u_current_data)(i_s_lower))/(2.0*dx[bdry_normal_axis]);
-                const double du_norm_new_dx_norm     = ((*u_new_data    )(i_s_upper)-(*u_new_data    )(i_s_lower))/(2.0*dx[bdry_normal_axis]);
+                static const int NVALS = 3;
+                double u_current[NVALS], u_new[NVALS];
+                SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                for (int k = 0; k < NVALS; ++k)
+                {
+                    u_current[k] = (*u_current_data)(i_s);
+                    u_new    [k] = (*u_new_data    )(i_s);
+                    i_s(bdry_normal_axis) += (is_lower ? 1 : -1);
+                }
+                const double h = dx[bdry_normal_axis];
+                const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
+                const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
                 const double gamma = (homogeneous_bcs ? 0.0 : -bdry_vals_data(i,0) + mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm;
                 (*p_data)(i_g) = 2.0*gamma-(*p_data)(i_i);
             }
