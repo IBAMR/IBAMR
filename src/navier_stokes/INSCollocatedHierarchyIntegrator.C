@@ -408,6 +408,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_velocity_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
     }
+
     if (d_velocity_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -426,6 +427,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_pressure_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
     }
+
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -444,6 +446,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_regrid_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
     }
+
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -1661,10 +1664,12 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        U_star_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setTimeInterval(current_time,new_time);
     }
     INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    Phi_bc_coef->setStokesSpecifications(&d_problem_coefs);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 

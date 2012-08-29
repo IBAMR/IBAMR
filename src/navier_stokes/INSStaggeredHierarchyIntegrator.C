@@ -342,20 +342,17 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     {
         d_stokes_solver_type = input_db->getString("stokes_solver_type");
         if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
-        if (input_db->keyExists("stokes_precond_type"))
-        {
-            d_stokes_precond_type = input_db->getString("stokes_precond_type");
-            if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
-        }
-    }
-    else if (input_db->keyExists("stokes_precond_type"))
-    {
-        TBOX_ERROR(d_object_name << ": cannot set the preconditioner type without also setting the solver type.\n");
     }
     if (!d_stokes_solver_db) d_stokes_solver_db = new MemoryDatabase(d_object_name+"::stokes_solver_db");
     if (!d_stokes_solver_db->keyExists("options_prefix"))
     {
         d_stokes_solver_db->putString("options_prefix", "stokes_");
+    }
+
+    if (input_db->keyExists("stokes_precond_type"))
+    {
+        d_stokes_precond_type = input_db->getString("stokes_precond_type");
+        if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
     }
     if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase(d_object_name+"::stokes_precond_db");
     if (!d_stokes_precond_db->keyExists("options_prefix"))
@@ -525,6 +522,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
         d_stokes_solver_db->putString("ksp_type", "fgmres");
     }
+
     if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
     {
         d_stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
@@ -537,6 +535,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_velocity_solver_db->putString("ksp_type", "richardson");
         d_velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
+
     if (d_velocity_precond_type == SCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -557,6 +556,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_pressure_solver_db->putString("ksp_type", "richardson");
         d_pressure_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
+
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -575,6 +575,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_regrid_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
     }
+
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
         const int max_levels = gridding_alg->getMaxLevels();
@@ -1833,21 +1834,25 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setTimeInterval(current_time,new_time);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        U_star_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setTimeInterval(current_time,new_time);
     }
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
-    P_bc_coef->setVelocityCurrentPatchDataIndex(d_U_current_idx);
-    P_bc_coef->setVelocityNewPatchDataIndex(d_U_new_idx);
     P_bc_coef->setTimeInterval(current_time,new_time);
+    P_bc_coef->setVelocityCurrentPatchDataIndex(d_U_current_idx);
+    P_bc_coef->setVelocityNewPatchDataIndex(d_U_scratch_idx);
     INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    Phi_bc_coef->setStokesSpecifications(&d_problem_coefs);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
