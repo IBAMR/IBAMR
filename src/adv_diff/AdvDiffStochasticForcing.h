@@ -61,7 +61,7 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > C_var,
-        const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver);
+        const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
      * \brief Empty destructor.

@@ -59,7 +59,7 @@ public:
     INSStaggeredStochasticForcing(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const INSStaggeredHierarchyIntegrator* const fluid_solver);
+        const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
      * \brief Empty destructor.
