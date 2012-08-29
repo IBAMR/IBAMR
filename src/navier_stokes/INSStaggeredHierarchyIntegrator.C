@@ -523,6 +523,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_velocity_solver_type = SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
         d_velocity_solver_db->putString("ksp_type", "richardson");
+        d_velocity_solver_db->putInteger("max_iterations", 10);
         d_velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
 
@@ -544,6 +545,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_pressure_solver_type = CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
         d_pressure_solver_db->putString("ksp_type", "richardson");
+        d_pressure_solver_db->putInteger("max_iterations", 10);
         d_pressure_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
 
