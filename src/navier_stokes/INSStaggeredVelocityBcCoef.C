@@ -73,13 +73,12 @@ INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
-      d_problem_coefs(problem_coefs),
+      d_problem_coefs(NULL),
       d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_target_idx(-1),
-      d_homogeneous_bc(false)
+      d_new_time(std::numeric_limits<double>::quiet_NaN())
 {
+    setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
@@ -119,22 +118,6 @@ INSStaggeredVelocityBcCoef::setTimeInterval(
     d_new_time = new_time;
     return;
 }// setTimeInterval
-
-void
-INSStaggeredVelocityBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
-{
-    d_target_idx = target_idx;
-    return;
-}// setTargetPatchDataIndex
-
-void
-INSStaggeredVelocityBcCoef::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(

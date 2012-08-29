@@ -65,13 +65,12 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(
-    const StokesSpecifications* /*problem_coefs*/,
+    const StokesSpecifications* problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_target_idx(-1),
-      d_homogeneous_bc(false)
+    : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
+    setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
@@ -104,28 +103,12 @@ INSProjectionBcCoef::setPhysicalBcCoefs(
 
 void
 INSProjectionBcCoef::setTimeInterval(
-    const double /*current_time*/,
-    const double /*new_time*/)
+    double /*current_time*/,
+    double /*new_time*/)
 {
     // intentionally blank
     return;
 }// setTimeInterval
-
-void
-INSProjectionBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
-{
-    d_target_idx = target_idx;
-    return;
-}// setTargetPatchDataIndex
-
-void
-INSProjectionBcCoef::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 INSProjectionBcCoef::setBcCoefs(

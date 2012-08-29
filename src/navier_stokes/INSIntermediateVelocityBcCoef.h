@@ -115,28 +115,6 @@ public:
         double new_time);
 
     /*!
-     * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
-     */
-    //\{
-
-    /*!
-     * \brief Set the target data index.
-     */
-    void
-    setTargetPatchDataIndex(
-        int target_idx);
-
-    /*!
-     * \brief Set whether the class is filling homogeneous or inhomogeneous
-     * boundary conditions.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    //\}
-
-    /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{
@@ -243,16 +221,6 @@ private:
      * The boundary condition specification objects for the updated velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-
-    /*
-     * The patch data index corresponding to the current value of P.
-     */
-    int d_target_idx;
-
-    /*
-     * Whether to use homogeneous boundary conditions.
-     */
-    bool d_homogeneous_bc;
 };
 }// namespace IBAMR
 
