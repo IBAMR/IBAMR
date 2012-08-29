@@ -173,7 +173,6 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
@@ -263,7 +262,6 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
-	libIBAMR2d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
@@ -353,7 +351,6 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
@@ -443,7 +440,6 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
-	libIBAMR3d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
@@ -555,7 +551,6 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
@@ -971,7 +966,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
@@ -1047,7 +1041,6 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
@@ -1241,7 +1234,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
@@ -1317,7 +1309,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
@@ -2189,20 +2180,6 @@ libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_sto
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' object='libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; fi`
-
-libIBAMR2d_a-INSStaggeredPressureBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPressureBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredPressureBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR2d_a-INSStaggeredPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPressureBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-
-libIBAMR2d_a-INSStaggeredPressureBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPressureBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR2d_a-INSStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
 
 libIBAMR2d_a-INSStaggeredStochasticForcing.o: $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredStochasticForcing.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredStochasticForcing.Tpo -c -o libIBAMR2d_a-INSStaggeredStochasticForcing.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C
@@ -3253,20 +3230,6 @@ libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_sto
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' object='libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C'; fi`
-
-libIBAMR3d_a-INSStaggeredPressureBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPressureBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredPressureBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR3d_a-INSStaggeredPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPressureBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-
-libIBAMR3d_a-INSStaggeredPressureBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPressureBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR3d_a-INSStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
 
 libIBAMR3d_a-INSStaggeredStochasticForcing.o: $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredStochasticForcing.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredStochasticForcing.Tpo -c -o libIBAMR3d_a-INSStaggeredStochasticForcing.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C

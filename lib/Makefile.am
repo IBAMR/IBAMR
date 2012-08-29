@@ -103,7 +103,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
@@ -184,7 +183,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
