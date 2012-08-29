@@ -189,14 +189,17 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // intentionally blank.
+            // intentionally blank
         }
         else if (traction_bc)
         {
             if (d_comp_idx == bdry_normal_axis)
             {
-                // intentionally blank; "exact" divergence-free conditions are
-                // imposed after filling all other ghost cell values.
+                // intentionally blank
+
+                // NOTE: A cell-centered divergence-free condition is imposed
+                // after filling all other ghost cell values as a
+                // post-processing step.
             }
             else
             {
