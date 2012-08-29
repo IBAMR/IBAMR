@@ -186,6 +186,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
@@ -275,6 +276,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScMatUtilities.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScVecUtilities.$(OBJEXT) \
+	libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesSolver.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesSolverManager.$(OBJEXT) \
@@ -364,6 +366,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
@@ -453,6 +456,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScMatUtilities.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScVecUtilities.$(OBJEXT) \
+	libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesSolver.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesSolverManager.$(OBJEXT) \
@@ -564,6 +568,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.h \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \
@@ -979,6 +984,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.h \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \
@@ -1054,6 +1060,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C \
+	$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
@@ -1248,6 +1255,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScMatUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScVecUtilities.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesSolverManager.Po@am__quote@
@@ -1323,6 +1331,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScMatUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScVecUtilities.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesSolverManager.Po@am__quote@
@@ -2362,6 +2371,20 @@ libIBAMR2d_a-StaggeredStokesPETScVecUtilities.obj: $(top_srcdir)/src/navier_stok
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C' object='libIBAMR2d_a-StaggeredStokesPETScVecUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesPETScVecUtilities.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; fi`
+
+libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo -c -o libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' object='libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+
+libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo -c -o libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' object='libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; fi`
 
 libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.Tpo -c -o libIBAMR2d_a-StaggeredStokesProjectionPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C
@@ -3412,6 +3435,20 @@ libIBAMR3d_a-StaggeredStokesPETScVecUtilities.obj: $(top_srcdir)/src/navier_stok
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C' object='libIBAMR3d_a-StaggeredStokesPETScVecUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesPETScVecUtilities.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C'; fi`
+
+libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo -c -o libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' object='libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+
+libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo -c -o libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C' object='libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesPhysicalBoundaryHelper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C'; fi`
 
 libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.Tpo -c -o libIBAMR3d_a-StaggeredStokesProjectionPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C
