@@ -230,11 +230,10 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalTractionBoundaryConditions(
                 static const int NVALS = 3;
                 double u_current[NVALS], u_new[NVALS];
                 SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                for (int k = 0; k < NVALS; ++k)
+                for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
                 {
                     u_current[k] = (*u_current_data)(i_s);
                     u_new    [k] = (*u_new_data    )(i_s);
-                    i_s(bdry_normal_axis) += (is_lower ? 1 : -1);
                 }
                 const double h = dx[bdry_normal_axis];
                 const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
