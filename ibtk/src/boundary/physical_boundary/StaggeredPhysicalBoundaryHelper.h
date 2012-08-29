@@ -164,6 +164,15 @@ public:
     void
     clearBcCoefData();
 
+protected:
+    /*!
+     * Cached hierarchy-related information.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    std::vector<std::map<int,SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs, d_neumann_bdry_locs;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals, d_neumann_bdry_vals;
+
 private:
     /*!
      * \brief Copy constructor.
@@ -187,14 +196,6 @@ private:
     StaggeredPhysicalBoundaryHelper&
     operator=(
         const StaggeredPhysicalBoundaryHelper& that);
-
-    /*!
-     * Cached hierarchy-related information.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int,SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
 };
 }// namespace IBTK
 
