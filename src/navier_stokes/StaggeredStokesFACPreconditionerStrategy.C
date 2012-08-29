@@ -252,7 +252,7 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(
 
 void
 StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
-    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_helper);

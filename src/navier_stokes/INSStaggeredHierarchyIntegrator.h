@@ -303,7 +303,7 @@ private:
     /*
      * Boundary condition and data synchronization operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 

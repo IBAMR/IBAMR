@@ -360,7 +360,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     }
 
     // Setup physical boundary conditions objects.
-    d_bc_helper = new StaggeredPhysicalBoundaryHelper();
+    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -823,6 +823,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_N_vec    ->allocateVectorData(current_time);  d_N_vec    ->setToScalar(0.0);
     d_P_rhs_vec->allocateVectorData(current_time);  d_P_rhs_vec->setToScalar(0.0);
 
+    // Cache BC data.
+    d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, 0.5*(current_time+new_time), IntVector<NDIM>(SIDEG), d_hierarchy);
+
     // Initialize the right-hand side terms.
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
@@ -848,15 +851,18 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<SideVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, current_time);
+    d_U_bdry_bc_fill_op->fillData(current_time);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+    d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
+    d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
     d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
 
-    // Setup inhomogeneous boundary conditions.
-    d_bc_helper->clearBcCoefData();
-    d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
+    // Set up inhomogeneous BCs.
+    d_bc_helper->setStokesSpecifications(&d_problem_coefs);
+    d_bc_helper->setCurrentVelocityDataIndex(d_U_src_idx);
     d_stokes_solver->setHomogeneousBc(false);
     Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     if (p_stokes_solver)

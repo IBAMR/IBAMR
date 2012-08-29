@@ -99,7 +99,7 @@ public:
      */
     void
     setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> bc_helper);
+        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
     /*!

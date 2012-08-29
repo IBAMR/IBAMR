@@ -51,8 +51,6 @@
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
-#include <SideIndex.h>
-#include <SideData.h>
 #include <tbox/MathUtilities.h>
 
 // C++ STDLIB INCLUDES
@@ -69,9 +67,7 @@ namespace IBTK
 StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper()
     : d_hierarchy(NULL),
       d_dirichlet_bdry_locs(),
-      d_neumann_bdry_locs(),
-      d_dirichlet_bdry_vals(),
-      d_neumann_bdry_vals()
+      d_dirichlet_bdry_vals()
 {
     // intentionally blank
     return;
@@ -315,9 +311,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     d_physical_codim1_boxes.resize(finest_hier_level+1);
     d_dirichlet_bdry_locs  .resize(finest_hier_level+1);
-    d_neumann_bdry_locs    .resize(finest_hier_level+1);
     d_dirichlet_bdry_vals  .resize(finest_hier_level+1);
-    d_neumann_bdry_vals    .resize(finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -333,15 +327,11 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
             physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
-            // Compute the locations of the Dirichlet and Neumann boundaries.
+            // Compute the locations of the Dirichlet boundaries.
             std::vector<Pointer<ArrayData<NDIM,bool  > > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln][patch_num];
-            std::vector<Pointer<ArrayData<NDIM,bool  > > >& neumann_bdry_locs   = d_neumann_bdry_locs  [ln][patch_num];
             std::vector<Pointer<ArrayData<NDIM,double> > >& dirichlet_bdry_vals = d_dirichlet_bdry_vals[ln][patch_num];
-            std::vector<Pointer<ArrayData<NDIM,double> > >& neumann_bdry_vals   = d_neumann_bdry_vals  [ln][patch_num];
             dirichlet_bdry_locs.resize(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,bool  > >(NULL));
-            neumann_bdry_locs  .resize(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,bool  > >(NULL));
             dirichlet_bdry_vals.resize(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL));
-            neumann_bdry_vals  .resize(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL));
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -369,12 +359,8 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
 
                 dirichlet_bdry_locs[n] = new ArrayData<NDIM,bool  >(bc_coef_box, 1);
                 dirichlet_bdry_vals[n] = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                neumann_bdry_locs  [n] = new ArrayData<NDIM,bool  >(bc_coef_box, 1);
-                neumann_bdry_vals  [n] = new ArrayData<NDIM,double>(bc_coef_box, 1);
                 ArrayData<NDIM,bool  >& dirichlet_bdry_locs_data = *dirichlet_bdry_locs[n];
                 ArrayData<NDIM,double>& dirichlet_bdry_vals_data = *dirichlet_bdry_vals[n];
-                ArrayData<NDIM,bool  >& neumann_bdry_locs_data   = *neumann_bdry_locs  [n];
-                ArrayData<NDIM,double>& neumann_bdry_vals_data   = *neumann_bdry_vals  [n];
                 for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const Index<NDIM>& i = it();
@@ -387,8 +373,6 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
 #endif
                     dirichlet_bdry_locs_data(i,0) = MathUtilities<double>::equalEps(alpha,1.0) && (beta == 0.0 || MathUtilities<double>::equalEps(beta,0.0));
                     dirichlet_bdry_vals_data(i,0) = dirichlet_bdry_locs_data(i,0) ? gamma : std::numeric_limits<double>::quiet_NaN();
-                    neumann_bdry_locs_data(i,0) = MathUtilities<double>::equalEps(beta,1.0) && (alpha == 0.0 || MathUtilities<double>::equalEps(alpha,0.0));
-                    neumann_bdry_vals_data(i,0) = neumann_bdry_locs_data(i,0) ? gamma : std::numeric_limits<double>::quiet_NaN();
                 }
             }
         }
@@ -402,9 +386,7 @@ StaggeredPhysicalBoundaryHelper::clearBcCoefData()
     d_hierarchy.setNull();
     d_physical_codim1_boxes.clear();
     d_dirichlet_bdry_locs  .clear();
-    d_neumann_bdry_locs    .clear();
     d_dirichlet_bdry_vals  .clear();
-    d_neumann_bdry_vals    .clear();
     return;
 }// clearBcCoefData
 

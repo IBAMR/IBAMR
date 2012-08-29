@@ -35,8 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/StokesSpecifications.h>
+
 // IBTK INCLUDES
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+
+// SAMRAI INCLUDES
+#include <CellData.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,7 +54,7 @@ namespace IBAMR
  * of the incompressible (Navier-)Stokes equations.
  */
 class StaggeredStokesPhysicalBoundaryHelper
-    : IBTK::StaggeredPhysicalBoundaryHelper
+    : public IBTK::StaggeredPhysicalBoundaryHelper
 {
 public:
     /*!
@@ -61,7 +67,95 @@ public:
      */
     ~StaggeredStokesPhysicalBoundaryHelper();
 
+    /*!
+     * \brief At open boundaries, set normal velocity ghost cell values to
+     * enforce the discrete divergence-free condition in the ghost cell abutting
+     * the physical boundary.
+     */
+    void
+    enforceDivergenceFreeConditionAtBoundary(
+        int u_data_idx,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * \brief At open boundaries, set normal velocity ghost cell values to
+     * enforce the discrete divergence-free condition in the ghost cell abutting
+     * the physical boundary.
+     */
+    void
+    enforceDivergenceFreeConditionAtBoundary(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief At open boundaries, set pressure ghost cell values to
+     * enforce normal traction boundary condition at the boundary.
+     */
+    void
+    enforceNormalTractionBoundaryConditions(
+        int p_data_idx,
+        int u_new_data_idx,
+        bool homogeneous_bcs,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * \brief At open boundaries, set pressure ghost cell values to
+     * enforce normal traction boundary condition at the boundary.
+     */
+    void
+    enforceNormalTractionBoundaryConditions(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > p_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_new_data,
+        bool homogeneous_bcs,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * Set the problem coefficients to use when computing normal traction
+     * boundary conditions.
+     */
+    void
+    setStokesSpecifications(
+        const StokesSpecifications* problem_coefs);
+
+    /*!
+     * Set the patch data index to use for u(n) when computing normal traction
+     * boundary conditions
+     */
+    void
+    setCurrentVelocityDataIndex(
+        int u_current_data_idx);
+
+    /*!
+     * \brief Cache boundary coefficient data.
+     */
+    void
+    cacheBcCoefData(
+        int u_data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        double velocity_bc_fill_time,
+        double traction_bc_fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+
+    /*!
+     * \brief Clear cached boundary coefficient data.
+     */
+    virtual void
+    clearBcCoefData();
+
 protected:
+    // Cached hierarchy-related information.
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_neumann_bdry_locs;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_neumann_bdry_vals;
+
+    // Problem specification objects.
+    const StokesSpecifications* d_problem_coefs;
+
+    // Current velocity patch data index.
+    int d_u_current_data_idx;
 
 private:
     /*!

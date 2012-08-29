@@ -95,7 +95,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
-      d_bc_helper(Pointer<StaggeredPhysicalBoundaryHelper>(NULL)),
+      d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL),
       d_P_fill_pattern(NULL),
       d_transaction_comps(),
@@ -180,7 +180,7 @@ StaggeredStokesOperator::setPhysicalBcCoefs(
 
 void
 StaggeredStokesOperator::setPhysicalBoundaryHelper(
-    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_helper);
@@ -212,8 +212,8 @@ StaggeredStokesOperator::apply(
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0), x.getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    transaction_comps[1] = InterpolationTransactionComponent(x.getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
+    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx, U_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
+    transaction_comps[1] = InterpolationTransactionComponent(P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
@@ -221,6 +221,8 @@ StaggeredStokesOperator::apply(
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_bdry_fill->fillData(d_new_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
+    d_bc_helper->enforceNormalTractionBoundaryConditions(P_idx, U_scratch_idx, homogeneous_bc);
 
     // Compute the action of the operator:
     //

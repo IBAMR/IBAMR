@@ -89,7 +89,7 @@ StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBcCoefs(
 
 void
 StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBoundaryHelper(
-    Pointer<StaggeredPhysicalBoundaryHelper> bc_helper)
+    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesOperator> p_operator = getOperator();

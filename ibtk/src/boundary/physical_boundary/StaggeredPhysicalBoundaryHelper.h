@@ -161,7 +161,7 @@ public:
     /*!
      * \brief Clear cached boundary coefficient data.
      */
-    void
+    virtual void
     clearBcCoefData();
 
 protected:
@@ -170,8 +170,8 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     std::vector<std::map<int,SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs, d_neumann_bdry_locs;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals, d_neumann_bdry_vals;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
 
 private:
     /*!

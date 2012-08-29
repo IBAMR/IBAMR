@@ -35,9 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
-#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 // SAMRAI INCLUDES
 #include <PoissonSpecifications.h>
@@ -99,7 +101,7 @@ public:
      */
     virtual void
     setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> bc_helper);
+        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 protected:
     // Problem specification.
@@ -110,7 +112,7 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<IBTK::StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
 private:
     /*!
