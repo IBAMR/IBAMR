@@ -46,6 +46,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy()
+    : d_target_idx(-1),
+      d_homogeneous_bc(false)
 {
     // intentionally blank
     return;
@@ -56,6 +58,22 @@ ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
     // intentionally blank
     return;
 }// ~ExtendedRobinBcCoefStrategy
+
+void
+ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(
+    int target_idx)
+{
+    d_target_idx = target_idx;
+    return;
+}// setTargetPatchDataIndex
+
+void
+ExtendedRobinBcCoefStrategy::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
