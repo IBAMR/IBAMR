@@ -154,6 +154,17 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     if (bdry_normal_axis != d_comp_idx) return;
     if (d_fluid_solver->getCurrentCycleNumber() < 0) return;
 
+    // Attempt to obtain the velocity data.  If the current velocity data is
+    // NULL, there is nothing else to do.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
+    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(u_current_idx);
+    Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
+    if (!u_current_data) return;
+    Box<NDIM> ghost_box = u_current_data->getGhostBox();
+    if (u_new_data) ghost_box * u_new_data->getGhostBox();
+
     // Where appropriate, update normal traction boundary conditions to penalize
     // flow reversal.
     const bool is_lower = location_index%2 == 0;
@@ -168,16 +179,6 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
-    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(u_current_idx);
-    Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(u_current_data);
-#endif
-    Box<NDIM> ghost_box = u_current_data->getGhostBox();
-    if (u_new_data) ghost_box * u_new_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
