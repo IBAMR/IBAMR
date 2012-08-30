@@ -144,14 +144,15 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // Set the unmodified velocity bc coefs.
     d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
-    // If we are not setting inhomogeneous coefficients, at an open boundary, or
-    // operating on the correct velocity component, then there is nothing else
-    // to do.
+    // If we are not setting inhomogeneous coefficients; at an open boundary;
+    // not operating on the correct velocity component; or not currently
+    // performing a solve then there is nothing else to do.
     if (!gcoef_data || d_homogeneous_bc) return;
     const unsigned int location_index = bdry_box.getLocationIndex();
     if (!d_open_bdry[location_index]) return;
     const unsigned int bdry_normal_axis = location_index/2;
     if (bdry_normal_axis != d_comp_idx) return;
+    if (d_fluid_solver->getCurrentCycleNumber() < 0) return;
 
     // Where appropriate, update normal traction boundary conditions to penalize
     // flow reversal.
