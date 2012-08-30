@@ -174,9 +174,9 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_current_data);
-    TBOX_ASSERT(u_new_data);
 #endif
-    const Box<NDIM>& ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
+    Box<NDIM> ghost_box = u_current_data->getGhostBox();
+    if (u_new_data) ghost_box * u_new_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
@@ -203,7 +203,7 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
             TBOX_ASSERT(d_comp_idx == bdry_normal_axis);
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-            const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num == 0 ? (*u_current_data)(i_s) : 0.5*((*u_current_data)(i_s) + (*u_new_data)(i_s)));
+            const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num > 0 ? 0.5*((*u_current_data)(i_s) + (*u_new_data)(i_s)) : (*u_current_data)(i_s));
             if (d_inflow_bdry[location_index] && u_n > 0.0)
             {
                 gamma -= d_alpha*pow(std::abs(u_n),d_beta);
