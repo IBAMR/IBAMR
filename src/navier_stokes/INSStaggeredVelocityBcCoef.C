@@ -102,10 +102,6 @@ INSStaggeredVelocityBcCoef::setPhysicalBcCoefs(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
-    }
 #endif
     d_bc_coefs = bc_coefs;
     return;
@@ -164,6 +160,12 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+    }
+#endif
     // Set the unmodified velocity bc coefs.
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
@@ -251,6 +253,12 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 IntVector<NDIM>
 INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+    }
+#endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
