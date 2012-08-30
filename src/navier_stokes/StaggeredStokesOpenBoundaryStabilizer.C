@@ -156,9 +156,10 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
+    Pointer<SideData<NDIM,double> > u_target_data  = patch.getPatchData(d_target_idx);
     Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(u_current_idx);
     Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
-    if (!u_current_data) return;
+    if (!u_target_data || !u_current_data) return;
     Box<NDIM> ghost_box = u_current_data->getGhostBox();
     if (u_new_data) ghost_box * u_new_data->getGhostBox();
 
