@@ -188,7 +188,7 @@ private:
     operator=(
         const StaggeredStokesOpenBoundaryStabilizer& that);
 
-    double d_alpha, d_beta;
+    double d_alpha;
     const unsigned int d_comp_idx;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_comp_bc_coef;
     blitz::TinyVector<bool,2*NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;

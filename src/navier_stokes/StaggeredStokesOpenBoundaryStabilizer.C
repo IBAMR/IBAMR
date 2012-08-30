@@ -61,7 +61,6 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     Pointer<Database> input_db,
     const INSStaggeredHierarchyIntegrator* fluid_solver)
     : d_alpha(std::numeric_limits<double>::quiet_NaN()),
-      d_beta(std::numeric_limits<double>::quiet_NaN()),
       d_comp_idx(comp_idx),
       d_comp_bc_coef(comp_bc_coef),
       d_open_bdry(false),
@@ -72,7 +71,6 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     if (input_db)
     {
         if (input_db->keyExists("alpha")) d_alpha = input_db->getDouble("alpha");
-        if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
         for (int location_index = 0; location_index < 2*NDIM; ++location_index)
         {
             std::ostringstream stabilization_type_stream;
@@ -147,7 +145,7 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // If we are not setting inhomogeneous coefficients; at an open boundary; or
     // not operating on the correct velocity component, then there is nothing
     // else to do.
-    if (!gcoef_data || d_homogeneous_bc) return;
+    if (!gcoef_data) return;
     const unsigned int location_index = bdry_box.getLocationIndex();
     if (!d_open_bdry[location_index]) return;
     const unsigned int bdry_normal_axis = location_index/2;
@@ -195,13 +193,11 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
             const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num > 0 ? 0.5*((*u_current_data)(i_s) + (*u_new_data)(i_s)) : (*u_current_data)(i_s));
-            if (d_inflow_bdry[location_index] && u_n > 0.0)
+            if ((d_inflow_bdry[location_index] && u_n > 0.0) || (d_outflow_bdry[location_index] && u_n < 0.0))
             {
-                gamma -= d_alpha*pow(std::abs(u_n),d_beta);
-            }
-            else if (d_outflow_bdry[location_index] && u_n < 0.0)
-            {
-                gamma += d_alpha*pow(std::abs(u_n),d_beta);
+                const double fac = d_alpha*0.5*(is_lower ? +1.0 : -1.0);
+                gamma += fac*(*u_target_data)(i_s);
+                if (!d_homogeneous_bc) gamma += fac*(*u_current_data)(i_s);
             }
         }
     }
