@@ -945,6 +945,12 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double half_time = current_time+0.5*dt;
     const double rho       = d_problem_coefs.getRho();
 
+    // Update cached BC data.
+    if (cycle_num > 0)
+    {
+        d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, half_time, IntVector<NDIM>(SIDEG), d_hierarchy);
+    }
+
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)

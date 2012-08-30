@@ -83,12 +83,14 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                 const std::string stabilization_type = input_db->getString(stabilization_type_key);
                 if (stabilization_type == "INFLOW")
                 {
-                    d_open_bdry  [location_index] = true;
-                    d_inflow_bdry[location_index] = true;
+                    d_open_bdry   [location_index] = true;
+                    d_inflow_bdry [location_index] = true;
+                    d_outflow_bdry[location_index] = false;
                 }
                 else if (stabilization_type == "OUTFLOW")
                 {
                     d_open_bdry   [location_index] = true;
+                    d_inflow_bdry [location_index] = false;
                     d_outflow_bdry[location_index] = true;
                 }
                 else if (stabilization_type != "NONE")
@@ -142,21 +144,23 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // Set the unmodified velocity bc coefs.
     d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
-    // We only modify gcoef_data in this routine.
+    // If we are not setting inhomogeneous coefficients, at an open boundary, or
+    // operating on the correct velocity component, then there is nothing else
+    // to do.
     if (!gcoef_data || d_homogeneous_bc) return;
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    if (!d_open_bdry[location_index]) return;
+    const unsigned int bdry_normal_axis = location_index/2;
+    if (bdry_normal_axis != d_comp_idx) return;
 
     // Where appropriate, update normal traction boundary conditions to penalize
     // flow reversal.
+    const bool is_lower = location_index%2 == 0;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
     TBOX_ASSERT(gcoef_data);
 #endif
-    const unsigned int location_index = bdry_box.getLocationIndex();
-    if (!d_open_bdry[location_index]) return;
-    const unsigned int bdry_normal_axis = location_index/2;
-    if (bdry_normal_axis != d_comp_idx) return;
-    const bool is_lower = location_index%2 == 0;
     Box<NDIM> bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());

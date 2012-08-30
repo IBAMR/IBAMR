@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.C
-EXTRA_DIST  = input2d.cylinder input3d.cylinder input3d.sphere
+EXTRA_DIST  = input2d.cylinder input2d.cylinder_stabilized input3d.cylinder input3d.sphere
 
 EXTRA_DIST += cylinder2d_128.vertex cylinder2d_256.vertex cylinder2d_512.vertex cylinder2d_1024.vertex
 EXTRA_DIST += cylinder2d_128.spring cylinder2d_256.spring cylinder2d_512.spring cylinder2d_1024.spring
@@ -29,7 +29,7 @@ main3d_SOURCES = $(SOURCES)
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input{2d.cylinder,3d.cylinder,3d.sphere} $(PWD) ; \
+	  cp -f $(srcdir)/input{2d.cylinder,2d.cylinder_stabilized,3d.cylinder,3d.sphere} $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d_{128,256,512,1024}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/cylinder3d_{128,256,512}.vertex $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d_{32,64,128,256}.{vertex,spring} $(PWD) ; \
@@ -38,7 +38,7 @@ examples: $(EXTRA_PROGRAMS)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input{2d.cylinder,3d.cylinder,3d.sphere} ; \
+	  rm -f $(builddir)/input{2d.cylinder,2d.cylinder_stabilized,3d.cylinder,3d.sphere} ; \
 	  rm -f $(builddir)/cylinder2d_{128,256,512,1024}.{vertex,spring} ; \
 	  rm -f $(builddir)/cylinder3d_{128,256,512}.vertex ; \
 	  rm -f $(builddir)/sphere3d_{32,64,128,256}.{vertex,spring} ; \

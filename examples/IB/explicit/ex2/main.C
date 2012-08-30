@@ -162,7 +162,7 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-        vector<RobinBcCoefStrategy<NDIM>*> stabilized_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        vector<RobinBcCoefStrategy<NDIM>*> stabilized_u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -180,7 +180,8 @@ main(
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    stabilized_bc_coefs[d] = new StaggeredStokesOpenBoundaryStabilizer(d, u_bc_coefs[d], app_initializer->getComponentDatabase("BoundaryStabilization"), navier_stokes_integrator);
+                    Pointer<INSStaggeredHierarchyIntegrator> p_navier_stokes_integrator = navier_stokes_integrator;
+                    stabilized_u_bc_coefs[d] = new StaggeredStokesOpenBoundaryStabilizer(d, u_bc_coefs[d], app_initializer->getComponentDatabase("BoundaryStabilization"), p_navier_stokes_integrator);
                     navier_stokes_integrator->registerPhysicalBoundaryConditions(stabilized_u_bc_coefs);
                 }
             }
@@ -287,6 +288,7 @@ main(
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) delete stabilized_u_bc_coefs[d];
 
     }// cleanup dynamically allocated objects prior to shutdown
 
