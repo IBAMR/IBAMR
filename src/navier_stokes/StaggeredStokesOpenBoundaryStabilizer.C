@@ -151,8 +151,8 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     const unsigned int bdry_normal_axis = location_index/2;
     if (bdry_normal_axis != d_comp_idx) return;
 
-    // Attempt to obtain the velocity data.  If the current velocity data is
-    // NULL, there is nothing else to do.
+    // Attempt to obtain the velocity data.  If the target or current velocity
+    // data is NULL, there is nothing else to do.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());

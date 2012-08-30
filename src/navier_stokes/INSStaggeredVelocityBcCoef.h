@@ -121,6 +121,28 @@ public:
         double new_time);
 
     /*!
+     * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
+     */
+    //\{
+
+    /*!
+     * \brief Set the target data index.
+     */
+    void
+    setTargetPatchDataIndex(
+        int target_idx);
+
+    /*!
+     * \brief Set whether the class is filling homogeneous or inhomogeneous
+     * boundary conditions.
+     */
+    void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    //\}
+
+    /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{

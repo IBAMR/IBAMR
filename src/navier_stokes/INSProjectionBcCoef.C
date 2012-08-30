@@ -97,6 +97,10 @@ INSProjectionBcCoef::setPhysicalBcCoefs(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coefs.size() == NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+    }
 #endif
     d_bc_coefs = bc_coefs;
     return;
@@ -120,6 +124,32 @@ INSProjectionBcCoef::setTimeInterval(
 }// setTimeInterval
 
 void
+INSProjectionBcCoef::setTargetPatchDataIndex(
+    int target_idx)
+{
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
+    return;
+}// setTargetPatchDataIndex
+
+void
+INSProjectionBcCoef::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
+    }
+    return;
+}// setHomogeneousBc
+
+void
 INSProjectionBcCoef::setBcCoefs(
     Pointer<ArrayData<NDIM,double> >& acoef_data,
     Pointer<ArrayData<NDIM,double> >& bcoef_data,
@@ -130,10 +160,6 @@ INSProjectionBcCoef::setBcCoefs(
     double /*fill_time*/) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
-    }
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
@@ -191,12 +217,6 @@ INSProjectionBcCoef::setBcCoefs(
 IntVector<NDIM>
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
-    }
-#endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
