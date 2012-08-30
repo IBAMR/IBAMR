@@ -144,15 +144,14 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // Set the unmodified velocity bc coefs.
     d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
-    // If we are not setting inhomogeneous coefficients; at an open boundary;
-    // not operating on the correct velocity component; or not currently
-    // performing a solve then there is nothing else to do.
+    // If we are not setting inhomogeneous coefficients; at an open boundary; or
+    // not operating on the correct velocity component, then there is nothing
+    // else to do.
     if (!gcoef_data || d_homogeneous_bc) return;
     const unsigned int location_index = bdry_box.getLocationIndex();
     if (!d_open_bdry[location_index]) return;
     const unsigned int bdry_normal_axis = location_index/2;
     if (bdry_normal_axis != d_comp_idx) return;
-    if (d_fluid_solver->getCurrentCycleNumber() < 0) return;
 
     // Attempt to obtain the velocity data.  If the current velocity data is
     // NULL, there is nothing else to do.
@@ -168,17 +167,7 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // Where appropriate, update normal traction boundary conditions to penalize
     // flow reversal.
     const bool is_lower = location_index%2 == 0;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(acoef_data);
-    TBOX_ASSERT(bcoef_data);
-    TBOX_ASSERT(gcoef_data);
-#endif
     Box<NDIM> bc_coef_box = acoef_data->getBox();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
-#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
