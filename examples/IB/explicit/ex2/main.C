@@ -178,12 +178,12 @@ main(
             }
             if (solver_type == "STAGGERED" && input_db->keyExists("BoundaryStabilization"))
             {
+                Pointer<INSStaggeredHierarchyIntegrator> p_navier_stokes_integrator = navier_stokes_integrator;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    Pointer<INSStaggeredHierarchyIntegrator> p_navier_stokes_integrator = navier_stokes_integrator;
                     stabilized_u_bc_coefs[d] = new StaggeredStokesOpenBoundaryStabilizer(d, u_bc_coefs[d], app_initializer->getComponentDatabase("BoundaryStabilization"), p_navier_stokes_integrator);
-                    navier_stokes_integrator->registerPhysicalBoundaryConditions(stabilized_u_bc_coefs);
                 }
+                navier_stokes_integrator->registerPhysicalBoundaryConditions(stabilized_u_bc_coefs);
             }
             else
             {

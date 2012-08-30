@@ -1583,7 +1583,10 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, d_integrator_time);
+        d_U_bdry_bc_fill_op->fillData(d_integrator_time);
+        d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, d_integrator_time, d_integrator_time, IntVector<NDIM>(SIDEG), d_hierarchy);
+        d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

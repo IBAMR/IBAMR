@@ -69,7 +69,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
       d_outflow_bdry(false),
       d_fluid_solver(fluid_solver)
 {
-    if (!input_db)
+    if (input_db)
     {
         if (input_db->keyExists("alpha")) d_alpha = input_db->getDouble("alpha");
         if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
