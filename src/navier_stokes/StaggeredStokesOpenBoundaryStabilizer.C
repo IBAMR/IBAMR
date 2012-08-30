@@ -160,7 +160,7 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(u_current_idx);
     Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
     if (!u_target_data || !u_current_data) return;
-    Box<NDIM> ghost_box = u_current_data->getGhostBox();
+    Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     if (u_new_data) ghost_box * u_new_data->getGhostBox();
 
     // Where appropriate, update normal traction boundary conditions to penalize
@@ -193,10 +193,10 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
             TBOX_ASSERT(d_comp_idx == bdry_normal_axis);
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-            const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num > 0 ? 0.5*((*u_current_data)(i_s) + (*u_new_data)(i_s)) : (*u_current_data)(i_s));
+            const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num > 0 ? (*u_new_data)(i_s) : (*u_current_data)(i_s));
             if ((d_inflow_bdry[location_index] && u_n > 0.0) || (d_outflow_bdry[location_index] && u_n < 0.0))
             {
-                const double fac = d_alpha*0.5*(is_lower ? +1.0 : -1.0);
+                const double fac = 0.5*(is_lower ? +1.0 : -1.0)*d_alpha;
                 gamma += fac*(*u_target_data)(i_s);
                 if (!d_homogeneous_bc) gamma += fac*(*u_current_data)(i_s);
             }
