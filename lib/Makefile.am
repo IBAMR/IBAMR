@@ -105,6 +105,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
@@ -186,6 +187,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
