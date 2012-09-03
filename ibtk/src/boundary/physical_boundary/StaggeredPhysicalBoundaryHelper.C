@@ -298,7 +298,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = u_bc_coefs.begin(); it != u_bc_coefs.end(); ++it)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
-        if (extended_bc_coef != NULL)
+        if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(u_data_idx);
             extended_bc_coef->setHomogeneousBc(false);

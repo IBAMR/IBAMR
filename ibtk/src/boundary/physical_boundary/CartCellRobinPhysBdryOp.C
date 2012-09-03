@@ -274,7 +274,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
     for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_bc_coefs.begin(); it != d_bc_coefs.end(); ++it)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
-        if (extended_bc_coef != NULL)
+        if (extended_bc_coef)
         {
             extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
         }
@@ -325,13 +325,6 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
         {
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
-                ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[depth]);
-                const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-                if (using_extended_robin_bc_coef)
-                {
-                    extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
-                }
-
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                 const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
@@ -346,7 +339,8 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
                 // Concrete ExtendedRobinBcCoefStrategy objects are allowed to
                 // use generalized homogeneous boundary conditions where the
                 // values in gcoef_data are non-zero.
-                if (d_homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data->fillAll(0.0);
+                ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[depth]);
+                if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 acoefs[patch_data_idx][depth][n] = acoef_data;
                 bcoefs[patch_data_idx][depth][n] = bcoef_data;

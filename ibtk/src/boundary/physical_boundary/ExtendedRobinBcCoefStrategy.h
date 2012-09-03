@@ -38,6 +38,9 @@
 // SAMRAI INCLUDES
 #include <RobinBcCoefStrategy.h>
 
+// C++ STDLIB INCLUDES
+#include <vector>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -77,6 +80,13 @@ public:
         int target_idx);
 
     /*!
+     * \brief Set the target data indices.
+     */
+    virtual void
+    setTargetPatchDataIndices(
+        const std::vector<int>& target_idxs);
+
+    /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
@@ -88,9 +98,9 @@ public:
 
 protected:
     /*
-     * The patch data index corresponding to the data to be filled.
+     * The patch data indices corresponding to the data to be filled.
      */
-    int d_target_idx;
+    std::vector<int> d_target_idxs;
 
     /*
      * Whether to use homogeneous boundary conditions.

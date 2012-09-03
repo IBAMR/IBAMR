@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/ibtk_utilities.h>
@@ -550,10 +551,19 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(
     const int src_idx,
     const int dst_ln)
 {
-    d_bc_op->setPatchDataIndex(dst_idx);
-    d_bc_op->setHomogeneousBc(true);
     d_cf_bdry_op->setPatchDataIndex(dst_idx);
-
+    d_bc_op->setPatchDataIndex(dst_idx);
+    d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
+    d_bc_op->setHomogeneousBc(true);
+    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    {
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        if (extended_bc_coef)
+        {
+            extended_bc_coef->setTargetPatchDataIndex(dst_idx);
+            extended_bc_coef->setHomogeneousBc(true);
+        }
+    }
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
@@ -582,8 +592,17 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(
     const int dst_ln)
 {
     d_bc_op->setPatchDataIndex(dst_idx);
+    d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
     d_bc_op->setHomogeneousBc(true);
-
+    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    {
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        if (extended_bc_coef)
+        {
+            extended_bc_coef->setTargetPatchDataIndex(dst_idx);
+            extended_bc_coef->setHomogeneousBc(true);
+        }
+    }
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator<NDIM> >(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);

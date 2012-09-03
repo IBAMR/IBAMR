@@ -345,7 +345,7 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (extended_bc_coef != NULL)
+        if (extended_bc_coef)
         {
             extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
         }
@@ -500,14 +500,9 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
 
         // Set the boundary condition coefficients.
         RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[axis];
-        ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-        const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-        if (using_extended_robin_bc_coef)
-        {
-            extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
-        }
         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-        if (d_homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data->fillAll(0.0);
+        ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+        if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
         // Set the boundary values.
         if (location_index == 0 || location_index == 1)
@@ -605,14 +600,9 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
 
                 // Set the boundary condition coefficients.
                 RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[axis];
-                ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-                const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-                if (using_extended_robin_bc_coef)
-                {
-                    extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
-                }
                 bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-                if (d_homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data->fillAll(0.0);
+                ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+                if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
                 patch.setPatchGeometry(pgeom);
