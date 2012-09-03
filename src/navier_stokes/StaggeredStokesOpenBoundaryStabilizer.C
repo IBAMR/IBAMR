@@ -204,7 +204,7 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
             const double sgn = (is_lower ? -1.0 : 1.0);
-            const double u_n_explicit = sgn*(num_cycle > 0 ? 0.5*((*u_new_data)(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
+            const double u_n_explicit = sgn*(cycle_num > 0 ? 0.5*((*u_new_data)(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
             const double u_n_implicit = sgn*                 0.5*((*u_data    )(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
             if      (d_inflow_bdry[location_index] && u_n_explicit > 0.0)
             {
