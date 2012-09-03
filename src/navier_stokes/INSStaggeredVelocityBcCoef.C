@@ -128,14 +128,22 @@ void
 INSStaggeredVelocityBcCoef::setTargetPatchDataIndex(
     int target_idx)
 {
-    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    setTargetPatchDataIndices(std::vector<int>(1,target_idx));
+    return;
+}// setTargetPatchDataIndex
+
+void
+INSStaggeredVelocityBcCoef::setTargetPatchDataIndices(
+    const std::vector<int>& target_idxs)
+{
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndices(target_idxs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndices(target_idxs);
     }
     return;
-}// setTargetPatchDataIndex
+}// setTargetPatchDataIndices
 
 void
 INSStaggeredVelocityBcCoef::setHomogeneousBc(
@@ -191,8 +199,9 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!d_target_idxs.empty());
 #endif
-    Pointer<SideData<NDIM,double> > u_data = patch.getPatchData(d_target_idx);
+    Pointer<SideData<NDIM,double> > u_data = patch.getPatchData(d_target_idxs[0]);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_data);
     TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());

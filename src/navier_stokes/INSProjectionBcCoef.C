@@ -123,14 +123,22 @@ void
 INSProjectionBcCoef::setTargetPatchDataIndex(
     int target_idx)
 {
-    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    setTargetPatchDataIndices(std::vector<int>(1,target_idx));
+    return;
+}// setTargetPatchDataIndex
+
+void
+INSProjectionBcCoef::setTargetPatchDataIndices(
+    const std::vector<int>& target_idxs)
+{
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndices(target_idxs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndices(target_idxs);
     }
     return;
-}// setTargetPatchDataIndex
+}// setTargetPatchDataIndices
 
 void
 INSProjectionBcCoef::setHomogeneousBc(

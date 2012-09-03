@@ -134,6 +134,13 @@ public:
         int target_idx);
 
     /*!
+     * \brief Set the target data indices.
+     */
+    void
+    setTargetPatchDataIndices(
+        const std::vector<int>& target_idxs);
+
+    /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
