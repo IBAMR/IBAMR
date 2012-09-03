@@ -39,8 +39,6 @@
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
-#include <Variable.h>
-#include <tbox/Pointer.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -77,7 +75,7 @@ public:
     enforceDirichletBcs(
         int u_data_idx,
         bool homogeneous_bcs,
-        int coarsest_level_number=-1,
+        int coarsest_ln=-1,
         int finest_ln=-1) const;
 
     /*!
@@ -98,7 +96,7 @@ public:
     copyDataAtDirichletBoundaries(
         int u_out_data_idx,
         int u_in_data_idx,
-        int coarsest_level_number=-1,
+        int coarsest_ln=-1,
         int finest_ln=-1) const;
 
     /*!
@@ -118,7 +116,7 @@ public:
     void
     setupMaskingFunction(
         int mask_data_idx,
-        int coarsest_level_number=-1,
+        int coarsest_ln=-1,
         int finest_ln=-1) const;
 
     /*!
@@ -134,7 +132,7 @@ public:
      * boundaries.
      */
     bool
-    patchHasDirichletBoundary(
+    patchTouchesDirichletBoundary(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
@@ -142,7 +140,7 @@ public:
      * boundaries in the specified coordinate axis.
      */
     bool
-    patchHasDirichletBoundaryAxis(
+    patchTouchesDirichletBoundaryAxis(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const unsigned int axis) const;
 
@@ -157,6 +155,17 @@ public:
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+
+    /*!
+     * \brief Update boundary coefficient data.
+     */
+    void
+    updateBcCoefData(
+        int u_data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill);
 
     /*!
      * \brief Clear cached boundary coefficient data.

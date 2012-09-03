@@ -374,7 +374,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
             }
 
             // Enforce any Dirichlet boundary conditions.
-            const bool patch_has_dirichlet_bdry = d_bc_helper->patchHasDirichletBoundary(patch);
+            const bool patch_has_dirichlet_bdry = d_bc_helper->patchTouchesDirichletBoundary(patch);
             if (patch_has_dirichlet_bdry)
             {
                 d_bc_helper->copyDataAtDirichletBoundaries(error_data, residual_data, patch);
@@ -395,7 +395,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
                     const int* const mask = mask_data->getPointer(axis,depth);
                     const int mask_ghosts = (mask_data->getGhostCellWidth()).max();
                     static const int its = 1;
-                    if (patch_has_dirichlet_bdry && d_bc_helper->patchHasDirichletBoundaryAxis(patch, axis))
+                    if (patch_has_dirichlet_bdry && d_bc_helper->patchTouchesDirichletBoundaryAxis(patch, axis))
                     {
                         GS_SMOOTH_MASK_FC(
                             U, U_ghosts,
