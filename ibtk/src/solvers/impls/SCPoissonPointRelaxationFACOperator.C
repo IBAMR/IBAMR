@@ -554,7 +554,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Setup cached BC data.
     d_bc_helper = new StaggeredPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_scratch_idx, solution_var, d_bc_coefs, d_solution_time, d_gcw, d_hierarchy);
+    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

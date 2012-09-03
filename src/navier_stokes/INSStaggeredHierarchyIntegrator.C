@@ -826,7 +826,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_P_rhs_vec->allocateVectorData(current_time);  d_P_rhs_vec->setToScalar(0.0);
 
     // Cache BC data.
-    d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, 0.5*(current_time+new_time), IntVector<NDIM>(SIDEG), d_hierarchy);
+    d_bc_helper->cacheBcCoefData(d_U_bc_coefs, new_time, d_hierarchy);
 
     // Initialize the right-hand side terms.
     const double rho    = d_problem_coefs.getRho();
@@ -944,12 +944,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double dt        = new_time-current_time;
     const double half_time = current_time+0.5*dt;
     const double rho       = d_problem_coefs.getRho();
-
-    // Update cached BC data.
-    if (cycle_num > 0)
-    {
-        d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, half_time, IntVector<NDIM>(SIDEG), d_hierarchy);
-    }
 
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
@@ -1083,8 +1077,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(1), d_P_new_idx);
 
     // Enforce Dirichlet boundary conditions.
-    d_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
-    d_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(d_sol_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(1), d_U_bc_coefs, new_time, /*homogeneous_bcs*/ false);
+    d_bc_helper->copyDataAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(0));
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
@@ -1348,6 +1342,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
         Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
         CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
+        for (unsigned int d = 0; d < NDIM; ++d) dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_U_bc_coefs[d])->setTargetPatchDataIndex(d_U_regrid_idx);
         CartSideDoubleDivPreservingRefine div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
         fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &div_preserving_op)->fillData(init_data_time);
 
@@ -1584,7 +1579,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        d_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, d_integrator_time, d_integrator_time, IntVector<NDIM>(SIDEG), d_hierarchy);
+        d_bc_helper->cacheBcCoefData(d_U_bc_coefs, d_integrator_time, d_hierarchy);
         d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

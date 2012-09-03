@@ -222,7 +222,7 @@ StaggeredStokesOperator::apply(
     d_hier_bdry_fill->fillData(d_new_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
-    d_bc_helper->enforceNormalTractionBoundaryConditions(P_idx, U_scratch_idx, homogeneous_bc);
+    d_bc_helper->enforceNormalTractionBoundaryConditions(U_scratch_idx, P_idx, d_U_bc_coefs, 0.5*(d_current_time+d_new_time), homogeneous_bc);
 
     // Compute the action of the operator:
     //

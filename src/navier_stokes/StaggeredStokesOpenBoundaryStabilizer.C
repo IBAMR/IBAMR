@@ -73,6 +73,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     {
         if (input_db->keyExists("alpha")) d_alpha = input_db->getDouble("alpha");
         if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
+        TBOX_ASSERT(d_beta >= 1.0);
         for (int location_index = 0; location_index < 2*NDIM; ++location_index)
         {
             std::ostringstream stabilization_type_stream;
@@ -144,10 +145,10 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // Set the unmodified velocity bc coefs.
     d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
-    // If we are not setting inhomogeneous coefficients; at an open boundary; or
-    // not operating on the correct velocity component, then there is nothing
-    // else to do.
-    if (!gcoef_data || d_homogeneous_bc) return;
+    // If we are not setting inhomogeneous coefficients; not at an open
+    // boundary; or not operating on the correct velocity component, then there
+    // is nothing else to do.
+    if (!gcoef_data) return;
     const unsigned int location_index = bdry_box.getLocationIndex();
     if (!d_open_bdry[location_index]) return;
     const unsigned int bdry_normal_axis = location_index/2;
@@ -155,13 +156,18 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
 
     // Attempt to obtain the velocity data.  If the current velocity data is
     // NULL, there is nothing else to do.
+    if (d_target_idxs.empty()) return;
+    Pointer<SideData<NDIM,double> > u_data = patch.getPatchData(d_target_idxs[0]);
+    if (!u_data) return;  // XXXX: This is very hack-y.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
-    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(u_current_idx);
-    Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(u_new_idx);
+    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
+    Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    ));
     if (!u_current_data) return;
-    Box<NDIM> ghost_box = u_current_data->getGhostBox();
+    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(cycle_num < 0 || (u_current_data && u_new_data));
+#endif
+    Box<NDIM> ghost_box = u_data->getGhostBox() * u_current_data->getGhostBox();
     if (u_new_data) ghost_box * u_new_data->getGhostBox();
 
     // Where appropriate, update normal traction boundary conditions to penalize
@@ -176,32 +182,37 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
             bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
         }
     }
-    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
         const double& alpha = (*acoef_data)(i,0);
         const double& beta  = (*bcoef_data)(i,0);
-        double& gamma = (*gcoef_data)(i,0);
+        double&       gamma = (*gcoef_data)(i,0);
+        const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
-        if (traction_bc)
+        if (velocity_bc)
+        {
+            // intentionally blank
+        }
+        else if (traction_bc)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(d_comp_idx == bdry_normal_axis);
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-            const double u_n = (is_lower ? -1.0 : 1.0) * (cycle_num > 0 ? 0.5*((*u_new_data)(i_s)+(*u_current_data)(i_s)) : (*u_current_data)(i_s));
-            if (d_inflow_bdry[location_index] && u_n > 0.0)
+            const double sgn = (is_lower ? -1.0 : 1.0);
+            const double u_n_explicit = sgn*(num_cycle > 0 ? 0.5*((*u_new_data)(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
+            const double u_n_implicit = sgn*                 0.5*((*u_data    )(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
+            if      (d_inflow_bdry[location_index] && u_n_explicit > 0.0)
             {
-                gamma += d_alpha*std::pow(std::abs(u_n),d_beta);
+                gamma += d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
             }
-            else if (d_outflow_bdry[location_index] && u_n < 0.0)
+            else if (d_outflow_bdry[location_index] && u_n_explicit < 0.0)
             {
-                gamma -= d_alpha*std::pow(std::abs(u_n),d_beta);
+                gamma -= d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
             }
         }
     }

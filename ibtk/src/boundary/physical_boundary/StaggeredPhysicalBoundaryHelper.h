@@ -49,8 +49,8 @@
 namespace IBTK
 {
 /*!
- * \brief Class StaggeredPhysicalBoundaryHelper provides helper functions
- * to enforce physical boundary conditions for a staggered grid discretizations.
+ * \brief Class StaggeredPhysicalBoundaryHelper provides helper functions to
+ * handle physical boundary conditions for a staggered grid discretizations.
  */
 class StaggeredPhysicalBoundaryHelper
     : SAMRAI::tbox::DescribedClass
@@ -65,28 +65,6 @@ public:
      * \brief Destructor.
      */
     ~StaggeredPhysicalBoundaryHelper();
-
-    /*!
-     * \brief Enforce Dirichlet boundary conditions on the physical boundary
-     * over the specified range of levels in the patch hierarchy using the
-     * cached boundary data.
-     */
-    void
-    enforceDirichletBcs(
-        int u_data_idx,
-        bool homogeneous_bcs,
-        int coarsest_ln=-1,
-        int finest_ln=-1) const;
-
-    /*!
-     * \brief Enforce Dirichlet boundary conditions on the physical boundary on
-     * a single patch using the cached boundary data.
-     */
-    void
-    enforceDirichletBcs(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data,
-        bool homogeneous_bcs,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
@@ -149,23 +127,9 @@ public:
      */
     void
     cacheBcCoefData(
-        int u_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
-
-    /*!
-     * \brief Update boundary coefficient data.
-     */
-    void
-    updateBcCoefData(
-        int u_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& gcw_to_fill);
 
     /*!
      * \brief Clear cached boundary coefficient data.
@@ -175,12 +139,22 @@ public:
 
 protected:
     /*!
+     * \brief Setup boundary boxes used for setting boundary condition
+     * coefficients.
+     */
+    void
+    setupBcCoefBoxes(
+        SAMRAI::hier::Box<NDIM>& bc_coef_box,
+        SAMRAI::hier::BoundaryBox<NDIM>& trimmed_bdry_box,
+        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     std::vector<std::map<int,SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > > > > d_dirichlet_bdry_locs;
 
 private:
     /*!

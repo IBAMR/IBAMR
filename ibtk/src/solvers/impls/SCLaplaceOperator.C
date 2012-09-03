@@ -224,7 +224,7 @@ SCLaplaceOperator::initializeOperatorState(
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         d_bc_helpers[comp] = new StaggeredPhysicalBoundaryHelper();
-        d_bc_helpers[comp]->cacheBcCoefData(d_x->getComponentDescriptorIndex(comp), d_x->getComponentVariable(comp), d_bc_coefs, d_solution_time, IntVector<NDIM>(1), d_hierarchy);
+        d_bc_helpers[comp]->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     }
 
     // Setup the interpolation transaction information.
