@@ -1414,7 +1414,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
-                const double& a = acoef_data(i,0);
+//              const double& a = acoef_data(i,0);
                 const double& b = bcoef_data(i,0);
                 const double& g = gcoef_data(i,0);
                 const double& h = dx[bdry_normal_axis];
