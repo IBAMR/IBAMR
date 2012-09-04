@@ -212,11 +212,11 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
             const double u_n_implicit = sgn*                 0.5*((*u_target_data)(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
             if      (d_inflow_bdry[location_index] && u_n_explicit > 0.0)
             {
-                gamma += d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
+                gamma -= d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
             }
             else if (d_outflow_bdry[location_index] && u_n_explicit < 0.0)
             {
-                gamma -= d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
+                gamma += d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
             }
         }
     }

@@ -41,7 +41,8 @@ PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 BoundaryStabilization {
-   alpha = RHO
+   alpha = 100.0   // NFINEST=256, DT=6.25e-2*DX_FINEST: alpha = 100 is stable; = 200 is unstable
+// alpha = 200.0   // NFINEST=512, DT=6.25e-2*DX_FINEST: alpha = 100 is stable
    beta  = 2.0
    stabilization_type_0 = "INFLOW"
    stabilization_type_1 = "OUTFLOW"

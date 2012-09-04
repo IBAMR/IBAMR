@@ -121,6 +121,7 @@ $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
+$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.C \
 $(top_srcdir)/src/utilities/ConvectiveOperator.C
 
 if LIBMESH_ENABLED
@@ -203,6 +204,7 @@ $(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.h \
 $(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \
+$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.h \
 $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
