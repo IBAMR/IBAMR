@@ -69,7 +69,7 @@ AdvDiffSemiImplicitHierarchyIntegrator {
    grow_dt              = 2.0e0  // growth factor for timesteps
    max_integrator_steps = 10000  // max number of simulation timesteps
    regrid_interval      = 10000  // effectively disable regridding
-   cfl                  = 0.25
+   cfl                  = 0.2
    enable_logging       = TRUE
 
    convective_difference_type         = "PPM"
