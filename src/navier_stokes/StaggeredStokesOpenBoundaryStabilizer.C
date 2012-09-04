@@ -142,6 +142,10 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
+    const bool is_lower                 = location_index%2 == 0;
+
     // Set the unmodified velocity bc coefs.
     d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
@@ -149,30 +153,30 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
     // boundary; or not operating on the correct velocity component, then there
     // is nothing else to do.
     if (!gcoef_data) return;
-    const unsigned int location_index = bdry_box.getLocationIndex();
     if (!d_open_bdry[location_index]) return;
-    const unsigned int bdry_normal_axis = location_index/2;
     if (bdry_normal_axis != d_comp_idx) return;
 
-    // Attempt to obtain the velocity data.  If the current velocity data is
-    // NULL, there is nothing else to do.
-    if (d_target_idxs.empty()) return;
-    Pointer<SideData<NDIM,double> > u_data = patch.getPatchData(d_target_idxs[0]);
-    if (!u_data) return;  // XXXX: This is very hack-y.
+    // Check to see if the "target" velocity data are available; if not, then
+    // there is nothing else to do.
+    Pointer<SideData<NDIM,double> > u_target_data;
+    if      (d_u_target_data_idx >= 0) u_target_data = patch.getPatchData(d_u_target_data_idx);
+    else if (d_target_data_idx   >= 0) u_target_data = patch.getPatchData(d_target_data_idx  );
+    if (!u_target_data) return;
+
+    // Attempt to obtain the velocity data managed by the fluid solver are
+    // available.  If the "current" velocity data are not available, then there
+    // is nothing else to do.  We also make use of the "new" velocity data when
+    // possible.
+    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
     Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    ));
     if (!u_current_data) return;
-    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(cycle_num < 0 || (u_current_data && u_new_data));
-#endif
-    Box<NDIM> ghost_box = u_data->getGhostBox() * u_current_data->getGhostBox();
+    Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     if (u_new_data) ghost_box * u_new_data->getGhostBox();
 
     // Where appropriate, update normal traction boundary conditions to penalize
     // flow reversal.
-    const bool is_lower = location_index%2 == 0;
     Box<NDIM> bc_coef_box = acoef_data->getBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -204,8 +208,8 @@ StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
 #endif
             const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
             const double sgn = (is_lower ? -1.0 : 1.0);
-            const double u_n_explicit = sgn*(cycle_num > 0 ? 0.5*((*u_new_data)(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
-            const double u_n_implicit = sgn*                 0.5*((*u_data    )(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
+            const double u_n_explicit = sgn*(cycle_num > 0 ? 0.5*((*u_new_data   )(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
+            const double u_n_implicit = sgn*                 0.5*((*u_target_data)(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
             if      (d_inflow_bdry[location_index] && u_n_explicit > 0.0)
             {
                 gamma += d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;

@@ -1664,13 +1664,11 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
-        U_star_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time,new_time);
     }
     INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
-    Phi_bc_coef->setStokesSpecifications(&d_problem_coefs);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5*(current_time+new_time));
     Phi_bc_coef->setTimeInterval(current_time,new_time);

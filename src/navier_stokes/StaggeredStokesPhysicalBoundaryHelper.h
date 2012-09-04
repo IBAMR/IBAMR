@@ -77,7 +77,7 @@ public:
         int p_data_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         double fill_time,
-        bool homogeneous_bcs,
+        bool homogeneous_bc,
         int coarsest_ln=-1,
         int finest_ln=-1) const;
 
@@ -91,7 +91,7 @@ public:
         int p_data_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         double fill_time,
-        bool homogeneous_bcs,
+        bool homogeneous_bc,
         int coarsest_ln=-1,
         int finest_ln=-1) const;
 

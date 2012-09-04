@@ -398,9 +398,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_U_star_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
+        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,d_bc_coefs);
     }
-    d_Phi_bc_coef = new INSProjectionBcCoef(&d_problem_coefs,d_bc_coefs);
+    d_Phi_bc_coef = new INSProjectionBcCoef(d_bc_coefs);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();

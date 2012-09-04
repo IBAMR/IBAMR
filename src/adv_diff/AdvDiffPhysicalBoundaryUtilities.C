@@ -83,7 +83,11 @@ AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
-        if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(false);
+        if (extended_bc_coef)
+        {
+            extended_bc_coef->clearTargetPatchDataIndex();
+            extended_bc_coef->setHomogeneousBc(false);
+        }
     }
 
     // Set the boundary conditions.
@@ -106,24 +110,21 @@ AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data,false);
+        Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
-            bc_coefs[depth]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, fill_time);
+            bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
                 const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!is_inflow_bdry) continue;
-                const double& a = acoef_data(i,0);
-                const double& b = bcoef_data(i,0);
-                const double& g = gcoef_data(i,0);
+                const double& a = (*acoef_data)(i,0);
+                const double& b = (*bcoef_data)(i,0);
+                const double& g = (*gcoef_data)(i,0);
                 const double& h = dx[bdry_normal_axis];
                 int sgn;
                 Index<NDIM> i_intr(i);

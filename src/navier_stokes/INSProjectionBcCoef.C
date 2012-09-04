@@ -65,13 +65,11 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(
-    const StokesSpecifications* problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
-    setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
@@ -82,14 +80,6 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
     // intentionally blank
     return;
 }// ~INSProjectionBcCoef
-
-void
-INSProjectionBcCoef::setStokesSpecifications(
-    const StokesSpecifications* /*problem_coefs*/)
-{
-    // intentionally blank
-    return;
-}// setStokesSpecifications
 
 void
 INSProjectionBcCoef::setPhysicalBcCoefs(
@@ -123,22 +113,26 @@ void
 INSProjectionBcCoef::setTargetPatchDataIndex(
     int target_idx)
 {
-    setTargetPatchDataIndices(std::vector<int>(1,target_idx));
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
     return;
 }// setTargetPatchDataIndex
 
 void
-INSProjectionBcCoef::setTargetPatchDataIndices(
-    const std::vector<int>& target_idxs)
+INSProjectionBcCoef::clearTargetPatchDataIndex()
 {
-    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndices(target_idxs);
+    ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndices(target_idxs);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-}// setTargetPatchDataIndices
+}// clearTargetPatchDataIndex
 
 void
 INSProjectionBcCoef::setHomogeneousBc(

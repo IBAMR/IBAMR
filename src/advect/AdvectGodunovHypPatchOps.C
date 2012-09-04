@@ -1249,10 +1249,10 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_Q_bc_coef[Q_var][depth]);
-            if (extended_bc_coef != NULL)
+            if (extended_bc_coef)
             {
-                extended_bc_coef->setHomogeneousBc(false);
                 extended_bc_coef->setTargetPatchDataIndex(Q_data_idx);
+                extended_bc_coef->setHomogeneousBc(false);
             }
         }
 
@@ -1273,18 +1273,10 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-                ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data,false);
-
-                d_Q_bc_coef[Q_var][depth]->setBcCoefs(
-                    acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr,
-                    Q_var, patch, trimmed_bdry_box, fill_time);
-
+                Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                d_Q_bc_coef[Q_var][depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
                     const Index<NDIM>& i = b();
@@ -1293,9 +1285,9 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
                     bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);
                     if (is_inflow_bdry)
                     {
-                        const double& a = acoef_data(i,0);
-                        const double& b = bcoef_data(i,0);
-                        const double& g = gcoef_data(i,0);
+                        const double& a = (*acoef_data)(i,0);
+                        const double& b = (*bcoef_data)(i,0);
+                        const double& g = (*gcoef_data)(i,0);
                         const double& h = dx[bdry_normal_axis];
 
                         Index<NDIM> i_intr(i);

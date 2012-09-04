@@ -36,10 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/StokesSpecifications.h>
-
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibamr/StokesBcCoefStrategy.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -49,9 +46,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredVelocityBcCoef is a concrete
- * SAMRAI::solv::RobinBcCoefStrategy that is used to specify velocity boundary
- * conditions for the staggered grid incompressible Navier-Stokes solver.
+ * \brief Class INSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
+ * that is used to specify velocity boundary conditions for the staggered grid
+ * incompressible Navier-Stokes solver.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
@@ -60,7 +57,7 @@ namespace IBAMR
  * boundary conditions, respectively, for the velocity.
  */
 class INSStaggeredVelocityBcCoef
-    : public IBTK::ExtendedRobinBcCoefStrategy
+    : public StokesBcCoefStrategy
 {
 public:
     /*!
@@ -84,16 +81,6 @@ public:
      * \brief Destructor.
      */
     ~INSStaggeredVelocityBcCoef();
-
-    /*!
-     * \brief Set the StokesSpecifications object used by this boundary condition
-     * specification object.
-     *
-     * \param problem_coefs   Problem coefficients
-     */
-    void
-    setStokesSpecifications(
-        const StokesSpecifications* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -121,6 +108,53 @@ public:
         double new_time);
 
     /*!
+     * \name StokesBcCoefStrategy interface.
+     */
+    //\{
+
+    /*!
+     * \brief Set the StokesSpecifications object used by this boundary condition
+     * specification object.
+     *
+     * \param problem_coefs   Problem coefficients
+     */
+    void
+    setStokesSpecifications(
+        const StokesSpecifications* problem_coefs);
+
+    /*!
+     * \brief Set the target velocity data index to use when setting physical
+     * boundary conditions and the time at which it is defined.
+     */
+    void
+    setTargetVelocityPatchDataIndex(
+        int u_target_data_idx);
+
+    /*!
+     * \brief Clear the target velocity data index used when setting physical
+     * boundary conditions.
+     */
+    void
+    clearTargetVelocityPatchDataIndex();
+
+    /*!
+     * \brief Set the target pressure data index to use when setting physical
+     * boundary conditions and the time at which it is defined.
+     */
+    void
+    setTargetPressurePatchDataIndex(
+        int p_target_data_idx);
+
+    /*!
+     * \brief Clear the target pressure data index used when setting physical
+     * boundary conditions.
+     */
+    void
+    clearTargetPressurePatchDataIndex();
+
+    //\}
+
+    /*!
      * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{
@@ -133,11 +167,10 @@ public:
         int target_idx);
 
     /*!
-     * \brief Set the target data indices.
+     * \brief Clear the target data index.
      */
     void
-    setTargetPatchDataIndices(
-        const std::vector<int>& target_idxs);
+    clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -251,11 +284,6 @@ private:
      * to operate on.
      */
     const unsigned int d_comp_idx;
-
-    /*
-     * Problem coefficients.
-     */
-    const StokesSpecifications* d_problem_coefs;
 
     /*
      * The boundary condition specification objects for the velocity.

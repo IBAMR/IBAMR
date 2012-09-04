@@ -45,10 +45,8 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/namespaces.h>
-
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
@@ -84,7 +82,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int p_data_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const double fill_time,
-    const bool homogeneous_bcs,
+    const bool homogeneous_bc,
     const int coarsest_ln,
     const int finest_ln) const
 {
@@ -122,15 +120,27 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (extended_bc_coef)
                     {
-                        extended_bc_coef->setTargetPatchDataIndices(target_data_idxs);
-                        extended_bc_coef->setHomogeneousBc(homogeneous_bcs);
+                        extended_bc_coef->clearTargetPatchDataIndex();
+                        extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                    }
+                    StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
+                    if (stokes_bc_coef)
+                    {
+                        stokes_bc_coef->setTargetVelocityPatchDataIndex(u_data_idx);
+                        stokes_bc_coef->setTargetPressurePatchDataIndex(p_data_idx);
                     }
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM> >(), *patch, trimmed_bdry_box, fill_time);
+                    if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+                    if (stokes_bc_coef)
+                    {
+                        stokes_bc_coef->clearTargetVelocityPatchDataIndex();
+                        stokes_bc_coef->clearTargetPressurePatchDataIndex();
+                    }
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                     {
                         const Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i,0);
-                        const double  gamma = homogeneous_bcs && !extended_bc_coef ? 0.0 : (*gcoef_data)(i,0);
+                        const double  gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i,0);
 #ifdef DEBUG_CHECK_ASSERTIONS
                         const double& beta  = (*bcoef_data)(i,0);
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha+beta,1.0));
@@ -150,7 +160,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalTractionBoundaryConditions(
     const int p_data_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const double fill_time,
-    const bool homogeneous_bcs,
+    const bool homogeneous_bc,
     const int coarsest_ln,
     const int finest_ln) const
 {
@@ -194,15 +204,27 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalTractionBoundaryConditions(
                     ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (extended_bc_coef)
                     {
-                        extended_bc_coef->setTargetPatchDataIndices(target_data_idxs);
-                        extended_bc_coef->setHomogeneousBc(homogeneous_bcs);
+                        extended_bc_coef->clearTargetPatchDataIndex();
+                        extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                    }
+                    StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
+                    if (stokes_bc_coef)
+                    {
+                        stokes_bc_coef->setTargetVelocityPatchDataIndex(u_data_idx);
+                        stokes_bc_coef->setTargetPressurePatchDataIndex(p_data_idx);
                     }
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM> >(), *patch, trimmed_bdry_box, fill_time);
+                    if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+                    if (stokes_bc_coef)
+                    {
+                        stokes_bc_coef->clearTargetVelocityPatchDataIndex();
+                        stokes_bc_coef->clearTargetPressurePatchDataIndex();
+                    }
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                     {
                         const Index<NDIM>& i = it();
                         const double& beta  = (*bcoef_data)(i,0);
-                        const double  gamma = homogeneous_bcs && !extended_bc_coef ? 0.0 : (*gcoef_data)(i,0);
+                        const double  gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i,0);
 #ifdef DEBUG_CHECK_ASSERTIONS
                         const double& alpha = (*acoef_data)(i,0);
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha+beta,1.0));
@@ -236,7 +258,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalTractionBoundaryConditions(
                             const double h = dx[bdry_normal_axis];
                             const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
                             const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
-                            const double g = -gamma + (homogeneous_bcs ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm;
+                            const double g = -gamma + (homogeneous_bc ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm;
                             (*p_half_data)(i_g) = 2.0*g-(*p_half_data)(i_i);
                         }
                     }

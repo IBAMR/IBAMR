@@ -63,13 +63,11 @@ namespace IBAMR
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     const int comp_idx,
-    const StokesSpecifications* problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
-    setStokesSpecifications(problem_coefs);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
@@ -80,14 +78,6 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     // intentionally blank
     return;
 }// ~INSIntermediateVelocityBcCoef
-
-void
-INSIntermediateVelocityBcCoef::setStokesSpecifications(
-    const StokesSpecifications* /*problem_coefs*/)
-{
-    // intentionally blank
-    return;
-}// setStokesSpecifications
 
 void
 INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
@@ -121,22 +111,26 @@ void
 INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(
     int target_idx)
 {
-    setTargetPatchDataIndices(std::vector<int>(1,target_idx));
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
     return;
 }// setTargetPatchDataIndex
 
 void
-INSIntermediateVelocityBcCoef::setTargetPatchDataIndices(
-    const std::vector<int>& target_idxs)
+INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
 {
-    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndices(target_idxs);
+    ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndices(target_idxs);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-}// setTargetPatchDataIndices
+}// clearTargetPatchDataIndex
 
 void
 INSIntermediateVelocityBcCoef::setHomogeneousBc(

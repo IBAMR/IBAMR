@@ -310,12 +310,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const Box<NDIM> bc_coef_box = compute_tangential_extension(PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-
-                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
+                Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -334,11 +331,15 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
+                static const bool homogeneous_bc = true;
                 ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
-                if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
-                u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-                    *patch, trimmed_bdry_box, data_time);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                }
+                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
                 patch->setPatchGeometry(pgeom);
@@ -348,8 +349,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    const double& a = acoef_data(i,0);
-                    const double& b = bcoef_data(i,0);
+                    const double& a = (*acoef_data)(i,0);
+                    const double& b = (*bcoef_data)(i,0);
                     TBOX_ASSERT(a == 1.0 || MathUtilities<double>::equalEps(a,1.0));
                     TBOX_ASSERT(b == 0.0 || MathUtilities<double>::equalEps(b,0.0));
 
@@ -400,19 +401,20 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-
-                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
+                Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
+                static const bool homogeneous_bc = true;
                 ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
-                if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
-                u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-                    *patch, trimmed_bdry_box, data_time);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                }
+                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
@@ -420,8 +422,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 {
                     const Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                    const double& a = acoef_data(i,0);
-                    const double& b = bcoef_data(i,0);
+                    const double& a = (*acoef_data)(i,0);
+                    const double& b = (*bcoef_data)(i,0);
                     TBOX_ASSERT(a == 1.0 || !MathUtilities<double>::equalEps(a,1.0));
                     TBOX_ASSERT(b == 0.0 || !MathUtilities<double>::equalEps(b,0.0));
                     uu_matrix_coefs(i_s,0) = 1.0;

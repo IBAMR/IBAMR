@@ -37,9 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-
-// IBTK INCLUDE
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibamr/StokesBcCoefStrategy.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -54,7 +52,7 @@ namespace IBAMR
  * physical boundaries that penalizes reversed flow.
  */
 class StaggeredStokesOpenBoundaryStabilizer
-    : public IBTK::ExtendedRobinBcCoefStrategy
+    : public StokesBcCoefStrategy
 {
 public:
     /*!

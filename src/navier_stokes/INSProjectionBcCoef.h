@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StokesSpecifications.h>
-
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
@@ -67,7 +64,6 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \param problem_coefs   Problem coefficients
      * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
@@ -75,7 +71,6 @@ public:
      * class constructor.
      */
     INSProjectionBcCoef(
-        const StokesSpecifications* problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
@@ -83,16 +78,6 @@ public:
      * \brief Destructor.
      */
     ~INSProjectionBcCoef();
-
-    /*!
-     * \brief Set the StokesSpecifications object used by this boundary condition
-     * specification object.
-     *
-     * \param problem_coefs   Problem coefficients
-     */
-    void
-    setStokesSpecifications(
-        const StokesSpecifications* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -132,11 +117,10 @@ public:
         int target_idx);
 
     /*!
-     * \brief Set the target data indices.
+     * \brief Clear the target data index.
      */
     void
-    setTargetPatchDataIndices(
-        const std::vector<int>& target_idxs);
+    clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
