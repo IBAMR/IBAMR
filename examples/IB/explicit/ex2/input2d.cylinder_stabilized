@@ -25,8 +25,9 @@ CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE               // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                 // maximum CFL number
 DT                  = 6.25e-2*DX_FINEST   // maximum timestep size
-ERROR_ON_DT_CHANGE  = TRUE                // whether to emit an error message if the time step size changes
+ERROR_ON_DT_CHANGE  = FALSE               // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER          = 1                   // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                 // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
@@ -40,8 +41,8 @@ PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 BoundaryStabilization {
-   alpha = 1.0
-   beta  = 1.2
+   alpha = RHO
+   beta  = 2.0
    stabilization_type_0 = "INFLOW"
    stabilization_type_1 = "OUTFLOW"
 }
@@ -77,7 +78,7 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "cos(pi*X_1/16.0)*exp(-2.0*t)"
+   gcoef_function_0 = "cos(pi*X_1/16.0)*exp(-0.5*t)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -132,6 +133,7 @@ INSCollocatedHierarchyIntegrator {
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
    vorticity_abs_thresh          = 0.25,0.5,1,2
+   tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
    output_F                      = OUTPUT_F
@@ -156,6 +158,7 @@ INSStaggeredHierarchyIntegrator {
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
    vorticity_abs_thresh          = 0.25,0.5,1,2
+   tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
    output_F                      = OUTPUT_F
@@ -190,9 +193,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = -0.5*L,-0.5*L
-   x_up =  0.5*L, 0.5*L
+   domain_boxes = [ (0,0),(N/2 - 1,N - 1) ]
+   x_lo = -0.125*L,-0.5*L
+   x_up =  0.375*L, 0.5*L
    periodic_dimension = 0,0
 }
 
