@@ -38,9 +38,6 @@
 // SAMRAI INCLUDES
 #include <RobinBcCoefStrategy.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -49,8 +46,8 @@ namespace IBTK
  * \brief Class ExtendedRobinBcCoefStrategy is a subclass of the abstract base
  * class SAMRAI::solv::RobinBcCoefStrategy that extends the functionality of
  * SAMRAI::solv::RobinBcCoefStrategy to allow for the specification of patch
- * data descriptor indices that are required for filling either homogeneous and
- * inhomogeneous boundary data.
+ * data descriptor indices that are required for filling, and the specification
+ * of whether homogeneous or inhomogeneous boundary data should be set.
  */
 class ExtendedRobinBcCoefStrategy
     : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
@@ -77,14 +74,13 @@ public:
      */
     virtual void
     setTargetPatchDataIndex(
-        int target_idx);
+        int target_data_idx);
 
     /*!
-     * \brief Set the target data indices.
+     * \brief Clear the target data index.
      */
     virtual void
-    setTargetPatchDataIndices(
-        const std::vector<int>& target_idxs);
+    clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -98,9 +94,9 @@ public:
 
 protected:
     /*
-     * The patch data indices corresponding to the data to be filled.
+     * The patch data index corresponding to the data to be filled.
      */
-    std::vector<int> d_target_idxs;
+    int d_target_data_idx;
 
     /*
      * Whether to use homogeneous boundary conditions.

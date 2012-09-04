@@ -569,6 +569,11 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
+    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    {
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
+    }
     return;
 }// xeqScheduleProlongation
 
@@ -608,6 +613,11 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
+    for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
+    {
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
+    }
     return;
 }// xeqScheduleGhostFillNoCoarse
 

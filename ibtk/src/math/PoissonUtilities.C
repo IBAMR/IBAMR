@@ -227,22 +227,21 @@ PoissonUtilities::computeCCMatrixCoefficients(
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
-        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
-        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
+        Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
             static const bool homogeneous_bc = true;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[d]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[d]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis =  location_index / 2;
@@ -270,8 +269,8 @@ PoissonUtilities::computeCCMatrixCoefficients(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i_s_bdry = b();
-                const double& a = acoef_data(i_s_bdry,0);
-                const double& b = bcoef_data(i_s_bdry,0);
+                const double& a = (*acoef_data)(i_s_bdry,0);
+                const double& b = (*bcoef_data)(i_s_bdry,0);
                 const double& h = dx[bdry_normal_axis];
 
                 // i_s_bdry: side index located on physical boundary
@@ -389,7 +388,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
     }
     else
     {
-       negD_imag.fill(poisson_spec_imag.getDConstant());
+        negD_imag.fill(poisson_spec_imag.getDConstant());
     }
 
     ArrayDataBasicOps<NDIM,double> array_ops;
@@ -413,24 +412,24 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
         if (!poisson_spec_real.dIsConstant())
         {
             off_diagonal.copyDepth(2*d,   dynamic_cast<SideData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),0);
-	    off_diagonal.copyDepth(2*d+3, dynamic_cast<SideData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),0);
+            off_diagonal.copyDepth(2*d+3, dynamic_cast<SideData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),0);
         }
         else
         {
             off_diagonal.fill(poisson_spec_real.getDConstant(),2*d);
-	    off_diagonal.fill(poisson_spec_real.getDConstant(),2*d+3);
+            off_diagonal.fill(poisson_spec_real.getDConstant(),2*d+3);
         }
 
         off_diagonal.copyDepth(2*d+1, negD_imag,0);
-	if (!poisson_spec_imag.dIsConstant())
-	{
-	    off_diagonal.copyDepth(2*d+2, dynamic_cast<SideData<NDIM,double>& >(*patch->getPatchData(poisson_spec_imag.getDPatchDataId())),0);
+        if (!poisson_spec_imag.dIsConstant())
+        {
+            off_diagonal.copyDepth(2*d+2, dynamic_cast<SideData<NDIM,double>& >(*patch->getPatchData(poisson_spec_imag.getDPatchDataId())),0);
 
-	}
-	else
-	{
-	    off_diagonal.fill(poisson_spec_imag.getDConstant(),2*d+2);
-	}
+        }
+        else
+        {
+            off_diagonal.fill(poisson_spec_imag.getDConstant(),2*d+2);
+        }
     }
 
 
@@ -452,20 +451,20 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
         if (!poisson_spec_real.cIsZero() && !poisson_spec_real.cIsConstant())
         {
             diagonal.copyDepth(2*d,   dynamic_cast<CellData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),0);
-	    diagonal.copyDepth(2*d+3, dynamic_cast<CellData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),0);
+            diagonal.copyDepth(2*d+3, dynamic_cast<CellData<NDIM,double>& >(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),0);
         }
         else
         {
             if (poisson_spec_real.cIsZero())
-	    {
-	        diagonal.fill(0.0,2*d);
-		diagonal.fill(0.0,2*d+3);
-	    }
+            {
+                diagonal.fill(0.0,2*d);
+                diagonal.fill(0.0,2*d+3);
+            }
             else
-	    {
-	        diagonal.fill(poisson_spec_real.getCConstant(),2*d);
-		diagonal.fill(poisson_spec_real.getCConstant(),2*d+3);
-	    }
+            {
+                diagonal.fill(poisson_spec_real.getCConstant(),2*d);
+                diagonal.fill(poisson_spec_real.getCConstant(),2*d+3);
+            }
         }
 
         diagonal.copyDepth(2*d+1, negC_imag,0);
@@ -505,34 +504,22 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-	Array<ArrayData<NDIM,double> > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
-        for (int d = 0; d < depth; ++d)
-	{
-	    acoef_data[d].initializeArray(bc_coef_box, 1);
-	    bcoef_data[d].initializeArray(bc_coef_box, 1);
-	    gcoef_data[d].initializeArray(bc_coef_box, 1);
-	}
-
-	std::vector<Pointer<ArrayData<NDIM,double> > > acoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-	std::vector<Pointer<ArrayData<NDIM,double> > > bcoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-	std::vector<Pointer<ArrayData<NDIM,double> > > gcoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-
-	for (int d = 0; d < depth; ++d)
-	{
-	    acoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&acoef_data[d],false);
-	    bcoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&bcoef_data[d],false);
-	    gcoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&gcoef_data[d],false);
-	}
-
+        std::vector<Pointer<ArrayData<NDIM,double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
         for (int d = 0; d < depth; ++d)
         {
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
+            acoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            bcoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            gcoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
             static const bool homogeneous_bc = true;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[d]->setBcCoefs(acoef_data_ptr[d], bcoef_data_ptr[d], gcoef_data_ptr[d], NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data[d].fillAll(0.0);
-	}
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[d]->setBcCoefs(acoef_data[d], bcoef_data[d], gcoef_data[d], NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data[d]->fillAll(0.0);
+        }
 
         for (int d = 0; d < depth; d = d+2)
         {
@@ -562,10 +549,10 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i_s_bdry = b();
-                const double& areal = acoef_data[d](i_s_bdry,0);
-                const double& breal = bcoef_data[d](i_s_bdry,0);
-                const double& aimag = acoef_data[d+1](i_s_bdry,0);
-                const double& bimag = bcoef_data[d+1](i_s_bdry,0);
+                const double& areal = (*acoef_data[d  ])(i_s_bdry,0);
+                const double& breal = (*bcoef_data[d  ])(i_s_bdry,0);
+                const double& aimag = (*acoef_data[d+1])(i_s_bdry,0);
+                const double& bimag = (*bcoef_data[d+1])(i_s_bdry,0);
 
                 const double& h = dx[bdry_normal_axis];
 
@@ -628,23 +615,23 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
         {
             const Index<NDIM>& i = b();
             matrix_coefficients(i,offset+stencil_index_diag)              = diagonal(i,2*d);
-	    matrix_coefficients(i,offset+stencil_index_diag+stencil_sz)   = diagonal(i,2*d+1);
-	    matrix_coefficients(i,offset+stencil_index_diag+2*stencil_sz) = diagonal(i,2*d+2);
-	    matrix_coefficients(i,offset+stencil_index_diag+3*stencil_sz) = diagonal(i,2*d+3);
+            matrix_coefficients(i,offset+stencil_index_diag+stencil_sz)   = diagonal(i,2*d+1);
+            matrix_coefficients(i,offset+stencil_index_diag+2*stencil_sz) = diagonal(i,2*d+2);
+            matrix_coefficients(i,offset+stencil_index_diag+3*stencil_sz) = diagonal(i,2*d+3);
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
                 matrix_coefficients(i,offset+stencil_index_lower[axis]) = off_diagonal(ilower,2*d);
-		matrix_coefficients(i,offset+stencil_index_lower[axis]+stencil_sz) = off_diagonal(ilower,2*d+1);
-		matrix_coefficients(i,offset+stencil_index_lower[axis]+2*stencil_sz) = off_diagonal(ilower,2*d+2);
-		matrix_coefficients(i,offset+stencil_index_lower[axis]+3*stencil_sz) = off_diagonal(ilower,2*d+3);
+                matrix_coefficients(i,offset+stencil_index_lower[axis]+stencil_sz) = off_diagonal(ilower,2*d+1);
+                matrix_coefficients(i,offset+stencil_index_lower[axis]+2*stencil_sz) = off_diagonal(ilower,2*d+2);
+                matrix_coefficients(i,offset+stencil_index_lower[axis]+3*stencil_sz) = off_diagonal(ilower,2*d+3);
 
                 const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
                 matrix_coefficients(i,offset+stencil_index_upper[axis]) = off_diagonal(iupper,2*d);
-		matrix_coefficients(i,offset+stencil_index_upper[axis]+stencil_sz) = off_diagonal(iupper,2*d+1);
-		matrix_coefficients(i,offset+stencil_index_upper[axis]+2*stencil_sz) = off_diagonal(iupper,2*d+2);
-		matrix_coefficients(i,offset+stencil_index_upper[axis]+3*stencil_sz) = off_diagonal(iupper,2*d+3);
+                matrix_coefficients(i,offset+stencil_index_upper[axis]+stencil_sz) = off_diagonal(iupper,2*d+1);
+                matrix_coefficients(i,offset+stencil_index_upper[axis]+2*stencil_sz) = off_diagonal(iupper,2*d+2);
+                matrix_coefficients(i,offset+stencil_index_upper[axis]+3*stencil_sz) = off_diagonal(iupper,2*d+3);
             }
         }
     }
@@ -767,13 +754,9 @@ PoissonUtilities::computeSCMatrixCoefficients(
             const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = compute_tangential_extension(PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-            Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-            Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-            Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data,false);
+            Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -792,12 +775,15 @@ PoissonUtilities::computeSCMatrixCoefficients(
                     dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
             static const bool homogeneous_bc = true;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Restore the original patch geometry object.
             patch->setPatchGeometry(pgeom);
@@ -823,8 +809,8 @@ PoissonUtilities::computeSCMatrixCoefficients(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
-                const double& a = acoef_data(i,0);
-                const double& b = bcoef_data(i,0);
+                const double& a = (*acoef_data)(i,0);
+                const double& b = (*bcoef_data)(i,0);
                 const double& h = dx[bdry_normal_axis];
 
                 Index<NDIM> i_intr = i;
@@ -874,21 +860,20 @@ PoissonUtilities::computeSCMatrixCoefficients(
             const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-            Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-            Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-            Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data,false);
+            Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
             static const bool homogeneous_bc = true;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Modify the matrix coefficients to account for homogeneous
             // boundary conditions.
@@ -916,8 +901,8 @@ PoissonUtilities::computeSCMatrixCoefficients(
             {
                 const Index<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                const double& a = acoef_data(i,0);
-                const double& b = bcoef_data(i,0);
+                const double& a = (*acoef_data)(i,0);
+                const double& b = (*bcoef_data)(i,0);
                 if (b == 0.0)
                 {
                     for (int k = 0; k < stencil_sz; ++k)
@@ -1000,21 +985,20 @@ PoissonUtilities::adjustCCBoundaryRhsEntries(
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
-        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
-        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
+        Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[d]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[d]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis =  location_index / 2;
@@ -1049,9 +1033,9 @@ PoissonUtilities::adjustCCBoundaryRhsEntries(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i_s_bdry = b();
-                const double& a = acoef_data(i_s_bdry,0);
-                const double& b = bcoef_data(i_s_bdry,0);
-                const double& g = gcoef_data(i_s_bdry,0);
+                const double& a = (*acoef_data)(i_s_bdry,0);
+                const double& b = (*bcoef_data)(i_s_bdry,0);
+                const double& g = (*gcoef_data)(i_s_bdry,0);
                 const double& h = dx[bdry_normal_axis];
                 Index<NDIM> i_c_intr = i_s_bdry;
                 if (bdry_upper_side)
@@ -1128,37 +1112,24 @@ PoissonUtilities::adjustCCComplexBoundaryRhsEntries(
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-	Array<ArrayData<NDIM,double> > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
-	for (int d = 0; d < depth; ++d)
-	{
-	    acoef_data[d].initializeArray(bc_coef_box, 1);
-	    bcoef_data[d].initializeArray(bc_coef_box, 1);
-	    gcoef_data[d].initializeArray(bc_coef_box, 1);
-	}
-
-	std::vector<Pointer<ArrayData<NDIM,double> > > acoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-	std::vector<Pointer<ArrayData<NDIM,double> > > bcoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-	std::vector<Pointer<ArrayData<NDIM,double> > > gcoef_data_ptr(depth,Pointer<ArrayData<NDIM,double> >(NULL,false) );
-
-	for (int d = 0; d < depth; ++d)
-	{
-	    acoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&acoef_data[d],false);
-	    bcoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&bcoef_data[d],false);
-	    gcoef_data_ptr[d] = Pointer<ArrayData<NDIM,double> >(&gcoef_data[d],false);
-	}
-
+        std::vector<Pointer<ArrayData<NDIM,double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
         for (int d = 0; d < depth; ++d)
         {
+            acoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            bcoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            gcoef_data[d] = new ArrayData<NDIM,double>(bc_coef_box, 1);
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[d]->setBcCoefs(acoef_data_ptr[d], bcoef_data_ptr[d], gcoef_data_ptr[d], NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data[d].fillAll(0.0);
-	}
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[d]->setBcCoefs(acoef_data[d], bcoef_data[d], gcoef_data[d], NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data[d]->fillAll(0.0);
+        }
 
         for (int d = 0; d < depth; d = d+2)
         {
-
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis =  location_index / 2;
             const bool bdry_upper_side = (location_index % 2) != 0;
@@ -1193,12 +1164,12 @@ PoissonUtilities::adjustCCComplexBoundaryRhsEntries(
             {
                 const Index<NDIM>& i_s_bdry = b();
 
-                const double& areal = acoef_data[d](i_s_bdry,0);
-                const double& breal = bcoef_data[d](i_s_bdry,0);
-                const double& greal = gcoef_data[d](i_s_bdry,0);
-                const double& aimag = acoef_data[d+1](i_s_bdry,0);
-                const double& bimag = bcoef_data[d+1](i_s_bdry,0);
-                const double& gimag = gcoef_data[d+1](i_s_bdry,0);
+                const double& areal = (*acoef_data[d  ])(i_s_bdry,0);
+                const double& breal = (*bcoef_data[d  ])(i_s_bdry,0);
+                const double& greal = (*gcoef_data[d  ])(i_s_bdry,0);
+                const double& aimag = (*acoef_data[d+1])(i_s_bdry,0);
+                const double& bimag = (*bcoef_data[d+1])(i_s_bdry,0);
+                const double& gimag = (*gcoef_data[d+1])(i_s_bdry,0);
 
                 const double& h = dx[bdry_normal_axis];
                 Index<NDIM> i_c_intr = i_s_bdry;
@@ -1207,10 +1178,10 @@ PoissonUtilities::adjustCCComplexBoundaryRhsEntries(
                     i_c_intr(bdry_normal_axis) -= 1;
                 }
                 rhs_data(i_c_intr,d) += (D_data_real.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*greal)/(2.0*breal+h*areal)
-		                       -(D_data_imag.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*gimag)/(2.0*bimag+h*aimag);
+                    -(D_data_imag.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*gimag)/(2.0*bimag+h*aimag);
 
                 rhs_data(i_c_intr,d+1) += (D_data_imag.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*greal)/(2.0*breal+h*areal)
-		                         +(D_data_real.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*gimag)/(2.0*bimag+h*aimag);
+                    +(D_data_real.getArrayData(bdry_normal_axis,bdry_side)(i_s_bdry,0)/h)*(-2.0*gimag)/(2.0*bimag+h*aimag);
             }
         }
     }
@@ -1278,13 +1249,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = compute_tangential_extension(PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-            Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-            Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-            Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
+            Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1304,10 +1271,13 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
 
             // Set the boundary condition coefficients.
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Restore the original patch geometry object.
             patch->setPatchGeometry(pgeom);
@@ -1336,9 +1306,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
-                const double& a = acoef_data(i,0);
-                const double& b = bcoef_data(i,0);
-                const double& g = gcoef_data(i,0);
+                const double& a = (*acoef_data)(i,0);
+                const double& b = (*bcoef_data)(i,0);
+                const double& g = (*gcoef_data)(i,0);
                 const double& h = dx[bdry_normal_axis];
                 Index<NDIM> i_intr = i;
                 if (is_lower)
@@ -1376,20 +1346,19 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-            ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
-
-            Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-            Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-            Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
+            Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
-            const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-            if (using_extended_robin_bc_coef) extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-            bc_coefs[axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL, *patch, trimmed_bdry_box, data_time);
-            if (homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data.fillAll(0.0);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // For the non-symmetric boundary treatment,
             //
@@ -1414,9 +1383,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i = b();
-//              const double& a = acoef_data(i,0);
-                const double& b = bcoef_data(i,0);
-                const double& g = gcoef_data(i,0);
+//              const double& a = (*acoef_data)(i,0);
+                const double& b = (*bcoef_data)(i,0);
+                const double& g = (*gcoef_data)(i,0);
                 const double& h = dx[bdry_normal_axis];
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
                 if (b != 0.0)

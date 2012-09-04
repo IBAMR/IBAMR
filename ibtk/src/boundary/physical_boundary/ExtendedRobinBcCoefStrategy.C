@@ -46,7 +46,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy()
-    : d_target_idxs(),
+    : d_target_data_idx(-1),
       d_homogeneous_bc(false)
 {
     // intentionally blank
@@ -61,19 +61,21 @@ ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
 
 void
 ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(
-    int target_idx)
+    int target_data_idx)
 {
-    setTargetPatchDataIndices(std::vector<int>(1,target_idx));
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(target_data_idx >= 0);
+#endif
+    d_target_data_idx = target_data_idx;
     return;
 }// setTargetPatchDataIndex
 
 void
-ExtendedRobinBcCoefStrategy::setTargetPatchDataIndices(
-    const std::vector<int>& target_idxs)
+ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
 {
-    d_target_idxs = target_idxs;
+    d_target_data_idx = -1;
     return;
-}// setTargetPatchDataIndices
+}// clearTargetPatchDataIndex
 
 void
 ExtendedRobinBcCoefStrategy::setHomogeneousBc(

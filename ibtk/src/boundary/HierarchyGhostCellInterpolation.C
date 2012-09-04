@@ -39,7 +39,6 @@
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
@@ -504,24 +503,10 @@ HierarchyGhostCellInterpolation::fillData(
     TBOX_ASSERT(d_is_initialized);
 #endif
     // Ensure the boundary condition objects are in the correct state.
-    std::vector<int> dst_data_idxs;
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-    {
-        dst_data_idxs.push_back(d_transaction_comps[comp_idx].d_dst_data_idx);
-    }
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         if (d_cc_robin_bc_ops[comp_idx]) d_cc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
         if (d_sc_robin_bc_ops[comp_idx]) d_sc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_transaction_comps[comp_idx].d_robin_bc_coefs.begin(); it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
-        {
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
-            if (extended_bc_coef)
-            {
-                extended_bc_coef->setTargetPatchDataIndices(dst_data_idxs);
-                extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
-            }
-        }
     }
 
     // Synchronize data on the patch hierarchy prior to filling ghost cell
