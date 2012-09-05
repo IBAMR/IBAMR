@@ -342,12 +342,14 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         d_stokes_solver_type = input_db->getString("stokes_solver_type");
         if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
     }
+    if (!d_stokes_solver_db) d_stokes_solver_db = new MemoryDatabase();
 
     if (input_db->keyExists("stokes_precond_type"))
     {
         d_stokes_precond_type = input_db->getString("stokes_precond_type");
         if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
     }
+    if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase();
 
     // Setup physical boundary conditions objects.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
