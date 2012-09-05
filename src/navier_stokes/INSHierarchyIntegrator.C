@@ -570,42 +570,42 @@ INSHierarchyIntegrator::getFromInput(
         d_velocity_solver_type = db->getString("velocity_solver_type");
         if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
     }
-    if (!d_velocity_solver_db) d_velocity_solver_db = new MemoryDatabase();
+    if (!d_velocity_solver_db) d_velocity_solver_db = new MemoryDatabase("velocity_solver_db");
 
     if (db->keyExists("velocity_precond_type"))
     {
         d_velocity_precond_type = db->getString("velocity_precond_type");
         if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
     }
-    if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase();
+    if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
 
     if (db->keyExists("pressure_solver_type"))
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
         if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
     }
-    if (!d_pressure_solver_db) d_pressure_solver_db = new MemoryDatabase();
+    if (!d_pressure_solver_db) d_pressure_solver_db = new MemoryDatabase("pressure_solver_db");
 
     if (db->keyExists("pressure_precond_type"))
     {
         d_pressure_precond_type = db->getString("pressure_precond_type");
         if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     }
-    if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase();
+    if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
 
     if (db->keyExists("regrid_projection_solver_type"))
     {
         d_regrid_projection_solver_type = db->getString("regrid_projection_solver_type");
         if (db->keyExists("regrid_projection_solver_db")) d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
     }
-    if (!d_regrid_projection_solver_db) d_regrid_projection_solver_db = new MemoryDatabase();
+    if (!d_regrid_projection_solver_db) d_regrid_projection_solver_db = new MemoryDatabase("regrid_projection_solver_db");
 
     if (db->keyExists("regrid_projection_precond_type"))
     {
         d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
         if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
     }
-    if (!d_regrid_projection_precond_db) d_regrid_projection_precond_db = new MemoryDatabase();
+    if (!d_regrid_projection_precond_db) d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
     return;
 }// getFromInput
 
