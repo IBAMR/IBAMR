@@ -104,25 +104,27 @@ namespace
 {
 Pointer<PoissonSolver>
 allocate_default_krylov_solver(
-    const std::string& solver_object_name,
-    Pointer<Database> solver_input_db)
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
 {
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::CCLaplaceOperator"));
+            KrylovLinearSolverManager::DEFAULT, object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(new CCLaplaceOperator(object_name+"::CCLaplaceOperator"));
     return krylov_solver;
 }// allocate_default_krylov_solver
 
 Pointer<PoissonSolver>
 allocate_petsc_krylov_solver(
-    const std::string& solver_object_name,
-    Pointer<Database> solver_input_db)
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
 {
     Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new CCLaplaceOperator(solver_object_name+"::CCLaplaceOperator"));
+            KrylovLinearSolverManager::PETSC, object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(new CCLaplaceOperator(object_name+"::CCLaplaceOperator"));
     return krylov_solver;
 }// allocate_petsc_krylov_solver
 }
@@ -133,7 +135,8 @@ Pointer<PoissonSolver>
 CCPoissonSolverManager::allocateSolver(
     const std::string& solver_type,
     const std::string& solver_object_name,
-    Pointer<Database> solver_input_db) const
+    Pointer<Database> solver_input_db,
+    const std::string& solver_default_options_prefix) const
 {
     std::map<std::string,SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
@@ -141,7 +144,7 @@ CCPoissonSolverManager::allocateSolver(
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
-    return (it->second)(solver_object_name, solver_input_db.isNull() ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
+    return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 }// allocateSolver
 
 Pointer<PoissonSolver>
@@ -149,15 +152,17 @@ CCPoissonSolverManager::allocateSolver(
     const std::string& solver_type,
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db,
+    const std::string& solver_default_options_prefix,
     const std::string& precond_type,
     const std::string& precond_object_name,
-    Pointer<Database> precond_input_db) const
+    Pointer<Database> precond_input_db,
+    const std::string& precond_default_options_prefix) const
 {
-    Pointer<PoissonSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db);
+    Pointer<PoissonSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
     if (!p_solver.isNull())
     {
-        p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db));
+        p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     }
     return solver;
 }// allocateSolver
@@ -165,16 +170,14 @@ CCPoissonSolverManager::allocateSolver(
 void
 CCPoissonSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
-    SolverMaker solver_maker,
-    Pointer<Database> default_input_db)
+    SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "CCPoissonSolverManager::registerSolverFactoryFunction():\n"
              << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
-    d_solver_maker_map    [solver_type] = solver_maker;
-    d_default_input_db_map[solver_type] = default_input_db;
+    d_solver_maker_map[solver_type] = solver_maker;
     return;
 }// registerSolverFactoryFunction
 

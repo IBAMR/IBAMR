@@ -517,8 +517,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         const std::string& name = Q_var->getName();
         d_helmholtz_solvers[l] = poisson_solver_manager->allocateSolver(
-            d_helmholtz_solver_type , d_object_name+"::helmholtz_solver::" +name, d_helmholtz_solver_db ,
-            d_helmholtz_precond_type, d_object_name+"::helmholtz_precond::"+name, d_helmholtz_precond_db);
+            d_helmholtz_solver_type , d_object_name+"::helmholtz_solver::" +name, d_helmholtz_solver_db , "adv_diff_"   ,
+            d_helmholtz_precond_type, d_object_name+"::helmholtz_precond::"+name, d_helmholtz_precond_db, "adv_diff_pc_");
         d_helmholtz_solvers_need_init[l] = true;
     }
 
@@ -783,11 +783,6 @@ AdvDiffHierarchyIntegrator::getFromInput(
         if      (db->keyExists("solver_db"          )) d_helmholtz_solver_db = db->getDatabase("solver_db"          );
         else if (db->keyExists("helmholtz_solver_db")) d_helmholtz_solver_db = db->getDatabase("helmholtz_solver_db");
     }
-    if (d_helmholtz_solver_db.isNull()) d_helmholtz_solver_db = new MemoryDatabase(d_object_name+"::helmholtz_solver_db");
-    if (!d_helmholtz_solver_db->keyExists("options_prefix"))
-    {
-        d_helmholtz_solver_db->putString("options_prefix", "adv_diff_");
-    }
 
     if      (db->keyExists("precond_type"          )) d_helmholtz_precond_type = db->getString("precond_type"          );
     else if (db->keyExists("helmholtz_precond_type")) d_helmholtz_precond_type = db->getString("helmholtz_precond_type");
@@ -795,11 +790,6 @@ AdvDiffHierarchyIntegrator::getFromInput(
     {
         if      (db->keyExists("precond_db"          )) d_helmholtz_precond_db = db->getDatabase("precond_db"          );
         else if (db->keyExists("helmholtz_precond_db")) d_helmholtz_precond_db = db->getDatabase("helmholtz_precond_db");
-    }
-    if (d_helmholtz_precond_db.isNull()) d_helmholtz_precond_db = new MemoryDatabase(d_object_name+"::helmholtz_precond_db");
-    if (!d_helmholtz_precond_db->keyExists("options_prefix"))
-    {
-        d_helmholtz_precond_db->putString("options_prefix", "adv_diff_pc_");
     }
     return;
 }// getFromInput

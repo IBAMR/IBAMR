@@ -106,7 +106,8 @@ struct IndexComp
 
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& /*default_options_prefix*/)
     : LinearSolver(object_name, /*homogeneous_bc*/ false),
       PoissonSolver(object_name, /*homogeneous_bc*/ false),
       d_hierarchy(),

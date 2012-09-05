@@ -58,7 +58,8 @@ namespace IBTK
 
 BJacobiPreconditioner::BJacobiPreconditioner(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& /*default_options_prefix*/)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
       d_pc_map()
 {

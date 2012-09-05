@@ -143,8 +143,9 @@ struct IndexComp
 
 CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
-    const Pointer<Database> input_db)
-    : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db),
+    const Pointer<Database> input_db,
+    const std::string& default_options_prefix)
+    : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db, default_options_prefix),
       d_coarse_solver(NULL),
       d_coarse_solver_db(),
       d_using_petsc_smoothers(true),
@@ -248,7 +249,7 @@ CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     d_coarse_solver_type = coarse_solver_type;
     if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
     {
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
     return;
 }// setCoarseSolverType

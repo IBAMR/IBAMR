@@ -106,13 +106,11 @@ class SCPoissonHypreLevelSolver
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name  Name of object.
-     * \param input_db     Database for input.
      */
     SCPoissonHypreLevelSolver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -125,9 +123,10 @@ public:
     static SAMRAI::tbox::Pointer<PoissonSolver>
     allocate_solver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
         {
-            return new SCPoissonHypreLevelSolver(object_name, input_db);
+            return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
         }// allocate_solver
 
     /*!

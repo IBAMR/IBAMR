@@ -60,7 +60,8 @@ public:
     StaggeredStokesFACPreconditioner(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * Destructor.

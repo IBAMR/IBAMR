@@ -342,21 +342,11 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         d_stokes_solver_type = input_db->getString("stokes_solver_type");
         if (input_db->keyExists("stokes_solver_db")) d_stokes_solver_db = input_db->getDatabase("stokes_solver_db");
     }
-    if (!d_stokes_solver_db) d_stokes_solver_db = new MemoryDatabase(d_object_name+"::stokes_solver_db");
-    if (!d_stokes_solver_db->keyExists("options_prefix"))
-    {
-        d_stokes_solver_db->putString("options_prefix", "stokes_");
-    }
 
     if (input_db->keyExists("stokes_precond_type"))
     {
         d_stokes_precond_type = input_db->getString("stokes_precond_type");
         if (input_db->keyExists("stokes_precond_db")) d_stokes_precond_db = input_db->getDatabase("stokes_precond_db");
-    }
-    if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase(d_object_name+"::stokes_precond_db");
-    if (!d_stokes_precond_db->keyExists("options_prefix"))
-    {
-        d_stokes_precond_db->putString("options_prefix", "stokes_pc_");
     }
 
     // Setup physical boundary conditions objects.
@@ -451,8 +441,8 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
     if (!d_velocity_solver)
     {
         d_velocity_solver = SCPoissonSolverManager::getManager()->allocateSolver(
-            d_velocity_solver_type , d_object_name+"::velocity_solver" , d_velocity_solver_db ,
-            d_velocity_precond_type, d_object_name+"::velocity_precond", d_velocity_precond_db);
+            d_velocity_solver_type , d_object_name+"::velocity_solver" , d_velocity_solver_db , "velocity_"   ,
+            d_velocity_precond_type, d_object_name+"::velocity_precond", d_velocity_precond_db, "velocity_pc_");
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -464,8 +454,8 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
     if (!d_pressure_solver)
     {
         d_pressure_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-            d_pressure_solver_type , d_object_name+"::pressure_solver" , d_pressure_solver_db ,
-            d_pressure_precond_type, d_object_name+"::pressure_precond", d_pressure_precond_db);
+            d_pressure_solver_type , d_object_name+"::pressure_solver" , d_pressure_solver_db , "pressure_"   ,
+            d_pressure_precond_type, d_object_name+"::pressure_precond", d_pressure_precond_db, "pressure_pc_");
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
@@ -489,8 +479,8 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (!d_stokes_solver)
     {
         d_stokes_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
-            d_stokes_solver_type , d_object_name+"::stokes_solver" , d_stokes_solver_db ,
-            d_stokes_precond_type, d_object_name+"::stokes_precond", d_stokes_precond_db);
+            d_stokes_solver_type , d_object_name+"::stokes_solver" , d_stokes_solver_db , "stokes_"   ,
+            d_stokes_precond_type, d_object_name+"::stokes_precond", d_stokes_precond_db, "stokes_pc_");
         d_stokes_solver_needs_init = true;
     }
     return d_stokes_solver;
@@ -1637,8 +1627,8 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // Setup the regrid Poisson solver.
     Pointer<PoissonSolver> regrid_projection_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-        d_regrid_projection_solver_type , d_object_name+"::regrid_projection_solver" , d_regrid_projection_solver_db ,
-        d_regrid_projection_precond_type, d_object_name+"::regrid_projection_precond", d_regrid_projection_precond_db);
+        d_regrid_projection_solver_type , d_object_name+"::regrid_projection_solver" , d_regrid_projection_solver_db , "regrid_projection_"   ,
+        d_regrid_projection_precond_type, d_object_name+"::regrid_projection_precond", d_regrid_projection_precond_db, "regrid_projection_pc_");
     PoissonSpecifications regrid_projection_spec(d_object_name+"::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);

@@ -76,7 +76,8 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
         int ghost_cell_width,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -433,7 +434,7 @@ protected:
     /*
      * Coarse level solver parameters.
      */
-    std::string d_coarse_solver_type;
+    std::string d_coarse_solver_type, d_coarse_solver_default_options_prefix;
     double d_coarse_solver_rel_residual_tol;
     double d_coarse_solver_abs_residual_tol;
     int d_coarse_solver_max_iterations;

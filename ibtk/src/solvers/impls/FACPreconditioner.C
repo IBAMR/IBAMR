@@ -49,7 +49,8 @@ namespace IBTK
 FACPreconditioner::FACPreconditioner(
     const std::string& object_name,
     Pointer<FACPreconditionerStrategy> fac_strategy,
-    tbox::Pointer<tbox::Database> input_db)
+    tbox::Pointer<tbox::Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
       d_fac_strategy(fac_strategy),
       d_hierarchy(NULL),

@@ -76,7 +76,8 @@ static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 PETScLevelSolver::PETScLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name),
       d_hierarchy(),
       d_level_num(-1),

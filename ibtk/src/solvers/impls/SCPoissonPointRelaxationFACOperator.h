@@ -95,7 +95,8 @@ public:
      */
     SCPoissonPointRelaxationFACOperator(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -108,12 +109,13 @@ public:
      */
     static SAMRAI::tbox::Pointer<PoissonSolver>
     allocate_solver(
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db)
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
         {
             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-                new SCPoissonPointRelaxationFACOperator(solver_object_name+"::SCPoissonPointRelaxationFACOperator", solver_input_db);
-            return new PoissonFACPreconditioner(solver_object_name, fac_operator, solver_input_db);
+                new SCPoissonPointRelaxationFACOperator(object_name+"::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+            return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
         }// allocate
 
     /*!

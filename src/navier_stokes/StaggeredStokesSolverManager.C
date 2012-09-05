@@ -110,36 +110,39 @@ namespace
 {
 Pointer<StaggeredStokesSolver>
 allocate_default_krylov_solver(
-    const std::string& solver_object_name,
-    Pointer<Database> solver_input_db)
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
 {
     Pointer<KrylovLinearSolver> krylov_solver = new StaggeredStokesKrylovLinearSolverWrapper(
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::DEFAULT, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new StaggeredStokesOperator(solver_object_name+"::StokesOperator"));
+            KrylovLinearSolverManager::DEFAULT, object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(new StaggeredStokesOperator(object_name+"::StokesOperator"));
     return krylov_solver;
 }// allocate_default_krylov_solver
 
 Pointer<StaggeredStokesSolver>
 allocate_petsc_krylov_solver(
-    const std::string& solver_object_name,
-    Pointer<Database> solver_input_db)
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
 {
     Pointer<KrylovLinearSolver> krylov_solver = new StaggeredStokesKrylovLinearSolverWrapper(
         KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::PETSC, solver_object_name, solver_input_db));
-    krylov_solver->setOperator(new StaggeredStokesOperator(solver_object_name+"::StokesOperator"));
+            KrylovLinearSolverManager::PETSC, object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(new StaggeredStokesOperator(object_name+"::StokesOperator"));
     return krylov_solver;
 }// allocate_petsc_krylov_solver
 
 Pointer<StaggeredStokesSolver>
 allocate_box_relaxation_fac_preconditioner(
-    const std::string& solver_object_name,
-    Pointer<Database> solver_input_db)
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
 {
     Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator = new StaggeredStokesBoxRelaxationFACOperator(
-        solver_object_name+"::FACOperator", solver_input_db);
-    return new StaggeredStokesFACPreconditioner(solver_object_name, fac_operator);
+        object_name+"::FACOperator", input_db, default_options_prefix);
+    return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
 }// allocate_box_relaxation_fac_preconditioner
 }
 
@@ -149,7 +152,8 @@ Pointer<StaggeredStokesSolver>
 StaggeredStokesSolverManager::allocateSolver(
     const std::string& solver_type,
     const std::string& solver_object_name,
-    Pointer<Database> solver_input_db) const
+    Pointer<Database> solver_input_db,
+    const std::string& solver_default_options_prefix) const
 {
     std::map<std::string,SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
@@ -157,7 +161,7 @@ StaggeredStokesSolverManager::allocateSolver(
         TBOX_ERROR("StaggeredStokesSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
-    return (it->second)(solver_object_name, !solver_input_db ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
+    return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 }// allocateSolver
 
 Pointer<StaggeredStokesSolver>
@@ -165,29 +169,29 @@ StaggeredStokesSolverManager::allocateSolver(
     const std::string& solver_type,
     const std::string& solver_object_name,
     Pointer<Database> solver_input_db,
+    const std::string& solver_default_options_prefix,
     const std::string& precond_type,
     const std::string& precond_object_name,
-    Pointer<Database> precond_input_db) const
+    Pointer<Database> precond_input_db,
+    const std::string& precond_default_options_prefix) const
 {
-    Pointer<StaggeredStokesSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db);
+    Pointer<StaggeredStokesSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
-    if (p_solver) p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db));
+    if (p_solver) p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     return solver;
 }// allocateSolver
 
 void
 StaggeredStokesSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
-    SolverMaker solver_maker,
-    Pointer<Database> default_input_db)
+    SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "StaggeredStokesSolverManager::registerSolverFactoryFunction():\n"
              << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
-    d_solver_maker_map    [solver_type] = solver_maker;
-    d_default_input_db_map[solver_type] = default_input_db;
+    d_solver_maker_map[solver_type] = solver_maker;
     return;
 }// registerSolverFactoryFunction
 

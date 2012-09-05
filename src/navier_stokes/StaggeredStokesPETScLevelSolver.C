@@ -73,9 +73,10 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      PETScLevelSolver(object_name, input_db),
+      PETScLevelSolver(object_name, input_db, default_options_prefix),
       StaggeredStokesSolver(object_name, /*homogeneous_bc*/ true),
       d_context(NULL),
       d_u_dof_index_idx(-1),

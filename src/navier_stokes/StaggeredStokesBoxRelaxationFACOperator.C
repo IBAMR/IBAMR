@@ -405,8 +405,9 @@ copyFromVec(
 
 StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator(
     const std::string& object_name,
-    const Pointer<Database> input_db)
-    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db),
+    const Pointer<Database> input_db,
+    const std::string& default_options_prefix)
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix),
       d_box_op(),
       d_box_e(),
       d_box_r(),

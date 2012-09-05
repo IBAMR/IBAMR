@@ -75,9 +75,10 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name),
-      PETScLevelSolver(object_name, input_db),
+      PETScLevelSolver(object_name, input_db, default_options_prefix),
       d_problem_coefs(),
       d_J_mat(NULL),
       d_interp_fcn(NULL),

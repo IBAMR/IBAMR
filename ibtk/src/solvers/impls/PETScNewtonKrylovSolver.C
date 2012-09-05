@@ -75,13 +75,14 @@ static Timer* t_deallocate_solver_state;
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
+    const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
     : NewtonKrylovSolver(object_name),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
-      d_options_prefix(""),
+      d_options_prefix(default_options_prefix),
       d_petsc_comm(petsc_comm),
       d_petsc_snes(PETSC_NULL),
       d_petsc_jac (PETSC_NULL),

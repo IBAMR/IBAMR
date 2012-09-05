@@ -103,7 +103,8 @@ public:
     allocateSolver(
         const std::string& solver_type,
         const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db) const;
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+        const std::string& solver_default_options_prefix) const;
 
     /*!
      * Allocate a new SCPoissonSolver object of the specified type with a
@@ -117,9 +118,11 @@ public:
         const std::string& solver_type,
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+        const std::string& solver_default_options_prefix,
         const std::string& precond_type,
         const std::string& precond_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db) const;
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
+        const std::string& precond_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.
@@ -127,7 +130,8 @@ public:
     typedef SAMRAI::tbox::Pointer<PoissonSolver>
     (*SolverMaker)(
         const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+        const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.
@@ -135,8 +139,7 @@ public:
     void
     registerSolverFactoryFunction(
         const std::string& solver_type,
-        SolverMaker solver_maker,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> default_input_db=NULL);
+        SolverMaker solver_maker);
 
 protected:
     /*!
@@ -185,7 +188,6 @@ private:
      * Mapping from solver type names to solver maker functions.
      */
     std::map<std::string,SolverMaker> d_solver_maker_map;
-    std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> > d_default_input_db_map;
 };
 }// namespace IBTK
 

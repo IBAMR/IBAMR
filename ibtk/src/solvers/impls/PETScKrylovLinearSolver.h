@@ -108,17 +108,11 @@ public:
     /*!
      * \brief Constructor for a concrete KrylovLinearSolver that employs the
      * PETSc KSP solver framework.
-     *
-     * \param object_name     Name of the solver
-     * \param input_db        Solver configuration
-     * \param petsc_comm      MPI communicator
-     *
-     * \note The value of \a petsc_comm is used to specify the MPI communicator
-     * used when initializing any PETSc objects required by this class.
      */
     PETScKrylovLinearSolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
 
     /*!
@@ -147,9 +141,10 @@ public:
     static SAMRAI::tbox::Pointer<KrylovLinearSolver>
     allocate_solver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
         {
-            return new PETScKrylovLinearSolver(object_name, input_db);
+            return new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix);
         }// allocate_solver
 
     /*!

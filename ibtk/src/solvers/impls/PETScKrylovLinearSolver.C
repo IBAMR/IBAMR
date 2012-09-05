@@ -77,6 +77,7 @@ static Timer* t_deallocate_solver_state;
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
+    const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
     : LinearSolver(object_name),
       KrylovLinearSolver(object_name),

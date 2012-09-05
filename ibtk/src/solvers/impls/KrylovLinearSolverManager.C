@@ -96,7 +96,8 @@ Pointer<KrylovLinearSolver>
 KrylovLinearSolverManager::allocateSolver(
     const std::string& solver_type,
     const std::string& solver_object_name,
-    Pointer<Database> solver_input_db) const
+    Pointer<Database> solver_input_db,
+    const std::string& solver_default_options_prefix) const
 {
     std::map<std::string,SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
@@ -104,22 +105,20 @@ KrylovLinearSolverManager::allocateSolver(
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
-    return (it->second)(solver_object_name, solver_input_db.isNull() ? d_default_input_db_map.find(solver_type)->second : solver_input_db);
+    return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 }// allocateSolver
 
 void
 KrylovLinearSolverManager::registerSolverFactoryFunction(
     const std::string& solver_type,
-    SolverMaker solver_maker,
-    Pointer<Database> default_input_db)
+    SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "KrylovLinearSolverManager::registerSolverFactoryFunction():\n"
              << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
-    d_solver_maker_map    [solver_type] = solver_maker;
-    d_default_input_db_map[solver_type] = default_input_db;
+    d_solver_maker_map[solver_type] = solver_maker;
     return;
 }// registerSolverFactoryFunction
 

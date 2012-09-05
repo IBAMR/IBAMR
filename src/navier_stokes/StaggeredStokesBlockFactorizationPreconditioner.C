@@ -87,7 +87,8 @@ static Timer* t_deallocate_solver_state;
 
 StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizationPreconditioner(
     const std::string& object_name,
-    Pointer<Database> /*input_db*/)
+    Pointer<Database> /*input_db*/,
+    const std::string& /*default_options_prefix*/)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
       StaggeredStokesBlockPreconditioner(object_name, /*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
       d_hierarchy(NULL),

@@ -72,13 +72,11 @@ class PETScLevelSolver
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name  Name of object.
-     * \param input_db     SAMRAI::tbox::Database for input.
      */
     PETScLevelSolver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.

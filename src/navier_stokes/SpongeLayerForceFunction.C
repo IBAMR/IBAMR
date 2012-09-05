@@ -66,7 +66,7 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {
-    if (!input_db)
+    if (input_db)
     {
         for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
         {

@@ -59,7 +59,8 @@ public:
      */
     StaggeredStokesBlockFactorizationPreconditioner(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -73,9 +74,10 @@ public:
     static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
     allocate_solver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
         {
-            return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db);
+            return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
         }// allocate_solver
 
     /*!

@@ -133,8 +133,9 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
-    const Pointer<Database> input_db)
-    : PoissonFACPreconditionerStrategy(object_name, new SideVariable<NDIM,double>(object_name+"::side_scratch", DEFAULT_DATA_DEPTH), SIDEG, input_db),
+    const Pointer<Database> input_db,
+    const std::string& default_options_prefix)
+    : PoissonFACPreconditionerStrategy(object_name, new SideVariable<NDIM,double>(object_name+"::side_scratch", DEFAULT_DATA_DEPTH), SIDEG, input_db, default_options_prefix),
       d_coarse_solver(NULL),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
@@ -245,7 +246,7 @@ SCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     d_coarse_solver_type = coarse_solver_type;
     if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
     {
-        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
     return;
 }// setCoarseSolverType

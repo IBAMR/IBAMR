@@ -82,7 +82,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     const std::string& object_name,
     Pointer<Variable<NDIM> > scratch_var,
     const int ghost_cell_width,
-    const Pointer<Database> input_db)
+    const Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name),
       d_poisson_spec(object_name+"::poisson_spec"),
       d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
@@ -103,6 +104,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
       d_prolongation_method("LINEAR_REFINE"),
       d_restriction_method("CONSERVATIVE_COARSEN"),
       d_coarse_solver_type("BLOCK_JACOBI"),
+      d_coarse_solver_default_options_prefix(default_options_prefix+"_coarse"),
       d_coarse_solver_rel_residual_tol(1.0e-5),
       d_coarse_solver_abs_residual_tol(1.0e-50),
       d_coarse_solver_max_iterations(10),

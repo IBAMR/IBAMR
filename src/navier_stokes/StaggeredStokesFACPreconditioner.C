@@ -59,9 +59,10 @@ namespace IBAMR
 StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(
     const std::string& object_name,
     Pointer<FACPreconditionerStrategy> fac_strategy,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      FACPreconditioner(object_name, fac_strategy, input_db),
+      FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix),
       StaggeredStokesSolver(object_name, /*homogeneous_bc*/ true)
 {
     // intentionally blank

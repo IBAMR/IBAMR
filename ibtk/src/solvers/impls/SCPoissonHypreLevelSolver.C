@@ -81,7 +81,8 @@ static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : LinearSolver(object_name),
       PoissonSolver(object_name),
       d_hierarchy(),

@@ -97,7 +97,8 @@ static Timer* t_deallocate_operator_state;
 StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrategy(
     const std::string& object_name,
     const int ghost_cell_width,
-    const Pointer<Database> input_db)
+    const Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name),
       d_U_problem_coefs(object_name+"::U_problem_coefs"),
       d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
@@ -122,6 +123,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_U_restriction_method("CONSERVATIVE_COARSEN"),
       d_P_restriction_method("CONSERVATIVE_COARSEN"),
       d_coarse_solver_type("BLOCK_JACOBI"),
+      d_coarse_solver_default_options_prefix(default_options_prefix+"_coarse"),
       d_coarse_solver_rel_residual_tol(1.0e-5),
       d_coarse_solver_abs_residual_tol(1.0e-50),
       d_coarse_solver_max_iterations(10),
@@ -304,7 +306,7 @@ StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(
     d_coarse_solver_type = coarse_solver_type;
     if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
-        d_coarse_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db);
+        d_coarse_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
     return;
 }// setCoarseSolverType
