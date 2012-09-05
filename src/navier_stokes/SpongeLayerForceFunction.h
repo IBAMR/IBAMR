@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
+// IBAMR INCLUDES
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+#include <CellData.h>
+#include <SideData.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -62,21 +63,13 @@ public:
     SpongeLayerForceFunction(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const INSStaggeredHierarchyIntegrator* fluid_solver,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
 
     /*!
      * \brief Destructor.
      */
     ~SpongeLayerForceFunction();
-
-    /*!
-     * \brief Set the variable and variable context corresponding to the current
-     * velocity data.
-     */
-    void
-    setVelocityVariableAndContext(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> u_ctx);
 
     /*!
      * \name Methods to set the data.
@@ -139,7 +132,10 @@ private:
      */
     void
     setDataOnPatchCell(
-        int data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > F_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_current_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > U_new_data,
+        double kappa,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     /*!
@@ -147,15 +143,16 @@ private:
      */
     void
     setDataOnPatchSide(
-        int data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > F_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_current_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_new_data,
+        double kappa,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
+    blitz::TinyVector<SAMRAI::tbox::Array<bool>,2*NDIM> d_forcing_enabled;
+    blitz::TinyVector<double,2*NDIM> d_width;
+    const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_u_ctx;
-    double d_kappa;
-    blitz::TinyVector<blitz::TinyVector<bool,NDIM>,NDIM> d_forcing_enabled[2];
-    blitz::TinyVector<double,NDIM> d_width[2];
 };
 }// namespace IBAMR
 

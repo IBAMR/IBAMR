@@ -25,7 +25,7 @@ CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE               // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                 // maximum CFL number
 DT                  = 6.25e-2*DX_FINEST   // maximum timestep size
-ERROR_ON_DT_CHANGE  = FALSE               // whether to emit an error message if the time step size changes
+ERROR_ON_DT_CHANGE  = TRUE                // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                   // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                 // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -41,11 +41,10 @@ PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 BoundaryStabilization {
-   alpha = 100.0   // NFINEST=256, DT=6.25e-2*DX_FINEST: alpha = 100 is stable; = 200 is unstable
-// alpha = 200.0   // NFINEST=512, DT=6.25e-2*DX_FINEST: alpha = 100 is stable
-   beta  = 2.0
    stabilization_type_0 = "INFLOW"
    stabilization_type_1 = "OUTFLOW"
+   width_0 = 4.0*DX_FINEST
+   width_1 = 4.0*DX_FINEST
 }
 
 VelocityBcCoefs_0 {

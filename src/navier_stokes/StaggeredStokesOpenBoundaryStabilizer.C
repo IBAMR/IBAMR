@@ -47,6 +47,9 @@
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -56,25 +59,21 @@ namespace IBAMR
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
-    unsigned int comp_idx,
-    RobinBcCoefStrategy<NDIM>* comp_bc_coef,
+    const std::string& object_name,
     Pointer<Database> input_db,
-    const INSStaggeredHierarchyIntegrator* fluid_solver)
-    : d_alpha(std::numeric_limits<double>::quiet_NaN()),
-      d_beta(std::numeric_limits<double>::quiet_NaN()),
-      d_comp_idx(comp_idx),
-      d_comp_bc_coef(comp_bc_coef),
+    const INSHierarchyIntegrator* fluid_solver,
+    Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    : CartGridFunction(object_name),
       d_open_bdry(false),
       d_inflow_bdry(false),
       d_outflow_bdry(false),
-      d_fluid_solver(fluid_solver)
+      d_width(0.0),
+      d_fluid_solver(fluid_solver),
+      d_grid_geometry(grid_geometry)
 {
     if (input_db)
     {
-        if (input_db->keyExists("alpha")) d_alpha = input_db->getDouble("alpha");
-        if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
-        TBOX_ASSERT(d_beta >= 1.0);
-        for (int location_index = 0; location_index < 2*NDIM; ++location_index)
+        for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
         {
             std::ostringstream stabilization_type_stream;
             stabilization_type_stream << "stabilization_type_" << location_index;
@@ -101,6 +100,13 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                                << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }
+            std::ostringstream width_stream;
+            width_stream << "width_" << location_index;
+            const std::string width_key = width_stream.str();
+            if (input_db->keyExists(width_key))
+            {
+                d_width[location_index] = input_db->getDouble(width_key);
+            }
         }
     }
     return;
@@ -112,122 +118,78 @@ StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
     return;
 }// ~StaggeredStokesOpenBoundaryStabilizer
 
-void
-StaggeredStokesOpenBoundaryStabilizer::setTargetPatchDataIndex(
-    int target_idx)
+bool
+StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 {
-    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
-    ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_comp_bc_coef);
-    if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
-    return;
-}// setTargetPatchDataIndex
+    return true;
+}// isTimeDependent
 
 void
-StaggeredStokesOpenBoundaryStabilizer::setHomogeneousBc(
-    bool homogeneous_bc)
+StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
+    const int data_idx,
+    Pointer<Variable<NDIM> > /*var*/,
+    Pointer<Patch<NDIM> > patch,
+    const double /*data_time*/,
+    const bool initial_time,
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
-    ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_comp_bc_coef);
-    if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
-    return;
-}// setHomogeneousBc
-
-void
-StaggeredStokesOpenBoundaryStabilizer::setBcCoefs(
-    Pointer<ArrayData<NDIM,double> >& acoef_data,
-    Pointer<ArrayData<NDIM,double> >& bcoef_data,
-    Pointer<ArrayData<NDIM,double> >& gcoef_data,
-    const Pointer<Variable<NDIM> >& variable,
-    const Patch<NDIM>& patch,
-    const BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
-{
-    const unsigned int location_index   = bdry_box.getLocationIndex();
-    const unsigned int bdry_normal_axis = location_index/2;
-    const bool is_lower                 = location_index%2 == 0;
-
-    // Set the unmodified velocity bc coefs.
-    d_comp_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-
-    // If we are not setting inhomogeneous coefficients; not at an open
-    // boundary; or not operating on the correct velocity component, then there
-    // is nothing else to do.
-    if (!gcoef_data) return;
-    if (!d_open_bdry[location_index]) return;
-    if (bdry_normal_axis != d_comp_idx) return;
-
-    // Check to see if the "target" velocity data are available; if not, then
-    // there is nothing else to do.
-    Pointer<SideData<NDIM,double> > u_target_data;
-    if      (d_u_target_data_idx >= 0) u_target_data = patch.getPatchData(d_u_target_data_idx);
-    else if (d_target_data_idx   >= 0) u_target_data = patch.getPatchData(d_target_data_idx  );
-    if (!u_target_data) return;
-
-    // Attempt to obtain the velocity data managed by the fluid solver are
-    // available.  If the "current" velocity data are not available, then there
-    // is nothing else to do.  We also make use of the "new" velocity data when
-    // possible.
+    Pointer<SideData<NDIM,double> > F_data = patch->getPatchData(data_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(F_data);
+#endif
+    F_data->fillAll(0.0);
+    if (initial_time) return;
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
-    Pointer<SideData<NDIM,double> > u_new_data     = patch.getPatchData(var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    ));
-    if (!u_current_data) return;
-    Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
-    if (u_new_data) ghost_box * u_new_data->getGhostBox();
-
-    // Where appropriate, update normal traction boundary conditions to penalize
-    // flow reversal.
-    Box<NDIM> bc_coef_box = acoef_data->getBox();
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d != bdry_normal_axis)
-        {
-            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
-            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
-        }
-    }
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
-    {
-        const Index<NDIM>& i = it();
-        const double& alpha = (*acoef_data)(i,0);
-        const double& beta  = (*bcoef_data)(i,0);
-        double&       gamma = (*gcoef_data)(i,0);
-        const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
-        const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
+    const double dt     = d_fluid_solver->getCurrentTimeStepSize();
+    const double rho    = d_fluid_solver->getStokesSpecifications()->getRho();
+    const double kappa  = cycle_num >= 0 ? 0.5*rho/dt : 0.0;
+    Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+    Pointer<SideData<NDIM,double> > U_new_data     = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    );
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+    TBOX_ASSERT(U_current_data);
 #endif
-        if (velocity_bc)
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const IntVector<NDIM>& ratio = pgeom->getRatio();
+    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
+    for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
+    {
+        const unsigned int axis = location_index / 2;
+        const unsigned int side = location_index % 2;
+        const bool is_lower     = side == 0;
+        if (d_open_bdry[location_index] && pgeom->getTouchesRegularBoundary(axis,side))
         {
-            // intentionally blank
-        }
-        else if (traction_bc)
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(d_comp_idx == bdry_normal_axis);
-#endif
-            const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-            const double sgn = (is_lower ? -1.0 : 1.0);
-            const double u_n_explicit = sgn*(cycle_num > 0 ? 0.5*((*u_new_data   )(i_s) +                           (*u_current_data)(i_s)) : (*u_current_data)(i_s));
-            const double u_n_implicit = sgn*                 0.5*((*u_target_data)(i_s) + (d_homogeneous_bc ? 0.0 : (*u_current_data)(i_s)));
-            if      (d_inflow_bdry[location_index] && u_n_explicit > 0.0)
+            Box<NDIM> bdry_box = domain_box;
+            const double offset = static_cast<int>(d_width[location_index]/dx[axis]);
+            if (is_lower)
             {
-                gamma -= d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
+                bdry_box.upper(axis) = domain_box.lower(axis)+offset;
             }
-            else if (d_outflow_bdry[location_index] && u_n_explicit < 0.0)
+            else
             {
-                gamma += d_alpha*std::pow(u_n_explicit,d_beta-1.0)*u_n_implicit;
+                bdry_box.lower(axis) = domain_box.upper(axis)-offset;
+            }
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,axis)); b; b++)
+            {
+                const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
+                const double U_new     = U_new_data     ? (*U_new_data    )(i_s) : 0.0;
+                const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
+                const double n = is_lower ? -1.0 : +1.0;
+                if ((d_inflow_bdry[location_index] && U*n > 0.0) || (d_outflow_bdry[location_index] && U*n < 0.0))
+                {
+                    (*F_data)(i_s) = kappa*(0.0 - U);
+                }
             }
         }
     }
     return;
-}// setBcCoefs
+}// setDataOnPatch
 
-SAMRAI::hier::IntVector<NDIM>
-StaggeredStokesOpenBoundaryStabilizer::numberOfExtensionsFillable() const
-{
-    return d_comp_bc_coef->numberOfExtensionsFillable();
-}// numberOfExtensionsFillable
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

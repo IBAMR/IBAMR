@@ -176,24 +176,21 @@ main(
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            if (solver_type == "STAGGERED" && input_db->keyExists("BoundaryStabilization"))
-            {
-                Pointer<INSStaggeredHierarchyIntegrator> p_navier_stokes_integrator = navier_stokes_integrator;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    stabilized_u_bc_coefs[d] = new StaggeredStokesOpenBoundaryStabilizer(d, u_bc_coefs[d], app_initializer->getComponentDatabase("BoundaryStabilization"), p_navier_stokes_integrator);
-                }
-                navier_stokes_integrator->registerPhysicalBoundaryConditions(stabilized_u_bc_coefs);
-            }
-            else
-            {
-                navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
-            }
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+        }
+        if (solver_type == "STAGGERED" && input_db->keyExists("BoundaryStabilization"))
+        {
+            time_integrator->registerBodyForceFunction(
+                new StaggeredStokesOpenBoundaryStabilizer("BoundaryStabilization", app_initializer->getComponentDatabase("BoundaryStabilization"), navier_stokes_integrator, grid_geometry));
         }
 
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
+            if (input_db->keyExists("BoundaryStabilization"))
+            {
+                TBOX_ERROR("Cannot currently use boundary stabilization with additional body forcing");
+            }
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
