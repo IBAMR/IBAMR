@@ -306,7 +306,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
 #endif
 
         // Modify the stress tensor values (if necessary).
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs = d_fluid_solver->getVelocityBoundaryConditions();
+        const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs = d_fluid_solver->getIntermediateVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
