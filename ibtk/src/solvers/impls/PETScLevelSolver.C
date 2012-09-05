@@ -89,7 +89,7 @@ PETScLevelSolver::PETScLevelSolver(
       d_petsc_b(PETSC_NULL)
 {
     // Setup default options.
-    d_options_prefix = "";
+    d_options_prefix = default_options_prefix;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;

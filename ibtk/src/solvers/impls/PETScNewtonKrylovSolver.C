@@ -91,7 +91,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false)
 {
     // Setup default values.
-    d_options_prefix = "";
+    d_options_prefix = default_options_prefix;
     d_max_iterations = 50;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-8;
