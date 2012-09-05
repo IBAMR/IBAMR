@@ -326,39 +326,26 @@ main(
         }
 
         // Create Eulerian boundary condition specification objects.
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
-        if (periodic_shift.min() > 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                u_bc_coefs[d] = NULL;
-            }
-        }
-        else
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
+        if (!periodic_domain)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;
                 const string bc_coefs_name = bc_coefs_name_stream.str();
-
                 ostringstream bc_coefs_db_name_stream;
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         // Create Eulerian body force function specification objects.
-        Pointer<SpongeLayerForceFunction> f_fcn = new SpongeLayerForceFunction(
-            "SpongeLayerForceFunction", app_initializer->getComponentDatabase("SpongeLayerForceFunction"), grid_geometry);
-        f_fcn->setVelocityVariableAndContext(navier_stokes_integrator->getVelocityVariable(),
-                                             navier_stokes_integrator->getCurrentContext());
-        time_integrator->registerBodyForceFunction(f_fcn);
+        time_integrator->registerBodyForceFunction(new SpongeLayerForceFunction(
+            "SpongeLayerForceFunction", app_initializer->getComponentDatabase("SpongeLayerForceFunction"), navier_stokes_integrator, grid_geometry));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

@@ -162,7 +162,6 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-        vector<RobinBcCoefStrategy<NDIM>*> stabilized_u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -285,7 +284,6 @@ main(
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        for (unsigned int d = 0; d < NDIM; ++d) delete stabilized_u_bc_coefs[d];
 
     }// cleanup dynamically allocated objects prior to shutdown
 

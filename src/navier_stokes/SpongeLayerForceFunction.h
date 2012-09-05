@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSHierarchyIntegrator.h>
 
 // SAMRAI INCLUDES
 #include <CellData.h>
@@ -63,7 +63,7 @@ public:
     SpongeLayerForceFunction(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const INSStaggeredHierarchyIntegrator* fluid_solver,
+        const INSHierarchyIntegrator* fluid_solver,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
 
     /*!

@@ -58,7 +58,7 @@ namespace IBAMR
 SpongeLayerForceFunction::SpongeLayerForceFunction(
     const std::string& object_name,
     const Pointer<Database> input_db,
-    const INSStaggeredHierarchyIntegrator* fluid_solver,
+    const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
       d_forcing_enabled(SAMRAI::tbox::Array<bool>(NDIM)),

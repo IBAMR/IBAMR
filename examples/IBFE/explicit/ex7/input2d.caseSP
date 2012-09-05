@@ -106,11 +106,10 @@ VelocityBcCoefs_1 {
 }
 
 SpongeLayerForceFunction {
-   kappa = 0.5*RHO/DT
-   lower_forcing_0 = 1
-   upper_forcing_0 = 1
-   lower_width_0 = DX0
-   upper_width_0 = DX0
+   enable_forcing_0 = 0 , 1
+   enable_forcing_1 = 0 , 1
+   width_0 = DX0
+   width_1 = DX0
 }
 
 IBHierarchyIntegrator {
