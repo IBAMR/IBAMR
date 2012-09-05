@@ -131,6 +131,7 @@ main(
 
         // Set up the fluid solver.
         time_integrator->registerBodyForceFunction(new BoussinesqForcing(T_var, adv_diff_integrator, input_db->getDouble("GAMMA")));
+        time_integrator->registerBodyForceFunction(new INSStaggeredStochasticForcing("INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"), time_integrator));
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM); for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
         {
@@ -146,9 +147,6 @@ main(
             }
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
-
-        // Create stochastic forcing function specification object.
-        time_integrator->registerBodyForceFunction(new INSStaggeredStochasticForcing("INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"), time_integrator));
 
         // Seed the random number generator.
         int seed = 0;

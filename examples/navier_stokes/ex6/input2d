@@ -2,22 +2,22 @@
 SEED = 0                                        // RNG seed (0 for clock)
 
 // physical parameters
-MU    = 1.0e-2                                  // fluid viscosity
+MU    = 1.0e-3                                  // fluid viscosity
 RHO   = 1.0                                     // fluid density
 KAPPA = 1.0e-6                                  // temperature diffusion coefficient
 GAMMA = 1.0e2                                   // strength of temperature forcing (F = -GAMMA*j*T)
 W     = 1.0                                     // width  of the physical domain
-H     = 2.0                                     // height of the physical domain
+H     = 0.5                                     // height of the physical domain
 
 // fluctuation parameters
 kT    = 1.0
 DZ    = 1.0                                     // physical thickness of 2d domain
-STD_U = 2.5e-5                                  // scaling of velocity    fluctuations
-STD_T = 0.0                                     // scaling of temperature fluctuations
+STD_U = 1.0e-6                                  // scaling of velocity    fluctuations
+STD_T = 1.0e-6                                  // scaling of temperature fluctuations
 
 // grid spacing parameters
-N_X = 128                                       // actual number of grid cells on coarsest grid level in the x direction
-N_Y = 256                                       // actual number of grid cells on coarsest grid level in the y direction
+NX = 256                                        // number of grid cells in the x direction
+NY = 128                                        // number of grid cells in the y direction
 
 // solver parameters
 INS_NUM_CYCLES              = 1                 // number of cycles of fixed-point iteration
@@ -208,7 +208,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N_X - 1,N_Y - 1) ]
+   domain_boxes = [ (0,0),(NX - 1,NY - 1) ]
    x_lo = 0,0
    x_up = W,H
    periodic_dimension = 1,0
