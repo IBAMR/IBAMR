@@ -151,8 +151,11 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    const double* const x_lower = pgeom->getXLower();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
     const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
+    const double* const domain_x_lower = d_grid_geometry->getXLower();
+    const double* const domain_x_upper = d_grid_geometry->getXUpper();
     for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -172,14 +175,20 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
             }
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,axis)); b; b++)
             {
-                const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                const CellIndex<NDIM>& i = b();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new     = U_new_data     ? (*U_new_data    )(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
                 const double n = is_lower ? -1.0 : +1.0;
                 if ((d_inflow_bdry[location_index] && U*n > 0.0) || (d_outflow_bdry[location_index] && U*n < 0.0))
                 {
-                    (*F_data)(i_s) = kappa*(0.0 - U);
+                    const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                    const double x_bdry = (is_lower ? domain_x_lower[axis] : domain_x_upper[axis]);
+                    if (std::abs(x-x_bdry) < d_width[location_index])
+                    {
+                        (*F_data)(i_s) = 0.5*(cos(M_PI*(x-x_bdry)/d_width[location_index])+1.0)*kappa*(0.0 - U);
+                    }
                 }
             }
         }
