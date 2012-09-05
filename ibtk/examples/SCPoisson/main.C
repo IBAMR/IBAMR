@@ -208,8 +208,9 @@ main(
         Pointer<Database> solver_db = input_db->getDatabase("solver_db");
         string precond_type = input_db->getString("precond_type");
         Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(solver_type , "poisson_solver" , solver_db ,
-                                                                                                     precond_type, "poisson_precond", precond_db);
+        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(
+            solver_type , "poisson_solver" , solver_db , "",
+            precond_type, "poisson_precond", precond_db, "");
         poisson_solver->setPoissonSpecifications(poisson_spec);
         poisson_solver->setPhysicalBcCoefs(bc_coefs);
         poisson_solver->initializeSolverState(u_vec,f_vec);
