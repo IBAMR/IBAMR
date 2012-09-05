@@ -148,6 +148,7 @@ $(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.C \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
 $(top_srcdir)/src/utilities/AppInitializer.C \
 $(top_srcdir)/src/utilities/CartGridFunction.C \
+$(top_srcdir)/src/utilities/CartGridFunctionSet.C \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
 $(top_srcdir)/src/utilities/CopyToRootSchedule.C \
@@ -305,6 +306,7 @@ $(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.h \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.h \
 $(top_srcdir)/src/utilities/AppInitializer.h \
 $(top_srcdir)/src/utilities/CartGridFunction.h \
+$(top_srcdir)/src/utilities/CartGridFunctionSet.h \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
 $(top_srcdir)/src/utilities/CopyToRootSchedule.h \
