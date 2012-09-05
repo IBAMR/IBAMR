@@ -50,6 +50,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/CartGridFunctionSet.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -229,7 +230,25 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
 #endif
-    d_F_fcn[F_var] = F_fcn;
+    if (d_F_fcn[F_var])
+    {
+        const std::string& F_var_name = F_var->getName();
+        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
+                 << "  source term function for source term variable " << F_var_name << " has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the source term value.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name+"::"+F_var_name+"::source_function_set");
+            p_F_fcn->addFunction(d_F_fcn[F_var]);
+        }
+        p_F_fcn->addFunction(F_fcn);
+    }
+    else
+    {
+        d_F_fcn[F_var] = F_fcn;
+    }
     return;
 }// setSourceTermFunction
 

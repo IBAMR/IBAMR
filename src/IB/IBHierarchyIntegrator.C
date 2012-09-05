@@ -49,6 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/LMarkerUtilities.h>
 
 // SAMRAI INCLUDES
@@ -84,7 +85,27 @@ void
 IBHierarchyIntegrator::registerBodyForceFunction(
     Pointer<CartGridFunction> f_fcn)
 {
-    d_body_force_fcn = f_fcn;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (d_body_force_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
+        if (!p_body_force_fcn)
+        {
+            pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
+                 << "  body force function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the body force term value.\n";
+            p_body_force_fcn = new CartGridFunctionSet(d_object_name+"::body_force_function_set");
+            p_body_force_fcn->addFunction(d_body_force_fcn);
+        }
+        p_body_force_fcn->addFunction(f_fcn);
+    }
+    else
+    {
+        d_body_force_fcn = f_fcn;
+    }
     return;
 }// registerBodyForceFunction
 

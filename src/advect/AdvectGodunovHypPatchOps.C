@@ -48,6 +48,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 
@@ -290,7 +291,7 @@ AdvectGodunovHypPatchOps::setAdvectionVelocityIsDivergenceFree(
 void
 AdvectGodunovHypPatchOps::setAdvectionVelocityFunction(
     Pointer<FaceVariable<NDIM,double> > u_var,
-    Pointer<IBTK::CartGridFunction> u_fcn)
+    Pointer<CartGridFunction> u_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -313,12 +314,30 @@ AdvectGodunovHypPatchOps::registerSourceTerm(
 void
 AdvectGodunovHypPatchOps::setSourceTermFunction(
     Pointer<CellVariable<NDIM,double> > F_var,
-    Pointer<IBTK::CartGridFunction> F_fcn)
+    Pointer<CartGridFunction> F_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
 #endif
-    d_F_fcn[F_var] = F_fcn;
+    if (d_F_fcn[F_var])
+    {
+        const std::string& F_var_name = F_var->getName();
+        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
+                 << "  source term function for source term variable " << F_var_name << " has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the source term value.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name+"::"+F_var_name+"::source_function_set");
+            p_F_fcn->addFunction(d_F_fcn[F_var]);
+        }
+        p_F_fcn->addFunction(F_fcn);
+    }
+    else
+    {
+        d_F_fcn[F_var] = F_fcn;
+    }
     return;
 }// setSourceTermFunction
 
@@ -375,7 +394,7 @@ AdvectGodunovHypPatchOps::setConvectiveDifferencingType(
 void
 AdvectGodunovHypPatchOps::setInitialConditions(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    Pointer<IBTK::CartGridFunction> Q_init)
+    Pointer<CartGridFunction> Q_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());

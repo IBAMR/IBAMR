@@ -49,6 +49,9 @@
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/CartGridFunctionSet.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -165,7 +168,24 @@ INSHierarchyIntegrator::registerBodyForceFunction(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
-    d_F_fcn = F_fcn;
+    if (d_F_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn;
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
+                 << "  body force function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the body force term value.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name+"::body_force_function_set");
+            p_F_fcn->addFunction(d_F_fcn);
+        }
+        p_F_fcn->addFunction(F_fcn);
+    }
+    else
+    {
+        d_F_fcn = F_fcn;
+    }
     return;
 }// registerBodyForceFunction
 
@@ -176,11 +196,23 @@ INSHierarchyIntegrator::registerFluidSourceFunction(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
-    d_Q_fcn = Q_fcn;
-    if (d_adv_diff_hier_integrator)
+    if (d_Q_fcn)
     {
-        Pointer<FaceVariable<NDIM,double> > u_var = getAdvectionVelocityVariable();
-        d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(u_var, !d_Q_fcn);
+        Pointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
+        if (!p_Q_fcn)
+        {
+            pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"
+                 << "  fluid source function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the fluid source term value.\n";
+            p_Q_fcn = new CartGridFunctionSet(d_object_name+"::fluid_source_function_set");
+            p_Q_fcn->addFunction(d_Q_fcn);
+        }
+        p_Q_fcn->addFunction(Q_fcn);
+    }
+    else
+    {
+        d_Q_fcn = Q_fcn;
     }
     return;
 }// registerFluidSourceFunction
