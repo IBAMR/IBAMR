@@ -85,7 +85,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
-      d_options_prefix(""),
+      d_options_prefix(default_options_prefix),
       d_petsc_comm  (petsc_comm),
       d_petsc_ksp   (PETSC_NULL),
       d_petsc_mat   (PETSC_NULL),

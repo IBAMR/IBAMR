@@ -82,7 +82,7 @@ PETScLevelSolver::PETScLevelSolver(
       d_hierarchy(),
       d_level_num(-1),
       d_ksp_type(KSPGMRES),
-      d_options_prefix(""),
+      d_options_prefix(default_options_prefix),
       d_petsc_ksp(PETSC_NULL),
       d_petsc_mat(PETSC_NULL),
       d_petsc_x(PETSC_NULL),
