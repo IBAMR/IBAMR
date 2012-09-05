@@ -145,7 +145,7 @@ INSStaggeredHierarchyIntegrator {
    pressure_solver_type = "HYPRE_LEVEL_SOLVER"
    pressure_solver_db {
       solver_type          = "PFMG"
-      num_pre_relax_steps  = 1
+      num_pre_relax_steps  = 0
       num_post_relax_steps = 1
       max_iterations       = 1
    }
