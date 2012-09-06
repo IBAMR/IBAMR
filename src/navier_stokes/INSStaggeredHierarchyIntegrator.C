@@ -48,6 +48,7 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
@@ -356,8 +357,9 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,this,d_bc_coefs);
     }
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(this,d_bc_coefs);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -395,6 +397,8 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         delete d_U_bc_coefs[d];
         d_U_bc_coefs[d] = NULL;
     }
+    delete d_P_bc_coef;
+    d_P_bc_coef = NULL;
     delete d_fill_after_regrid_phys_bdry_bc_op;
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     d_velocity_solver.setNull();
@@ -419,6 +423,12 @@ INSStaggeredHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 }// getVelocityBoundaryConditions
+
+RobinBcCoefStrategy<NDIM>*
+INSStaggeredHierarchyIntegrator::getPressureBoundaryConditions() const
+{
+    return d_P_bc_coef;
+}// getPressureBoundaryConditions
 
 Pointer<ConvectiveOperator>
 INSStaggeredHierarchyIntegrator::getConvectiveOperator()
@@ -818,7 +828,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_P_rhs_vec->allocateVectorData(current_time);  d_P_rhs_vec->setToScalar(0.0);
 
     // Cache BC data.
-    d_bc_helper->cacheBcCoefData(d_U_bc_coefs, new_time, d_hierarchy);
+    d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
 
     // Initialize the right-hand side terms.
     const double rho    = d_problem_coefs.getRho();
@@ -845,32 +855,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<SideVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (extended_bc_coef)
-         {
-             extended_bc_coef->clearTargetPatchDataIndex();
-             extended_bc_coef->setHomogeneousBc(/* homogeneous_bc */ true);
-         }
-         StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (stokes_bc_coef)
-         {
-             stokes_bc_coef->setTargetVelocityPatchDataIndex(d_U_scratch_idx);
-             stokes_bc_coef->setTargetPressurePatchDataIndex(d_P_scratch_idx);
-         }
-    }
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, /*P_bc_coef*/ NULL, d_U_scratch_idx, /*P_data_idx*/ -1, /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, /*P_bc_coef*/ NULL);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-         StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (stokes_bc_coef)
-         {
-             stokes_bc_coef->clearTargetVelocityPatchDataIndex();
-             stokes_bc_coef->clearTargetPressurePatchDataIndex();
-         }
-    }
     d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
@@ -879,8 +867,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
 
     // Set up inhomogeneous BCs.
-    d_bc_helper->setStokesSpecifications(&d_problem_coefs);
-    d_bc_helper->setCurrentVelocityDataIndex(d_U_src_idx);
     d_stokes_solver->setHomogeneousBc(false);
     Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     if (p_stokes_solver)
@@ -1458,7 +1444,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
@@ -1594,7 +1580,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        d_bc_helper->cacheBcCoefData(d_U_bc_coefs, d_integrator_time, d_hierarchy);
+        d_bc_helper->cacheBcCoefData(d_bc_coefs, d_integrator_time, d_hierarchy);
         d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1856,6 +1842,11 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time,new_time);
     }
+    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
+    P_bc_coef->setStokesSpecifications(&d_problem_coefs);
+    P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
+    P_bc_coef->setSolutionTime(new_time);
+    P_bc_coef->setTimeInterval(current_time,new_time);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSIntermediateVelocityBcCoef* U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
@@ -1918,7 +1909,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
 
     // Setup Stokes solver.
     d_stokes_solver->setVelocityPoissonSpecifications(U_problem_coefs);
-    d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_Phi_bc_coef);
+    d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);

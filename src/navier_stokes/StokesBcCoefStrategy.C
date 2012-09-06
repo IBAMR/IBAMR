@@ -75,9 +75,6 @@ void
 StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(
     int u_target_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(u_target_data_idx >= 0);
-#endif
     d_u_target_data_idx = u_target_data_idx;
     return;
 }// setTargetVelocityPatchDataIndex
@@ -93,9 +90,6 @@ void
 StokesBcCoefStrategy::setTargetPressurePatchDataIndex(
     int p_target_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(p_target_data_idx >= 0);
-#endif
     d_p_target_data_idx = p_target_data_idx;
     return;
 }// setPressurePatchDataIndex

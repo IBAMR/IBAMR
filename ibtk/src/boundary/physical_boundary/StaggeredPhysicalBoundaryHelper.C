@@ -263,7 +263,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                    setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
+                    StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
                     Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
                     Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
@@ -310,7 +310,7 @@ StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(
     Box<NDIM>& bc_coef_box,
     BoundaryBox<NDIM>& trimmed_bdry_box,
     const BoundaryBox<NDIM>& bdry_box,
-    Pointer<Patch<NDIM> > patch) const
+    Pointer<Patch<NDIM> > patch)
 {
     Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const Box<NDIM>& patch_box = patch->getBox();

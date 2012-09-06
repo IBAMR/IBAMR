@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
@@ -217,37 +216,11 @@ StaggeredStokesOperator::apply(
     transaction_comps[1] = InterpolationTransactionComponent(P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (extended_bc_coef)
-         {
-             extended_bc_coef->clearTargetPatchDataIndex();
-             extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-         }
-         StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (stokes_bc_coef)
-         {
-             stokes_bc_coef->setTargetVelocityPatchDataIndex(U_scratch_idx);
-             stokes_bc_coef->setTargetPressurePatchDataIndex(P_idx);
-         }
-    }
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
-    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
-    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->fillData(d_new_time);
-    d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
-    d_bc_helper->enforceNormalTractionBoundaryConditions(U_scratch_idx, P_idx, d_U_bc_coefs, 0.5*(d_current_time+d_new_time), homogeneous_bc);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-         StokesBcCoefStrategy* stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_U_bc_coefs[axis]);
-         if (stokes_bc_coef)
-         {
-             stokes_bc_coef->clearTargetVelocityPatchDataIndex();
-             stokes_bc_coef->clearTargetPressurePatchDataIndex();
-         }
-    }
+    d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
     //

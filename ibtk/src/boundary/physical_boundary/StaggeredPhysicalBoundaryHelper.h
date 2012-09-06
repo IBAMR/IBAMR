@@ -142,12 +142,12 @@ protected:
      * \brief Setup boundary boxes used for setting boundary condition
      * coefficients.
      */
-    void
+    static void
     setupBcCoefBoxes(
         SAMRAI::hier::Box<NDIM>& bc_coef_box,
         SAMRAI::hier::BoundaryBox<NDIM>& trimmed_bdry_box,
         const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     /*!
      * Cached hierarchy-related information.

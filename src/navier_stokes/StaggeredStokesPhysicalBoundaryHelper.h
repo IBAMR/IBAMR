@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StokesSpecifications.h>
-
 // IBTK INCLUDES
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
@@ -82,20 +79,6 @@ public:
         int finest_ln=-1) const;
 
     /*!
-     * \brief At open boundaries, set pressure ghost cell values to
-     * enforce normal traction boundary condition at the boundary.
-     */
-    void
-    enforceNormalTractionBoundaryConditions(
-        int u_data_idx,
-        int p_data_idx,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        double fill_time,
-        bool homogeneous_bc,
-        int coarsest_ln=-1,
-        int finest_ln=-1) const;
-
-    /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
      * enforce the discrete divergence-free condition in the ghost cell abutting
      * the physical boundary.
@@ -117,27 +100,26 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
-     * Set the problem coefficients to use when computing normal traction
-     * boundary conditions.
+     * \brief Setup physical boundary condition specification objects for
+     * simultaneously filling velocity and pressure data.
      */
-    void
-    setStokesSpecifications(
-        const StokesSpecifications* problem_coefs);
+    static void
+    setupBcCoefObjects(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef,
+        int u_target_data_idx,
+        int p_target_data_idx,
+        bool homogeneous_bc);
 
     /*!
-     * Set the patch data index to use for u(n) when computing normal traction
-     * boundary conditions
+     * \brief Reset physical boundary condition specification objects.
      */
-    void
-    setCurrentVelocityDataIndex(
-        int u_current_data_idx);
+    static void
+    resetBcCoefObjects(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
 
 protected:
-    // Problem specification objects.
-    const StokesSpecifications* d_problem_coefs;
-
-    // Current velocity patch data index.
-    int d_u_current_data_idx;
 
 private:
     /*!

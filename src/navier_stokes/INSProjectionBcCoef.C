@@ -176,21 +176,20 @@ INSProjectionBcCoef::setBcCoefs(
     const unsigned int bdry_normal_axis = location_index/2;
     d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, d_solution_time);
 
+    // Ensure homogeneous boundary conditions are enforced.
+    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
+
     // Update the boundary condition coefficients.  Specifically, normal
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    const bool set_acoef_vals = acoef_data;
-    const bool set_bcoef_vals = bcoef_data;
-    const bool set_gcoef_vals = gcoef_data;
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
         double dummy_val;
-        double& alpha = set_acoef_vals ? (*acoef_data)(i,0) : dummy_val;
-        double& beta  = set_bcoef_vals ? (*bcoef_data)(i,0) : dummy_val;
-        double& gamma = set_gcoef_vals ? (*gcoef_data)(i,0) : dummy_val;
-
+        double& alpha = acoef_data ? (*acoef_data)(i,0) : dummy_val;
+        double& beta  = bcoef_data ? (*bcoef_data)(i,0) : dummy_val;
+        double& gamma = gcoef_data ? (*gcoef_data)(i,0) : dummy_val;
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -206,7 +205,7 @@ INSProjectionBcCoef::setBcCoefs(
         {
             alpha = 1.0;
             beta  = 0.0;
-            gamma = (d_homogeneous_bc ? 0.0 : -gamma);
+            gamma = -gamma;
         }
         else
         {

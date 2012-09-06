@@ -1,5 +1,5 @@
-// Filename: INSStaggeredVelocityBcCoef.h
-// Created on 22 Jul 2008 by Boyce Griffith
+// Filename: INSStaggeredPressureBcCoef.h
+// Created on 06 Sep 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredVelocityBcCoef
-#define included_INSStaggeredVelocityBcCoef
+#ifndef included_INSStaggeredPressureBcCoef
+#define included_INSStaggeredPressureBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,25 +47,24 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
- * that is used to specify velocity boundary conditions for the staggered grid
+ * \brief Class INSStaggeredPressureBcCoef is a concrete StokesBcCoefStrategy
+ * that is used to specify pressure boundary conditions for the staggered grid
  * incompressible Navier-Stokes solver.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
  * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.  These are translated into Dirichlet and generalized Neumann
- * boundary conditions, respectively, for the velocity.
+ * conditions.  These are translated into Neumann and generalized Dirichlet
+ * boundary conditions, respectively, for the pressure.
  */
-class INSStaggeredVelocityBcCoef
+class INSStaggeredPressureBcCoef
     : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    INSStaggeredVelocityBcCoef(
-        unsigned int comp_idx,
+    INSStaggeredPressureBcCoef(
         const INSStaggeredHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
@@ -73,7 +72,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredVelocityBcCoef();
+    ~INSStaggeredPressureBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -247,7 +246,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredVelocityBcCoef();
+    INSStaggeredPressureBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -256,8 +255,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredVelocityBcCoef(
-        const INSStaggeredVelocityBcCoef& from);
+    INSStaggeredPressureBcCoef(
+        const INSStaggeredPressureBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -268,15 +267,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredVelocityBcCoef&
+    INSStaggeredPressureBcCoef&
     operator=(
-        const INSStaggeredVelocityBcCoef& that);
-
-    /*
-     * Component of the velocity which this boundary condition specification is
-     * to operate on.
-     */
-    const unsigned int d_comp_idx;
+        const INSStaggeredPressureBcCoef& that);
 
     /*
      * The fluid solver.
@@ -292,8 +285,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredVelocityBcCoef.I>
+//#include <ibamr/INSStaggeredPressureBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredVelocityBcCoef
+#endif //#ifndef included_INSStaggeredPressureBcCoef
