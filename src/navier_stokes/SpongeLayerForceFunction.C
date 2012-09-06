@@ -53,6 +53,16 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+inline double
+smooth_kernel(
+    const double r)
+{
+    return std::abs(r) < 1.0 ? 0.5*(cos(M_PI*r)+1.0) : 0.0;
+}// smooth_kernel
+}
+
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpongeLayerForceFunction::SpongeLayerForceFunction(
@@ -156,6 +166,8 @@ SpongeLayerForceFunction::setDataOnPatchCell(
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
     const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
     for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
@@ -168,7 +180,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis,side))
             {
                 Box<NDIM> bdry_box = domain_box;
-                const double offset = static_cast<int>(d_width[location_index]/dx[axis]);
+                const int offset = static_cast<int>(d_width[location_index]/dx[axis]);
                 if (is_lower)
                 {
                     bdry_box.upper(axis) = domain_box.lower(axis)+offset;
@@ -183,7 +195,9 @@ SpongeLayerForceFunction::setDataOnPatchCell(
                     const double U_current = U_current_data ? (*U_current_data)(i,d) : 0.0;
                     const double U_new     = U_new_data     ? (*U_new_data    )(i,d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
-                    (*F_data)(i,d) = kappa*(0.0 - U);
+                    const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                    const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                    (*F_data)(i,d) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }
@@ -206,6 +220,8 @@ SpongeLayerForceFunction::setDataOnPatchSide(
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
     const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
     for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
@@ -218,7 +234,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis,side))
             {
                 Box<NDIM> bdry_box = domain_box;
-                const double offset = static_cast<int>(d_width[location_index]/dx[axis]);
+                const int offset = static_cast<int>(d_width[location_index]/dx[axis]);
                 if (is_lower)
                 {
                     bdry_box.upper(axis) = domain_box.lower(axis)+offset;
@@ -229,11 +245,14 @@ SpongeLayerForceFunction::setDataOnPatchSide(
                 }
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,d)); b; b++)
                 {
-                    const SideIndex<NDIM> i_s(b(), d, SideIndex<NDIM>::Lower);
+                    const Index<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new     = U_new_data     ? (*U_new_data    )(i_s) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
-                    (*F_data)(i_s) = kappa*(0.0 - U);
+                    const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                    const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                    (*F_data)(i_s) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }
