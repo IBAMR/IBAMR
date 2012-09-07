@@ -4,8 +4,8 @@ SEED = 0                                        // RNG seed (0 for clock)
 // physical parameters
 MU    = 1.0e-3                                  // fluid viscosity
 RHO   = 1.0                                     // fluid density
-KAPPA = 1.0e-6                                  // temperature diffusion coefficient
-GAMMA = 1.0e2                                   // strength of temperature forcing (F = -GAMMA*j*T)
+KAPPA = 5.0e-5                                  // temperature diffusion coefficient
+GAMMA = 1.0                                     // strength of temperature forcing (F = -GAMMA*j*T)
 W     = 1.0                                     // width  of the physical domain
 H     = 0.5                                     // height of the physical domain
 
@@ -30,7 +30,7 @@ ADV_DIFF_CONVECTIVE_OP_TYPE = "CENTERED"        // convective differencing discr
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"    // how to compute the convective terms
 NORMALIZE_PRESSURE          = TRUE              // whether to explicitly force the pressure to have mean zero
 START_TIME                  = 0.0e0             // initial simulation time
-END_TIME                    = 100.0             // final simulation time
+END_TIME                    = 5.0             // final simulation time
 GROW_DT                     = 2.0e0             // growth factor for timesteps
 CFL_MAX                     = 0.2               // maximum CFL number
 DT_MAX                      = 0.1               // maximum timestep size
@@ -90,7 +90,7 @@ VelocityStochasticForcing {
 
 TemperatureInitialConditions {
    H = H
-   function = "0.5*(tanh(80.0*(X_1-0.5*H))+1)"
+   function = "0.5*(tanh(250.0*(X_1-0.5*H))+1)"
 }
 
 TemperatureBcCoefs {
