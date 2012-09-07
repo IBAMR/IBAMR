@@ -233,7 +233,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    Box<NDIM> bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
@@ -260,6 +260,15 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_current_data);
 #endif
+    const Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if (d != bdry_normal_axis)
+        {
+            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
+            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
+        }
+    }
 
     // Update the boundary condition coefficients.  Normal velocity boundary
     // conditions are converted into Neumann conditions for the pressure, and

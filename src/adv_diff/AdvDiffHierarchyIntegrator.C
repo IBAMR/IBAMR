@@ -96,9 +96,11 @@ namespace
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -680,7 +682,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
         // Setup the interpolation transaction information.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent transaction_comp(Q_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coef[Q_var]);
+        InterpolationTransactionComponent transaction_comp(Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coef[Q_var]);
 
         // Initialize the interpolation operators.
         d_hier_bdry_fill_ops[l] = new HierarchyGhostCellInterpolation();

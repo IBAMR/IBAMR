@@ -63,9 +63,11 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -154,7 +156,7 @@ CCLaplaceOperator::apply(
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -229,7 +231,7 @@ CCLaplaceOperator::initializeOperatorState(
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 

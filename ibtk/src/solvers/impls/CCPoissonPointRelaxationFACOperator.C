@@ -106,10 +106,11 @@ static const int DEFAULT_DATA_DEPTH = 1;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values; used only to evaluate composite grid
-// residuals.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries; used only to evaluate
 // composite grid residuals.
@@ -496,7 +497,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num].isNull())
     {
         d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
@@ -508,7 +509,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
-    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.

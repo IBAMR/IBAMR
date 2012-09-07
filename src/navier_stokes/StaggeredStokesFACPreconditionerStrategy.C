@@ -71,10 +71,11 @@ namespace IBAMR
 
 namespace
 {
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values; used only to evaluate composite grid
-// residuals.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries; used only to evaluate
 // composite grid residuals.
@@ -520,8 +521,8 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
     Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
-    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
@@ -536,8 +537,8 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
-    InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     U_P_components[0] = default_U_scratch_component;
     U_P_components[1] = default_P_scratch_component;

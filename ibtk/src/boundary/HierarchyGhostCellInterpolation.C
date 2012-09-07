@@ -215,29 +215,48 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         Pointer<NodeVariable<NDIM,double> > nc_var = var;
         Pointer<SideVariable<NDIM,double> > sc_var = var;
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        d_cf_bdry_ops[comp_idx] = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (cc_var)
         {
-            refine_op = NULL;
-            d_cf_bdry_ops[comp_idx] = new CartCellDoubleQuadraticCFInterpolation();
-            d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
-            d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
-            refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
+            if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
+            {
+                d_cf_bdry_ops[comp_idx] = new CartCellDoubleQuadraticCFInterpolation();
+                d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
+                d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
+                d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
+                refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+            }
         }
         else if (nc_var)
         {
-            refine_op = d_grid_geom->lookupRefineOperator(nc_var, "LINEAR_REFINE");
-            d_cf_bdry_ops[comp_idx] = NULL;
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
+            if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
+            {
+                TBOX_ERROR("not supported yet.\n");
+            }
         }
         else if (sc_var)
         {
-            refine_op = NULL;
-            d_cf_bdry_ops[comp_idx] = new CartSideDoubleQuadraticCFInterpolation();
-            d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
-            d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
-            refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
+            if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
+            {
+                d_cf_bdry_ops[comp_idx] = new CartSideDoubleQuadraticCFInterpolation();
+                d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
+                d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
+                d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
+                refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+            }
         }
         else
         {
@@ -378,15 +397,24 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         if (cc_var)
         {
-            refine_op = NULL;
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
         }
         else if (nc_var)
         {
-            refine_op = d_grid_geom->lookupRefineOperator(nc_var, "LINEAR_REFINE");
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
         }
         else if (sc_var)
         {
-            refine_op = NULL;
+            if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
+            {
+                refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
+            }
         }
         else
         {

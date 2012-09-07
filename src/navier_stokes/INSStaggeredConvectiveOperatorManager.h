@@ -38,6 +38,9 @@
 // IBAMR INCLUDES
 #include <ibamr/ConvectiveOperator.h>
 
+// SAMRAI INCLUDES
+#include <RobinBcCoefStrategy.h>
+
 // C++ STDLIB INCLUDES
 #include <map>
 
@@ -88,6 +91,7 @@ public:
         const std::string& operator_type,
         const std::string& operator_object_name,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type) const;
 
     /*!
@@ -96,6 +100,7 @@ public:
     typedef SAMRAI::tbox::Pointer<ConvectiveOperator> (*OperatorMaker)(
         const std::string& operator_object_name,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type);
 
     /*!

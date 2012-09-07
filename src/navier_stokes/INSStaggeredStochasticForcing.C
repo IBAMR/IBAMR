@@ -562,7 +562,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,&bc_coef);
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
-        ghost_fill_components[0] = InterpolationTransactionComponent(d_W_cc_idx, "NONE", "NONE", false, bc_coefs);
+        ghost_fill_components[0] = InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
         ghost_fill_op.fillData(data_time);

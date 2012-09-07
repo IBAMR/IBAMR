@@ -37,10 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/ConvectiveOperator.h>
-
-// SAMRAI INCLUDES
-#include <RefineAlgorithm.h>
-#include <SideVariable.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -70,6 +67,7 @@ public:
     INSStaggeredPPMConvectiveOperator(
         const std::string& object_name,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type);
 
     /*!
@@ -84,9 +82,10 @@ public:
     allocate_operator(
         const std::string& object_name,
         ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const std::string& bdry_extrap_type)
         {
-            return new INSStaggeredPPMConvectiveOperator(object_name, difference_form, bdry_extrap_type);
+            return new INSStaggeredPPMConvectiveOperator(object_name, difference_form, bc_coefs, bdry_extrap_type);
         }// allocate_operator
 
     /*!
@@ -182,11 +181,14 @@ private:
     operator=(
         const INSStaggeredPPMConvectiveOperator& that);
 
-    // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
-    const std::string d_bdry_extrap_type;
+    // Boundary condition helper object.
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+
+    // Cached communications operators.
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::string d_bdry_extrap_type;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

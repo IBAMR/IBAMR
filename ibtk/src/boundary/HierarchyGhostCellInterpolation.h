@@ -84,6 +84,8 @@ public:
         inline
         InterpolationTransactionComponent(
             int data_idx=-1,
+            const std::string& refine_op_name="NONE",
+            bool use_cf_bdry_interpolation=false,
             const std::string& coarsen_op_name="NONE",
             const std::string& phys_bdry_extrap_type="NONE",
             bool consistent_type_2_bdry=false,
@@ -91,6 +93,8 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern=NULL)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
+              d_refine_op_name(refine_op_name),
+              d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -107,6 +111,8 @@ public:
         inline
         InterpolationTransactionComponent(
             int data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
@@ -114,6 +120,8 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern=NULL)
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
+              d_refine_op_name(refine_op_name),
+              d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -131,6 +139,8 @@ public:
         InterpolationTransactionComponent(
             int dst_data_idx,
             int src_data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
@@ -138,6 +148,8 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern=NULL)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
+              d_refine_op_name(refine_op_name),
+              d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -155,6 +167,8 @@ public:
         InterpolationTransactionComponent(
             int dst_data_idx,
             int src_data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
@@ -162,6 +176,8 @@ public:
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern=NULL)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
+              d_refine_op_name(refine_op_name),
+              d_use_cf_bdry_interpolation(use_cf_bdry_interpolation),
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -182,6 +198,8 @@ public:
             const InterpolationTransactionComponent& from)
             : d_dst_data_idx(from.d_dst_data_idx),
               d_src_data_idx(from.d_src_data_idx),
+              d_refine_op_name(from.d_refine_op_name),
+              d_use_cf_bdry_interpolation(from.d_use_cf_bdry_interpolation),
               d_coarsen_op_name(from.d_coarsen_op_name),
               d_phys_bdry_extrap_type(from.d_phys_bdry_extrap_type),
               d_consistent_type_2_bdry(from.d_consistent_type_2_bdry),
@@ -207,6 +225,8 @@ public:
                 {
                     d_dst_data_idx = that.d_dst_data_idx;
                     d_src_data_idx = that.d_src_data_idx;
+                    d_refine_op_name = that.d_refine_op_name;
+                    d_use_cf_bdry_interpolation = that.d_use_cf_bdry_interpolation;
                     d_coarsen_op_name = that.d_coarsen_op_name;
                     d_phys_bdry_extrap_type = that.d_phys_bdry_extrap_type;
                     d_consistent_type_2_bdry = that.d_consistent_type_2_bdry;
@@ -229,7 +249,10 @@ public:
     private:
         // Data.
         int d_dst_data_idx, d_src_data_idx;
-        std::string d_coarsen_op_name, d_phys_bdry_extrap_type;
+        std::string d_refine_op_name;
+        bool d_use_cf_bdry_interpolation;
+        std::string d_coarsen_op_name;
+        std::string d_phys_bdry_extrap_type;
         bool d_consistent_type_2_bdry;
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;

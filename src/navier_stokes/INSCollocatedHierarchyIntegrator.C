@@ -161,9 +161,11 @@ namespace
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -1220,7 +1222,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_star_bc_coefs);
+        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_star_bc_coefs);
         HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
         U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, 0, level_number);
         U_bdry_bc_fill_op.fillData(init_data_time);
@@ -1295,21 +1297,21 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     // Setup the patch boundary filling objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_star_bc_coefs);
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_star_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
     d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
     if (d_Q_fcn)
     {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }
@@ -1508,7 +1510,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, &Phi_bc_coef);
+    InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);

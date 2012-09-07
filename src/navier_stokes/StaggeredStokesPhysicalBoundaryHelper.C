@@ -202,18 +202,24 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
                     // intentionally blank
                 }
 
-                // Determine the ghost cell value so that the divergence of the
-                // velocity field is zero in the ghost cell.
-                SideIndex<NDIM> i_g_s(i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                (*u_data)(i_g_s) = 0.0;
-                double div_u_g = 0.0;
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                // Work out from the physical boundary to fill the ghost cell
+                // values so that the velocity field satisfies the discrete
+                // divergence-free condition.
+                for (int k = 0; k < u_data->getGhostCellWidth()(bdry_normal_axis); ++k, i_g(bdry_normal_axis) += (is_lower ? -1 : +1))
                 {
-                    const SideIndex<NDIM> i_g_s_upper(i_g,axis,SideIndex<NDIM>::Upper);
-                    const SideIndex<NDIM> i_g_s_lower(i_g,axis,SideIndex<NDIM>::Lower);
-                    div_u_g += ((*u_data)(i_g_s_upper)-(*u_data)(i_g_s_lower))*dx[bdry_normal_axis]/dx[axis];
+                    // Determine the ghost cell value so that the divergence of
+                    // the velocity field is zero in the ghost cell.
+                    SideIndex<NDIM> i_g_s(i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                    (*u_data)(i_g_s) = 0.0;
+                    double div_u_g = 0.0;
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        const SideIndex<NDIM> i_g_s_upper(i_g,axis,SideIndex<NDIM>::Upper);
+                        const SideIndex<NDIM> i_g_s_lower(i_g,axis,SideIndex<NDIM>::Lower);
+                        div_u_g += ((*u_data)(i_g_s_upper)-(*u_data)(i_g_s_lower))*dx[bdry_normal_axis]/dx[axis];
+                    }
+                    (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0)*div_u_g;
                 }
-                (*u_data)(i_g_s) = (is_lower ? +1.0 : -1.0)*div_u_g;
             }
         }
     }

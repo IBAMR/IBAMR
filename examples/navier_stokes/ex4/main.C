@@ -186,9 +186,9 @@ main(
         if (input_db->keyExists("AdvDiffForcingFunction"))
         {
             Pointer<CellVariable<NDIM,double> > F_adv_diff__var = new CellVariable<NDIM,double>("F_adv_diff_",NDIM);
-            Pointer<CartGridFunction> F_adv_diff__fcn = new muParserCartGridFunction("F_adv_diff__fcn", app_initializer->getComponentDatabase("AdvDiffForcingFunction"), grid_geometry);
+            Pointer<CartGridFunction> F_adv_diff_fcn = new muParserCartGridFunction("F_adv_diff_fcn", app_initializer->getComponentDatabase("AdvDiffForcingFunction"), grid_geometry);
             adv_diff_integrator->registerSourceTerm(F_adv_diff__var);
-            adv_diff_integrator->setSourceTermFunction(F_adv_diff__var, F_adv_diff__fcn);
+            adv_diff_integrator->setSourceTermFunction(F_adv_diff__var, F_adv_diff_fcn);
             adv_diff_integrator->setSourceTerm(U_adv_diff_var, F_adv_diff__var);
         }
 

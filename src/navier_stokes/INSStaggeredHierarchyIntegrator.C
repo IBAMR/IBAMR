@@ -198,10 +198,11 @@ namespace
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -441,7 +442,7 @@ INSStaggeredHierarchyIntegrator::getConvectiveOperator()
     {
         INSStaggeredConvectiveOperatorManager* convective_op_manager = INSStaggeredConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(
-            d_convective_op_type, d_object_name+"::ConvectiveOperator", d_convective_difference_form, d_convective_bdry_extrap_type);
+            d_convective_op_type, d_object_name+"::ConvectiveOperator", d_convective_difference_form, d_U_bc_coefs, d_convective_bdry_extrap_type);
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
@@ -1376,7 +1377,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
             typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-            InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+            InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
             HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
             U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, 0, level_number);
             U_bdry_bc_fill_op.fillData(init_data_time);
@@ -1440,17 +1441,17 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     // Setup the patch boundary filling objects.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
     if (d_Q_fcn)
     {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }
@@ -1656,7 +1657,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, &Phi_bc_coef);
+    InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
@@ -1864,6 +1865,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     {
         if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
+        d_convective_op->setSolutionTime(d_integrator_time);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         d_convective_op_needs_init = false;
     }

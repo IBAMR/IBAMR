@@ -106,7 +106,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(
             hier_cc_data_ops->linearSum(T_scratch_idx, 0.5, T_current_idx, 0.5, T_new_idx);
         }
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent ghost_fill_component(T_scratch_idx, "CONSERVATIVE_COARSEN", "LINEAR", false, d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_T_var));
+        InterpolationTransactionComponent ghost_fill_component(T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_T_var));
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_fill_component, hierarchy);
         ghost_fill_op.fillData(data_time);
