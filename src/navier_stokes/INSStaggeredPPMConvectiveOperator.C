@@ -449,7 +449,6 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                     U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2));
 #endif
             }
-#if 1 // XXXX
 #if (NDIM == 2)
             NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
                 side_boxes[0].lower(0), side_boxes[0].upper(0),
@@ -488,7 +487,6 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_adv_data [2]->getPointer(0),          U_adv_data [2]->getPointer(1),          U_adv_data [2]->getPointer(2),
                 U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
                 U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
-#endif
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
