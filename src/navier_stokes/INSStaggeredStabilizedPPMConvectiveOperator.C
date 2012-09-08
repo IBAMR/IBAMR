@@ -372,7 +372,6 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
 
             Pointer<SideData<NDIM,double> >        N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM,double> > N_upwind_data = new SideData<NDIM,double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
-            Pointer<SideData<NDIM,double> > N_hybrid_data = new SideData<NDIM,double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
             Pointer<SideData<NDIM,double> >        U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
@@ -714,39 +713,43 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
 
             // Blend together the low-order and high-order discretizations at
             // physical boundaries.
-            for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
+            if (patch_geom->getTouchesRegularBoundary())
             {
-                const unsigned int axis = location_index / 2;
-                const unsigned int side = location_index % 2;
-                const bool is_lower     = side == 0;
-                if (patch_geom->getTouchesRegularBoundary(axis,side))
+                Pointer<SideData<NDIM,double> > N_PPM_data = new SideData<NDIM,double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+                N_PPM_data->copy(*N_data);
+                for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
                 {
-                    for (unsigned int d = 0; d < NDIM; ++d)
+                    const unsigned int axis = location_index / 2;
+                    const unsigned int side = location_index % 2;
+                    const bool is_lower     = side == 0;
+                    if (patch_geom->getTouchesRegularBoundary(axis,side))
                     {
-                        Box<NDIM> bdry_box = domain_box;
-                        const double width = 2.0*dx[axis];
-                        const int offset = static_cast<int>(width/dx[axis]);
-                        if (is_lower)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            bdry_box.upper(axis) = domain_box.lower(axis)+offset;
-                        }
-                        else
-                        {
-                            bdry_box.lower(axis) = domain_box.upper(axis)-offset;
-                        }
-                        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,d)); b; b++)
-                        {
-                            const Index<NDIM>& i = b();
-                            const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
-                            const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
-                            const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
-                            const double fac = smoother_step((x-x_bdry)/width);
-                            (*N_hybrid_data)(i_s) = fac*(*N_upwind_data)(i_s) + (1.0-fac)*(*N_data)(i_s);
+                            Box<NDIM> bdry_box = domain_box;
+                            const double width = 2.0*dx[axis];
+                            const int offset = static_cast<int>(width/dx[axis]);
+                            if (is_lower)
+                            {
+                                bdry_box.upper(axis) = domain_box.lower(axis)+offset;
+                            }
+                            else
+                            {
+                                bdry_box.lower(axis) = domain_box.upper(axis)-offset;
+                            }
+                            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,d)); b; b++)
+                            {
+                                const Index<NDIM>& i = b();
+                                const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
+                                const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                                const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                                const double fac = smoother_step((x-x_bdry)/width);
+                                (*N_data)(i_s) = fac*(*N_upwind_data)(i_s) + (1.0-fac)*(*N_PPM_data)(i_s);
+                            }
                         }
                     }
                 }
             }
-            if (patch_geom->getTouchesRegularBoundary()) N_data->copy(*N_hybrid_data);
         }
     }
 
