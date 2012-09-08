@@ -250,11 +250,11 @@ namespace
 static const int GADVECTG = 4;
 
 inline double
-smoother_step(
+smooth_kernel(
     const double r)
 {
-    return std::abs(r) < 1.0 ? (1.0 - r*r*r*(r*(r*6.0 - 15.0) + 10.0)) : 0.0;
-}// smoother_step
+    return std::abs(r) < 1.0 ? 0.5*(cos(M_PI*r)+1.0) : 0.0;
+}// smooth_kernel
 
 // Timers.
 static Timer* t_apply_convective_operator;
@@ -743,7 +743,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
                                 const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
                                 const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
                                 const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
-                                const double fac = smoother_step((x-x_bdry)/width);
+                                const double fac = smooth_kernel((x-x_bdry)/width);
                                 (*N_data)(i_s) = fac*(*N_upwind_data)(i_s) + (1.0-fac)*(*N_PPM_data)(i_s);
                             }
                         }
