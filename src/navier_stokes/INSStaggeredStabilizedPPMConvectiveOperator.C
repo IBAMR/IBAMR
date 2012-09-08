@@ -372,6 +372,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
 
             Pointer<SideData<NDIM,double> >        N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM,double> > N_upwind_data = new SideData<NDIM,double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+            Pointer<SideData<NDIM,double> > N_hybrid_data = new SideData<NDIM,double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
             Pointer<SideData<NDIM,double> >        U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
@@ -740,11 +741,12 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
                             const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
                             const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                             const double fac = smoother_step((x-x_bdry)/width);
-                            (*N_data)(i_s) = fac*(*N_upwind_data)(i_s) + (1.0-fac)*(*N_data)(i_s);
+                            (*N_hybrid_data)(i_s) = fac*(*N_upwind_data)(i_s) + (1.0-fac)*(*N_data)(i_s);
                         }
                     }
                 }
             }
+            if (patch_geom->getTouchesRegularBoundary()) N_data->copy(*N_hybrid_data);
         }
     }
 
