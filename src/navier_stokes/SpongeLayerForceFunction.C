@@ -56,11 +56,11 @@ namespace IBAMR
 namespace
 {
 inline double
-smoother_step(
+smooth_kernel(
     const double r)
 {
-    return std::abs(r) < 1.0 ? (1.0 - r*r*r*(r*(r*6.0 - 15.0) + 10.0)) : 0.0;
-}// smoother_step
+    return std::abs(r) < 1.0 ? 0.5*(cos(M_PI*r)+1.0) : 0.0;
+}// smooth_kernel
 }
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -197,7 +197,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(
                     const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
                     const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
                     const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
-                    (*F_data)(i,d) = smoother_step((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
+                    (*F_data)(i,d) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }
@@ -252,7 +252,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(
                     const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
                     const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
                     const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
-                    (*F_data)(i_s) = smoother_step((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
+                    (*F_data)(i_s) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }
