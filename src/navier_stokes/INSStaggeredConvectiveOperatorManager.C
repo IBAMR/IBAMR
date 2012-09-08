@@ -51,7 +51,9 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredCenteredConvectiveOperator.h>
+#include <ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
+#include <ibamr/INSStaggeredUpwindConvectiveOperator.h>
 #include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -60,9 +62,11 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string INSStaggeredConvectiveOperatorManager::DEFAULT  = "DEFAULT";
-const std::string INSStaggeredConvectiveOperatorManager::CENTERED = "CENTERED";
-const std::string INSStaggeredConvectiveOperatorManager::PPM      = "PPM";
+const std::string INSStaggeredConvectiveOperatorManager::DEFAULT        = "DEFAULT";
+const std::string INSStaggeredConvectiveOperatorManager::CENTERED       = "CENTERED";
+const std::string INSStaggeredConvectiveOperatorManager::PPM            = "PPM";
+const std::string INSStaggeredConvectiveOperatorManager::UPWIND         = "UPWIND";
+const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABILIZED_PPM";
 
 INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
@@ -129,9 +133,11 @@ INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(
 INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager()
     : d_operator_maker_map()
 {
-    registerOperatorFactoryFunction(DEFAULT , INSStaggeredPPMConvectiveOperator     ::allocate_operator);
-    registerOperatorFactoryFunction(CENTERED, INSStaggeredCenteredConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(PPM     , INSStaggeredPPMConvectiveOperator     ::allocate_operator);
+    registerOperatorFactoryFunction(DEFAULT       , INSStaggeredPPMConvectiveOperator          ::allocate_operator);
+    registerOperatorFactoryFunction(CENTERED      , INSStaggeredCenteredConvectiveOperator     ::allocate_operator);
+    registerOperatorFactoryFunction(PPM           , INSStaggeredPPMConvectiveOperator          ::allocate_operator);
+    registerOperatorFactoryFunction(UPWIND        , INSStaggeredUpwindConvectiveOperator       ::allocate_operator);
+    registerOperatorFactoryFunction(STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
     return;
 }// INSStaggeredConvectiveOperatorManager
 
