@@ -88,9 +88,9 @@ public:
         const std::string& operator_type,
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const std::string& bdry_extrap_type) const;
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
@@ -99,9 +99,9 @@ public:
     (*OperatorMaker)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const std::string& bdry_extrap_type);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * Register a operator factory function with the operator manager class.

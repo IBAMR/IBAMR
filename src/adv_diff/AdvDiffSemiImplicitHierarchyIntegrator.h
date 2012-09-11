@@ -140,19 +140,19 @@ public:
     getDefaultConvectiveOperatorType() const;
 
     /*!
-     * \brief Set the default convective operator boundary extrapolation to be
-     * used by the solver.
+     * \brief Set the default convective operator input database to be used by
+     * the solver.
      */
     void
-    setDefaultConvectiveOperatorBoundaryExtrapolation(
-        const std::string& bdry_extrap_type);
+    setDefaultConvectiveOperatorInputDatabase(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
-     * \brief Get the default convective operator boundary extrapolation to be
-     * used by the solver.
+     * \brief Get the default convective operator input database to be used by
+     * the solver.
      */
-    const std::string&
-    getDefaultConvectiveOperatorBoundaryExtrapolation() const;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+    getDefaultConvectiveOperatorInputDatabase() const;
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
@@ -223,20 +223,20 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
-     * \brief Set the convective operator boundary extrapolation to be used by
-     * the solver for a particular transported quantity Q.
-     */
-    void
-    setConvectiveBoundaryExtrapolation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const std::string& bdry_extrap_type);
-
-    /*!
-     * \brief Get the convective operator boundary extrapolation used by the
+     * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    const std::string&
-    getConvectiveBoundaryExtrapolation(
+    void
+    setConvectiveOperatorInputDatabase(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    /*!
+     * \brief Get the convective operator boundary input database used by the
+     * solver for a particular transported quantity Q.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+    getConvectiveOperatorInputDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
@@ -335,7 +335,7 @@ protected:
      * Default convective operator settings.
      */
     std::string d_default_convective_op_type;
-    std::string d_default_convective_bdry_extrap_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_default_convective_op_input_db;
 
     /*
      * Hierarchy operations objects.
@@ -350,7 +350,7 @@ protected:
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::string> d_Q_convective_op_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::string> d_Q_convective_bdry_extrap_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> > d_Q_convective_op_input_db;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<ConvectiveOperator> > d_Q_convective_op;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_convective_op_needs_init;
 

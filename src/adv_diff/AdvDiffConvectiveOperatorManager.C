@@ -98,9 +98,9 @@ AdvDiffConvectiveOperatorManager::allocateOperator(
     const std::string& operator_type,
     const std::string& operator_object_name,
     Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<Database> input_db,
     ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const std::string& bdry_extrap_type) const
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
     std::map<std::string,OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
@@ -108,7 +108,7 @@ AdvDiffConvectiveOperatorManager::allocateOperator(
         TBOX_ERROR("AdvDiffConvectiveOperatorManager::allocateOperator():\n"
                    << "  unrecognized operator type: " << operator_type << "\n");
     }
-    return (it->second)(operator_object_name, Q_var, difference_form, bc_coefs, bdry_extrap_type);
+    return (it->second)(operator_object_name, Q_var, input_db, difference_form, bc_coefs);
 }// allocateOperator
 
 void

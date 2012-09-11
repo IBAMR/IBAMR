@@ -442,7 +442,7 @@ INSStaggeredHierarchyIntegrator::getConvectiveOperator()
     {
         INSStaggeredConvectiveOperatorManager* convective_op_manager = INSStaggeredConvectiveOperatorManager::getManager();
         d_convective_op = convective_op_manager->allocateOperator(
-            d_convective_op_type, d_object_name+"::ConvectiveOperator", d_convective_difference_form, d_U_bc_coefs, d_convective_bdry_extrap_type);
+            d_convective_op_type, d_object_name+"::ConvectiveOperator", d_convective_op_input_db, d_convective_difference_form, d_U_bc_coefs);
         d_convective_op_needs_init = true;
     }
     return d_convective_op;

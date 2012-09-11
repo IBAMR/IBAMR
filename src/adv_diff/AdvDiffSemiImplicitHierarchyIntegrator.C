@@ -81,7 +81,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     d_default_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_init_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_convective_op_type = AdvDiffConvectiveOperatorManager::DEFAULT;
-    d_default_convective_bdry_extrap_type = "LINEAR";
+    d_default_convective_op_input_db = new MemoryDatabase(d_object_name+"::default_convective_op_input_db");
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -180,18 +180,18 @@ AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorType() const
 }// getDefaultConvectiveOperatorType
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorBoundaryExtrapolation(
-    const std::string& bdry_extrap_type)
+AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorInputDatabase(
+    Pointer<Database> input_db)
 {
-    d_default_convective_bdry_extrap_type = bdry_extrap_type;
+    d_default_convective_op_input_db = input_db;
     return;
-}// setDefaultConvectiveOperatorBoundaryExtrapolation
+}// setDefaultConvectiveOperatorInputDatabase
 
-const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorBoundaryExtrapolation() const
+Pointer<Database>
+AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorInputDatabase() const
 {
-    return d_default_convective_bdry_extrap_type;
-}// getDefaultConvectiveOperatorBoundaryExtrapolation
+    return d_default_convective_op_input_db;
+}// getDefaultConvectiveOperatorInputDatabase
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
@@ -200,12 +200,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
     AdvDiffHierarchyIntegrator::registerTransportedQuantity(Q_var);
 
     // Set default values.
-    d_Q_convective_time_stepping_type[Q_var] = d_default_convective_time_stepping_type;
+    d_Q_convective_time_stepping_type     [Q_var] = d_default_convective_time_stepping_type;
     d_Q_init_convective_time_stepping_type[Q_var] = d_default_init_convective_time_stepping_type;
-    d_Q_convective_op_type[Q_var] = d_default_convective_op_type;
-    d_Q_convective_bdry_extrap_type[Q_var] = d_default_convective_bdry_extrap_type;
-    d_Q_convective_op[Q_var] = NULL;
-    d_Q_convective_op_needs_init[Q_var] = false;
+    d_Q_convective_op_type                [Q_var] = d_default_convective_op_type;
+    d_Q_convective_op_input_db            [Q_var] = d_default_convective_op_input_db;
+    d_Q_convective_op                     [Q_var] = NULL;
+    d_Q_convective_op_needs_init          [Q_var] = false;
     return;
 }// registerTransportedQuantity
 
@@ -276,26 +276,26 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(
 }// getConvectiveOperatorType
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveBoundaryExtrapolation(
+AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const std::string& bdry_extrap_type)
+    Pointer<Database> input_db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
 #endif
-    d_Q_convective_bdry_extrap_type[Q_var] = bdry_extrap_type;
+    d_Q_convective_op_input_db[Q_var] = input_db;
     return;
-}// setConvectiveBoundaryExtrapolation
+}// setConvectiveOperatorInputDatabase
 
-const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveBoundaryExtrapolation(
+Pointer<Database>
+AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
     Pointer<CellVariable<NDIM,double> > Q_var) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
 #endif
-    return d_Q_convective_bdry_extrap_type.find(Q_var)->second;
-}// getConvectiveBoundaryExtrapolation
+    return d_Q_convective_op_input_db.find(Q_var)->second;
+}// getConvectiveOperatorInputDatabase
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(
@@ -321,7 +321,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
     if (d_Q_convective_op[Q_var].isNull())
     {
         AdvDiffConvectiveOperatorManager* convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
-        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var], d_Q_convective_bdry_extrap_type[Q_var]);
+        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_convective_op_input_db[Q_var], d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var]);
         d_Q_convective_op_needs_init[Q_var] = true;
     }
     return d_Q_convective_op[Q_var];
@@ -788,7 +788,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(
     db->putString("d_default_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type));
     db->putString("d_default_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type));
     db->putString("d_default_convective_op_type", d_default_convective_op_type);
-    db->putString("d_default_convective_bdry_extrap_type", d_default_convective_bdry_extrap_type);
     AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 }// putToDatabaseSpecialized
@@ -820,8 +819,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
         else if (db->keyExists("default_convective_op_type"))       d_default_convective_op_type = db->getString("default_convective_op_type");
         else if (db->keyExists("default_convective_operator_type")) d_default_convective_op_type = db->getString("default_convective_operator_type");
 
-        if      (db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
-        else if (db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
+        if      (db->keyExists("convective_op_db"))         d_default_convective_op_input_db = db->getDatabase("convective_op_db");
+        else if (db->keyExists("default_convective_op_db")) d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
     }
     return;
 }// getFromInput
@@ -843,7 +842,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
     d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));
     d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_init_convective_time_stepping_type"));
     d_default_convective_op_type = db->getString("d_default_convective_op_type");
-    d_default_convective_bdry_extrap_type = db->getString("d_default_convective_bdry_extrap_type");
     return;
 }// getFromRestart
 

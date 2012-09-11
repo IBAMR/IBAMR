@@ -267,12 +267,14 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvectiveOperator(
     const std::string& object_name,
+    Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const std::string& bdry_extrap_type)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
+      d_open_bdry(false),
+      d_width(0.0),
       d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type(bdry_extrap_type),
+      d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -286,6 +288,22 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
         TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+    }
+
+    if (input_db)
+    {
+        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
+        {
+            std::ostringstream width_stream;
+            width_stream << "width_" << location_index;
+            const std::string width_key = width_stream.str();
+            if (input_db->keyExists(width_key))
+            {
+                d_width[location_index] = input_db->getDouble(width_key);
+            }
+            if (d_width[location_index] > 0.0) d_open_bdry[location_index] = true;
+        }
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -722,12 +740,12 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
                     const unsigned int axis = location_index / 2;
                     const unsigned int side = location_index % 2;
                     const bool is_lower     = side == 0;
-                    if (patch_geom->getTouchesRegularBoundary(axis,side))
+                    if (d_open_bdry[location_index] && patch_geom->getTouchesRegularBoundary(axis,side))
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             Box<NDIM> bdry_box = domain_box;
-                            const double width = 2.0*dx[axis];
+                            const double width = d_width[location_index];
                             const int offset = static_cast<int>(width/dx[axis]);
                             if (is_lower)
                             {

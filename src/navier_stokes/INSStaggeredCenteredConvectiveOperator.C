@@ -155,12 +155,12 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     const std::string& object_name,
+    Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const std::string& bdry_extrap_type)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type(bdry_extrap_type),
+      d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -174,6 +174,11 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
         TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():\n"
                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+    }
+
+    if (input_db)
+    {
+        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

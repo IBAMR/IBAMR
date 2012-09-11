@@ -39,6 +39,9 @@
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -68,9 +71,9 @@ public:
      */
     INSStaggeredStabilizedPPMConvectiveOperator(
         const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const std::string& bdry_extrap_type);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -84,11 +87,11 @@ public:
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocate_operator(
         const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const std::string& bdry_extrap_type)
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
         {
-            return new INSStaggeredStabilizedPPMConvectiveOperator(object_name, difference_form, bc_coefs, bdry_extrap_type);
+            return new INSStaggeredStabilizedPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
         }// allocate_operator
 
     /*!
@@ -183,6 +186,10 @@ private:
     INSStaggeredStabilizedPPMConvectiveOperator&
     operator=(
         const INSStaggeredStabilizedPPMConvectiveOperator& that);
+
+    // Operator configuration.
+    blitz::TinyVector<bool,2*NDIM> d_open_bdry;
+    blitz::TinyVector<double,2*NDIM> d_width;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

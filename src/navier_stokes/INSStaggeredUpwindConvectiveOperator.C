@@ -200,12 +200,12 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     const std::string& object_name,
+    Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const std::string& bdry_extrap_type)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
       d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type(bdry_extrap_type),
+      d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -223,6 +223,11 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSStaggeredUpwindConvectiveOperator::CONTEXT");
+
+    if (input_db)
+    {
+        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+    }
 
     const std::string U_var_name = "INSStaggeredUpwindConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
