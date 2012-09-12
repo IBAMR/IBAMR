@@ -195,7 +195,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(
                     const double U_current = U_current_data ? (*U_current_data)(i,d) : 0.0;
                     const double U_new     = U_new_data     ? (*U_new_data    )(i,d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
-                    const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                    const double x = x_lower[axis] + dx[axis]*(static_cast<double>(i(axis)-patch_box.lower(axis))+0.5);
                     const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                     (*F_data)(i,d) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
