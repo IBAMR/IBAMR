@@ -726,6 +726,7 @@ SimplifiedIBFEMethod::putToDatabase(
     db->putBool("d_split_forces", d_split_forces);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
+    db->putBool("d_use_continuous_weighting", d_use_continuous_weighting);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
     db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
@@ -1040,47 +1041,67 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
             {
                 interpolate(X_qp,qp,X_node,phi);
                 const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                for (unsigned int d = 0; d < NDIM; ++d)
+                VectorValue<double> U;
+                if (d_use_continuous_weighting)
                 {
-                    X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                }
-                for (unsigned int component = 0; component < NDIM; ++component)
-                {
-                    Box<NDIM> box(i,i);
+                    // Weight u using a bi/trilinear test function evaluated at
+                    // X_qp.
+                    //
+                    // WARNING: As written here, this implicitly imposes u = 0
+                    // in the ghost cell region.
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (d == component)
-                        {
-                            box.upper(d) += 1;
-                        }
-                        else
-                        {
-                            box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                            box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                        }
+                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
                     }
-                    box = box * patch_box;
-                    double U = 0.0;
-                    for (Box<NDIM>::Iterator b(box); b; b++)
+                    for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        const Index<NDIM>& i = b();
-                        // Weight using a bi/trilinear test function evaluated
-                        // at X_qp.
-                        //
-                        // WARNING: This formulation implicitly imposes u = 0 in
-                        // the ghost cell region.
-                        double phi = 1.0;
+                        Box<NDIM> box(i,i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                            const double del = X_dof - X_qp(d);
-                            phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                            if (d == component)
+                            {
+                                box.upper(d) += 1;
+                            }
+                            else
+                            {
+                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
+                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
+                            }
                         }
-                        U += (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower))*phi;
+                        box = box * patch_box;
+                        for (Box<NDIM>::Iterator b(box); b; b++)
+                        {
+                            const Index<NDIM>& i = b();
+                            double phi = 1.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                                const double del = X_dof - X_qp(d);
+                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                            }
+                            U(component) += (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower))*phi;
+                        }
                     }
-                    for (unsigned int k = 0; k < dof_indices(component).size(); ++k)
+                }
+                else if (patch_box.contains(i))
+                {
+                    // Weight u using a discontinuous test function evaluated at
+                    // X_qp.
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        U_rhs_e[component](k) += U*phi[k][qp]*JxW[qp];
+                        const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
+                        const double del_lower = X_dof_lower - X_qp(d);
+                        const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
+                        U(d) += (*u_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower))*phi_lower;
+                        const double phi_upper = 1.0-phi_lower;
+                        U(d) += (*u_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper))*phi_upper;
+                    }
+                }
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    for (unsigned int k = 0; k < dof_indices(d).size(); ++k)
+                    {
+                        U_rhs_e[d](k) += U(d)*phi[k][qp]*JxW[qp];
                     }
                 }
             }
@@ -1215,42 +1236,56 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
                 interpolate(F_qp,qp,F_node,phi);
                 interpolate(X_qp,qp,X_node,phi);
                 const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                for (unsigned int d = 0; d < NDIM; ++d)
+                if (d_use_continuous_weighting)
                 {
-                    X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                }
-                for (unsigned int component = 0; component < NDIM; ++component)
-                {
-                    Box<NDIM> box(i,i);
+                    // Weight F using a bi/trilinear test function evaluated at
+                    // X_qp.
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (d == component)
-                        {
-                            box.upper(d) += 1;
-                        }
-                        else
-                        {
-                            box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                            box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                        }
+                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
                     }
-                    box = box * ghost_box;
-                    for (Box<NDIM>::Iterator b(box); b; b++)
+                    for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        const Index<NDIM>& i = b();
-                        // Weight using a bi/trilinear test function evaluated
-                        // at X_qp.
-                        //
-                        // WARNING: This formulation implicitly imposes f = 0 in
-                        // the ghost cell region.
-                        double phi = 1.0;
+                        Box<NDIM> box(i,i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                            const double del = X_dof - X_qp(d);
-                            phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                            if (d == component)
+                            {
+                                box.upper(d) += 1;
+                            }
+                            else
+                            {
+                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
+                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
+                            }
                         }
-                        (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW[qp]/dV_c;
+                        box = box * ghost_box;
+                        for (Box<NDIM>::Iterator b(box); b; b++)
+                        {
+                            const Index<NDIM>& i = b();
+                            double phi = 1.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                                const double del = X_dof - X_qp(d);
+                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                            }
+                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW[qp]/dV_c;
+                        }
+                    }
+                }
+                else if (ghost_box.contains(i))
+                {
+                    // Weight F using a discontinuous test function evaluated at
+                    // X_qp.
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
+                        const double del_lower = X_dof_lower - X_qp(d);
+                        const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW[qp]/dV_c;
+                        const double phi_upper = 1.0-phi_lower;
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW[qp]/dV_c;
                     }
                 }
             }
@@ -1325,42 +1360,56 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
                     }
 
                     const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    for (unsigned int d = 0; d < NDIM; ++d)
+                    if (d_use_continuous_weighting)
                     {
-                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                    }
-                    for (unsigned int component = 0; component < NDIM; ++component)
-                    {
-                        Box<NDIM> box(i,i);
+                        // Weight F using a bi/trilinear test function evaluated
+                        // at X_qp.
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (d == component)
-                            {
-                                box.upper(d) += 1;
-                            }
-                            else
-                            {
-                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                            }
+                            X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
                         }
-                        box = box * ghost_box;
-                        for (Box<NDIM>::Iterator b(box); b; b++)
+                        for (unsigned int component = 0; component < NDIM; ++component)
                         {
-                            const Index<NDIM>& i = b();
-                            // Weight using a bi/trilinear test function
-                            // evaluated at X_qp.
-                            //
-                            // WARNING: This formulation implicitly imposes f =
-                            // 0 in the ghost cell region.
-                            double phi = 1.0;
+                            Box<NDIM> box(i,i);
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                                const double del = X_dof - X_qp(d);
-                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                                if (d == component)
+                                {
+                                    box.upper(d) += 1;
+                                }
+                                else
+                                {
+                                    box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
+                                    box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
+                                }
                             }
-                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW_face[qp]/dV_c;
+                            box = box * ghost_box;
+                            for (Box<NDIM>::Iterator b(box); b; b++)
+                            {
+                                const Index<NDIM>& i = b();
+                                double phi = 1.0;
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                                    const double del = X_dof - X_qp(d);
+                                    phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                                }
+                                (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW_face[qp]/dV_c;
+                            }
+                        }
+                    }
+                    else if (ghost_box.contains(i))
+                    {
+                        // Weight F using a discontinuous test function
+                        // evaluated at X_qp.
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
+                            const double del_lower = X_dof_lower - X_qp(d);
+                            const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
+                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW_face[qp]/dV_c;
+                            const double phi_upper = 1.0-phi_lower;
+                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW_face[qp]/dV_c;
                         }
                     }
                 }
@@ -1762,6 +1811,7 @@ SimplifiedIBFEMethod::commonConstructor(
     d_split_forces = false;
     d_use_jump_conditions = false;
     d_use_consistent_mass_matrix = true;
+    d_use_continuous_weighting = true;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
     d_quad_type = QGAUSS;
@@ -1902,6 +1952,7 @@ SimplifiedIBFEMethod::getFromInput(
         if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
         if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
         if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+        if (db->isBool("use_continuous_weighting")) d_use_continuous_weighting = db->getBool("use_continuous_weighting");
         if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
         if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
 
@@ -1942,6 +1993,7 @@ SimplifiedIBFEMethod::getFromRestart()
     d_split_forces = db->getBool("d_split_forces");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
+    d_use_continuous_weighting = db->getBool("d_use_continuous_weighting");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));

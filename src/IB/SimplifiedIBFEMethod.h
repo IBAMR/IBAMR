@@ -535,6 +535,7 @@ protected:
     bool d_split_forces;
     bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
+    bool d_use_continuous_weighting;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
