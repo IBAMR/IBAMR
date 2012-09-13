@@ -1890,7 +1890,7 @@ SimplifiedIBFEMethod::commonConstructor(
         std::ostringstream manager_stream;
         manager_stream << "SimplifiedIBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, "PIECEWISE_LINEAR", "PIECEWISE_LINEAR", d_use_consistent_mass_matrix);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, "IB_4", "IB_4", d_use_consistent_mass_matrix);
         d_ghosts = IntVector<NDIM>::max(d_ghosts,d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems object.
