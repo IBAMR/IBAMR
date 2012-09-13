@@ -1,5 +1,5 @@
-// Filename: IBFEMethod.h
-// Created on 5 Oct 2011 by Boyce Griffith
+// Filename: SimplifiedIBFEMethod.h
+// Created on 11 Sep 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFEMethod
-#define included_IBFEMethod
+#ifndef included_SimplifiedIBFEMethod
+#define included_SimplifiedIBFEMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -49,11 +49,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBFEMethod is an implementation of the abstract base class
- * IBStrategy that provides functionality required by the IB method with finite
- * element elasticity.
+ * \brief Class SimplifiedIBFEMethod is an implementation of the abstract base
+ * class IBStrategy that provides functionality required by the IB method with
+ * finite element elasticity.
  */
-class IBFEMethod
+class SimplifiedIBFEMethod
     : public IBStrategy
 {
 public:
@@ -61,12 +61,11 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
-    static const std::string     F_DIL_BAR_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
      */
-    IBFEMethod(
+    SimplifiedIBFEMethod(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         libMesh::Mesh* mesh,
@@ -76,7 +75,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBFEMethod(
+    SimplifiedIBFEMethod(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::vector<libMesh::Mesh*>& meshes,
@@ -86,7 +85,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~IBFEMethod();
+    ~SimplifiedIBFEMethod();
 
     /*!
      * Return a pointer to the finite element data manager object for the
@@ -95,20 +94,6 @@ public:
     IBTK::FEDataManager*
     getFEDataManager(
         unsigned int part=0) const;
-
-    /*!
-     * Set the mass density (needed only for rigid structures).
-     */
-    void
-    setMassDensity(
-        double rho);
-
-    /*!
-     * Register a structure as rigid.
-     */
-    void
-    registerRigidStructure(
-        unsigned int part=0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -450,26 +435,6 @@ public:
 
 protected:
     /*
-     * \brief Compute the projected dilatational strain F_dil_bar.
-     */
-    void
-    computeProjectedDilatationalStrain(
-        libMesh::PetscVector<double>& F_dil_bar_vec,
-        libMesh::PetscVector<double>& X_vec,
-        unsigned int part);
-
-    /*
-     * \brief Compute the constraint force density.
-     */
-    void
-    computeConstraintForceDensity(
-        libMesh::PetscVector<double>& F_vec,
-        libMesh::PetscVector<double>& X_vec,
-        libMesh::PetscVector<double>& U_vec,
-        double time,
-        unsigned int part);
-
-    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -478,19 +443,28 @@ protected:
     computeInteriorForceDensity(
         libMesh::PetscVector<double>& G_vec,
         libMesh::PetscVector<double>& X_vec,
-        libMesh::PetscVector<double>* F_dil_bar_vec,
         double time,
         unsigned int part);
 
     /*!
-     * \brief Spread the transmission force density along the physical boundary
-     * of the Lagrangian structure.
+     * \brief Project the velocity field onto the mesh.
      */
     void
-    spreadTransmissionForceDensity(
-        int f_data_idx,
+    projectMaterialVelocity(
+        int u_data_idx,
+        libMesh::PetscVector<double>& U_vec,
         libMesh::PetscVector<double>& X_ghost_vec,
-        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
+        double time,
+        unsigned int part);
+
+    /*!
+     * \brief Project the interior force density onto the grid.
+     */
+    void
+    projectInteriorForceDensity(
+        int f_data_idx,
+        libMesh::PetscVector<double>& F_ghost_vec,
+        libMesh::PetscVector<double>& X_ghost_vec,
         double time,
         unsigned int part);
 
@@ -504,15 +478,8 @@ protected:
         int f_data_idx,
         libMesh::PetscVector<double>& F_ghost_vec,
         libMesh::PetscVector<double>& X_ghost_vec,
-        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
         double time,
         unsigned int part);
-
-    /*!
-     * \brief Correct rigid body velocities on the grid.
-     */
-    void
-    correctRigidBodyVelocity();
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -549,11 +516,6 @@ protected:
     double d_current_time, d_new_time, d_half_time;
 
     /*
-     * The structure mass density.
-     */
-    double d_rho;
-
-    /*
      * FE data associated with this object.
      */
     std::vector<libMesh::Mesh*> d_meshes;
@@ -562,39 +524,21 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_F_dil_bar_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_dil_bar_half_vecs, d_F_dil_bar_IB_ghost_vecs;
 
     /*
      * Method paramters.
      */
-    bool d_use_IB_spread_operator;
-    std::string d_spread_delta_fcn;
-    bool d_use_IB_interp_operator;
-    std::string d_interp_delta_fcn;
     bool d_split_forces;
     bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
-    bool d_use_Fbar_projection;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
-    libMeshEnums::FEFamily d_F_dil_bar_fe_family;
-    libMeshEnums::Order d_F_dil_bar_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
-
-    /*
-     * Data related to handling rigid body constraints.
-     */
-    double d_dt_previous;
-    bool d_has_rigid_parts;
-    std::vector<bool> d_rigid_structure;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_correction_projection_fac_pc_db;
-    double d_constraint_omega;
-    bool d_do_constraint_projection;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -649,7 +593,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEMethod();
+    SimplifiedIBFEMethod();
 
     /*!
      * \brief Copy constructor.
@@ -658,8 +602,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEMethod(
-        const IBFEMethod& from);
+    SimplifiedIBFEMethod(
+        const SimplifiedIBFEMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -670,9 +614,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEMethod&
+    SimplifiedIBFEMethod&
     operator=(
-        const IBFEMethod& that);
+        const SimplifiedIBFEMethod& that);
 
     /*!
      * Implementation of class constructor.
@@ -704,8 +648,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBFEMethod.I>
+//#include <ibamr/SimplifiedIBFEMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFEMethod
+#endif //#ifndef included_SimplifiedIBFEMethod

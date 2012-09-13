@@ -129,7 +129,8 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/IB/IBFEMethod.C
+$(top_srcdir)/src/IB/IBFEMethod.C \
+$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
 endif
 
 pkg_include_HEADERS += \
@@ -215,7 +216,8 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
 pkg_include_HEADERS += \
-$(top_srcdir)/src/IB/IBFEMethod.h
+$(top_srcdir)/src/IB/IBFEMethod.h \
+$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

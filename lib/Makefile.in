@@ -46,10 +46,12 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.C
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.C \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.h
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.h \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
 
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -197,6 +199,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.C \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.C \
 	$(top_srcdir)/src/IB/IBFEMethod.C \
+	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect2d.f \
@@ -210,7 +213,8 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_2 =  \
-@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IBFEMethod.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-SimplifiedIBFEMethod.$(OBJEXT)
 am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -387,6 +391,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.C \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.C \
 	$(top_srcdir)/src/IB/IBFEMethod.C \
+	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect3d.f \
@@ -400,7 +405,8 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_4 =  \
-@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IBFEMethod.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-SimplifiedIBFEMethod.$(OBJEXT)
 am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -598,7 +604,8 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.h \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.h \
-	$(top_srcdir)/src/IB/IBFEMethod.h
+	$(top_srcdir)/src/IB/IBFEMethod.h \
+	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
 HEADERS = $(pkg_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -1282,6 +1289,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
@@ -1363,6 +1371,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
@@ -2571,6 +2580,20 @@ libIBAMR2d_a-IBFEMethod.obj: $(top_srcdir)/src/IB/IBFEMethod.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.C'; fi`
 
+libIBAMR2d_a-SimplifiedIBFEMethod.o: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SimplifiedIBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR2d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' object='libIBAMR2d_a-SimplifiedIBFEMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+
+libIBAMR2d_a-SimplifiedIBFEMethod.obj: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SimplifiedIBFEMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR2d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' object='libIBAMR2d_a-SimplifiedIBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; fi`
+
 libIBAMR3d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR3d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
@@ -3704,6 +3727,20 @@ libIBAMR3d_a-IBFEMethod.obj: $(top_srcdir)/src/IB/IBFEMethod.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEMethod.C' object='libIBAMR3d_a-IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.C'; fi`
+
+libIBAMR3d_a-SimplifiedIBFEMethod.o: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SimplifiedIBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR3d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' object='libIBAMR3d_a-SimplifiedIBFEMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+
+libIBAMR3d_a-SimplifiedIBFEMethod.obj: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SimplifiedIBFEMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR3d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C' object='libIBAMR3d_a-SimplifiedIBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C'; fi`
 
 .f.o:
 	$(F77COMPILE) -c -o $@ $<

@@ -139,6 +139,36 @@ get_dirichlet_bdry_ids(
     }
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
+
+static const double POINT_FACTOR = 2.0;
+
+inline double
+get_elem_hmax(
+    Elem* elem,
+    const blitz::Array<double,2>& X_node)
+{
+    static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES];
+    const int n_node = elem->n_nodes();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+    for (int k = 0; k < n_node; ++k)
+    {
+        s_node_cache[k] = elem->point(k);
+        Point& X = elem->point(k);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X(d) = X_node(k,d);
+        }
+    }
+    const double hmax = elem->hmax();
+    for (int k = 0; k < n_node; ++k)
+    {
+        elem->point(k) = s_node_cache[k];
+    }
+    return hmax;
+}// get_elem_hmax
 }
 
 const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID   = 0x100;
@@ -158,15 +188,13 @@ FEDataManager::getManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
-    QBase* qrule,
-    QBase* qrule_face,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
         const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
-        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, qrule, qrule_face, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -274,18 +302,6 @@ FEDataManager::getSpreadWeightingFunction() const
     return d_spread_weighting_fcn;
 }// getSpreadWeightingFunction
 
-QBase*
-FEDataManager::getQuadratureRule() const
-{
-    return d_qrule;
-}// getQuadratureRule
-
-QBase*
-FEDataManager::getQuadratureRuleFace() const
-{
-    return d_qrule_face;
-}// getQuadratureRuleFace
-
 bool
 FEDataManager::getInterpUsesConsistentMassMatrix() const
 {
@@ -381,10 +397,7 @@ FEDataManager::spread(
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
-
-    // Determine whether we are using adaptive quadrature.
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -396,7 +409,7 @@ FEDataManager::spread(
     blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
     for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(d_qrule);
+    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -408,7 +421,7 @@ FEDataManager::spread(
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and enforce any constraints.
@@ -435,21 +448,31 @@ FEDataManager::spread(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
+        const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-            n_qp_patch += d_qrule->n_points();
+            n_qp_patch += qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
         std::vector<double> F_JxW_qp(n_vars*n_qp_patch);
@@ -460,26 +483,30 @@ FEDataManager::spread(
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             F_fe->reinit(elem);
             X_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
-
+            const unsigned int n_qp = qrule->n_points();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
@@ -489,7 +516,6 @@ FEDataManager::spread(
                     F_JxW_qp[idx+i] *= JxW_F[qp];
                 }
             }
-
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
@@ -709,17 +735,14 @@ FEDataManager::prolongData(
 
             // Evaluate the Lagrangian quantity at the Eulerian grid point and
             // update the data on the grid.
-            F_fe->reinit(elem, &intersection_master_coords);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            if (is_density)
-            {
-                X_fe->reinit(elem, &intersection_master_coords);
-                get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            }
+            if (is_density) get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            F_fe->reinit(elem, &intersection_master_coords);
+            if (is_density) X_fe->reinit(elem, &intersection_master_coords);
             for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
             {
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
@@ -757,10 +780,7 @@ FEDataManager::interp(
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
-
-    // Determine whether we are using adaptive quadrature.
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -772,7 +792,7 @@ FEDataManager::interp(
     blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
     for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(d_qrule);
+    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -784,7 +804,7 @@ FEDataManager::interp(
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and enforce any constraints.
@@ -815,21 +835,31 @@ FEDataManager::interp(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
+        const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
         // Setup vectors to store the values of F and X at the quadrature
         // points.
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-            n_qp_patch += d_qrule->n_points();
+            n_qp_patch += qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
         std::vector<double> F_qp(n_vars*n_qp_patch,0.0);
@@ -839,25 +869,29 @@ FEDataManager::interp(
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
-
+            const unsigned int n_qp = qrule->n_points();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
                 interpolate(&X_qp[idx],qp,X_node,phi_X);
             }
-
             qp_offset += n_qp;
         }
 
@@ -879,8 +913,7 @@ FEDataManager::interp(
         qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
@@ -893,19 +926,24 @@ FEDataManager::interp(
                     F_rhs_e[i].zero();
                 }
             }
-
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             F_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
+            const unsigned int n_qp = qrule->n_points();
             const unsigned int n_basis = F_dof_indices(0).size();
-
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
@@ -1620,9 +1658,7 @@ FEDataManager::applyGradientDetector(
 
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-
-        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1631,7 +1667,7 @@ FEDataManager::applyGradientDetector(
 #endif
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-        X_fe->attach_quadrature_rule(d_qrule);
+        X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
@@ -1661,20 +1697,29 @@ FEDataManager::applyGradientDetector(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const Elem* const elem = patch_elems(e_idx);
+                Elem* const elem = patch_elems(e_idx);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-                for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
@@ -1743,8 +1788,6 @@ FEDataManager::FEDataManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
-    QBase* qrule,
-    QBase* qrule_face,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
     : COORDINATES_SYSTEM_NAME("coordinates system"),
@@ -1757,8 +1800,6 @@ FEDataManager::FEDataManager(
       d_interp_weighting_fcn(interp_weighting_fcn),
       d_spread_weighting_fcn(spread_weighting_fcn),
       d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
-      d_qrule(qrule),
-      d_qrule_face(qrule_face),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
@@ -1852,9 +1893,7 @@ FEDataManager::updateQuadPointCountData(
 
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-
-        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1863,7 +1902,7 @@ FEDataManager::updateQuadPointCountData(
 #endif
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-        X_fe->attach_quadrature_rule(d_qrule);
+        X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -1887,19 +1926,28 @@ FEDataManager::updateQuadPointCountData(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const Elem* const elem = patch_elems(e_idx);
+                Elem* const elem = patch_elems(e_idx);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-                for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
@@ -2006,8 +2054,7 @@ FEDataManager::collectActivePatchElements(
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2015,7 +2062,7 @@ FEDataManager::collectActivePatchElements(
 #endif
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
     AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
@@ -2108,24 +2155,30 @@ FEDataManager::collectActivePatchElements(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             std::set<Elem*>::const_iterator       el_it  = frontier_elems.begin();
             const std::set<Elem*>::const_iterator el_end = frontier_elems.end();
             for ( ; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
-
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-
                 bool found_qp = false;
-                for (unsigned int qp = 0; qp < d_qrule->n_points() && !found_qp; ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
