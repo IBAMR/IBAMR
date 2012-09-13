@@ -178,18 +178,40 @@ main(
         adv_diff_integrator->registerTransportedQuantity(U_adv_diff_var);
         adv_diff_integrator->setDiffusionCoefficient(U_adv_diff_var, input_db->getDouble("MU")/input_db->getDouble("RHO"));
         adv_diff_integrator->setInitialConditions(U_adv_diff_var, u_init);
-        adv_diff_integrator->setPhysicalBcCoefs(U_adv_diff_var, u_bc_coefs);
 
         Pointer<FaceVariable<NDIM,double> > u_adv_var = time_integrator->getAdvectionVelocityVariable();
         adv_diff_integrator->setAdvectionVelocity(U_adv_diff_var, u_adv_var);
 
+        vector<RobinBcCoefStrategy<NDIM>*> U_adv_diff_bc_coefs(NDIM);
+        if (periodic_shift.min() > 0)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_adv_diff_bc_coefs[d] = NULL;
+            }
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "U_adv_diff_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "AdvDiffBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                U_adv_diff_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+            }
+            adv_diff_integrator->setPhysicalBcCoefs(U_adv_diff_var, U_adv_diff_bc_coefs);
+        }
+
         if (input_db->keyExists("AdvDiffForcingFunction"))
         {
-            Pointer<CellVariable<NDIM,double> > F_adv_diff__var = new CellVariable<NDIM,double>("F_adv_diff_",NDIM);
+            Pointer<CellVariable<NDIM,double> > F_adv_diff_var = new CellVariable<NDIM,double>("F_adv_diff_",NDIM);
             Pointer<CartGridFunction> F_adv_diff_fcn = new muParserCartGridFunction("F_adv_diff_fcn", app_initializer->getComponentDatabase("AdvDiffForcingFunction"), grid_geometry);
-            adv_diff_integrator->registerSourceTerm(F_adv_diff__var);
-            adv_diff_integrator->setSourceTermFunction(F_adv_diff__var, F_adv_diff_fcn);
-            adv_diff_integrator->setSourceTerm(U_adv_diff_var, F_adv_diff__var);
+            adv_diff_integrator->registerSourceTerm(F_adv_diff_var);
+            adv_diff_integrator->setSourceTermFunction(F_adv_diff_var, F_adv_diff_fcn);
+            adv_diff_integrator->setSourceTerm(U_adv_diff_var, F_adv_diff_var);
         }
 
         // Set up visualization plot file writers.
@@ -341,6 +363,7 @@ main(
 
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+        for (unsigned int d = 0; d < NDIM; ++d) delete U_adv_diff_bc_coefs[d];
 
     }// cleanup dynamically allocated objects prior to shutdown
 

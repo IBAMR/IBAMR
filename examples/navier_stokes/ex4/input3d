@@ -153,6 +153,90 @@ VelocityBcCoefs_2 {
    gcoef_function_5 = W
 }
 
+AdvDiffBcCoefs_0 {
+   nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+   gcoef_function_4 = U
+   gcoef_function_5 = U
+}
+
+AdvDiffBcCoefs_1 {
+   nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+   gcoef_function_4 = V
+   gcoef_function_5 = V
+}
+
+AdvDiffBcCoefs_2 {
+   nu = MU/RHO
+   A = 1.0
+   B = 1.0
+   C = 1.0
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = W
+   gcoef_function_1 = W
+   gcoef_function_2 = W
+   gcoef_function_3 = W
+   gcoef_function_4 = W
+   gcoef_function_5 = W
+}
+
 PressureInitialConditions {
    nu = MU/RHO
    A = 1.0
