@@ -20,7 +20,7 @@ END_TIME            = 300.0               // final simulation time
 GROW_DT             = 2.0e0               // growth factor for timesteps
 NUM_CYCLES          = 1                   // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"   // convective time stepping type
-CONVECTIVE_OP_TYPE  = "PPM"               // convective differencing discretization type
+CONVECTIVE_OP_TYPE  = "STABILIZED_PPM"    // convective differencing discretization type
 CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE               // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                 // maximum CFL number
@@ -41,9 +41,7 @@ PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 BoundaryStabilization {
-   stabilization_type_0 = "INFLOW"
    stabilization_type_1 = "OUTFLOW"
-   width_0 = 4.0*DX_FINEST
    width_1 = 4.0*DX_FINEST
 }
 
@@ -165,6 +163,11 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+
+   convective_op_db {
+      // settings for STABILIZED_PPM convective operator
+      width_1 = 4.0*DX_FINEST
+   }
 }
 
 Main {
