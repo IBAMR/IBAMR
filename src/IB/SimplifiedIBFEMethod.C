@@ -1064,7 +1064,12 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
                     for (Box<NDIM>::Iterator b(box); b; b++)
                     {
                         const Index<NDIM>& i = b();
-                        double phi = 1.0;  // bi/trilinear test function evaluated at X_qp
+                        // Weight using a bi/trilinear test function evaluated
+                        // at X_qp.
+                        //
+                        // WARNING: This formulation implicitly imposes u = 0 in
+                        // the ghost cell region.
+                        double phi = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
@@ -1233,7 +1238,12 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
                     for (Box<NDIM>::Iterator b(box); b; b++)
                     {
                         const Index<NDIM>& i = b();
-                        double phi = 1.0;  // bi/trilinear test function evaluated at X_qp
+                        // Weight using a bi/trilinear test function evaluated
+                        // at X_qp.
+                        //
+                        // WARNING: This formulation implicitly imposes f = 0 in
+                        // the ghost cell region.
+                        double phi = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
@@ -1338,7 +1348,12 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
                         for (Box<NDIM>::Iterator b(box); b; b++)
                         {
                             const Index<NDIM>& i = b();
-                            double phi = 1.0;  // bi/trilinear test function evaluated at X_qp
+                            // Weight using a bi/trilinear test function
+                            // evaluated at X_qp.
+                            //
+                            // WARNING: This formulation implicitly imposes f =
+                            // 0 in the ghost cell region.
+                            double phi = 1.0;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
