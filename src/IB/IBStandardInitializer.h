@@ -834,7 +834,7 @@ private:
 
     struct SpringSpec
     {
-        double stiffness, rest_length;
+        std::vector<double> parameters;
         int force_fcn_idx;
     };
     std::vector<std::vector<std::map<Edge,SpringSpec,EdgeComp> > > d_spring_spec_data;
@@ -857,7 +857,7 @@ private:
 
     struct XSpringSpec
     {
-        double stiffness, rest_length;
+        std::vector<double> parameters;
         int force_fcn_idx;
     };
     std::vector<std::vector<std::map<Edge,XSpringSpec,EdgeComp> > > d_xspring_spec_data;

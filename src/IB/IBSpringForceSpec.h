@@ -120,8 +120,7 @@ public:
         int master_idx,
         const std::vector<int>& slave_idxs,
         const std::vector<int>& force_fcn_idxs,
-        const std::vector<double>& stiffnesses,
-        const std::vector<double>& rest_lengths);
+        const std::vector<std::vector<double> >& parameters);
 
     /*!
      * \brief Destructor.
@@ -175,32 +174,24 @@ public:
     getForceFunctionIndices();
 
     /*!
-     * \return A const reference to the stiffnesses of the springs attached to
+     * \return A const reference to the parameters of the springs attached to
      * the master node.
+     *
+     * \warning Users may change parameter values but \em must \em not resize
+     * the parameter vectors.
      */
-    const std::vector<double>&
-    getStiffnesses() const;
+    const std::vector<std::vector<double> >&
+    getParameters() const;
 
     /*!
-     * \return A non-const reference to the stiffnesses of the springs attached
+     * \return A non-const reference to the parameters of the springs attached
      * to the master node.
+     *
+     * \warning Users may change parameter values but \em must \em not resize
+     * the parameter vectors.
      */
-    std::vector<double>&
-    getStiffnesses();
-
-    /*!
-     * \return A const reference to the resting length of the springs attached
-     * to the master node.
-     */
-    const std::vector<double>&
-    getRestingLengths() const;
-
-    /*!
-     * \return A non-const reference to the resting length of the springs
-     * attached to the master node.
-     */
-    std::vector<double>&
-    getRestingLengths();
+    std::vector<std::vector<double> >&
+    getParameters();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -253,7 +244,7 @@ private:
      */
     int d_master_idx;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
-    std::vector<double> d_stiffnesses, d_rest_lengths;
+    std::vector<std::vector<double> > d_parameters;
 
     /*!
      * \brief A factory class to rebuild IBSpringForceSpec objects from

@@ -836,7 +836,9 @@ IBStandardInitializer::readSpringFiles(
                 for (int k = 0; k < num_edges; ++k)
                 {
                     Edge e;
-                    double kappa, length;
+                    std::vector<double> parameters(2);
+                    double& kappa  = parameters[0];
+                    double& length = parameters[1];
                     int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
@@ -891,6 +893,12 @@ IBStandardInitializer::readSpringFiles(
                         {
                             force_fcn_idx = 0;  // default force function specification.
                         }
+
+                        double param;
+                        while (line_stream >> param)
+                        {
+                            parameters.push_back(param);
+                        }
                     }
 
                     // Modify kappa and length according to whether uniform
@@ -934,8 +942,7 @@ IBStandardInitializer::readSpringFiles(
                     }
                     d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
                     SpringSpec spec_data;
-                    spec_data.stiffness     = kappa;
-                    spec_data.rest_length   = length;
+                    spec_data.parameters = parameters;
                     spec_data.force_fcn_idx = force_fcn_idx;
                     d_spring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
@@ -1022,7 +1029,9 @@ IBStandardInitializer::readXSpringFiles(
                 for (int k = 0; k < num_edges; ++k)
                 {
                     Edge e;
-                    double kappa, length;
+                    std::vector<double> parameters(2);
+                    double& kappa  = parameters[0];
+                    double& length = parameters[1];
                     int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
@@ -1077,6 +1086,12 @@ IBStandardInitializer::readXSpringFiles(
                         {
                             force_fcn_idx = 0;  // default force function specification.
                         }
+
+                        double param;
+                        while (line_stream >> param)
+                        {
+                            parameters.push_back(param);
+                        }
                     }
 
                     // Modify kappa and length according to whether uniform
@@ -1120,9 +1135,7 @@ IBStandardInitializer::readXSpringFiles(
                     }
                     d_xspring_edge_map[ln][j].insert(std::make_pair(e.first,e));
                     XSpringSpec spec_data;
-                    spec_data.stiffness     = kappa;
-                    spec_data.rest_length   = length;
-                    spec_data.force_fcn_idx = force_fcn_idx;
+                    spec_data.parameters = parameters;
                     d_xspring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
@@ -2634,7 +2647,7 @@ IBStandardInitializer::initializeSpecs(
     // Initialize any spring specifications associated with the present vertex.
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
-        std::vector<double> stiffness, rest_length;
+        std::vector<std::vector<double> > parameters;
         if (d_enable_springs[level_number][j])
         {
             for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
@@ -2655,8 +2668,7 @@ IBStandardInitializer::initializeSpecs(
 
                 // The material properties.
                 const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
-                stiffness     .push_back(spec_data.stiffness    );
-                rest_length   .push_back(spec_data.rest_length  );
+                parameters    .push_back(spec_data.parameters   );
                 force_fcn_idxs.push_back(spec_data.force_fcn_idx);
             }
         }
@@ -2682,14 +2694,13 @@ IBStandardInitializer::initializeSpecs(
 
                 // The material properties.
                 const XSpringSpec& spec_data = d_xspring_spec_data[level_number][j].find(e)->second;
-                stiffness     .push_back(spec_data.stiffness    );
-                rest_length   .push_back(spec_data.rest_length  );
+                parameters    .push_back(spec_data.parameters   );
                 force_fcn_idxs.push_back(spec_data.force_fcn_idx);
             }
         }
         if (slave_idxs.size() > 0)
         {
-            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters));
         }
     }
 

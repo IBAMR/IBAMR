@@ -59,8 +59,7 @@ IBSpringForceSpec::IBSpringForceSpec(
     : d_master_idx(-1),
       d_slave_idxs(num_springs),
       d_force_fcn_idxs(num_springs),
-      d_stiffnesses(num_springs),
-      d_rest_lengths(num_springs)
+      d_parameters(num_springs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     if (!getIsRegisteredWithStreamableManager())
@@ -78,19 +77,16 @@ IBSpringForceSpec::IBSpringForceSpec(
     const int master_idx,
     const std::vector<int>& slave_idxs,
     const std::vector<int>& force_fcn_idxs,
-    const std::vector<double>& stiffnesses,
-    const std::vector<double>& rest_lengths)
+    const std::vector<std::vector<double> >& parameters)
     : d_master_idx(master_idx),
       d_slave_idxs(slave_idxs),
       d_force_fcn_idxs(force_fcn_idxs),
-      d_stiffnesses(stiffnesses),
-      d_rest_lengths(rest_lengths)
+      d_parameters(parameters)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const unsigned int num_springs = d_slave_idxs.size();
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
-    TBOX_ASSERT(num_springs == d_stiffnesses.size());
-    TBOX_ASSERT(num_springs == d_rest_lengths.size());
+    TBOX_ASSERT(num_springs == d_parameters.size());
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
@@ -114,8 +110,7 @@ IBSpringForceSpec::getNumberOfSprings() const
     const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
-    TBOX_ASSERT(num_springs == d_stiffnesses.size());
-    TBOX_ASSERT(num_springs == d_rest_lengths.size());
+    TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
     return num_springs;
 }// getNumberOfSprings
@@ -156,29 +151,17 @@ IBSpringForceSpec::getForceFunctionIndices()
     return d_force_fcn_idxs;
 }// getForceFunctionIndices
 
-inline const std::vector<double>&
-IBSpringForceSpec::getStiffnesses() const
+inline const std::vector<std::vector<double> >&
+IBSpringForceSpec::getParameters() const
 {
-    return d_stiffnesses;
-}// getStiffnesses
+    return d_parameters;
+}// getParameters
 
-inline std::vector<double>&
-IBSpringForceSpec::getStiffnesses()
+inline std::vector<std::vector<double> >&
+IBSpringForceSpec::getParameters()
 {
-    return d_stiffnesses;
-}// getStiffnesses
-
-inline const std::vector<double>&
-IBSpringForceSpec::getRestingLengths() const
-{
-    return d_rest_lengths;
-}// getRestingLengths
-
-inline std::vector<double>&
-IBSpringForceSpec::getRestingLengths()
-{
-    return d_rest_lengths;
-}// getRestingLengths
+    return d_parameters;
+}// getParameters
 
 inline int
 IBSpringForceSpec::getStreamableClassID() const
@@ -192,11 +175,14 @@ IBSpringForceSpec::getDataStreamSize() const
     const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
-    TBOX_ASSERT(num_springs == d_stiffnesses.size());
-    TBOX_ASSERT(num_springs == d_rest_lengths.size());
+    TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
-    return ((2+2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (  2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+    size_t size = (2+2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofInt();
+    for (unsigned int k = 0; k < num_springs; ++k)
+    {
+        size += SAMRAI::tbox::AbstractStream::sizeofInt() + d_parameters[k].size()*SAMRAI::tbox::AbstractStream::sizeofDouble();
+    }
+    return size;
 }// getDataStreamSize
 
 inline void
@@ -206,15 +192,18 @@ IBSpringForceSpec::packStream(
     const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
-    TBOX_ASSERT(num_springs == d_stiffnesses.size());
-    TBOX_ASSERT(num_springs == d_rest_lengths.size());
+    TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
     stream << static_cast<int>(num_springs);
     stream.pack(&d_master_idx,1);
     stream.pack(&d_slave_idxs[0],num_springs);
     stream.pack(&d_force_fcn_idxs[0],num_springs);
-    stream.pack(&d_stiffnesses[0],num_springs);
-    stream.pack(&d_rest_lengths[0],num_springs);
+    for (unsigned int k = 0; k < num_springs; ++k)
+    {
+        const int num_parameters = d_parameters[k].size();
+        stream << num_parameters;
+        stream.pack(&d_parameters[k][0],num_parameters);
+    }
     return;
 }// packStream
 

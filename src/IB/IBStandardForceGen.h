@@ -66,8 +66,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBStandardForceGen(
-        bool constant_material_properties=false);
+    IBStandardForceGen();
 
     /*!
      * \brief Destructor.
@@ -191,12 +190,6 @@ private:
         const IBStandardForceGen& that);
 
     /*!
-     * This boolean value determines whether or not to assume constant material
-     * properties when computing forces.
-     */
-    bool d_constant_material_properties;
-
-    /*!
      * \name Data maintained separately for each level of the patch hierarchy.
      */
     //\{
@@ -206,28 +199,23 @@ private:
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_slave_node_idxs;
         blitz::Array<SpringForceFcnPtr,1> force_fcns;
         blitz::Array<SpringForceDerivFcnPtr,1> force_deriv_fcns;
-        blitz::Array<double,1> stiffnesses, rest_lengths;
-        blitz::Array<const double*,1> dynamic_stiffnesses, dynamic_rest_lengths;
+        blitz::Array<const double*,1> parameters;
     };
     std::vector<SpringData> d_spring_data;
 
     struct BeamData
     {
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
-        blitz::Array<double,1> rigidities;
-        blitz::Array<blitz::TinyVector<double,NDIM>,1> curvatures;
-        blitz::Array<const double*,1> dynamic_rigidities;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> dynamic_curvatures;
+        blitz::Array<const double*,1> rigidities;
+        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
     struct TargetPointData
     {
         blitz::Array<int,1> petsc_node_idxs;
-        blitz::Array<double,1> kappa, eta;
-        blitz::Array<blitz::TinyVector<double,NDIM>,1> X0;
-        blitz::Array<const double*,1> dynamic_kappa, dynamic_eta;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> dynamic_X0;
+        blitz::Array<const double*,1> kappa, eta;
+        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 

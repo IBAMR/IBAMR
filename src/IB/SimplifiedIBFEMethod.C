@@ -92,7 +92,7 @@ get_dirichlet_bdry_ids(
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 
-static const double POINT_FACTOR = 2.0;
+static const double POINT_FACTOR = 8.0;
 
 inline double
 get_elem_hmax(
@@ -1118,10 +1118,11 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
     return;
 }// projectMaterialVelocity
 
+#if 0
 void
 SimplifiedIBFEMethod::projectInteriorForceDensity(
     const int f_data_idx,
-    PetscVector<double>& F_ghost_vec,
+    PetscVector<double>& /*F_ghost_vec*/,
     PetscVector<double>& X_ghost_vec,
     const double time,
     const unsigned int part)
@@ -1131,7 +1132,6 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim-1, FIRST);
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
@@ -1142,24 +1142,8 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
         PK1_stress_fcn_data.push_back(system.current_local_solution.get());
     }
 
-    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_pressure_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
-    }
-
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+    System& system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
@@ -1168,31 +1152,17 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
+    const std::vector<Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-    AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-#endif
+    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
     // Loop over the patches to comptue the forces on the grid.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F_qp, F_s, X_cell, X_qp, n;
-    double P;
-    blitz::Array<double,2> F_node, X_node, X_node_side;
+    TensorValue<double> PP, FF;
+    VectorValue<double> F_qp, X_qp, X_cell;
+    blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1219,7 +1189,6 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
             {
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
-            get_values_for_interpolation(F_node, F_ghost_vec, dof_indices);
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
@@ -1233,13 +1202,16 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                interpolate(F_qp,qp,F_node,phi);
+                const Point& s_qp = q_point[qp];
                 interpolate(X_qp,qp,X_node,phi);
+                jacobian(FF,qp,X_node,dphi);
+                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                TensorValue<double> tau = PP*FF.transpose();
                 const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
                 if (d_use_continuous_weighting)
                 {
-                    // Weight F using a bi/trilinear test function evaluated at
-                    // X_qp.
+                    // Weight tau using the gradient of a bi/trilinear test
+                    // function evaluated at X_qp.
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
@@ -1263,154 +1235,32 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
                         for (Box<NDIM>::Iterator b(box); b; b++)
                         {
                             const Index<NDIM>& i = b();
-                            double phi = 1.0;
-                            for (unsigned int d = 0; d < NDIM; ++d)
+                            VectorValue<double> grad_phi;
+                            for (unsigned int axis = 0; axis < NDIM; ++axis)
                             {
-                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                                const double del = X_dof - X_qp(d);
-                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
-                            }
-                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW[qp]/dV_c;
-                        }
-                    }
-                }
-                else if (ghost_box.contains(i))
-                {
-                    // Weight F using a discontinuous test function evaluated at
-                    // X_qp.
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
-                        const double del_lower = X_dof_lower - X_qp(d);
-                        const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
-                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW[qp]/dV_c;
-                        const double phi_upper = 1.0-phi_lower;
-                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW[qp]/dV_c;
-                    }
-                }
-            }
-
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                // Determine whether we are at a physical boundary and, if
-                // so, whether it is a Dirichlet boundary.
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = at_physical_bdry && get_dirichlet_bdry_ids(bdry_ids) != 0;
-                if (!at_physical_bdry || at_dirichlet_bdry) continue;
-
-                // Determine whether we need to compute surface
-                // forces along this part of the physical boundary.
-                const bool compute_transmission_force = d_PK1_stress_fcns       [part] && d_split_forces;
-                const bool compute_pressure           = d_lag_pressure_fcns     [part] && d_split_forces;
-                const bool compute_surface_force      = d_lag_surface_force_fcns[part] && d_split_forces;
-                if (!compute_transmission_force && !compute_pressure && !compute_surface_force) continue;
-
-                AutoPtr<Elem> side_elem = elem->build_side(side);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                }
-                get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                const double hmax = get_elem_hmax(side_elem.get(), X_node_side);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/dx_min));
-                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
-                if (order != qrule_face->get_order())
-                {
-                    qrule_face = QBase::build(QGAUSS, dim-1, order);
-                    fe_face->attach_quadrature_rule(qrule_face.get());
-                }
-                fe_face->reinit(elem, side);
-                for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
-                {
-                    const Point& s_qp = q_point_face[qp];
-                    interpolate(X_qp,qp,X_node,phi_face);
-                    jacobian(FF,qp,X_node,dphi_face);
-                    const double J = std::abs(FF.det());
-                    tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    F_qp.zero();
-                    if (compute_transmission_force)
-                    {
-                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-                        F_qp -= PP*normal_face[qp];
-                    }
-                    if (compute_pressure)
-                    {
-                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
-                        F_qp -= P*J*FF_inv_trans*normal_face[qp]*JxW_face[qp];
-                    }
-                    if (compute_surface_force)
-                    {
-                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
-                        F_qp += F_s;
-                    }
-
-                    // When directly imposing jump conditions, keep only the
-                    // *tangential* part of the force.
-                    if (d_use_jump_conditions)
-                    {
-                        n = (FF_inv_trans*normal_face[qp]).unit();
-                        F_qp = F_qp - (F_qp*n)*n;
-                    }
-
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    if (d_use_continuous_weighting)
-                    {
-                        // Weight F using a bi/trilinear test function evaluated
-                        // at X_qp.
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                        }
-                        for (unsigned int component = 0; component < NDIM; ++component)
-                        {
-                            Box<NDIM> box(i,i);
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                if (d == component)
-                                {
-                                    box.upper(d) += 1;
-                                }
-                                else
-                                {
-                                    box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                                    box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                                }
-                            }
-                            box = box * ghost_box;
-                            for (Box<NDIM>::Iterator b(box); b; b++)
-                            {
-                                const Index<NDIM>& i = b();
-                                double phi = 1.0;
+                                grad_phi(axis) = 1.0;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
                                     const double del = X_dof - X_qp(d);
-                                    phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                                    if (d == axis) grad_phi(axis) *= (del < 0.0 ? -1.0 : +1.0)/dx[d];
+                                    else           grad_phi(axis) *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
                                 }
-                                (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW_face[qp]/dV_c;
                             }
+                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) -= tau.row(component)*grad_phi*JxW[qp]/dV_c;
                         }
                     }
-                    else if (ghost_box.contains(i))
+                }
+                else if (patch_box.contains(i))
+                {
+                    // Weight tau using the gradient of a discontinuous test
+                    // function evaluated at X_qp.
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        // Weight F using a discontinuous test function
-                        // evaluated at X_qp.
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
-                            const double del_lower = X_dof_lower - X_qp(d);
-                            const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
-                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW_face[qp]/dV_c;
-                            const double phi_upper = 1.0-phi_lower;
-                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW_face[qp]/dV_c;
-                        }
+                        const double grad_phi_lower = -1.0/dx[d];
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) -= tau(d,d)*grad_phi_lower*JxW[qp]/dV_c;
+                        const double grad_phi_upper = -grad_phi_lower;
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) -= tau(d,d)*grad_phi_upper*JxW[qp]/dV_c;
                     }
                 }
             }
@@ -1418,6 +1268,209 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
     }
     return;
 }// projectInteriorForceDensity
+#else
+
+void
+SimplifiedIBFEMethod::projectInteriorForceDensity(
+    const int f_data_idx,
+    PetscVector<double>& /*F_ghost_vec*/,
+    PetscVector<double>& X_ghost_vec,
+    const double time,
+    const unsigned int part)
+{
+    // Extract the mesh.
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+    const MeshBase& mesh = equation_systems->get_mesh();
+    const int dim = mesh.mesh_dimension();
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
+
+    // Setup extra data needed to compute stresses/forces.
+    std::vector<NumericVector<double>*> PK1_stress_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    {
+        System& system = equation_systems->get_system(*cit);
+        system.update();
+        PK1_stress_fcn_data.push_back(system.current_local_solution.get());
+    }
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+    const DofMap& dof_map = system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
+    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+
+    // Loop over the patches to comptue the forces on the grid.
+    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_fe_data_managers[part]->getLevelNumber();
+    TensorValue<double> PP, FF;
+    VectorValue<double> F_qp, X_qp, X_cell;
+    blitz::Array<double,2> X_node;
+    static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const unsigned int num_active_patch_elems = patch_elems.size();
+        if (!num_active_patch_elems) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Box<NDIM>& ghost_box = f_data->getGhostBox();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const x_lower = patch_geom->getXLower();
+        const double* const x_upper = patch_geom->getXUpper();
+        const double* const dx = patch_geom->getDx();
+        double dV_c = 1.0; for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems(e_idx);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dof_map.dof_indices(elem, dof_indices(d), d);
+            }
+            get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates to correspond to the
+            // physical coordinates.
+            const int n_node = elem->n_nodes();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+            X_min =  0.5*std::numeric_limits<double>::max();
+            X_max = -0.5*std::numeric_limits<double>::max();
+            for (int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_node_cache[k](d) = X_node(k,d);
+                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
+                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
+                }
+                elem->point(k) = X_node_cache[k];
+            }
+
+            // Loop over coordinate directions and look for intersections with
+            // the background fluid grid.
+            std::vector<Point> intersection_ref_points;
+            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
+            intersection_ref_points.reserve(estimated_max_size);
+            static const double ref_ratio = 16.0;
+
+            // Loop over the relevant range of indices.
+            Box<NDIM> box;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                box.lower(d) = std::ceil((X_min[d]-x_lower[d])/dx[d] - 0.5 - 1.0) + patch_box.lower(d);  // NOTE: added "safety factor" of one grid cell to range of indices
+                box.upper(d) = std::ceil((X_max[d]-x_lower[d])/dx[d] - 0.5 + 1.0) + patch_box.lower(d);
+            }
+            box.refine(IntVector<NDIM>(ref_ratio));
+            for (Box<NDIM>::Iterator b(box); b; b++)
+            {
+                const Index<NDIM>& i = b();
+                Point r;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    r(d) = x_lower[d] + (dx[d]/ref_ratio)*(static_cast<double>(i(d)-ref_ratio*patch_box.lower(d))+0.5);
+                }
+                if (elem->contains_point(r))
+                {
+                    intersection_ref_points.push_back(FEInterface::inverse_map(dim, fe->get_fe_type(), elem, r));
+                }
+            }
+
+            // Restore the element coordinates.
+            for (int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // Loop over the integration points.
+            fe->reinit(elem, &intersection_ref_points);
+            for (unsigned int qp = 0; qp < intersection_ref_points.size(); ++qp)
+            {
+                const Point& s_qp = intersection_ref_points[qp];
+                interpolate(X_qp,qp,X_node,phi);
+                jacobian(FF,qp,X_node,dphi);
+                const double J = std::abs(FF.det());
+                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                TensorValue<double> sigma = (1.0/J)*PP*FF.transpose();
+                const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
+                if (d_use_continuous_weighting)
+                {
+                    // Weight tau using the gradient of a bi/trilinear test
+                    // function evaluated at X_qp.
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
+                    }
+                    for (unsigned int component = 0; component < NDIM; ++component)
+                    {
+                        Box<NDIM> box(i,i);
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == component)
+                            {
+                                box.upper(d) += 1;
+                            }
+                            else
+                            {
+                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
+                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
+                            }
+                        }
+                        box = box * ghost_box;
+                        for (Box<NDIM>::Iterator b(box); b; b++)
+                        {
+                            const Index<NDIM>& i = b();
+                            VectorValue<double> grad_phi;
+                            for (unsigned int axis = 0; axis < NDIM; ++axis)
+                            {
+                                grad_phi(axis) = 1.0;
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                                    const double del = X_dof - X_qp(d);
+                                    if (d == axis) grad_phi(axis) *= (del < 0.0 ? -1.0 : +1.0)/dx[d];
+                                    else           grad_phi(axis) *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
+                                }
+                            }
+                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) -= sigma.row(component)*grad_phi/pow(ref_ratio,dim);
+                        }
+                    }
+                }
+                else if (patch_box.contains(i))
+                {
+                    // Weight tau using the gradient of a discontinuous test
+                    // function evaluated at X_qp.
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const double grad_phi_lower = -1.0/dx[d];
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) -= sigma(d,d)*grad_phi_lower/pow(ref_ratio,dim);
+                        const double grad_phi_upper = -grad_phi_lower;
+                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) -= sigma(d,d)*grad_phi_upper/pow(ref_ratio,dim);
+                    }
+               }
+            }
+        }
+    }
+    return;
+}// projectInteriorForceDensity
+#endif
 
 void
 SimplifiedIBFEMethod::imposeJumpConditions(
