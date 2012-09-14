@@ -54,7 +54,6 @@ $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.C \
@@ -140,7 +139,6 @@ $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 $(top_srcdir)/src/IB/IBBeamForceSpec.I \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
-$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
