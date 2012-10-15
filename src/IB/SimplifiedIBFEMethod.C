@@ -92,6 +92,7 @@ get_dirichlet_bdry_ids(
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 
+static const double MIN_POINTS = 2.0;
 static const double POINT_FACTOR = 2.0;
 
 inline double
@@ -121,11 +122,182 @@ get_elem_hmax(
     }
     return hmax;
 }// get_elem_hmax
+
+#if 0
+static const int kernel_width = 2;
+
+inline double
+kernel(
+    double x)
+{
+    x += 2.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .1666666666666667*x3;
+    else if (x <= 2.)
+        return 2.*x2-.5000000000000000*x3-2.*x+.6666666666666667;
+    else if (x <= 3.)
+        return 10.*x-4.*x2+.5000000000000000*x3-7.333333333333333;
+    else if (x <= 4.)
+        return 10.66666666666667-8.*x+2.*x2-.1666666666666667*x3;
+    else
+        return 0.;
+}// kernel
+
+inline double
+kernel_diff(
+    double x)
+{
+    x += 2.;
+    const double x2 = x*x;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .5000000000000000*x2;
+    else if (x <= 2.)
+        return 4.*x-1.500000000000000*x2-2.;
+    else if (x <= 3.)
+        return 10.-8.*x+1.500000000000000*x2;
+    else if (x <= 4.)
+        return -8.+4.*x-.5000000000000000*x2;
+    else
+        return 0.;
+}// kernel_diff
+#endif
+
+#if 0
+static const int kernel_width = 3;
+
+inline double
+kernel(
+    double x)
+{
+    x += 3.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    const double x5 = x*x4;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .8333333333333333e-2*x5;
+    else if (x <= 2.)
+        return .2500000000000000*x4-.4166666666666667e-1*x5-.5000000000000000*x3+.5000000000000000*x2-.2500000000000000*x+.5000000000000000e-1;
+    else if (x <= 3.)
+        return 4.500000000000000*x3-1.*x4+.8333333333333333e-1*x5-9.500000000000000*x2+9.750000000000000*x-3.950000000000000;
+    else if (x <= 4.)
+        return 35.50000000000000*x2-10.50000000000000*x3+1.500000000000000*x4-.8333333333333333e-1*x5-57.75000000000000*x+36.55000000000000;
+    else if (x <= 5.)
+        return 102.2500000000000*x-44.50000000000000*x2+9.500000000000000*x3-1.*x4+.4166666666666667e-1*x5-91.45000000000000;
+    else if (x <= 6.)
+        return 64.80000000000000-54.*x+18.*x2-3.*x3+.2500000000000000*x4-.8333333333333333e-2*x5;
+    else
+        return 0.;
+}// kernel
+
+inline double
+kernel_diff(
+    double x)
+{
+    x += 3.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    if (x < 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .4166666666666667e-1*x4;
+    else if (x <= 2.)
+        return -.2500000000000000+x-1.500000000000000*x2+x3-.2083333333333333*x4;
+    else if (x <= 3.)
+        return 9.750000000000000-19.*x+13.50000000000000*x2-4.*x3+.4166666666666667*x4;
+    else if (x <= 4.)
+        return -57.75000000000000+71.*x-31.50000000000000*x2+6.*x3-.4166666666666667*x4;
+    else if (x <= 5.)
+        return 102.2500000000000-89.*x+28.50000000000000*x2-4.*x3+.2083333333333333*x4;
+    else if (x <= 6.)
+        return -54.+36.*x-9.*x2+x3-.4166666666666667e-1*x4;
+    else
+        return 0.;
+}// kernel_diff
+#endif
+
+#if 1
+static const int kernel_width = 4;
+
+inline double
+kernel(
+    double x)
+{
+    x += 4.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    const double x5 = x*x4;
+    const double x6 = x*x5;
+    const double x7 = x*x6;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .1984126984126984e-3*x7;
+    else if (x <= 2.)
+        return .1111111111111111e-1*x6-.1388888888888889e-2*x7-.3333333333333333e-1*x5+.5555555555555556e-1*x4-.5555555555555556e-1*x3+.3333333333333333e-1*x2-.1111111111111111e-1*x+.1587301587301587e-2;
+    else if (x <= 3.)
+        return .4333333333333333*x5-.6666666666666667e-1*x6+.4166666666666667e-2*x7-1.500000000000000*x4+3.055555555555556*x3-3.700000000000000*x2+2.477777777777778*x-.7095238095238095;
+    else if (x <= 4.)
+        return 9.*x4-1.666666666666667*x5+.1666666666666667*x6-.6944444444444444e-2*x7-28.44444444444444*x3+53.*x2-54.22222222222222*x+23.59047619047619;
+    else if (x <= 5.)
+        return 96.*x3-22.11111111111111*x4+3.*x5-.2222222222222222*x6+.6944444444444444e-2*x7-245.6666666666667*x2+344.*x-203.9650793650794;
+    else if (x <= 6.)
+        return 483.5000000000000*x2-147.0555555555556*x3+26.50000000000000*x4-2.833333333333333*x5+.1666666666666667*x6-.4166666666666667e-2*x7-871.2777777777778*x+664.0904761904762;
+    else if (x <= 7.)
+        return 943.1222222222222*x-423.7000000000000*x2+104.9444444444444*x3-15.50000000000000*x4+1.366666666666667*x5-.6666666666666667e-1*x6+.1388888888888889e-2*x7-891.1095238095238;
+    else if (x <= 8.)
+        return 416.1015873015873-364.0888888888889*x+136.5333333333333*x2-28.44444444444444*x3+3.555555555555556*x4-.2666666666666667*x5+.1111111111111111e-1*x6-.1984126984126984e-3*x7;
+    else
+        return 0.;
+}// kernel
+
+inline double
+kernel_diff(
+    double x)
+{
+    x += 4.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    const double x5 = x*x4;
+    const double x6 = x*x5;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .1388888888888889e-2*x6;
+    else if (x <= 2.)
+        return -.1111111111111111e-1+.6666666666666667e-1*x-.1666666666666667*x2+.2222222222222222*x3-.1666666666666667*x4+.6666666666666667e-1*x5-.9722222222222222e-2*x6;
+    else if (x <= 3.)
+        return 2.477777777777778-7.400000000000000*x+9.166666666666667*x2-6.*x3-.4000000000000000*x5+.2916666666666667e-1*x6+2.166666666666667*x4;
+    else if (x <= 4.)
+        return -54.22222222222222+106.*x-85.33333333333333*x2+36.*x3-8.333333333333333*x4+x5-.4861111111111111e-1*x6;
+    else if (x <= 5.)
+        return 344.-491.3333333333333*x+288.*x2-88.44444444444444*x3+15.*x4-1.333333333333333*x5+.4861111111111111e-1*x6;
+    else if (x <= 6.)
+        return -871.2777777777778+967.*x-441.1666666666667*x2+106.*x3-14.16666666666667*x4+x5-.2916666666666667e-1*x6;
+    else if (x <= 7.)
+        return 943.1222222222222-847.4000000000000*x+314.8333333333333*x2-62.*x3+6.833333333333333*x4-.4000000000000000*x5+.9722222222222222e-2*x6;
+    else if (x <= 8.)
+        return -364.0888888888889+273.0666666666667*x-85.33333333333333*x2+14.22222222222222*x3-1.333333333333333*x4+.6666666666666667e-1*x5-.1388888888888889e-2*x6;
+    else
+        return 0.;
+}// kernel_diff
+#endif
+
 }
 
 const std::string SimplifiedIBFEMethod::       COORDS_SYSTEM_NAME = "IB coordinates system";
 const std::string SimplifiedIBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
-const std::string SimplifiedIBFEMethod::        FORCE_SYSTEM_NAME = "IB force system";
 const std::string SimplifiedIBFEMethod::     VELOCITY_SYSTEM_NAME = "IB velocity system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -202,45 +374,6 @@ SimplifiedIBFEMethod::registerPK1StressTensorFunction(
     return;
 }// registerPK1StressTensorFunction
 
-void
-SimplifiedIBFEMethod::registerLagBodyForceFunction(
-    LagBodyForceFcnPtr lag_body_force_fcn,
-    std::vector<unsigned int> lag_body_force_fcn_systems,
-    void* lag_body_force_fcn_ctx,
-    const unsigned int part)
-{
-    d_lag_body_force_fcns       [part] = lag_body_force_fcn;
-    d_lag_body_force_fcn_systems[part] = lag_body_force_fcn_systems;
-    d_lag_body_force_fcn_ctxs   [part] = lag_body_force_fcn_ctx;
-    return;
-}// registerLagBodyForceFunction
-
-void
-SimplifiedIBFEMethod::registerLagPressureFunction(
-    LagPressureFcnPtr lag_pressure_fcn,
-    std::vector<unsigned int> lag_pressure_fcn_systems,
-    void* lag_pressure_fcn_ctx,
-    const unsigned int part)
-{
-    d_lag_pressure_fcns       [part] = lag_pressure_fcn;
-    d_lag_pressure_fcn_systems[part] = lag_pressure_fcn_systems;
-    d_lag_pressure_fcn_ctxs   [part] = lag_pressure_fcn_ctx;
-    return;
-}// registerLagPressureFunction
-
-void
-SimplifiedIBFEMethod::registerLagSurfaceForceFunction(
-    LagSurfaceForceFcnPtr lag_surface_force_fcn,
-    std::vector<unsigned int> lag_surface_force_fcn_systems,
-    void* lag_surface_force_fcn_ctx,
-    const unsigned int part)
-{
-    d_lag_surface_force_fcns       [part] = lag_surface_force_fcn;
-    d_lag_surface_force_fcn_systems[part] = lag_surface_force_fcn_systems;
-    d_lag_surface_force_fcn_ctxs   [part] = lag_surface_force_fcn_ctx;
-    return;
-}// registerLagSurfaceForceFunction
-
 const IntVector<NDIM>&
 SimplifiedIBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -292,9 +425,6 @@ SimplifiedIBFEMethod::preprocessIntegrateData(
     d_U_current_vecs .resize(d_num_parts);
     d_U_new_vecs     .resize(d_num_parts);
     d_U_half_vecs    .resize(d_num_parts);
-    d_F_systems      .resize(d_num_parts);
-    d_F_half_vecs    .resize(d_num_parts);
-    d_F_IB_ghost_vecs.resize(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems      [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
@@ -306,9 +436,6 @@ SimplifiedIBFEMethod::preprocessIntegrateData(
         d_U_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->solution.get());
         d_U_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
         d_U_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
-        d_F_systems      [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
-        d_F_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->solution.get());
-        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME));
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
@@ -338,7 +465,6 @@ SimplifiedIBFEMethod::postprocessIntegrateData(
 
         d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
         d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
-        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
@@ -356,9 +482,6 @@ SimplifiedIBFEMethod::postprocessIntegrateData(
     d_U_current_vecs .clear();
     d_U_new_vecs     .clear();
     d_U_half_vecs    .clear();
-    d_F_systems      .clear();
-    d_F_half_vecs    .clear();
-    d_F_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -395,6 +518,8 @@ SimplifiedIBFEMethod::interpolateVelocity(
             U_vec = d_U_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
+        System& X_system = d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
+        X_system.get_dof_map().enforce_constraints_exactly(X_system, X_ghost_vec);
         X_ghost_vec->close();
         projectMaterialVelocity(u_data_idx, *U_vec, *X_ghost_vec, data_time, part);
     }
@@ -455,15 +580,9 @@ SimplifiedIBFEMethod::trapezoidalStep(
 
 void
 SimplifiedIBFEMethod::computeLagrangianForce(
-    const double data_time)
+    const double /*data_time*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
-#endif
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], data_time, part);
-    }
+    // intentionally blank
     return;
 }// computeLagrangianForce
 
@@ -481,13 +600,10 @@ SimplifiedIBFEMethod::spreadForce(
         // Get the IB ghosted position vector.
         PetscVector<double>& X_ghost_vec = *d_X_IB_ghost_vecs[part];
         d_X_half_vecs[part]->localize(X_ghost_vec);
-        PetscVector<double>& F_ghost_vec = *d_F_IB_ghost_vecs[part];
-        d_F_half_vecs[part]->localize(F_ghost_vec);
-        projectInteriorForceDensity(f_data_idx, F_ghost_vec, X_ghost_vec, data_time, part);
-        if (d_split_forces && d_use_jump_conditions)
-        {
-            imposeJumpConditions(f_data_idx, F_ghost_vec, X_ghost_vec, data_time, part);
-        }
+        System& X_system = d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
+        X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_ghost_vec);
+        X_ghost_vec.close();
+        projectTotalForceDensity(f_data_idx, X_ghost_vec, data_time, part);
     }
     return;
 }// spreadForce
@@ -512,10 +628,6 @@ SimplifiedIBFEMethod::initializeFEData()
         U_system.assemble_before_solve = false;
         U_system.assemble();
 
-        System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-        F_system.assemble_before_solve = false;
-        F_system.assemble();
-
         System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         X_mapping_system.assemble_before_solve = false;
         X_mapping_system.assemble();
@@ -524,9 +636,7 @@ SimplifiedIBFEMethod::initializeFEData()
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
         const MeshBase& mesh = equation_systems->get_mesh();
-        DofMap& F_dof_map = F_system.get_dof_map();
         DofMap& U_dof_map = U_system.get_dof_map();
-        const unsigned int F_sys_num = F_system.number();
         const unsigned int U_sys_num = U_system.number();
         MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.elements_end();
@@ -551,13 +661,6 @@ SimplifiedIBFEMethod::initializeFEData()
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
-                        if (node->n_dofs(F_sys_num) > 0)
-                        {
-                            const int F_dof_index = node->dof_number(F_sys_num,d,0);
-                            DofConstraintRow F_constraint_row;
-                            F_constraint_row[F_dof_index] = 1.0;
-                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
-                        }
                         if (node->n_dofs(U_sys_num) > 0)
                         {
                             const int U_dof_index = node->dof_number(U_sys_num,d,0);
@@ -723,235 +826,13 @@ SimplifiedIBFEMethod::putToDatabase(
 {
     db->putInteger("SIMPLIFIED_IBFE_METHOD_VERSION", SIMPLIFIED_IBFE_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_split_forces", d_split_forces);
-    db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
-    db->putBool("d_use_continuous_weighting", d_use_continuous_weighting);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
-    db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
-    db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     return;
 }// putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
-void
-SimplifiedIBFEMethod::computeInteriorForceDensity(
-    PetscVector<double>& G_vec,
-    PetscVector<double>& X_vec,
-    const double time,
-    const unsigned int part)
-{
-    // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-    AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim-1, d_quad_order);
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    fe->attach_quadrature_rule(qrule.get());
-    const std::vector<Point>& q_point = fe->get_xyz();
-    const std::vector<double>& JxW = fe->get_JxW();
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
-    AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-#endif
-
-    // Setup extra data needed to compute stresses/forces.
-    std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        PK1_stress_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin(); cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_body_force_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_pressure_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
-    DenseVector<double> G_rhs_e[NDIM];
-
-    // Loop over the elements to compute the right-hand side vector.  This is
-    // computed via
-    //
-    //    rhs_k = -int{PP(s,t) grad phi_k(s)}ds + int{PP(s,t) N(s,t) phi_k(s)}dA(s)
-    //
-    // This right-hand side vector is used to solve for the nodal values of the
-    // interior elastic force density.
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F, F_b, F_s, F_qp, n;
-    Point X_qp;
-    double P;
-    blitz::Array<double,2> X_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-    {
-        Elem* const elem = *el_it;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            dof_map.dof_indices(elem, dof_indices(d), d);
-            if (G_rhs_e[d].size() != dof_indices(d).size())
-            {
-                G_rhs_e[d].resize(dof_indices(d).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
-            }
-            else
-            {
-                G_rhs_e[d].zero();
-            }
-        }
-        get_values_for_interpolation(X_node, X_vec, dof_indices);
-        fe->reinit(elem);
-        const unsigned int n_qp = qrule->n_points();
-        const unsigned int n_basis = dof_indices(0).size();
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            const Point& s_qp = q_point[qp];
-            interpolate(X_qp,qp,X_node,phi);
-            jacobian(FF,qp,X_node,dphi);
-            if (d_PK1_stress_fcns[part])
-            {
-                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-                for (unsigned int k = 0; k < n_basis; ++k)
-                {
-                    F_qp = -PP*dphi[k][qp]*JxW[qp];
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        G_rhs_e[i](k) += F_qp(i);
-                    }
-                }
-            }
-            if (d_lag_body_force_fcns[part])
-            {
-                d_lag_body_force_fcns[part](F_b,FF,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctxs[part]);
-                for (unsigned int k = 0; k < n_basis; ++k)
-                {
-                    F_qp = phi[k][qp]*JxW[qp]*F_b;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        G_rhs_e[i](k) += F_qp(i);
-                    }
-                }
-            }
-        }
-
-        // Loop over the element boundaries.
-        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-        {
-            // Determine whether we are at a physical boundary and, if so,
-            // whether it is a Dirichlet boundary.
-            bool at_physical_bdry = elem->neighbor(side) == NULL;
-            const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-            for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-            {
-                at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-            }
-            const bool at_dirichlet_bdry = at_physical_bdry && get_dirichlet_bdry_ids(bdry_ids) != 0;
-            if (!at_physical_bdry) continue;
-
-            // Determine whether we need to compute surface forces along this
-            // part of the physical boundary; if not, skip the present side.
-            const bool compute_transmission_force = d_PK1_stress_fcns       [part] && (( d_split_forces && !at_dirichlet_bdry) || (!d_split_forces &&  at_dirichlet_bdry));
-            const bool compute_pressure           = d_lag_pressure_fcns     [part] && ( !d_split_forces && !at_dirichlet_bdry );
-            const bool compute_surface_force      = d_lag_surface_force_fcns[part] && ( !d_split_forces && !at_dirichlet_bdry );
-            if (!compute_transmission_force && !compute_pressure && !compute_surface_force) continue;
-
-            get_values_for_interpolation(X_node, X_vec, dof_indices);
-            fe_face->reinit(elem, side);
-            const unsigned int n_qp = qrule_face->n_points();
-            const unsigned int n_basis = dof_indices(0).size();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {
-                const Point& s_qp = q_point_face[qp];
-                interpolate(X_qp,qp,X_node,phi_face);
-                jacobian(FF,qp,X_node,dphi_face);
-                const double J = std::abs(FF.det());
-                tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                F.zero();
-                if (compute_transmission_force)
-                {
-                    d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-                    F += PP*normal_face[qp];
-                }
-                if (compute_pressure)
-                {
-                    d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
-                    F -= P*J*FF_inv_trans*normal_face[qp];
-                }
-                if (compute_surface_force)
-                {
-                    d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
-                    F += F_s;
-                }
-                for (unsigned int k = 0; k < n_basis; ++k)
-                {
-                    F_qp = phi_face[k][qp]*JxW_face[qp]*F;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        G_rhs_e[i](k) += F_qp(i);
-                    }
-                }
-            }
-        }
-
-        // Apply constraints (e.g., enforce periodic boundary conditions) and
-        // add the elemental contributions to the global vector.
-        for (unsigned int i = 0; i < NDIM; ++i)
-        {
-            dof_map.constrain_element_vector(G_rhs_e[i], dof_indices(i));
-            G_rhs_vec->add_vector(G_rhs_e[i], dof_indices(i));
-        }
-    }
-
-    // Solve for G.
-    G_rhs_vec->close();
-    d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    return;
-}// computeInteriorForceDensity
 
 void
 SimplifiedIBFEMethod::projectMaterialVelocity(
@@ -1010,26 +891,17 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
         const double dx_min = *std::min_element(dx,dx+NDIM);
-        double dV_c = 1.0; for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dof_map.dof_indices(elem, dof_indices(d), d);
-                if (U_rhs_e[d].size() != dof_indices(d).size())
-                {
-                    U_rhs_e[d].resize(dof_indices(d).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
-                }
-                else
-                {
-                    U_rhs_e[d].zero();
-                }
+                U_rhs_e[d].resize(dof_indices(d).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/dx_min));
+            const int npts = std::max(MIN_POINTS, std::ceil(POINT_FACTOR*hmax/dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
@@ -1040,61 +912,53 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
                 interpolate(X_qp,qp,X_node,phi);
+
+                // Weight u using a smooth kernel function evaluated about X_qp.
+                //
+                // WARNING: As written here, this implicitly imposes u = 0 in
+                // the ghost cell region.
                 const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                VectorValue<double> U;
-                if (d_use_continuous_weighting)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    // Weight u using a bi/trilinear test function evaluated at
-                    // X_qp.
-                    //
-                    // WARNING: As written here, this implicitly imposes u = 0
-                    // in the ghost cell region.
+                    X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
+                }
+                VectorValue<double> U;
+                for (unsigned int component = 0; component < NDIM; ++component)
+                {
+                    blitz::Array<double,1> phi[NDIM];
+                    Box<NDIM> box(i,i);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
+                        if (d == component)
+                        {
+                            box.lower(d) -= (kernel_width-1);
+                            box.upper(d) += (kernel_width  );
+                        }
+                        else
+                        {
+                            box.lower(d) -= (X_qp(d) <= X_cell(d) ? kernel_width : kernel_width-1);
+                            box.upper(d) += (X_qp(d) >= X_cell(d) ? kernel_width : kernel_width-1);
+                        }
+                        phi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
                     }
-                    for (unsigned int component = 0; component < NDIM; ++component)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        Box<NDIM> box(i,i);
+                        for (int i = box.lower(d); i <= box.upper(d); ++i)
+                        {
+                            const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                            const double del = x_grid - X_qp(d);
+                            phi[d](i) = kernel(del/dx[d]);
+                        }
+                    }
+                    for (Box<NDIM>::Iterator b(box*patch_box); b; b++)  // XXXX: This should be "grown" on the upper side along domain boundaries.
+                    {
+                        const Index<NDIM>& i = b();
+                        double w = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (d == component)
-                            {
-                                box.upper(d) += 1;
-                            }
-                            else
-                            {
-                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                            }
+                            w *= phi[d](i(d));
                         }
-                        box = box * patch_box;
-                        for (Box<NDIM>::Iterator b(box); b; b++)
-                        {
-                            const Index<NDIM>& i = b();
-                            double phi = 1.0;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                                const double del = X_dof - X_qp(d);
-                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
-                            }
-                            U(component) += (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower))*phi;
-                        }
-                    }
-                }
-                else if (patch_box.contains(i))
-                {
-                    // Weight u using a discontinuous test function evaluated at
-                    // X_qp.
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
-                        const double del_lower = X_dof_lower - X_qp(d);
-                        const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
-                        U(d) += (*u_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower))*phi_lower;
-                        const double phi_upper = 1.0-phi_lower;
-                        U(d) += (*u_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper))*phi_upper;
+                        U(component) += (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower))*w;
                     }
                 }
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1119,9 +983,8 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
 }// projectMaterialVelocity
 
 void
-SimplifiedIBFEMethod::projectInteriorForceDensity(
+SimplifiedIBFEMethod::projectTotalForceDensity(
     const int f_data_idx,
-    PetscVector<double>& F_ghost_vec,
     PetscVector<double>& X_ghost_vec,
     const double time,
     const unsigned int part)
@@ -1131,35 +994,17 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
-    AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim-1, FIRST);
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
     for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        system.update();
-        PK1_stress_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_pressure_fcn_data.push_back(system.current_local_solution.get());
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        system.update();
-        lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
+        PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+    System& system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
@@ -1168,31 +1013,17 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
+    const std::vector<Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-    AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-#endif
+    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
     // Loop over the patches to comptue the forces on the grid.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F_qp, F_s, X_cell, X_qp, n;
-    double P;
-    blitz::Array<double,2> F_node, X_node, X_node_side;
+    TensorValue<double> PP, FF, tau;
+    VectorValue<double> X_cell, X_qp;
+    blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1205,7 +1036,8 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM>& ghost_box = f_data->getGhostBox();
+        Box<NDIM> side_boxes[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box,d);
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const x_upper = patch_geom->getXUpper();
@@ -1219,11 +1051,9 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
             {
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
-            get_values_for_interpolation(F_node, F_ghost_vec, dof_indices);
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/dx_min));
+            const int npts = std::max(MIN_POINTS, std::ceil(POINT_FACTOR*hmax/dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
@@ -1233,494 +1063,75 @@ SimplifiedIBFEMethod::projectInteriorForceDensity(
             fe->reinit(elem);
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
-                interpolate(F_qp,qp,F_node,phi);
                 interpolate(X_qp,qp,X_node,phi);
+                const Point& s_qp = q_point[qp];
+                interpolate(X_qp,qp,X_node,phi);
+                jacobian(FF,qp,X_node,dphi);
+                if (d_PK1_stress_fcns[part])
+                {
+                    d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                }
+                else PP.zero();
+                tau = PP*FF.transpose();
+
+                // Weight tau using a smooth kernel function evaluated about
+                // X_qp.
                 const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                if (d_use_continuous_weighting)
-                {
-                    // Weight F using a bi/trilinear test function evaluated at
-                    // X_qp.
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                    }
-                    for (unsigned int component = 0; component < NDIM; ++component)
-                    {
-                        Box<NDIM> box(i,i);
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            if (d == component)
-                            {
-                                box.upper(d) += 1;
-                            }
-                            else
-                            {
-                                box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                                box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                            }
-                        }
-                        box = box * ghost_box;
-                        for (Box<NDIM>::Iterator b(box); b; b++)
-                        {
-                            const Index<NDIM>& i = b();
-                            double phi = 1.0;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                                const double del = X_dof - X_qp(d);
-                                phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
-                            }
-                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW[qp]/dV_c;
-                        }
-                    }
-                }
-                else if (ghost_box.contains(i))
-                {
-                    // Weight F using a discontinuous test function evaluated at
-                    // X_qp.
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
-                        const double del_lower = X_dof_lower - X_qp(d);
-                        const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
-                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW[qp]/dV_c;
-                        const double phi_upper = 1.0-phi_lower;
-                        (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW[qp]/dV_c;
-                    }
-                }
-            }
-
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                // Determine whether we are at a physical boundary and, if
-                // so, whether it is a Dirichlet boundary.
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = at_physical_bdry && get_dirichlet_bdry_ids(bdry_ids) != 0;
-                if (!at_physical_bdry || at_dirichlet_bdry) continue;
-
-                // Determine whether we need to compute surface
-                // forces along this part of the physical boundary.
-                const bool compute_transmission_force = d_PK1_stress_fcns       [part] && d_split_forces;
-                const bool compute_pressure           = d_lag_pressure_fcns     [part] && d_split_forces;
-                const bool compute_surface_force      = d_lag_surface_force_fcns[part] && d_split_forces;
-                if (!compute_transmission_force && !compute_pressure && !compute_surface_force) continue;
-
-                AutoPtr<Elem> side_elem = elem->build_side(side);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                    X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
                 }
-                get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                const double hmax = get_elem_hmax(side_elem.get(), X_node_side);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/dx_min));
-                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
-                if (order != qrule_face->get_order())
+                for (unsigned int component = 0; component < NDIM; ++component)
                 {
-                    qrule_face = QBase::build(QGAUSS, dim-1, order);
-                    fe_face->attach_quadrature_rule(qrule_face.get());
-                }
-                fe_face->reinit(elem, side);
-                for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
-                {
-                    const Point& s_qp = q_point_face[qp];
-                    interpolate(X_qp,qp,X_node,phi_face);
-                    jacobian(FF,qp,X_node,dphi_face);
-                    const double J = std::abs(FF.det());
-                    tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    F_qp.zero();
-                    if (compute_transmission_force)
-                    {
-                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-                        F_qp -= PP*normal_face[qp];
-                    }
-                    if (compute_pressure)
-                    {
-                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
-                        F_qp -= P*J*FF_inv_trans*normal_face[qp]*JxW_face[qp];
-                    }
-                    if (compute_surface_force)
-                    {
-                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
-                        F_qp += F_s;
-                    }
-
-                    // When directly imposing jump conditions, keep only the
-                    // *tangential* part of the force.
-                    if (d_use_jump_conditions)
-                    {
-                        n = (FF_inv_trans*normal_face[qp]).unit();
-                        F_qp = F_qp - (F_qp*n)*n;
-                    }
-
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    if (d_use_continuous_weighting)
-                    {
-                        // Weight F using a bi/trilinear test function evaluated
-                        // at X_qp.
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                        }
-                        for (unsigned int component = 0; component < NDIM; ++component)
-                        {
-                            Box<NDIM> box(i,i);
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                if (d == component)
-                                {
-                                    box.upper(d) += 1;
-                                }
-                                else
-                                {
-                                    box.lower(d) -= (X_qp(d) <= X_cell(d) ? 1 : 0);
-                                    box.upper(d) += (X_qp(d) >= X_cell(d) ? 1 : 0);
-                                }
-                            }
-                            box = box * ghost_box;
-                            for (Box<NDIM>::Iterator b(box); b; b++)
-                            {
-                                const Index<NDIM>& i = b();
-                                double phi = 1.0;
-                                for (unsigned int d = 0; d < NDIM; ++d)
-                                {
-                                    const double X_dof = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                                    const double del = X_dof - X_qp(d);
-                                    phi *= std::max(0.0,1.0 - std::abs(del)/dx[d]);
-                                }
-                                (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += F_qp(component)*phi*JxW_face[qp]/dV_c;
-                            }
-                        }
-                    }
-                    else if (ghost_box.contains(i))
-                    {
-                        // Weight F using a discontinuous test function
-                        // evaluated at X_qp.
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            const double X_dof_lower = x_lower[d] + dx[d]*static_cast<double>(i(d)-patch_box.lower(d));
-                            const double del_lower = X_dof_lower - X_qp(d);
-                            const double phi_lower = std::max(0.0,1.0 - std::abs(del_lower)/dx[d]);
-                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Lower)) += F_qp(d)*phi_lower*JxW_face[qp]/dV_c;
-                            const double phi_upper = 1.0-phi_lower;
-                            (*f_data)(SideIndex<NDIM>(i, d, SideIndex<NDIM>::Upper)) += F_qp(d)*phi_upper*JxW_face[qp]/dV_c;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return;
-}// projectInteriorForceDensity
-
-void
-SimplifiedIBFEMethod::imposeJumpConditions(
-    const int f_data_idx,
-    PetscVector<double>& /*F_ghost_vec*/,
-    PetscVector<double>& X_ghost_vec,
-    const double time,
-    const unsigned int part)
-{
-    if (!d_split_forces) return;
-
-    // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
-    const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-    AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
-    const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-#endif
-
-    // Setup extra data needed to compute stresses/forces.
-    std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
-
-    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        lag_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
-
-    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
-    {
-        System& system = equation_systems->get_system(*cit);
-        lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
-    }
-
-    // Loop over the patches to impose jump conditions on the Eulerian grid that
-    // are determined from the interior and transmission elastic force
-    // densities.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> F, F_s, n;
-    Point X_qp;
-    double P;
-    blitz::Array<double,2> X_node;
-    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-    {
-        // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
-        const unsigned int num_active_patch_elems = patch_elems.size();
-        if (!num_active_patch_elems) continue;
-
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const x_lower = patch_geom->getXLower();
-        const double* const x_upper = patch_geom->getXUpper();
-        const double* const dx = patch_geom->getDx();
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
-        }
-
-        // Loop over the elements.
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems(e_idx);
-            bool has_physical_boundaries = false;
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                has_physical_boundaries = has_physical_boundaries || at_physical_bdry;
-            }
-            if (!has_physical_boundaries) continue;
-
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                dof_map.dof_indices(elem, dof_indices(d), d);
-            }
-
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                // Determine whether we are at a physical boundary and, if so,
-                // whether it is a Dirichlet boundary.
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = at_physical_bdry && get_dirichlet_bdry_ids(bdry_ids) != 0;
-                if (!at_physical_bdry || at_dirichlet_bdry) continue;
-
-                // Determine whether we need to compute surface forces along
-                // this part of the physical boundary; if not, skip the present
-                // side.
-                const bool compute_transmission_force = d_PK1_stress_fcns       [part] && d_split_forces;
-                const bool compute_pressure           = d_lag_pressure_fcns     [part] && d_split_forces;
-                const bool compute_surface_force      = d_lag_surface_force_fcns[part] && d_split_forces;
-                if (!compute_transmission_force && !compute_pressure && !compute_surface_force) continue;
-
-                AutoPtr<Elem> side_elem = elem->build_side(side);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                }
-
-                // Cache the nodal and physical coordinates of the side element,
-                // determine the bounding box of the current configuration of
-                // the side element, and set the nodal coordinates to correspond
-                // to the physical coordinates.
-                const unsigned int n_node_side = side_elem->n_nodes();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(n_node_side <= MAX_NODES);
-#endif
-                X_min =  0.5*std::numeric_limits<double>::max();
-                X_max = -0.5*std::numeric_limits<double>::max();
-                for (unsigned int k = 0; k < n_node_side; ++k)
-                {
-                    s_node_cache[k] = side_elem->point(k);
+                    blitz::Array<double,1> phi[NDIM], dphi[NDIM];
+                    Box<NDIM> box(i,i);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices(d)[k]);
-                        X_min[d] = std::min(X_min[d],X_node_cache[k](d));
-                        X_max[d] = std::max(X_max[d],X_node_cache[k](d));
-                    }
-                    side_elem->point(k) = X_node_cache[k];
-                }
-
-                // Loop over coordinate directions and look for intersections
-                // with the background fluid grid.
-                std::vector<Point> intersection_ref_points;
-                std::vector<int>   intersection_axes;
-                static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
-                intersection_ref_points.reserve(estimated_max_size);
-                intersection_axes      .reserve(estimated_max_size);
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    // Setup a unit vector pointing in the coordinate direction
-                    // of interest.
-                    VectorValue<double> q;
-                    q(axis) = 1.0;
-
-                    // Loop over the relevant range of indices.
-                    Box<NDIM> box;
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (d == axis)
+                        if (d == component)
                         {
-                            box.lower(d) = 0;
-                            box.upper(d) = 0;
+                            box.lower(d) -= (kernel_width-1);
+                            box.upper(d) += (kernel_width  );
                         }
                         else
                         {
-                            box.lower(d) = std::ceil((X_min[d]-x_lower[d])/dx[d] - 0.5 - 1.0) + patch_box.lower(d);  // NOTE: added "safety factor" of one grid cell to range of indices
-                            box.upper(d) = std::ceil((X_max[d]-x_lower[d])/dx[d] - 0.5 + 1.0) + patch_box.lower(d);
+                            box.lower(d) -= (X_qp(d) <= X_cell(d) ? kernel_width : kernel_width-1);
+                            box.upper(d) += (X_qp(d) >= X_cell(d) ? kernel_width : kernel_width-1);
+                        }
+                        phi [d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                        dphi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                    }
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        for (int i = box.lower(d); i <= box.upper(d); ++i)
+                        {
+                            const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                            const double del = x_grid - X_qp(d);
+                            phi [d](i) = kernel(del/dx[d]);
+                            dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
                         }
                     }
-                    for (Box<NDIM>::Iterator b(box); b; b++)
+                    for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
                     {
                         const Index<NDIM>& i = b();
-                        Point r;
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        double f = 0.0;
+                        for (unsigned int k = 0; k < NDIM; ++k)
                         {
-                            r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5));
+                            double dw_dx_k = 1.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                if (d == k) dw_dx_k *= dphi[d](i(d));
+                                else        dw_dx_k *=  phi[d](i(d));
+                            }
+                            f += tau(component,k)*dw_dx_k;
                         }
-#if (NDIM == 2)
-                        std::vector<std::pair<double,Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
-#endif
-#if (NDIM == 3)
-                        std::vector<std::pair<double,Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
-#endif
-                        for (unsigned int k = 0; k < intersections.size(); ++k)
-                        {
-                            intersection_ref_points.push_back(intersections[k].second);
-                            intersection_axes.push_back(axis);
-                        }
+                        (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += f*JxW[qp]/dV_c;
                     }
-                }
-
-                // Restore the element coordinates.
-                for (unsigned int k = 0; k < n_node_side; ++k)
-                {
-                    side_elem->point(k) = s_node_cache[k];
-                }
-
-                // If there are no intersection points, then continue to the
-                // next side.
-                if (intersection_ref_points.empty()) continue;
-
-                // Evaluate the jump conditions and apply them to the Eulerian
-                // grid.
-                get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
-                fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
-                for (unsigned int qp = 0; qp < intersection_ref_points.size(); ++qp)
-                {
-                    const unsigned int axis = intersection_axes[qp];
-                    interpolate(X_qp,qp,X_node,phi_face);
-                    Index<NDIM> i = IndexUtilities::getCellIndex(&X_qp(0), x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    if (X_qp(axis) > x_lower[axis] + static_cast<double>(i(axis)-patch_box.lower()[axis]+0.5)*dx[axis])
-                    {
-                        ++i(axis);
-                    }
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (d == axis)
-                        {
-                            const double X_lower_bound = x_lower[d]+(static_cast<double>(i(d)-patch_box.lower(d))-0.5)*dx[d]-sqrt(std::numeric_limits<double>::epsilon());
-                            const double X_upper_bound = x_lower[d]+(static_cast<double>(i(d)-patch_box.lower(d))+0.5)*dx[d]+sqrt(std::numeric_limits<double>::epsilon());
-                            TBOX_ASSERT(X_lower_bound <= X_qp(d) && X_upper_bound >= X_qp(d));
-                        }
-                        else
-                        {
-                            const double X_intersection = x_lower[d]+(static_cast<double>(i(d)-patch_box.lower(d))+0.5)*dx[d];
-                            const double X_interp = X_qp(d);
-                            const double rel_diff = std::abs(X_intersection-X_interp)/std::max(1.0,std::max(std::abs(X_intersection),std::abs(X_interp)));
-                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
-                        }
-                    }
-#endif
-                    const int d = axis;
-                    const SideIndex<NDIM> s_i(i,d,0);
-                    if (!side_boxes[d].contains(s_i)) continue;
-
-                    const Point& s_qp = q_point_face[qp];
-                    interpolate(X_qp,qp,X_node,phi_face);
-                    jacobian(FF,qp,X_node,dphi_face);
-                    const double J = std::abs(FF.det());
-                    tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    F.zero();
-                    if (compute_transmission_force)
-                    {
-                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-                        F -= PP*normal_face[qp];
-                    }
-                    if (compute_pressure)
-                    {
-                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
-                        F -= P*J*FF_inv_trans*normal_face[qp];
-                    }
-                    if (compute_surface_force)
-                    {
-                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
-                        F += F_s;
-                    }
-
-                    // Use Nanson's formula (n da = J FF^{-T} N dA) to convert
-                    // force per unit area in the reference configuration into
-                    // force per unit area in the current configuration.  This
-                    // value determines the discontinuity in the pressure at the
-                    // fluid-structure interface.
-                    n = (FF_inv_trans*normal_face[qp]).unit();
-                    const double dA_da = 1.0/(J*(FF_inv_trans*normal_face[qp])*n);
-                    F *= dA_da;
-
-                    // Impose the jump conditions.
-                    const double C_p = F*n;
-                    (*f_data)(s_i) += (n(d) > 0.0 ? +1.0 : -1.0)*(C_p/dx[d]);
                 }
             }
         }
     }
     return;
-}// imposeJumpConditions
+}// projectTotalForceDensity
 
 void
 SimplifiedIBFEMethod::initializeCoordinates(
@@ -1808,14 +1219,9 @@ SimplifiedIBFEMethod::commonConstructor(
 
     // Set some default values.
     d_ghosts = 0;
-    d_split_forces = false;
-    d_use_jump_conditions = false;
     d_use_consistent_mass_matrix = true;
-    d_use_continuous_weighting = true;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
-    d_quad_type = QGAUSS;
-    d_quad_order = FIFTH;
     d_do_log = false;
 
     // Initialize function pointers to NULL.
@@ -1824,15 +1230,6 @@ SimplifiedIBFEMethod::commonConstructor(
     d_PK1_stress_fcns.resize(d_num_parts,NULL);
     d_PK1_stress_fcn_systems.resize(d_num_parts);
     d_PK1_stress_fcn_ctxs.resize(d_num_parts,NULL);
-    d_lag_body_force_fcns.resize(d_num_parts,NULL);
-    d_lag_body_force_fcn_systems.resize(d_num_parts);
-    d_lag_body_force_fcn_ctxs.resize(d_num_parts,NULL);
-    d_lag_pressure_fcns.resize(d_num_parts,NULL);
-    d_lag_pressure_fcn_systems.resize(d_num_parts);
-    d_lag_pressure_fcn_ctxs.resize(d_num_parts,NULL);
-    d_lag_surface_force_fcns.resize(d_num_parts,NULL);
-    d_lag_surface_force_fcn_systems.resize(d_num_parts);
-    d_lag_surface_force_fcn_ctxs.resize(d_num_parts,NULL);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
@@ -1861,12 +1258,10 @@ SimplifiedIBFEMethod::commonConstructor(
     if (mesh_has_first_order_elems)
     {
         d_fe_order = FIRST;
-        d_quad_order = THIRD;
     }
     if (mesh_has_second_order_elems)
     {
         d_fe_order = SECOND;
-        d_quad_order = FIFTH;
     }
 
     // Initialize object with data read from the input and restart databases.
@@ -1916,14 +1311,6 @@ SimplifiedIBFEMethod::commonConstructor(
             X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "F_" << d;
-            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-
         System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1949,13 +1336,7 @@ SimplifiedIBFEMethod::getFromInput(
 {
     if (!is_from_restart)
     {
-        if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
-        if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
         if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
-        if (db->isBool("use_continuous_weighting")) d_use_continuous_weighting = db->getBool("use_continuous_weighting");
-        if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
-        if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
-
         if (db->isInteger("min_ghost_cell_width"))
         {
             d_ghosts = db->getInteger("min_ghost_cell_width");
@@ -1990,14 +1371,9 @@ SimplifiedIBFEMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_split_forces = db->getBool("d_split_forces");
-    d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
-    d_use_continuous_weighting = db->getBool("d_use_continuous_weighting");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
-    d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
-    d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     return;
 }// getFromRestart
 

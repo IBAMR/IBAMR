@@ -59,7 +59,6 @@ class SimplifiedIBFEMethod
 public:
     static const std::string        COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
-    static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
 
     /*!
@@ -145,92 +144,6 @@ public:
         PK1StressFcnPtr PK1_stress_fcn,
         std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
         void* PK1_stress_fcn_ctx=NULL,
-        unsigned int part=0);
-
-    /*!
-     * Typedef specifying interface for Lagrangian body force distribution
-     * function.
-     */
-    typedef
-    void
-    (*LagBodyForceFcnPtr)(
-        libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double time,
-        void* ctx);
-
-    /*!
-     * Register the (optional) function to compute body force distributions on
-     * the Lagrangian finite element mesh.
-     */
-    void
-    registerLagBodyForceFunction(
-        LagBodyForceFcnPtr lag_body_force_fcn,
-        std::vector<unsigned int> lag_body_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_body_force_fcn_ctx=NULL,
-        unsigned int part=0);
-
-    /*!
-     * Typedef specifying interface for Lagrangian pressure force distribution
-     * function.
-     */
-    typedef
-    void
-    (*LagPressureFcnPtr)(
-        double& P,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        unsigned short int side,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double time,
-        void* ctx);
-
-    /*!
-     * Register the (optional) function to compute surface pressure
-     * distributions on the Lagrangian finite element mesh.
-     */
-    void
-    registerLagPressureFunction(
-        LagPressureFcnPtr lag_pressure_fcn,
-        std::vector<unsigned int> lag_pressure_fcn_systems=std::vector<unsigned int>(),
-        void* lag_pressure_fcn_ctx=NULL,
-        unsigned int part=0);
-
-    /*!
-     * Typedef specifying interface for Lagrangian surface force distribution
-     * function.
-     */
-    typedef
-    void
-    (*LagSurfaceForceFcnPtr)(
-        libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        unsigned short int side,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double time,
-        void* ctx);
-
-    /*!
-     * Register the (optional) function to compute surface force distributions
-     * on the Lagrangian finite element mesh.
-     */
-    void
-    registerLagSurfaceForceFunction(
-        LagSurfaceForceFcnPtr lag_surface_force_fcn,
-        std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_surface_force_fcn_ctx=NULL,
         unsigned int part=0);
 
     /*!
@@ -434,18 +347,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
-    /*
-     * \brief Compute the interior elastic density, possibly splitting off the
-     * normal component of the transmission force along the physical boundary of
-     * the Lagrangian structure.
-     */
-    void
-    computeInteriorForceDensity(
-        libMesh::PetscVector<double>& G_vec,
-        libMesh::PetscVector<double>& X_vec,
-        double time,
-        unsigned int part);
-
     /*!
      * \brief Project the velocity field onto the mesh.
      */
@@ -461,22 +362,8 @@ protected:
      * \brief Project the interior force density onto the grid.
      */
     void
-    projectInteriorForceDensity(
+    projectTotalForceDensity(
         int f_data_idx,
-        libMesh::PetscVector<double>& F_ghost_vec,
-        libMesh::PetscVector<double>& X_ghost_vec,
-        double time,
-        unsigned int part);
-
-    /*!
-     * \brief Impose jump conditions determined from the interior and
-     * transmission force densities along the physical boundary of the
-     * Lagrangian structure.
-     */
-    void
-    imposeJumpConditions(
-        int f_data_idx,
-        libMesh::PetscVector<double>& F_ghost_vec,
         libMesh::PetscVector<double>& X_ghost_vec,
         double time,
         unsigned int part);
@@ -524,22 +411,16 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
 
     /*
      * Method paramters.
      */
-    bool d_split_forces;
-    bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
-    bool d_use_continuous_weighting;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
-    libMeshEnums::QuadratureType d_quad_type;
-    libMeshEnums::Order d_quad_order;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -553,22 +434,6 @@ protected:
     std::vector<PK1StressFcnPtr> d_PK1_stress_fcns;
     std::vector<std::vector<unsigned int> > d_PK1_stress_fcn_systems;
     std::vector<void*> d_PK1_stress_fcn_ctxs;
-
-    /*
-     * Functions used to compute additional body and surface forces on the
-     * Lagrangian mesh.
-     */
-    std::vector<LagBodyForceFcnPtr> d_lag_body_force_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_body_force_fcn_systems;
-    std::vector<void*> d_lag_body_force_fcn_ctxs;
-
-    std::vector<LagPressureFcnPtr> d_lag_pressure_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_pressure_fcn_systems;
-    std::vector<void*> d_lag_pressure_fcn_ctxs;
-
-    std::vector<LagSurfaceForceFcnPtr> d_lag_surface_force_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_surface_force_fcn_systems;
-    std::vector<void*> d_lag_surface_force_fcn_ctxs;
 
     /*
      * Nonuniform load balancing data structures.
