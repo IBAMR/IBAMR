@@ -112,7 +112,7 @@ kernel_diff(
 }// kernel_diff
 #endif
 
-#if 0
+#if 1
 static const int kernel_width = 3;
 
 inline double
@@ -169,7 +169,7 @@ kernel_diff(
 }// kernel_diff
 #endif
 
-#if 1
+#if 0
 static const int kernel_width = 4;
 
 inline double
@@ -479,7 +479,7 @@ void
 IMPMethod::interpolateVelocity(
     const int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
     const double data_time)
 {
     const int coarsest_ln = 0;
@@ -509,12 +509,13 @@ IMPMethod::interpolateVelocity(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        int ierr;
-        Vec U_vec = (*U_data)[ln]->getVec();
-        ierr = VecSet(U_vec,0.0); IBTK_CHKERRQ(ierr);
-        Vec Grad_U_vec = (*Grad_U_data)[ln]->getVec();
-        ierr = VecSet(Grad_U_vec,0.0); IBTK_CHKERRQ(ierr);
-        blitz::Array<double,2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
+        if (ln < static_cast<int>(u_ghost_fill_scheds.size()) && u_ghost_fill_scheds[ln])
+        {
+            u_ghost_fill_scheds[ln]->fillData(data_time);
+        }
+        blitz::Array<double,2>&      U_array = *(*     U_data)[ln]->getGhostedLocalFormVecArray();
+        blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getGhostedLocalFormVecArray();
+        blitz::Array<double,2>&      X_array = *(*     X_data)[ln]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -529,15 +530,14 @@ IMPMethod::interpolateVelocity(
             Box<NDIM> side_boxes[NDIM];
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = patch_box;
-                if (patch_geom->getTouchesRegularBoundary(axis, /*upper*/ 1)) side_boxes[axis].growUpper(axis,1);
+                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(idx_data->getGhostBox(),axis);
+                if (patch_geom->getTouchesRegularBoundary(axis, /*lower*/ 0)) side_boxes[axis].upper(axis) = patch_box.lower(axis);
+                if (patch_geom->getTouchesRegularBoundary(axis, /*upper*/ 1)) side_boxes[axis].upper(axis) = patch_box.upper(axis)+1;
             }
-            const std::vector<int>& global_idxs = idx_data->getGlobalPETScIndices();
-            const std::vector<int>&  local_idxs = idx_data->getLocalPETScIndices();
-            for (unsigned int k = 0; k < global_idxs.size(); ++k)
+            const std::vector<int>& local_idxs = idx_data->getInteriorLocalPETScIndices();
+            for (unsigned int k = 0; k < local_idxs.size(); ++k)
             {
-                const int global_idx = global_idxs[k];
-                const int  local_idx =  local_idxs[k];
+                const int local_idx = local_idxs[k];
                 const double* const X = &X_array(local_idx,0);
 
                 // WARNING: As written here, this implicitly imposes u = 0 in
@@ -545,6 +545,8 @@ IMPMethod::interpolateVelocity(
                 const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
                 VectorValue<double> U, X_cell;
                 TensorValue<double> Grad_U;
+                U.zero();
+                Grad_U.zero();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
@@ -596,18 +598,20 @@ IMPMethod::interpolateVelocity(
                                 if (d == k) dw_dx_k *= dphi[d](i(d));
                                 else        dw_dx_k *=  phi[d](i(d));
                             }
-                            Grad_U(component,k) += u*dw_dx_k;
+                            Grad_U(component,k) -= u*dw_dx_k;
                         }
                     }
                 }
-                ierr = VecSetValuesBlocked(     U_vec, 1, &global_idx, &U(0)       , ADD_VALUES); IBTK_CHKERRQ(ierr);
-                ierr = VecSetValuesBlocked(Grad_U_vec, 1, &global_idx, &Grad_U(0,0), ADD_VALUES); IBTK_CHKERRQ(ierr);
+                for (int i = 0; i < NDIM; ++i)
+                {
+                    U_array(local_idx,i) = U(i);
+                    for (int j = 0; j < NDIM; ++j)
+                    {
+                        Grad_U_array(local_idx,NDIM*i+j) = Grad_U(i,j);
+                    }
+                }
             }
         }
-        ierr = VecAssemblyBegin(     U_vec); IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyBegin(Grad_U_vec); IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(     U_vec); IBTK_CHKERRQ(ierr);
-        ierr = VecAssemblyEnd(Grad_U_vec); IBTK_CHKERRQ(ierr);
         (*     U_data)[ln]->restoreArrays();
         (*Grad_U_data)[ln]->restoreArrays();
         (*     X_data)[ln]->restoreArrays();
@@ -642,7 +646,7 @@ IMPMethod::eulerStep(
         blitz::Array<double,2>& F_half_array    = *d_F_half_data   [ln]->getVecArray();
         blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, F_half, Grad_U;
-        TensorValue<double> I(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0);
+        TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
@@ -658,8 +662,8 @@ IMPMethod::eulerStep(
 #if (NDIM == 2)
             F_current(2,2) = 1.0;
 #endif
-            F_new  = (I+1.0*dt*Grad_U)*F_current;
-            F_half = (I+0.5*dt*Grad_U)*F_current;
+            F_new  = tensor_inverse(I-0.50*dt*Grad_U)*(I+0.50*dt*Grad_U)*F_current;
+            F_half = tensor_inverse(I-0.25*dt*Grad_U)*(I+0.25*dt*Grad_U)*F_current;
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)
@@ -700,7 +704,7 @@ IMPMethod::midpointStep(
         blitz::Array<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
         blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U;
-        TensorValue<double> I(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0);
+        TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
@@ -759,7 +763,7 @@ IMPMethod::trapezoidalStep(
         blitz::Array<double,2>& Grad_U_current_array = *(*Grad_U_current_data)[ln]->getVecArray();
         blitz::Array<double,2>& Grad_U_new_array     = *(*Grad_U_new_data    )[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U_current, Grad_U_new;
-        TensorValue<double> I(1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0);
+        TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
@@ -776,7 +780,7 @@ IMPMethod::trapezoidalStep(
 #if (NDIM == 2)
             F_current(2,2) = 1.0;
 #endif
-            F_new = tensor_inverse(I - 0.5*dt*Grad_U_new)*(I + 0.5*dt*Grad_U_current)*F_current;
+            F_new = tensor_inverse(I-0.5*dt*Grad_U_new)*(I+0.5*dt*Grad_U_current)*F_current;
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)
@@ -831,7 +835,7 @@ IMPMethod::computeLagrangianForce(
 #if (NDIM == 2)
                 FF(2,2) = 1.0;
 #endif
-                (*d_PK1_stress_fcn)(PP, FF, x, X, mp_spec->getSubdomainId(), data_time, d_PK1_stress_fcn_ctx);
+                (*d_PK1_stress_fcn)(PP, FF, x, X, mp_spec->getSubdomainId(), mp_spec->getInternalVariables(), data_time, d_PK1_stress_fcn_ctx);
                 tau = PP*FF.transpose();
             }
             else
@@ -853,7 +857,7 @@ IMPMethod::computeLagrangianForce(
 void
 IMPMethod::spreadForce(
     const int f_data_idx,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
     const int coarsest_ln = 0;
@@ -983,11 +987,11 @@ void
 IMPMethod::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    int /*u_data_idx*/,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
     int /*integrator_step*/,
-    double init_data_time,
+    double /*init_data_time*/,
     bool initial_time)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
@@ -1089,12 +1093,12 @@ IMPMethod::initializeLevelData(
         // Initialize the deformation gradient and Kirchhoff stress.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>&   F_array = *  F_data->getVecArray();
-        blitz::Array<double,2>& tau_array = *tau_data->getVecArray();
+        blitz::Array<double,2>&   F_array = *  F_data->getLocalFormVecArray();
+        blitz::Array<double,2>& tau_array = *tau_data->getLocalFormVecArray();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
-            const int idx = node_idx->getGlobalPETScIndex();
+            const int idx = node_idx->getLocalPETScIndex();
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)

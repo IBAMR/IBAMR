@@ -455,6 +455,7 @@ AC_CONFIG_FILES([
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
+  examples/IMP/explicit/ex1/Makefile
   examples/adv_diff/Makefile
   examples/adv_diff/ex0/Makefile
   examples/adv_diff/ex1/Makefile

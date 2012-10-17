@@ -85,6 +85,7 @@ public:
         const libMesh::Point& x,
         const libMesh::Point& X,
         libMesh::subdomain_id_type subdomain_id,
+        std::vector<double>& internal_vars,
         double time,
         void* ctx);
 

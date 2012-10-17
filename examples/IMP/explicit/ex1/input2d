@@ -15,7 +15,7 @@ ELEM_TYPE = "TRI3"                                  // type of element to use fo
 
 // model parameters
 U_MAX = 2.0
-C1_S = 5.0
+C1_S = 50.0
 P0_S = C1_S
 BETA_S = 1.0*(NFINEST/64.0)
 
@@ -42,30 +42,13 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 VelocityBcCoefs_0 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "1.0"
-}
-
-VelocityBcCoefs_1 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
@@ -73,6 +56,28 @@ VelocityBcCoefs_1 {
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+SourceFunction {
+   dx = DX0
+   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 < 8*dx^2, 10.0 , 0.0 )"
 }
 
 IBHierarchyIntegrator {
@@ -122,7 +127,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.125/DT)
+   viz_dump_interval           = 16 // int(0.125/DT)
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

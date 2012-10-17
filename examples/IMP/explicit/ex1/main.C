@@ -60,6 +60,24 @@
 // Elasticity model data.
 namespace ModelData
 {
+// Problem parameters.
+static const double R = 0.1;
+static const double w = 0.0625;
+static const double gamma = 0.0;
+static const double mu = 1.0;
+
+// Coordinate mapping function.
+void
+coordinate_mapping_function(
+    Point& X,
+    const Point& X0,
+    void* /*ctx*/)
+{
+    X(0) = (R+      X0(1))*cos(X0(0)/R)+0.5;
+    X(1) = (R+gamma+X0(1))*sin(X0(0)/R)+0.5;
+    return;
+}// coordinate_mapping_function
+
 // Stress tensor function.
 static double c1_s = 0.05;
 static double p0_s = 0.0;
@@ -69,23 +87,37 @@ PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const Point& /*x*/,
-    const Point& /*X*/,
+    const Point& X,
     subdomain_id_type /*subdomain_id*/,
-    std::vector<double>& /*internal_vars*/,
+    std::vector<double>& internal_vars,
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    if (internal_vars.empty())  // hack
+    {
+        Point r = X - Point(0.5,0.5);
+        r = r.unit();
+        const double theta = acos(r(0));
+        internal_vars.resize(2);
+        if (r(1) > 0.0 && (85.0*M_PI/180.0 <= theta && theta <= 95.0*M_PI/180.0))
+        {
+            internal_vars[0] = 0.25;  // damage variable.
+        }
+        else
+        {
+            internal_vars[0] = 1.0;
+        }
+        internal_vars[1] = 1.0;  // stress enabled (or not).
+    }
     const TensorValue<double> CC = FF.transpose()*FF;
-    PP = 2.0*c1_s*FF;
-    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
+    const double I1 = CC.tr();
+    static bool failed = false;
+    if (CC.tr() > 4.0)
     {
-        PP -= 2.0*p0_s*FF_inv_trans;
+        internal_vars[1] = 0.0;
+        failed = true;
     }
-    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
-    {
-        PP += beta_s*log(CC.det())*FF_inv_trans;
-    }
+    PP = internal_vars[0]*internal_vars[1]*2.0*c1_s*exp(std::min(50.0,(I1-3.0)))*FF;
     return;
 }// PK1_stress_function
 }
@@ -135,60 +167,21 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
+        const double dx0 = 1.0/64.0;
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
+        const double ds0 = input_db->getDouble("MFAC")*dx0;
         string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = 0.2;
-
-        if (elem_type == "TRI3" || elem_type == "TRI6")
-        {
-            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                mesh.add_point(Point(R*cos(theta), R*sin(theta)));
-            }
-            TriangleInterface triangle(mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-            const MeshBase::const_element_iterator end_el = mesh.elements_end();
-            for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
-            {
-                Elem* const elem = *el;
-                for (unsigned int side = 0; side < elem->n_sides(); ++side)
-                {
-                    const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                    if (!at_mesh_bdry) continue;
-                    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                    {
-                        if (elem->is_node_on_side(k,side))
-                        {
-                            Node* n = elem->get_node(k);
-                            (*n) = R*n->unit();
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0*M_PI*R/ds;
-            const int r = log2(0.25*num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
-        }
+        MeshTools::Generation::build_square(mesh,
+                                            4*static_cast<int>((dx0/dx)*ceil(2.0*M_PI*R/ds0/4.0)), static_cast<int>((dx0/dx)*ceil(w/ds0)),
+                                            0.0, 2.0*M_PI*R,
+                                            0.0, w,
+                                            Utility::string_to_enum<ElemType>(elem_type));
         for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
         {
-            Node& n = **it;
-            n(0) += 0.6;
-            n(1) += 0.5;
-#if (NDIM == 3)
-            n(2) += 0.5;
-#endif
+            Node* n = *it;
+            Point X;
+            coordinate_mapping_function(X, *n, NULL);
+            *n = X;
         }
         mesh.prepare_for_use();
 
@@ -245,6 +238,11 @@ main(
         {
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
+        }
+        if (input_db->keyExists("SourceFunction"))
+        {
+            Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction("q_fcn", app_initializer->getComponentDatabase("SourceFunction"), grid_geometry);
+            navier_stokes_integrator->registerFluidSourceFunction(q_fcn);
         }
 
         // Set up visualization plot file writers.
