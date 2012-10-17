@@ -891,6 +891,12 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
         const double dx_min = *std::min_element(dx,dx+NDIM);
+        Box<NDIM> side_boxes[NDIM];
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = patch_box;
+            if (patch_geom->getTouchesRegularBoundary(axis, /*upper*/ 1)) side_boxes[axis].growUpper(axis,1);
+        }
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems(e_idx);
@@ -950,7 +956,7 @@ SimplifiedIBFEMethod::projectMaterialVelocity(
                             phi[d](i) = kernel(del/dx[d]);
                         }
                     }
-                    for (Box<NDIM>::Iterator b(box*patch_box); b; b++)  // XXXX: This should be "grown" on the upper side along domain boundaries.
+                    for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
                     {
                         const Index<NDIM>& i = b();
                         double w = 1.0;

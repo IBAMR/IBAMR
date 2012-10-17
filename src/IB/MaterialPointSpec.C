@@ -1,5 +1,5 @@
-// Filename: LIndexSetData.I
-// Created on 13 May 2011 by Boyce Griffith
+// Filename: MaterialPointSpec.C
+// Created on 16 Oct 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,86 +30,64 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "MaterialPointSpec.h"
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
+
+// SAMRAI INCLUDES
+#include <tbox/SAMRAI_MPI.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBTK
+namespace IBAMR
 {
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+int MaterialPointSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
+
+void
+MaterialPointSpec::registerWithStreamableManager()
+{
+    // We place MPI barriers here to ensure that all MPI processes actually
+    // register the factory class with the StreamableManager, and to ensure that
+    // all processes employ the same class ID for the MaterialPointSpec
+    // object.
+    SAMRAI_MPI::barrier();
+    if (!getIsRegisteredWithStreamableManager())
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
+#endif
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new MaterialPointSpecFactory());
+    }
+    SAMRAI_MPI::barrier();
+    return;
+}// registerWithStreamableManager
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getLagrangianIndices() const
-{
-    return d_lag_indices;
-}// getLagrangianIndices
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorLagrangianIndices() const
-{
-    return d_interior_lag_indices;
-}// getInteriorLagrangianIndices
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostLagrangianIndices() const
-{
-    return d_ghost_lag_indices;
-}// getGhostLagrangianIndices
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGlobalPETScIndices() const
-{
-    return d_global_petsc_indices;
-}// getGlobalPETScIndices
-
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorGlobalPETScIndices() const
-{
-    return d_interior_global_petsc_indices;
-}// getInteriorGlobalPETScIndices
-
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostGlobalPETScIndices() const
-{
-    return d_ghost_global_petsc_indices;
-}// getGhostGlobalPETScIndices
-
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getLocalPETScIndices() const
-{
-    return d_local_petsc_indices;
-}// getLocalPETScIndices
-
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorLocalPETScIndices() const
-{
-    return d_interior_local_petsc_indices;
-}// getInteriorLocalPETScIndices
-
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostLocalPETScIndices() const
-{
-    return d_ghost_local_petsc_indices;
-}// getGhostLocalPETScIndices
-
-template<class T>
-const std::vector<double>&
-LIndexSetData<T>::getGhostPeriodicOffsets() const
-{
-    return d_ghost_periodic_offsets;
-}// getGhostPeriodicOffsets
-
-//////////////////////////////////////////////////////////////////////////////
-
-}// namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

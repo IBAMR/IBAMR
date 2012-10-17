@@ -1,5 +1,5 @@
-// Filename: LIndexSetData.I
-// Created on 13 May 2011 by Boyce Griffith
+// Filename: MaterialPointSpecFactory.C
+// Created on 16 Oct 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,86 +30,82 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "MaterialPointSpec.h"
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBTK
+namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getLagrangianIndices() const
+MaterialPointSpec::Factory::Factory()
 {
-    return d_lag_indices;
-}// getLagrangianIndices
+    setStreamableClassID(StreamableManager::getUnregisteredID());
+    return;
+}// Factory
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorLagrangianIndices() const
+MaterialPointSpec::Factory::~Factory()
 {
-    return d_interior_lag_indices;
-}// getInteriorLagrangianIndices
+    // intentionally blank
+    return;
+}// ~Factory
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostLagrangianIndices() const
+int
+MaterialPointSpec::Factory::getStreamableClassID() const
 {
-    return d_ghost_lag_indices;
-}// getGhostLagrangianIndices
+    return STREAMABLE_CLASS_ID;
+}// getStreamableClassID
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGlobalPETScIndices() const
+void
+MaterialPointSpec::Factory::setStreamableClassID(
+    const int class_id)
 {
-    return d_global_petsc_indices;
-}// getGlobalPETScIndices
+    STREAMABLE_CLASS_ID = class_id;
+    return;
+}// setStreamableClassID
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorGlobalPETScIndices() const
+Pointer<Streamable>
+MaterialPointSpec::Factory::unpackStream(
+    AbstractStream& stream,
+    const IntVector<NDIM>& /*offset*/)
 {
-    return d_interior_global_petsc_indices;
-}// getInteriorGlobalPETScIndices
+    Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
+    stream.unpack(&ret_val->d_point_idx,1);
+    stream.unpack(&ret_val->d_weight,1);
+    int subdomain_id;
+    stream.unpack(&subdomain_id,1);
+    ret_val->d_subdomain_id = subdomain_id;
+    int n_internal_vars;
+    stream.unpack(&n_internal_vars,1);
+    ret_val->d_internal_vars.resize(n_internal_vars);
+    if (n_internal_vars) stream.unpack(&ret_val->d_internal_vars[0],n_internal_vars);
+    return ret_val;
+}// unpackStream
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostGlobalPETScIndices() const
-{
-    return d_ghost_global_petsc_indices;
-}// getGhostGlobalPETScIndices
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getLocalPETScIndices() const
-{
-    return d_local_petsc_indices;
-}// getLocalPETScIndices
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getInteriorLocalPETScIndices() const
-{
-    return d_interior_local_petsc_indices;
-}// getInteriorLocalPETScIndices
+/////////////////////////////// NAMESPACE ////////////////////////////////////
 
-template<class T>
-inline const std::vector<int>&
-LIndexSetData<T>::getGhostLocalPETScIndices() const
-{
-    return d_ghost_local_petsc_indices;
-}// getGhostLocalPETScIndices
-
-template<class T>
-const std::vector<double>&
-LIndexSetData<T>::getGhostPeriodicOffsets() const
-{
-    return d_ghost_periodic_offsets;
-}// getGhostPeriodicOffsets
-
-//////////////////////////////////////////////////////////////////////////////
-
-}// namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

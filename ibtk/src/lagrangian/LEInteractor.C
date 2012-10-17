@@ -2527,10 +2527,9 @@ LEInteractor::buildLocalIndices(
         }
         else if (box == ghost_box)
         {
-            local_indices = idx_data->getInteriorLocalPETScIndices();
-            periodic_offsets.resize(NDIM*local_indices.size(),0.0);
-            local_indices   .insert(local_indices   .end(), idx_data->getGhostLocalPETScIndices().begin(), idx_data->getGhostLocalPETScIndices().end());
-            periodic_offsets.insert(periodic_offsets.end(), idx_data->getGhostPeriodicOffsets  ().begin(), idx_data->getGhostPeriodicOffsets  ().end());
+            local_indices = idx_data->getLocalPETScIndices();
+            periodic_offsets.resize(NDIM*idx_data->getInteriorLocalPETScIndices().size(),0.0);
+            periodic_offsets.insert(periodic_offsets.end(), idx_data->getGhostPeriodicOffsets().begin(), idx_data->getGhostPeriodicOffsets().end());
         }
         else
         {

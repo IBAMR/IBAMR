@@ -83,6 +83,13 @@ public:
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
+     * lie in the patch (including the ghost cell region).
+     */
+    const std::vector<int>&
+    getLagrangianIndices() const;
+
+    /*!
+     * \return A constant reference to the set of Lagrangian data indices that
      * lie in the patch interior.
      */
     const std::vector<int>&
@@ -97,6 +104,13 @@ public:
 
     /*!
      * \return A constant reference to the set of global PETSc data indices that
+     * lie in the patch (including the ghost cell region).
+     */
+    const std::vector<int>&
+    getGlobalPETScIndices() const;
+
+    /*!
+     * \return A constant reference to the set of global PETSc data indices that
      * lie in the patch interior.
      */
     const std::vector<int>&
@@ -108,6 +122,13 @@ public:
      */
     const std::vector<int>&
     getGhostGlobalPETScIndices() const;
+
+    /*!
+     * \return A constant reference to the set of local PETSc data indices that
+     * lie in the patch (including the ghost cell region).
+     */
+    const std::vector<int>&
+    getLocalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of local PETSc data indices that
@@ -161,9 +182,9 @@ private:
     operator=(
         const LIndexSetData<T>& that);
 
-    std::vector<int> d_interior_lag_indices, d_ghost_lag_indices;
-    std::vector<int> d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
-    std::vector<int> d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
+    std::vector<int> d_lag_indices, d_interior_lag_indices, d_ghost_lag_indices;
+    std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
+    std::vector<int> d_local_petsc_indices, d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
     std::vector<double> d_ghost_periodic_offsets;
 };
 }// namespace IBTK

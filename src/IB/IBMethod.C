@@ -526,7 +526,7 @@ IBMethod::midpointStep(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
     std::vector<Pointer<LData> >* U_data;
-    getVelocityData(&U_data, current_time+0.5*(new_time-current_time));
+    getVelocityData(&U_data, current_time+0.5*dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
