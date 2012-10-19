@@ -1,7 +1,7 @@
 // physical parameters
-MU  = 0.01
-RHO = 1.0
-L   = 1.0
+RHO = 1.00    // gm cm^-3
+MU  = 0.04    // gm cm^-1 s^-1
+L   = 5.0     // cm
 
 // grid spacing parameters
 MAX_LEVELS = 1                                      // maximum number of levels in locally refined grid
@@ -11,13 +11,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid 
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
 MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI3"                                  // type of element to use for structure discretization
-
-// model parameters
-U_MAX = 2.0
-C1_S = 50.0
-P0_S = C1_S
-BETA_S = 1.0*(NFINEST/64.0)
+ELEM_TYPE = "QUAD4"                                 // type of element to use for structure discretization
 
 // solver parameters
 START_TIME                 = 0.0e0                  // initial simulation time
@@ -29,7 +23,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing d
 CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.25                   // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
+DT                         = 5.0e-4*DX              // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
@@ -77,7 +71,7 @@ VelocityBcCoefs_1 {
 
 SourceFunction {
    dx = DX0
-   function = "if( (X_0-0.5)^2 + (X_1-0.5)^2 < 8*dx^2, 10.0 , 0.0 )"
+   function = "if( (X_0)^2 + (X_1)^2 < 8*dx^2, 500.0 , 0.0 )"
 }
 
 IBHierarchyIntegrator {
@@ -145,8 +139,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = 0,0
-   x_up = L,L
+   x_lo = -0.5*L , -0.5*L
+   x_up =  0.5*L ,  0.5*L
    periodic_dimension = 0,0
 }
 

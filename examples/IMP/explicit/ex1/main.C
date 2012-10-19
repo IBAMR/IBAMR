@@ -60,28 +60,24 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Problem parameters.
-static const double R = 0.1;
-static const double w = 0.0625;
-static const double gamma = 0.0;
-static const double mu = 1.0;
+static const double r0    = 1.250; // radius of thoracic aorta (cm)
+static const double w_int = 0.048; // thickness of the intima (cm)
+static const double w_med = 0.118; // thickness of the media  (cm)
+static const double w_adv = 0.093; // thickness of the adventitia (cm)
+static const double w = w_int+w_med+w_adv;
 
-// Coordinate mapping function.
-void
-coordinate_mapping_function(
-    Point& X,
-    const Point& X0,
-    void* /*ctx*/)
-{
-    X(0) = (R+      X0(1))*cos(X0(0)/R)+0.5;
-    X(1) = (R+gamma+X0(1))*sin(X0(0)/R)+0.5;
-    return;
-}// coordinate_mapping_function
+static const int NUM_VARS = 9;
+static const int       MU_IDX = 0;
+static const int       K1_IDX = 1;
+static const int       K2_IDX = 2;
+static const int      PHI_IDX = 3;
+static const int    KAPPA_IDX = 4;
+static const int      R_F_IDX = 5;
+static const int      M_F_IDX = 6;
+static const int W_F4_MAX_IDX = 7;
+static const int W_F6_MAX_IDX = 8;
 
 // Stress tensor function.
-static double c1_s = 0.05;
-static double p0_s = 0.0;
-static double beta_s = 0.0;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -93,31 +89,93 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    if (internal_vars.empty())  // hack
+    VectorValue<double> R = X - Point(0.0,0.0);
+    const double r = R.size();
+    R = R.unit();
+    if (internal_vars.empty())  // ugly hacky hack
     {
-        Point r = X - Point(0.5,0.5);
-        r = r.unit();
-        const double theta = acos(r(0));
-        internal_vars.resize(2);
-        if (r(1) > 0.0 && (85.0*M_PI/180.0 <= theta && theta <= 95.0*M_PI/180.0))
+        internal_vars.resize(NUM_VARS);
+        if (r <= r0+w_int)
         {
-            internal_vars[0] = 0.25;  // damage variable.
+            internal_vars[   MU_IDX] = 0.034;  // MPa
+            internal_vars[   K1_IDX] = 4.34;   // MPa
+            internal_vars[   K2_IDX] = 13.32;  // dimensionless
+            internal_vars[  PHI_IDX] = 46.5;   // degrees
+            internal_vars[KAPPA_IDX] = 0.20;   // dimensionless
+            internal_vars[  R_F_IDX] = 1.0;    // dimensionless
+            internal_vars[  M_F_IDX] = 0.014;  // dimensionless
         }
-        else
+        else if (r <= r0+w_int+w_med)
         {
-            internal_vars[0] = 1.0;
+            internal_vars[   MU_IDX] = 0.028;  // MPa
+            internal_vars[   K1_IDX] = 0.14;   // MPa
+            internal_vars[   K2_IDX] = 11.90;  // dimensionless
+            internal_vars[  PHI_IDX] = 38.4;   // degrees
+            internal_vars[KAPPA_IDX] = 0.21;   // dimensionless
+            internal_vars[  R_F_IDX] = 1.87;   // dimensionless
+            internal_vars[  M_F_IDX] = 0.009;  // dimensionless
         }
-        internal_vars[1] = 1.0;  // stress enabled (or not).
+        else if (r <= r0+w_int+w_med+w_adv)
+        {
+            internal_vars[   MU_IDX] = 0.020;  // MPa
+            internal_vars[   K1_IDX] = 0.39;   // MPa
+            internal_vars[   K2_IDX] = 6.79;   // dimensionless
+            internal_vars[  PHI_IDX] = 52.3;   // degrees
+            internal_vars[KAPPA_IDX] = 0.23;   // dimensionless
+            internal_vars[  R_F_IDX] = 1.15;   // dimensionless
+            internal_vars[  M_F_IDX] = 0.022;  // dimensionless
+        }
+        internal_vars[W_F4_MAX_IDX] = 0.0;
+        internal_vars[W_F6_MAX_IDX] = 0.0;
     }
+
+    const double& mu    = internal_vars[   MU_IDX];
+    const double& k1    = internal_vars[   K1_IDX];
+    const double& k2    = internal_vars[   K2_IDX];
+    const double& phi   = internal_vars[  PHI_IDX];
+    const double& kappa = internal_vars[KAPPA_IDX];
+    const double& r_f   = internal_vars[  R_F_IDX];
+    const double& m_f   = internal_vars[  M_F_IDX];
+    double& W_f4_max = internal_vars[W_F4_MAX_IDX];
+    double& W_f6_max = internal_vars[W_F6_MAX_IDX];
+
+    // setup fiber axes
+    static const TensorValue<double> II(1.0, 0.0, 0.0,
+                                        0.0, 1.0, 0.0,
+                                        0.0, 0.0, 1.0);
+    const TensorValue<double> R_cross( 0.0 , -R(2), +R(1),
+                                       +R(2),  0.0 , -R(0),
+                                       -R(1), +R(0),  0.0 );
+    TensorValue<double> RR4 = cos(+phi)*II + sin(+phi)*R_cross + (1.0-cos(+phi))*outer_product(R,R);
+    VectorValue<double> f4_0 = RR4*VectorValue<double>(-R(1),R(0),R(2));
+    TensorValue<double> RR6 = cos(-phi)*II + sin(-phi)*R_cross + (1.0-cos(-phi))*outer_product(R,R);
+    VectorValue<double> f6_0 = RR6*VectorValue<double>(-R(1),R(0),R(2));
+    f4_0 = VectorValue<double>(-R(1),R(0),R(2));
+    f6_0 = VectorValue<double>(-R(1),R(0),R(2));
+
+    // compute invariants.
     const TensorValue<double> CC = FF.transpose()*FF;
     const double I1 = CC.tr();
-    static bool failed = false;
-    if (CC.tr() > 4.0)
+    const double I4_star = kappa*I1 + (1.0-3.0*kappa)*f4_0*(CC*f4_0);
+    const double I6_star = kappa*I1 + (1.0-3.0*kappa)*f6_0*(CC*f6_0);
+
+    // compute energies and stresses.
+    PP = mu*(FF-tensor_inverse_transpose(FF));
+    double W_f4 = 0.0;
+    if (I4_star-1.0 > 0.0)
     {
-        internal_vars[1] = 0.0;
-        failed = true;
+        W_f4 = 0.5*k1/k2*(exp(k2*(I4_star-1.0)*(I4_star-1.0))-1.0);
+        PP += 2.0*k1*(I4_star-1.0)*exp(k2*(I4_star-1.0)*(I4_star-1.0))*(kappa*FF+(1.0-3.0*kappa)*FF*outer_product(f4_0,f4_0));
+        W_f4_max = max(W_f4_max, W_f4);
     }
-    PP = internal_vars[0]*internal_vars[1]*2.0*c1_s*exp(std::min(50.0,(I1-3.0)))*FF;
+    double W_f6 = 0.0;
+    if (I6_star-1.0 > 0.0)
+    {
+        W_f6 = 0.5*k1/k2*(exp(k2*(I6_star-1.0)*(I6_star-1.0))-1.0);
+        PP += 2.0*k1*(I6_star-1.0)*exp(k2*(I6_star-1.0)*(I6_star-1.0))*(kappa*FF+(1.0-3.0*kappa)*FF*outer_product(f6_0,f6_0));
+        W_f6_max = max(W_f6_max, W_f6);
+    }
+    PP *= 1.0e7;  // convert to CGS units
     return;
 }// PK1_stress_function
 }
@@ -172,22 +230,17 @@ main(
         const double ds0 = input_db->getDouble("MFAC")*dx0;
         string elem_type = input_db->getString("ELEM_TYPE");
         MeshTools::Generation::build_square(mesh,
-                                            4*static_cast<int>((dx0/dx)*ceil(2.0*M_PI*R/ds0/4.0)), static_cast<int>((dx0/dx)*ceil(w/ds0)),
-                                            0.0, 2.0*M_PI*R,
+                                            4*static_cast<int>((dx0/dx)*ceil(2.0*M_PI*r0/ds0/4.0)), static_cast<int>((dx0/dx)*ceil(w/ds0)),
+                                            0.0, 2.0*M_PI*r0,
                                             0.0, w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
         {
-            Node* n = *it;
-            Point X;
-            coordinate_mapping_function(X, *n, NULL);
-            *n = X;
+            Node& n = **it;
+            Point X((r0+n(1))*cos(n(0)/r0), (r0+n(1))*sin(n(0)/r0),0.0);
+            n = X;
         }
         mesh.prepare_for_use();
-
-        c1_s   = input_db->getDouble("C1_S");
-        p0_s   = input_db->getDouble("P0_S");
-        beta_s = input_db->getDouble("BETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
