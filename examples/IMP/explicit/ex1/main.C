@@ -57,6 +57,13 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include "CirculationModel.h"
+
+extern "C"
+{
+    void dsyev_(char& JOBZ, char& UPLO, int& N, double* A, int& LDA, double* W, double* WORK, int& LWORK, int& INFO);
+}
+
 // Elasticity model data.
 namespace ModelData
 {
@@ -65,8 +72,12 @@ static const double w_int = 0.048; // thickness of the intima (cm)
 static const double w_med = 0.118; // thickness of the media  (cm)
 static const double w_adv = 0.093; // thickness of the adventitia (cm)
 static const double w = w_int+w_med+w_adv;
+static double I1_thresh = 4.0;
+static double tau_thresh_int = 4.0;
+static double tau_thresh_med = 4.0;
+static double tau_thresh_adv = 4.0;
 
-static const int NUM_VARS = 10;
+static const int NUM_VARS = 14;
 static const int       MU_IDX = 0;
 static const int       K1_IDX = 1;
 static const int       K2_IDX = 2;
@@ -74,9 +85,13 @@ static const int      PHI_IDX = 3;
 static const int    KAPPA_IDX = 4;
 static const int      R_F_IDX = 5;
 static const int      M_F_IDX = 6;
-static const int W_F4_MAX_IDX = 7;
-static const int W_F6_MAX_IDX = 8;
-static const int   FAILED_IDX = 9;
+static const int   I1_MAX_IDX = 7;
+static const int W_F4_MAX_IDX = 8;
+static const int W_F6_MAX_IDX = 9;
+static const int    NU_F4_IDX = 10;
+static const int    NU_F6_IDX = 11;
+static const int LAMBDA_0_IDX = 12;
+static const int   FAILED_IDX = 13;
 
 // Stress tensor function.
 void
@@ -103,12 +118,21 @@ PK1_stress_function(
     double& kappa    = internal_vars[   KAPPA_IDX];
     double& r_f      = internal_vars[     R_F_IDX];
     double& m_f      = internal_vars[     M_F_IDX];
+    double& I1_max   = internal_vars[  I1_MAX_IDX];
     double& W_f4_max = internal_vars[W_F4_MAX_IDX];
     double& W_f6_max = internal_vars[W_F6_MAX_IDX];
+    double& nu_f4    = internal_vars[   NU_F4_IDX];
+    double& nu_f6    = internal_vars[   NU_F6_IDX];
+    double& lambda_0 = internal_vars[LAMBDA_0_IDX];
     double& failed   = internal_vars[  FAILED_IDX];
+
+    const bool intima     =                      r <= r0+w_int;
+    const bool media      = !intima           && r <= r0+w_int+w_med;
+    const bool adventitia = !intima && !media && r <= r0+w_int+w_med+w_adv;
+
     if (initialize_vars)
     {
-        if (r <= r0+w_int)
+        if (intima)
         {
             mu    = 0.034;  // MPa
             k1    = 4.34;   // MPa
@@ -119,20 +143,23 @@ PK1_stress_function(
             m_f   = 0.014;  // dimensionless
             W_f4_max = 0.0;
             W_f6_max = 0.0;
+            nu_f4    = 1.0;
+            nu_f6    = 1.0;
+            lambda_0 = 1.01; //1.05;
             failed   = 0.0;
+#if 0
             if (R(1) > 0)
             {
                 double theta = acos(R(0))*180.0/M_PI;
-                if (theta >= 85.0 && theta <= 95.0)
+                if (theta >= 88.0 && theta <= 92.0)
                 {
-                    const double I4 = 4.0;
-                    W_f4_max = 0.5*k1/k2*(exp(k2*(I4-1.0)*(I4-1.0))-1.0);
-                    const double I6 = 4.0;
-                    W_f6_max = 0.5*k1/k2*(exp(k2*(I6-1.0)*(I6-1.0))-1.0);
+                    mu = 0.001;
+                    k1 = 0.001;
                 }
             }
+#endif
         }
-        else if (r <= r0+w_int+w_med)
+        else if (media)
         {
             mu    = 0.028;  // MPa
             k1    = 0.14;   // MPa
@@ -143,20 +170,23 @@ PK1_stress_function(
             m_f   = 0.009;  // dimensionless
             W_f4_max = 0.0;
             W_f6_max = 0.0;
+            nu_f4    = 1.0;
+            nu_f6    = 1.0;
             failed   = 0.0;
+            lambda_0 = 1.1169; //1.1855;
+#if 1
             if (R(1) > 0)
             {
                 double theta = acos(R(0))*180.0/M_PI;
-                if (theta >= 80.0 && theta <= 110.0)
+                if (theta >= 88.0 && theta <= 92.0)
                 {
-                    const double I4 = 4.0;
-                    W_f4_max = 0.5*k1/k2*(exp(k2*(I4-1.0)*(I4-1.0))-1.0);
-                    const double I6 = 4.0;
-                    W_f6_max = 0.5*k1/k2*(exp(k2*(I6-1.0)*(I6-1.0))-1.0);
+                    mu = 0.001;
+                    k1 = 0.001;
                 }
             }
+#endif
         }
-        else if (r <= r0+w_int+w_med+w_adv)
+        else if (adventitia)
         {
             mu    = 0.020;  // MPa
             k1    = 0.39;   // MPa
@@ -167,6 +197,9 @@ PK1_stress_function(
             m_f   = 0.022;  // dimensionless
             W_f4_max = 0.0;
             W_f6_max = 0.0;
+            nu_f4    = 1.0;
+            nu_f6    = 1.0;
+            lambda_0 = 1.0789; //1.1764;
             failed   = 0.0;
         }
     }
@@ -175,45 +208,83 @@ PK1_stress_function(
     static const TensorValue<double> II(1.0, 0.0, 0.0,
                                         0.0, 1.0, 0.0,
                                         0.0, 0.0, 1.0);
-    const TensorValue<double> R_cross( 0.0 , -R(2), +R(1),
+    const TensorValue<double> R_cross( 0.0  , -R(2), +R(1),
                                        +R(2),  0.0 , -R(0),
                                        -R(1), +R(0),  0.0 );
-    TensorValue<double> RR4 = cos(+phi)*II + sin(+phi)*R_cross + (1.0-cos(+phi))*outer_product(R,R);
+    TensorValue<double> RR4 = cos(+M_PI*phi/180.0)*II + sin(+M_PI*phi/180.0)*R_cross + (1.0-cos(+M_PI*phi/180.0))*outer_product(R,R);
     VectorValue<double> f4_0 = RR4*VectorValue<double>(-R(1),R(0),R(2));
-    TensorValue<double> RR6 = cos(-phi)*II + sin(-phi)*R_cross + (1.0-cos(-phi))*outer_product(R,R);
+    TensorValue<double> RR6 = cos(-M_PI*phi/180.0)*II + sin(-M_PI*phi/180.0)*R_cross + (1.0-cos(-M_PI*phi/180.0))*outer_product(R,R);
     VectorValue<double> f6_0 = RR6*VectorValue<double>(-R(1),R(0),R(2));
-    f4_0 = VectorValue<double>(-R(1),R(0),R(2));
-    f6_0 = VectorValue<double>(-R(1),R(0),R(2));
 
     // compute invariants.
     const TensorValue<double> CC = FF.transpose()*FF;
     const double I1 = CC.tr();
-    const double I4_star = kappa*I1 + (1.0-3.0*kappa)*f4_0*(CC*f4_0);
-    const double I6_star = kappa*I1 + (1.0-3.0*kappa)*f6_0*(CC*f6_0);
-    failed = max(failed,static_cast<double>(I1 > 6.0));
+    I1_max = max(I1,I1_max);
+    const TensorValue<double> FF_0 = lambda_0*FF;
+    const TensorValue<double> CC_0 = FF_0.transpose()*FF_0;
+    const double I1_0 = CC_0.tr();
+    const double I4_star = kappa*I1_0 + (1.0-3.0*kappa)*f4_0*(CC_0*f4_0);
+    const double I6_star = kappa*I1_0 + (1.0-3.0*kappa)*f6_0*(CC_0*f6_0);
+//  failed = max(failed,static_cast<double>(I1 > I1_thresh)); // 3.4));
+//  failed = 0.5*(1-tanh((I1_max - I1_thresh)/0.0375));
 
     // compute energies and stresses.
-    PP = mu*(FF-tensor_inverse_transpose(FF));
-    if (I4_star-1.0 > 0.0)
+    PP.zero();
+    if (!failed)
     {
-        const double W_f4 = 0.5*k1/k2*(exp(k2*(I4_star-1.0)*(I4_star-1.0))-1.0);
-        W_f4_max = max(W_f4_max, W_f4);
-        const double nu = 1.0 - 1.0/r_f*erf((W_f4_max-W_f4)/m_f);
-        failed = max(failed,static_cast<double>(nu < 1.0e-6));
-        PP += nu*2.0*k1*(I4_star-1.0)*exp(k2*(I4_star-1.0)*(I4_star-1.0))*(kappa*FF+(1.0-3.0*kappa)*FF*outer_product(f4_0,f4_0));
-    }
-    if (I6_star-1.0 > 0.0)
-    {
-        const double W_f6 = 0.5*k1/k2*(exp(k2*(I6_star-1.0)*(I6_star-1.0))-1.0);
-        W_f6_max = max(W_f6_max, W_f6);
-        const double nu = 1.0 - 1.0/r_f*erf((W_f6_max-W_f6)/m_f);
-        failed = max(failed,static_cast<double>(nu < 1.0e-6));
-        PP += nu*2.0*k1*(I6_star-1.0)*exp(k2*(I6_star-1.0)*(I6_star-1.0))*(kappa*FF+(1.0-3.0*kappa)*FF*outer_product(f6_0,f6_0));
+//      PP = mu*(FF-tensor_inverse_transpose(FF));
+        PP = mu*FF;
+        if (I4_star-1.0 > 0.0)
+        {
+            const double W_f4 = 0.5*k1/k2*(exp(k2*(I4_star-1.0)*(I4_star-1.0))-1.0);
+            W_f4_max = max(W_f4_max, W_f4);
+            nu_f4 = 1.0 - 1.0/r_f*erf((W_f4_max-W_f4)/m_f);
+            PP += nu_f4*2.0*k1*(I4_star-1.0)*exp(k2*(I4_star-1.0)*(I4_star-1.0))*(kappa*FF_0+(1.0-3.0*kappa)*FF_0*outer_product(f4_0,f4_0));
+        }
+        if (I6_star-1.0 > 0.0)
+        {
+            const double W_f6 = 0.5*k1/k2*(exp(k2*(I6_star-1.0)*(I6_star-1.0))-1.0);
+            W_f6_max = max(W_f6_max, W_f6);
+            nu_f6 = 1.0 - 1.0/r_f*erf((W_f6_max-W_f6)/m_f);
+            PP += nu_f6*2.0*k1*(I6_star-1.0)*exp(k2*(I6_star-1.0)*(I6_star-1.0))*(kappa*FF_0+(1.0-3.0*kappa)*FF_0*outer_product(f6_0,f6_0));
+        }
     }
 
-    if (failed) pout << "failed!\n";
+    // compute the principal stress of the Kirchhoff stress tensor.
+    TensorValue<double> tau = PP*FF.transpose();
+    blitz::Array<double,2> A(NDIM,NDIM,blitz::ColumnMajorArray<2>());
+    for (int i = 0; i < NDIM; ++i)
+    {
+        for (int j = 0; j < NDIM; ++j)
+        {
+            A(i,j) = tau(i,j);
+        }
+    }
+    char JOBZ = 'N';
+    char UPLO = 'U';
+    int N = NDIM;
+    int LDA = NDIM;
+    blitz::Array<double,1> W(NDIM);
+    int LWORK = 3*NDIM-1;
+    blitz::Array<double,1> WORK(LWORK);
+    int INFO;
+    dsyev_(JOBZ, UPLO, N, A.data(), LDA, W.data(), WORK.data(), LWORK, INFO);
+    double tau_max = max(W);
+    double tau_thresh = 0.0;
+    if (intima)
+    {
+        tau_thresh = tau_thresh_int;
+    }
+    else if (media)
+    {
+        tau_thresh = tau_thresh_med;
+    }
+    else if (adventitia)
+    {
+        tau_thresh = tau_thresh_adv;
+    }
+    failed = max(failed,double(tau_max > tau_thresh || I1 > I1_thresh));
 
-    if (failed) PP.zero();
     PP *= 1.0e7;  // convert to CGS units
     return;
 }// PK1_stress_function
@@ -299,6 +370,10 @@ main(
         ib_initializer->registerMesh(&mesh);
         ib_method_ops->registerPK1StressTensorFunction(PK1_stress_function);
         ib_method_ops->registerLInitStrategy(ib_initializer);
+        I1_thresh = input_db->getDoubleWithDefault("I1_THRESH", I1_thresh);
+        tau_thresh_int = input_db->getDoubleWithDefault("TAU_THRESH_INT", tau_thresh_int);
+        tau_thresh_med = input_db->getDoubleWithDefault("TAU_THRESH_MED", tau_thresh_med);
+        tau_thresh_adv = input_db->getDoubleWithDefault("TAU_THRESH_ADV", tau_thresh_adv);
 
         // Create Eulerian boundary condition specification objects.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -326,16 +401,8 @@ main(
         }
 
         // Create Eulerian body force function specification objects.
-        if (input_db->keyExists("ForcingFunction"))
-        {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceFunction(f_fcn);
-        }
-        if (input_db->keyExists("SourceFunction"))
-        {
-            Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction("q_fcn", app_initializer->getComponentDatabase("SourceFunction"), grid_geometry);
-            navier_stokes_integrator->registerFluidSourceFunction(q_fcn);
-        }
+        Pointer<CirculationModel> q_fcn = new CirculationModel("CirculationModel", app_initializer->getComponentDatabase("CirculationModel"));
+        navier_stokes_integrator->registerFluidSourceFunction(q_fcn);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -392,6 +459,14 @@ main(
             pout << "Simulation time is " << loop_time              << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int U_current_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
+            const int P_current_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext());
+            const int wgt_cc_idx = navier_stokes_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
+            const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
+            q_fcn->advanceTimeDependentData(loop_time, dt, patch_hierarchy, U_current_idx, P_current_idx, wgt_cc_idx, wgt_sc_idx);
+
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

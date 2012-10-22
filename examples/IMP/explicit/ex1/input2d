@@ -1,29 +1,33 @@
 // physical parameters
 RHO = 1.00    // gm cm^-3
 MU  = 0.04    // gm cm^-1 s^-1
-L   = 5.0     // cm
+L   = 4.0     // cm
+I1_THRESH = 4.0 // 3.6655 // 3.6625 works for N=64; 3.66375 doesn't quite work for N=96; 3.665 works for N=96
+TAU_THRESH_INT = 6
+TAU_THRESH_MED = 3 // 15 works but yields nearly total dissection of media
+TAU_THRESH_ADV = 30
 
 // grid spacing parameters
 MAX_LEVELS = 1                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                      // refinement ratio between levels
-N = 64                                              // actual    number of grid cells on coarsest grid level
+N = 96                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
-MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+MFAC = 0.25                                         // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "QUAD4"                                 // type of element to use for structure discretization
 
 // solver parameters
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 10.0                   // final simulation time
+END_TIME                   = 8.0e-3                 // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
 CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.25                   // maximum CFL number
-DT                         = 5.0e-4*DX              // maximum timestep size
+CFL_MAX                    = 0.3                    // maximum CFL number
+DT                         = 5.0e-5*DX              // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
@@ -67,11 +71,6 @@ VelocityBcCoefs_1 {
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-}
-
-SourceFunction {
-   dx = DX0
-   function = "if( (X_0)^2 + (X_1)^2 < 8*dx^2, 500.0 , 0.0 )"
 }
 
 IBHierarchyIntegrator {

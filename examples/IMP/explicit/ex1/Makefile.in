@@ -58,7 +58,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT) \
+	main2d-CirculationModel.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
@@ -75,6 +76,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(main2d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -403,7 +408,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C
+SOURCES = main.C CirculationModel.C CirculationModel.h
 EXTRA_DIST = input2d input3d
 #if SAMRAI3D_ENABLED
 #EXTRA_PROGRAMS += main3d
@@ -456,6 +461,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-CirculationModel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
 
 .C.o:
@@ -485,6 +491,20 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
+
+main2d-CirculationModel.o: CirculationModel.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-CirculationModel.o -MD -MP -MF $(DEPDIR)/main2d-CirculationModel.Tpo -c -o main2d-CirculationModel.o `test -f 'CirculationModel.C' || echo '$(srcdir)/'`CirculationModel.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-CirculationModel.Tpo $(DEPDIR)/main2d-CirculationModel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CirculationModel.C' object='main2d-CirculationModel.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-CirculationModel.o `test -f 'CirculationModel.C' || echo '$(srcdir)/'`CirculationModel.C
+
+main2d-CirculationModel.obj: CirculationModel.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-CirculationModel.obj -MD -MP -MF $(DEPDIR)/main2d-CirculationModel.Tpo -c -o main2d-CirculationModel.obj `if test -f 'CirculationModel.C'; then $(CYGPATH_W) 'CirculationModel.C'; else $(CYGPATH_W) '$(srcdir)/CirculationModel.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-CirculationModel.Tpo $(DEPDIR)/main2d-CirculationModel.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CirculationModel.C' object='main2d-CirculationModel.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-CirculationModel.obj `if test -f 'CirculationModel.C'; then $(CYGPATH_W) 'CirculationModel.C'; else $(CYGPATH_W) '$(srcdir)/CirculationModel.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

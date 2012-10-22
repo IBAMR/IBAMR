@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.C CirculationModel.C CirculationModel.h
 EXTRA_DIST = input2d input3d
 
 EXTRA_PROGRAMS =
