@@ -67,7 +67,7 @@ namespace IBAMR
 namespace
 {
 
-#if 0
+#if 1
 static const int kernel_width = 2;
 
 inline double
@@ -112,7 +112,7 @@ kernel_diff(
 }// kernel_diff
 #endif
 
-#if 1
+#if 0
 static const int kernel_width = 3;
 
 inline double
@@ -490,7 +490,7 @@ IMPMethod::interpolateVelocity(
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
 
     // Synchronize Eulerian and Lagrangian values.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (ln < static_cast<int>(u_synch_scheds.size()) && u_synch_scheds[ln])
         {
@@ -498,7 +498,7 @@ IMPMethod::interpolateVelocity(
         }
         if (*X_needs_ghost_fill && (*X_data)[ln]) (*X_data)[ln]->beginGhostUpdate();
     }
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (*X_needs_ghost_fill && (*X_data)[ln]) (*X_data)[ln]->endGhostUpdate();
     }
@@ -513,9 +513,9 @@ IMPMethod::interpolateVelocity(
         {
             u_ghost_fill_scheds[ln]->fillData(data_time);
         }
-        blitz::Array<double,2>&      U_array = *(*     U_data)[ln]->getGhostedLocalFormVecArray();
-        blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getGhostedLocalFormVecArray();
-        blitz::Array<double,2>&      X_array = *(*     X_data)[ln]->getGhostedLocalFormVecArray();
+        double*      U_array = (*     U_data)[ln]->getLocalFormVecArray()->data();
+        double* Grad_U_array = (*Grad_U_data)[ln]->getLocalFormVecArray()->data();
+        double*      X_array = (*     X_data)[ln]->getLocalFormVecArray()->data();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -530,84 +530,90 @@ IMPMethod::interpolateVelocity(
             Box<NDIM> side_boxes[NDIM];
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(idx_data->getGhostBox(),axis);
-                if (patch_geom->getTouchesRegularBoundary(axis, /*lower*/ 0)) side_boxes[axis].upper(axis) = patch_box.lower(axis);
+                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(u_data->getGhostBox()*idx_data->getGhostBox(),axis);
+                if (patch_geom->getTouchesRegularBoundary(axis, /*lower*/ 0)) side_boxes[axis].lower(axis) = patch_box.lower(axis);
                 if (patch_geom->getTouchesRegularBoundary(axis, /*upper*/ 1)) side_boxes[axis].upper(axis) = patch_box.upper(axis)+1;
             }
-            const std::vector<int>& local_idxs = idx_data->getInteriorLocalPETScIndices();
-            for (unsigned int k = 0; k < local_idxs.size(); ++k)
+            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const int local_idx = local_idxs[k];
-                const double* const X = &X_array(local_idx,0);
+                const Index<NDIM>& i = *it;
+                LNodeSet* const node_set = idx_data->getItem(i);
+                if (!node_set) continue;
+                for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
+                {
+                    const LNode* const node_idx = *it;
+                    const int local_idx = node_idx->getLocalPETScIndex();
+                    const double* const X = &X_array[NDIM*local_idx];
 
-                // WARNING: As written here, this implicitly imposes u = 0 in
-                // the ghost cell region.
-                const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                VectorValue<double> U, X_cell;
-                TensorValue<double> Grad_U;
-                U.zero();
-                Grad_U.zero();
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
-                }
-                for (unsigned int component = 0; component < NDIM; ++component)
-                {
-                    blitz::Array<double,1> phi[NDIM], dphi[NDIM];
-                    Box<NDIM> box(i,i);
+                    // WARNING: As written here, this implicitly imposes u = 0 in
+                    // the ghost cell region at physical boundaries.
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
+                    VectorValue<double> U, X_cell;
+                    TensorValue<double> Grad_U;
+                    U.zero();
+                    Grad_U.zero();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (d == component)
-                        {
-                            box.lower(d) -= (kernel_width-1);
-                            box.upper(d) += (kernel_width  );
-                        }
-                        else
-                        {
-                            box.lower(d) -= (X[d] <= X_cell(d) ? kernel_width : kernel_width-1);
-                            box.upper(d) += (X[d] >= X_cell(d) ? kernel_width : kernel_width-1);
-                        }
-                        phi [d].resize(blitz::Range(box.lower(d),box.upper(d)));
-                        dphi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                        X_cell(d) = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_box.lower(d))+0.5);
                     }
-                    for (unsigned int d = 0; d < NDIM; ++d)
+                    for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        for (int i = box.lower(d); i <= box.upper(d); ++i)
-                        {
-                            const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
-                            const double del = x_grid - X[d];
-                            phi [d](i) = kernel(del/dx[d]);
-                            dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
-                        }
-                    }
-                    for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
-                    {
-                        const Index<NDIM>& i = b();
-                        const double u = (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower));
-                        double w = 1.0;
+                        blitz::Array<double,1> phi[NDIM], dphi[NDIM];
+                        Box<NDIM> box(i,i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            w *= phi[d](i(d));
+                            if (d == component)
+                            {
+                                box.lower(d) -= (kernel_width-1);
+                                box.upper(d) += (kernel_width  );
+                            }
+                            else
+                            {
+                                box.lower(d) -= (X[d] <= X_cell(d) ? kernel_width : kernel_width-1);
+                                box.upper(d) += (X[d] >= X_cell(d) ? kernel_width : kernel_width-1);
+                            }
+                            phi [d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                            dphi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
                         }
-                        U(component) += u*w;
-                        for (unsigned int k = 0; k < NDIM; ++k)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            double dw_dx_k = 1.0;
+                            for (int i = box.lower(d); i <= box.upper(d); ++i)
+                            {
+                                const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
+                                const double del = x_grid - X[d];
+                                phi [d](i) = kernel(del/dx[d]);
+                                dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
+                            }
+                        }
+                        for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
+                        {
+                            const Index<NDIM>& i = b();
+                            const double u = (*u_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower));
+                            double w = 1.0;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                if (d == k) dw_dx_k *= dphi[d](i(d));
-                                else        dw_dx_k *=  phi[d](i(d));
+                                w *= phi[d](i(d));
                             }
-                            Grad_U(component,k) -= u*dw_dx_k;
+                            U(component) += u*w;
+                            for (unsigned int k = 0; k < NDIM; ++k)
+                            {
+                                double dw_dx_k = 1.0;
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    if (d == k) dw_dx_k *= dphi[d](i(d));
+                                    else        dw_dx_k *=  phi[d](i(d));
+                                }
+                                Grad_U(component,k) -= u*dw_dx_k;
+                            }
                         }
                     }
-                }
-                for (int i = 0; i < NDIM; ++i)
-                {
-                    U_array(local_idx,i) = U(i);
-                    for (int j = 0; j < NDIM; ++j)
+                    for (int i = 0; i < NDIM; ++i)
                     {
-                        Grad_U_array(local_idx,NDIM*i+j) = Grad_U(i,j);
+                        U_array[NDIM*local_idx+i] = U(i);
+                        for (int j = 0; j < NDIM; ++j)
+                        {
+                            Grad_U_array[NDIM*NDIM*local_idx+NDIM*i+j] = Grad_U(i,j);
+                        }
                     }
                 }
             }
@@ -867,12 +873,12 @@ IMPMethod::spreadForce(
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
 
     // Synchronize Lagrangian values.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (*X_needs_ghost_fill && (*X_data)[ln]) (*X_data)[ln]->beginGhostUpdate();
         if (d_tau_data[ln]) d_tau_data[ln]->beginGhostUpdate();
     }
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (*X_needs_ghost_fill && (*X_data)[ln]) (*X_data)[ln]->endGhostUpdate();
         if (d_tau_data[ln]) d_tau_data[ln]->endGhostUpdate();
