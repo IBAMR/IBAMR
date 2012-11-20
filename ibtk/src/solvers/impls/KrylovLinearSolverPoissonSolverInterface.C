@@ -1,4 +1,4 @@
-// Filename: PoissonKrylovLinearSolverWrapper.C
+// Filename: KrylovLinearSolverPoissonSolverInterface.C
 // Created on 13 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,11 +30,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "PoissonKrylovLinearSolverWrapper.h"
+#include "KrylovLinearSolverPoissonSolverInterface.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/namespaces.h>
 
@@ -46,56 +47,63 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonKrylovLinearSolverWrapper::PoissonKrylovLinearSolverWrapper(
-    Pointer<KrylovLinearSolver> krylov_solver)
-    : LinearSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
-      KrylovLinearSolverWrapper(krylov_solver),
-      PoissonSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc())
-{
-    setSolutionTime(krylov_solver->getSolutionTime());
-    setTimeInterval(krylov_solver->getTimeInterval().first, krylov_solver->getTimeInterval().second);
-    return;
-}// PoissonKrylovLinearSolverWrapper
-
-PoissonKrylovLinearSolverWrapper::~PoissonKrylovLinearSolverWrapper()
+KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface()
 {
     // intentionally blank
     return;
-}// ~PoissonKrylovLinearSolverWrapper
+}// KrylovLinearSolverPoissonSolverInterface
+
+KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterface()
+{
+    // intentionally blank
+    return;
+}// ~KrylovLinearSolverPoissonSolverInterface
 
 void
-PoissonKrylovLinearSolverWrapper::setPoissonSpecifications(
+KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
     const PoissonSpecifications& poisson_spec)
 {
+    Pointer<KrylovLinearSolver> p_this = this;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     PoissonSolver::setPoissonSpecifications(poisson_spec);
-    Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPoissonSpecifications(d_poisson_spec);
-    Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    if (p_operator) p_operator->setPoissonSpecifications(d_poisson_spec);
+    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    if (p_preconditioner) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
 }// setPoissonSpecifications
 
 void
-PoissonKrylovLinearSolverWrapper::setPhysicalBcCoef(
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* bc_coef)
 {
+    Pointer<KrylovLinearSolver> p_this = this;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     PoissonSolver::setPhysicalBcCoef(bc_coef);
-    Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
+    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoef
 
 void
-PoissonKrylovLinearSolverWrapper::setPhysicalBcCoefs(
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
+    Pointer<KrylovLinearSolver> p_this = this;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<LaplaceOperator> p_operator = getOperator();
-    if (!p_operator.isNull()) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = getPreconditioner();
-    if (!p_preconditioner.isNull()) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
+    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 }// setPhysicalBcCoefs
 

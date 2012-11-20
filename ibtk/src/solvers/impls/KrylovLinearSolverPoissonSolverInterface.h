@@ -1,4 +1,4 @@
-// Filename: PoissonKrylovLinearSolverWrapper.h
+// Filename: KrylovLinearSolverPoissonSolverInterface.h
 // Created on 13 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,13 +30,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PoissonKrylovLinearSolverWrapper
-#define included_PoissonKrylovLinearSolverWrapper
+#ifndef included_KrylovLinearSolverPoissonSolverInterface
+#define included_KrylovLinearSolverPoissonSolverInterface
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/KrylovLinearSolverWrapper.h>
 #include <ibtk/PoissonSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -44,24 +43,29 @@
 namespace IBTK
 {
 /*!
- * \brief Class PoissonKrylovLinearSolverWrapper provides a wrapper for
+ * \brief Class KrylovLinearSolverPoissonSolverInterface provides a interface for
  * KrylovLinearSolvers that are to be used as Poisson solvers.
+ *
+ * This class is intented to be used to create a subclass of an existing
+ * implementation of KrylovLinearSolver that also supports the PoissonSolver
+ * interface.
+ *
+ * \see PETScKrylovPoissonSolver
  */
-class PoissonKrylovLinearSolverWrapper
-    : public KrylovLinearSolverWrapper,
-      public PoissonSolver
+class KrylovLinearSolverPoissonSolverInterface
+    : public PoissonSolver
 {
 public:
     /*!
      * Constructor.
      */
-    PoissonKrylovLinearSolverWrapper(
+    KrylovLinearSolverPoissonSolverInterface(
         SAMRAI::tbox::Pointer<KrylovLinearSolver> krylov_solver);
 
     /*!
      * Destructor.
      */
-    ~PoissonKrylovLinearSolverWrapper();
+    ~KrylovLinearSolverPoissonSolverInterface();
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
@@ -104,7 +108,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PoissonKrylovLinearSolverWrapper();
+    KrylovLinearSolverPoissonSolverInterface();
 
     /*!
      * \brief Copy constructor.
@@ -113,8 +117,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PoissonKrylovLinearSolverWrapper(
-        const PoissonKrylovLinearSolverWrapper& from);
+    KrylovLinearSolverPoissonSolverInterface(
+        const KrylovLinearSolverPoissonSolverInterface& from);
 
     /*!
      * \brief Assignment operator.
@@ -125,16 +129,16 @@ private:
      *
      * \return A reference to this object.
      */
-    PoissonKrylovLinearSolverWrapper&
+    KrylovLinearSolverPoissonSolverInterface&
     operator=(
-        const PoissonKrylovLinearSolverWrapper& that);
+        const KrylovLinearSolverPoissonSolverInterface& that);
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/PoissonKrylovLinearSolverWrapper.I>
+//#include <ibtk/KrylovLinearSolverPoissonSolverInterface.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PoissonKrylovLinearSolverWrapper
+#endif //#ifndef included_KrylovLinearSolverPoissonSolverInterface
