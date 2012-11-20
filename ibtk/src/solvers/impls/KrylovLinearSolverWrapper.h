@@ -67,6 +67,12 @@ public:
     ~KrylovLinearSolverWrapper();
 
     /*!
+     * \brief Get the wrapped solver.
+     */
+    SAMRAI::tbox::Pointer<KrylovLinearSolver>
+    getWrappedSolver() const;
+
+    /*!
      * \name General-purpose solver functionality.
      */
     //\{

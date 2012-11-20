@@ -81,6 +81,12 @@ KrylovLinearSolverWrapper::~KrylovLinearSolverWrapper()
     return;
 }// ~KrylovLinearSolverWrapper
 
+Pointer<KrylovLinearSolver>
+KrylovLinearSolverWrapper::getWrappedSolver() const
+{
+    return d_krylov_solver;
+}// getWrappedSolver
+
 bool
 KrylovLinearSolverWrapper::getIsInitialized() const
 {
