@@ -186,13 +186,14 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C \
+	$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
@@ -290,13 +291,14 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredUpwindConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
+	libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBlockPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesFACPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.$(OBJEXT) \
-	libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR2d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
@@ -384,13 +386,14 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C \
+	$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
@@ -488,13 +491,14 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStochasticForcing.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredUpwindConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
+	libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBlockPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesFACPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.$(OBJEXT) \
-	libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR3d_a-StaggeredStokesPETScLevelSolver.$(OBJEXT) \
@@ -604,13 +608,14 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+	$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.h \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.h \
-	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
@@ -1028,13 +1033,14 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+	$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.h \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.h \
-	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
@@ -1108,13 +1114,14 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C \
+	$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
@@ -1308,8 +1315,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
@@ -1318,7 +1327,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
@@ -1393,8 +1401,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredUpwindConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@
@@ -1403,7 +1413,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesPETScLevelSolver.Po@am__quote@
@@ -2325,6 +2334,34 @@ libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
 
+libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o: $(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo -c -o libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o `test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' object='libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o `test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+
+libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj: $(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo -c -o libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo $(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' object='libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; fi`
+
+libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o: $(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o `test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' object='libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o `test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+
+libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.obj: $(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo $(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' object='libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; fi`
+
 libIBAMR2d_a-SpongeLayerForceFunction.o: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SpongeLayerForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR2d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po
@@ -2408,20 +2445,6 @@ libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.obj: $(top_srcdir)/src/nav
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C' object='libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; fi`
-
-libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo -c -o libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-
-libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo -c -o libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
 
 libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR2d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
@@ -3515,6 +3538,34 @@ libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
 
+libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o: $(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo -c -o libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o `test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' object='libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.o `test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+
+libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj: $(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo -c -o libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Tpo $(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C' object='libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C'; fi`
+
+libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o: $(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o `test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' object='libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o `test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+
+libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.obj: $(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo $(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C' object='libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C'; fi`
+
 libIBAMR3d_a-SpongeLayerForceFunction.o: $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SpongeLayerForceFunction.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo -c -o libIBAMR3d_a-SpongeLayerForceFunction.o `test -f '$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Tpo $(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po
@@ -3598,20 +3649,6 @@ libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.obj: $(top_srcdir)/src/nav
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C' object='libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C'; fi`
-
-libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo -c -o libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-
-libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo -c -o libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C' object='libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-StaggeredStokesKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/StaggeredStokesKrylovLinearSolverWrapper.C'; fi`
 
 libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o: $(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.Tpo -c -o libIBAMR3d_a-StaggeredStokesOpenBoundaryStabilizer.o `test -f '$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C
