@@ -38,6 +38,9 @@
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/KrylovLinearSolver.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -47,10 +50,10 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesKrylovLinearSolverWrapper::StaggeredStokesKrylovLinearSolverWrapper(
-    Pointer<KrylovLinearSolver> krylov_solver)
-    : LinearSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc()),
-      KrylovLinearSolverWrapper(krylov_solver),
-      StaggeredStokesSolver(krylov_solver->getName(), krylov_solver->getHomogeneousBc())
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : LinearSolver(object_name, homogeneous_bc),
+      StaggeredStokesSolver(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;
@@ -66,10 +69,14 @@ void
 StaggeredStokesKrylovLinearSolverWrapper::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesOperator> p_operator = getOperator();
+    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
-    Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
+    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 }// setVelocityPoissonSpecifications
@@ -79,10 +86,14 @@ StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesOperator> p_operator = getOperator();
+    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-    Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
+    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
 }// setPhysicalBcCoefs
@@ -91,10 +102,14 @@ void
 StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(p_this);
+#endif
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesOperator> p_operator = getOperator();
+    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
-    Pointer<StaggeredStokesSolver> p_preconditioner = getPreconditioner();
+    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 }// setPhysicalBoundaryHelper

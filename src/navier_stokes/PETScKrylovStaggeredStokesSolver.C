@@ -1,4 +1,4 @@
-// Filename: PETScKrylovPoissonSolver.C
+// Filename: PETScKrylovStaggeredStokesSolver.C
 // Created on 20 Nov 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "PETScKrylovPoissonSolver.h"
+#include "PETScKrylovStaggeredStokesSolver.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,23 +55,23 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(
+PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
     : LinearSolver(object_name),
       PETScKrylovLinearSolver(object_name, input_db, default_options_prefix),
-      KrylovLinearSolverPoissonSolverInterface(object_name)
+      KrylovLinearSolverStaggeredStokesSolverInterface(object_name)
 {
     // intentionally blank
     return;
-}// PETScKrylovPoissonSolver()
+}// PETScKrylovStaggeredStokesSolver()
 
-PETScKrylovPoissonSolver::~PETScKrylovPoissonSolver()
+PETScKrylovStaggeredStokesSolver::~PETScKrylovStaggeredStokesSolver()
 {
     // intentionally blank
     return;
-}// ~PETScKrylovPoissonSolver()
+}// ~PETScKrylovStaggeredStokesSolver()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

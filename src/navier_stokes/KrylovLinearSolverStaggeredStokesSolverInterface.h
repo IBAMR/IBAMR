@@ -1,4 +1,4 @@
-// Filename: StaggeredStokesKrylovLinearSolverWrapper.h
+// Filename: KrylovLinearSolverStaggeredStokesSolverInterface.h
 // Created on 16 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_StaggeredStokesKrylovLinearSolverWrapper
-#define included_StaggeredStokesKrylovLinearSolverWrapper
+#ifndef included_KrylovLinearSolverStaggeredStokesSolverInterface
+#define included_KrylovLinearSolverStaggeredStokesSolverInterface
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,10 +46,17 @@
 namespace IBAMR
 {
 /*!
- * \brief Class StaggeredStokesKrylovLinearSolverWrapper provides a wrapper for
- * KrylovLinearSolvers that are to be used as Stokes solvers.
+ * \brief Class KrylovLinearSolverStaggeredStokesSolverInterface provides an
+ * interface for KrylovLinearSolvers that are to be used as staggered Stokes
+ * solvers.
+ *
+ * This class is intented to be used to create a (trivial) subclass of an
+ * existing implementation of KrylovLinearSolver that also supports the
+ * StaggeredStokesSolver interface.
+ *
+ * \see PETScKrylovStaggeredStokesSolver
  */
-class StaggeredStokesKrylovLinearSolverWrapper
+class KrylovLinearSolverStaggeredStokesSolverInterface
     : public IBTK::KrylovLinearSolverWrapper,
       public StaggeredStokesSolver
 {
@@ -57,13 +64,14 @@ public:
     /*!
      * Constructor.
      */
-    StaggeredStokesKrylovLinearSolverWrapper(
-        SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> krylov_solver);
+    KrylovLinearSolverStaggeredStokesSolverInterface(
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * Destructor.
      */
-    ~StaggeredStokesKrylovLinearSolverWrapper();
+    ~KrylovLinearSolverStaggeredStokesSolverInterface();
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -105,7 +113,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    StaggeredStokesKrylovLinearSolverWrapper();
+    KrylovLinearSolverStaggeredStokesSolverInterface();
 
     /*!
      * \brief Copy constructor.
@@ -114,8 +122,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesKrylovLinearSolverWrapper(
-        const StaggeredStokesKrylovLinearSolverWrapper& from);
+    KrylovLinearSolverStaggeredStokesSolverInterface(
+        const KrylovLinearSolverStaggeredStokesSolverInterface& from);
 
     /*!
      * \brief Assignment operator.
@@ -126,16 +134,16 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesKrylovLinearSolverWrapper&
+    KrylovLinearSolverStaggeredStokesSolverInterface&
     operator=(
-        const StaggeredStokesKrylovLinearSolverWrapper& that);
+        const KrylovLinearSolverStaggeredStokesSolverInterface& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/StaggeredStokesKrylovLinearSolverWrapper.I>
+//#include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_StaggeredStokesKrylovLinearSolverWrapper
+#endif //#ifndef included_KrylovLinearSolverStaggeredStokesSolverInterface

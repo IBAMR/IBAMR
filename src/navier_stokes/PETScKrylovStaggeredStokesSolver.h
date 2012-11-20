@@ -1,5 +1,5 @@
-// Filename: KrylovLinearSolverPoissonSolverInterface.h
-// Created on 13 Aug 2012 by Boyce Griffith
+// Filename: PETScKrylovStaggeredStokesSolver.h
+// Created on 20 Nov 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,78 +30,50 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_KrylovLinearSolverPoissonSolverInterface
-#define included_KrylovLinearSolverPoissonSolverInterface
+#ifndef included_PETScKrylovStaggeredStokesSolver
+#define included_PETScKrylovStaggeredStokesSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// PETSc INCLUDES
+#include <petscksp.h>
+
 // IBTK INCLUDES
-#include <ibtk/PoissonSolver.h>
+#include <ibtk/KrylovLinearSolverStaggeredStokesSolverInterface.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
+
+// SAMRAI INCLUDES
+#include <StaggeredStokesSpecifications.h>
+#include <RobinBcCoefStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class KrylovLinearSolverPoissonSolverInterface provides an interface
- * for KrylovLinearSolvers that are to be used as Poisson solvers.
- *
- * This class is intented to be used to create a (trivial) subclass of an
- * existing implementation of KrylovLinearSolver that also supports the
- * PoissonSolver interface.
- *
- * \see PETScKrylovPoissonSolver
+ * \brief Class PETScKrylovStaggeredStokesSolver is an extension of class
+ * PETScKrylovLinearSolver that provides an implementation of the
+ * StaggeredStokesSolver interface.
  */
-class KrylovLinearSolverPoissonSolverInterface
-    : public PoissonSolver
+class PETScKrylovStaggeredStokesSolver
+    : public PETScKrylovLinearSolver,
+      public KrylovLinearSolverStaggeredStokesSolverInterface
 {
 public:
     /*!
-     * Constructor.
+     * \brief Constructor.
      */
-    KrylovLinearSolverPoissonSolverInterface(
+    PETScKrylovStaggeredStokesSolver(
         const std::string& object_name,
-        bool homogeneous_bc=false);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
-     * Destructor.
+     * \brief Destructor.
      */
-    ~KrylovLinearSolverPoissonSolverInterface();
+    ~PETScKrylovStaggeredStokesSolver();
 
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar-valued or vector-valued Laplace operator.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, default boundary conditions
-     * (as supplied to the class constructor) are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * default boundary conditions (as supplied to the class constructor) are
-     * employed for that data depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+protected:
 
 private:
     /*!
@@ -109,7 +81,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    KrylovLinearSolverPoissonSolverInterface();
+    PETScKrylovStaggeredStokesSolver();
 
     /*!
      * \brief Copy constructor.
@@ -118,8 +90,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface(
-        const KrylovLinearSolverPoissonSolverInterface& from);
+    PETScKrylovStaggeredStokesSolver(
+        const PETScKrylovStaggeredStokesSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -130,16 +102,16 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface&
+    PETScKrylovStaggeredStokesSolver&
     operator=(
-        const KrylovLinearSolverPoissonSolverInterface& that);
+        const PETScKrylovStaggeredStokesSolver& that);
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/KrylovLinearSolverPoissonSolverInterface.I>
+//#include <ibtk/PETScKrylovStaggeredStokesSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovLinearSolverPoissonSolverInterface
+#endif //#ifndef included_PETScKrylovStaggeredStokesSolver

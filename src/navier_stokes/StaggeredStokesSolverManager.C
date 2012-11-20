@@ -50,10 +50,10 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>
 #include <ibamr/StaggeredStokesBoxRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
-#include <ibamr/StaggeredStokesKrylovLinearSolverWrapper.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesProjectionPreconditioner.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
@@ -109,27 +109,12 @@ StaggeredStokesSolverManager::freeManager()
 namespace
 {
 Pointer<StaggeredStokesSolver>
-allocate_default_krylov_solver(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const std::string& default_options_prefix)
-{
-    Pointer<KrylovLinearSolver> krylov_solver = new StaggeredStokesKrylovLinearSolverWrapper(
-        KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::DEFAULT, object_name, input_db, default_options_prefix));
-    krylov_solver->setOperator(new StaggeredStokesOperator(object_name+"::StokesOperator"));
-    return krylov_solver;
-}// allocate_default_krylov_solver
-
-Pointer<StaggeredStokesSolver>
 allocate_petsc_krylov_solver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
 {
-    Pointer<KrylovLinearSolver> krylov_solver = new StaggeredStokesKrylovLinearSolverWrapper(
-        KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::PETSC, object_name, input_db, default_options_prefix));
+    Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver = new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(new StaggeredStokesOperator(object_name+"::StokesOperator"));
     return krylov_solver;
 }// allocate_petsc_krylov_solver
@@ -200,7 +185,7 @@ StaggeredStokesSolverManager::registerSolverFactoryFunction(
 StaggeredStokesSolverManager::StaggeredStokesSolverManager()
     : d_solver_maker_map()
 {
-    registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER             , allocate_default_krylov_solver);
+    registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER             , allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER               , allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(DEFAULT_BLOCK_PRECONDITIONER      , StaggeredStokesProjectionPreconditioner::allocate_solver);
     registerSolverFactoryFunction(BLOCK_FACTORIZATION_PRECONDITIONER, StaggeredStokesBlockFactorizationPreconditioner::allocate_solver);

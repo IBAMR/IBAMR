@@ -35,9 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// PETSc INCLUDES
+#include <petscksp.h>
+
 // IBTK INCLUDES
+#include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-#include <ibtk/PoissonSolver.h>
 
 // SAMRAI INCLUDES
 #include <PoissonSpecifications.h>
@@ -54,7 +57,7 @@ namespace IBTK
  */
 class PETScKrylovPoissonSolver
     : public PETScKrylovLinearSolver,
-      public PoissonSolver
+      public KrylovLinearSolverPoissonSolverInterface
 {
 public:
     /*!
