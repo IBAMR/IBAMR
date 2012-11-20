@@ -347,6 +347,67 @@ public:
         bool skip_synchronize_new_state_data,
         int num_cycles=1);
 
+    /*!
+     * Callback function specification to enable further specialization of
+     * preprocessIntegrateHierarchy().
+     */
+    typedef void
+    (*PreprocessIntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        int num_cycles,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * preprocessIntegrateHierarchy().
+     */
+    void
+    registerPreprocessIntegrateHierarchyCallback(
+        PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * IntegrateHierarchy().
+     */
+    typedef void
+    (*IntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        int cycle_num,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * IntegrateHierarchy().
+     */
+    void
+    registerIntegrateHierarchyCallback(
+        IntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * postprocessIntegrateHierarchy().
+     */
+    typedef void
+    (*PostprocessIntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * postprocessIntegrateHierarchy().
+     */
+    void
+    registerPostprocessIntegrateHierarchyCallback(
+        PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
     ///
     ///  Implementations of functions declared in the
     ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
@@ -856,6 +917,16 @@ protected:
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
+
+    /*!
+     * Callback functions and callback function contexts.
+     */
+    std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr> d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
+    std::vector<IntegrateHierarchyCallbackFcnPtr> d_integrate_hierarchy_callbacks;
+    std::vector<void*> d_integrate_hierarchy_callback_ctxs;
+    std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr> d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
 
 private:
     /*!

@@ -281,6 +281,10 @@ HierarchyIntegrator::advanceHierarchy(
     d_current_num_cycles = getNumberOfCycles();
     d_current_dt = new_time-current_time;
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
+    for (unsigned int k = 0; k < d_preprocess_integrate_hierarchy_callbacks.size(); ++k)
+    {
+        (*d_preprocess_integrate_hierarchy_callbacks[k])(current_time, new_time, d_current_num_cycles, d_preprocess_integrate_hierarchy_callback_ctxs[k]);
+    }
     if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
     for (int cycle_num = 0; cycle_num < d_current_num_cycles; ++cycle_num)
     {
@@ -289,8 +293,17 @@ HierarchyIntegrator::advanceHierarchy(
             if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num+1 << " of " << d_current_num_cycles << "\n";
         }
         integrateHierarchy(current_time, new_time, cycle_num);
+        for (unsigned int k = 0; k < d_integrate_hierarchy_callbacks.size(); ++k)
+        {
+            (*d_integrate_hierarchy_callbacks[k])(current_time, new_time, cycle_num, d_integrate_hierarchy_callback_ctxs[k]);
+        }
     }
     postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles);
+    for (unsigned int k = 0; k < d_postprocess_integrate_hierarchy_callbacks.size(); ++k)
+    {
+        (*d_postprocess_integrate_hierarchy_callbacks[k])(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles, d_postprocess_integrate_hierarchy_callback_ctxs[k]);
+    }
+    if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
 
     // Ensure that the current values of num_cycles, cycle_num, and dt are
     // reset.
@@ -547,6 +560,36 @@ HierarchyIntegrator::postprocessIntegrateHierarchy(
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
     return;
 }// postprocessIntegrateHierarchy
+
+void
+HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(
+    PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
+{
+    d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
+    d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerPreprocessIntegrateHierarchyCallback
+
+void
+HierarchyIntegrator::registerIntegrateHierarchyCallback(
+    IntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
+{
+    d_integrate_hierarchy_callbacks.push_back(callback);
+    d_integrate_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerIntegrateHierarchyCallback
+
+void
+HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
+    PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+    void* ctx)
+{
+    d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
+    d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerPostprocessIntegrateHierarchyCallback
 
 void
 HierarchyIntegrator::initializeLevelData(
