@@ -121,6 +121,7 @@ $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
+$(top_srcdir)/src/solvers/impls/PETScKrylovPoissonSolver.C \
 $(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
@@ -277,6 +278,7 @@ $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.h \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.h \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \
+$(top_srcdir)/src/solvers/impls/PETScKrylovPoissonSolver.h \
 $(top_srcdir)/src/solvers/impls/PETScLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.h \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
