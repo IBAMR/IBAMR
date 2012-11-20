@@ -1112,8 +1112,8 @@ SimplifiedIBFEMethod::projectTotalForceDensity(
                         {
                             const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
                             const double del = x_grid - X_qp(d);
-                            phi [d](i) = kernel(del/dx[d]);
-                            dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
+                            phi [d](i) =  kernel(del/dx[d]);
+                            dphi[d](i) = -kernel_diff(del/dx[d])/dx[d];  // note the minus sign is because we are differentiating wrt X
                         }
                     }
                     for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
@@ -1128,7 +1128,7 @@ SimplifiedIBFEMethod::projectTotalForceDensity(
                                 if (d == k) dw_dx_k *= dphi[d](i(d));
                                 else        dw_dx_k *=  phi[d](i(d));
                             }
-                            f += tau(component,k)*dw_dx_k;
+                            f -= tau(component,k)*dw_dx_k;
                         }
                         (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) += f*JxW[qp]/dV_c;
                     }
