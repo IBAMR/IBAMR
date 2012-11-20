@@ -35,16 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
+// PETSC INCLUDES
+#include <petscsys.h>
 
 // IBTK INCLUDES
 #include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -1,4 +1,4 @@
-// Filename: StaggeredStokesKrylovLinearSolverWrapper.C
+// Filename: KrylovLinearSolverStaggeredStokesSolverInterface.C
 // Created on 16 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "StaggeredStokesKrylovLinearSolverWrapper.h"
+#include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -49,7 +49,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesKrylovLinearSolverWrapper::StaggeredStokesKrylovLinearSolverWrapper(
+KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface(
     const std::string& object_name,
     bool homogeneous_bc)
     : LinearSolver(object_name, homogeneous_bc),
@@ -57,16 +57,16 @@ StaggeredStokesKrylovLinearSolverWrapper::StaggeredStokesKrylovLinearSolverWrapp
 {
     // intentionally blank
     return;
-}// StaggeredStokesKrylovLinearSolverWrapper
+}// KrylovLinearSolverStaggeredStokesSolverInterface
 
-StaggeredStokesKrylovLinearSolverWrapper::~StaggeredStokesKrylovLinearSolverWrapper()
+KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
-}// ~StaggeredStokesKrylovLinearSolverWrapper
+}// ~KrylovLinearSolverStaggeredStokesSolverInterface
 
 void
-StaggeredStokesKrylovLinearSolverWrapper::setVelocityPoissonSpecifications(
+KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
@@ -82,7 +82,7 @@ StaggeredStokesKrylovLinearSolverWrapper::setVelocityPoissonSpecifications(
 }// setVelocityPoissonSpecifications
 
 void
-StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBcCoefs(
+KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -99,7 +99,7 @@ StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-StaggeredStokesKrylovLinearSolverWrapper::setPhysicalBoundaryHelper(
+KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));

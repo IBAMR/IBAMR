@@ -34,9 +34,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBTK_config
-#include <IBTK_config.h>
-#define included_IBTK_config
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config
@@ -44,12 +44,17 @@
 #define included_SAMRAI_config
 #endif
 
-// IBTK INCLUDES
-#include <ibtk/namespaces.h>
+// To avoid compiler warnings related to redefinition of MPICH_SKIP_MPICXX.
+#ifdef MPICH_SKIP_MPICXX
+#undef MPICH_SKIP_MPICXX
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBTK
+namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -77,6 +82,6 @@ PETScKrylovStaggeredStokesSolver::~PETScKrylovStaggeredStokesSolver()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

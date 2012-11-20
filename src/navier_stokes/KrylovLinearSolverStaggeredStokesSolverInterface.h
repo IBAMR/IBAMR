@@ -38,9 +38,6 @@
 // IBAMR INCLUDES
 #include <ibamr/StaggeredStokesSolver.h>
 
-// IBTK INCLUDES
-#include <ibtk/KrylovLinearSolverWrapper.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -57,8 +54,7 @@ namespace IBAMR
  * \see PETScKrylovStaggeredStokesSolver
  */
 class KrylovLinearSolverStaggeredStokesSolverInterface
-    : public IBTK::KrylovLinearSolverWrapper,
-      public StaggeredStokesSolver
+    : public StaggeredStokesSolver
 {
 public:
     /*!

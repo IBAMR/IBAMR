@@ -35,20 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
+// PETSC INCLUDES
+#include <petscsys.h>
+
+// IBAMR INCLUDES
+#include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h>
 
 // IBTK INCLUDES
-#include <ibtk/KrylovLinearSolverStaggeredStokesSolverInterface.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <StaggeredStokesSpecifications.h>
-#include <RobinBcCoefStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBTK
+namespace IBAMR
 {
 /*!
  * \brief Class PETScKrylovStaggeredStokesSolver is an extension of class
@@ -56,7 +54,7 @@ namespace IBTK
  * StaggeredStokesSolver interface.
  */
 class PETScKrylovStaggeredStokesSolver
-    : public PETScKrylovLinearSolver,
+    : public IBTK::PETScKrylovLinearSolver,
       public KrylovLinearSolverStaggeredStokesSolverInterface
 {
 public:
@@ -106,11 +104,11 @@ private:
     operator=(
         const PETScKrylovStaggeredStokesSolver& that);
 };
-}// namespace IBTK
+}// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/PETScKrylovStaggeredStokesSolver.I>
+//#include <ibamr/PETScKrylovStaggeredStokesSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
