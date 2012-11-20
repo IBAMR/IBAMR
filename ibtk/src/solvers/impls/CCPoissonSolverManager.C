@@ -54,8 +54,7 @@
 #include <ibtk/CCPoissonHypreLevelSolver.h>
 #include <ibtk/CCPoissonPETScLevelSolver.h>
 #include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/KrylovLinearSolverManager.h>
-#include <ibtk/PoissonKrylovLinearSolverWrapper.h>
+#include <ibtk/PETScKrylovPoissonSolver.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -103,27 +102,12 @@ CCPoissonSolverManager::freeManager()
 namespace
 {
 Pointer<PoissonSolver>
-allocate_default_krylov_solver(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const std::string& default_options_prefix)
-{
-    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
-        KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::DEFAULT, object_name, input_db, default_options_prefix));
-    krylov_solver->setOperator(new CCLaplaceOperator(object_name+"::CCLaplaceOperator"));
-    return krylov_solver;
-}// allocate_default_krylov_solver
-
-Pointer<PoissonSolver>
 allocate_petsc_krylov_solver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
 {
-    Pointer<PoissonKrylovLinearSolverWrapper> krylov_solver = new PoissonKrylovLinearSolverWrapper(
-        KrylovLinearSolverManager::getManager()->allocateSolver(
-            KrylovLinearSolverManager::PETSC, object_name, input_db, default_options_prefix));
+    Pointer<PETScKrylovPoissonSolver> krylov_solver = new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(new CCLaplaceOperator(object_name+"::CCLaplaceOperator"));
     return krylov_solver;
 }// allocate_petsc_krylov_solver
@@ -186,7 +170,7 @@ CCPoissonSolverManager::registerSolverFactoryFunction(
 CCPoissonSolverManager::CCPoissonSolverManager()
     : d_solver_maker_map()
 {
-    registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER              , allocate_default_krylov_solver);
+    registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER              , allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER                , allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER         , CCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER, CCPoissonPointRelaxationFACOperator::allocate_solver);

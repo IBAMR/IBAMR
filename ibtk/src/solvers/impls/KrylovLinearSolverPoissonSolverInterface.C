@@ -47,7 +47,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface()
+KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface(
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : LinearSolver(object_name, homogeneous_bc),
+      PoissonSolver(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;
@@ -63,7 +67,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
     const PoissonSpecifications& poisson_spec)
 {
-    Pointer<KrylovLinearSolver> p_this = this;
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -79,7 +83,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* bc_coef)
 {
-    Pointer<KrylovLinearSolver> p_this = this;
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -95,7 +99,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    Pointer<KrylovLinearSolver> p_this = this;
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
