@@ -117,7 +117,7 @@ $(top_srcdir)/src/solvers/impls/CCPoissonPointRelaxationFACOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.C \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
-$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C \
+$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -126,7 +126,6 @@ $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
-$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C \
 $(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
@@ -274,7 +273,7 @@ $(top_srcdir)/src/solvers/impls/CCPoissonPointRelaxationFACOperator.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.h \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.h \
-$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.h \
+$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.h \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.h \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \
@@ -283,7 +282,6 @@ $(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.h \
 $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.h \
-$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.h \
 $(top_srcdir)/src/solvers/impls/PoissonSolver.h \
 $(top_srcdir)/src/solvers/impls/SCLaplaceOperator.h \
 $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
