@@ -165,7 +165,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
-	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -174,7 +174,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
@@ -306,7 +305,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonSolverManager.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-KrylovLinearSolverManager.$(OBJEXT) \
-	libIBTK2d_a-KrylovLinearSolverWrapper.$(OBJEXT) \
+	libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.$(OBJEXT) \
 	libIBTK2d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-NewtonKrylovSolverManager.$(OBJEXT) \
 	libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
@@ -315,7 +314,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK2d_a-PoissonFACPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-PoissonFACPreconditionerStrategy.$(OBJEXT) \
-	libIBTK2d_a-PoissonKrylovLinearSolverWrapper.$(OBJEXT) \
 	libIBTK2d_a-PoissonSolver.$(OBJEXT) \
 	libIBTK2d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
@@ -443,7 +441,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
-	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -452,7 +450,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
@@ -583,7 +580,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonSolverManager.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-KrylovLinearSolverManager.$(OBJEXT) \
-	libIBTK3d_a-KrylovLinearSolverWrapper.$(OBJEXT) \
+	libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.$(OBJEXT) \
 	libIBTK3d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-NewtonKrylovSolverManager.$(OBJEXT) \
 	libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
@@ -592,7 +589,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK3d_a-PoissonFACPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-PoissonFACPreconditionerStrategy.$(OBJEXT) \
-	libIBTK3d_a-PoissonKrylovLinearSolverWrapper.$(OBJEXT) \
 	libIBTK3d_a-PoissonSolver.$(OBJEXT) \
 	libIBTK3d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonHypreLevelSolver.$(OBJEXT) \
@@ -1125,7 +1121,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.h \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.h \
-	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.h \
+	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.h \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
 	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.h \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \
@@ -1134,7 +1130,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.h \
-	$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.h \
 	$(top_srcdir)/src/solvers/impls/PoissonSolver.h \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.h \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.h \
@@ -1253,7 +1248,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C \
-	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C \
+	$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/NewtonKrylovSolverManager.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -1262,7 +1257,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C \
-	$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C \
 	$(top_srcdir)/src/solvers/impls/PoissonSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
@@ -1486,7 +1480,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LEInteractor.Po@am__quote@
@@ -1537,7 +1531,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po@am__quote@
@@ -1610,7 +1603,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LEInteractor.Po@am__quote@
@@ -1661,7 +1654,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Po@am__quote@
@@ -2687,19 +2679,19 @@ libIBTK2d_a-KrylovLinearSolverManager.obj: $(top_srcdir)/src/solvers/impls/Krylo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-KrylovLinearSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; fi`
 
-libIBTK2d_a-KrylovLinearSolverWrapper.o: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-KrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Tpo -c -o libIBTK2d_a-KrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' object='libIBTK2d_a-KrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.o: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Tpo -c -o libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Tpo $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' object='libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-KrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
 
-libIBTK2d_a-KrylovLinearSolverWrapper.obj: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-KrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Tpo -c -o libIBTK2d_a-KrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' object='libIBTK2d_a-KrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.obj: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Tpo -c -o libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Tpo $(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' object='libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-KrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; fi`
 
 libIBTK2d_a-LaplaceOperator.o: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Tpo -c -o libIBTK2d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
@@ -2812,20 +2804,6 @@ libIBTK2d_a-PoissonFACPreconditionerStrategy.obj: $(top_srcdir)/src/solvers/impl
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C' object='libIBTK2d_a-PoissonFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; fi`
-
-libIBTK2d_a-PoissonKrylovLinearSolverWrapper.o: $(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonKrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Tpo -c -o libIBTK2d_a-PoissonKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' object='libIBTK2d_a-PoissonKrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-
-libIBTK2d_a-PoissonKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonKrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Tpo -c -o libIBTK2d_a-PoissonKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK2d_a-PoissonKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' object='libIBTK2d_a-PoissonKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; fi`
 
 libIBTK2d_a-PoissonSolver.o: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonSolver.Tpo -c -o libIBTK2d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
@@ -4423,19 +4401,19 @@ libIBTK3d_a-KrylovLinearSolverManager.obj: $(top_srcdir)/src/solvers/impls/Krylo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-KrylovLinearSolverManager.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverManager.C'; fi`
 
-libIBTK3d_a-KrylovLinearSolverWrapper.o: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-KrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Tpo -c -o libIBTK3d_a-KrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' object='libIBTK3d_a-KrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.o: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Tpo -c -o libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Tpo $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' object='libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-KrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.o `test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
 
-libIBTK3d_a-KrylovLinearSolverWrapper.obj: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-KrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Tpo -c -o libIBTK3d_a-KrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C' object='libIBTK3d_a-KrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.obj: $(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Tpo -c -o libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Tpo $(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C' object='libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-KrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverWrapper.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.obj `if test -f '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.C'; fi`
 
 libIBTK3d_a-LaplaceOperator.o: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Tpo -c -o libIBTK3d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
@@ -4548,20 +4526,6 @@ libIBTK3d_a-PoissonFACPreconditionerStrategy.obj: $(top_srcdir)/src/solvers/impl
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C' object='libIBTK3d_a-PoissonFACPreconditionerStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonFACPreconditionerStrategy.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonFACPreconditionerStrategy.C'; fi`
-
-libIBTK3d_a-PoissonKrylovLinearSolverWrapper.o: $(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonKrylovLinearSolverWrapper.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Tpo -c -o libIBTK3d_a-PoissonKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' object='libIBTK3d_a-PoissonKrylovLinearSolverWrapper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonKrylovLinearSolverWrapper.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-
-libIBTK3d_a-PoissonKrylovLinearSolverWrapper.obj: $(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonKrylovLinearSolverWrapper.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Tpo -c -o libIBTK3d_a-PoissonKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Tpo $(DEPDIR)/libIBTK3d_a-PoissonKrylovLinearSolverWrapper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C' object='libIBTK3d_a-PoissonKrylovLinearSolverWrapper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonKrylovLinearSolverWrapper.obj `if test -f '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PoissonKrylovLinearSolverWrapper.C'; fi`
 
 libIBTK3d_a-PoissonSolver.o: $(top_srcdir)/src/solvers/impls/PoissonSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonSolver.Tpo -c -o libIBTK3d_a-PoissonSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PoissonSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PoissonSolver.C
