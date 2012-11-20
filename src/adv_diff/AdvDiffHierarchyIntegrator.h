@@ -336,6 +336,21 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
+     * Register a solver for the Helmholtz equation.
+     */
+    void
+    setHelmholtzSolver(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> stokes_solver);
+
+    /*!
+     * Get the solver for the Helmholtz equation used by this solver class.
+     */
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
+    getHelmholtzSolver(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *
@@ -412,20 +427,20 @@ protected:
     /*!
      * Advection velocity data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
 
     /*!
      * Source term data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
 
     /*!
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var, d_Q_rhs_var;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var, d_Q_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_F_map, d_Q_Q_rhs_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_diffusion_time_stepping_type;
