@@ -837,8 +837,6 @@ IBStandardInitializer::readSpringFiles(
                 {
                     Edge e;
                     std::vector<double> parameters(2);
-                    double& kappa  = parameters[0];
-                    double& length = parameters[1];
                     int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
@@ -868,26 +866,26 @@ IBStandardInitializer::readSpringFiles(
                                        << "  vertex index " << e.second << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> kappa))
+                        if (!(line_stream >> parameters[0]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl);
                         }
-                        else if (kappa < 0.0)
+                        else if (parameters[0] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
                                        << "  spring constant is negative" << std::endl);
                         }
 
-                        if (!(line_stream >> length))
+                        if (!(line_stream >> parameters[1]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl);
                         }
-                        else if (length < 0.0)
+                        else if (parameters[1] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
                                        << "  spring resting length is negative" << std::endl);
                         }
-                        length *= d_length_scale_factor;
+                        parameters[1] *= d_length_scale_factor;
 
                         if (!(line_stream >> force_fcn_idx))
                         {
@@ -905,11 +903,11 @@ IBStandardInitializer::readSpringFiles(
                     // values are to be employed for this particular structure.
                     if (d_using_uniform_spring_stiffness[ln][j])
                     {
-                        kappa = d_uniform_spring_stiffness[ln][j];
+                        parameters[0] = d_uniform_spring_stiffness[ln][j];
                     }
                     if (d_using_uniform_spring_rest_length[ln][j])
                     {
-                        length = d_uniform_spring_rest_length[ln][j];
+                        parameters[1] = d_uniform_spring_rest_length[ln][j];
                     }
                     if (d_using_uniform_spring_force_fcn_idx[ln][j])
                     {
@@ -918,7 +916,7 @@ IBStandardInitializer::readSpringFiles(
 
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
-                    if (!warned && d_enable_springs[ln][j] && (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
+                    if (!warned && d_enable_springs[ln][j] && (parameters[0] == 0.0 || MathUtilities<double>::equalEps(parameters[0],0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant encountered in ASCII input file named " << spring_filename << "." << std::endl);
                         warned = true;
@@ -1030,8 +1028,6 @@ IBStandardInitializer::readXSpringFiles(
                 {
                     Edge e;
                     std::vector<double> parameters(2);
-                    double& kappa  = parameters[0];
-                    double& length = parameters[1];
                     int force_fcn_idx;
                     if (!std::getline(file_stream, line_string))
                     {
@@ -1061,26 +1057,26 @@ IBStandardInitializer::readXSpringFiles(
                                        << "  vertex index " << e.second << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> kappa))
+                        if (!(line_stream >> parameters[0]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
                         }
-                        else if (kappa < 0.0)
+                        else if (parameters[0] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
                                        << "  spring constant is negative" << std::endl);
                         }
 
-                        if (!(line_stream >> length))
+                        if (!(line_stream >> parameters[1]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
                         }
-                        else if (length < 0.0)
+                        else if (parameters[1] < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
                                        << "  spring resting length is negative" << std::endl);
                         }
-                        length *= d_length_scale_factor;
+                        parameters[1] *= d_length_scale_factor;
 
                         if (!(line_stream >> force_fcn_idx))
                         {
@@ -1098,11 +1094,11 @@ IBStandardInitializer::readXSpringFiles(
                     // values are to be employed for this particular structure.
                     if (d_using_uniform_xspring_stiffness[ln][j])
                     {
-                        kappa = d_uniform_xspring_stiffness[ln][j];
+                        parameters[0] = d_uniform_xspring_stiffness[ln][j];
                     }
                     if (d_using_uniform_xspring_rest_length[ln][j])
                     {
-                        length = d_uniform_xspring_rest_length[ln][j];
+                        parameters[1] = d_uniform_xspring_rest_length[ln][j];
                     }
                     if (d_using_uniform_xspring_force_fcn_idx[ln][j])
                     {
@@ -1111,7 +1107,7 @@ IBStandardInitializer::readXSpringFiles(
 
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
-                    if (!warned && d_enable_xsprings[ln][j] && (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
+                    if (!warned && d_enable_xsprings[ln][j] && (parameters[0] == 0.0 || MathUtilities<double>::equalEps(parameters[0],0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Crosslink spring with zero spring constant encountered in ASCII input file named " << xspring_filename << "." << std::endl);
                         warned = true;
