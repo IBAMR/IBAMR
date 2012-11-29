@@ -1132,6 +1132,7 @@ IBStandardInitializer::readXSpringFiles(
                     d_xspring_edge_map[ln][j].insert(std::make_pair(e.first,e));
                     XSpringSpec spec_data;
                     spec_data.parameters = parameters;
+                    spec_data.force_fcn_idx = force_fcn_idx;
                     d_xspring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
