@@ -581,7 +581,7 @@ void
 LEInteractor::setFromDatabase(
     Pointer<Database> db)
 {
-    if (db.isNull()) return;
+    if (!db) return;
 
     std::string debug_sort_mode_str = "NO_SORT";
     if (db->keyExists("debug_sort_mode")) debug_sort_mode_str = db->getString("debug_sort_mode");
@@ -735,11 +735,11 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
@@ -766,11 +766,11 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
@@ -802,11 +802,11 @@ LEInteractor::interpolate(
                    << "  side-centered interpolation requires vector-valued data.\n");
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
@@ -836,9 +836,9 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
 #else
@@ -892,9 +892,9 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
 #else
@@ -954,9 +954,9 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
@@ -1084,8 +1084,8 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
@@ -1140,8 +1140,8 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
@@ -1202,8 +1202,8 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
@@ -1281,11 +1281,11 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
@@ -1312,11 +1312,11 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
@@ -1348,11 +1348,11 @@ LEInteractor::spread(
                    << "  side-centered spreading requires vector-valued data.\n");
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!X_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data);
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(X_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
@@ -1382,9 +1382,9 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
 #else
@@ -1438,9 +1438,9 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
 #else
@@ -1500,9 +1500,9 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!idx_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(idx_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
@@ -1633,8 +1633,8 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
@@ -1689,8 +1689,8 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
@@ -1756,8 +1756,8 @@ LEInteractor::spread(
                    << "  side-centered spreading requires vector-valued data.\n");
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(q_data);
+    TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
 #endif

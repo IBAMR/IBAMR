@@ -291,7 +291,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<CellVariable<NDIM,double> > cc_var = var;
-        if (cc_var.isNull())
+        if (!cc_var)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  patch data index " << patch_data_idx << " does not correspond to a cell-centered double precision variable." << std::endl);

@@ -99,7 +99,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef == NULL ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>() :  std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef)),
-              d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank
                 return;
@@ -126,7 +126,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank
                 return;
@@ -154,7 +154,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef == NULL ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>() :  std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef)),
-              d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank
                 return;
@@ -182,7 +182,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern.isNull() ? new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>() : fill_pattern)
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank
                 return;

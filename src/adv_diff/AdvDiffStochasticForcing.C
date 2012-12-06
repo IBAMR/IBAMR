@@ -56,9 +56,6 @@
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>  // XXXX
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -109,7 +106,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(
       d_F_sc_idxs()
 {
     std::string f_expression = "1.0";
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("std")) d_std = input_db->getDouble("std");
         if (input_db->keyExists("num_rand_vals")) d_num_rand_vals = input_db->getInteger("num_rand_vals");

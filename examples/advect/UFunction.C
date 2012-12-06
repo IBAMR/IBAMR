@@ -63,7 +63,7 @@ UFunction::UFunction(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!grid_geom.isNull());
+    TBOX_ASSERT(grid_geom);
 #endif
 
     // Default initial values.
@@ -100,7 +100,7 @@ UFunction::setDataOnPatch(
 {
     Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_data.isNull());
+    TBOX_ASSERT(u_data);
 #endif
 
     if (d_init_type == "UNIFORM")
@@ -182,7 +182,7 @@ void
 UFunction::getFromInput(
     Pointer<Database> db)
 {
-    if (!db.isNull())
+    if (db)
     {
         if (db->keyExists("omega"))
         {

@@ -1467,7 +1467,7 @@ PatchMathOps::div(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         C_TO_C_DIV_FC(
             D, D_ghosts,
@@ -1566,7 +1566,7 @@ PatchMathOps::div(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         F_TO_C_DIV_FC(
             D, D_ghosts,
@@ -1673,7 +1673,7 @@ PatchMathOps::div(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         S_TO_C_DIV_FC(
             D, D_ghosts,
@@ -1805,7 +1805,7 @@ PatchMathOps::grad(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         C_TO_C_GRAD_FC(
             G, G_ghosts,
@@ -1922,7 +1922,7 @@ PatchMathOps::grad(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         C_TO_F_GRAD_FC(
             g0, g1,
@@ -2047,7 +2047,7 @@ PatchMathOps::grad(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         C_TO_S_GRAD_FC(
             g0, g1,
@@ -2227,7 +2227,7 @@ PatchMathOps::grad(
 #endif
             dx);
 
-        if ((!src2.isNull()) && (beta != 0.0))
+        if ((src2) && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2278,7 +2278,7 @@ PatchMathOps::grad(
             dx);
 
         // Account for non-zero beta.
-        if ((!src2.isNull()) && (beta != 0.0))
+        if ((src2) && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2419,7 +2419,7 @@ PatchMathOps::grad(
 #endif
             dx);
 
-        if ((!src2.isNull()) && (beta != 0.0))
+        if ((src2) && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2470,7 +2470,7 @@ PatchMathOps::grad(
             dx);
 
         // Account for non-zero beta.
-        if ((!src2.isNull()) && (beta != 0.0))
+        if ((src2) && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2876,7 +2876,7 @@ PatchMathOps::laplace(
     }
 #endif
 
-    if (src2.isNull() || (gamma == 0.0))
+    if (!src2 || (gamma == 0.0))
     {
         if (beta == 0.0)
         {
@@ -3037,7 +3037,7 @@ PatchMathOps::laplace(
     }
 #endif
 
-    if (src2.isNull() || (gamma == 0.0))
+    if (!src2 || (gamma == 0.0))
     {
         blitz::TinyVector<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -3241,7 +3241,7 @@ PatchMathOps::laplace(
     }
 #endif
 
-    if (src2.isNull() || (gamma == 0.0))
+    if (!src2 || (gamma == 0.0))
     {
         if (beta == 0.0)
         {
@@ -3437,7 +3437,7 @@ PatchMathOps::laplace(
     }
 #endif
 
-    if (src2.isNull() || (gamma == 0.0))
+    if (!src2 || (gamma == 0.0))
     {
         if (beta == 0.0)
         {
@@ -3571,8 +3571,8 @@ PatchMathOps::vc_laplace(
 #endif
     const int u_ghosts     = (src1->getGhostCellWidth()).max();
 
-    const double gamma = (src2_in.isNull() ? 0.0 : gamma_in);
-    const Pointer<SideData<NDIM,double> > src2 = (src2_in.isNull() ? src1 : src2_in);
+    const double gamma = (src2_in ? gamma_in : 0.0);
+    const Pointer<SideData<NDIM,double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0,n);
     const double* const v1 = src2->getPointer(1,n);
 #if (NDIM == 3)
@@ -3754,7 +3754,7 @@ PatchMathOps::pointwiseMultiply(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         MULTIPLY1_FC(
             D, D_ghosts,
@@ -3863,7 +3863,7 @@ PatchMathOps::pointwiseMultiply(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         MULTIPLY2_FC(
             D, D_ghosts,
@@ -3924,7 +3924,7 @@ PatchMathOps::pointwiseMultiply(
     const int l,
     const int m) const
 {
-    if (src2.isNull())
+    if (!src2)
     {
         const double zero = 0.0;
         pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
@@ -4074,7 +4074,7 @@ PatchMathOps::pointwiseMultiply(
         }
 #endif
 
-        if (src2.isNull() || (beta == 0.0))
+        if (!src2 || (beta == 0.0))
         {
             MULTIPLY1_FC(
                 D, D_ghosts,
@@ -4187,7 +4187,7 @@ PatchMathOps::pointwiseMultiply(
         }
 #endif
 
-        if (src2.isNull() || (beta == 0.0))
+        if (!src2 || (beta == 0.0))
         {
             MULTIPLY2_FC(
                 D, D_ghosts,
@@ -4249,7 +4249,7 @@ PatchMathOps::pointwiseMultiply(
     const int l,
     const int m) const
 {
-    if (src2.isNull())
+    if (!src2)
     {
         const double zero = 0.0;
         pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
@@ -4401,7 +4401,7 @@ PatchMathOps::pointwiseMultiply(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         MULTIPLY1_FC(
             D, D_ghosts,
@@ -4511,7 +4511,7 @@ PatchMathOps::pointwiseMultiply(
     }
 #endif
 
-    if (src2.isNull() || (beta == 0.0))
+    if (!src2 || (beta == 0.0))
     {
         MULTIPLY2_FC(
             D, D_ghosts,
@@ -4572,7 +4572,7 @@ PatchMathOps::pointwiseMultiply(
     const int l,
     const int m) const
 {
-    if (src2.isNull())
+    if (!src2)
     {
         const double zero = 0.0;
         pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
@@ -4723,7 +4723,7 @@ PatchMathOps::pointwiseMultiply(
         }
 #endif
 
-        if (src2.isNull() || (beta == 0.0))
+        if (!src2 || (beta == 0.0))
         {
             MULTIPLY1_FC(
                 D, D_ghosts,
@@ -4836,7 +4836,7 @@ PatchMathOps::pointwiseMultiply(
         }
 #endif
 
-        if (src2.isNull() || (beta == 0.0))
+        if (!src2 || (beta == 0.0))
         {
             MULTIPLY2_FC(
                 D, D_ghosts,
@@ -4898,7 +4898,7 @@ PatchMathOps::pointwiseMultiply(
     const int l,
     const int m) const
 {
-    if (src2.isNull())
+    if (!src2)
     {
         const double zero = 0.0;
         pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);

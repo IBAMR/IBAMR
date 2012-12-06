@@ -126,7 +126,7 @@ HierarchyIntegrator::HierarchyIntegrator(
         d_integrator_time = d_start_time;
         d_integrator_step = 0;
     }
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize all variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -180,8 +180,8 @@ HierarchyIntegrator::initializePatchHierarchy(
     if (d_hierarchy_is_initialized || d_parent_integrator != NULL) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT(!gridding_alg.isNull());
+    TBOX_ASSERT(hierarchy);
+    TBOX_ASSERT(gridding_alg);
 #endif
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
@@ -642,13 +642,13 @@ HierarchyIntegrator::initializeLevelData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
@@ -666,7 +666,7 @@ HierarchyIntegrator::initializeLevelData(
     }
 
     // Fill data from coarser levels in AMR hierarchy.
-    if (!initial_time && (level_number > 0 || !old_level.isNull()))
+    if (!initial_time && (level_number > 0 || old_level))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
         std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_prolong_patch_strategies;
@@ -690,7 +690,7 @@ HierarchyIntegrator::initializeLevelData(
             Pointer<Variable<NDIM> > var = *cit;
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
             Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
-            if (!var_init.isNull())
+            if (var_init)
             {
                 var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
             }
@@ -704,11 +704,11 @@ HierarchyIntegrator::initializeLevelData(
                     Pointer<FaceData<NDIM,double> > var_current_fc_data = patch->getPatchData(var_current_idx);
                     Pointer<NodeData<NDIM,double> > var_current_nc_data = patch->getPatchData(var_current_idx);
                     Pointer<SideData<NDIM,double> > var_current_sc_data = patch->getPatchData(var_current_idx);
-                    if      (!var_current_cc_data.isNull()) var_current_cc_data->fillAll(0.0);
-                    else if (!var_current_ec_data.isNull()) var_current_ec_data->fillAll(0.0);
-                    else if (!var_current_fc_data.isNull()) var_current_fc_data->fillAll(0.0);
-                    else if (!var_current_nc_data.isNull()) var_current_nc_data->fillAll(0.0);
-                    else if (!var_current_sc_data.isNull()) var_current_sc_data->fillAll(0.0);
+                    if      (var_current_cc_data) var_current_cc_data->fillAll(0.0);
+                    else if (var_current_ec_data) var_current_ec_data->fillAll(0.0);
+                    else if (var_current_fc_data) var_current_fc_data->fillAll(0.0);
+                    else if (var_current_nc_data) var_current_nc_data->fillAll(0.0);
+                    else if (var_current_sc_data) var_current_sc_data->fillAll(0.0);
                 }
             }
         }
@@ -733,11 +733,11 @@ HierarchyIntegrator::resetHierarchyConfiguration(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -822,9 +822,9 @@ HierarchyIntegrator::applyGradientDetector(
     const bool uses_richardson_extrapolation_too)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -1080,7 +1080,7 @@ HierarchyIntegrator::registerVariable(
     Pointer<CartGridFunction> init_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!variable.isNull());
+    TBOX_ASSERT(variable);
 #endif
     d_state_var_init_fcns[variable] = init_fcn;
 
@@ -1117,7 +1117,7 @@ HierarchyIntegrator::registerVariable(
 
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
-    if (!refine_operator.isNull())
+    if (refine_operator)
     {
         d_fill_after_regrid_bc_idxs.setFlag(scratch_idx);
         d_fill_after_regrid_prolong_alg.registerRefine(current_idx, current_idx, scratch_idx, refine_operator);
@@ -1125,7 +1125,7 @@ HierarchyIntegrator::registerVariable(
 
     // Setup the SYNCH_CURRENT_DATA and SYNCH_NEW_DATA algorithms, used to
     // synchronize the data on the hierarchy.
-    if (!coarsen_operator.isNull())
+    if (coarsen_operator)
     {
         d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(current_idx, current_idx, coarsen_operator);
         d_coarsen_algs[SYNCH_NEW_DATA_ALG    ]->registerCoarsen(    new_idx,     new_idx, coarsen_operator);
@@ -1141,9 +1141,9 @@ HierarchyIntegrator::registerVariable(
     Pointer<VariableContext> ctx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!variable.isNull());
+    TBOX_ASSERT(variable);
 #endif
-    if (ctx.isNull()) ctx = getScratchContext();
+    if (!ctx) ctx = getScratchContext();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1309,7 +1309,7 @@ HierarchyIntegrator::buildHierarchyMathOps(
 {
     if (d_parent_integrator == NULL)
     {
-        if (d_hier_math_ops.isNull())
+        if (!d_hier_math_ops)
         {
             d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", hierarchy);
         }
@@ -1346,7 +1346,7 @@ HierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     // Read in data members from input database.
     if (!is_from_restart && db->keyExists("start_time")) d_start_time = db->getDouble("start_time");

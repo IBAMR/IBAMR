@@ -179,7 +179,7 @@ IBStandardInitializer::IBStandardInitializer(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
 
     // Register the specification objects with the StreamableManager class.
@@ -248,7 +248,7 @@ IBStandardInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!silo_writer.isNull());
+    TBOX_ASSERT(silo_writer);
 #endif
 
     // Cache a pointer to the data writer.
@@ -435,7 +435,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     // If a Lagrangian Silo data writer is registered with the initializer,
     // setup the visualization data corresponding to the present level of the
     // locally refined grid.
-    if (!d_silo_writer.isNull())
+    if (d_silo_writer)
     {
         initializeLSiloDataWriter(level_number);
     }
@@ -2803,7 +2803,7 @@ IBStandardInitializer::getFromInput(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
 
     // Determine whether to use "batons" to prevent multiple MPI processes from

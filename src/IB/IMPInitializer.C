@@ -96,7 +96,7 @@ IMPInitializer::IMPInitializer(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
 
     // Register the specification objects with the StreamableManager class.
@@ -201,7 +201,7 @@ IMPInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!silo_writer.isNull());
+    TBOX_ASSERT(silo_writer);
 #endif
 
     // Cache a pointer to the data writer.

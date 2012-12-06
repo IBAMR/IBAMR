@@ -138,7 +138,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(
     }
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method")) d_prolongation_method = input_db->getString("prolongation_method");
@@ -395,8 +395,8 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_bc_op.isNull());
-    TBOX_ASSERT(!d_cf_bdry_op.isNull());
+    TBOX_ASSERT(d_bc_op);
+    TBOX_ASSERT(d_cf_bdry_op);
 #endif
 
     // Setup level operators.

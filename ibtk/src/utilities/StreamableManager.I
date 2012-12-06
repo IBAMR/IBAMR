@@ -68,7 +68,7 @@ StreamableManager::packStream(
     SAMRAI::tbox::Pointer<Streamable> data_item)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!data_item.isNull());
+    TBOX_ASSERT(data_item);
 #endif
     const int streamable_id = data_item->getStreamableClassID();
     stream.pack(&streamable_id,1);

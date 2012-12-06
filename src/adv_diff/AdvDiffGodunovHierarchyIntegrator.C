@@ -85,8 +85,8 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
-    TBOX_ASSERT(!explicit_predictor.isNull());
+    TBOX_ASSERT(input_db);
+    TBOX_ASSERT(explicit_predictor);
 #endif
     // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
@@ -172,7 +172,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register the VisIt data writer with the patch strategy object, which is
     // the object that actually registers variables for plotting.
-    if (!d_visit_writer.isNull())
+    if (d_visit_writer)
     {
         d_hyp_patch_ops->registerVisItDataWriter(d_visit_writer);
     }
@@ -183,7 +183,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var);
         d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var,d_u_is_div_free[u_var]);
-        if (!d_u_fcn[u_var].isNull()) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var,d_u_fcn[u_var]);
+        if (d_u_fcn[u_var]) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var,d_u_fcn[u_var]);
     }
 
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -212,10 +212,10 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
         int Q_scratch_idx;
         registerVariable(Q_scratch_idx, Q_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerTransportedQuantity(Q_var);
-        if (!d_Q_u_map[Q_var].isNull()) d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
+        if (d_Q_u_map[Q_var]) d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
         d_hyp_patch_ops->setSourceTerm(Q_var,d_Q_Q_rhs_map[Q_var]);
         d_hyp_patch_ops->setConvectiveDifferencingType(Q_var,d_Q_difference_form[Q_var]);
-        if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
+        if (d_Q_init[Q_var]) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
         if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setPhysicalBcCoefs(Q_var,d_Q_bc_coef[Q_var]);
     }
 
@@ -274,7 +274,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
-        if (!F_fcn.isNull() && F_fcn->isTimeDependent())
+        if (F_fcn && F_fcn->isTimeDependent())
         {
             const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time);
@@ -297,7 +297,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-        const int F_current_idx = (F_var.isNull() ? -1 : var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()));
+        const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
         const int Q_rhs_current_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getCurrentContext());
 
         // Allocate temporary data.
@@ -354,7 +354,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
-        if (!F_fcn.isNull() && F_fcn->isTimeDependent())
+        if (F_fcn && F_fcn->isTimeDependent())
         {
             const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, half_time);
@@ -388,9 +388,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        const int F_current_idx = (F_var.isNull()
-                                   ? -1
-                                   : var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()));
+        const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Allocate temporary data.
@@ -401,7 +399,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             level->allocatePatchData(Q_rhs_scratch_idx, new_time);
         }
 
-        if (!F_var.isNull())
+        if (F_var)
         {
             d_hier_cc_data_ops->add(Q_new_idx, F_current_idx, Q_new_idx);
         }
@@ -460,7 +458,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         // Setup inhomogeneous boundary conditions.
         helmholtz_solver->setHomogeneousBc(false);
         Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
-        if (!p_helmholtz_solver.isNull())
+        if (p_helmholtz_solver)
         {
             p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
             p_helmholtz_solver->setHomogeneousBc(true);
@@ -555,13 +553,13 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     // We use the HyperbolicLevelIntegrator to handle as much data management as
     // possible.
@@ -578,7 +576,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
-            if (!F_fcn.isNull())
+            if (F_fcn)
             {
                 F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
             }
@@ -589,7 +587,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!F_data.isNull());
+                    TBOX_ASSERT(F_data);
 #endif
                     F_data->fillAll(0.0);
                 }

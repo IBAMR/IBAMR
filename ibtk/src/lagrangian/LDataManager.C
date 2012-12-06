@@ -193,7 +193,7 @@ LDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
 
     // Reset the hierarchy.
@@ -208,7 +208,7 @@ LDataManager::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
                 (finest_ln <= d_hierarchy->getFinestLevelNumber()));
@@ -373,7 +373,7 @@ LDataManager::spread(
             // For each of the finer levels in the patch hierarchy, prolong the
             // Eulerian data from coarser levels in the patch hierarchy before
             // spreading.
-            if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && !f_prolongation_scheds[ln].isNull())
+            if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && f_prolongation_scheds[ln])
             {
                 f_prolongation_scheds[ln]->fillData(0.0);
             }
@@ -400,9 +400,9 @@ LDataManager::spread(
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getGhostBox();
-                if (!f_cc_data.isNull()) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (!f_nc_data.isNull()) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (!f_sc_data.isNull()) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             }
         }
 
@@ -454,7 +454,7 @@ LDataManager::interp(
         // Synchronize Eulerian values.
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            if (ln < static_cast<int>(f_synch_scheds.size()) && !f_synch_scheds[ln].isNull())
+            if (ln < static_cast<int>(f_synch_scheds.size()) && f_synch_scheds[ln])
             {
                 f_synch_scheds[ln]->coarsenData();
             }
@@ -466,7 +466,7 @@ LDataManager::interp(
         {
             if (!levelContainsLagrangianData(ln)) continue;
 
-            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
+            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln])
             {
                 f_ghost_fill_scheds[ln]->fillData(fill_data_time);
             }
@@ -481,9 +481,9 @@ LDataManager::interp(
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getBox();
-                if (!f_cc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (!f_nc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (!f_sc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
 
@@ -503,7 +503,7 @@ LDataManager::registerLInitStrategy(
     Pointer<LInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!lag_init.isNull());
+    TBOX_ASSERT(lag_init);
 #endif
     d_lag_init = lag_init;
     return;
@@ -521,7 +521,7 @@ LDataManager::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!visit_writer.isNull());
+    TBOX_ASSERT(visit_writer);
 #endif
     d_visit_writer = visit_writer;
     if (d_output_workload)
@@ -540,7 +540,7 @@ LDataManager::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!silo_writer.isNull());
+    TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
     return;
@@ -552,7 +552,7 @@ LDataManager::registerLM3DDataWriter(
     Pointer<LM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!m3D_writer.isNull());
+    TBOX_ASSERT(m3D_writer);
 #endif
     d_m3D_writer = m3D_writer;
     return;
@@ -565,7 +565,7 @@ LDataManager::registerLoadBalancer(
     int workload_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_idx;
@@ -573,7 +573,7 @@ LDataManager::registerLoadBalancer(
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_workload_var.isNull());
+    TBOX_ASSERT(d_workload_var);
 #endif
     return;
 }// return
@@ -1530,7 +1530,7 @@ LDataManager::endDataRedistribution(
         {
             Pointer<LData> data = it->second;
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!data.isNull());
+            TBOX_ASSERT(data);
 #endif
             const int depth = data->getDepth();
 
@@ -1667,14 +1667,14 @@ LDataManager::endDataRedistribution(
 
     // If a Silo data writer is registered with the manager, give it access to
     // the new application orderings.
-    if (!d_silo_writer.isNull())
+    if (d_silo_writer)
     {
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
 #if (NDIM == 3)
     // If a myocardial3D data writer is registered with the manager, give it
     // access to the new application orderings.
-    if (!d_m3D_writer.isNull())
+    if (d_m3D_writer)
     {
         d_m3D_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
@@ -1688,7 +1688,7 @@ LDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    if (d_load_balancer.isNull()) return;
+    if (!d_load_balancer) return;
 
     IBTK_TIMER_START(t_update_workload_estimates);
 
@@ -1762,14 +1762,14 @@ LDataManager::initializeLevelData(
     IBTK_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -1832,7 +1832,7 @@ LDataManager::initializeLevelData(
     }
 
     // Fill data from the old level when available.
-    if (!old_level.isNull() && d_level_contains_lag_data[level_number])
+    if (old_level && d_level_contains_lag_data[level_number])
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
         d_lag_node_index_bdry_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
@@ -1866,7 +1866,7 @@ LDataManager::initializeLevelData(
         d_nonlocal_petsc_indices        .resize(level_number+1);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_lag_init.isNull());
+        TBOX_ASSERT(d_lag_init);
 #endif
         d_level_contains_lag_data[level_number] = d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined);
     }
@@ -2000,7 +2000,7 @@ LDataManager::initializeLevelData(
 
     // If a Silo data writer is registered with the manager, give it access to
     // the new application ordering.
-    if (!d_silo_writer.isNull() && d_level_contains_lag_data[level_number])
+    if (d_silo_writer && d_level_contains_lag_data[level_number])
     {
         d_silo_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         d_silo_writer->registerLagrangianAO(d_ao[level_number], level_number);
@@ -2008,7 +2008,7 @@ LDataManager::initializeLevelData(
 #if (NDIM == 3)
     // If a myocardial3D data writer is registered with the manager, give it
     // access to the new application ordering.
-    if (!d_m3D_writer.isNull() && d_level_contains_lag_data[level_number])
+    if (d_m3D_writer && d_level_contains_lag_data[level_number])
     {
         d_m3D_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         d_m3D_writer->registerLagrangianAO(d_ao[level_number], level_number);
@@ -2027,13 +2027,13 @@ LDataManager::resetHierarchyConfiguration(
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
                 && (finest_ln <= hierarchy->getFinestLevelNumber()));
     for (int level_number = 0; level_number <= finest_ln; ++level_number)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -2043,7 +2043,7 @@ LDataManager::resetHierarchyConfiguration(
     resetLevels(0,finest_hier_level);
 
     // Reset the Silo data writer.
-    if (!d_silo_writer.isNull())
+    if (d_silo_writer)
     {
         d_silo_writer->setPatchHierarchy(hierarchy);
         d_silo_writer->resetLevels(d_coarsest_ln, d_finest_ln);
@@ -2055,7 +2055,7 @@ LDataManager::resetHierarchyConfiguration(
     }
 #if (NDIM == 3)
     // Reset the myocardial3D data writer.
-    if (!d_m3D_writer.isNull())
+    if (d_m3D_writer)
     {
         d_m3D_writer->setPatchHierarchy(hierarchy);
         d_m3D_writer->resetLevels(d_coarsest_ln, d_finest_ln);
@@ -2105,10 +2105,10 @@ LDataManager::applyGradientDetector(
     IBTK_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
     if (initial_time)
@@ -2205,7 +2205,7 @@ LDataManager::putToDatabase(
     IBTK_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
 
@@ -2492,9 +2492,9 @@ LDataManager::spread_specialized(
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getGhostBox();
-            if (!f_cc_data.isNull()) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            if (!f_nc_data.isNull()) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            if (!f_sc_data.isNull()) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
         }
     }
     return;
@@ -2518,7 +2518,7 @@ LDataManager::interp_specialized(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(ln == finest_ln);
 #endif
-        if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull()) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+        if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln]) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2530,9 +2530,9 @@ LDataManager::interp_specialized(
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getBox();
-            if (!f_cc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            if (!f_nc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            if (!f_sc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
         }
     }
 

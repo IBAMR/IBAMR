@@ -78,7 +78,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
     // Default values.
     d_default_convective_time_stepping_type = MIDPOINT_RULE;
@@ -89,7 +89,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Check to make sure the time stepping types are supported.
     switch (d_default_diffusion_time_stepping_type)
@@ -321,7 +321,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
-    if (d_Q_convective_op[Q_var].isNull())
+    if (!d_Q_convective_op[Q_var])
     {
         AdvDiffConvectiveOperatorManager* convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
         d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_convective_op_input_db[Q_var], d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var]);
@@ -394,7 +394,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
         for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-            if (d_Q_u_map.find(Q_var)->second.isNull()) continue;
+            if (!d_Q_u_map.find(Q_var)->second) continue;
             if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) && d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
             {
                 num_cycles = std::max(2,num_cycles);
@@ -440,7 +440,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull())
+        if (d_u_fcn[u_var])
         {
             const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
             d_u_fcn[u_var]->setDataOnPatchHierarchy(u_current_idx, u_var, d_hierarchy, current_time);
@@ -524,7 +524,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
         Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
         Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
-        if (!u_var.isNull())
+        if (u_var)
         {
             if ((num_cycles == 1) && (convective_time_stepping_type == MIDPOINT_RULE || convective_time_stepping_type == TRAPEZOIDAL_RULE))
             {
@@ -563,7 +563,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         // Setup inhomogeneous boundary conditions.
         helmholtz_solver->setHomogeneousBc(false);
         Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
-        if (!p_helmholtz_solver.isNull())
+        if (p_helmholtz_solver)
         {
             p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
             p_helmholtz_solver->setHomogeneousBc(true);
@@ -605,8 +605,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
 
         const int Q_scratch_idx     = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx         = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        const int F_scratch_idx     = d_F_fcn[F_var].isNull() ? -1 : var_db->mapVariableAndContextToIndex(F_var, getScratchContext());
-        const int F_new_idx         = d_F_fcn[F_var].isNull() ? -1 : var_db->mapVariableAndContextToIndex(F_var, getNewContext());
+        const int F_scratch_idx     = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) : -1;
+        const int F_new_idx         = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()    ) : -1;
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Update the advection velocity.
@@ -618,7 +618,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
                 const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
                 const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
                 const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, getNewContext()    );
-                if (!d_u_fcn[u_var].isNull())
+                if (d_u_fcn[u_var])
                 {
                     d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
                 }
@@ -653,7 +653,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
         Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
         Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
-        if (!u_var.isNull() && convective_time_stepping_type != FORWARD_EULER)
+        if (u_var && convective_time_stepping_type != FORWARD_EULER)
         {
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             if (cycle_num > 0)
@@ -700,7 +700,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         }
 
         // Account for forcing terms.
-        if (!d_F_fcn[F_var].isNull())
+        if (d_F_fcn[F_var])
         {
             d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, half_time);
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
@@ -719,7 +719,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         }
 
         // Reset the right-hand side vector.
-        if (!u_var.isNull())
+        if (u_var)
         {
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
@@ -731,7 +731,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
                 d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
-        if (!d_F_fcn[F_var].isNull())
+        if (d_F_fcn[F_var])
         {
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, F_scratch_idx, Q_rhs_scratch_idx);
             d_hier_cc_data_ops->copyData(F_new_idx, F_scratch_idx);
@@ -754,7 +754,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
             d_u_fcn[u_var]->setDataOnPatchHierarchy(u_idx, u_var, d_hierarchy, new_time);
@@ -803,7 +803,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     if (!is_from_restart)
     {

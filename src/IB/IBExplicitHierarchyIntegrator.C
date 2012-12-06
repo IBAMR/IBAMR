@@ -385,8 +385,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
             Pointer<CellData<NDIM,double> > u_cc_new_data = patch->getPatchData(u_new_idx);
             Pointer<SideData<NDIM,double> > u_sc_new_data = patch->getPatchData(u_new_idx);
             double u_max = 0.0;
-            if (!u_cc_new_data.isNull()) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-            if (!u_sc_new_data.isNull()) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
             cfl_max = std::max(cfl_max, u_max*dt/dx_min);
         }
     }

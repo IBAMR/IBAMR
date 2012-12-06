@@ -131,15 +131,15 @@ SCLaplaceOperator::apply(
     {
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
-        if (x_sc_var.isNull() || y_sc_var.isNull())
+        if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                        << "  encountered non-side centered vector components" << std::endl);
         }
         Pointer<SideDataFactory<NDIM,double> > x_factory = x_sc_var->getPatchDataFactory();
         Pointer<SideDataFactory<NDIM,double> > y_factory = y_sc_var->getPatchDataFactory();
-        TBOX_ASSERT(!x_factory.isNull());
-        TBOX_ASSERT(!y_factory.isNull());
+        TBOX_ASSERT(x_factory);
+        TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -217,7 +217,7 @@ SCLaplaceOperator::initializeOperatorState(
     else
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_hier_math_ops.isNull());
+        TBOX_ASSERT(d_hier_math_ops);
 #endif
     }
 

@@ -269,7 +269,7 @@ IMPMethod::IMPMethod(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
     LEInteractor::s_delta_fcn = &kernel;
@@ -308,7 +308,7 @@ IMPMethod::registerLInitStrategy(
     Pointer<LInitStrategy> l_initializer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!l_initializer.isNull());
+    TBOX_ASSERT(l_initializer);
 #endif
     d_l_initializer = l_initializer;
     d_l_data_manager->registerLInitStrategy(d_l_initializer);
@@ -334,7 +334,7 @@ IMPMethod::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!silo_writer.isNull());
+    TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
@@ -1028,7 +1028,7 @@ IMPMethod::registerLoadBalancer(
     int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
@@ -1115,7 +1115,7 @@ IMPMethod::initializeLevelData(
             }
         }
     }
-    if (!d_load_balancer.isNull() && d_l_data_manager->levelContainsLagrangianData(level_number))
+    if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
         d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
@@ -1147,9 +1147,9 @@ IMPMethod::applyGradientDetector(
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 

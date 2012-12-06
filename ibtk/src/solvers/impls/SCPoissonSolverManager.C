@@ -144,7 +144,7 @@ SCPoissonSolverManager::allocateSolver(
 {
     Pointer<PoissonSolver> solver = allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
-    if (!p_solver.isNull())
+    if (p_solver)
     {
         p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     }

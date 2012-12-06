@@ -34,9 +34,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBTK_config
-#include <IBTK_config.h>
-#define included_IBTK_config
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
 #endif
 
 #ifndef included_SAMRAI_config

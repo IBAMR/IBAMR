@@ -124,7 +124,7 @@ IBMethod::IBMethod(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Check the choices for the delta function.
     if (d_interp_delta_fcn != d_spread_delta_fcn)
@@ -176,7 +176,7 @@ IBMethod::registerIBLagrangianForceFunction(
     Pointer<IBLagrangianForceStrategy> ib_force_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ib_force_fcn.isNull());
+    TBOX_ASSERT(ib_force_fcn);
 #endif
     d_ib_force_fcn = ib_force_fcn;
     return;
@@ -187,7 +187,7 @@ IBMethod::registerIBLagrangianSourceFunction(
     Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ib_source_fcn.isNull());
+    TBOX_ASSERT(ib_source_fcn);
 #endif
     d_ib_source_fcn = ib_source_fcn;
     return;
@@ -198,7 +198,7 @@ IBMethod::registerLInitStrategy(
     Pointer<LInitStrategy> l_initializer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!l_initializer.isNull());
+    TBOX_ASSERT(l_initializer);
 #endif
     d_l_initializer = l_initializer;
     d_l_data_manager->registerLInitStrategy(d_l_initializer);
@@ -238,7 +238,7 @@ IBMethod::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!silo_writer.isNull());
+    TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
@@ -251,7 +251,7 @@ IBMethod::registerLM3DDataWriter(
     Pointer<LM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!m3D_writer.isNull());
+    TBOX_ASSERT(m3D_writer);
 #endif
     d_m3D_writer = m3D_writer;
     d_l_data_manager->registerLM3DDataWriter(d_m3D_writer);
@@ -305,7 +305,7 @@ IBMethod::preprocessIntegrateData(
     const double start_time = d_ib_solver->getStartTime();
     const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
 
-    if (!d_ib_force_fcn.isNull())
+    if (d_ib_force_fcn)
     {
         if (d_ib_force_fcn_needs_init)
         {
@@ -314,7 +314,7 @@ IBMethod::preprocessIntegrateData(
         }
         d_ib_force_fcn->setTimeInterval(current_time, new_time);
     }
-    if (!d_ib_source_fcn.isNull())
+    if (d_ib_source_fcn)
     {
         if (d_ib_source_fcn_needs_init)
         {
@@ -408,11 +408,11 @@ IBMethod::postprocessIntegrateData(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         ierr = VecSwap(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
         ierr = VecSwap(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
-        if (!d_F_new_data[ln].isNull())
+        if (d_F_new_data[ln])
         {
             ierr = VecSwap(d_F_current_data[ln]->getVec(), d_F_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
         }
-        else if (!d_F_half_data[ln].isNull())
+        else if (d_F_half_data[ln])
         {
             ierr = VecSwap(d_F_current_data[ln]->getVec(), d_F_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
         }
@@ -563,7 +563,7 @@ IBMethod::trapezoidalStep(
 bool
 IBMethod::hasFluidSources() const
 {
-    return !d_ib_source_fcn.isNull();
+    return d_ib_source_fcn;
 }// hasFluidSources
 
 void
@@ -582,8 +582,10 @@ IBMethod::computeLagrangianForce(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         ierr = VecSet((*F_data)[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
-        if (d_ib_force_fcn.isNull()) continue;
-        d_ib_force_fcn->computeLagrangianForce((*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        if (d_ib_force_fcn)
+        {
+            d_ib_force_fcn->computeLagrangianForce((*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        }
     }
     *F_needs_ghost_fill = true;
     return;
@@ -679,12 +681,12 @@ IBMethod::applyLagrangianForceJacobian(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (d_F_J_data[ln].isNull()) d_F_J_data[ln] = d_l_data_manager->createLData("F_J",ln,NDIM);
+        if (!d_F_J_data[ln]) d_F_J_data[ln] = d_l_data_manager->createLData("F_J",ln,NDIM);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        if (d_U_J_data[ln].isNull()) d_U_J_data[ln] = d_l_data_manager->createLData("U_J",ln,NDIM);
+        if (!d_U_J_data[ln]) d_U_J_data[ln] = d_l_data_manager->createLData("U_J",ln,NDIM);
     }
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
@@ -704,7 +706,7 @@ void
 IBMethod::computeLagrangianFluidSource(
     const double data_time)
 {
-    if (d_ib_source_fcn.isNull()) return;
+    if (!d_ib_source_fcn) return;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -722,7 +724,7 @@ IBMethod::spreadFluidSource(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
     const double data_time)
 {
-    if (d_ib_source_fcn.isNull()) return;
+    if (!d_ib_source_fcn) return;
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -879,7 +881,7 @@ IBMethod::interpolatePressure(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
     const double data_time)
 {
-    if (d_ib_source_fcn.isNull()) return;
+    if (!d_ib_source_fcn) return;
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1001,7 +1003,7 @@ IBMethod::interpolatePressure(
 void
 IBMethod::postprocessData()
 {
-    if (d_post_processor.isNull()) return;
+    if (!d_post_processor) return;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ib_solver-> getVelocityVariable(), d_ib_solver->getCurrentContext());
@@ -1067,7 +1069,7 @@ IBMethod::initializePatchHierarchy(
         // Initialize source/sink data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (!d_ib_source_fcn.isNull())
+            if (d_ib_source_fcn)
             {
                 d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
                 d_n_src[ln] = d_ib_source_fcn->getNumSources(d_hierarchy, ln, init_data_time, d_l_data_manager);
@@ -1103,7 +1105,7 @@ IBMethod::registerLoadBalancer(
     int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
@@ -1207,7 +1209,7 @@ IBMethod::initializeLevelData(
     {
         Pointer<LData> F_data = d_l_data_manager->createLData("F",level_number,NDIM,/*manage_data*/ true);
     }
-    if (!d_load_balancer.isNull() && d_l_data_manager->levelContainsLagrangianData(level_number))
+    if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
         d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
@@ -1250,9 +1252,9 @@ IBMethod::applyGradientDetector(
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -1260,7 +1262,7 @@ IBMethod::applyGradientDetector(
     d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // Tag cells where the Cartesian source/sink strength is nonzero.
-    if (!d_ib_source_fcn.isNull() && !initial_time && hierarchy->finerLevelExists(level_number))
+    if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
@@ -1367,7 +1369,7 @@ IBMethod::getPositionData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_X_half_data[ln].isNull())
+            if (!d_X_half_data[ln])
             {
                 d_X_half_data[ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
                 d_X_half_needs_reinit = true;
@@ -1413,7 +1415,7 @@ IBMethod::getLECouplingPositionData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_X_LE_half_data[ln].isNull())
+            if (!d_X_LE_half_data[ln])
             {
                 d_X_LE_half_data[ln] = d_l_data_manager->createLData("X_LE_half",ln,NDIM);
                 d_X_LE_half_needs_reinit = true;
@@ -1452,7 +1454,7 @@ IBMethod::getVelocityData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_U_half_data[ln].isNull())
+            if (!d_U_half_data[ln])
             {
                 d_U_half_data[ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
                 d_U_half_needs_reinit = true;
@@ -1490,7 +1492,7 @@ IBMethod::getForceData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_F_half_data[ln].isNull()) d_F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
+            if (!d_F_half_data[ln]) d_F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
         }
         *F_data = &d_F_half_data;
         *F_needs_ghost_fill = &d_F_half_needs_ghost_fill;
@@ -1500,7 +1502,7 @@ IBMethod::getForceData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_F_new_data[ln].isNull()) d_F_new_data[ln] = d_l_data_manager->createLData("F_new",ln,NDIM);
+            if (!d_F_new_data[ln]) d_F_new_data[ln] = d_l_data_manager->createLData("F_new",ln,NDIM);
         }
         *F_data = &d_F_new_data;
         *F_needs_ghost_fill = &d_F_new_needs_ghost_fill;
@@ -1562,7 +1564,7 @@ IBMethod::resetLagrangianForceFunction(
     const double init_data_time,
     const bool initial_time)
 {
-    if (d_ib_force_fcn.isNull()) return;
+    if (!d_ib_force_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1576,7 +1578,7 @@ IBMethod::resetLagrangianSourceFunction(
     const double init_data_time,
     const bool initial_time)
 {
-    if (d_ib_source_fcn.isNull()) return;
+    if (!d_ib_source_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;

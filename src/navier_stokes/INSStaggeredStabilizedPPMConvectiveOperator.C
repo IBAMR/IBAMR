@@ -311,14 +311,14 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
 
     const std::string U_var_name = "INSStaggeredStabilizedPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (!d_U_var)
+    if (d_U_var)
     {
-        d_U_var = new SideVariable<NDIM,double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+        d_U_var = new SideVariable<NDIM,double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);

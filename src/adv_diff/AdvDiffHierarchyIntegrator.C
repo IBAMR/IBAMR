@@ -157,7 +157,7 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_var.isNull());
+    TBOX_ASSERT(u_var);
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) == d_u_var.end());
 #endif
     d_u_var.push_back(u_var);
@@ -217,7 +217,7 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!F_var.isNull());
+    TBOX_ASSERT(F_var);
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) == d_F_var.end());
 #endif
     d_F_var.push_back(F_var);
@@ -272,7 +272,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_var);
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) == d_Q_var.end());
 #endif
     d_Q_var.push_back(Q_var);
@@ -628,12 +628,12 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
     return;
 }// AdvDiffHierarchyIntegrator
 
@@ -694,13 +694,13 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 {
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0)
                 && (coarsest_level <= finest_level)
                 && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -759,7 +759,7 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("d_cfl_max", d_cfl_max);
@@ -786,7 +786,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
         registerVariable(Q_current_idx, Q_new_idx, Q_scratch_idx, Q_var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_Q_init[Q_var]);
         Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
-        if (!d_visit_writer.isNull()) d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
+        if (d_visit_writer) d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
     }
     for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
@@ -795,7 +795,7 @@ AdvDiffHierarchyIntegrator::registerVariables()
         registerVariable(F_current_idx, F_new_idx, F_scratch_idx, F_var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_F_fcn[F_var]);
         Pointer<CellDataFactory<NDIM,double> > F_factory = F_var->getPatchDataFactory();
         const int F_depth = F_factory->getDefaultDepth();
-        if (!d_visit_writer.isNull()) d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
+        if (d_visit_writer) d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
     for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
@@ -814,7 +814,7 @@ AdvDiffHierarchyIntegrator::getFromInput(
     bool is_from_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     // Read in data members from input database.
     if (!is_from_restart)

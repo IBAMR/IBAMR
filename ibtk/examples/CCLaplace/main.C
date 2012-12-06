@@ -95,7 +95,7 @@ main(
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(!visit_data_writer.isNull());
+        TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);

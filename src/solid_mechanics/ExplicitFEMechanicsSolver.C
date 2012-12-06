@@ -1303,7 +1303,7 @@ ExplicitFEMechanicsSolver::commonConstructor(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Setup EquationSystems objects for each part and setup Systems.
     d_meshes = meshes;

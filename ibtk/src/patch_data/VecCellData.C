@@ -448,7 +448,7 @@ void VecCellData<TYPE>::getSpecializedFromDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     const int ver = database->getInteger("VEC_CELL_DATA_VERSION");
     if (ver != VEC_CELL_DATA_VERSION)
@@ -482,7 +482,7 @@ VecCellData<TYPE>::putSpecializedToDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     database->putInteger("VEC_CELL_DATA_VERSION", VEC_CELL_DATA_VERSION);
     database->putInteger("d_depth", d_depth);
@@ -500,7 +500,7 @@ VecCellData<float>::getArrayFromDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     database->getFloatArray("d_data", d_data.data(), d_data.size());
     return;
@@ -512,7 +512,7 @@ VecCellData<double>::getArrayFromDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     database->getDoubleArray("d_data", d_data.data(), d_data.size());
     return;
@@ -524,7 +524,7 @@ VecCellData<float>::putArrayToDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     database->putFloatArray("d_data", d_data.data(), d_data.size());
     return;
@@ -536,7 +536,7 @@ VecCellData<double>::putArrayToDatabase(
     Pointer<Database> database)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!database.isNull());
+    TBOX_ASSERT(database);
 #endif
     database->putDoubleArray("d_data", d_data.data(), d_data.size());
     return;

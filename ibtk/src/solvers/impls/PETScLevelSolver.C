@@ -98,7 +98,7 @@ PETScLevelSolver::PETScLevelSolver(
     d_enable_logging = false;
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
@@ -245,7 +245,7 @@ PETScLevelSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln).isNull())
+        if (patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);

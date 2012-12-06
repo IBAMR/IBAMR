@@ -145,7 +145,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
     d_max_iterations = 25;
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
         if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
@@ -280,7 +280,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln).isNull())
+        if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);
@@ -316,7 +316,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<SideDataFactory<NDIM,double> > pdat_factory = var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!pdat_factory.isNull());
+        TBOX_ASSERT(pdat_factory);
 #endif
         d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
     }
@@ -548,7 +548,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
-            if (C_data.isNull())
+            if (!C_data)
             {
                 TBOX_ERROR(d_object_name << "::setMatrixCoefficients_nonaligned()\n"
                            << "  to solve (C u + div D grad u) = f with non-constant C,\n"
@@ -568,7 +568,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
         }
 
-        if (D_data.isNull())
+        if (!D_data)
         {
             TBOX_ERROR(d_object_name << "::setMatrixCoefficients_nonaligned()\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"

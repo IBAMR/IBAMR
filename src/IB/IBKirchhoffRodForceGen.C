@@ -244,7 +244,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
     IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     int ierr;
 
@@ -560,7 +560,7 @@ void
 IBKirchhoffRodForceGen::getFromInput(
     Pointer<Database> db)
 {
-    if (!db.isNull())
+    if (db)
     {
         // intentionally blank
     }

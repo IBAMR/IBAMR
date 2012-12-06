@@ -130,15 +130,15 @@ CCLaplaceOperator::apply(
     {
         Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
         Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
-        if (x_cc_var.isNull() || y_cc_var.isNull())
+        if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                        << "  encountered non-cell centered vector components" << std::endl);
         }
         Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
         Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(!x_factory.isNull());
-        TBOX_ASSERT(!y_factory.isNull());
+        TBOX_ASSERT(x_factory);
+        TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -217,7 +217,7 @@ CCLaplaceOperator::initializeOperatorState(
     else
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_hier_math_ops.isNull());
+        TBOX_ASSERT(d_hier_math_ops);
 #endif
     }
 

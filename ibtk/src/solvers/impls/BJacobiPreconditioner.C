@@ -68,7 +68,7 @@ BJacobiPreconditioner::BJacobiPreconditioner(
     d_max_iterations = 1;
 
     // Get configuration data from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         // LinearSolver options.
         if (input_db->keyExists("initial_guess_nonzero")) setInitialGuessNonzero(input_db->getBool("initial_guess_nonzero"));
@@ -91,7 +91,7 @@ BJacobiPreconditioner::setComponentPreconditioner(
     const unsigned int component)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!preconditioner.isNull());
+    TBOX_ASSERT(preconditioner);
 #endif
     d_pc_map[component] = preconditioner;
     return;

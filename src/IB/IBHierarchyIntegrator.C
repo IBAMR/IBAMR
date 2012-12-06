@@ -114,7 +114,7 @@ IBHierarchyIntegrator::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     if (d_workload_idx == -1)
@@ -339,7 +339,7 @@ void
 IBHierarchyIntegrator::regridHierarchy()
 {
     // Update the workload pre-regridding.
-    if (!d_load_balancer.isNull())
+    if (d_load_balancer)
     {
         if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
         d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
@@ -347,7 +347,7 @@ IBHierarchyIntegrator::regridHierarchy()
     }
 
     // Collect the marker particles to level 0 of the patch hierarchy.
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
     }
@@ -366,7 +366,7 @@ IBHierarchyIntegrator::regridHierarchy()
 
     // Prune any duplicated markers located in the "invalid" regions of coarser
     // levels of the patch hierarchy.
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
     }
@@ -387,8 +387,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ib_method_ops.isNull());
-    TBOX_ASSERT(!ins_hier_integrator.isNull());
+    TBOX_ASSERT(ib_method_ops);
+    TBOX_ASSERT(ins_hier_integrator);
 #endif
 
     // Set the IB method operations objects.
@@ -424,7 +424,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
     return;
 }// IBHierarchyIntegrator
 
@@ -457,13 +457,13 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
     // Initialize workload data.
@@ -475,7 +475,7 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     }
 
     // Initialize marker data
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
     }
@@ -493,11 +493,11 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();

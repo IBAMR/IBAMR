@@ -130,7 +130,7 @@ CartSideDoubleSpecializedLinearRefine::findRefineOperator(
     const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM,double> > sc_var = var;
-    return (!sc_var.isNull() && op_name == s_op_name);
+    return (sc_var && op_name == s_op_name);
 }// findRefineOperator
 
 const std::string&
@@ -164,8 +164,8 @@ CartSideDoubleSpecializedLinearRefine::refine(
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(src_component);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!fdata.isNull());
-    TBOX_ASSERT(!cdata.isNull());
+    TBOX_ASSERT(fdata);
+    TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
 #endif
     const int data_depth = fdata->getDepth();

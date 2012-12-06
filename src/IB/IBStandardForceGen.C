@@ -155,7 +155,7 @@ IBStandardForceGen::initializeLevelData(
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 

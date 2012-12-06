@@ -142,7 +142,7 @@ GeneralOperator::setHierarchyMathOps(
     Pointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = !d_hier_math_ops.isNull();
+    d_hier_math_ops_external = d_hier_math_ops;
     return;
 }// setHierarchyMathOps
 

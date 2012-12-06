@@ -98,7 +98,7 @@ VecCellDataFactory<TYPE>::allocate(
     const Box<NDIM>& box,
     Pointer<Arena> pool) const
 {
-    if (pool.isNull())
+    if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
@@ -158,7 +158,7 @@ VecCellDataFactory<TYPE>::validCopyTo(
      * The only valid option is VecCellDataFactory.
      */
     Pointer<VecCellDataFactory<TYPE> > cdf = dst_pdf;
-    if (!cdf.isNull())
+    if (cdf)
     {
         return true;
     }

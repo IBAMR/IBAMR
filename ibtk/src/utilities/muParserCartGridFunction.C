@@ -80,7 +80,7 @@ muParserCartGridFunction::muParserCartGridFunction(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
     // Read in user-provided constants.
     Array<std::string> db_key_names = input_db->getAllKeys();
@@ -262,13 +262,13 @@ muParserCartGridFunction::setDataOnPatch(
     // Set the data in the patch.
     Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!data.isNull());
+    TBOX_ASSERT(data);
 #endif
     Pointer<CellData<NDIM,double> > cc_data = data;
     Pointer<FaceData<NDIM,double> > fc_data = data;
     Pointer<NodeData<NDIM,double> > nc_data = data;
     Pointer<SideData<NDIM,double> > sc_data = data;
-    if (!cc_data.isNull())
+    if (cc_data)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));
@@ -287,7 +287,7 @@ muParserCartGridFunction::setDataOnPatch(
             }
         }
     }
-    else if (!fc_data.isNull())
+    else if (fc_data)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM || d_parsers.size() == static_cast<unsigned int>(fc_data->getDepth()) || d_parsers.size() == NDIM*static_cast<unsigned int>(fc_data->getDepth()));
@@ -336,7 +336,7 @@ muParserCartGridFunction::setDataOnPatch(
             }
         }
     }
-    else if (!nc_data.isNull())
+    else if (nc_data)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(nc_data->getDepth()));
@@ -355,7 +355,7 @@ muParserCartGridFunction::setDataOnPatch(
             }
         }
     }
-    else if (!sc_data.isNull())
+    else if (sc_data)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM || d_parsers.size() == static_cast<unsigned int>(sc_data->getDepth()) || d_parsers.size() == NDIM*static_cast<unsigned int>(sc_data->getDepth()));

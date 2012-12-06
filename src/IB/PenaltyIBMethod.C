@@ -75,7 +75,7 @@ PenaltyIBMethod::PenaltyIBMethod(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
     return;
 }// PenaltyIBMethod
 
@@ -420,7 +420,7 @@ PenaltyIBMethod::initializePatchHierarchy(
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, ln, init_data_time, can_be_refined, initial_time, d_l_data_manager);
-            if (!d_silo_writer.isNull())
+            if (d_silo_writer)
             {
                 d_silo_writer->registerVariableData("M", M_data, ln);
                 d_silo_writer->registerVariableData("Y", Y_data, ln);

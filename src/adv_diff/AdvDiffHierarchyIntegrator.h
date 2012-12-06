@@ -341,7 +341,7 @@ public:
     void
     setHelmholtzSolver(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> stokes_solver);
+        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> helmholtz_solver);
 
     /*!
      * Get the solver for the Helmholtz equation used by this solver class.

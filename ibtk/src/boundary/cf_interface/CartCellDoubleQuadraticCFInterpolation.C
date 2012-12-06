@@ -261,7 +261,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     const IntVector<NDIM>& ratio)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
@@ -348,9 +348,9 @@ CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
-    if (!d_hierarchy.isNull()) clearPatchHierarchy();
+    if (d_hierarchy) clearPatchHierarchy();
     d_hierarchy = hierarchy;
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
@@ -404,7 +404,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& ghost_width_to_fill)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
@@ -486,8 +486,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!fdata.isNull());
-        TBOX_ASSERT(!cdata.isNull());
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int data_depth = fdata->getDepth();
@@ -638,8 +638,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!fdata.isNull());
-        TBOX_ASSERT(!cdata.isNull());
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
@@ -741,7 +741,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int data_depth = data->getDepth();
 
@@ -825,7 +825,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
 #ifdef DEBUG_CHECK_ASSERTIONS

@@ -471,10 +471,7 @@ IBInstrumentPanel::IBInstrumentPanel(
 #endif
 
     // Initialize object with data read from the input database.
-    if (!input_db.isNull())
-    {
-        getFromInput(input_db);
-    }
+    if (input_db) getFromInput(input_db);
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -944,7 +941,7 @@ IBInstrumentPanel::readInstrumentData(
                                                                 xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
                                                                 );
-                    if (!U_cc_data.isNull())
+                    if (U_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -955,7 +952,7 @@ IBInstrumentPanel::readInstrumentData(
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
                     }
-                    if (!U_sc_data.isNull())
+                    if (U_sc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -966,7 +963,7 @@ IBInstrumentPanel::readInstrumentData(
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
                     }
-                    if (!P_cc_data.isNull())
+                    if (P_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -990,7 +987,7 @@ IBInstrumentPanel::readInstrumentData(
                                                                 xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
                                                                 );
-                    if (!P_cc_data.isNull())
+                    if (P_cc_data)
                     {
                         for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
                         {
@@ -1294,7 +1291,7 @@ IBInstrumentPanel::getFromInput(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
     if (db->keyExists("output_log_file")) d_output_log_file = db->getBool("output_log_file");

@@ -405,7 +405,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<CellVariable<NDIM,double> > cc_var = var;
-        if (cc_var.isNull()) continue;
+        if (!cc_var) continue;
 
         Pointer<CellData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
@@ -493,7 +493,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<VecCellVariable<double> > vec_cc_var = var;
-        if (vec_cc_var.isNull()) continue;
+        if (!vec_cc_var) continue;
         Pointer<VecCellData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
@@ -587,7 +587,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<FaceVariable<NDIM,double> > fc_var = var;
-        if (fc_var.isNull()) continue;
+        if (!fc_var) continue;
         Pointer<FaceData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
@@ -682,7 +682,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<NodeVariable<NDIM,double> > nc_var = var;
-        if (nc_var.isNull()) continue;
+        if (!nc_var) continue;
         Pointer<NodeData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
@@ -769,7 +769,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull()) continue;
+        if (!sc_var) continue;
         Pointer<SideData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 

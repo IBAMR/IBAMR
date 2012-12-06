@@ -89,9 +89,9 @@ NewtonKrylovSolver::setHierarchyMathOps(
     Pointer<HierarchyMathOps> hier_math_ops)
 {
     NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
-    if (!d_F.isNull()) d_F->setHierarchyMathOps(d_hier_math_ops);
-    if (!d_J.isNull()) d_J->setHierarchyMathOps(d_hier_math_ops);
-    if (!d_krylov_solver.isNull()) d_krylov_solver->setHierarchyMathOps(d_hier_math_ops);
+    if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
+    if (d_J) d_J->setHierarchyMathOps(d_hier_math_ops);
+    if (d_krylov_solver) d_krylov_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
 }// setHierarchyMathOps
 
@@ -104,7 +104,7 @@ NewtonKrylovSolver::setOperator(
     d_F->setHomogeneousBc(d_homogeneous_bc);
     d_F->setSolutionTime(d_solution_time);
     d_F->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_F != F_old) && !d_F.isNull()) d_F->initializeOperatorState(*d_x, *d_b);
+    if (d_is_initialized && (d_F != F_old) && d_F) d_F->initializeOperatorState(*d_x, *d_b);
     return;
 }// setOperator
 
@@ -123,7 +123,7 @@ NewtonKrylovSolver::setJacobian(
     d_J->setHomogeneousBc(true);
     d_J->setSolutionTime(d_solution_time);
     d_J->setTimeInterval(d_current_time, d_new_time);
-    if (d_is_initialized && (d_J != J_old) && !d_J.isNull()) d_J->initializeOperatorState(*d_x, *d_b);
+    if (d_is_initialized && (d_J != J_old) && d_J) d_J->initializeOperatorState(*d_x, *d_b);
     return;
 }// setJacobian
 

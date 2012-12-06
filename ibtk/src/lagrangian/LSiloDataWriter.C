@@ -687,7 +687,7 @@ LSiloDataWriter::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
@@ -702,7 +702,7 @@ LSiloDataWriter::resetLevels(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
-    if (!d_hierarchy.isNull())
+    if (d_hierarchy)
     {
         TBOX_ASSERT(finest_ln <= d_hierarchy->getFinestLevelNumber());
     }
@@ -1082,7 +1082,7 @@ LSiloDataWriter::registerCoordsData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!coords_data.isNull());
+    TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -1118,7 +1118,7 @@ LSiloDataWriter::registerVariableData(
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!var_name.empty());
-    TBOX_ASSERT(!var_data.isNull());
+    TBOX_ASSERT(var_data);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1255,7 +1255,7 @@ LSiloDataWriter::writePlotData(
     // Set the local data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        if (!d_coords_data[ln].isNull())
+        if (d_coords_data[ln])
         {
             // Scatter the data from "global" to "local" form.
             Vec local_X_vec;
@@ -1983,7 +1983,7 @@ LSiloDataWriter::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("LAG_SILO_DATA_WRITER_VERSION",
                    LAG_SILO_DATA_WRITER_VERSION);
@@ -2111,7 +2111,7 @@ LSiloDataWriter::buildVecScatters(
     AO& ao,
     const int level_number)
 {
-    if (d_coords_data[level_number].isNull()) return;
+    if (!d_coords_data[level_number]) return;
 
     int ierr;
 

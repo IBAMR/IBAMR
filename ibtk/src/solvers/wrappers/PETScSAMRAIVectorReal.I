@@ -47,7 +47,7 @@ PETScSAMRAIVectorReal::createPETScVector(
     MPI_Comm comm)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!samrai_vec.isNull());
+    TBOX_ASSERT(samrai_vec);
 #endif
     static const bool vector_created_via_duplicate = false;
     PETScSAMRAIVectorReal* psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
@@ -90,7 +90,7 @@ PETScSAMRAIVectorReal::replaceSAMRAIVector(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(petsc_vec != PETSC_NULL);
-    TBOX_ASSERT(!samrai_vec.isNull());
+    TBOX_ASSERT(samrai_vec);
 #endif
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
 #ifdef DEBUG_CHECK_ASSERTIONS

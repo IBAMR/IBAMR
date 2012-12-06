@@ -226,7 +226,7 @@ FEDataManager::registerLoadBalancer(
     int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
@@ -238,7 +238,7 @@ FEDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -251,7 +251,7 @@ FEDataManager::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
                 (finest_ln <= d_hierarchy->getFinestLevelNumber()));
@@ -533,8 +533,8 @@ FEDataManager::spread(
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = !f_cc_data.isNull();
-        const bool is_sc_data = !f_sc_data.isNull();
+        const bool is_cc_data = f_cc_data;
+        const bool is_sc_data = f_sc_data;
         if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
         if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
     }
@@ -810,7 +810,7 @@ FEDataManager::interp(
     // Communicate any unsynchronized ghost data and enforce any constraints.
     for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
     {
-        if (!f_refine_scheds[k].isNull()) f_refine_scheds[k]->fillData(fill_data_time);
+        if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
     if (close_X) X_vec.close();
@@ -904,8 +904,8 @@ FEDataManager::interp(
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = !f_cc_data.isNull();
-        const bool is_sc_data = !f_sc_data.isNull();
+        const bool is_cc_data = f_cc_data;
+        const bool is_sc_data = f_sc_data;
         if (is_cc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, d_interp_weighting_fcn);
         if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, d_interp_weighting_fcn);
 
@@ -1533,7 +1533,7 @@ FEDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    if (d_load_balancer.isNull()) return;
+    if (!d_load_balancer) return;
 
     IBTK_TIMER_START(t_update_workload_estimates);
 
@@ -1572,14 +1572,14 @@ FEDataManager::initializeLevelData(
     IBTK_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #else
     NULL_USE(hierarchy);
     NULL_USE(level_number);
@@ -1599,13 +1599,13 @@ FEDataManager::resetHierarchyConfiguration(
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
                 && (finest_ln <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #else
     NULL_USE(coarsest_ln);
@@ -1636,10 +1636,10 @@ FEDataManager::applyGradientDetector(
     IBTK_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #else
     NULL_USE(hierarchy);
 #endif
@@ -1770,7 +1770,7 @@ FEDataManager::putToDatabase(
     IBTK_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("FE_DATA_MANAGER_VERSION", FE_DATA_MANAGER_VERSION);
 

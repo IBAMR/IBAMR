@@ -72,7 +72,7 @@ FACPreconditioner::FACPreconditioner(
     d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
 
     // Initialize object with data read from input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         getFromInput(input_db);
     }
@@ -209,14 +209,14 @@ FACPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Destroy temporary vectors.
-    if (!d_f.isNull())
+    if (d_f)
     {
         d_f->resetLevels(d_f->getCoarsestLevelNumber(), std::min(d_f->getFinestLevelNumber(),d_f->getPatchHierarchy()->getFinestLevelNumber()));
         d_f->freeVectorComponents();
         d_f.setNull();
     }
 
-    if (!d_r.isNull())
+    if (d_r)
     {
         d_r->resetLevels(d_r->getCoarsestLevelNumber(), std::min(d_r->getFinestLevelNumber(),d_r->getPatchHierarchy()->getFinestLevelNumber()));
         d_r->freeVectorComponents();
@@ -490,7 +490,7 @@ void
 FACPreconditioner::getFromInput(
     tbox::Pointer<tbox::Database> db)
 {
-    if (db.isNull()) return;
+    if (!db) return;
 
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
     if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));

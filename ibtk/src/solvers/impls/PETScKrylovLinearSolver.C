@@ -108,7 +108,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     d_enable_logging = false;
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
@@ -197,7 +197,7 @@ PETScKrylovLinearSolver::setHomogeneousBc(
     const bool homogeneous_bc)
 {
     KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
-    if (!d_A.isNull()) d_A->setHomogeneousBc(homogeneous_bc);
+    if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
     return;
 }// setHomogeneousBc
 
@@ -206,8 +206,8 @@ PETScKrylovLinearSolver::setSolutionTime(
     const double solution_time)
 {
     KrylovLinearSolver::setSolutionTime(solution_time);
-    if (!d_A.isNull()) d_A->setSolutionTime(solution_time);
-    if (!d_pc_solver.isNull()) d_pc_solver->setSolutionTime(solution_time);
+    if (d_A) d_A->setSolutionTime(solution_time);
+    if (d_pc_solver) d_pc_solver->setSolutionTime(solution_time);
     return;
 }// setSolutionTime
 
@@ -217,8 +217,8 @@ PETScKrylovLinearSolver::setTimeInterval(
     const double new_time)
 {
     KrylovLinearSolver::setTimeInterval(current_time, new_time);
-    if (!d_A.isNull()) d_A->setTimeInterval(current_time, new_time);
-    if (!d_pc_solver.isNull()) d_pc_solver->setTimeInterval(current_time, new_time);
+    if (d_A) d_A->setTimeInterval(current_time, new_time);
+    if (d_pc_solver) d_pc_solver->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
 
@@ -261,7 +261,7 @@ PETScKrylovLinearSolver::solveSystem(
     IBTK_TIMER_START(t_solve_system);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_A.isNull());
+    TBOX_ASSERT(d_A);
 #endif
     int ierr;
 
@@ -346,7 +346,7 @@ PETScKrylovLinearSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln).isNull())
+        if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);
@@ -381,10 +381,10 @@ PETScKrylovLinearSolver::initializeSolverState(
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     // Initialize the linear operator and preconditioner objects.
-    if (!d_A.isNull()) d_A->initializeOperatorState(*d_x, *d_b);
+    if (d_A) d_A->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_mat) resetKSPOperators();
 
-    if (!d_pc_solver.isNull()) d_pc_solver->initializeSolverState(*d_x, *d_b);
+    if (d_pc_solver) d_pc_solver->initializeSolverState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_pc) resetKSPPC();
 
     // Set the KSP options from the PETSc options database.
@@ -428,8 +428,8 @@ PETScKrylovLinearSolver::deallocateSolverState()
     // re-initializing the solver.
     if (!d_reinitializing_solver)
     {
-        if (!d_pc_solver.isNull()) d_pc_solver->deallocateSolverState();
-        if (!d_A.isNull()) d_A->deallocateOperatorState();
+        if (d_pc_solver) d_pc_solver->deallocateSolverState();
+        if (d_A) d_A->deallocateOperatorState();
     }
 
     // Delete the solution and rhs vectors.
@@ -668,11 +668,11 @@ PETScKrylovLinearSolver::resetKSPPC()
 
     PC petsc_pc;
     ierr = KSPGetPC(d_petsc_ksp, &petsc_pc); IBTK_CHKERRQ(ierr);
-    if (pc_type == "none" || d_pc_solver.isNull())
+    if (pc_type == "none" || !d_pc_solver)
     {
         ierr = PCSetType(petsc_pc, PCNONE); IBTK_CHKERRQ(ierr);
     }
-    else if (pc_type == "shell" && !d_pc_solver.isNull())
+    else if (pc_type == "shell" && d_pc_solver)
     {
         ierr = PCSetType(petsc_pc, PCSHELL); IBTK_CHKERRQ(ierr);
         ierr = PCShellSetContext(petsc_pc, static_cast<void*>(this)); IBTK_CHKERRQ(ierr);
@@ -776,7 +776,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
-    TBOX_ASSERT(!krylov_solver->d_A.isNull());
+    TBOX_ASSERT(krylov_solver->d_A);
 #endif
     krylov_solver->d_A->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); IBTK_CHKERRQ(ierr);
@@ -796,7 +796,7 @@ PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI(
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
-    TBOX_ASSERT(!krylov_solver->d_A.isNull());
+    TBOX_ASSERT(krylov_solver->d_A);
 #endif
     krylov_solver->d_A->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y), *PETScSAMRAIVectorReal::getSAMRAIVector(z));
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(z)); IBTK_CHKERRQ(ierr);
@@ -843,7 +843,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver != NULL);
-    TBOX_ASSERT(!krylov_solver->d_pc_solver.isNull());
+    TBOX_ASSERT(krylov_solver->d_pc_solver);
 #endif
 
     // Indicate that the initial guess should be zero.

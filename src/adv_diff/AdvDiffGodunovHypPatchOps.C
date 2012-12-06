@@ -162,7 +162,7 @@ AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
-        if (u_var.isNull())
+        if (!u_var)
         {
             Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
             Q_data->fillAll(0.0);
@@ -191,18 +191,9 @@ AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
              : Pointer<PatchData<NDIM> >(NULL));
 
         const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-        const IntVector<NDIM>& flux_integral_data_ghost_cells =
-            (!flux_integral_data.isNull()
-             ? flux_integral_data->getGhostCellWidth()
-             : 0);
-        const IntVector<NDIM>& q_integral_data_ghost_cells =
-            (!q_integral_data.isNull()
-             ? q_integral_data->getGhostCellWidth()
-             : 0);
-        const IntVector<NDIM>& u_integral_data_ghost_cells =
-            (!u_integral_data.isNull()
-             ? u_integral_data->getGhostCellWidth()
-             : 0);
+        const IntVector<NDIM>& flux_integral_data_ghost_cells = (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
+        const IntVector<NDIM>& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
+        const IntVector<NDIM>& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
 
         switch (d_Q_difference_form[Q_var])
         {
@@ -309,7 +300,7 @@ AdvDiffGodunovHypPatchOps::preprocessAdvanceLevelState(
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
@@ -334,7 +325,7 @@ AdvDiffGodunovHypPatchOps::postprocessAdvanceLevelState(
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());

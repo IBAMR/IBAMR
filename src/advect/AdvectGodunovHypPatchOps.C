@@ -221,9 +221,9 @@ AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
-    TBOX_ASSERT(!godunov_advector.isNull());
-    TBOX_ASSERT(!grid_geom.isNull());
+    TBOX_ASSERT(input_db);
+    TBOX_ASSERT(godunov_advector);
+    TBOX_ASSERT(grid_geom);
 #endif
 
     if (d_registered_for_restart)
@@ -234,7 +234,7 @@ AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
     // Initialize object with data read from given input/restart databases.
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
+    if (input_db) getFromInput(input_db, is_from_restart);
     return;
 }// AdvectGodunovHypPatchOps
 
@@ -258,7 +258,7 @@ AdvectGodunovHypPatchOps::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!visit_writer.isNull());
+    TBOX_ASSERT(visit_writer);
 #endif
     d_visit_writer = visit_writer;
     return;
@@ -269,7 +269,7 @@ AdvectGodunovHypPatchOps::registerAdvectionVelocity(
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_var.isNull());
+    TBOX_ASSERT(u_var);
 #endif
     d_u_var.insert(u_var);
     d_u_is_div_free[u_var] = true;
@@ -305,7 +305,7 @@ AdvectGodunovHypPatchOps::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!F_var.isNull());
+    TBOX_ASSERT(F_var);
 #endif
     d_F_var.insert(F_var);
     return;
@@ -346,7 +346,7 @@ AdvectGodunovHypPatchOps::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_var);
 #endif
     d_Q_var.insert(Q_var);
     d_Q_difference_form[Q_var] = CONSERVATIVE;
@@ -475,7 +475,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
             "CONSERVATIVE_COARSEN",
             "CONSERVATIVE_LINEAR_REFINE");
 
-        if (!d_visit_writer.isNull())
+        if (d_visit_writer)
         {
             const int Q_idx = VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(Q_var, d_integrator->getPlotContext());
             const int depth = Q_factory->getDefaultDepth();
@@ -525,7 +525,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
                 d_grid_geometry,
                 "CONSERVATIVE_COARSEN",
                 "NO_REFINE");
-            if (!u_var.isNull() && d_u_integral_var[u_var].isNull())
+            if (u_var && !d_u_integral_var[u_var])
             {
                 d_u_integral_var[u_var] = new FaceVariable<NDIM,double>(
                     d_object_name+"::"+u_var->getName()+" time integral");
@@ -554,14 +554,14 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
-            if (d_u_fcn[u_var].isNull())
+            if (d_u_fcn[u_var])
             {
-                Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_idx);
-                u_data->fillAll(0.0);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
             else
             {
-                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_idx);
+                u_data->fillAll(0.0);
             }
         }
 
@@ -569,14 +569,14 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
-            if (d_F_fcn[F_var].isNull())
+            if (!d_F_fcn[F_var])
             {
-                Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_idx);
-                F_data->fillAll(0.0);
+                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
             else
             {
-                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_idx);
+                F_data->fillAll(0.0);
             }
         }
 
@@ -584,14 +584,14 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
-            if (d_Q_init[Q_var].isNull())
+            if (!d_Q_init[Q_var])
             {
-                Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-                Q_data->fillAll(0.0);
+                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
             else
             {
-                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                Q_data->fillAll(0.0);
             }
         }
     }
@@ -630,7 +630,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
         Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
-        if (u_var.isNull())
+        if (!u_var)
         {
             q_integral_data->fillAll(0.0);
             continue;
@@ -640,7 +640,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
         Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
-        if (!F_var.isNull())
+        if (F_var)
         {
             Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_var, getDataContext());
             d_godunov_advector->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
@@ -665,7 +665,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-            if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+            if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
             {
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
                 d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), time+0.5*dt);
@@ -679,7 +679,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
-        if (u_var.isNull()) continue;
+        if (!u_var) continue;
 
         Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
@@ -723,7 +723,7 @@ AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
-        if (u_var.isNull()) continue;
+        if (!u_var) continue;
 
         Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
         Pointer<FaceData<NDIM,double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
@@ -731,18 +731,9 @@ AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
         Pointer<FaceData<NDIM,double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
 
         const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-        const IntVector<NDIM>& flux_integral_data_ghost_cells =
-            (!flux_integral_data.isNull()
-             ? flux_integral_data->getGhostCellWidth()
-             : 0);
-        const IntVector<NDIM>& q_integral_data_ghost_cells =
-            (!q_integral_data.isNull()
-             ? q_integral_data->getGhostCellWidth()
-             : 0);
-        const IntVector<NDIM>& u_integral_data_ghost_cells =
-            (!u_integral_data.isNull()
-             ? u_integral_data->getGhostCellWidth()
-             : 0);
+        const IntVector<NDIM>& flux_integral_data_ghost_cells = (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
+        const IntVector<NDIM>& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
+        const IntVector<NDIM>& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
 
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
@@ -851,7 +842,7 @@ AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
-        if (!d_F_fcn[F_var].isNull() && d_F_fcn[F_var]->isTimeDependent())
+        if (d_F_fcn[F_var] && d_F_fcn[F_var]->isTimeDependent())
         {
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
             d_F_fcn[F_var]->setDataOnPatchLevel(F_idx, F_var, level, current_time);
@@ -864,7 +855,7 @@ AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
@@ -895,7 +886,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
-        if (F_var.isNull()) continue;
+        if (!F_var) continue;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -903,7 +894,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
             const Box<NDIM>& patch_box = patch->getBox();
 
             Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_var, new_context);
-            if (!F_fcn.isNull())
+            if (F_fcn)
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
                 const int F_new_idx     = var_db->mapVariableAndContextToIndex(F_var, new_context    );
@@ -928,7 +919,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getNewContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time+dt);
@@ -1135,7 +1126,7 @@ AdvectGodunovHypPatchOps::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
 
     db->putInteger("ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION", ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION);
@@ -1175,7 +1166,7 @@ AdvectGodunovHypPatchOps::getFluxIntegralData(
     Pointer<VariableContext> context)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_var);
 #endif
     if (d_Q_difference_form[Q_var] == CONSERVATIVE)
     {
@@ -1194,7 +1185,7 @@ AdvectGodunovHypPatchOps::getQIntegralData(
     Pointer<VariableContext> context)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_var);
 #endif
     if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
     {
@@ -1213,10 +1204,10 @@ AdvectGodunovHypPatchOps::getUIntegralData(
     Pointer<VariableContext> context)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(Q_var);
 #endif
     Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-    if (!u_var.isNull() && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
+    if (u_var && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
     {
         return patch.getPatchData(d_u_integral_var[u_var], context);
     }
@@ -1257,7 +1248,7 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
-        if (u_var.isNull()) continue;
+        if (!u_var) continue;
 
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
 
@@ -1338,7 +1329,7 @@ AdvectGodunovHypPatchOps::getFromInput(
     bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     if (db->keyExists("compute_init_velocity")) d_compute_init_velocity = db->getBool("compute_init_velocity");
     if (db->keyExists("compute_half_velocity")) d_compute_half_velocity = db->getBool("compute_half_velocity");
@@ -1394,7 +1385,7 @@ AdvectGodunovHypPatchOps::getFromInput(
                     def_key_cnt++;
                 }
 
-                if (!error_db.isNull() && error_key == "QVAL_DEVIATION")
+                if (error_db && error_key == "QVAL_DEVIATION")
                 {
                     if (error_db->keyExists("dev_tol"))
                     {
@@ -1439,7 +1430,7 @@ AdvectGodunovHypPatchOps::getFromInput(
                     }
                 }
 
-                if (!error_db.isNull() && error_key == "QVAL_GRADIENT")
+                if (error_db && error_key == "QVAL_GRADIENT")
                 {
                     if (error_db->keyExists("grad_tol"))
                     {

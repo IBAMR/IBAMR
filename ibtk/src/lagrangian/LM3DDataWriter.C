@@ -174,7 +174,7 @@ LM3DDataWriter::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
@@ -189,7 +189,7 @@ LM3DDataWriter::resetLevels(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
-    if (!d_hierarchy.isNull())
+    if (d_hierarchy)
     {
         TBOX_ASSERT(finest_ln <= d_hierarchy->getFinestLevelNumber());
     }
@@ -373,7 +373,7 @@ LM3DDataWriter::registerCoordsData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!coords_data.isNull());
+    TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -1009,7 +1009,7 @@ LM3DDataWriter::writePlotData(
     local_layer_counter = 0;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        if (!d_coords_data[ln].isNull())
+        if (d_coords_data[ln])
         {
             // Scatter the data from "global" to "local" form.
             Vec local_X_vec;
@@ -1102,7 +1102,7 @@ LM3DDataWriter::buildVecScatters(
     AO& ao,
     const int level_number)
 {
-    if (d_coords_data[level_number].isNull()) return;
+    if (!d_coords_data[level_number]) return;
 
     int ierr;
 

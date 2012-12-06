@@ -326,7 +326,7 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
         const int patch_data_idx = (*cit);
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        if (!sc_var)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  patch data index " << patch_data_idx << " does not correspond to a side-centered double precision variable." << std::endl);

@@ -105,7 +105,7 @@ CartGridFunctionSet::setDataOnPatchHierarchy(
     const int finest_ln_in)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -148,7 +148,7 @@ CartGridFunctionSet::setDataOnPatchLevel(
     const bool initial_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!level.isNull());
+    TBOX_ASSERT(level);
 #endif
     Pointer<CellVariable<NDIM,double> > cc_var = var;
     Pointer<EdgeVariable<NDIM,double> > ec_var = var;
@@ -228,7 +228,7 @@ CartGridFunctionSet::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(patch);
 #endif
     Pointer<CellVariable<NDIM,double> > cc_var = var;
     Pointer<EdgeVariable<NDIM,double> > ec_var = var;

@@ -207,9 +207,9 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
-    if (!d_hierarchy.isNull()) clearPatchHierarchy();
+    if (d_hierarchy) clearPatchHierarchy();
     d_hierarchy = hierarchy;
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
@@ -263,7 +263,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(!d_consistent_type_2_bdry);
     TBOX_ASSERT(ratio.min() == ratio.max());
 #endif
@@ -292,7 +292,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
 #ifdef DEBUG_CHECK_ASSERTIONS

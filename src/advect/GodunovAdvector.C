@@ -253,19 +253,18 @@ GodunovAdvector::GodunovAdvector(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #endif
 
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->
-            registerRestartItem(d_object_name, this);
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     // Initialize object with data read from given input/restart databases.
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
+    if (input_db) getFromInput(input_db, is_from_restart);
     return;
 }// GodunovAdvector
 
@@ -560,7 +559,7 @@ GodunovAdvector::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("GODUNOV_ADVECTOR_VERSION",GODUNOV_ADVECTOR_VERSION);
 #if (NDIM == 3)
@@ -727,7 +726,7 @@ GodunovAdvector::getFromInput(
     bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
 #if (NDIM == 3)
     if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");

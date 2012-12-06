@@ -170,7 +170,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     d_coarse_solver_db->putInteger("num_post_relax_steps", 2);
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method")) d_prolongation_method = input_db->getString("prolongation_method");
@@ -248,7 +248,7 @@ CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
-    if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
+    if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
         d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
@@ -455,7 +455,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (d_coarse_solver.isNull())
+    if (!d_coarse_solver)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
@@ -498,14 +498,14 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-    if (d_level_bdry_fill_ops[finest_level_num].isNull())
+    if (d_level_bdry_fill_ops[finest_level_num])
     {
-        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
     else
     {
-        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
+        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
@@ -513,7 +513,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
-    if (d_level_math_ops[finest_level_num].isNull())
+    if (!d_level_math_ops[finest_level_num])
     {
         std::ostringstream stream;
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
@@ -544,10 +544,10 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     Pointer<CellDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!solution_var.isNull());
-    TBOX_ASSERT(!     rhs_var.isNull());
-    TBOX_ASSERT(!solution_pdat_fac.isNull());
-    TBOX_ASSERT(!     rhs_pdat_fac.isNull());
+    TBOX_ASSERT(solution_var);
+    TBOX_ASSERT(     rhs_var);
+    TBOX_ASSERT(solution_pdat_fac);
+    TBOX_ASSERT(     rhs_pdat_fac);
 #endif
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
@@ -726,7 +726,7 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
         d_patch_mat.clear();
         d_patch_bc_box_overlap.clear();
         d_patch_smoother_bc_boxes.clear();
-        if (!d_coarse_solver.isNull()) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;
 }// deallocateOperatorStateSpecialized
@@ -756,7 +756,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
         C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
-        if (C_data.isNull())
+        if (!C_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve (C u + div D grad u) = f with non-constant C,\n"
@@ -774,7 +774,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     if (!poisson_spec.dIsConstant())
     {
         D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
-        if (D_data.isNull())
+        if (!D_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"

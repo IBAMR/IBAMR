@@ -79,8 +79,8 @@ KrylovLinearSolver::setHierarchyMathOps(
     Pointer<HierarchyMathOps> hier_math_ops)
 {
     LinearSolver::setHierarchyMathOps(hier_math_ops);
-    if (!d_A.isNull()) d_A->setHierarchyMathOps(d_hier_math_ops);
-    if (!d_pc_solver.isNull()) d_pc_solver->setHierarchyMathOps(d_hier_math_ops);
+    if (d_A) d_A->setHierarchyMathOps(d_hier_math_ops);
+    if (d_pc_solver) d_pc_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
 }// setHierarchyMathOps
 
@@ -90,12 +90,12 @@ KrylovLinearSolver::setOperator(
 {
     Pointer<LinearOperator> A_old = d_A;
     d_A = A;
-    if (!d_A.isNull())
+    if (d_A)
     {
         d_A->setHomogeneousBc(d_homogeneous_bc);
         d_A->setSolutionTime(d_solution_time);
         d_A->setTimeInterval(d_current_time, d_new_time);
-        if (d_is_initialized && (d_A != A_old) && !d_A.isNull())
+        if (d_is_initialized && (d_A != A_old) && d_A)
         {
             d_A->initializeOperatorState(*d_x, *d_b);
         }
@@ -115,12 +115,12 @@ KrylovLinearSolver::setPreconditioner(
 {
     Pointer<LinearSolver> pc_solver_old = d_pc_solver;
     d_pc_solver = pc_solver;
-    if (!d_pc_solver.isNull())
+    if (d_pc_solver)
     {
         d_pc_solver->setHomogeneousBc(true);
         d_pc_solver->setSolutionTime(d_solution_time);
         d_pc_solver->setTimeInterval(d_current_time, d_new_time);
-        if (d_is_initialized && (d_pc_solver != pc_solver_old) && !d_pc_solver.isNull())
+        if (d_is_initialized && (d_pc_solver != pc_solver_old) && d_pc_solver)
         {
             d_pc_solver->initializeSolverState(*d_b, *d_b);
         }

@@ -84,7 +84,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -323,7 +323,7 @@ main(
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
         Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
-        if (!u_cc_var.isNull())
+        if (u_cc_var)
         {
             hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
             pout << "Error in u at time " << loop_time << ":\n"
@@ -333,7 +333,7 @@ main(
         }
 
         Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-        if (!u_sc_var.isNull())
+        if (u_sc_var)
         {
             hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
             pout << "Error in u at time " << loop_time << ":\n"

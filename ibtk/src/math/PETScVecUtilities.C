@@ -72,23 +72,23 @@ PETScVecUtilities::copyToPatchLevelVec(
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
-    if (!data_cc_var.isNull())
+    if (data_cc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
-        TBOX_ASSERT(!dof_index_cc_var.isNull());
+        TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
-    else if (!data_sc_var.isNull())
+    else if (data_sc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-        TBOX_ASSERT(!dof_index_sc_var.isNull());
+        TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
     }
@@ -114,26 +114,26 @@ PETScVecUtilities::copyFromPatchLevelVec(
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
-    if (!data_cc_var.isNull())
+    if (data_cc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
-        TBOX_ASSERT(!dof_index_cc_var.isNull());
+        TBOX_ASSERT(dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
-    else if (!data_sc_var.isNull())
+    else if (data_sc_var)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-        TBOX_ASSERT(!dof_index_sc_var.isNull());
+        TBOX_ASSERT(dof_index_sc_var);
 #endif
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
-        if (!data_synch_sched.isNull())
+        if (data_synch_sched)
         {
             Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
@@ -148,7 +148,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
-    if (!ghost_fill_sched.isNull())
+    if (ghost_fill_sched)
     {
         Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
@@ -171,14 +171,14 @@ PETScVecUtilities::constructDataSynchSchedule(
     Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
     Pointer<RefineSchedule<NDIM> > data_synch_sched;
-    if (!data_cc_var.isNull())
+    if (data_cc_var)
     {
         // intentionally blank
         //
         // NOTE: This is the only standard SAMRAI data centering that does not
         // require synchronization.
     }
-    else if (!data_sc_var.isNull())
+    else if (data_sc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
         data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
@@ -213,11 +213,11 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
     Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
     Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-    if (!dof_index_cc_var.isNull())
+    if (dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
     }
-    else if (!dof_index_sc_var.isNull())
+    else if (dof_index_sc_var)
     {
         constructPatchLevelDOFIndices_side(num_dofs_per_proc, dof_index_idx, patch_level);
     }

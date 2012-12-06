@@ -118,7 +118,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     d_max_iterations = 25;
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
         if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
@@ -250,7 +250,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln).isNull())
+        if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);

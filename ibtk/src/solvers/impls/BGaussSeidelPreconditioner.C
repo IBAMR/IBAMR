@@ -71,7 +71,7 @@ BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
     d_max_iterations = 1;
 
     // Get configuration data from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         // Block Gauss-Seidel options.
         if (input_db->keyExists("symmetric_preconditioner")) d_symmetric_preconditioner = input_db->getBool("symmetric_preconditioner");
@@ -98,7 +98,7 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(
     const unsigned int component)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!preconditioner.isNull());
+    TBOX_ASSERT(preconditioner);
 #endif
     d_pc_map[component] = preconditioner;
     return;
@@ -112,7 +112,7 @@ BGaussSeidelPreconditioner::setComponentOperators(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
-        if (k != component) TBOX_ASSERT(!linear_ops[k].isNull());
+        if (k != component) TBOX_ASSERT(linear_ops[k]);
     }
 #endif
     d_linear_ops_map[component] = linear_ops;
@@ -301,7 +301,7 @@ BGaussSeidelPreconditioner::deallocateSolverState()
         std::vector<Pointer<LinearOperator> >& comp_linear_ops = it->second;
         for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin(); comp_it != comp_linear_ops.end(); ++comp_it)
         {
-            if (!comp_it->isNull()) (*comp_it)->deallocateOperatorState();
+            if (*comp_it) (*comp_it)->deallocateOperatorState();
         }
     }
 

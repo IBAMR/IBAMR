@@ -64,7 +64,7 @@ QInit::QInit(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!grid_geom.isNull());
+    TBOX_ASSERT(grid_geom);
 #endif
 
     // Default initial values.
@@ -98,7 +98,7 @@ QInit::setDataOnPatch(
 {
     Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(Q_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
@@ -201,7 +201,7 @@ void
 QInit::getFromInput(
     Pointer<Database> db)
 {
-    if (!db.isNull())
+    if (db)
     {
         if (db->keyExists("X"))
         {

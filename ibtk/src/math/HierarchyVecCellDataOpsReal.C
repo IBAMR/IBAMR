@@ -68,7 +68,7 @@ HierarchyVecCellDataOpsReal<TYPE>::HierarchyVecCellDataOpsReal(
       d_patch_ops()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     d_hierarchy = hierarchy;
     if ((coarsest_level < 0) || (finest_level < 0))
@@ -103,7 +103,7 @@ HierarchyVecCellDataOpsReal<TYPE>::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     d_hierarchy = hierarchy;
     return;
@@ -116,7 +116,7 @@ HierarchyVecCellDataOpsReal<TYPE>::resetLevels(
     const int finest_level)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_level >= 0)
                 && (finest_level >= coarsest_level)
                 && (finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -141,7 +141,7 @@ HierarchyVecCellDataOpsReal<TYPE>::copyData(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -156,7 +156,7 @@ HierarchyVecCellDataOpsReal<TYPE>::copyData(
             Pointer<VecCellData<TYPE> > dst = p->getPatchData(dst_id);
             Pointer<VecCellData<TYPE> > src = p->getPatchData(src_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.copyData(dst, src, box);
@@ -173,14 +173,14 @@ HierarchyVecCellDataOpsReal<TYPE>::swapData(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     Pointer<VecCellDataFactory<TYPE> > d1fact = d_hierarchy->getPatchDescriptor()->getPatchDataFactory(data1_id);
-    TBOX_ASSERT(!d1fact.isNull());
+    TBOX_ASSERT(d1fact);
     Pointer<VecCellDataFactory<TYPE> > d2fact = d_hierarchy->getPatchDescriptor()->getPatchDataFactory(data2_id);
-    TBOX_ASSERT(!d2fact.isNull());
+    TBOX_ASSERT(d2fact);
     TBOX_ASSERT(d1fact->getDefaultDepth() == d2fact->getDefaultDepth());
     TBOX_ASSERT(d1fact->getGhostCellWidth() == d2fact->getGhostCellWidth());
 #endif
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -205,7 +205,7 @@ HierarchyVecCellDataOpsReal<TYPE>::printData(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -222,7 +222,7 @@ HierarchyVecCellDataOpsReal<TYPE>::printData(
 
             Pointer<VecCellData<TYPE> > d = p->getPatchData(data_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!d.isNull());
+            TBOX_ASSERT(d);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : d->getGhostBox();
             d_patch_ops.printData(d, box, s);
@@ -239,7 +239,7 @@ HierarchyVecCellDataOpsReal<TYPE>::setToScalar(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -253,7 +253,7 @@ HierarchyVecCellDataOpsReal<TYPE>::setToScalar(
 
             Pointer<VecCellData<TYPE> > d = p->getPatchData(data_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!d.isNull());
+            TBOX_ASSERT(d);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : d->getGhostBox();
             d_patch_ops.setToScalar(d, alpha, box);
@@ -271,7 +271,7 @@ HierarchyVecCellDataOpsReal<TYPE>::scale(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -287,7 +287,7 @@ HierarchyVecCellDataOpsReal<TYPE>::scale(
             Pointer<VecCellData<TYPE> > dst = p->getPatchData(dst_id);
             Pointer<VecCellData<TYPE> > src = p->getPatchData(src_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.scale(dst, alpha, src, box);
@@ -305,7 +305,7 @@ HierarchyVecCellDataOpsReal<TYPE>::addScalar(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -321,7 +321,7 @@ HierarchyVecCellDataOpsReal<TYPE>::addScalar(
             Pointer<VecCellData<TYPE> > dst = p->getPatchData(dst_id);
             Pointer<VecCellData<TYPE> > src = p->getPatchData(src_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.addScalar(dst, src, alpha, box);
@@ -339,7 +339,7 @@ HierarchyVecCellDataOpsReal<TYPE>::add(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -356,7 +356,7 @@ HierarchyVecCellDataOpsReal<TYPE>::add(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.add(dst, src1, src2, box);
@@ -374,7 +374,7 @@ HierarchyVecCellDataOpsReal<TYPE>::subtract(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -391,7 +391,7 @@ HierarchyVecCellDataOpsReal<TYPE>::subtract(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.subtract(dst, src1, src2, box);
@@ -409,7 +409,7 @@ HierarchyVecCellDataOpsReal<TYPE>::multiply(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -426,7 +426,7 @@ HierarchyVecCellDataOpsReal<TYPE>::multiply(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.multiply(dst, src1, src2, box);
@@ -444,7 +444,7 @@ HierarchyVecCellDataOpsReal<TYPE>::divide(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -461,7 +461,7 @@ HierarchyVecCellDataOpsReal<TYPE>::divide(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.divide(dst, src1, src2, box);
@@ -478,7 +478,7 @@ HierarchyVecCellDataOpsReal<TYPE>::reciprocal(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -494,7 +494,7 @@ HierarchyVecCellDataOpsReal<TYPE>::reciprocal(
             Pointer<VecCellData<TYPE> > dst = p->getPatchData(dst_id);
             Pointer<VecCellData<TYPE> > src = p->getPatchData(src_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.reciprocal(dst, src, box);
@@ -514,7 +514,7 @@ HierarchyVecCellDataOpsReal<TYPE>::linearSum(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -531,7 +531,7 @@ HierarchyVecCellDataOpsReal<TYPE>::linearSum(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.linearSum(dst, alpha, src1, beta, src2, box);
@@ -550,7 +550,7 @@ HierarchyVecCellDataOpsReal<TYPE>::axpy(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -567,7 +567,7 @@ HierarchyVecCellDataOpsReal<TYPE>::axpy(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.axpy(dst, alpha, src1, src2, box);
@@ -586,7 +586,7 @@ HierarchyVecCellDataOpsReal<TYPE>::axmy(
     const bool interior_only) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((d_coarsest_level >= 0)
                 && (d_finest_level >= d_coarsest_level)
                 && (d_finest_level <= d_hierarchy->getFinestLevelNumber()));
@@ -603,7 +603,7 @@ HierarchyVecCellDataOpsReal<TYPE>::axmy(
             Pointer<VecCellData<TYPE> > src1 = p->getPatchData(src1_id);
             Pointer<VecCellData<TYPE> > src2 = p->getPatchData(src2_id);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!dst.isNull());
+            TBOX_ASSERT(dst);
 #endif
             const Box<NDIM>& box = interior_only ? p->getBox() : dst->getGhostBox();
             d_patch_ops.axmy(dst, alpha, src1, src2, box);

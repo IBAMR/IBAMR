@@ -91,7 +91,7 @@ PatchVecCellDataBasicOps<TYPE>::scale(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src.isNull());
+    TBOX_ASSERT(dst && src);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src->getGhostBox();
     blitz::Array<double,NDIM+1> dst_arr(GET_ARRAY_BOX(dst->getArray(),data_box));
@@ -109,7 +109,7 @@ PatchVecCellDataBasicOps<TYPE>::addScalar(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src.isNull());
+    TBOX_ASSERT(dst && src);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src->getGhostBox();
     blitz::Array<double,NDIM+1> dst_arr(GET_ARRAY_BOX(dst->getArray(),data_box));
@@ -127,7 +127,7 @@ PatchVecCellDataBasicOps<TYPE>::add(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -146,7 +146,7 @@ PatchVecCellDataBasicOps<TYPE>::subtract(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -165,7 +165,7 @@ PatchVecCellDataBasicOps<TYPE>::multiply(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -184,7 +184,7 @@ PatchVecCellDataBasicOps<TYPE>::divide(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -202,7 +202,7 @@ PatchVecCellDataBasicOps<TYPE>::reciprocal(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src.isNull());
+    TBOX_ASSERT(dst && src);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src->getGhostBox();
     blitz::Array<double,NDIM+1> dst_arr(GET_ARRAY_BOX(dst->getArray(),data_box));
@@ -222,7 +222,7 @@ PatchVecCellDataBasicOps<TYPE>::linearSum(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -242,7 +242,7 @@ PatchVecCellDataBasicOps<TYPE>::axpy(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -262,7 +262,7 @@ PatchVecCellDataBasicOps<TYPE>::axmy(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!dst.isNull() && !src1.isNull() && !src2.isNull());
+    TBOX_ASSERT(dst && src1 && src2);
 #endif
     const Box<NDIM> data_box = box * dst->getGhostBox() * src1->getGhostBox() * src2->getGhostBox();
     blitz::Array<double,NDIM+1>  dst_arr(GET_ARRAY_BOX( dst->getArray(),data_box));
@@ -279,7 +279,7 @@ PatchVecCellDataBasicOps<TYPE>::min(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!data.isNull());
+    TBOX_ASSERT(data);
 #endif
     const Box<NDIM> data_box = box * data->getGhostBox();
     blitz::Array<double,NDIM+1> data_arr(GET_ARRAY_BOX(data->getArray(),data_box));
@@ -293,7 +293,7 @@ PatchVecCellDataBasicOps<TYPE>::max(
     const Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!data.isNull());
+    TBOX_ASSERT(data);
 #endif
     const Box<NDIM> data_box = box * data->getGhostBox();
     blitz::Array<double,NDIM+1> data_arr(GET_ARRAY_BOX(data->getArray(),data_box));

@@ -243,42 +243,42 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
 
     const std::string U_var_name = "INSCollocatedPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (!d_U_var)
+    if (d_U_var)
     {
-        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
     const std::string u_extrap_var_name = "INSCollocatedPPMConvectiveOperator::u_extrap";
     d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
-    if (!d_u_extrap_var)
+    if (d_u_extrap_var)
     {
-        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
-        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
+        d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
     }
     else
     {
-        d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
+        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
+        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 #endif
     const std::string u_flux_var_name = "INSCollocatedPPMConvectiveOperator::u_flux";
     d_u_flux_var = var_db->getVariable(u_flux_var_name);
-    if (!d_u_flux_var)
+    if (d_u_flux_var)
     {
-        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
-        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
+        d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
     }
     else
     {
-        d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
+        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
+        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_flux_idx >= 0);

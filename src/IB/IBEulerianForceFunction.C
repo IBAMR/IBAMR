@@ -98,7 +98,7 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
         d_ib_solver->d_hier_velocity_data_ops->setToScalar(data_idx, 0.0);
         return;
     }
-    if (!d_ib_solver->d_body_force_fcn.isNull())
+    if (d_ib_solver->d_body_force_fcn)
     {
         d_ib_solver->d_body_force_fcn->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     }
@@ -126,35 +126,35 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_data.isNull());
+    TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
+    TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
     if (initial_time)
     {
-        if (!f_cc_data.isNull()) f_cc_data->fillAll(0.0);
-        if (!f_sc_data.isNull()) f_sc_data->fillAll(0.0);
+        if (f_cc_data) f_cc_data->fillAll(0.0);
+        if (f_sc_data) f_sc_data->fillAll(0.0);
         return;
     }
     Pointer<PatchData<NDIM> > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_ib_data.isNull());
+    TBOX_ASSERT(f_ib_data);
 #endif
     Pointer<CellData<NDIM,double> > f_ib_cc_data = f_ib_data;
     Pointer<SideData<NDIM,double> > f_ib_sc_data = f_ib_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_ib_cc_data.isNull() || !f_ib_sc_data.isNull());
-    TBOX_ASSERT((!f_ib_cc_data.isNull() && !f_cc_data.isNull()) || (!f_ib_sc_data.isNull() && !f_sc_data.isNull()));
+    TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
+    TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
 #endif
-    if (!f_cc_data.isNull())
+    if (f_cc_data)
     {
         PatchCellDataBasicOps<NDIM,double> patch_ops;
         patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch->getBox());
     }
-    if (!f_sc_data.isNull())
+    if (f_sc_data)
     {
         PatchSideDataBasicOps<NDIM,double> patch_ops;
         patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());

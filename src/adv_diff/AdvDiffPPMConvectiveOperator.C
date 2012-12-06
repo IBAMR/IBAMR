@@ -249,28 +249,28 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
     d_Q_data_depth = Q_pdat_fac->getDefaultDepth();
     const std::string q_extrap_var_name = d_object_name + "::q_extrap";
     d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
-    if (d_q_extrap_var.isNull())
+    if (d_q_extrap_var)
     {
-        d_q_extrap_var = new FaceVariable<NDIM,double>(q_extrap_var_name, d_Q_data_depth);
-        d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector<NDIM>(0));
+        d_q_extrap_idx = var_db->mapVariableAndContextToIndex(d_q_extrap_var, context);
     }
     else
     {
-        d_q_extrap_idx = var_db->mapVariableAndContextToIndex(d_q_extrap_var, context);
+        d_q_extrap_var = new FaceVariable<NDIM,double>(q_extrap_var_name, d_Q_data_depth);
+        d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_q_extrap_idx >= 0);
 #endif
     const std::string q_flux_var_name = d_object_name + "::q_flux";
     d_q_flux_var = var_db->getVariable(q_flux_var_name);
-    if (d_q_flux_var.isNull())
+    if (d_q_flux_var)
     {
-        d_q_flux_var = new FaceVariable<NDIM,double>(q_flux_var_name, d_Q_data_depth);
-        d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
+        d_q_flux_idx = var_db->mapVariableAndContextToIndex(d_q_flux_var, context);
     }
     else
     {
-        d_q_flux_idx = var_db->mapVariableAndContextToIndex(d_q_flux_var, context);
+        d_q_flux_var = new FaceVariable<NDIM,double>(q_flux_var_name, d_Q_data_depth);
+        d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_q_flux_idx >= 0);

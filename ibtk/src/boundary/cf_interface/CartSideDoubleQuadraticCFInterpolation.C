@@ -206,7 +206,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
     const IntVector<NDIM>& ratio)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
@@ -245,10 +245,10 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
         Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
         Pointer<SideData<NDIM,int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!fdata.isNull());
-        TBOX_ASSERT(!cdata.isNull());
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
-        TBOX_ASSERT(!indicator_data.isNull());
+        TBOX_ASSERT(indicator_data);
 #endif
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
@@ -377,9 +377,9 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
-    if (!d_hierarchy.isNull()) clearPatchHierarchy();
+    if (d_hierarchy) clearPatchHierarchy();
     d_hierarchy = hierarchy;
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
@@ -439,7 +439,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
@@ -476,8 +476,8 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
         data_copy.copyOnBox(*data,data->getGhostBox());
         Pointer<SideData<NDIM,int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
-        TBOX_ASSERT(!indicator_data.isNull());
+        TBOX_ASSERT(data);
+        TBOX_ASSERT(indicator_data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
         const int W_ghosts = (data_copy.getGhostCellWidth()).max();

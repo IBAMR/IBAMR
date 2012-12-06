@@ -298,7 +298,7 @@ IBStandardSourceGen::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("s_num_sources.size()",s_num_sources.size());
     db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());

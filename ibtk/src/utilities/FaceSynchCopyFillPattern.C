@@ -79,7 +79,7 @@ FaceSynchCopyFillPattern::calculateOverlap(
     Pointer<FaceOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!box_geom_overlap.isNull());
+    TBOX_ASSERT(box_geom_overlap);
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 

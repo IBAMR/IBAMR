@@ -89,7 +89,7 @@ LSetDataFactory<T>::allocate(
     const Box<NDIM>& box,
     Pointer<Arena> pool) const
 {
-    if (pool.isNull())
+    if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
@@ -120,7 +120,7 @@ LSetDataFactory<T>::validCopyTo(
     const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
 {
     Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
-    return !lnidf.isNull();
+    return lnidf;
 }// validCopyTo
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

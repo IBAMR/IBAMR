@@ -76,7 +76,7 @@ GeneralizedIBMethod::GeneralizedIBMethod(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Indicate all Lagrangian data needs ghost values to be refilled, and that
     // all intermediate data needs to be initialized.
@@ -99,7 +99,7 @@ GeneralizedIBMethod::registerIBKirchhoffRodForceGen(
     Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ib_force_and_torque_fcn.isNull());
+    TBOX_ASSERT(ib_force_and_torque_fcn);
 #endif
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
     return;
@@ -117,13 +117,13 @@ GeneralizedIBMethod::registerEulerianVariables()
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-    if (!u_cc_var.isNull())
+    if (u_cc_var)
     {
         d_f_var = new CellVariable<NDIM,double>(d_object_name+"::f", NDIM);
         d_w_var = new CellVariable<NDIM,double>(d_object_name+"::w", NDIM);
         d_n_var = new CellVariable<NDIM,double>(d_object_name+"::n", NDIM);
     }
-    else if (!u_sc_var.isNull())
+    else if (u_sc_var)
     {
         d_f_var = new SideVariable<NDIM,double>(d_object_name+"::f");
         d_w_var = new SideVariable<NDIM,double>(d_object_name+"::w");
@@ -174,7 +174,7 @@ GeneralizedIBMethod::preprocessIntegrateData(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double start_time = d_ib_solver->getStartTime();
 
-    if (!d_ib_force_and_torque_fcn.isNull())
+    if (d_ib_force_and_torque_fcn)
     {
         if (d_ib_force_and_torque_fcn_needs_init)
         {
@@ -270,12 +270,12 @@ GeneralizedIBMethod::interpolateVelocity(
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-    if (!u_cc_var.isNull())
+    if (u_cc_var)
     {
         Pointer<CellVariable<NDIM,double> > w_cc_var = d_w_var;
         getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, data_time);
     }
-    else if (!u_sc_var.isNull())
+    else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM,double> > w_sc_var = d_w_var;
         getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, data_time);
@@ -467,8 +467,10 @@ GeneralizedIBMethod::computeLagrangianForce(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         ierr = VecSet((*N_data)[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
-        if (d_ib_force_and_torque_fcn.isNull()) continue;
-        d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln], (*D_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        if (d_ib_force_and_torque_fcn)
+        {
+            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln], (*D_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        }
     }
     resetAnchorPointValues(*F_data, coarsest_ln, finest_ln);
     resetAnchorPointValues(*N_data, coarsest_ln, finest_ln);
@@ -541,13 +543,13 @@ GeneralizedIBMethod::spreadForce(
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-    if (!u_cc_var.isNull())
+    if (u_cc_var)
     {
         Pointer<CellVariable<NDIM,double> > f_cc_var = d_f_var;
         Pointer<CellVariable<NDIM,double> > n_cc_var = d_n_var;
         getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, NULL, data_time);
     }
-    else if (!u_sc_var.isNull())
+    else if (u_sc_var)
     {
         Pointer<SideVariable<NDIM,double> > f_sc_var = d_f_var;
         Pointer<SideVariable<NDIM,double> > n_sc_var = d_n_var;
@@ -610,12 +612,12 @@ GeneralizedIBMethod::initializePatchHierarchy(
         Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
         Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
         Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-        if (!u_cc_var.isNull())
+        if (u_cc_var)
         {
             Pointer<CellVariable<NDIM,double> > w_cc_var = d_w_var;
             getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, init_data_time);
         }
-        else if (!u_sc_var.isNull())
+        else if (u_sc_var)
         {
             Pointer<SideVariable<NDIM,double> > w_sc_var = d_w_var;
             getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, init_data_time);
@@ -664,7 +666,7 @@ GeneralizedIBMethod::initializeLevelData(
             init_data_time, can_be_refined, initial_time, d_l_data_manager);
 
         // 3. Register data with any registered data writer.
-        if (!d_silo_writer.isNull())
+        if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
             d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
@@ -693,7 +695,7 @@ GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(
     const double init_data_time,
     const bool initial_time)
 {
-    if (d_ib_force_and_torque_fcn.isNull()) return;
+    if (!d_ib_force_and_torque_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;

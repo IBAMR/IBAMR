@@ -147,7 +147,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
 

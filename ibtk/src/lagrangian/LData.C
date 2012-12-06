@@ -273,7 +273,7 @@ LData::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     const int num_local_nodes = getLocalNodeCount();
     const int num_ghost_nodes = d_nonlocal_petsc_indices.size();

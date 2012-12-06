@@ -91,7 +91,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();

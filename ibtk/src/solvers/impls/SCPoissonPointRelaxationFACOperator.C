@@ -155,7 +155,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
     d_coarse_solver_db->putString("split_solver_type", "PFMG");
 
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method")) d_prolongation_method = input_db->getString("prolongation_method");
@@ -245,7 +245,7 @@ SCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
-    if (d_coarse_solver_type != "BLOCK_JACOBI" && d_coarse_solver.isNull())
+    if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
         d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
@@ -446,14 +446,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (d_coarse_solver.isNull())
-    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
-#endif
-        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
-    }
-    else
+    if (d_coarse_solver)
     {
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
@@ -463,6 +456,13 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
         xeqScheduleDataSynch(error.getComponentDescriptorIndex(0), coarsest_ln);
+    }
+    else
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
+#endif
+        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
@@ -490,14 +490,14 @@ SCPoissonPointRelaxationFACOperator::computeResidual(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-    if (d_level_bdry_fill_ops[finest_level_num].isNull())
+    if (d_level_bdry_fill_ops[finest_level_num])
     {
-        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
     else
     {
-        d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
+        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
@@ -505,7 +505,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
-    if (d_level_math_ops[finest_level_num].isNull())
+    if (!d_level_math_ops[finest_level_num])
     {
         std::ostringstream stream;
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
@@ -536,10 +536,10 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     Pointer<SideDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!solution_var.isNull());
-    TBOX_ASSERT(!     rhs_var.isNull());
-    TBOX_ASSERT(!solution_pdat_fac.isNull());
-    TBOX_ASSERT(!     rhs_pdat_fac.isNull());
+    TBOX_ASSERT(solution_var);
+    TBOX_ASSERT(     rhs_var);
+    TBOX_ASSERT(solution_pdat_fac);
+    TBOX_ASSERT(     rhs_pdat_fac);
 #endif
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
@@ -678,7 +678,7 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
     {
         d_patch_bc_box_overlap.clear();
         d_patch_smoother_bc_boxes.clear();
-        if (!d_coarse_solver.isNull()) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;
 }// deallocateOperatorStateSpecialized

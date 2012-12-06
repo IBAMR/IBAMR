@@ -147,7 +147,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
 
@@ -436,7 +436,7 @@ main(
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
             Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
-            if (!u_cc_var.isNull())
+            if (u_cc_var)
             {
                 HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
@@ -447,7 +447,7 @@ main(
             }
 
             Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
-            if (!u_sc_var.isNull())
+            if (u_sc_var)
             {
                 HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
