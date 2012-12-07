@@ -70,11 +70,12 @@ output_data(
 inline double
 linear_spring_force(
     double R,
-    double stf,
-    double rst,
+    const double* params,
     int /*lag_mastr_idx*/,
     int /*lag_slave_idx*/)
 {
+    const double stf = params[0];
+    const double rst = params[1];
     return stf*(R/rst - 1.0);
 }// linear_spring_force
 
@@ -85,11 +86,12 @@ linear_spring_force(
 inline double
 linear_spring_force_deriv(
     double /*R*/,
-    double stf,
-    double rst,
+    const double* params,
     int /*lag_mastr_idx*/,
     int /*lag_slave_idx*/)
 {
+    const double stf = params[0];
+    const double rst = params[1];
     return stf/rst;
 }// linear_spring_force_deriv
 
