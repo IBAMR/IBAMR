@@ -107,7 +107,9 @@ am_m3D_hdf5_strain_analyzer_OBJECTS =  \
 	m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.$(OBJEXT)
 m3D_hdf5_strain_analyzer_OBJECTS =  \
 	$(am_m3D_hdf5_strain_analyzer_OBJECTS)
-m3D_hdf5_strain_analyzer_LDADD = $(LDADD)
+am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
+	${top_builddir}/ibtk/lib/libIBTK.a
+m3D_hdf5_strain_analyzer_DEPENDENCIES = $(am__DEPENDENCIES_1)
 m3D_hdf5_strain_analyzer_LINK = $(CXXLD) \
 	$(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
@@ -455,6 +457,7 @@ m3D_hdf5_fiber_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_fiber_conver
 m3D_hdf5_marker_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_marker_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
 m3D_hdf5_strain_analyzer_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+m3D_hdf5_strain_analyzer_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 m3D_hdf5_strain_analyzer_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
 marker_flooder3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 marker_flooder3d_SOURCES = $(top_srcdir)/src/tools/marker_flooder.C

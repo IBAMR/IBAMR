@@ -17,6 +17,7 @@ m3D_hdf5_marker_converter_CXXFLAGS= $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_marker_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
 
 m3D_hdf5_strain_analyzer_CXXFLAGS= $(AM_CXXFLAGS) -DNDIM=3
+m3D_hdf5_strain_analyzer_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 m3D_hdf5_strain_analyzer_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
 
 marker_flooder3d_CXXFLAGS= $(AM_CXXFLAGS) -DNDIM=3
