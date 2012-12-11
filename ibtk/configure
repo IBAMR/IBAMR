@@ -12868,10 +12868,14 @@ echo "Configuring required package PETSc"
 echo "=================================="
 
 
-echo "using PETSc architecture = ${PETSC_ARCH}"
-echo "using PETSc root    directory = ${PETSC_DIR}"
-echo "using PETSc lib     directory = ${PETSC_DIR}/${PETSC_ARCH}/lib"
-echo "using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/${PETSC_ARCH}/include"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: using PETSc architecture = ${PETSC_ARCH}" >&5
+$as_echo "$as_me: using PETSc architecture = ${PETSC_ARCH}" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: using PETSc root    directory = ${PETSC_DIR}" >&5
+$as_echo "$as_me: using PETSc root    directory = ${PETSC_DIR}" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: using PETSc lib     directory = ${PETSC_DIR}/${PETSC_ARCH}/lib" >&5
+$as_echo "$as_me: using PETSc lib     directory = ${PETSC_DIR}/${PETSC_ARCH}/lib" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/${PETSC_ARCH}/include" >&5
+$as_echo "$as_me: using PETSc include directory = ${PETSC_DIR}/include, ${PETSC_DIR}/${PETSC_ARCH}/include" >&6;}
 
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
   LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib $LDFLAGS"
@@ -12892,6 +12896,8 @@ fi
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.3.0" >&5
+$as_echo_n "checking for PETSc version 3.3.0... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -12934,7 +12940,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 if test "$PETSC_VERSION_3_3_0" == "yes"; then
-  echo "using PETSc 3.3.0"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
   as_fn_error $? "incorrect PETSc version detected: please use PETSc 3.3.0" "$LINENO" 5
 fi
@@ -12982,8 +12989,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 if test "$PETSC_HAVE_X" == "yes"; then
-  echo "NOTE: PETSc appears to have been configured with X11 support enabled"
-  echo "looking for libX11"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to have been configured with X11 support enabled; looking for libX11" >&5
+$as_echo "$as_me: PETSc appears to have been configured with X11 support enabled; looking for libX11" >&6;}
   LDFLAGS="-L/usr/X11/lib $LDFLAGS"
 
 
@@ -13542,7 +13549,7 @@ $as_echo "$LIBX11" >&6; }
 
 
   if test "$HAVE_LIBX11" != "yes"; then
-    as_fn_error $? "could not find working X11 library
+    as_fn_error $? "could not find X11 library;
 try modifying the value of the LDFLAGS environment variable,
 or reconfigure PETSc with the flag --with-x=0" "$LINENO" 5
   fi
@@ -14189,7 +14196,8 @@ $as_echo "$as_me: WARNING: libMesh support is enabled, but could not find expect
 fi
 
 contrib_lib_enabled=`grep "enable-laspack.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/laspack ${CPPFLAGS}"
 
@@ -14757,7 +14765,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib liblaspack is enabled, but co
 fi
 
 contrib_lib_enabled=`grep "enable-parmetis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
 
@@ -15323,7 +15332,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libparmetis is enabled, but c
 fi
 
 contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
 
@@ -16457,7 +16467,8 @@ elif test "$HAVE_LIBPARMETIS" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/sfcurves ${CPPFLAGS}"
 
@@ -17025,7 +17036,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libsfcurves is enabled, but c
 fi
 
 contrib_lib_enabled=`grep "enable-gzstream.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gzstream ${CPPFLAGS}"
 
@@ -17593,7 +17605,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libgzstream is enabled, but c
 fi
 
 contrib_lib_enabled=`grep "enable-tetgen.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/tetgen ${CPPFLAGS}"
 
@@ -18161,7 +18174,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libtetgen is enabled, but cou
 fi
 
 contrib_lib_enabled=`grep "enable-triangle.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/triangle ${CPPFLAGS}"
 
@@ -18729,7 +18743,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libtriangle is enabled, but c
 fi
 
 contrib_lib_enabled=`grep "enable-gmv.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gmv ${CPPFLAGS}"
 
@@ -19297,7 +19312,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libgmv is enabled, but could 
 fi
 
 contrib_lib_enabled=`grep "enable-vtk.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
 
 
@@ -19864,7 +19880,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libvtk is enabled, but could 
 fi
 
 contrib_lib_enabled=`grep "enable-netcdf.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/netcdf/Lib ${CPPFLAGS}"
 
@@ -20432,7 +20449,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libnetcdf is enabled, but cou
 fi
 
 contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
 
@@ -21000,7 +21018,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libexodusii is enabled, but c
 fi
 
 contrib_lib_enabled=`grep "enable-nemesis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/nemesis/Lib ${CPPFLAGS}"
 
@@ -21568,7 +21587,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libnemesis is enabled, but co
 fi
 
 contrib_lib_enabled=`grep "enable-libhilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}" >&5
+$as_echo "$as_me: checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}" >&6;}
 if test "${contrib_lib_enabled}" == "yes" ; then
 
 
@@ -22702,6 +22722,54 @@ $as_echo "$LIBMESH" >&6; }
 
 if test "$HAVE_LIBMESH" == "yes" ; then
   LIBS="$LIBMESH $LIBS"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.8.0" >&5
+$as_echo_n "checking for libMesh version 0.8.0... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/libmesh_version.h>
+
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 8) && (LIBMESH_MICRO_VERSION == 0))
+#else
+asdf
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_VERSION_0_8_0=yes
+else
+  LIBMESH_VERSION_0_8_0=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  if test "$LIBMESH_VERSION_0_8_0" == "yes"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  else
+    as_fn_error $? "incorrect libMesh version detected: please use libMesh 0.8.0-release" "$LINENO" 5
+  fi
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libMesh support is enabled, but could not find working libmesh" >&5
 $as_echo "$as_me: WARNING: libMesh support is enabled, but could not find working libmesh" >&2;}

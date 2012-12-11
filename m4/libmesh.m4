@@ -62,7 +62,7 @@ else
 fi
 
 contrib_lib_enabled=`grep "enable-laspack.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/laspack ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([laspack])
@@ -74,7 +74,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-parmetis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([parmetis])
@@ -84,7 +84,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([metis])
@@ -106,7 +106,7 @@ elif test "$HAVE_LIBPARMETIS" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/sfcurves ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([sfcurves])
@@ -118,7 +118,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-gzstream.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gzstream ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([gzstream])
@@ -130,7 +130,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-tetgen.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/tetgen ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([tetgen])
@@ -142,7 +142,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-triangle.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/triangle ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([triangle])
@@ -154,7 +154,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-gmv.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gmv ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([gmv])
@@ -166,7 +166,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-vtk.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   AC_LIB_HAVE_LINKFLAGS([vtk])
   if test "$HAVE_LIBVTK" == "yes" ; then
@@ -177,7 +177,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-netcdf.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/netcdf/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([netcdf])
@@ -189,7 +189,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([exodusii])
@@ -201,7 +201,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-nemesis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/nemesis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([nemesis])
@@ -213,7 +213,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
 fi
 
 contrib_lib_enabled=`grep "enable-libhilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-echo "checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}"
+AC_MSG_NOTICE([checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   AC_LIB_HAVE_LINKFLAGS([Hilbert])
   if test "$HAVE_LIBHILBERT" == "yes" ; then
@@ -228,6 +228,20 @@ AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_WARN([could not find header file lib
 AC_LIB_HAVE_LINKFLAGS([mesh])
 if test "$HAVE_LIBMESH" == "yes" ; then
   LIBS="$LIBMESH $LIBS"
+  AC_MSG_CHECKING([for libMesh version 0.8.0])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libmesh/libmesh_version.h>
+]], [[
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 8) && (LIBMESH_MICRO_VERSION == 0))
+#else
+asdf
+#endif
+]])],[LIBMESH_VERSION_0_8_0=yes],[LIBMESH_VERSION_0_8_0=no])
+  if test "$LIBMESH_VERSION_0_8_0" == "yes"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_ERROR([incorrect libMesh version detected: please use libMesh 0.8.0-release])
+  fi
 else
   AC_MSG_WARN([libMesh support is enabled, but could not find working libmesh])
 fi
