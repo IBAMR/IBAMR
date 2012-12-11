@@ -1,0 +1,180 @@
+
+@node platforms, download, about, Introduction
+@section Platform/compiler notes
+
+For up-to-date information on supported platforms, please consult
+the platforms area on the Blitz++ home page:
+
+@uref{http://oonumerics.org/blitz/platforms/}
+
+The information in this document may be out of date.
+
+@subsection KAI C++ for Linux/Unix
+@cindex KCC compiler
+
+Blitz++ was developed and tested using KAI C++ under AIX.  It should (in
+theory) port to other KAI C++ platforms (Cray, SGI, HP, Sun, Linux, Compaq)
+without difficulty.  Since KAI C++ uses an EDG front end, other EDG
+front-ended compilers (e.g. Comeau) should be able to compile Blitz++.
+
+Recommended compile flags are:
+
+@example
++K3 -O2 --restrict --abstract_pointer --abstract_float -tused
+@end example
+
+Note that you cannot compile with @code{-tall} (this will generate lots of
+errors).
+
+Under Linux, you may need the flag @code{-D__signed__=}.  You should omit
+@code{-tused} since this template instantiation model is not supported by
+@code{gcc}, which is used as the back-end compiler.
+
+Please note that since the purchase of KAI by Intel several years ago, the 
+use of this compiler has been gradually phased out, with most of the KAI
+compiler technology being transferred into the Intel C/C++ compiler.  Thus,
+Blitz++ is no longer being routinely tested under @code{KCC}.
+
+@subsection Intel C++ for x86
+@cindex Intel C++ compiler
+
+Blitz++ compiles under fairly recent versions of the Intel C++ compiler
+(version 7.1, 8.x or 9.0) for Linux platforms, as well as the comparable 
+plug-in compiler for Windows that can be used within the Microsoft 
+Visual Studio IDE.  We recommend use of the @code{-ansi} flag for compiler
+adherence to the ANSI C++ standard.  The @code{-strict_ansi} flag is not
+used, as this can lead to many compiler error messages originating from
+code in the GNU C++ standard library header files.
+
+More information:
+
+@uref{http://www.intel.com/software/products/compilers/clin}
+
+@uref{http://www.intel.com/software/products/compilers/cwin}
+
+@subsection Microsoft VS.NET 2003 for Windows
+@cindex Microsoft VS.NET 2003 C++ compiler
+
+Blitz++ has been ported to the C++ compiler within the Microsoft VS.NET 2003
+compiler and IDE package.  We provide a zip archive containing an appropriate 
+configuration header file and project files for building the Blitz library
+and all of the testsuite codes.  Previous versions of the Microsoft C++
+compiler within Visual Studio do not have the required C++ features needed
+by Blitz++ and are not supported.  Blitz can be compiled under Visual Studio
+by using the Intel plug-in C++ compiler for Windows.
+
+@subsection gcc for Linux/Unix/Darwin
+@cindex g++ compiler
+
+GCC (@code{g++}) is a free @acronym{GNU} C++ compiler.  It compiles Blitz++
+reliably on almost any platform running Linux or another Unix variant 
+(including the Darwin OS).  In fact, most Blitz++ development work is done 
+with @code{g++}.
+
+Work has been done in the latest Blitz++ release to ensure compatibility
+with the gcc-4.x release, which contains some key changes in enforcement 
+of the C++ ANSI standard related to the use of anonymous enums.
+
+gcc may be downloaded from @uref{http://www.gnu.org/software/gcc/gcc.html}.
+
+If you are using gcc under Solaris, SunOS, or OSF/1, please see the
+@file{README.binutils} file included in the distribution.
+
+@subsection PathScale for x86_64
+@cindex PathScale pathCC compiler
+
+We have just added support for the PathScale pathCC compiler in blitz-0.9.
+This compiler is being provided on many of the newer Opteron x86_64 systems.
+We welcome feedback on support for this compiler.
+
+@subsection PGI for Linux x86
+@cindex PGI pgCC compiler
+
+The Portland Group PGI compiler is supported on Linux x86 platforms, and 
+more recent versions of pgCC such as 5.x are capable of compiling blitz.
+However, performance is not particularly good and PGI support is not 
+being actively tested or maintained.
+
+@subsection Absoft for Mac OS X
+@cindex Absoft xlc++ compiler
+
+Absoft markets a variant of the IBM xlC compiler called @code{xlc++} that 
+has been ported to the Darwin operating system (Mac OS X).  We are providing
+support for compiling blitz using this compiler.  Although we have noted 
+and reported some bugs with this compiler, it is capable of producing fairly
+high quality optimized code for the Darwin platform.
+
+@subsection Metrowerks for Mac
+@cindex Metrowerks compiler
+
+Metrowerks is sort-of supported; see the platforms web page and the mailing
+lists for more information.  Support for Metrowerks is no longer being 
+actively maintained.
+
+@subsection Compaq Alpha 
+@cindex Compaq cxx compiler
+
+The Compaq C++ compiler version 6.x is supported, and we recommend use of
+the @code{-model ansi} flag in order to obtain standard C++ compiler behavior
+and proper name mangling.  We have inserted a workaround for the lack of
+standard ostream support for the @code{long double} type.  At this point,
+performance of blitz code under the cxx compiler is somewhat disappointing.
+
+@subsection IBM RS6000/IBM PowerPC
+@cindex IBM xlC compiler
+
+The IBM Visual Age C++ compiler is supported as of version 6.x.  However,
+you may run into a variety of annoying compiler bugs that prevent certain 
+portions of the Blitz++ library code from compiling.  Therefore, it is 
+strongly recommended that you obtain xlC version 7.0.0.3 or later, in order
+to get all the necessary patches that IBM has produced in response to our 
+bug reports.  Also note that compile times can be fairly long with full
+optimization enabled.
+
+@subsection SGI MIPSpro
+@cindex SGI CC compiler
+
+The SGI MIPSpro-7.x version CC compiler is supported, although active testing
+is no longer being done.
+
+@subsection Sun SPARC
+@cindex Sun Studio CC compiler
+
+As of version Sun Studio 10.x, the Sun CC compiler should be capable of
+compiling blitz.  However, no active support is being provided.
+
+@subsection Cray T3E/Cray T90/Cray C90/Cray J90
+@cindex Cray CC compiler
+
+As of Version 0.2-alpha-02 of Blitz++, Version 3.0.0.0 of the Cray C++
+compiler is supported (well, tolerated anyway).  It seems to be based on an
+older version of the EDG front end, so some kludges are required.  It
+doesn't support partial ordering of member templates, so slicing arrays
+requires the workaround described in Section @ref{Array slicing}.  Portions
+of the standard library are missing, such as @code{<limits>},
+@code{<complex>}, and @code{<set>}.  This means you won't be able to use
+complex numbers (well, not the ISO/ANSI C++ versions anyway), numeric
+inquiry functions, or fast traversal orders.
+
+These compilation flags are recommended:
+
+@example
+-h instantiate=used
+@end example
+
+For optimization, you'll want:
+
+@example
+-O3 -h aggress
+@end example
+
+The ability of the Cray C++ compiler to optimize away temporary objects is
+disappointing.  It's not able to optimize away expression templates overhead
+or comma-delimited array initializers.  Please note that support for compiling
+Blitz++ under the Cray C++ compiler is no longer being actively maintained.
+
+@subsection Fujitsu
+@cindex Fujitsu
+
+This platform and compiler are no longer being actively supported.
+

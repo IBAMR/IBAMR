@@ -54,16 +54,16 @@
 #include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
-#include <boundary_info.h>
-#include <dense_matrix.h>
-#include <dense_vector.h>
-#include <dof_map.h>
-#include <fe_interface.h>
-#include <mesh.h>
-#include <petsc_linear_solver.h>
-#include <petsc_matrix.h>
-#include <petsc_vector.h>
-#include <string_to_enum.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/dense_matrix.h>
+#include <libmesh/dense_vector.h>
+#include <libmesh/dof_map.h>
+#include <libmesh/fe_interface.h>
+#include <libmesh/mesh.h>
+#include <libmesh/petsc_linear_solver.h>
+#include <libmesh/petsc_matrix.h>
+#include <libmesh/petsc_vector.h>
+#include <libmesh/string_to_enum.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES

@@ -44,9 +44,9 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <id_types.h>
-#include <tensor_value.h>
-#include <point.h>
+#include <libmesh/id_types.h>
+#include <libmesh/tensor_value.h>
+#include <libmesh/point.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

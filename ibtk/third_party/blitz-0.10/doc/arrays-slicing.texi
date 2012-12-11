@@ -1,0 +1,300 @@
+
+@node Array slicing, Array debug, Array ctors, Arrays
+@section Indexing, subarrays, and slicing
+
+This section describes how to access the elements of an array.  There are
+three main ways:
+
+@itemize @bullet
+
+@item    @strong{Indexing} obtains a single element 
+
+@item    Creating a @strong{subarray} which refers to a smaller portion of
+an array 
+
+@item    @strong{Slicing} to produce a smaller-dimensional view of a portion
+of an array 
+
+@end itemize
+
+Indexing, subarrays and slicing all use the overloaded parenthesis
+@code{operator()}.
+
+As a running example, we'll consider the three dimensional array pictured
+below, which has index ranges (0..7, 0..7, 0..7).  Shaded portions of the
+array show regions which have been obtained by indexing, creating a
+subarray, and slicing.
+
+@center @image{slice}
+@center Examples of array indexing, subarrays, and slicing.
+
+@subsection Indexing
+@cindex Array indexing
+@cindex indexing an array
+
+There are two ways to get a single element from an array.  The simplest is
+to provide a set of integer operands to @code{operator()}:
+
+@example
+A(7,0,0) = 5;    
+cout << "A(7,0,0) = " << A(7,0,0) << endl;
+@end example
+
+This version of indexing is available for arrays of rank one through eleven.
+If the array object isn't @code{const}, the return type of
+@code{operator()} is a reference; if the array object is @code{const}, the
+return type is a value.
+
+You can also get an element by providing an operand of type
+@code{TinyVector<int,N_rank>} where @code{N_rank} is the rank of the array
+object:
+
+@example
+TinyVector<int,3> index;
+index = 7, 0, 0;
+A(index) = 5;
+cout << "A(7,0,0) = " << A(index) << endl;
+@end example
+
+This version of @code{operator()} is also available in a const-overloaded
+version.
+
+It's possible to use fewer than @code{N_rank} indices.  However, missing
+indices are @strong{assumed to be zero}, which will cause bounds errors if
+the valid index range does not include zero (e.g. Fortran arrays).  For this
+reason, and for code clarity, it's a bad idea to omit indices.
+
+@subsection Subarrays
+@cindex Array subarrays
+@cindex subarrays
+@cindex Range objects
+
+You can obtain a subarray by providing @code{Range} operands to
+@code{operator()}.  A @code{Range} object represents a set of regularly
+spaced index values.  For example,
+
+@example
+Array<int,3> B = A(Range(5,7), Range(5,7), Range(0,2));
+@end example
+
+The object B now refers to elements (5..7,5..7,0..2) of the array A.
+
+The returned subarray is of type @code{Array<T_numtype,N_rank>}. This means
+that subarrays can be used wherever arrays can be: in expressions, as
+lvalues, etc.  Some examples:
+
+@example
+// A three-dimensional stencil (used in solving PDEs)
+Range I(1,6), J(1,6), K(1,6);
+B = (A(I,J,K) + A(I+1,J,K) + A(I-1,J,K) + A(I,J+1,K)
+ + A(I,J-1,K) + A(I,J+1,K) + A(I,J,K+1) + A(I,J,K-1)) / 7.0;
+
+// Set a subarray of A to zero
+A(Range(5,7), Range(5,7), Range(5,7)) = 0.;
+@end example
+
+The bases of the subarray are equal to the bases of the original array:
+
+@example
+Array<int,2> D(Range(1,5), Range(1,5));     // 1..5, 1..5
+Array<int,2> E = D(Range(2,3), Range(2,3)); // 1..2, 1..2
+@end example
+
+An array can be used on both sides of an expression only if the subarrays
+don't overlap.  If the arrays overlap, the result may depend on the order in
+which the array is traversed.  
+
+@subsection RectDomain and StridedDomain
+@cindex RectDomain
+@findex RectDomain
+@cindex StridedDomain
+@findex StridedDomain
+@cindex TinyVector of Range (use @code{RectDomain})
+
+The classes @code{RectDomain} and @code{StridedDomain}, defined in
+@code{blitz/domain.h}, offer a dimension-independent notation for subarrays.
+
+@code{RectDomain} and @code{StridedDomain} can be thought of as a
+@code{TinyVector<Range,N>}.  Both have a vector of lower- and upper-bounds;
+@code{StridedDomain} has a stride vector.  For example, the subarray:
+
+@example
+Array<int,2> B = A(Range(4,7), Range(8,11));  // 4..7, 8..11
+@end example
+
+could be obtained using @code{RectDomain} this way:
+
+@example
+TinyVector<int,2> lowerBounds(4, 8);
+TinyVector<int,2> upperBounds(7, 11);
+RectDomain<2> subdomain(lowerBounds, upperBounds);
+
+Array<int,2> B = A(subdomain);
+@end example
+
+Here are the prototypes of @code{RectDomain} and @code{StridedDomain}.
+
+@example
+template<int N_rank>
+class RectDomain @{
+
+public:
+    RectDomain(const TinyVector<int,N_rank>& lbound,
+        const TinyVector<int,N_rank>& ubound);
+
+    const TinyVector<int,N_rank>& lbound() const;
+    int lbound(int i) const;
+    const TinyVector<int,N_rank>& ubound() const;
+    int ubound(int i) const;
+    Range operator[](int rank) const;
+    void shrink(int amount);
+    void shrink(int dim, int amount);
+    void expand(int amount);
+    void expand(int dim, int amount);
+@};
+
+template<int N_rank>
+class StridedDomain @{
+
+public:
+    StridedDomain(const TinyVector<int,N_rank>& lbound,
+        const TinyVector<int,N_rank>& ubound,
+        const TinyVector<int,N_rank>& stride);
+
+    const TinyVector<int,N_rank>& lbound() const;
+    int lbound(int i) const;
+    const TinyVector<int,N_rank>& ubound() const;
+    int ubound(int i) const;
+    const TinyVector<int,N_rank>& stride() const;
+    int stride(int i) const;
+    Range operator[](int rank) const;
+    void shrink(int amount);
+    void shrink(int dim, int amount);
+    void expand(int amount);
+    void expand(int dim, int amount);
+@};
+@end example
+
+@subsection Slicing
+@cindex Array slicing
+@cindex slicing arrays
+
+A combination of integer and Range operands produces a @strong{slice}.  Each
+integer operand reduces the rank of the array by one.  For example:
+
+@example
+Array<int,2> F = A(Range::all(), 2, Range::all());
+Array<int,1> G = A(2,            7, Range::all());
+@end example
+
+Range and integer operands can be used in any combination, for arrays
+up to rank 11.
+
+@strong{Caution:} Using a combination of integer and Range operands requires a
+newer language feature (partial ordering of member templates) which not all
+compilers support.  If your compiler does provide this feature,
+@code{BZ_PARTIAL_ORDERING} will be defined in @code{<blitz/config.h>}.  If
+not, you can use this workaround:
+
+@example
+Array<int,3> F = A(Range::all(), Range(2,2), Range::all());
+Array<int,3> G = A(Range(2,2),   Range(7,7), Range::all());
+@end example
+
+@subsection More about Range objects
+@cindex Range objects
+
+A @code{Range} object represents an ordered set of uniformly spaced
+integers.  Here are some examples of using Range objects to obtain
+subarrays:
+
+@smallexample
+@include examples/range.texi
+@end smallexample
+
+The optional third constructor argument specifies a stride.  For example,
+@code{Range(1,5,2)} refers to elements [1 3 5].  Strides can also be
+negative: @code{Range(5,1,-2)} refers to elements [5 3 1].
+
+Note that if you use the same Range frequently, you can just construct one
+object and use it multiple times.  For example:
+
+@example
+Range all = Range::all();
+A(0,all,all) = A(N-1,all,all);
+A(all,0,all) = A(all,N-1,all);
+A(all,all,0) = A(all,all,N-1);
+@end example
+
+Here's an example of using strides with a two-dimensional
+array:
+
+@smallexample
+@include examples/strideslice.texi
+@end smallexample
+
+Here's an illustration of the @code{B} subarray:
+
+@center @image{strideslice}
+@center Using strides to create non-contiguous subarrays.
+
+And the program output:
+
+@smallexample
+@include examples/strideslice.out
+@end smallexample
+
+@subsection A note about assignment
+@cindex Array =, meaning of
+@cindex =, meaning of
+@cindex shallow copies, see also reference()
+@cindex assignment operator
+
+The assignment operator (@code{=}) always results in the expression on the
+right-hand side (rhs) being @emph{copied} to the lhs (i.e.@: the data on the
+lhs is overwritten with the result from the rhs).  This is different from
+some array packages in which the assignment operator makes the lhs a
+reference (or alias) to the rhs.  To further confuse the issue, the copy
+constructor for arrays @emph{does} have reference semantics.  Here's an
+example which should clarify things:
+
+@example
+Array<int,1> A(5), B(10);
+A = B(Range(0,4));               // Statement 1
+Array<int,1> C = B(Range(0,4));  // Statement 2
+@end example
+
+Statement 1 results in a portion of @code{B}'s data being copied into
+@code{A}.  After Statement 1, both @code{A} and @code{B} have their own
+(nonoverlapping) blocks of data.  Contrast this behaviour with that of
+Statement 2, which is @strong{not} an assignment (it uses the copy
+constructor).  After Statement 2 is executed, the array @code{C} is a
+reference (or alias) to @code{B}'s data.
+
+So to summarize: If you want to copy the rhs, use an assignment operator.
+If you want to reference (or alias) the rhs, use the copy constructor (or
+alternately, the @code{reference()} member function in @ref{Array members}).
+
+@strong{Very important:} whenever you have an assignment operator (@code{=},
+@code{+=}, @code{-=}, etc.) the lhs @strong{must} have the same shape as the
+@strong{rhs}.  If you want the array on the left hand side to be resized to
+the proper shape, you must do so by calling the @code{resize} method, for
+example:
+
+@example
+A.resize(B.shape());    // Make A the same size as B
+A = B;
+@end example
+
+@subsection An example
+
+@smallexample
+@include examples/slicing.texi
+@end smallexample
+
+The output:
+
+@smallexample
+@include examples/slicing.out
+@end smallexample
+

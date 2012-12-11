@@ -1,0 +1,42 @@
+
+@node Array usertype, , Array multi, Customized Arrays
+@section Creating arrays of a user type
+@cindex Array of your own types
+
+You can use the @code{Array} class with types you have created yourself, or
+types from another library.  If you want to do arithmetic on the array,
+whatever operators you use on the arrays have to be defined on the
+underlying type.
+
+For example, here's a simple class for doing fixed point computations in the
+interval [0,1]:
+
+@smallexample
+@include examples/fixed-point.texi
+@end smallexample
+
+The function @code{huge(T)} returns the largest representable value for type
+T; in the example above, it's equal to @code{UINT_MAX}.
+
+The @code{FixedPoint} class declares three useful operations: conversion
+from @code{double}, addition, and outputing to an @code{ostream}.  We can
+use all of these operations on an @code{Array<FixedPoint>} object:
+
+@smallexample
+@include examples/fixed.texi
+@end smallexample
+
+Note that the array @code{A} is initialized using a comma-delimited list of
+@code{double}; this makes use of the constructor @code{FixedPoint(double)}.
+The assignment @code{B = A + 0.05} uses
+@code{FixedPoint::operator+(FixedPoint)}, with an implicit conversion from
+@code{double} to @code{FixedPoint}.  Formatting the array @code{B} onto the
+standard output stream is done using the output operator defined for
+@code{FixedPoint}.
+
+Here's the program output:
+
+@smallexample
+@include examples/fixed.out
+@end smallexample
+

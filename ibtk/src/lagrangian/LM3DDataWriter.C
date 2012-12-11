@@ -960,12 +960,12 @@ LM3DDataWriter::writePlotData(
 
         // Create the dataspace for the dataset.
         static const int rank = 2;
-        hsize_t dims[rank] = { NDIM , nmarks };
+        hsize_t dims[rank] = { NDIM , static_cast<hsize_t>(nmarks) };
         hid_t dataspace_id = H5Screate_simple(rank, dims, NULL);
 
         // Create the dataset with data compression enabled.
         hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
-        hsize_t cdims[rank] = { NDIM , nmarks };
+        hsize_t cdims[rank] = { NDIM , static_cast<hsize_t>(nmarks) };
         H5Pset_chunk(plist_id, rank, cdims);
         H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
         hid_t dataset_id = H5Dcreate1(marker_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, H5P_DEFAULT);
@@ -1042,7 +1042,7 @@ LM3DDataWriter::writePlotData(
                 const IntVector<NDIM>& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
                 static const int rank = 4;
-                hsize_t dims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
+                hsize_t dims[rank] = { NDIM , static_cast<hsize_t>(nelem[0]) , static_cast<hsize_t>(nelem[1]) , static_cast<hsize_t>(nelem[2]) };
 
                 const double* const X = local_X_arr + NDIM*offset;
                 const std::vector<float> buffer(X,X+NDIM*ntot);
@@ -1055,7 +1055,7 @@ LM3DDataWriter::writePlotData(
 
                 // Create the dataset with data compression enabled.
                 hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
-                hsize_t cdims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
+                hsize_t cdims[rank] = { NDIM , static_cast<hsize_t>(nelem[0]) , static_cast<hsize_t>(nelem[1]) , static_cast<hsize_t>(nelem[2]) };
                 H5Pset_chunk(plist_id, rank, cdims);
                 H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
                 hid_t dataset_id = H5Dcreate1(fiber_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, plist_id);
@@ -1156,9 +1156,6 @@ LM3DDataWriter::buildVecScatters(
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(), PETSC_DETERMINE, &dst_vec);
-        IBTK_CHKERRQ(ierr);
-
-        ierr = VecSetBlockSize(dst_vec, depth);
         IBTK_CHKERRQ(ierr);
 
         VecScatter& vec_scatter = d_vec_scatter[level_number][depth];

@@ -40,18 +40,18 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <dof_map.h>
-#include <dof_object.h>
-#include <edge.h>
-#include <face.h>
-#include <fe.h>
-#include <petsc_vector.h>
-#include <point.h>
-#include <quadrature_gauss.h>
-#include <string_to_enum.h>
-#include <type_tensor.h>
-#include <type_vector.h>
-#include <vector_value.h>
+#include <libmesh/dof_map.h>
+#include <libmesh/dof_object.h>
+#include <libmesh/edge.h>
+#include <libmesh/face.h>
+#include <libmesh/fe.h>
+#include <libmesh/petsc_vector.h>
+#include <libmesh/point.h>
+#include <libmesh/quadrature_gauss.h>
+#include <libmesh/string_to_enum.h>
+#include <libmesh/type_tensor.h>
+#include <libmesh/type_vector.h>
+#include <libmesh/vector_value.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Utilities.h>

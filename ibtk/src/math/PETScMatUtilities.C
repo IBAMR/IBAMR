@@ -165,12 +165,12 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
-                           n_local, n_local,
-                           PETSC_DETERMINE, PETSC_DETERMINE,
-                           PETSC_DEFAULT, &d_nnz[0],
-                           PETSC_DEFAULT, &o_nnz[0],
-                           &mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local, n_local,
+                        PETSC_DETERMINE, PETSC_DETERMINE,
+                        PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0],
+                        &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth); IBTK_CHKERRQ(ierr);
@@ -307,12 +307,12 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
-                           n_local, n_local,
-                           PETSC_DETERMINE, PETSC_DETERMINE,
-                           PETSC_DEFAULT, &d_nnz[0],
-                           PETSC_DEFAULT, &o_nnz[0],
-                           &mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local, n_local,
+                        PETSC_DETERMINE, PETSC_DETERMINE,
+                        PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0],
+                        &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth); IBTK_CHKERRQ(ierr);
@@ -467,12 +467,12 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
-                           n_local, n_local,
-                           PETSC_DETERMINE, PETSC_DETERMINE,
-                           PETSC_DEFAULT, &d_nnz[0],
-                           PETSC_DEFAULT, &o_nnz[0],
-                           &mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local, n_local,
+                        PETSC_DETERMINE, PETSC_DETERMINE,
+                        PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0],
+                        &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -671,12 +671,12 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
-                           m_local, n_local,
-                           PETSC_DETERMINE, PETSC_DETERMINE,
-                           PETSC_DEFAULT, &d_nnz[0],
-                           PETSC_DEFAULT, &o_nnz[0],
-                           &mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        m_local, n_local,
+                        PETSC_DETERMINE, PETSC_DETERMINE,
+                        PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0],
+                        &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
 #ifdef DEBUG_CHECK_ASSERTIONS

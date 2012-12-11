@@ -341,12 +341,12 @@ IBKirchhoffRodForceGen::initializeLevelData(
     // Create new MPI block AIJ matrices and set the values of the non-zero
     // entries.
     {
-        ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
-                                3*3, 3*3*local_sz, 3*3*num_local_nodes,
-                                PETSC_DETERMINE, PETSC_DETERMINE,
-                                PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
-                                PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
-                                &D_next_mat);  IBTK_CHKERRQ(ierr);
+        ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
+                             3*3, 3*3*local_sz, 3*3*num_local_nodes,
+                             PETSC_DETERMINE, PETSC_DETERMINE,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
+                             &D_next_mat);  IBTK_CHKERRQ(ierr);
 
         blitz::TinyMatrix<double,3*3,3*3> curr_vals; curr_vals = 0.0;
         blitz::TinyMatrix<double,3*3,3*3> next_vals; next_vals = 0.0;
@@ -373,12 +373,12 @@ IBKirchhoffRodForceGen::initializeLevelData(
     }
 
     {
-        ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
-                                NDIM, NDIM*local_sz, NDIM*num_local_nodes,
-                                PETSC_DETERMINE, PETSC_DETERMINE,
-                                PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
-                                PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
-                                &X_next_mat);  IBTK_CHKERRQ(ierr);
+        ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
+                             NDIM, NDIM*local_sz, NDIM*num_local_nodes,
+                             PETSC_DETERMINE, PETSC_DETERMINE,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
+                             &X_next_mat);  IBTK_CHKERRQ(ierr);
 
         blitz::TinyMatrix<double,NDIM,NDIM> curr_vals;  curr_vals = 0.0;
         blitz::TinyMatrix<double,NDIM,NDIM> next_vals;  next_vals = 0.0;
@@ -448,19 +448,15 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     IBTK_CHKERRQ(ierr);
 
     Vec D_vec = D_data->getVec();
-
     Vec D_next_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetBlockSize(D_next_vec, 3*3);                                           IBTK_CHKERRQ(ierr);
 
     ierr = MatGetOwnershipRange(d_X_next_mats[level_number], &i_start, &i_stop);
     IBTK_CHKERRQ(ierr);
 
     Vec X_vec = X_data->getVec();
-
     Vec X_next_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &X_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetBlockSize(X_next_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
     ierr = MatMult(d_D_next_mats[level_number], D_vec, D_next_vec);  IBTK_CHKERRQ(ierr);

@@ -1,0 +1,431 @@
+2011-05-23  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/tinyvec.h, blitz/meta/vecassign.h: Created
+	  configure option --enable-simd-width=<n>, which sets the loop
+	  size and alignment to facilitate compiler vectorization.
+
+2011-05-20  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/numtrait.h, blitz/tinyvec.cc,
+	  blitz/tinyvec.h, blitz/array/methods.cc, blitz/array/reduce.h,
+	  blitz/meta/vecassign.h, m4/ac_cxx_alignment_directive.m4,
+	  m4/ax_prefix_config_h.m4: Tweaked TinyVector assignment to
+	  facilitate vectorization with icpc. Added an autoconf macro which
+	  tests for the gcc and icpc ways of specifying structure
+	  alignment, and used it to set alignment for the TinyVector data_
+	  member to 16, which is required by SSE.
+
+2011-05-10  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/blitz.h, blitz/memblock.h,
+	  testsuite/Makefile.am, testsuite/pthread.cpp: Added support for
+	  lock-free, thread-safe reference counting with Intel Threading
+	  Building Blocks atomic types. This is enabled with '--with-tbb'.
+	  If Blitz is configured with --enable-threadsafe, it will now give
+	  an error if the compiler threading support isn't enabled rather
+	  than silently disabling thread support. Added test 'pthread',
+	  enabled if the compiler supports pthreads. (Consequently, this
+	  only works with --disable-cxx-flags-preset, so -DBZ_DEBUG was
+	  hardcoded for the test suite.) It would be good to have tests for
+	  the Windows and OpenMP threads, too.
+
+2011-05-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/memblock.h: MemoryBlocks now are created with reference
+	  count =1, so the MemoryBlockReference that creates it does not
+	  have to call addReference. This saves an unnecessary mutex lock.
+	  Added function isThreadsafe that returns true if blitz was
+	  configured with --enable-threadsafe.
+
+2011-05-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* testsuite/64bit.cpp: Updated 64-bit test so it only tries the
+	  upper end of the range, in the interest of time.
+
+2011-03-26  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* bin/update-cl.sh:
+	  Force time to be interpreted in GMT instead of local time to
+	  avoid discrepancies when running the script from different time
+	  zones.
+
+2011-03-25  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* src/globals.cpp: Use BZ_PACKAGE_STRING macro defined by configure
+	  script to obtain library name and version number.
+
+2011-03-25  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* blitz/tiny.h: Update header file copyright info. This header file
+	  is apparently still needed for template metaprogramming loops in
+	  blitz/meta.
+
+2011-03-25  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* configure.ac: Update name of email list for blitz bug reports.
+
+2011-03-25  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* blitz/applics.h, blitz/array-impl.h, blitz/array-old.h,
+	  blitz/array.h, blitz/bench.cc, blitz/bench.h, blitz/benchext.cc,
+	  blitz/benchext.h, blitz/blitz.h, blitz/bzconfig.h,
+	  blitz/bzdebug.h, blitz/compiler.h, blitz/etbase.h,
+	  blitz/extremum.h, blitz/funcs.h, blitz/indexexpr.h,
+	  blitz/limits-hack.h, blitz/listinit.h, blitz/matdiag.h,
+	  blitz/matexpr.h, blitz/matgen.h, blitz/mathf2.h, blitz/matltri.h,
+	  blitz/matref.h, blitz/matrix.cc, blitz/matrix.h, blitz/matsymm.h,
+	  blitz/mattoep.h, blitz/matutri.h, blitz/memblock.cc,
+	  blitz/memblock.h, blitz/minmax.h, blitz/mstruct.h,
+	  blitz/numinquire.h, blitz/numtrait.h, blitz/ops.h,
+	  blitz/prettyprint.h, blitz/promote.h, blitz/rand-dunif.h,
+	  blitz/rand-mt.h, blitz/rand-normal.h, blitz/rand-tt800.h,
+	  blitz/rand-uniform.h, blitz/random.h, blitz/randref.h,
+	  blitz/range.h, blitz/reduce.h, blitz/shapecheck.h, blitz/tau.h,
+	  blitz/timer.h, blitz/tinymat.h, blitz/tinymatexpr.h,
+	  blitz/tinymatio.cc, blitz/tinyvec-et.h, blitz/tinyvec.cc,
+	  blitz/tinyvec.h, blitz/tinyvecio.cc, blitz/tinyveciter.h,
+	  blitz/traversal.cc, blitz/traversal.h, blitz/tuning.h,
+	  blitz/tvcross.h, blitz/tvecglobs.h, blitz/update.h,
+	  blitz/vecaccum.cc, blitz/vecall.cc, blitz/vecany.cc,
+	  blitz/veccount.cc, blitz/vecdelta.cc, blitz/vecdot.cc,
+	  blitz/vecexpr.h, blitz/vecexprwrap.h, blitz/vecglobs.cc,
+	  blitz/vecglobs.h, blitz/vecio.cc, blitz/veciter.h,
+	  blitz/vecmax.cc, blitz/vecmin.cc, blitz/vecnorm.cc,
+	  blitz/vecnorm1.cc, blitz/vecpick.cc, blitz/vecpick.h,
+	  blitz/vecpickio.cc, blitz/vecpickiter.h, blitz/vecproduct.cc,
+	  blitz/vecsum.cc, blitz/vector-et.h, blitz/vector.cc,
+	  blitz/vector.h, blitz/vecwhere.h, blitz/zero.cc, blitz/zero.h,
+	  blitz/array/asexpr.h, blitz/array/cartesian.h,
+	  blitz/array/cgsolve.h, blitz/array/complex.cc,
+	  blitz/array/convolve.cc, blitz/array/convolve.h,
+	  blitz/array/cycle.cc, blitz/array/domain.h, blitz/array/et.h,
+	  blitz/array/eval.cc, blitz/array/expr.h, blitz/array/fastiter.h,
+	  blitz/array/funcs.h, blitz/array/functorExpr.h,
+	  blitz/array/geometry.h, blitz/array/indirect.h,
+	  blitz/array/interlace.cc, blitz/array/io.cc, blitz/array/iter.h,
+	  blitz/array/map.h, blitz/array/methods.cc, blitz/array/misc.cc,
+	  blitz/array/multi.h, blitz/array/newet-macros.h,
+	  blitz/array/newet.h, blitz/array/ops.cc, blitz/array/ops.h,
+	  blitz/array/reduce.cc, blitz/array/reduce.h,
+	  blitz/array/resize.cc, blitz/array/shape.h, blitz/array/slice.h,
+	  blitz/array/slicing.cc, blitz/array/stencil-et.h,
+	  blitz/array/stencilops.h, blitz/array/stencils.cc,
+	  blitz/array/stencils.h, blitz/array/storage.h,
+	  blitz/array/where.h, blitz/array/zip.h, blitz/meta/dot.h,
+	  blitz/meta/matassign.h, blitz/meta/matmat.h, blitz/meta/matvec.h,
+	  blitz/meta/metaprog.h, blitz/meta/product.h, blitz/meta/sum.h,
+	  blitz/meta/vecassign.h, random/F.h, random/beta.h,
+	  random/chisquare.h, random/default.h, random/discrete-uniform.h,
+	  random/exponential.h, random/gamma.h, random/mt.h,
+	  random/mtparam.cc, random/normal.h, random/uniform.h: Updating
+	  file header information to include current copyright info. Ensure
+	  that each file has a CVS Id string and that each header file has
+	  a C++ tag for Emacs.
+
+2011-03-04  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* LICENSE, COPYING, COPYING.LESSER: Update license file to
+	  reference LGPL v3.  Version 3 of GPL is in COPYING and LGPL is in
+	  COPYING.LESSER file.
+
+2011-02-23  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* LICENSE: Fixed typo in LICENSE file. (testing cvs syncmail)
+
+2011-02-18  Julian Cummings  <cummings@cacr.caltech.edu>
+
+	* configure.ac, doc/stamp-vti, doc/version.texi: Update version
+	  number from 0.9 to 0.10 in preparation for new Blitz maintenance
+	  release.
+
+2011-02-17  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* Makefile.am:
+	  Replaced similar (check-*) targets recipes by a multiple target
+	  recipe.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* bin/update-cl.sh:
+	  Small utility script to update ChangeLog by calling `cvs2cl' if
+	  found.  Currently the date filter everything strictly after
+	  2009-12-31.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* ChangeLog.1:
+	  Moved ChangeLog up to 2009-12-31 into ChangeLog.1.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* ChangeLog.0, ChangeLog.1:
+	  Moved ChangeLog.1 to ChangeLog.0.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* config/mdate-sh:
+	  Removed as it is installed by `autoreconf -vif'.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* benchmarks/Makefile.am:
+	  Added cfd as part of the OTHER_BENCH targets.
+
+2011-02-14  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* benchmarks/cfd.cpp:
+	  Added missing tinyVector expression template header.
+
+2011-02-13  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* configure.ac:
+	  Added report message for 64-bit dimensions.  Fixed
+	  enable-64-bit-variable name typo.
+
+2010-12-08  Theodore Papadopoulo <Theodore.Papadopoulo@sophia.inria.fr>
+
+	* ChangeLog, manual/makeHTMLIndex.cpp: Convert to modern C++.
+
+2010-12-08  Theodore Papadopoulo <Theodore.Papadopoulo@sophia.inria.fr>
+
+	* ChangeLog, doc/doxygen/Doxyfile.in: Use pdflatex.
+
+2010-07-06  Patrick Guio <p.guio@ucl.ac.uk>
+
+	* examples/erf.cpp, examples/qcd.cpp:
+	  Fixed header declaration to ISO standard C++ and added missing
+	  using namespace declaration.
+
+2010-05-26  Theodore Papadopoulo <Theodore.Papadopoulo@sophia.inria.fr>
+
+	* ChangeLog, configure.ac: Correct the FULLY64BIT define
+
+2010-03-14  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/methods.cc, testsuite/Makefile.am,
+	  testsuite/weakref.cpp: Fixed a bug in the weakReference method
+	  when used on arrays with non-simple storage like those resulting
+	  from slicing higher-dimension arrays. Added a
+	  testsuite/weakref.cpp to check that this works.
+
+2010-02-24  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/reduce.h: Made sure all classes had reset() functions that
+	  are declared const. Thanks to George S. Hugh for finding that.
+
+2010-02-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, benchmarks/stencil.cpp, blitz/array-impl.h,
+	  blitz/bench.cc, blitz/bench.h, blitz/benchext.cc,
+	  blitz/benchext.h, blitz/etbase.h, blitz/funcs.h,
+	  blitz/indexexpr.h, blitz/reduce.h, blitz/array/asexpr.h,
+	  blitz/array/expr.h, blitz/array/fastiter.h,
+	  blitz/array/functorExpr.h, blitz/array/map.h,
+	  blitz/array/newet-macros.h, blitz/array/reduce.h,
+	  blitz/array/slice.h, blitz/array/stencil-et.h,
+	  blitz/array/stencilops.h, blitz/array/where.h, src/globals.cpp,
+	  testsuite/Makefile.am, testsuite/arrayresize.cpp,
+	  testsuite/expression-slicing.cpp, testsuite/safeToReturn.cpp,
+	  testsuite/stencil-et.cpp: Merged the changes from the stencil-et
+	  branch to the trunk.
+
+2010-02-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/array-impl.h, blitz/blitz.h,
+	  blitz/indexexpr.h, blitz/memblock.cc, blitz/memblock.h,
+	  blitz/range.h, blitz/tvecglobs.h, blitz/array/cartesian.h,
+	  blitz/array/domain.h, blitz/array/eval.cc,
+	  blitz/array/fastiter.h, blitz/array/functorExpr.h,
+	  blitz/array/iter.h, blitz/array/methods.cc,
+	  blitz/array/slicing.cc, blitz/array/stencil-et.h,
+	  blitz/array/where.h, blitz/meta/dot.h, blitz/meta/product.h,
+	  blitz/meta/sum.h, config/mdate-sh, testsuite/64bit.cpp,
+	  testsuite/Makefile.am: Merged compat-64bit branch to the trunk.
+
+2010-02-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/blitz.h, testsuite/64bit.cpp,
+	  testsuite/Makefile.am: Added 64-bit testcase (takes a very long
+	  time to run) and prepended BZ_ to the FULLY64BIT define.
+
+2010-02-05  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/blitz.h: Changed indexType to be ptrdiff_t instead of
+	  size_t for 64-bit dimensions.
+
+2010-02-05  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, blitz/array-impl.h, blitz/blitz.h,
+	  blitz/indexexpr.h, blitz/memblock.cc, blitz/memblock.h,
+	  blitz/range.h, blitz/array/cartesian.h, blitz/array/domain.h,
+	  blitz/array/eval.cc, blitz/array/fastiter.h,
+	  blitz/array/functorExpr.h, blitz/array/iter.h,
+	  blitz/array/methods.cc, blitz/array/slicing.cc,
+	  blitz/array/stencil-et.h, blitz/array/where.h: Changed size_t and
+	  ptrdiff_t to sizeType and diffType, defined in blitz.h. Also
+	  added indexType, to be used for array indexing if dimensions >
+	  2^31 are needed, but it needs to be tracked down and changed in
+	  the code.
+
+2010-01-21  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/stencil-et.h: Made _bz_makeRange(nilArraySection)
+	  inline.
+
+2010-01-21  Patrik Jonsson <code@familjenjonsson.org>
+
+	* src/globals.cpp: Reordered the include files so blitz/array.h is
+	  first, otherwise there are errors.
+
+2010-01-21  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/indexexpr.h, blitz/array/expr.h, blitz/array/fastiter.h,
+	  blitz/array/functorExpr.h, blitz/array/map.h,
+	  blitz/array/reduce.h, blitz/array/slice.h,
+	  blitz/array/stencil-et.h, blitz/array/where.h,
+	  testsuite/Makefile.am, testsuite/expression-slicing.cpp: Added
+	  ability to slice expressions. This required adding a number of
+	  operator()s to _bz_ArrayExpr, since it is the 'top level'
+	  expression class, and the remaining expression classes only need
+	  the 11-argument operator() template. All expression classes also
+	  have a SliceInfo class that gives the return type of a slice,
+	  completely analogously to the SliceInfo class for Arrays. It is
+	  not possible to slice reductions, index remappings or index
+	  placeholder expressions, which require nontrivial operations on
+	  the slice arguments. Added a testcase expression-slicing.
+
+2010-01-19  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/indexexpr.h, blitz/reduce.h, blitz/array/expr.h,
+	  blitz/array/fastiter.h, blitz/array/functorExpr.h,
+	  blitz/array/map.h, blitz/array/reduce.h,
+	  blitz/array/stencil-et.h, blitz/array/where.h: Declared access
+	  member functions of the expression template classes (like
+	  operator*(), operator(), fastRead, shift, and shapeCheck as
+	  const. This required making 'conceptually const' members like the
+	  stencil class iterators and the reduction variables mutable. This
+	  change is necessary to not run into trouble passing expressions
+	  to functions, as you can't pass a non-const reference to a
+	  temporary.
+
+2010-01-19  Patrik Jonsson <code@familjenjonsson.org>
+
+	* testsuite/stencil-et.cpp: Added tests of reductions of stencil
+	  results.
+
+2010-01-19  Patrik Jonsson <code@familjenjonsson.org>
+
+	* testsuite/arrayresize.cpp: Added note about expected valgrind
+	  error in this test.
+
+2010-01-19  Patrik Jonsson <code@familjenjonsson.org>
+
+	* configure.ac, testsuite/Makefile.am: Added support for Mike
+	  Teschs valgrind tests if valgrind is in the path.
+
+2010-01-13  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/bench.cc, blitz/bench.h, blitz/benchext.cc,
+	  blitz/benchext.h: Added a method savePylabGraph to the Benchmark
+	  class, which is called whenever saveMatlabGraph is called.
+
+2010-01-13  Patrik Jonsson <code@familjenjonsson.org>
+
+	* benchmarks/stencil.cpp: Added versions of the stencil benchmark
+	  that test the new stencil operator expressions.
+
+2010-01-12  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/fastiter.h, testsuite/safeToReturn.cpp: Added a
+	  wrapper safeToReturn() that can be used to safely return
+	  expressions from functions even if they reference arrays that
+	  will go out of scope. There's also a testcase testing it.
+
+2010-01-12  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array-impl.h, blitz/array/expr.h, blitz/array/fastiter.h,
+	  blitz/array/map.h, blitz/array/stencil-et.h, config/mdate-sh,
+	  testsuite/stencil-et.cpp: Updated the ArrayIndexMapping class so
+	  it can be passed as an operand to stencils. To accomplish this it
+	  was made to contain a FastArrayIterator, instead of an Array, so
+	  that the moveTo and shift_ members work. The Array operator()
+	  that take index placeholders were modified to work with new
+	  ArrayIndexMapping. Also had to make the moveTo and operator()
+	  members of the classes in expr.h be templated on number of
+	  dimensions. Added testcases of applying stencils to expressions
+	  involving remapped dimensions in stencil-et.cpp
+
+2010-01-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* testsuite/Makefile.am, testsuite/stencil-et.cpp: Added testcase
+	  for stencil expressions.
+
+2010-01-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/stencil-et.h: Added comment explaining what
+	  operations don't work with stencil expressions.
+
+2010-01-09  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/expr.h, blitz/array/functorExpr.h: Added versions of
+	  _bz_offsetData taking dimension arguments.
+
+2010-01-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/stencil-et.h: Added support for BZ_ET_STENCIL2. Added
+	  shift methods to ET classes. Improved code implementing the
+	  stencil calls for expressions and arrays to be more concise,
+	  though the requirement to have exact matches for all calls using
+	  Arrays necessitates a lot of code duplication. Result type
+	  declarations of BZ_ET_STENCIL2 needs work.
+
+2010-01-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/fastiter.h: Added domain() and _bz_offsetData()
+	  methods to FastArrayIteratorBase.
+
+2010-01-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/stencilops.h: Updated BZ_DECLARE_STENCIL_OPERATOR2/3
+	  to not require all types be the same, as this makes them useless
+	  for expressions.
+
+2010-01-08  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/etbase.h: Added wrap() methods to explicitly convert ET
+	  objects to ETBase. This is needed for the stencil operator
+	  functions to match correctly.
+
+2010-01-07  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/indexexpr.h, blitz/array/expr.h, blitz/array/functorExpr.h,
+	  blitz/array/map.h, blitz/array/reduce.h, blitz/array/where.h:
+	  Added methods and typedefs necessary to support stencil
+	  expressions. Code now passes all test cases.
+
+2010-01-07  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/stencil-et.h: Big cleanup. Removed the duplicate
+	  classes name_et and name_etExpr, all expressions are now handled
+	  by one class called name_et, derived from _bz_StencilExpr.
+	  Improved prettyPrint. Made typedefs more consistent across
+	  classes.
+
+2010-01-07  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/array/fastiter.h: Fixed a bug where operator= is the base
+	  class was hidden.
+
+2010-01-06  Patrik Jonsson <code@familjenjonsson.org>
+
+	* blitz/funcs.h, blitz/indexexpr.h, blitz/array/asexpr.h,
+	  blitz/array/expr.h, blitz/array/fastiter.h, blitz/array/map.h,
+	  blitz/array/newet-macros.h, blitz/array/reduce.h,
+	  blitz/array/stencil-et.h: Updated stencil operators in
+	  stencil-et.h so they work with expressions, instead of just
+	  arrays, and only applies themselves to the interior domain to
+	  avoid overrunning the bounds. This necessitated adding some
+	  methods to the classes in expr.h, and cloning FastArrayIterator
+	  to FastArrayCopyIterator which keeps a copy of the array it
+	  iterates over. stencil-et.h needs cleaning up.
+

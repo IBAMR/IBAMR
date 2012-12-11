@@ -1,0 +1,340 @@
+@node RNG overview, RNG seeding, , Random Number Generators
+@section Overview
+
+These are the basic random number generators (RNGs):
+
+@cindex RNGs
+@cindex Random Number Generators
+@cindex Random Number Generators overview
+
+@table @code
+@item Uniform
+Uniform reals on [0,1)
+
+@item Normal
+Normal with specified mean and variance
+
+@item Exponential
+Exponential with specified mean
+
+@item DiscreteUniform
+Integers uniformly distributed over a specified range.
+
+@item Beta
+Beta distribution
+
+@item Gamma
+Gamma distribution
+
+@item F
+F distribution
+@end table
+
+To use these generators, you need to include some subset of these headers:
+
+@example
+#include <random/uniform.h>
+#include <random/normal.h>
+#include <random/exponential.h>
+#include <random/discrete-uniform.h>
+#include <random/beta.h>
+#include <random/gamma.h>
+#include <random/chisquare.h>
+#include <random/F.h>
+
+using namespace ranlib;
+@end example
+
+All the generators are inside the namespace @strong{ranlib}, 
+@cindex ranlib
+so a @strong{using namespace ranlib} directive is required (alternately, you
+can write e.g. @code{ranlib::Uniform<>}).
+
+These generators are all class templates.  The first template parameter is
+the number type you want to generate: float, double or long double for
+continuous distributions, and integer for discrete distributions.  This
+parameter defaults to @code{float} for continuous distributions,
+and @code{unsigned int} for discrete distributions.
+
+The constructors are:
+
+@example
+Uniform();
+Normal(T mean, T standardDeviation);
+Exponential(T mean);
+DiscreteUniform(T n);   // range is 0 .. n-1
+Beta(T a, T b);
+Gamma(T mean);
+ChiSquare(T df);
+F(T dfn, T dfd);
+@end example
+
+where @code{T} is the first template parameter (@code{float}, @code{double},
+or @code{long double}).  To obtain a random number, use the method
+@code{random()}.  Here is an example of constructing and using a
+@code{Normal} generator:
+
+@example
+#include <random/normal.h>
+
+using namespace ranlib;
+
+void foo()
+@{
+    Normal<double> normalGen(0.5,0.25); // mean = 0.5, std dev = 0.25
+    double x = normalGen.random();      // x is a normal random number
+@}
+@end example
+
+@section Note: Parallel random number generators
+
+The generators which Blitz++ provides are not suitable for parallel
+programs.  If you need parallel RNGs, you may find
+@uref{http://sprng.cs.fsu.edu} (the Scalable Parallel Random
+Number Generators Library) useful.
+
+@node RNG seeding, RNG details, RNG overview, Random Number Generators
+@section Seeding a random number generator
+
+@cindex Random Number Generators seeding
+
+You may seed a random number generator using the member function
+@code{seed(unsigned int)}.  
+@cindex seeding a RNG
+By default, all random
+number generators share the same underlying integer random number generator.
+So seeding one generator will seed them all.  (Note: you can create
+generators with their own internal state; see the sections below).  You
+should generally only seed a random number generator once, at the beginning
+of a program run.  
+
+Here is an example of seeding with the system clock:
+
+@example
+#include <random/uniform.h>
+#include <time.h>
+
+using namespace ranlib;
+
+int main()
+@{
+    // At start of program, seed with the system time so we get
+    // a different stream of random numbers each run.
+    Uniform<float> x;
+    x.seed((unsigned int)time(0));
+
+    // Rest of program
+    ...
+@}
+@end example
+
+Note: you may be tempted to seed the random number generator from a static
+initializer.  @strong{Don't do it!}  Due to an oddity of C++, there is no
+guarantee on the order of static initialization when templates are involved.
+Hence, you may seed the RNG before its constructor is invoked, in which case
+your program will crash.  If you don't know what a static initializer is,
+don't worry -- you're safe!
+
+@node RNG details, RNG params, RNG seeding, Random Number Generators
+@section Detailed description of RNGs
+@cindex Random Number Generators details
+
+There are really two types of RNGs:
+
+@table @code
+@item Integer 
+RNGs provide uniformly distributed, unsigned 32 bit integers.
+@cindex IRNGs 
+@cindex Integer RNGs
+
+@item RNGs
+use Integer RNGs to provide other kinds of random numbers. 
+@end table
+
+By default, the Integer RNG used is a faithful adaptation of the Mersenne
+Twister @code{MT19937} @cindex MersenneTwister due to Matsumoto and
+Nishimura (see @cite{ACM Transactions on Modeling and Computer Simulation,
+@w{Vol. 8}, @w{No. 1}, @w{January 1998}, @w{pp 3-30}},
+@uref{http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html},
+@uref{http://www.acm.org/pubs/citations/journals/tomacs/1998-8-1/p3-matsumoto/}).
+This generator has a period of 
+@iftex
+@math{2^{19937}-1}
+@end iftex
+@ifinfo
+@math{2^{19937}-1}
+@end ifinfo
+@ifhtml
+2^(19937)-1
+@end ifhtml
+, passed several stringent
+statistical tests (including the
+@uref{http://stat.fsu.edu/~geo/diehard.html} tests), and has speed
+comparable to other modern generators.
+
+@node RNG params, RNG members, RNG details, Random Number Generators
+@section Template parameters
+
+RNGs take three template parameters, all of which have default values.
+Using the @code{Uniform} RNG as an example, the template parameters of
+@code{Uniform<T, IRNG, stateTag>} are:
+
+@table @code
+@item T
+is the type of random number to generate (one of @code{float},
+@code{double}, or @code{long double} for continuous distributions; an
+integer type for discrete distributions).  Note that generating double and
+long double RNGs takes longer, because filling the entire mantissa with
+random bits requires several random integers.  The default parameter for
+most generators is @code{float}.
+
+@item IRNG
+is the underlying Integer RNG to use.  The default is MersenneTwister.
+
+@item stateTag
+@cindex @code{stateTag} (RNGs) 
+is either @code{sharedState} or @code{independentState}.  If
+@code{sharedState}, the IRNG is shared with other generators.  If
+@code{independentState}, the RNG contains its own IRNG.  The default is
+sharedState.  
+@end table
+
+@node RNG members, RNG listings, RNG params, Random Number Generators
+@section Member functions
+@cindex Random Number Generators member functions
+
+RNGs have these methods:
+
+@example
+T random();
+@end example
+@findex random()
+Returns a random number.
+
+@example
+void seed(unsigned int);
+@end example
+@findex seed()
+Seeds the underlying IRNG.  See above for an example of seeding
+with the system timer.
+
+@node RNG listings, , RNG members, Random Number Generators
+@section Detailed listing of RNGs
+@cindex Random Number Generators list of
+
+To save space in the below list, template parameters have been omitted and
+only constructors are listed.  The notation [a,b] means an interval which
+includes the endpoints a and b; (a,b) is an interval which does not include
+the endpoints.
+
+@subsection @file{random/uniform.h}
+@findex random/uniform.h
+
+@example
+Uniform<>()
+@end example
+@cindex Uniform RNG
+Continuous uniform distribution on [0,1). 
+
+@example
+UniformClosedOpen<>()
+@end example
+@cindex UniformClosedOpen RNG
+Continuous uniform distribution on [0,1).  Same as @code{Uniform<>}.
+
+@example
+UniformClosed<>()
+@end example
+@cindex UniformClosed RNG
+Continuous uniform distribution on [0,1].
+
+@example
+UniformOpen<>()
+@end example
+@cindex UniformOpen RNG
+Continuous uniform distribution on (0,1).
+
+@example
+UniformOpenClosed<>()
+@end example
+@cindex UniformOpenClosed RNG
+Continuous uniform distribution on (0,1].
+
+@subsection @file{random/normal.h}
+
+@example
+NormalUnit<>()
+@end example
+@cindex NormalUnit RNG
+Continuous normal distribution with mean 0 and variance 1.
+
+@example
+Normal<>(T mean, T standardDeviation)
+@end example
+@cindex Normal RNG
+Continuous normal distribution with specified mean and standard 
+deviation.  
+
+@subsection @file{random/exponential.h}
+
+@example
+ExponentialUnit<>()
+@end example
+@cindex ExponentialUnit RNG
+Continuous exponential distribution with mean 1.
+
+@example
+Exponential<>(T mean)
+@end example
+@cindex Exponential RNG
+Continuous exponential distribution with specified mean.
+
+@subsection @file{random/beta.h}
+
+@example
+Beta<>(T a, T b)
+@end example
+@cindex Beta RNG
+Beta distribution with parameters a and b.  The mean of the distribution is
+@math{a/(a+b)} and its variance is @math{ab/((a+b)^2(a+b+1))}.  Use the
+method @code{setParameters(T a, T b)} to change the parameters.
+
+@subsection @file{random/chisquare.h}
+
+@example
+ChiSquare<>(T df)
+@end example
+@cindex ChiSquare RNG
+@math{\chi^2} distribution with @code{df} degrees of freedom.  The parameter
+df must be positive.  Use the method @code{setDF(T df)} to change the
+degrees of freedom.
+
+@subsection @file{random/gamma.h}
+
+@example
+Gamma<>(T mean)
+@end example
+@cindex Gamma RNG
+Gamma distribution with specified mean.  The mean must
+be positive.  Use the method @code{setMean(T mean)} to
+change the mean.
+
+@subsection @file{random/F.h}
+
+@example
+F<>(T numeratorDF, T denominatorDF)
+@end example
+@cindex F distribution RNG
+F distribution with numerator and denominator degrees
+of freedom specified.  Both these parameters must be
+positive.  Use @code{setDF(T dfn, T dfd)} to change the
+degrees of freedom. 
+
+@subsection @file{random/discrete-uniform.h}
+
+@example
+DiscreteUniform<>(T n)
+@end example
+@cindex DiscreteUniform RNG
+Discrete uniform distribution over @math{0, 1, \ldots, n-1}.
+

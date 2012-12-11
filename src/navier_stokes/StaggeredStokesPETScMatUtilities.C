@@ -48,7 +48,7 @@
 #include <SideData.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <numeric>
@@ -204,12 +204,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
-                           nlocal, nlocal,
-                           PETSC_DETERMINE, PETSC_DETERMINE,
-                           PETSC_DEFAULT, &d_nnz[0],
-                           PETSC_DEFAULT, &o_nnz[0],
-                           &mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        nlocal, nlocal,
+                        PETSC_DETERMINE, PETSC_DETERMINE,
+                        PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0],
+                        &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -346,9 +346,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i,0);
                     const double& b = (*bcoef_data)(i,0);
                     TBOX_ASSERT(a == 1.0 || MathUtilities<double>::equalEps(a,1.0));
@@ -418,9 +418,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index<NDIM>& i = bc();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i,0);
                     const double& b = (*bcoef_data)(i,0);

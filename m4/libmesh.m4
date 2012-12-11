@@ -61,14 +61,6 @@ else
   AC_MSG_WARN([libMesh support is enabled, but could not find expected libMesh contrib lib directory ${LIBMESH_CONTRIB_LIBDIR}])
 fi
 
-for subdir in base enums error_estimation fe geom mesh numerics parallel partitioning quadrature solvers systems utils; do
-  if test -d "${LIBMESH_DIR}/include/${subdir}" ; then
-    CPPFLAGS="-I${LIBMESH_DIR}/include/${subdir} ${CPPFLAGS}"
-  else
-    AC_MSG_WARN([libMesh support is enabled, but could not find expected libMesh include directory ${LIBMESH_DIR}/include/${subdir}])
-  fi
-done
-
 contrib_lib_enabled=`grep "enable-laspack.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
 echo "checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
@@ -99,12 +91,16 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   if test "$HAVE_LIBMETIS" != "yes" ; then
     AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libmetis])
   fi
+  AC_LIB_HAVE_LINKFLAGS([GK])
+  if test "$HAVE_LIBGK" != "yes" ; then
+    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libGK])
+  fi
 fi
 
 if test "$HAVE_LIBMETIS" == "yes" -a "$HAVE_LIBPARMETIS" == "yes" ; then
-  LIBS="$LIBPARMETIS $LIBMETIS $LIBS"
+  LIBS="$LIBPARMETIS $LIBMETIS $LIBGK $LIBS"
 elif test "$HAVE_LIBMETIS" == "yes" ; then
-  LIBS="$LIBMETIS $LIBS"
+  LIBS="$LIBMETIS $LIBGK $LIBS"
 elif test "$HAVE_LIBPARMETIS" == "yes" ; then
   LIBS="$LIBPARMETIS $LIBS"
 fi
@@ -227,7 +223,8 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   fi
 fi
 
-AC_CHECK_HEADER([libmesh.h],,AC_MSG_WARN([could not find header file libmesh.h]))
+CPPFLAGS="-I${LIBMESH_DIR}/include ${CPPFLAGS}"
+AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_WARN([could not find header file libmesh.h]))
 AC_LIB_HAVE_LINKFLAGS([mesh])
 if test "$HAVE_LIBMESH" == "yes" ; then
   LIBS="$LIBMESH $LIBS"

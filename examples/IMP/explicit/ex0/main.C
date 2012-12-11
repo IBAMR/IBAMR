@@ -42,9 +42,9 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <elem.h>
-#include <mesh.h>
-#include <mesh_generation.h>
+#include <libmesh/elem.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>

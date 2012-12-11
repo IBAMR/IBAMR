@@ -35,11 +35,11 @@
 /* Define if you have LAPACK library. */
 #undef HAVE_LAPACK
 
-/* Define if you have the libblitz library. */
-#undef HAVE_LIBBLITZ
-
 /* Define if you have the libexodusii library. */
 #undef HAVE_LIBEXODUSII
+
+/* Define if you have the libGK library. */
+#undef HAVE_LIBGK
 
 /* Define if you have the libgmv library. */
 #undef HAVE_LIBGMV
@@ -79,24 +79,6 @@
 
 /* Define if you have the libpetsc library. */
 #undef HAVE_LIBPETSC
-
-/* Define if you have the libpetscdm library. */
-#undef HAVE_LIBPETSCDM
-
-/* Define if you have the libpetscksp library. */
-#undef HAVE_LIBPETSCKSP
-
-/* Define if you have the libpetscmat library. */
-#undef HAVE_LIBPETSCMAT
-
-/* Define if you have the libpetscsnes library. */
-#undef HAVE_LIBPETSCSNES
-
-/* Define if you have the libpetscts library. */
-#undef HAVE_LIBPETSCTS
-
-/* Define if you have the libpetscvec library. */
-#undef HAVE_LIBPETSCVEC
 
 /* Define if you have the libSAMRAI library. */
 #undef HAVE_LIBSAMRAI

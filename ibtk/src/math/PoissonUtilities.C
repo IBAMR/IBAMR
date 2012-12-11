@@ -46,7 +46,7 @@
 #include <tbox/Array.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -266,9 +266,9 @@ PoissonUtilities::computeCCMatrixCoefficients(
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = b();
+                const Index<NDIM>& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry,0);
                 const double& b = (*bcoef_data)(i_s_bdry,0);
                 const double& h = dx[bdry_normal_axis];
@@ -806,9 +806,9 @@ PoissonUtilities::computeSCMatrixCoefficients(
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = b();
+                const Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i,0);
                 const double& b = (*bcoef_data)(i,0);
                 const double& h = dx[bdry_normal_axis];
@@ -897,9 +897,9 @@ PoissonUtilities::computeSCMatrixCoefficients(
             //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
             //
             // If b == 0, then u_b = 0, which we enforce directly.
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = b();
+                const Index<NDIM>& i = bc();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double& a = (*acoef_data)(i,0);
                 const double& b = (*bcoef_data)(i,0);
@@ -1030,9 +1030,9 @@ PoissonUtilities::adjustCCBoundaryRhsEntries(
             // NOTE: i_s_bdry: side index located on physical boundary
             //       i_c_intr: cell index located adjacent to physical boundary
             //                 in the patch interior
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = b();
+                const Index<NDIM>& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry,0);
                 const double& b = (*bcoef_data)(i_s_bdry,0);
                 const double& g = (*gcoef_data)(i_s_bdry,0);
@@ -1303,9 +1303,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
             // In this loop, we modify the rhs entries appropriately.
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = b();
+                const Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i,0);
                 const double& b = (*bcoef_data)(i,0);
                 const double& g = (*gcoef_data)(i,0);
@@ -1380,9 +1380,9 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             //
             // NOTE: At Dirichlet boundaries, boundary values are provided by
             // the right-hand side vector.
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = b();
+                const Index<NDIM>& i = bc();
 //              const double& a = (*acoef_data)(i,0);
                 const double& b = (*bcoef_data)(i,0);
                 const double& g = (*gcoef_data)(i,0);

@@ -42,8 +42,8 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <mesh_base.h>
-#include <point.h>
+#include <libmesh/mesh_base.h>
+#include <libmesh/point.h>
 
 // IBTK INCLUDES
 #include <ibtk/LInitStrategy.h>

@@ -52,16 +52,16 @@
 #include <ibtk/namespaces.h>
 
 // LIBMESH INCLUDES
-#include <boundary_info.h>
-#include <fe_interface.h>
-#include <dense_matrix.h>
-#include <dense_vector.h>
-#include <explicit_system.h>
-#include <numeric_vector.h>
-#include <parallel.h>
-#include <petsc_linear_solver.h>
-#include <petsc_matrix.h>
-#include <petsc_vector.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/fe_interface.h>
+#include <libmesh/dense_matrix.h>
+#include <libmesh/dense_vector.h>
+#include <libmesh/explicit_system.h>
+#include <libmesh/numeric_vector.h>
+#include <libmesh/parallel.h>
+#include <libmesh/petsc_linear_solver.h>
+#include <libmesh/petsc_matrix.h>
+#include <libmesh/petsc_vector.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES
@@ -106,7 +106,7 @@ flatten(
     const T& elem_patch_map)
 {
     std::set<Elem*> elem_set;
-    for (int k = 0; k < elem_patch_map.size(); ++k)
+    for (unsigned int k = 0; k < elem_patch_map.size(); ++k)
     {
         elem_set.insert(elem_patch_map(k).begin(),elem_patch_map(k).end());
     }
@@ -1234,13 +1234,11 @@ FEDataManager::buildL2ProjectionSolver(
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
+
         // Sparsity patterns are not automatically computed for all system
         // types.  If one has not been computed for this system, we compute it
         // now.
-        if (dof_map.get_n_nz().size() != dof_map.n_local_dofs())
-        {
-            dof_map.compute_sparsity(mesh);
-        }
+        dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
         fe->attach_quadrature_rule(qrule.get());
@@ -2278,7 +2276,7 @@ FEDataManager::collectGhostDOFIndices(
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    for (int e = 0; e < active_elems.size(); ++e)
+    for (unsigned int e = 0; e < active_elems.size(); ++e)
     {
         const Elem* const elem = active_elems(e);
 

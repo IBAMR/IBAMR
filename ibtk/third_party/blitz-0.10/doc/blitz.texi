@@ -1,0 +1,296 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename blitz.info
+@include version.texi
+@settitle Blitz++
+@setchapternewpage odd
+@finalout
+@iftex
+@setcontentsaftertitlepage
+@afourpaper
+@end iftex
+@c %**end of header
+
+@dircategory Blitz++ library
+@direntry
+* Blitz++: (blitz++).           High-performance C++ numeric library
+@end direntry
+
+
+@macro faq{question}
+@strong{@bullet{} \question\}
+@end macro
+
+@c kludge workaround from Karl Berry for math in @subsection
+@ifnottex
+@macro nabla
+\\nabla
+@end macro
+@macro times
+\\times
+@end macro
+@macro cdot
+\\cdot
+@end macro
+@end ifnottex
+
+@titlepage
+@title Blitz++ User's Guide
+@subtitle A C++ class library for scientific computing
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Todd Veldhuizen
+@page
+@vskip 0pt plus 1filll
+@include copyright.texi
+@end titlepage
+
+@summarycontents
+@contents
+@page
+
+@ifnottex
+@node Top, , , (DIR)
+@top Top
+@end ifnottex
+
+@menu
+* Introduction::                  Introduction
+* Arrays::                        Arrays
+* Array Expressions::             Array Expressions
+* Stencils::                      Stencils
+* Customized Arrays::             Multicomponent, complex, and user type Arrays
+* Indirection::                   Indirection
+* TinyVector::                    TinyVector
+* Parallel Computing::            Parallel Computing with Blitz++
+* Random Number Generators::      Random Number Generators
+* Numeric properties::            Numeric properties
+* FAQ::                           Frequently Asked Questions
+* Keyword Index::                 Blitz Keyword Index
+* Concept Index::                 Concept Index
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+General considerations
+
+* about::                         About this document
+* platforms::                     Platform/compiler notes
+* download::                      How to download Blitz++
+* install::                       Installation and porting
+* compiling::                     Compiling with Blitz++
+* legal::                         Licensing terms
+* help::                          Mailing lists and support
+
+The Blitz++ Array class
+
+* Array intro::                   Getting started
+* Array types::                   Public types
+* Array ctors::                   Constructors
+* Array slicing::                 Indexing, subarrays, and slicing
+* Array debug::                   Debug mode
+* Array members::                 Member functions
+* Array globals::                 Global functions
+* Array I/O::                     Inputting and Outputting Arrays
+* Array storage::                 Array storage orders
+
+Writing expressions with the Array class
+
+* Expression evaluation::         Expression evaluation order
+* Index placeholders::            Index placeholders
+* Math functions 1::              Single-argument math functions
+* Math functions 2::              Two-argument math functions
+* User et::                       Declaring your own math functions on arrays
+* Where expr::                    where statements
+
+Array Stencils
+
+* Stencil object::                Declaring stencil objects
+* Stencil operator::              Stencil operators
+* Stencil customize::             Declaring your own stencil operators
+* Stencil apply::                 Applying a stencil object
+
+Customization of the Array class
+
+* Array multi::                   Multicomponent and complex arrays
+* Array usertype::                Creating arrays of a user type
+
+Array indirect addressing
+
+* Indirection position list::     Indirection using lists of array positions
+* Indirection Cartesian product:: Cartesian-product indirection
+* Indirection strip list::        Indirection with lists of strips
+
+The Blitz++ TinyVector class
+
+* TinyVec params::                Template parameters and types
+* TinyVec ctors::                 Constructors
+* TinyVec members::               Member functions
+* TinyVec assignment::            Assignment operators
+* TinyVec exprs::                 Expressions
+* TinyVec globals::               Global functions
+* TinyVec arrays::                Arrays of TinyVector
+* TinyVec io::                    Input/output
+
+Parallel Computing with Blitz++
+
+* Thread safety::                 Blitz++ and thread safety
+
+Random Number Generators in Blitz++
+
+* RNG overview::                  Overview
+* RNG seeding::                   Seeding a random number generator
+* RNG details::                   Detailed description of RNGs
+* RNG params::                    Template parameters
+* RNG members::                   Member functions
+* RNG listings::                  Detailed listing of RNGs
+
+Numeric properties functions in Blitz++
+
+* Numeric limits::                Introduction
+* Numeric functions::             Function descriptions
+
+@end detailmenu
+@end menu
+
+@node Introduction, Arrays, , Top
+@chapter Introduction
+@menu
+* about::                         About this document
+* platforms::                     Platform/compiler notes
+* download::                      How to download Blitz++
+* install::                       Installation and porting
+* compiling::                     Compiling with Blitz++
+* legal::                         Licensing terms
+* help::                          Mailing lists and support
+@end menu
+@include about.texi
+@include platforms.texi
+@include download.texi
+@include install.texi
+@include compiling.texi
+@include legal.texi
+@include help.texi
+    
+@node Arrays, Array Expressions, Introduction, Top
+@chapter Arrays
+@cindex Array
+@findex Array
+@menu
+* Array intro::                   Getting started
+* Array types::                   Public types
+* Array ctors::                   Constructors
+* Array slicing::                 Indexing, subarrays, and slicing
+* Array debug::                   Debug mode
+* Array members::                 Member functions
+* Array globals::                 Global functions
+* Array I/O::                     Inputting and Outputting Arrays
+* Array storage::                 Array storage orders
+@end menu
+@include arrays-intro.texi
+@include arrays-types.texi
+@include arrays-ctors.texi
+@include arrays-slicing.texi
+@include arrays-debug.texi
+@include arrays-members.texi
+@include arrays-globals.texi
+@include arrays-io.texi
+@include arrays-storage.texi
+
+@node Array Expressions, Stencils, Arrays, Top
+@chapter Array Expressions
+@menu
+* Expression evaluation::         Expression evaluation order
+* Index placeholders::            Index placeholders
+* Math functions 1::              Single-argument math functions
+* Math functions 2::              Two-argument math functions
+* User et::                       Declaring your own math functions on arrays
+* Where expr::                    where statements
+@end menu
+@include arrays-expr.texi
+
+@node Stencils, Customized Arrays, Array Expressions, Top
+@chapter Stencils
+@menu
+* Stencil object::                Declaring stencil objects
+* Stencil operator::              Stencil operators
+* Stencil customize::             Declaring your own stencil operators
+* Stencil apply::                 Applying a stencil object
+@end menu
+@include arrays-stencils.texi
+
+@node Customized Arrays, Indirection, Stencils, Top
+@chapter Multicomponent, complex, and user type Arrays
+@menu
+* Array multi::                   Multicomponent and complex arrays
+* Array usertype::                Creating arrays of a user type
+@end menu
+@include arrays-multi.texi
+@include arrays-usertype.texi
+
+@node Indirection, TinyVector, Customized Arrays, Top
+@chapter Indirection
+@menu
+* Indirection position list::     Indirection using lists of array positions
+* Indirection Cartesian product:: Cartesian-product indirection
+* Indirection strip list::        Indirection with lists of strips
+@end menu
+@include arrays-indirect.texi
+
+@node TinyVector, Parallel Computing, Indirection, Top
+@chapter TinyVector
+@menu
+* TinyVec params::                Template parameters and types
+* TinyVec ctors::                 Constructors
+* TinyVec members::               Member functions
+* TinyVec assignment::            Assignment operators
+* TinyVec exprs::                 Expressions
+* TinyVec globals::               Global functions
+* TinyVec arrays::                Arrays of TinyVector
+* TinyVec io::                    Input/output
+@end menu
+@include tinyvector.texi
+
+@node Parallel Computing, Random Number Generators, TinyVector, Top
+@chapter Parallel Computing with Blitz++
+@menu
+* Thread safety::                 Blitz++ and thread safety
+@end menu
+@include parallel.texi
+
+@node Random Number Generators, Numeric properties, Parallel Computing, Top
+@chapter Random Number Generators
+@menu
+* RNG overview::                  Overview
+* RNG seeding::                   Seeding a random number generator
+* RNG details::                   Detailed description of RNGs
+* RNG params::                    Template parameters
+* RNG members::                   Member functions
+* RNG listings::                  Detailed listing of RNGs
+@end menu
+@include random.texi
+
+@node Numeric properties, FAQ, Random Number Generators, Top
+@chapter Numeric properties
+@menu
+* Numeric limits::                Introduction
+* Numeric functions::             Function descriptions
+@end menu
+@include numinquire.texi
+
+@node FAQ, Keyword Index, Numeric properties, Top
+@chapter Frequently Asked Questions
+@include faq.texi
+
+@node Keyword Index, Concept Index, FAQ, Top
+@unnumbered Blitz Keyword Index
+@printindex fn
+
+@node Concept Index, , Keyword Index, Top
+@unnumbered Concept Index
+@printindex cp
+
+@c ---------------------------------------------------------------------
+@c Epilogue
+@c ---------------------------------------------------------------------
+
+@bye

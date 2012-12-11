@@ -49,6 +49,11 @@
 #undef MPICH_SKIP_MPICXX
 #endif
 
+// To avoid compiler warnings related to redefinition of OMPI_SKIP_MPICXX.
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/namespaces.h>

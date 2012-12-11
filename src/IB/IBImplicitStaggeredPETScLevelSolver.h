@@ -45,9 +45,6 @@
 #include <LocationIndexRobinBcCoefs.h>
 #include <RefineSchedule.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <vector>
 

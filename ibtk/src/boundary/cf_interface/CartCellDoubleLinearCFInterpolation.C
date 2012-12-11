@@ -52,9 +52,6 @@
 #include <CellData.h>
 #include <CellDoubleConstantRefine.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <vector>
 

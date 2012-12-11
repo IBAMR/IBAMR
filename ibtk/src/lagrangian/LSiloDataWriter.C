@@ -516,7 +516,7 @@ build_local_ucd_mesh(
     }
     int lnodelist = nodelist.size();
     int nshapetypes = 1;
-    int shapecnt[] = {local_edge_map.size()};
+    int shapecnt[] = {static_cast<int>(local_edge_map.size())};
     int shapesize[] = {2};
     int shapetype[] = {DB_ZONETYPE_BEAM};
     int nzones = local_edge_map.size();
@@ -2215,9 +2215,6 @@ LSiloDataWriter::buildVecScatters(
         }
         ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(),
                             PETSC_DETERMINE, &dst_vec);
-        IBTK_CHKERRQ(ierr);
-
-        ierr = VecSetBlockSize(dst_vec, depth);
         IBTK_CHKERRQ(ierr);
 
         VecScatter& vec_scatter = d_vec_scatter[level_number][depth];

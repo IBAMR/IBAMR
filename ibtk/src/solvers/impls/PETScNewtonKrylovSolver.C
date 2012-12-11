@@ -498,14 +498,23 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
         case SNES_CONVERGED_FNORM_RELATIVE:
             os << d_object_name << ": converged: |F| less than specified relative tolerance.\n";
             break;
-        case SNES_CONVERGED_PNORM_RELATIVE:
-            os << d_object_name << ": converged: |P| less than specified relative tolerance.\n";
+        case SNES_CONVERGED_SNORM_RELATIVE:
+            os << d_object_name << ": converged: step size less than specified relative tolerance.\n";
+            break;
+        case SNES_CONVERGED_ITS:
+            os << d_object_name << ": converged: maximum number of iterations reached.\n";
             break;
         case SNES_CONVERGED_TR_DELTA:
             os << d_object_name << ": converged: trust-region delta.\n";
             break;
+        case SNES_DIVERGED_FUNCTION_DOMAIN:
+            os << d_object_name << ": diverged: new x location passed to the function is not in the function domain.\n";
+            break;
         case SNES_DIVERGED_FUNCTION_COUNT:
             os << d_object_name << ": diverged: exceeded maximum number of function evaluations.\n";
+            break;
+        case SNES_DIVERGED_LINEAR_SOLVE:
+            os << d_object_name << ": diverged: the linear solve failed.\n";
             break;
         case SNES_DIVERGED_FNORM_NAN:
             os << d_object_name << ": diverged: |F| is NaN.\n";
@@ -515,6 +524,9 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
             break;
         case SNES_DIVERGED_LINE_SEARCH:
             os << d_object_name << ": diverged: line-search failure.\n";
+            break;
+        case SNES_DIVERGED_INNER:
+            os << d_object_name << ": diverged: inner solve failed.\n";
             break;
         case SNES_DIVERGED_LOCAL_MIN:
             os << d_object_name << ": diverged: attained non-zero local minimum.\n";

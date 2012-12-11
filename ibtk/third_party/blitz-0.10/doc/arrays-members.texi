@@ -1,0 +1,555 @@
+
+@node Array members, Array globals, Array debug, Arrays
+@section Member functions
+
+@subsection A note about dimension parameters
+@cindex dimension parameters
+@cindex Array dimension parameters
+
+Several of the member functions take a @emph{dimension parameter} which is
+an integer in the range 0 .. @code{N_rank}-1.  For example, the method
+@code{extent(int n)} returns the extent (or length) of the array in
+dimension @code{n}.  
+
+These parameters are problematic:
+
+@itemize @bullet
+
+@item     They make the code cryptic.  Someone unfamiliar with the
+@code{reverse()} member function won't stand a chance of understanding what
+@code{A.reverse(2)} does.
+
+@item     Some users are used to dimensions being 1 .. @code{N_rank}, rather
+than 0 .. @code{N_rank}-1.  This makes dimension numbers inherently
+error-prone.  Even though I'm a experienced C/C++ programmer, I @emph{still}
+want to think of the first dimension as 1 -- it doesn't make sense to talk
+about the ``zeroth'' dimension.
+
+@end itemize
+
+As a solution to this problem, Blitz++ provides a series of symbolic
+constants which you can use to refer to dimensions:
+
+@findex firstDim
+@findex secondDim
+@findex thirdDim
+@findex fourthDim
+
+@example
+const int firstDim    = 0;
+const int secondDim   = 1;
+const int thirdDim    = 2;
+   .
+   .
+const int eleventhDim = 10;
+@end example
+
+These symbols should be used in place of the numerals 0, 1, ... @code{N_rank}-1.
+For example:
+
+@example
+A.reverse(thirdDim);
+@end example
+
+This code is clearer: you can see that the parameter refers to a dimension,
+and it isn't much of a leap to realize that it's reversing the element
+ordering in the third dimension.
+
+If you find @code{firstDim}, @code{secondDim}, ... aesthetically unpleasing,
+there are equivalent symbols @code{firstRank}, @code{secondRank},
+@code{thirdRank}, ..., @code{eleventhRank}.
+
+@cindex eleven, end of the universe at
+
+@unnumberedsubsubsec Why stop at eleven?
+
+The symbols had to stop somewhere, and eleven seemed an appropriate place to
+stop.  Besides, if you're working in more than eleven dimensions your code
+is going to be confusing no matter what help Blitz++ provides.
+
+@cindex Array member functions
+@subsection Member function descriptions
+@cindex Array member functions @code{base()}
+@findex base()
+@example
+const TinyVector<int, N_rank>&    base() const;
+int                               base(int dimension) const;
+@end example
+
+The @emph{base} of a dimension is the first valid index value.  A typical
+C-style array will have base of zero; a Fortran-style array will have base
+of one.  The base can be different for each dimension, but only if you
+deliberately use a Range-argument constructor or design a custom storage
+ordering.
+
+The first version returns a reference to the vector of base values.
+The second version returns the base for just one dimension; it's
+equivalent to the @code{lbound()} member function.  See the
+note on dimension parameters such as @code{firstDim} above.
+
+@cindex iterators for arrays
+@findex const_iterator
+@cindex Array iterators
+@cindex Array member functions @code{begin()}
+@cindex STL iterators for arrays
+@findex begin()
+
+@example
+Array<T,N>::iterator              begin();
+Array<T,N>::const_iterator        begin() const;
+@end example
+
+These functions return STL-style forward and input iterators, respectively,
+positioned at the first element of the array.  Note that the array data is
+traversed in memory order (i.e.@: by rows for C-style arrays, and by columns
+for Fortran-style arrays).  The @code{Array<T,N>::const_iterator} has these
+methods:
+
+@example
+const_iterator(const Array<T,N>&);
+T operator*() const;
+const T* [restrict] operator->() const;
+const_iterator& operator++();
+void operator++(int);
+bool operator==(const const_iterator<T,N>&) const;
+bool operator!=(const const_iterator<T,N>&) const;
+const TinyVector<int,N>& position() const;
+@end example
+
+Note that postfix ++ returns void (this is not STL-compliant, but is done
+for efficiency).  The method @code{position()} returns a vector containing
+current index positions of the iterator.  The @code{Array<T,N>::iterator}
+has the same methods as @code{const_iterator}, with these exceptions:
+@code{iterator& operator++(); T& operator*(); T* [restrict] operator->();}
+The @code{iterator} type may be used to modify array elements.  To obtain
+iterator positioned at the end of the array, use the @code{end()} methods.
+
+@cindex Array member functions @code{cols()}
+@cindex Array member functions @code{columns()}
+@findex cols()
+@findex columns()
+@example
+int                               cols() const;
+int                               columns() const;
+@end example
+
+Both of these functions return the extent of the array in the
+second dimension.  Equivalent to @code{extent(secondDim)}.
+See also @code{rows()} and @code{depth()}.
+
+@cindex Array member functions @code{copy()}
+@cindex Array copying
+@findex copy()
+@example
+Array<T_numtype, N_rank>          copy() const;
+@end example
+
+This method creates a copy of the array's data, using the same storage
+ordering as the current array.  The returned array is guaranteed to be
+stored contiguously in memory, and to be the only object referring to its
+memory block (i.e.@: the data isn't shared with any other array object).
+
+@cindex Array getting pointer to array data
+@findex data()
+@cindex Array member functions @code{data()}
+@findex dataZero()
+@cindex Array member functions @code{dataZero()}
+@findex dataFirst()
+@cindex Array member functions @code{dataFirst()}
+@example
+const T_numtype* [restrict]       data() const;
+      T_numtype* [restrict]       data();
+const T_numtype* [restrict]       dataZero() const;
+      T_numtype* [restrict]       dataZero();
+const T_numtype* [restrict]       dataFirst() const;
+      T_numtype* [restrict]       dataFirst();
+@end example
+
+These member functions all return pointers to the array data.  The NCEG
+@code{restrict} qualifier is used only if your compiler supports it.  If
+you're working with the default storage order (C-style arrays with base
+zero), you'll only need to use @code{data()}.  Otherwise, things get
+complicated:
+
+@code{data()} returns a pointer to the element whose indices are equal to
+the array base.  With a C-style array, this means the element (0,0,...,0);
+with a Fortran-style array, this means the element (1,1,...,1).  If @code{A}
+is an array object, @code{A.data()} is equivalent to (&A(A.base(firstDim),
+A.base(secondDim), ...)).  If any of the dimensions are stored in reverse
+order, @code{data()} will not refer to the element which comes first in
+memory.
+
+@code{dataZero()} returns a pointer to the element (0,0,...,0), even if such
+an element does not exist in the array.  What's the point of having such a
+pointer?  Say you want to access the element (i,j,k).  If you add to the
+pointer the dot product of (i,j,k) with the stride vector
+(@code{A.stride()}), you get a pointer to the element (i,j,k).
+
+@code{dataFirst()} returns a pointer to the element of the array which comes
+first in memory.  Note however, that under some circumstances (e.g.
+subarrays), the data will not be stored contiguously in memory.  You have to
+be very careful when meddling directly with an array's data.
+
+Other relevant functions are: @code{isStorageContiguous()} and
+@code{zeroOffset()}.
+
+@cindex Array member functions @code{depth()}
+@findex depth()
+@example
+int                               depth() const;
+@end example
+
+Returns the extent of the array in the third dimension.  This function is
+equivalent to @code{extent(thirdDim)}.  See also @code{rows()} and
+@code{columns()}.
+
+@findex dimensions()
+@cindex Array member functions @code{dimensions()}
+@example
+int                               dimensions() const;
+@end example
+
+Returns the number of dimensions (rank) of the array.  The return value is
+the second template parameter (@code{N_rank}) of the @code{Array} object.
+Same as @code{rank()}.
+
+@findex domain()
+@cindex Array member functions @code{domain()}
+@cindex Array obtaining domain of
+@example
+RectDomain<N_rank>                domain() const;
+@end example
+
+Returns the domain of the array.  The domain consists of a vector of lower
+bounds and a vector of upper bounds for the indices.  NEEDS_WORK-- need a
+section to explain methods of @code{RectDomain<N>}.
+
+@findex end()
+@cindex Array member functions @code{end()}
+@example
+Array<T,N>::iterator              end();
+Array<T,N>::const_iterator        end() const;
+@end example
+
+Returns STL-style forward and input iterators (respectively) for the array,
+positioned at the end of the array.
+
+@findex extent()
+@cindex Array member functions @code{extent()}
+@example
+int                               extent(int dimension) const;
+@end example
+
+The first version the extent (length) of the array in the specified
+dimension.  See the note about dimension parameters such as @code{firstDim}
+in the previous section.
+
+@findex extractComponent()
+@cindex Array member functions @code{extractComponent()}
+@cindex Array extracting components
+@example
+Array<T_numtype2,N_rank>          extractComponent(T_numtype2,
+                                  int componentNumber, int numComponents);
+@end example
+
+This method returns an array view of a single component of a multicomponent
+array.  In a multicomponent array, each element is a tuple of fixed size.
+The components are numbered 0, 1, ..., @code{numComponents-1}.  Example:
+
+@example
+Array<TinyVector<int,3>,2> A(128,128);  // A 128x128 array of int[3]
+
+Array<int,2> B = A.extractComponent(int(), 1, 3);
+@end example
+
+Now the B array refers to the 2nd component of every element in A.  Note:
+for complex arrays, special global functions @code{real(A)} and
+@code{imag(A)} are provided to obtain real and imaginary components of an
+array.  See the @strong{Global Functions} section.
+
+@findex free()
+@cindex Array member functions @code{free()}
+@cindex Array freeing an
+@example
+void                              free();
+@end example
+
+This method resizes an array to zero size.  If the array data is not being
+shared with another array object, then it is freed.
+
+@findex isMajorRank()
+@cindex Array member functions @code{isMajorRank()}
+@example
+bool                              isMajorRank(int dimension) const;
+@end example
+
+Returns true if the dimension has the largest stride.  For C-style arrays
+(the default), the first dimension always has the largest stride.  For
+Fortran-style arrays, the last dimension has the largest stride.  See also
+@code{isMinorRank()} below and the note about dimension parameters such as
+@code{firstDim} in the previous section.
+
+@findex isMinorRank()
+@cindex Array member functions @code{isMinorRank()}
+@example
+bool                              isMinorRank(int dimension) const;
+@end example
+
+Returns true if the dimension @emph{does not} have the largest stride.  See
+also @code{isMajorRank()}.
+
+@findex isRankStoredAscending()
+@cindex Array member functions @code{isRankStoredAscending()}
+@example
+bool                              isRankStoredAscending(int dimension) const;
+@end example
+
+Returns true if the dimension is stored in ascending order in memory.  This
+is the default.  It will only return false if you have reversed a dimension
+using @code{reverse()} or have created a custom storage order with a
+descending dimension.
+
+@findex isStorageContiguous()
+@cindex Array member functions @code{isStorageContiguous()}
+@example
+bool                              isStorageContiguous() const;
+@end example
+
+Returns true if the array data is stored contiguously in memory.  If you
+slice the array or work on subarrays, there can be skips -- the array data
+is interspersed with other data not part of the array.  See also the various
+@code{data..()} functions.  If you need to ensure that the storage is
+contiguous, try @code{reference(copy())}.
+
+@findex lbound()
+@cindex Array member functions @code{lbound()}
+@example
+int                               lbound(int dimension) const;
+TinyVector<int,N_rank>            lbound() const;
+@end example
+
+The first version returns the lower bound of the valid index range for a
+dimension.  The second version returns a vector of lower bounds for all
+dimensions.  The lower bound is the first valid index value.  If you're
+using a C-style array (the default), the lbound will be zero; Fortran-style
+arrays have lbound equal to one.  The lbound can be different for each
+dimension, but only if you deliberately set them that way using a Range
+constructor or a custom storage ordering.  This function is equivalent to
+@code{base(dimension)}.  See the note about dimension parameters such as
+@code{firstDim} in the previous section.
+
+
+@findex makeUnique()
+@cindex Array member functions @code{makeUnique()}
+@cindex Array making unique copy
+@example
+void                              makeUnique();
+@end example
+
+If the array's data is being shared with another Blitz++ array object, this
+member function creates a copy so the array object has a unique view of the
+data.  
+
+@findex numElements()
+@cindex Array member functions @code{numElements()}
+@cindex Array number of elements in
+@example
+int                               numElements() const;
+@end example
+
+Returns the total number of elements in the array, calculated by taking the
+product of the extent in each dimension.  Same as @code{size()}.
+
+@findex ordering()
+@cindex Array member functions @code{ordering()}
+@cindex Array storage ordering of
+@example
+const TinyVector<int, N_rank>&    ordering() const;
+int                               ordering(int storageRankIndex) const;
+@end example
+
+These member functions return information about how the data is ordered in
+memory.  The first version returns the complete ordering vector; the second
+version returns a single element from the ordering vector.  The argument for
+the second version must be in the range 0 .. @code{N_rank}-1.  The ordering
+vector is a list of dimensions in increasing order of stride;
+@code{ordering(0)} will return the dimension number with the smallest
+stride, and @code{ordering(N_rank-1)} will return the dimension number with
+largest stride.  For a C-style array, the ordering vector contains the
+elements (@code{N_rank}-1, @code{N_rank}-2, ..., 0).  For a Fortran-style
+array, the ordering vector is (0, 1, ..., @code{N_rank}-1).  See also the
+description of custom storage orders in section @ref{Array storage}.
+
+@findex rank()
+@cindex Array member functions @code{rank()}
+@example
+int                               rank() const;
+@end example
+
+Returns the rank (number of dimensions) of the array.  The return value is
+equal to @code{N_rank}.  Equivalent to @code{dimensions()}.
+
+@findex reference()
+@cindex Array member functions @code{reference()}
+@cindex Array referencing another
+@example
+void                              reference(Array<T_numtype,N_rank>& A);
+@end example
+
+This causes the array to adopt another array's data as its own.  After this
+member function is used, the array object and the array @code{A} are
+indistinguishable -- they have identical sizes, index ranges, and data.  The
+data is shared between the two arrays.
+
+@findex reindex(), reindexSelf()
+@cindex Array member functions @code{reindex()}
+@cindex Array member functions @code{reindexSelf()}
+@cindex Array reindexing
+@example
+void                              reindexSelf(const TinyVector<int,N_rank>&);
+Array<T,N>                        reindex(const TinyVector<int,N_rank>&);
+@end example
+
+These methods reindex an array to use a new base vector.  The first version
+reindexes the array, and the second just returns a reindexed view of the
+array, leaving the original array unmodified.
+
+@findex resize()
+@cindex Array member functions @code{resize()}
+@cindex Array resizing
+@example
+void                              resize(int extent1, ...);
+void                              resize(const TinyVector<int,N_rank>&);
+@end example
+
+These functions resize an array to the specified size.  If the array is
+already the size specified, then no memory is allocated.  After resizing,
+the contents of the array are garbage.  See also @code{resizeAndPreserve()}.
+
+@findex resizeAndPreserve()
+@cindex Array member functions @code{resizeAndPreserve()}
+@example
+void                              resizeAndPreserve(int extent1, ...);
+void                              resizeAndPreserve(const TinyVector<int,N_rank>&);
+@end example
+
+These functions resize an array to the specified size.  If the array is
+already the size specified, then no change occurs (the array is not
+reallocated and copied).  The contents of the array are preserved whenever
+possible; if the new array size is smaller, then some data will be lost.
+Any new elements created by resizing the array are left uninitialized.
+
+@findex reverse(), reverseSelf()
+@cindex Array member functions @code{reverse()}
+@cindex Array member functions @code{reverseSelf()}
+@cindex Array reversing
+@example
+Array<T,N>                        reverse(int dimension);
+void                              reverseSelf(int dimension);
+@end example
+
+This method reverses the array in the specified dimension.  For example, if
+@code{reverse(firstDim)} is invoked on a 2-dimensional array, then the
+ordering of rows in the array will be reversed; @code{reverse(secondDim)}
+would reverse the order of the columns.  Note that this is implemented by
+twiddling the strides of the array, and doesn't cause any data copying.  The
+first version returns a reversed ``view'' of the array data; the second
+version applies the reversal to the array itself.
+
+@findex rows()
+@cindex Array member functions @code{rows()}
+@example
+int                               rows() const;
+@end example
+
+Returns the extent (length) of the array in the first dimension.  This
+function is equivalent to @code{extent(firstDim)}.  See also
+@code{columns()}, and @code{depth()}.
+
+@findex size()
+@cindex Array member functions @code{size()}
+@example
+int                               size() const;
+@end example
+
+Returns the total number of elements in the array, calculated by taking the
+product of the extent in each dimension.  Same as @code{numElements()}.
+
+@cindex @code{shape()} (Array method)
+@cindex Array member functions @code{shape()}
+@cindex Array shape of
+@example
+const TinyVector<int, N_rank>&    shape() const;
+@end example
+
+Returns the vector of extents (lengths) of the array.
+
+@findex stride()
+@cindex Array member functions @code{stride()}
+@cindex Array strides of
+@example
+const TinyVector<int, N_rank>&    stride() const;
+int                               stride(int dimension) const;
+@end example
+
+The first version returns the stride vector; the second version returns the
+stride associated with a dimension.  A stride is the distance between
+pointers to two array elements which are adjacent in a dimension.  For
+example, @code{A.stride(firstDim)} is equal to @code{&A(1,0,0) - &A(0,0,0)}.
+The stride for the second dimension, @code{A.stride(secondDim)}, is equal to
+@code{&A(0,1,0) - &A(0,0,0)}, and so on.  For more information about
+strides, see the description of custom storage formats in Section
+@ref{Array storage}.  See also the description of parameters like
+@code{firstDim} and @code{secondDim} in the previous section.
+
+@cindex Array member functions @code{transpose()}
+@cindex Array member functions @code{transposeSelf()}
+@cindex Array transposing
+@cindex transposing arrays
+@findex transpose(), transposeSelf()
+@example
+Array<T,N>                        transpose(int dimension1, 
+                                            int dimension2, ...);
+void                              transposeSelf(int dimension1, 
+                                                int dimension2, ...);
+@end example
+
+These methods permute the dimensions of the array.  The dimensions of the
+array are reordered so that the first dimension is @code{dimension1}, the
+second is @code{dimension2}, and so on.  The arguments should be a
+permutation of the symbols @code{firstDim, secondDim, ...}.  Note that this
+is implemented by twiddling the strides of the array, and doesn't cause any
+data copying.  The first version returns a transposed ``view'' of the array
+data; the second version transposes the array itself.
+
+@cindex Array member functions @code{ubound()}
+@findex ubound()
+@example
+int                               ubound(int dimension) const;
+TinyVector<int,N_rank>            ubound() const;
+@end example
+
+The first version returns the upper bound of the valid index range for a
+dimension.  The second version returns a vector of upper bounds for all
+dimensions.  The upper bound is the last valid index value.  If you're using
+a C-style array (the default), the ubound will be equal to the
+@code{extent(dimension)-1}.  Fortran-style arrays will have ubound equal to
+@code{extent(dimension)}.  The ubound can be different for each dimension.
+The return value of @code{ubound(dimension)} will always be equal to
+@code{lbound(dimension)+extent(dimension)-1}.  See the note about
+dimension parameters such as @code{firstDim} in the previous section.
+
+@findex zeroOffset()
+@cindex Array member functions @code{zeroOffset()}
+@example
+int                               zeroOffset() const;
+@end example
+
+This function has to do with the storage of arrays in memory.  You may want
+to refer to the description of the @code{data..()} member functions and of
+custom storage orders in Section @ref{Array storage} for
+clarification.  The return value of @code{zeroOffset()} is the distance from
+the first element in the array to the (possibly nonexistant) element
+@code{(0,0,...,0)}.  In this context, ``first element'' returns to the element
+@code{(base(firstDim),base(secondDim),...)}.
+

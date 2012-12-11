@@ -1,0 +1,23 @@
+-*- outline -*-
+
+Things it might be nice to do someday.
+
+
+* Soon
+
+** make Blitz STL-compliant
+
+** extend "new" expression template support to all blitz container classes,
+not just Arrays
+
+** expression template support for TinyMatrix (or perhaps a merger with the
+tvmet library)
+
+** proper usage of std namespace within blitz (reduce or eliminate use of
+non-standard headers and using directives)
+
+** add RPM as a dist medium
+
+* Later
+
+** make Blitz OpenMP supported

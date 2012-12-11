@@ -1,0 +1,75 @@
+
+@node compiling, legal, install, Introduction
+@section Compiling with Blitz++
+
+@subsection Header files
+@cindex header files, convention
+@cindex @file{blitz} header files
+
+Blitz++ follows an X-windows style convention for header files.  All headers
+are referred to with a prefix of @file{blitz}.  For example, to use the
+@code{Array<T,N>} class, one needs to include @code{<blitz/array.h>} instead
+of just @code{<array.h>}.  To make this work, the main Blitz++ directory
+must be in your include path.  For example, if Blitz++ was installed in
+@file{/software/Blitz++}, you will need to compile with @code{-I
+/software/Blitz++}.
+
+If you have root privileges, you may want to put in a symbolic link from the
+standard include path (e.g. @file{/usr/include/blitz/}) to the @code{blitz}
+directory of the distribution.  This will allow you to omit the @code{-I
+...} option when compiling.
+
+@subsection Linking to the Blitz++ library
+@findex libblitz.a
+@cindex library (@file{libblitz.a})
+
+The Blitz++ library file @file{libblitz.a} contains a few pieces of global
+data.  You should ensure that the @file{lib} subdirectory of the Blitz++
+distribution is in your library path (e.g.
+@code{-L/usr/local/blitz-0.5/lib}) and include @code{-lblitz} on your
+command line.  If you use math functions, you should also compile with
+@code{-lm}.
+
+@subsection An example Makefile
+@cindex makefile, example
+
+Here is a typical skeletal Makefile for compiling with Blitz++ under gcc:
+
+@smallexample
+@include examples/makefile.example
+@end smallexample
+
+There are more example makefiles in the examples, testsuite, and benchmarks
+directories of the distribution.
+
+@subsection Explicit instantiation
+@cindex explicit instantiation
+@cindex Array explicit instantiation
+
+It is not possible to do explicit instantiation of Blitz++ arrays.  If you
+aren't familiar with explicit instantiation of templates, then this fact
+will never bother you.
+
+The reason is that explicit instantiation results in all members of a class
+template being instantiated.  This is @strong{not} the case for implicit
+instantiation, in which only required members are instantiated.  The
+@code{Array<T,N>} class contains members which are not valid for all types
+@code{T}: for example, the binary AND operation @code{&=} is nonsensical if
+@code{T=float}.  If you attempt to explicitly instantiate an array class,
+e.g.
+
+@code{template class Array<float,3>;}
+
+then you will be rewarded with many compile errors, due to methods such as
+@code{&=} which are nonsensical for @code{float}.
+
+As some consolation, explicit instantiation would not be much help with
+Blitz++ arrays.  The typical use for explicit instantiation is to
+instantiate all the templates you need in one compilation unit, and turn off
+implicit instantiation in the others -- to avoid duplicate instantiations
+and reduce compile times.  This is only possible if you can predict ahead of
+time what needs instantiation.  Easy for simple templates, but impossible
+for classes like @code{Array}.  Almost every line of code you write using
+@code{Array} will cause a different set of things to be implicitly
+instantiated.
+

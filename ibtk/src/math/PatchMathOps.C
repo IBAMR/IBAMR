@@ -59,7 +59,7 @@
 #include <tbox/Utilities.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

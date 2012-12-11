@@ -66,7 +66,7 @@
 #include <tbox/Utilities.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec-et.h>
+#include <blitz/tinyvec2.h>
 
 // SILO INCLUDES
 #if HAVE_LIBSILO
@@ -971,8 +971,8 @@ IBInstrumentPanel::readInstrumentData(
                             const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
                             const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
                             const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_mean_pres_values[meter_num] += P(0)*norm(dA);
-                            A                 [meter_num] += norm(dA);
+                            d_mean_pres_values[meter_num] += P(0)*norm2(dA);
+                            A                 [meter_num] += norm2(dA);
                         }
                     }
                 }

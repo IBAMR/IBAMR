@@ -1,0 +1,14 @@
+
+
+The Blitz++ library is licensed under both the GPL and the more permissive
+``Blitz++ Artistic License''.  Take your pick.  They are detailed in GPL
+and LICENSE, respectively.  The artistic license is more appropriate for
+commercial use, since it lacks the ``viral'' properties of the GPL.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+Copyright @copyright{} 1996--2003 Free Software Foundation, Inc.
+

@@ -1,0 +1,303 @@
+- fixed problem with += and tensor indices, thanks Adnene Ben Abdallah
+- fixed problem in testsuite/wei-ku-1
+- changed "egcs" to "gcc" in documentation, configure scripts
+- incorporated patch from Julian Cummings for missing preexistingMemoryPolicy
+  parameter in Vector<T> constructor
+- when constructing an array from an expression, use the storage
+  format of the first array in the expression (rather than always
+  using C-style storage)  (bug reported by Peter Bienstman)
+- patch by Theodore Papadopoulo for max() on arrays of non-positive
+  floating-point numbers
+- updated email addresses, web pages in source files
+- incorporated code by Adam Levar <adaml@mcneilhouse.com> for input
+  of tinyvecs
+- changed BZ_DISABLE_XOPEN_SOURCE to BZ_ENABLE_XOPEN_SOURCE; it is
+  disabled now by default (it caused problems for HP and Solaris)
+- added 1-D convolutions
+- fixed core dump in testsuite/Olaf-Ronneberger-1, found by Wei Ku
+- fixed namespace problems found by Martin Reinecke and Wei Ku
+- fixed bug found by Wei Ku in loop collapse optimizations
+- fixed bug found by Michael Aivazis in the array io; missing
+  "return os;" in operator<<(ostream,Array<T,N>)
+- fixed bug found by Peter Bienstman where expression involving
+  empty arrays would loop forever
+- SGI C++ 7.3 now supported (thanks Bill Homer)
+- 'make clean' now removes blitz/config.h and config.cache
+- fixed problem with polar(x,y) in compiler/compmath.cpp
+- added real persistence: operator<< to output N-dimensional arrays
+  to ostreams, operator>> to input N-dimensional arrays from istreams
+- can now construct arrays from array expressions
+- in theory, C++ Builder 4 is now supported.  Oleg Orlov found 2 bugs
+  which have now been fixed.
+- stencils are expression-templatized!! This means you can use stencils
+  in array expressions, e.g. A = Laplacian2D(B) / (h*h);
+- updated documentation, index added to postscript version
+- new random number generators library: uniform, normal, exponential,
+  beta, gamma, chisquare, F, discrete uniform (see random/ and the new 
+  chapter in the user guide) 
+- added new partial/full 1D reduction: last(X) returns index where
+  X is last true
+- support for egcs __restrict__
+- incorporated Allan Stoke's Intel C++ patches
+- new div, grad, curl, difference operators on vector fields; stencil
+  patterns shown graphically in documentation
+- new expression templates implementation is on by default now
+- <blitz/numinquire.h> should work on all platforms now;
+  I've included a hacked-up version of <limits> from libstdc++
+  (blitz/limits-hack.h)
+- Mersenne Twister RNG; see blitz/rand-mt.h; adapted by Allan Stokes
+- nicer syntax for constructing Fortran-style arrays:
+  Array<int,2> A(3,3,fortranArray);
+- fixed reductions minIndex and maxIndex for multidimensional
+  arrays; thanks Peter Nordlund
+- faster compile times
+- ConstArrayIterator, ArrayIterator: usable STL-style forward
+  iterators for Arrays
+- new math functions for complex arrays: arg, conj, polar
+  (real and imag were provided in an earlier release)
+- when creating an array from pre-existing data, now have an
+  option of duplicateData, deleteDataWhenDone, neverDeleteData
+- added user-defined expression template functions: see
+  examples/useret.cpp
+- added Array::reindex(), reindexSelf() contributed by
+  Derrick Bass
+- fixed bugs in Array::isStorageContiguous(), thanks Matthias
+  Lindström
+- fixed bug in stencils related to automatic determination
+  of spatial extent; another due to integer literals
+- fixed major bug in reverseSelf()
+- fixed memory leak when creating arrays from pre-existing data
+  (thanks Matthias Troyer and Pierre-Alain Genilloud)
+- removed finite and trunc math functions (these apparently are
+  only available under AIX?); thanks Prem Anand Manmohanrao
+- incorporated several patches by Tim Brunne: typos in
+  benchmarks/acousticf.f and benchmarks/acousticf2.f; guarded
+  <fstream> inclusion in benchmarks/acoustic.cpp; removed $^
+  in testsuite/Makefile (not recognized by osf make); 
+- fixed bug w/ scoping of IEEE math functions
+- added -fno-gcse to default options for egcs, will maybe minimize
+   memory gobbling bug in egcs
+- fixed problems with egcs and OSF related to _XOPEN_SOURCE_EXTENDED
+  (thanks to Petter Urkedal for finding this mysterious bug)
+- fixed problem with compiler/compmth2.cpp and compiler/compmath.cpp
+  (thanks Andy Jewell)
+- moved blitz/minmax.h into its own namespace (blitz::minmax) to avoid 
+  conflicts in blitz/array/reduce.h; thanks Peter Nordlund
+- fixed problem in array/stencilops.h, thanks Dr. Josef Grosch
+- fixed problem with Array<T,N> when T does not have trival
+  ctors/dtors; patches by Petter Urkedal
+
+Version 0.4, August 6, 1998
+- new benchmark results on a variety of platforms; see
+  http://monet.uwaterloo.ca/blitz/benchmarks/
+- indirection for arrays: A[point-list], A[subdomain-list], 
+  A[indexSet(indexlist1,indexlist2,...)]
+- new stencil objects, make finite differencing much nicer
+- computational fluid dynamics example (currently broken)
+- ported and tuned for DECcxx
+- central, forward, and backward difference stencil operators
+- curl, div, grad, laplacian stencil operators
+- support for vector fields/stencil objects (vector versions of curl,
+  div, grad)
+- BZ_ENUM_CAST kludge
+- fixed problems with math functions and namespaces
+- implemented RectDomain<N>
+- more tidying in blitz/compiler
+- loop unrolling is now OFF by default
+- incorporated patches from Theo Papadopoulo for setting compiler
+  names and flags, and blas path
+- vastly improved documentation
+- added documentation for numeric inquiry functions
+
+Version 0.3 alpha 01, April 12 1998
+- added where(A,B,C) for arrays; as a replacement for ?: operator
+- zip(expr1, expr2, T_component) to "zip" a multicomponent expression
+  from two scalar-valued expressions
+- added real(A) and imag(A) for complex arrays; can be used as lvalues
+- added Array<T,N>::operator[](int), and ::chopComponent(), support for
+  multicomponent arrays
+- Implemented Array<T,N>::reverse()
+- Implemented Array<T,N>::resizeAndPreserve()
+- fixed various bugs found by aCC (thanks Len Lattanzi)
+- beefed up compiler/namespac.cpp; egcs is just good enough to pass
+  the old test but still doesn't handle full namespaces
+- added section on multicomponent arrays to documentation
+- split complex math functions into two parts; some of the ANSI-required
+  functions are not provided by KAI C++
+- added new array constructor to create an array from pre-existing data,
+  with specified strides
+- added Array<T,N>::free() to delete an array's data
+- updated the documentation: global functions, platforms, fixed many
+  errors
+- cycleArrays has been changed from a method of Array<T,N> to a
+  global function.  This may break existing code.  See manual
+  for details (under "Global functions")
+- The great source code reorganization has started.  arrayexpr.h,
+  arraymap.h have become array/expr.h, array/map.h, etc.  This should
+  make no difference to user-level code.
+- NB: the semantics of transpose() have been changed!  This may break
+  existing code.  Now have transpose() and transposeSelf(); reverse() and 
+  reverseSelf().  See manual for details.
+- Fixed oversight in type promotion: if one type is user-defined and the
+  other is an intrinsic type, then promote to the user-defined type
+- Implemented blitz::min(a,b) and blitz::max(a,b), with type promotion
+  (blitz/minmax.h)
+- Fixed bug with makeUnique() and arrays created from pre-existing data
+- Fixed bugs associated with IEEE/SYSV math functions.  Some functions
+  were called IEEE in one place and SYSV in another, which caused many
+  problems.
+- Fixed bug in compiler/instant.cpp; incorrect syntax for explicit
+  instantiation request
+- Fixed bug in benchmarks/looptest.cpp due to unrolling backwards
+  loops incorrectly
+- added PhysicalConstants.h and SystemOfUnits.h from CERN, by
+  Michel Maire.  These should be supplemented with more constants
+  from e.g. CRC handbook.  ** Update: these won't be included until
+  a code sharing agreement with CERN is signed. **
+
+Version 0.2 alpha 06, April 12 1998
+- serious makeover of the Blitz++ web pages
+- Blitz++ development list (blitz-dev) started; see
+  http://seurat.uwaterloo.ca/blitz/contribute/
+- interlaced arrays seriously implemented: interlaceArrays() and
+  allocateArrays().  The first always interlaces; the second only
+  interlaces if it's advantageous for the architecture (controlled
+  by the BZ_INTERLACE_ARRAYS flag in <blitz/tuning.h>)
+- new type promotion mechanism <blitz/promote.h>
+- fixed use of bool (instead of _bz_bool) in <blitz/bzdebug.h>
+- various minor bug fixes
+- included benchmarks/looptest.cpp: tests a variety of C loop styles
+  to find which one gives best performance.  This will be a start for
+  automatic tuning someday.
+- added lots of comments to <blitz/arrayeval.cc> to explain stack
+  iteration
+- finally, stable compiles with EGCS
+- honour BZ_HAVE_NAMESPACES in examples and benchmarks
+- will now build into a separate directory (thanks Brendan Kehoe)
+- integrated GNU autoconf and configure utilities; many thanks to
+  John W. Eaton and Brendan Kehoe for their help
+- exciting new benchmark results: see web page
+- stable compiles with egcs-980328
+- bzconfig script will now run in non-interactive mode
+- archive now unpacks into blitz-YYMMDD, instead of just Blitz++
+- fixed bug related to globals in <blitz/bzdebug.h>
+- fixed bug in unrolling of 1-D array expressions with common, non-unit
+  stride <blitz/arrayeval.cc>, added check to test suite
+- ColumnMajor changed to ColumnMajorArray to avoid conflict with
+  matrix class of the same name
+
+Version 0.2 alpha 05  March 13 1998
+- Blitz++ is now distributed under the terms of the GNU General Public
+  License
+- solid EGCS support (see http://egcs.cygnus.com/)
+- unfortunately, Cray C++ support broken by requiring <string>; this can
+  be fixed if anyone really wants it.
+- libblitz.a now contains global instances (so far, just tensor index 
+  objects)
+- one-step installation if using KAI C++ (cd Blitz++; make)
+- various problems with multiple module programs fixed (I hope)
+- partial integration with Tau profiling tools
+  http://www.cs.uoregon.edu/research/paracomp/tau/
+- total reductions
+- arrays with different index sets may no longer be used in the
+  same expression (e.g. adding a base-1 array to a base-0 array).
+  This causes ambiguities for expressions such as sum(A+B+i)-- from
+  which array should the index i take its values?
+- shape checking for array expressions (in debug mode only)
+- added pretty printing for array expressions; will be used for
+  tracing and profiling, shape checking
+- fixed bug in loop collapse optimizations which broke examples/storage.cpp
+- minor changes to documentation
+- added ColumnMajor<N_rank> array storage order
+- full implementation of Array<T,N>::resize()
+- Array<T,N>::permute() renamed to transpose()
+- duplicate Array member function deprecated: length()
+- start of automated test suite
+
+Version 0.2 alpha 04  September 1997
+- EGCS port (see http://www.cygnus.com/egcs/)
+- many new performance benchmarks for vector & array operations
+- more tuning of vector & array operations
+- several bug fixes
+
+Version 0.2 alpha 03  September 1997
+- Intel C++ port (Windows'95 and NT).  Compiler test suite won't work;
+  just copy <blitz/config-ICL.h> to <blitz/config.h>
+- inlining groups (BZ_INLINE_GROUP1, BZ_INLINE_GROUP2) in <blitz/tuning.h>
+  can be used to disable inlining of certain operations
+- in evaluating array expressions, multidimensional loops are collapsed 
+  to 1D when possible
+- automatic tiling for two-dimensional array stencils
+- Array ctor to create arrays from pre-existing data (e.g. Fortran arrays)
+- new benchmark: stencil.cpp (3D, 7-pt stencil)
+- new benchmark: loops.cpp (measures performance of various C loops)
+- new benchmark: acou3d.cpp (3-D PDE)
+- bug fix for subarrays of subarrays
+- common & unit stride optimizations for array expressions
+- new example: transform.cpp
+- indirection now used for innermost loop of array expressions; is faster
+  than pointer increments
+- new benchmark: acoustic.cpp (2-D PDE)
+- list initializers for Vector<T>
+- fixed bug in Vector<T>::reverse()
+- optimizations for PDEs: allocateArrays() (for interlaced arrays),
+  cycleArrays() (for convenient array relabelling)
+- compiler test suite now generates a log file
+
+Version 0.2 alpha 02 August 1997
+- Several additions to compiler test suite
+- Cray T3E port (Cray C++ 3.0.0.0)
+- Honour absence of <limits>, <set>, <complex>; needed for Cray & SGi
+- Compatibility with old for scoping rules (needed for Cray C++)
+- Array<T,N>::permute(..) implemented
+- cross products for TinyVector<T,3>
+- New example: <examples/fixed.cpp> creating arrays of user types
+- Updated documentation
+- New reduction: first(expr, index) returns the first index value for
+  which expr evaluates true
+
+Version 0.2 alpha 01  July 1997
+- New to this release: Array<T,N>
+- added <blitz/numinquire.h>
+- fixed bug in TinyVector<T,N>::length()
+- added TinyVector<T,N>(x1,x2,x3,...,xn) constructors
+
+Version 0.1 alpha 04b
+- fixed bug with index() in VectorPick
+- fixed fortran compatability problems in benchmarks
+- added qcd and haney benchmarks to distribution
+- added check in examples/erf.cpp; this example won't compile
+  without BZ_HAVE_IEEE_MATH
+
+Version 0.1 alpha 04
+- sum(), product() metaprograms for TinyVector
+- min(), minValue(), minIndex(), max(), maxValue(), maxIndex()
+  for TinyVector (loops not unravelled)
+- norm(), norm1() for TinyVector (loop not unravelled)
+- Added any(), all(), and count() for vector expressions
+- Fixed bug in Vector<T>::makeUnique()
+- Revised random number generators to take a template parameter
+  for the uniform generator 
+- Added discrete uniform generator, in <blitz/rand-dunif.h>
+
+Version 0.1 alpha 03 February 1, 1997
+- Added TinyVector class & expression templates support
+- Added preconditions for mean(..) in <blitz/vecsum.cc>
+- Tidied many #include directives to include header files only
+  if necessary (#ifndef BZ_xxx ... #include ... #endif)
+  Should reduce preprocessing time.
+
+Version 0.1 alpha 02 January 27, 1997
+- improved documentation
+- complex<T> operands in expression templates are templated, rather than
+  providing different specializations for float, double, long double
+- full implementation of where(X,Y,Z) for vectors
+- wrote new Benchmark class with external control model; in <blitz/benchext.h>
+- fixed error in return type of mean() in <blitz/vecsum.cc>
+- changed debug flag in <blitz/debug.h> to BZ_DEBUG (from just DEBUG)
+- added some comments
+
+Version 0.1 alpha 01 January 24, 1997
+- alpha release: Vector<T>, expression templates, VectorPick<T>,
+  Random<Normal>, Random<Uniform>, Benchmark & Timer
+

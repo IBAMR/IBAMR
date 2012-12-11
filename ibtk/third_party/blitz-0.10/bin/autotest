@@ -1,0 +1,67 @@
+# This script automatically downloads, installs and checks a
+# Blitz++ release.  It is used to automatically verify a
+# development release on many platforms before a general
+# release is made.
+
+INSTALL_PATH=/tmp
+COMPILER=egcs
+FTP_SERVER=monet.uwaterloo.ca
+FTP_DIR=pub/blitz/snapshots
+TMPDIR=/tmp
+TEST_COMMAND="cd $INSTALL_PATH/blitz-$1; echo \"Test results for $1 on \`hostname\` \(\`./config.guess\`\):\"; nice make check; cd examples; nice make examples; cd $INSTALL_PATH; rm -rf $INSTALL_PATH/blitz-$1"
+FILENAME=blitz-$1.tar.gz
+
+# Time at which the build and check should occur.
+# On a heavily used system, specify sometime during the night, e.g. "3 am"
+# Otherwise you can just say "now"
+RUNTIME="now"
+
+# If the test and build will be done on another machine, put 
+# "rsh machinename" here.  Otherwise, leave blank.
+# NB: The directory $INSTALL_PATH must be shared between
+# the two machines.
+REMOTE_INVOKE=
+
+echo `hostname`: Downloading Blitz++ release: blitz-$1.tar.gz
+echo Will be installed at $INSTALL_PATH/blitz-$1
+
+FTPSCRIPT=$TMPDIR/blitzftp
+
+if test -f $INSTALL_PATH/$FILENAME || test -d $INSTALL_PATH/blitz-$1; then
+  echo $INSTALL_PATH/$FILENAME already exists, skipping download
+else
+  rm -f $FTPSCRIPT
+  echo debug >>$FTPSCRIPT
+  echo open $FTP_SERVER >>$FTPSCRIPT
+  echo user ftp blitz-autotest@seurat.uwaterloo.ca >>$FTPSCRIPT
+  echo cd $FTP_DIR >>$FTPSCRIPT
+  echo binary >>$FTPSCRIPT
+  echo get $FILENAME $INSTALL_PATH/$FILENAME >>$FTPSCRIPT
+  echo quit >>$FTPSCRIPT
+  ftp -v -n <$FTPSCRIPT
+  rm -f $FTPSCRIPT
+fi
+
+# Now we have hopefully downloaded the file
+
+if test -d $INSTALL_PATH/blitz-$1; then
+  echo Version has already been unpacked and \(hopefully\) configured.
+else
+  if test -f $INSTALL_PATH/$FILENAME; then
+    rm -f $FTPSCRIPT
+    cd $INSTALL_PATH
+    gunzip $FILENAME
+    tar xvf blitz-$1.tar
+    rm blitz-$1.tar
+    cd blitz-$1
+    ./configure --with-cxx=$COMPILER
+    nice make lib
+  else
+    echo Error occurred during download of ftp://$FTP_SERVER/$FTP_DIR/$FILENAME
+    exit 1
+  fi
+fi
+
+echo "$TEST_COMMAND" | $REMOTE_INVOKE at $RUNTIME
+echo Build and check of $FILENAME will be done at $RUNTIME.
+

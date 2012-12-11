@@ -80,7 +80,7 @@ c
       INTEGER ic0,ic1,ic2
       INTEGER d,l,s
 c
-c     Prevent compiler warning about unused variable x_upper.
+c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
@@ -146,7 +146,7 @@ c
       INTEGER ic0,ic1,ic2
       INTEGER d,l,s
 c
-c     Prevent compiler warning about unused variable x_upper.
+c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
@@ -221,6 +221,10 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Use the IB 3-point delta function to interpolate u onto V.
 c
@@ -358,6 +362,10 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Use the IB 3-point delta function to spread V onto u.
 c
@@ -1212,6 +1220,10 @@ c
 
       REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
 c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
 c     Use the broadened (8-point) version of the IB 4-point delta
 c     function to interpolate u onto V.
 c
@@ -1355,6 +1367,10 @@ c
 
       REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
 c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
 c     Use the broadened (8-point) version of the IB 4-point delta
 c     function to spread V onto u.
 c
@@ -1495,6 +1511,10 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:15),w1(0:15),w2(0:15)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Use the broadened (16-point) version of the IB 4-point delta
 c     function to interpolate u onto V.
@@ -1638,6 +1658,10 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Use the broadened (8-point) version of the IB 4-point delta
 c     function to spread V onto u.

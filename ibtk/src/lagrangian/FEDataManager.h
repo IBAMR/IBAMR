@@ -40,12 +40,11 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <../base/variable.h>
-#include <enum_order.h>
-#include <enum_quadrature_type.h>
-#include <equation_systems.h>
-#include <linear_solver.h>
-#include <sparse_matrix.h>
+#include <libmesh/enum_order.h>
+#include <libmesh/enum_quadrature_type.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/linear_solver.h>
+#include <libmesh/sparse_matrix.h>
 
 // PETSC INCLUDES
 #include <petscsys.h>

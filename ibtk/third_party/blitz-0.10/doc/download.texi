@@ -1,0 +1,12 @@
+
+@node download, install, platforms, Introduction
+@section How to download Blitz++
+
+The Blitz++ project is now being served via SourceForge.
+To download the Blitz++ library, go to the blitz project web page, at
+@uref{http://sourceforge.net/projects/blitz}.
+
+More information about supported platforms and C++ compilers is available
+in this document or on the official Blitz++ home page, at
+@uref{http://oonumerics.org/blitz}.
+

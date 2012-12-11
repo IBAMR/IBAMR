@@ -44,9 +44,6 @@
 #define included_SAMRAI_config
 #endif
 
-// PETSc INCLUDES
-#include <private/pcimpl.h>
-
 // IBTK INCLUDES
 #include <ibtk/PETScMatLOWrapper.h>
 #include <ibtk/PETScPCLSWrapper.h>
@@ -491,7 +488,7 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(
             os << d_object_name << ": converged: |Ax-b| <= atol --- residual norm is less than specified absolute tolerance.\n";
             break;
         case KSP_CONVERGED_ITS:
-            os << d_object_name << ": converged: single iteration of KSPPREONLY.\n";
+            os << d_object_name << ": converged: maximum number of iterations reached.\n";
             break;
         case KSP_CONVERGED_STEP_LENGTH:
             os << d_object_name << ": converged: step size less than specified tolerance.\n";

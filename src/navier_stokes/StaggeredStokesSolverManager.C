@@ -49,6 +49,11 @@
 #undef MPICH_SKIP_MPICXX
 #endif
 
+// To avoid compiler warnings related to redefinition of OMPI_SKIP_MPICXX.
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
+
 // IBAMR INCLUDES
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>

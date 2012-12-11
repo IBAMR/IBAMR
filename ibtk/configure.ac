@@ -211,26 +211,6 @@ fi
 # Checks for libraries.
 ###########################################################################
 
-AC_ARG_ENABLE([blitz],
-  AS_HELP_STRING(--enable-blitz,enable support for the optional Blitz++ library @<:@default=yes@:>@),
-  [BLITZ_ENABLED=$enableval], [BLITZ_ENABLED=yes])
-if test "$BLITZ_ENABLED" == "" ; then
-  BLITZ_ENABLED=yes
-fi
-
-AC_ARG_WITH([blitz],
-  AS_HELP_STRING(--with-blitz=PATH,location of optional Blitz++ installation @<:@default=/usr/local/sfw/blitz/current@:>@),
-  [if test "$BLITZ_ENABLED" == "no" ; then
-     AC_MSG_WARN([--with-blitz is specified, but support for Blitz++ is DISABLED])
-     BLITZ_DIR=NONE
-   else
-     if test ! -d "$withval" ; then
-       AC_MSG_ERROR([you must specify an existing directory when using --with-blitz=PATH])
-     fi
-     BLITZ_DIR=$withval
-   fi],
-  [BLITZ_DIR=/usr/local/sfw/blitz/current])
-
 AC_ARG_WITH([hdf5],
   AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation @<:@default=/usr/local/sfw/hdf5/current@:>@),
   [if test ! -d "$withval" ; then
@@ -349,20 +329,6 @@ AX_BLAS(,)
 AX_LAPACK(,)
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
 
-AM_CONDITIONAL([BLITZ_ENABLED],[test "$BLITZ_ENABLED" == "yes"])
-if test "$BLITZ_ENABLED" == "yes"; then
-  echo
-  echo "===================================="
-  echo "Configuring optional package Blitz++"
-  echo "===================================="
-  CONFIGURE_BLITZ
-else
-  echo
-  echo "===================================="
-  echo "Optional package Blitz++ is DISABLED"
-  echo "===================================="
-fi
-
 AM_CONDITIONAL([SILO_ENABLED],[test "$SILO_ENABLED" == "yes"])
 if test "$SILO_ENABLED" == "yes"; then
   echo
@@ -462,5 +428,5 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   third_party/Makefile
 ])
-AC_CONFIG_SUBDIRS([third_party/qd-2.3.11])
+AC_CONFIG_SUBDIRS([third_party/blitz-0.10 third_party/qd-2.3.13])
 AC_OUTPUT

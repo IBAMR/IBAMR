@@ -52,7 +52,7 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <id_types.h>
+#include <libmesh/id_types.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

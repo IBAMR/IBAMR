@@ -722,7 +722,7 @@ IBStandardForceGen::initializeSpringLevelData(
     // NOTE: Only slave nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
     const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
-    for (int k = 0; k < petsc_slave_node_idxs.size(); ++k)
+    for (unsigned int k = 0; k < petsc_slave_node_idxs.size(); ++k)
     {
         const int idx = petsc_slave_node_idxs(k);
         if (UNLIKELY(idx < global_node_offset || idx >= global_node_offset+num_local_nodes))

@@ -54,10 +54,10 @@
 #include <ibtk/LNodeSetData.h>
 
 // LIBMESH INCLUDES
-#include <elem.h>
-#include <fe.h>
-#include <fe_type.h>
-#include <quadrature.h>
+#include <libmesh/elem.h>
+#include <libmesh/fe.h>
+#include <libmesh/fe_type.h>
+#include <libmesh/quadrature.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES

@@ -97,7 +97,6 @@ LData::LData(
             d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
             &d_global_vec);  IBTK_CHKERRQ(ierr);
     }
-    ierr = VecSetBlockSize(d_global_vec, d_depth);  IBTK_CHKERRQ(ierr);
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -206,7 +205,6 @@ LData::LData(
                                    &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = VecSetBlockSize(d_global_vec, d_depth);  IBTK_CHKERRQ(ierr);
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS

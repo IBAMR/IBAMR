@@ -116,9 +116,9 @@ AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = b();
+                const Index<NDIM>& i = bc();
                 const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!is_inflow_bdry) continue;

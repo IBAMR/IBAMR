@@ -1,0 +1,345 @@
+
+@node Array storage, , Array I/O, Arrays
+@section Array storage orders
+@cindex Array storage formats
+@cindex storage of arrays
+
+Blitz++ is very flexible about the way arrays are stored in memory.
+Starting indices can be 0, 1, or arbitrary numbers; arrays can be stored in
+row major, column major or an order based on any permutation of the
+dimensions; each dimension can be stored in either ascending or descending
+order.  An N dimensional array can be stored in @math{N! 2^N} possible ways.
+
+Before getting into the messy details, a review of array storage formats is
+useful.  If you're already familiar with strides and bases, you might
+want to skip on to the next section.
+
+@subsection Fortran and C-style arrays
+
+Suppose we want to store this two-dimensional array in memory:
+
+@example
+[ 1 2 3 ]
+[ 4 5 6 ]
+[ 7 8 9 ]
+@end example
+
+@unnumberedsubsubsec Row major vs. column major
+
+To lay the array out in memory, it's necessary to map the indices (i,j) into
+a one-dimensional block.  Here are two ways the array might appear in
+memory:
+
+@example
+[ 1 2 3 4 5 6 7 8 9 ]
+[ 1 4 7 2 5 8 3 6 9 ]
+@end example
+
+The first order corresponds to a C or C++ style array, and is called
+@emph{row-major ordering}: the data is stored first by row, and then by
+column.  The second order corresponds to a Fortran style array, and is
+called @emph{column-major ordering}: the data is stored first by column, and
+then by row.
+
+The simplest way of mapping the indices (i,j) into one-dimensional memory is
+to take a linear combination.@footnote{Taking a linear combination is
+sufficient for dense, asymmetric arrays, such as are provided by the Blitz++
+@code{Array} class.}  Here's the appropriate linear combination for row
+major ordering:
+
+@example
+memory offset = 3*i + 1*j
+@end example
+
+And for column major ordering:
+
+@example
+memory offset = 1*i + 3*j
+@end example
+
+The coefficients of the (i,j) indices are called @emph{strides}.  For a row
+major storage of this array, the @emph{row stride} is 3 -- you have to skip
+three memory locations to move down a row.  The @emph{column stride} is 1 --
+you move one memory location to move to the next column.  This is also known
+as @emph{unit stride}.  For column major ordering, the row and column
+strides are 1 and 3, respectively.
+
+@unnumberedsubsubsec Bases
+
+To throw another complication into this scheme, C-style arrays have indices
+which start at zero, and Fortran-style arrays have indices which start at
+one.  The first valid index value is called the @emph{base}.  To account for
+a non-zero base, it's necessary to include an offset term in addition to the
+linear combination.  Here's the mapping for a C-style array with i=0..3 and
+j=0..3:
+
+@example
+memory offset =  0 + 3*i + 1*j
+@end example
+
+No offset is necessary since the indices start at zero for C-style arrays.
+For a Fortran-style array with i=1..4 and j=1..4, the mapping would be:
+
+@example
+memory offset = -4 + 3*i + 1*j
+@end example
+
+By default, Blitz++ creates arrays in the C-style storage format (base zero,
+row major ordering).  To create a Fortran-style array, you can use this
+syntax:
+
+@example
+Array<int,2> A(3, 3, FortranArray<2>());
+@end example
+
+The third parameter, @code{FortranArray<2>()}, tells the @code{Array}
+constructor to use a storage format appropriate for two-dimensional Fortran
+arrays (base one, column major ordering).
+
+A similar object, @code{ColumnMajorArray<N>}, tells the @code{Array} constructor
+to use column major ordering, with base zero:
+
+@example
+Array<int,2> B(3, 3, ColumnMajorArray<2>());
+@end example
+
+This creates a 3x3 array with indices i=0..2 and j=0..2.
+
+In addition to supporting the 0 and 1 conventions for C and Fortran-style
+arrays, Blitz++ allows you to choose arbitrary bases, possibly different for
+each dimension.  For example, this declaration creates an array whose
+indices have ranges i=5..8 and j=2..5:
+
+@example
+Array<int,2> A(Range(5,8), Range(2,5));
+@end example
+
+@subsection Creating custom storage orders
+
+@cindex storage order, creating your own
+@cindex Array storage order, creating your own
+
+All @code{Array} constructors take an optional parameter of type
+@code{GeneralArrayStorage<N_rank>}.  This parameter encapsulates a complete
+description of the storage format.  If you want a storage format other than
+C or Fortran-style, you have two choices:
+
+@itemize @bullet
+
+@item      You can create an object of type
+@code{GeneralArrayStorage<N_rank>}, customize the storage format, and use
+the object as a argument for the @code{Array} constructor.
+
+@item      You can create your own storage format object which inherits from
+@code{GeneralArrayStorage<N_rank>}.  This is useful if you will be using the
+storage format many times.  This approach (inheriting from
+@code{GeneralArrayStorage<N_rank>}) was used to create the
+@code{FortranArray<N_rank>} objects.  If you want to take this approach, you
+can use the declaration of @code{FortranArray<N_rank>} in
+@code{<blitz/array.h>} as a guide.
+
+@end itemize
+
+The next sections describe how to modify a
+@code{GeneralArrayStorage<N_rank>} object to suit your needs.
+
+@unnumberedsubsubsec In higher dimensions
+
+In more than two dimensions, the choice of storage order becomes more
+complicated.  Suppose we had a 3x3x3 array.  To map the indices (i,j,k) into
+memory, we might choose one of these mappings:
+
+@example
+memory offset = 9*i + 3*j + 1*k
+memory offset = 1*i + 3*j + 9*k
+@end example
+
+The first corresponds to a C-style array, and the second to a Fortran-style
+array.  But there are other choices; we can permute the strides (1,3,9) any
+which way:
+
+@example
+memory offset = 1*i + 9*j + 3*k
+memory offset = 3*i + 1*j + 9*k
+memory offset = 3*i + 9*j + 1*k
+memory offset = 9*i + 1*j + 3*k
+@end example
+
+For an N dimensional array, there are N! such permutations.  Blitz++ allows
+you to select any permutation of the dimensions as a storage order.  First
+you need to create an object of type @code{GeneralArrayStorage<N_rank>}:
+
+@example
+GeneralArrayStorage<3> storage;
+@end example
+
+@code{GeneralArrayStorage<N_rank>} contains a vector called @code{ordering}
+which controls the order in which dimensions are stored in memory.  The
+@code{ordering} vector will contain a permutation of the numbers 0, 1, ...,
+N_rank-1.  Since some people are used to the first dimension being 1 rather
+than 0, a set of symbols (firstDim, secondDim, ..., eleventhDim) are
+provided which make the code more legible.  
+
+The @code{ordering} vector lists the dimensions in increasing order of
+stride.  You can access this vector using the member function
+@code{ordering()}.  A C-style array, the default, would have:
+
+@example
+storage.ordering() = thirdDim, secondDim, firstDim;
+@end example
+
+meaning that the third index (k) is associated with the smallest stride, and
+the first index (i) is associated with the largest stride.  A Fortran-style
+array would have:
+
+@example
+storage.ordering() = firstDim, secondDim, thirdDim;
+@end example
+
+@unnumberedsubsubsec Reversed dimensions
+
+To add yet another wrinkle, there are some applications where the rows or
+columns need to be stored in reverse order.@footnote{For example, certain
+bitmap formats store image rows from bottom to top rather than top to
+bottom.}
+
+Blitz++ allows you to store each dimension in either ascending or descending
+order.  By default, arrays are always stored in ascending order.  The
+@code{GeneralArrayStorage<N_rank>} object contains a vector called
+@code{ascendingFlag} which indicates whether each dimension is stored
+ascending (@code{true}) or descending (@code{false}).  To alter the contents
+of this vector, use the @code{ascendingFlag()} method:
+
+@example
+// Store the third dimension in descending order
+storage.ascendingFlag() = true, true, false;
+
+// Store all the dimensions in descending order
+storage.ascendingFlag() = false, false, false;
+@end example
+
+@unnumberedsubsubsec Setting the base vector
+
+@code{GeneralArrayStorage<N_rank>} also has a @code{base} vector which
+contains the base index value for each dimension.  By default, the base
+vector is set to zero.  @code{FortranArray<N_rank>} sets the base vector to
+one.  
+
+To set your own set of bases, you have two choices:
+
+@itemize @bullet
+
+@item       You can modify the @code{base} vector inside the
+@code{GeneralArrayStorage<N_rank>} object.  The method @code{base()} returns
+a mutable reference to the @code{base} vector which you can use to set the
+bases.
+
+@item       You can provide a set of @code{Range} arguments to the
+@code{Array} constructor.
+
+@end itemize
+
+Here are some examples of the first approach:
+
+@example
+// Set all bases equal to 5
+storage.base() = 5;    
+
+// Set the bases to [ 1 0 1 ]
+storage.base() = 1, 0, 1;
+@end example
+
+And of the second approach:
+
+@example
+// Have bases of 5, but otherwise C-style storage
+Array<int,3> A(Range(5,7), Range(5,7), Range(5,7));
+
+// Have bases of [ 1 0 1 ] and use a custom storage
+Array<int,3> B(Range(1,4), Range(0,3), Range(1,4), storage);
+@end example
+
+@unnumberedsubsubsec Working simultaneously with different storage orders
+
+Once you have created an array object, you will probably never have to worry
+about its storage order.  Blitz++ should handle arrays of different storage
+orders transparently.  It's possible to mix arrays of different storage
+orders in one expression, and still get the correct result.
+
+Note however, that mixing different storage orders in an expression may
+incur a performance penalty, since Blitz++ will have to pay more attention
+to differences in indexing than it normally would.
+
+You may not mix arrays with different domains in the same expression.  For
+example, adding a base zero to a base one array is a no-no.  The reason for
+this restriction is that certain expressions become ambiguous, for example:
+
+@example
+Array<int,1> A(Range(0,5)), B(Range(1,6));
+A=0;
+B=0;
+using namespace blitz::tensor;
+int result = sum(A+B+i);
+@end example
+
+Should the index @code{i} take its domain from array @code{A} or array
+@code{B}?  To avoid such ambiguities, users are forbidden from mixing arrays
+with different domains in an expression. 
+
+@unnumberedsubsubsec Debug dumps of storage order information
+    
+In debug mode (@code{-DBZ_DEBUG}), class @code{Array} provides a member
+function @code{dumpStructureInformation()} which displays information about
+the array storage:
+
+@example
+Array<float,4> A(3,7,8,2,FortranArray<4>());
+A.dumpStructureInformation(cerr);
+@end example
+
+The optional argument is an @code{ostream} to dump information to.  It
+defaults to @code{cout}.  Here's the output:
+
+@smallexample
+@include examples/dump.out
+@end smallexample
+
+@unnumberedsubsubsec A note about storage orders and initialization
+
+When initializing arrays with comma delimited lists, note that the array is
+filled in storage order: from the first memory location to the last memory
+location.  This won't cause any problems if you stick with C-style arrays,
+but it can be confusing for Fortran-style arrays:
+
+@example
+Array<int,2> A(3, 3, FortranArray<2>());
+A = 1, 2, 3,
+    4, 5, 6,
+    7, 8, 9;
+cout << A << endl;
+@end example
+
+The output from this code excerpt will be:
+
+@example
+A = 3 x 3
+         1         4         7 
+         2         5         8
+         3         6         9
+@end example
+
+This is because Fortran-style arrays are stored in column
+major order.
+
+@subsection Storage orders example
+
+@smallexample
+@include examples/storage.texi
+@end smallexample
+
+And the output:
+
+@smallexample
+@include examples/storage.out
+@end smallexample
+

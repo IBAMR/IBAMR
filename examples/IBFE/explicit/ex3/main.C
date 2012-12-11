@@ -42,10 +42,10 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <boundary_info.h>
-#include <exodusII_io.h>
-#include <mesh.h>
-#include <mesh_generation.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>

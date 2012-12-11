@@ -45,7 +45,7 @@
 #include <LocationIndexRobinBcCoefs.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <map>

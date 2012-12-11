@@ -1,0 +1,569 @@
+@cindex stencil objects
+@cindex Array stencils
+
+Blitz++ provides an implementation of stencil objects which is currently
+@strong{experimental}.  This means that the exact details of how they are
+declared and used may change in future releases.  Use at your own risk.
+
+@section Motivation: a nicer notation for stencils
+
+Suppose we wanted to implement the 3-D acoustic wave equation using finite
+differencing.  Here is how a single iteration would look using subarray
+syntax:
+
+@example
+Range I(1,N-2), J(1,N-2), K(1,N-2);
+
+P3(I,J,K) = (2-6*c(I,J,K)) * P2(I,J,K)
+            + c(I,J,K)*(P2(I-1,J,K) + P2(I+1,J,K) + P2(I,J-1,K) + P2(I,J+1,K)
+            + P2(I,J,K-1) + P2(I,J,K+1)) - P1(I,J,K);
+@end example
+
+This syntax is a bit klunky.  With stencil objects, the implementation
+becomes:
+
+@example
+BZ_DECLARE_STENCIL4(acoustic3D_stencil,P1,P2,P3,c)
+  P3 = 2 * P2 + c * Laplacian3D(P2) - P1;
+BZ_END_STENCIL
+
+  .
+  .
+
+applyStencil(acoustic3D_stencil(), P1, P2, P3, c);
+@end example
+
+
+@node Stencil object, Stencil operator, , Stencils
+@section Declaring stencil objects
+@cindex stencil objects declaring
+
+A stencil declaration may not be inside a function.  It can appear inside a
+class declaration (in which case the stencil object is a nested type).
+
+Stencil objects are declared using the macros @code{BZ_DECLARE_STENCIL1},
+@code{BZ_DECLARE_STENCIL2}, etc.  The number suffix is how many arrays are
+involved in the stencil (in the above example, 4 arrays-- P1, P2, P3, c -- are
+used, so the macro @code{BZ_DECLARE_STENCIL4} is invoked).
+
+The first argument is a name for the stencil object.  Subsequent arguments
+are names for the arrays on which the stencil operates.
+
+After the stencil declaration, the macro @code{BZ_END_STENCIL} must appear
+(or the macro @code{BZ_END_STENCIL_WITH_SHAPE}, described in the next
+section).
+
+In between the two macros, you can have multiple assignment statements,
+if/else/elseif constructs, function calls, loops, etc.
+
+Here are some simple examples:
+
+@findex BZ_DECLARE_STENCIL
+
+@example
+BZ_DECLARE_STENCIL2(smooth2D,A,B)
+  A = (B(0,0) + B(0,1) + B(0,-1) + B(1,0) + B(-1,0)) / 5.0;
+BZ_END_STENCIL
+
+BZ_DECLARE_STENCIL4(acoustic2D,P1,P2,P3,c)
+  A = 2 * P2 + c * (-4 * P2(0,0) + P2(0,1) + P2(0,-1) + P2(1,0) + P2(-1,0))
+      - P1;
+BZ_END_STENCIL
+
+BZ_DECLARE_STENCIL8(prop2D,E1,E2,E3,M1,M2,M3,cE,cM)
+  E3 = 2 * E2 + cE * Laplacian2D(E2) - E1;
+  M3 = 2 * M2 + cM * Laplacian2D(M2) - M1;
+BZ_END_STENCIL
+
+BZ_DECLARE_STENCIL3(smooth2Db,A,B,c)
+  if ((c > 0.0) && (c < 1.0))
+    A = c * (B(0,0) + B(0,1) + B(0,-1) + B(1,0) + B(-1,0)) / 5.0
+      + (1-c)*B;
+  else
+    A = 0;
+BZ_END_STENCIL
+@end example
+
+Currently, a stencil can take up to 11 array parameters.
+
+You can use the notation @code{A(i,j,k)} to read the element at an offset
+@code{(i,j,k)} from the current element.  If you omit the parentheses
+(i.e.@: as in ``@code{A}'' then the current element is read.
+
+You can invoke @emph{stencil operators} which calculate finite differences
+and laplacians.
+
+@section Automatic determination of stencil extent
+
+In stencil declarations such as
+
+@example
+BZ_DECLARE_STENCIL2(smooth2D,A,B)
+  A = (B(0,0) + B(0,1) + B(0,-1) + B(1,0) + B(-1,0)) / 5.0;
+BZ_END_STENCIL
+@end example
+
+Blitz++ will try to automatically determine the spatial extent of the
+stencil.  This will usually work for stencils defined on integer or float
+arrays.  However, the mechanism does not work well for complex-valued
+arrays, or arrays of user-defined types.  If you get a peculiar error when
+you try to use a stencil, you probably need to tell Blitz++ the special
+extent of the stencil manually.
+
+You do this by ending a stencil declaration with
+@code{BZ_END_STENCIL_WITH_SHAPE}:
+
+@example
+BZ_DECLARE_STENCIL2(smooth2D,A,B)
+  A = (B(0,0) + B(0,1) + B(0,-1) + B(1,0) + B(-1,0)) / 5.0;
+BZ_END_STENCIL_WITH_SHAPE(shape(-1,-1),shape(+1,+1))
+@end example
+
+The parameters of this macro are: a @code{TinyVector} (constructed by the
+@code{shape()} function) containing the lower bounds of the stencil offsets,
+and a @code{TinyVector} containing the upper bounds.  You can determine this
+by looking at the the terms in the stencil and finding the minimum and
+maximum value of each index:
+
+@example
+      A = (B(0,  0) 
+         + B(0, +1)
+         + B(0, -1)
+         + B(+1, 0)
+         + B(-1, 0)) / 5.0;
+           --------
+min indices  -1, -1
+max indices  +1, +1
+@end example
+
+@node Stencil operator, Stencil customize, Stencil object, Stencils
+@section Stencil operators
+@cindex stencil operators
+
+This section lists all the stencil operators provided by Blitz++.  They
+assume that an array represents evenly spaced data points separated by a
+distance of @code{h}.  A 2nd-order accurate operator has error term 
+@math{O(h^2)}; a 4th-order accurate operator has error term @math{O(h^4)}.
+
+All of the stencils have factors associated with them.  For example, the
+@code{central12} operator is a discrete first derivative which is 2nd-order
+accurate.  Its factor is 2h; this means that to get the first derivative of
+an array A, you need to use @code{central12(A,firstDim)}@math{/(2h)}.
+Typically when designing stencils, one factors out all of the @math{h} terms
+for efficiency.
+
+The factor terms always consist of an integer multiplier (often 1) and a
+power of @math{h}.  For ease of use, all of the operators listed below are
+provided in a second ``normalized'' version in which the integer multiplier
+is 1.  The normalized versions have an @code{n} appended to the name, for
+example @code{central12n} is the normalized version of @code{central12}, and
+has factor @math{h} instead of @math{2h}.
+
+These operators are defined in @code{blitz/array/stencilops.h} if you wish
+to see the implementation.
+
+@subsection Central differences
+@cindex central differences
+
+@table @code
+@item central12(A,dimension)
+1st derivative, 2nd order accurate.  Factor: @math{2h}
+@include stencils/central12.texi
+
+@item central22(A,dimension)
+2nd derivative, 2nd order accurate.  Factor: @math{h^2}
+@include stencils/central22.texi
+
+@item central32(A,dimension)
+3rd derivative, 2nd order accurate.  Factor: @math{2h^3}
+@include stencils/central32.texi
+
+@item central42(A,dimension)
+4th derivative, 2nd order accurate.  Factor: @math{h^4}
+@include stencils/central42.texi
+
+@item central14(A,dimension)
+1st derivative, 4th order accurate.  Factor: @math{12h}
+@include stencils/central14.texi
+
+@item central24(A,dimension)
+2nd derivative, 4th order accurate.  Factor: @math{12h^2}
+@include stencils/central24.texi
+
+@item central34(A,dimension)
+3rd derivative, 4th order accurate.  Factor: @math{8h^3}
+@include stencils/central34.texi
+
+@item central44(A,dimension)
+4th derivative, 4th order accurate.  Factor: @math{6h^4}
+@include stencils/central44.texi
+@end table
+
+Note that the above are available in normalized versions @code{central12n},
+@code{central22n}, ..., @code{central44n} which have factors of @math{h},
+@math{h^2}, @math{h^3}, or @math{h^4} as appropriate.  
+
+These are available in multicomponent versions: for example,
+@code{central12(A,component,dimension)} gives the central12 operator for the
+specified component (Components are numbered 0, 1, ... N-1).  
+
+@subsection Forward differences
+@cindex forward differences
+
+@table @code
+@item forward11(A,dimension)
+1st derivative, 1st order accurate.  Factor: @math{h}
+@include stencils/forward11.texi
+
+@item forward21(A,dimension)
+2nd derivative, 1st order accurate.  Factor: @math{h^2}
+@include stencils/forward21.texi
+
+@item forward31(A,dimension)
+3rd derivative, 1st order accurate.  Factor: @math{h^3}
+@include stencils/forward31.texi
+
+@item forward41(A,dimension)
+4th derivative, 1st order accurate.  Factor: @math{h^4}
+@include stencils/forward41.texi
+
+@item forward12(A,dimension)
+1st derivative, 2nd order accurate.  Factor: @math{2h}
+@include stencils/forward12.texi
+
+@item forward22(A,dimension)
+2nd derivative, 2nd order accurate.  Factor: @math{h^2}
+@include stencils/forward22.texi
+
+@item forward32(A,dimension)
+3rd derivative, 2nd order accurate.  Factor: @math{2h^3}
+@include stencils/forward32.texi
+
+@item forward42(A,dimension)
+4th derivative, 2nd order accurate.  Factor: @math{h^4}
+@include stencils/forward42.texi
+@end table
+
+Note that the above are available in normalized versions @code{forward11n},
+@code{forward21n}, ..., @code{forward42n} which have factors of @math{h},
+@math{h^2}, @math{h^3}, or @math{h^4} as appropriate.  
+
+These are available in multicomponent versions: for example,
+@code{forward11(A,component,dimension)} gives the forward11 operator for the
+specified component (Components are numbered 0, 1, ... N-1).
+
+@subsection Backward differences
+@cindex backward differences
+
+@table @code
+@item backward11(A,dimension)
+1st derivative, 1st order accurate.  Factor: @math{h}
+@include stencils/backward11.texi
+
+@item backward21(A,dimension)
+2nd derivative, 1st order accurate.  Factor: @math{h^2}
+@include stencils/backward21.texi
+
+@item backward31(A,dimension)
+3rd derivative, 1st order accurate.  Factor: @math{h^3}
+@include stencils/backward31.texi
+
+@item backward41(A,dimension)
+4th derivative, 1st order accurate.  Factor: @math{h^4}
+@include stencils/backward41.texi
+
+@item backward12(A,dimension)
+1st derivative, 2nd order accurate.  Factor: @math{2h}
+@include stencils/backward12.texi
+
+@item backward22(A,dimension)
+2nd derivative, 2nd order accurate.  Factor: @math{h^2}
+@include stencils/backward22.texi
+
+@item backward32(A,dimension)
+3rd derivative, 2nd order accurate.  Factor: @math{2h^3}
+@include stencils/backward32.texi
+
+@item backward42(A,dimension)
+4th derivative, 2nd order accurate.  Factor: @math{h^4}
+@include stencils/backward42.texi
+@end table
+
+Note that the above are available in normalized versions @code{backward11n},
+@code{backward21n}, ..., @code{backward42n} which have factors of @math{h},
+@math{h^2}, @math{h^3}, or @math{h^4} as appropriate.  
+
+These are available in multicomponent versions: for example,
+@code{backward42(A,component,dimension)} gives the backward42 operator for
+the specified component (Components are numbered 0, 1, ... N-1).
+
+@subsection Laplacian (@math{@nabla ^2}) operators
+@cindex Laplacian operators
+
+@table @code
+@item Laplacian2D(A)
+2nd order accurate, 2-dimensional laplacian.  Factor: @math{h^2}
+@include stencils/Laplacian2D.texi
+
+@item Laplacian3D(A)
+2nd order accurate, 3-dimensional laplacian.  Factor: @math{h^2}
+
+@item Laplacian2D4(A)
+4th order accurate, 2-dimensional laplacian.  Factor: @math{12h^2}
+@include stencils/Laplacian2D4.texi
+
+@item Laplacian3D4(A)
+4th order accurate, 3-dimensional laplacian.  Factor: @math{12h^2}
+@end table
+
+Note that the above are available in normalized versions
+@code{Laplacian2D4n}, @code{Laplacian3D4n} which have factors @math{h^2}.
+
+@subsection Gradient (@math{@nabla}) operators
+@cindex gradient operators
+
+These return @code{TinyVector}s of the appropriate numeric type and length:
+
+@table @code
+
+@item grad2D(A)
+2nd order, 2-dimensional gradient (vector of first derivatives), generated
+using the central12 operator.  Factor: @math{2h}
+
+@item grad2D4(A)
+4th order, 2-dimensional gradient, using central14 operator.  Factor: @math{12h}
+
+@item grad3D(A)
+2nd order, 3-dimensional gradient, using central12 operator.  Factor: @math{2h}
+
+@item grad3D4(A)
+4th order, 3-dimensional gradient, using central14 operator.  Factor: @math{12h}
+@end table
+
+These are available in normalized versions @code{grad2Dn}, @code{grad2D4n},
+@code{grad3Dn} and @code{grad3D4n} which have factors @math{h}.
+
+@subsection Jacobian operators
+@cindex Jacobian operators
+
+The Jacobian operators are defined over 3D vector fields only (e.g.
+@code{Array<TinyVector<double,3>,3>}).  They return a
+@code{TinyMatrix<T,3,3>} where T is the numeric type of the vector field.
+
+@table @code
+@item Jacobian3D(A)
+2nd order, 3-dimensional Jacobian using the central12 operator.  Factor:
+@math{2h}.
+
+@item Jacobian3D4(A)
+4th order, 3-dimensional Jacobian using the central14 operator.  Factor:
+@math{12h}.
+@end table
+
+These are also available in normalized versions @code{Jacobian3Dn} and
+@code{Jacobain3D4n} which have factors @math{h}.
+
+@subsection Grad-squared operators
+@cindex Grad-squared operators
+
+There are also grad-squared operators, which return @code{TinyVector}s of
+second derivatives:
+
+@table @code
+@item gradSqr2D(A)
+2nd order, 2-dimensional grad-squared (vector of second derivatives),
+generated using the central22 operator.  Factor: @math{h^2}
+
+@item gradSqr2D4(A)
+4th order, 2-dimensional grad-squared, using central24 operator.  Factor:
+@math{12h^2}
+
+@item gradSqr3D(A)
+2nd order, 3-dimensional grad-squared, using the central22 operator.
+Factor: @math{h^2}
+
+@item gradSqr3D4(A)
+4th order, 3-dimensional grad-squared, using central24 operator.  Factor:
+@math{12h^2}
+@end table
+
+Note that the above are available in normalized versions @code{gradSqr2Dn},
+@code{gradSqr2D4n}, @code{gradSqr3Dn}, @code{gradSqr3D4n} which have factors
+@math{h^2}.
+
+@subsection Curl (@math{@nabla @times}) operators
+@cindex curl operator
+
+These curl operators return scalar values:
+
+@table @code
+@item curl(Vx,Vy)
+2nd order curl operator using the central12 operator.  Factor: @math{2h}
+
+@item curl4(Vx,Vy)
+4th order curl operator using the central14 operator.  Factor: @math{12h}
+
+@item curl2D(V)
+2nd order curl operator on a 2D vector field (e.g.@:
+@code{Array<TinyVector<float,2>,2>}), using the central12 operator.  Factor:
+@math{2h}
+
+@item curl2D4(V)
+4th order curl operator on a 2D vector field, using the central12 operator.
+Factor: @math{12h}
+@end table
+
+Available in normalized forms @code{curln}, @code{curl4n}, @code{curl2Dn},
+@code{curl2D4n}.
+
+These curl operators return three-dimensional @code{TinyVector}s of the 
+appropriate numeric type:
+
+@table @code
+@item curl(Vx,Vy,Vz)
+2nd order curl operator using the central12 operator.  Factor: @math{2h}
+
+@item curl4(Vx,Vy,Vz)
+4th order curl operator using the central14 operator.  Factor: @math{12h}
+
+@item curl(V)
+2nd order curl operator on a 3D vector field (e.g.@:
+@code{Array<TinyVector<double,3>,3>}, using the central12 operator.  Factor:
+@math{2h}
+
+@item curl4(V)
+4th order curl operator on a 3D vector field, using the central14 operator.
+Factor: @math{12h}
+@end table
+
+Note that the above are available in normalized versions @code{curln} and
+@code{curl4n}, which have factors of @code{h}.
+
+@subsection Divergence (@math{@nabla @cdot}) operators
+@cindex divergence operator
+
+The divergence operators return a scalar value.
+
+@table @code
+@item div(Vx,Vy)
+2nd order div operator using the central12 operator.  Factor: @math{2h}
+
+@item div4(Vx,Vy)
+4th order div operator using the central14 operator.  Factor: @math{12h}
+
+@item div(Vx,Vy,Vz)
+2nd order div operator using the central12 operator.  Factor: @math{2h}
+
+@item div4(Vx,Vy,Vz)
+4th order div operator using the central14 operator.  Factor: @math{12h}
+
+@item div2D(V)
+2nd order div operator on a 2D vector field, using the central12 operator.
+Factor: @math{2h}
+
+@item div2D4(V)
+2nd order div operator on a 2D vector field, using the central14 operator.
+Factor: @math{12h}
+
+@item div3D(V)
+2nd order div operator on a 3D vector field, using the central12 operator.
+Factor: @math{2h}
+
+@item div3D4(V)
+2nd order div operator on a 3D vector field using the central14 operator.
+Factor: @math{12h}
+@end table
+
+These are available in normalized versions
+@code{divn}, @code{div4n}, @code{div2Dn}, @code{div2D4n}, @code{div3Dn}, and
+@code{div3D4n} which have factors of @math{h}.
+
+@subsection Mixed partial derivatives
+@cindex mixed partial operators
+
+@table @code
+@item mixed22(A,dim1,dim2)
+2nd order accurate, 2nd mixed partial derivative.  Factor: @math{4h^2}
+
+@item mixed24(A,dim1,dim2)
+4th order accurate, 2nd mixed partial derivative.  Factor: @math{144h^2}
+@end table
+
+There are also normalized versions of the above, @code{mixed22n} and
+@code{mixed24n} which have factors @math{h^2}.
+
+@node Stencil customize, Stencil apply, Stencil operator, Stencils
+@section Declaring your own stencil operators
+@cindex stencil operators declaring your own
+
+You can declare your own stencil operators using the macro
+@code{BZ_DECLARE_STENCIL_OPERATOR1}.  For example, here is the declaration
+of @code{Laplacian2D}:
+
+@example
+BZ_DECLARE_STENCIL_OPERATOR1(Laplacian2D, A)
+    return -4*A(0,0) + A(-1,0) + A(1,0) + A(0,-1) + A(0,1);
+BZ_END_STENCIL_OPERATOR
+@end example
+
+To declare a stencil operator on 3 operands, use the macro
+@code{BZ_DECLARE_STENCIL_OPERATOR3}.  Here is the declaration of @code{div}:
+
+@example
+BZ_DECLARE_STENCIL_OPERATOR3(div,vx,vy,vz)
+  return central12(vx,firstDim) + central12(vy,secondDim)
+    + central12(vz,thirdDim);
+BZ_END_STENCIL_OPERATOR
+@end example
+
+The macros aren't magical; they just declare an inline template function
+with the names and arguments you specify.  For example, the declaration of
+@code{div} could also be written
+
+@example
+template<class T>                              
+inline typename T::T_numtype div(T& vx, T& vy, T& vz)   
+@{
+  return central12(vx,firstDim) + central12(vy,secondDim)
+                                + central12(vz,thirdDim);
+@}
+@end example
+
+The template parameter @code{T} is an iterator type for arrays.
+
+You are encouraged to use the macros when possible, because it is possible
+the implementation could be changed in the future.
+
+To declare a difference operator, use this syntax:
+
+@example
+BZ_DECLARE_DIFF(central12,A) @{
+  return A.shift(1,dim) - A.shift(-1,dim);
+@}
+@end example
+
+The method @code{shift(offset,dim)} retrieves the element at
+@code{offset} in dimension @code{dim}.
+
+Stencil operator declarations cannot occur inside a function.  If
+declared inside a class, they are scoped by the class.
+
+@node Stencil apply, , Stencil customize, Stencils
+@section Applying a stencil object
+@cindex stencil objects applying
+
+The syntax for applying a stencil is:
+
+@example
+applyStencil(stencilname(),A,B,C...,F);
+@end example
+
+Where @code{stencilname} is the name of the stencil, and @code{A,B,C,...,F}
+are the arrays on which the stencil operates.
+
+For examples, see @file{examples/stencil.cpp} and @file{examples/stencil2.cpp}.
+
+Blitz++ interrogates the stencil object to find out how large its footprint
+is.  It only applies the stencil over the region of the arrays where it
+won't overrun the boundaries.
+

@@ -18,16 +18,31 @@ fi
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <petscversion.h>
+]], [[
+#if (PETSC_VERSION_(3,3,0))
+#else
+asdf
+#endif
+]])],[PETSC_VERSION_3_3_0=yes],[PETSC_VERSION_3_3_0=no])
+
+if test "$PETSC_VERSION_3_3_0" == "yes"; then
+  echo "using PETSc 3.3.0"
+else
+  AC_MSG_ERROR([incorrect PETSc version detected: please use PETSc 3.3.0])
+fi
+
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <petsc.h>
 ]], [[
-#ifdef PETSC_HAVE_X11
-#if (PETSC_HAVE_X11 == 1)
+#ifdef PETSC_HAVE_X
+#if (PETSC_HAVE_X == 1)
 asdf
 #endif
 #endif
-]])],[PETSC_HAS_X11=no],[PETSC_HAS_X11=yes])
+]])],[PETSC_HAVE_X=no],[PETSC_HAVE_X=yes])
 
-if test "$PETSC_HAS_X11" == "yes"; then
+if test "$PETSC_HAVE_X" == "yes"; then
   echo "NOTE: PETSc appears to have been configured with X11 support enabled"
   echo "looking for libX11"
   LDFLAGS="-L/usr/X11/lib $LDFLAGS"
@@ -42,22 +57,4 @@ fi
 
 AC_LIB_HAVE_LINKFLAGS([petsc])
 LIBS="$LIBPETSC $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscvec])
-LIBS="$LIBPETSCVEC $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscmat])
-LIBS="$LIBPETSCMAT $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscdm])
-LIBS="$LIBPETSCDM $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscksp])
-LIBS="$LIBPETSCKSP $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscsnes])
-LIBS="$LIBPETSCSNES $LIBS"
-
-AC_LIB_HAVE_LINKFLAGS([petscts])
-LIBS="$LIBPETSCTS $LIBS"
 ])

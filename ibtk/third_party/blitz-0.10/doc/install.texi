@@ -1,0 +1,143 @@
+
+@node install, compiling, download, Introduction
+@section Installation and porting
+
+@subsection Installation
+
+@cindex installation
+@cindex autoconf 
+@cindex makefiles
+
+Blitz++ uses @acronym{GNU} Autoconf, which handles rewriting Makefiles for
+various platforms and compilers.  It has greatly simplified installation and
+porting.  Many thanks to John W. Eaton and Brendan Kehoe for their help
+with this.
+
+To install blitz, unpack the @file{blitz-VERSION.tar.gz} file (it will
+install into a subdirectory @file{blitz-VERSION}).  For example:
+
+@example
+[tveldhui@@n2001:~] 32: ls -l blitz*.gz
+-rw-r--r--   1 tveldhui users      480953 Jun 23 15:20 blitz-0.5.tar.gz
+[tveldhui@@n2001:~] 33: gunzip blitz-0.5.tar.gz 
+[tveldhui@@n2001:~] 34: tar xvf blitz-0.5.tar
+blitz-0.5/CHANGELOG
+blitz-0.5/COPYING
+blitz-0.5/INSTALL
+blitz-0.5/Makefile.in
+blitz-0.5/README
+blitz-0.5/THANKS
+  .
+  .
+@end example
+
+Then go into the @file{blitz-VERSION} directory, and type:
+
+@cindex configure script
+@example
+./configure CXX=[compiler]
+@end example
+
+where [compiler] is one of @code{xlc++}, @code{icpc}, @code{pathCC}, 
+@code{xlC}, @code{cxx}, @code{aCC}, @code{CC}, @code{g++}, @code{KCC}, 
+@code{pgCC} or @code{FCC}.  (If you do not choose a C++ compiler, the
+configure script will attempt to find an appropriate compiler for the
+current platform.)
+
+By default, the configure script will use a particular set of options
+with each C++ compiler.  You can disable these default settings and then
+substitute your own preferred compiler options with the CXXFLAGS variable,
+using this syntax:
+
+@example
+./configure CXX=g++ --disable-cxx-flags-preset CXXFLAGS="-ftemplate-depth-50"
+@end example
+
+If you are interested in benchmarking, you may want to use the option
+@code{--with-blas=...} to specify the path where the blas library is found.
+Run the configure script with the option @code{--help} to see all the 
+available options.
+
+Once the configure script is done, you can do any of these things:
+
+@table @code
+@item make lib
+Check the compiler and create @file{libblitz.a}.
+
+@item make check-testsuite
+Make the blitz library plus build and run the testsuite.
+
+@item make check-examples
+Make the blitz library plus build and run the examples.
+
+@item make check-benchmarks
+Make the blitz library plus build and run the benchmarks.
+
+@item make all
+Do all of the above.  This may take a @strong{long} time.
+
+@item make install
+Build the blitz library and documentation and install, along with the
+blitz header files, in prefix directory.
+@end table
+
+Building the benchmark programs requires both a Fortran 77 and Fortran 90
+compiler.
+
+@subsection The Blitz++ directory tree
+
+The main Blitz++ directory contains these subdirectories:
+
+@table @code
+@item blitz
+Blitz++ headers and source code files
+
+@item random
+Random number generators
+
+@item src
+Source code for @file{libblitz.a}
+
+@item lib
+Location of @file{libblitz.a}
+
+@item doc
+Documentation in HTML and PostScript
+
+@item testsuite
+Testsuite programs
+
+@item examples
+Example programs
+
+@item benchmarks
+Benchmark programs
+@end table
+
+@subsection Porting Blitz++
+@cindex porting Blitz++
+
+If you want to try porting Blitz++ to a new compiler or platform, I suggest
+the following approach:
+
+@itemize @bullet
+@item  First check the Blitz++ web page to make sure you have the latest
+snapshot, and that someone hasn't already ported blitz to your platform.
+
+@item  Install autoconf (from e.g.@: @url{ftp://prep.ai.mit.edu/pub/gnu}) if
+you don't have it already.
+
+@item  Run the configure script with CXX=[compiler].  This
+will exercise your compiler to see what language features it supports.  If
+it doesn't have member templates and enum computations, just give up.  You
+may need to set CXXFLAGS to use compiler options that enable some language
+features.
+
+@item  Once you know what compiler options are needed, you can make these
+the default settings for your C++ compiler.  Make a backup of 
+@file{m4/ac_cxx_flags_preset.m4}, and then edit the file to add an
+appropriate case for your compiler.  Invoke autoconf to regenerate the
+configure script.  Then try configure with your new preset flags.
+
+@end itemize
+

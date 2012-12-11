@@ -1,0 +1,1900 @@
+changeset:   1917:77c9002404a7
+tag:         tip
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jul 03 16:30:09 2012 -0700
+files:       COPYRIGHT LEGAL LICENSE README
+description:
+Updated legal information in README and LEGAL files. Updated LICENSE file to use version 2.0 of the Perl Artistic License as required for use with Fedora. Updated language in COPYRIGHT file for BSD license.
+
+
+changeset:   1916:7c6844d1a805
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Wed Jun 27 18:36:46 2012 -0700
+files:       NEWS
+description:
+A brief note on the new 0.10 snapshot release.
+
+
+changeset:   1915:a8ea119bc0dc
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Wed Jun 27 18:27:21 2012 -0700
+files:       doc/stamp-vti doc/version.texi
+description:
+Update datestamp and version number for documentation.
+
+
+changeset:   1914:fc43218c3b7e
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Wed Jun 27 18:23:08 2012 -0700
+files:       Makefile.am
+description:
+Added Blitz-VS2010.zip to the list of files included in the blitz package.
+
+
+changeset:   1913:4014cbb0ff08
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Wed Jun 27 18:19:24 2012 -0700
+files:       Blitz-VS2010.zip
+description:
+New version of support files for compiling blitz with Microsoft Visual Studio 2010.
+
+
+changeset:   1912:927504bb5536
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 17:33:54 2012 -0700
+files:       blitz/array/expr.h blitz/array/functorExpr.h blitz/array/stencil-et-macros.h blitz/array/where.h
+description:
+Patch from Sylwester Arabas for blitz compatibility with clang 3.1 compiler. Changes seem fine with g++ compiler.
+
+
+changeset:   1911:e1a8ec015bde
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 17:15:12 2012 -0700
+files:       benchmarks/daxpy.cpp benchmarks/daxpy2.cpp benchmarks/loop4.cpp benchmarks/makeloops.cpp benchmarks/stencil.cpp
+description:
+Corrected typo in BenchmarkExt class member name that was discovered in several of the benchmark test codes.
+
+
+changeset:   1910:8f8423701853
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 16:47:42 2012 -0700
+files:       blitz/globeval.cc blitz/memblock.h blitz/tmevaluate.h blitz/tvevaluate.h
+description:
+Patch from Matt Bingen to eliminate compiler warnings about using pragmas within macros and to use ptrdiff_t instead of int in a few more places for 64-bit safety.
+
+
+changeset:   1909:11a167db8e5f
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 16:44:55 2012 -0700
+files:       blitz/array-impl.h
+description:
+Patch from Matt Bingen to allow the default storage type for Array to be configurable.
+
+
+changeset:   1908:a46cacb46e8f
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 16:38:50 2012 -0700
+files:       testsuite/initialize.cpp
+description:
+Workarounds for testsuite code that attempts to use list initialization on Vectors that reference data stored non-consecutively in another Vector. Such code no longer works because the current stand-in Vector class is just a wrapper for the 1D Array class.
+
+
+changeset:   1907:ac2b17fed6c4
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 14:28:43 2012 -0700
+files:       examples/Makefile.am
+description:
+Commented out several example programs which rely on the Vector classes and are therefore not currently functional. The Vector classes need to be updated to use the new style expression template machinery in blitz. The old style ET machinery has been removed to reduce the overall amount of blitz code.
+
+
+changeset:   1906:f88ef337efee
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 14:25:30 2012 -0700
+files:       examples/where.cpp
+description:
+Modified example code to use 1D Array instead of Vector class, which is currently non-functional.
+
+
+changeset:   1905:2fa73f1ae57a
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 14:24:22 2012 -0700
+files:       examples/tiny.cpp
+description:
+Updated include file list to eliminate <tinyvec-et.h>, which is obsolete.
+
+
+changeset:   1904:ef381c095e49
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 14:13:11 2012 -0700
+files:       blitz/array-impl.h
+description:
+Revert ListInitializationSwitch back to using a T_numtype* rather than a T_iterator to traverse Array memory for list initialization. By definition, a comma-delimited list will initialize an Array in memory storage order, so a standard pointer is adequate as long as the memory storage is contiguous. This change fixes an error that was occurring in the storage testsuite code.
+
+
+changeset:   1903:d1291bffbb19
+user:        Julian Cummings <cummings@cacr.caltech.edu>
+date:        Tue Jun 26 14:07:16 2012 -0700
+files:       testsuite/reduce.cpp
+description:
+Removed sum expression that was not used in any test and was triggering an error.
+
+
+changeset:   1902:56a36918ccf1
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Apr 24 16:04:24 2012 -0400
+files:       configure.ac
+description:
+Removed check for boost::mpi library since we only need the include file.
+
+
+changeset:   1901:20ebbb315dd7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Apr 24 11:56:15 2012 -0700
+files:       blitz/array/storage.h blitz/tinyvec2.h configure.ac
+description:
+Added a separate check for the Boost::MPI library when serialization is enabled, since one can imagine wanting serialization without MPI.
+
+
+changeset:   1900:2663e207d21f
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Apr 17 13:14:16 2012 -0400
+files:       blitz/array-impl.h blitz/array/ops.cc testsuite/Makefile.am testsuite/update.cpp
+description:
+Fixed Array update operators for scalars, which the previous change broke. Added testcase update to exercise the Array update operators for scalars, Arrays, and expressions.
+
+
+changeset:   1899:5e7778d680d6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Apr 17 12:49:59 2012 -0400
+files:       blitz/array-impl.h blitz/array/ops.cc testsuite/multicomponent.cpp
+description:
+The Array update operators (like +=) are now defined exactly like the assignment operator, which was not the case before, so some expressions that worked as assignments didn't work as updates. Updated multicomponent test case to exercise this.
+
+
+changeset:   1898:3acfc76c2df9
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Mar 06 13:12:04 2012 -0500
+files:       blitz/array/ops.h testsuite/Makefile.am testsuite/bitwise.cpp
+description:
+Restored left and right shift operators, which were commented out, and added scalar versions of them as well. Added a test case for the bitwise operators (currently only for TinyVector). There appears to be no ambiguity to me, the operators take ETBase arguments and should not conflict with the I/O operators. At least, all tests pass and my code compiles fine.
+
+
+changeset:   1897:262deb840568
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jan 25 10:48:31 2012 -0500
+files:       blitz/tinyvec2.h
+description:
+Added extent() member to TinyVector in analogy with Array and TinyMatrix.
+
+
+changeset:   1896:d4a8862b671a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Dec 12 17:11:18 2011 -0500
+files:       blitz/tinymat2.cc
+description:
+One more warning fix.
+
+
+changeset:   1895:4d8789826636
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Dec 12 17:00:20 2011 -0500
+files:       blitz/array/reduce.h blitz/array/storage.h blitz/globeval.cc blitz/indexexpr.h blitz/memblock.cc blitz/shapecheck.h
+description:
+Fixed some warnings with gcc -Wall.
+
+
+changeset:   1894:90c2f00d236e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Dec 06 18:55:54 2011 -0500
+files:       blitz/array/newet-macros.h blitz/funcs.h testsuite/Makefile.am testsuite/int-math-func.cpp
+description:
+Changed the BZ_DEFINE_UNARY_FUNC macro so the functors now have the option of using a double return type for integer types. This avoids bug 3381318 where doing sin(intarray) returns ints even if the results go into a floating array. Turned off this option for functions like abs() that can sensibly be called with integer types. Added testcase int-math-func to test this.
+
+
+changeset:   1893:e29277a6148b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Dec 06 16:27:08 2011 -0500
+files:       blitz/array/funcs.h blitz/funcs.h
+description:
+Removed the special definitions of abs() in array/funcs.h. Since all types are overloaded as abs() in current cmath, this should no longer be necessary. This also fixes bug 3427014.
+
+
+changeset:   1892:a8f6391064b0
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Dec 06 16:24:18 2011 -0500
+files:       testsuite/Makefile.am
+description:
+Fixed a bug in the testsuite Makefile.am.
+
+
+changeset:   1891:2b8b3ea5cd97
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Dec 06 15:45:36 2011 -0500
+files:       testsuite/Makefile.am
+description:
+Changed the testsuite Makefile so all tests are run even if one fails.
+
+
+changeset:   1890:4f7d8ef18b48
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Dec 05 15:14:49 2011 -0500
+files:       blitz/blitz.h random/mt.h testsuite/serialize.cpp
+description:
+Added ability to serialize the Mersenne Twister state, and a test of this to the serialize test case. Also, blitz.h now includes bzconfig.h.
+
+
+changeset:   1889:d4ea469afaa0
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Nov 29 22:07:47 2011 -0500
+files:       blitz/globeval.cc testsuite/Makefile.am testsuite/indexexpr-base.cpp
+description:
+Fixed a bug in the 1D index traversal evaluation that caused results for arrays with nonzero base to be written out of bounds. Fixes issue 3441913. Added indexexpr_base to the testsuite to check this.
+
+
+changeset:   1888:9a7e4e6adaa2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Nov 23 09:42:33 2011 -0500
+files:       blitz/array-impl.h blitz/array/storage.h blitz/tinymat2.h blitz/tinyvec2.h
+description:
+Moved declaration of boost::mpi::is_mpi_datatype out of the blitz namespace.
+
+
+changeset:   1887:c3f9ffd1a3d3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Nov 22 15:39:45 2011 -0500
+files:       blitz/array-impl.h blitz/array/storage.h blitz/memblock.cc blitz/memblock.h blitz/tinymat2.h blitz/tinyvec2.h
+description:
+Improved the Boost::Serialization support so that it works with the skeleton/content functionality in boost::MPI. Declared boost::mpi::is_mpi_datatype appropriate data types.
+
+
+changeset:   1886:9527b95a58b5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Oct 27 14:07:17 2011 -0400
+files:       blitz/memblock.h
+description:
+Fixed a segfault when serializing MemoryBlockReferences without a block.
+
+
+changeset:   1885:41b58087d239
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Oct 26 17:15:35 2011 -0400
+files:       configure.ac
+description:
+Added --enable-serialization configure option.
+
+
+changeset:   1884:d05049b205e5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Oct 26 16:35:20 2011 -0400
+files:       benchmarks/Makefile.am examples/Makefile.am
+description:
+Fixed makefiles for benchmarks and examples dirs.
+
+
+changeset:   1883:daba8c883045
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Oct 26 16:24:41 2011 -0400
+files:       blitz/array-impl.h blitz/array/storage.h blitz/memblock.h blitz/tinymat2.h blitz/tinyvec2.h lib/Makefile.am testsuite/Makefile.am testsuite/serialize.cpp
+description:
+Updated flags for serialization support, tweaked Makefiles.
+
+
+changeset:   1882:68f7fb7d191e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Oct 26 16:02:13 2011 -0400
+files:       blitz/array-impl.h blitz/array/storage.h blitz/memblock.cc blitz/memblock.h blitz/tinymat2.h blitz/tinyvec2.h configure.ac m4/ax_boost_base.m4 m4/ax_boost_serialization.m4 testsuite/Makefile.am testsuite/serialize.cpp
+description:
+Added Boost::Serialization support for Array, TinyVector and TinyMatrix. Added --with-boost and --with-boost-serialization configure options.
+
+
+changeset:   1881:4de0b8fd18cd
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Sep 29 15:35:03 2011 -0400
+files:       blitz/tmevaluate.h blitz/tvevaluate.h configure.ac testsuite/alignment.cpp
+description:
+Added macro BZ_USE_ALIGNMENT_PRAGMAS, which is only set to true if a SIMD width is specified. If this is not defined, the alignment pragmas are not used. This fixes bug 3415448.
+
+
+changeset:   1880:f360eaedb125
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Sep 28 08:47:19 2011 -0400
+files:       testsuite/64bit.cpp
+description:
+Updated 64bit test case to also test that fastRead for the expression classes also works with large arguments.
+
+
+changeset:   1879:54b961d29fc0
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Sep 27 16:12:21 2011 -0400
+files:       blitz/array/expr.h blitz/array/fastiter.h blitz/array/functorExpr.h blitz/array/where.h blitz/generate/genstencils.py blitz/indexexpr.h blitz/levicivita.h blitz/range.h blitz/tinymat2.h blitz/tinyvec2.h blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Changed argument of the fastRead() functions from int to diffType, which is also needed for 64-bit offsets to work.
+
+
+changeset:   1878:ed2dfe67697b
+parent:      1877:da484a923d69
+parent:      1875:eb2f78ddf0b4
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Sep 27 15:43:22 2011 -0400
+files:       testsuite/Makefile.am
+description:
+Merge.
+
+
+changeset:   1877:da484a923d69
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Sep 27 15:29:55 2011 -0400
+files:       blitz/globeval.cc testsuite/64bit.cpp testsuite/Makefile.am
+description:
+Further 64-bit fixes. Changed the 64bit test case to catch these problems, which unfortunately precludes only evaluating over a subrange. Therefore, I've enabled optimization for the 64bit test only so it doesn't take forever to run.
+
+
+changeset:   1876:84f0b039f76d
+parent:      1874:450f9b1ee2d0
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Sep 27 14:31:34 2011 -0400
+files:       blitz/globeval.cc
+description:
+Changed offset type in evaluation from int to diffType, because otherwise evaluations with offsets > 1<<31 fails.
+
+
+changeset:   1875:eb2f78ddf0b4
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Sep 26 19:11:43 2011 -0700
+files:       blitz/array/expr.h testsuite/Makefile.am testsuite/cast.cpp
+description:
+Fixed broken cast float->double by removing a ArrayExprUnaryOp constructor that caused ambiguous resolution and apparently isn't actually used. Added test case cast.
+
+
+changeset:   1874:450f9b1ee2d0
+parent:      1873:1e77ae68003b
+parent:      1871:4223fee30010
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Sep 26 21:07:37 2011 -0400
+description:
+Merged.
+
+
+changeset:   1873:1e77ae68003b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Sep 26 21:07:13 2011 -0400
+files:       testsuite/reduce.cpp
+description:
+Added test for bug 2058441.
+
+
+changeset:   1872:760e2d93d633
+parent:      1862:691355238c25
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jul 26 17:01:08 2011 -0400
+files:       blitz/array/reduce.h
+description:
+Added comment to reduce.h documenting bug 2058441.
+
+
+changeset:   1871:4223fee30010
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Aug 11 14:42:04 2011 -0700
+files:       blitz/tinyvec2.h
+description:
+Removed spurious inline declarations.
+
+
+changeset:   1870:3448111f885d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Aug 11 11:40:38 2011 -0700
+files:       blitz/tmevaluate.h blitz/tvevaluate.h
+description:
+Fixed clobbering of template parameter.
+
+
+changeset:   1869:fa21544fdcbd
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Aug 11 09:49:15 2011 -0700
+files:       blitz/globeval.cc
+description:
+Fixed gcc complaining about rank() not being a constant-expression.
+
+
+changeset:   1868:a6f80db77b94
+user:        patricg
+date:        Thu Jul 28 22:38:01 2011 +0100
+files:       doc/stamp-vti doc/version.texi
+description:
+Updated.
+
+
+changeset:   1867:c73aba3b07e9
+user:        patricg
+date:        Thu Jul 28 22:23:42 2011 +0100
+files:       blitz/generate/Makefile.am
+description:
+Added python script to EXTRA_DIST in order to pass checkdist.
+
+
+changeset:   1866:c243451132a6
+user:        patricg
+date:        Thu Jul 28 22:21:30 2011 +0100
+files:       doc/stencils/Makefile.am
+description:
+Renamed the preprocessorp macro "stenciltoapply" to the new name
+corresponding to the new internal stencil operator (that take
+iterators as opposed to the stencil ET expression operators that
+take arrays), i.e. appended '_stencilop' to the operator name.
+
+
+changeset:   1865:06bd97b19920
+user:        patricg
+date:        Thu Jul 28 21:21:48 2011 +0100
+files:       configure.ac
+description:
+Added clang++ in the list of C++ compilers to check.
+
+
+changeset:   1864:fa98fbc6bd4d
+user:        patricg
+date:        Thu Jul 28 21:19:58 2011 +0100
+files:       m4/ac_cxx_flags_preset.m4
+description:
+Added an entry for the clang++ compiler (http://clang.llvm.org/).
+
+
+changeset:   1863:d68ac0a95712
+user:        patricg
+date:        Thu Jul 28 21:16:18 2011 +0100
+files:       m4/ac_prog_doxygen.m4
+description:
+Changed default behaviour to doxygen disabled.
+
+
+changeset:   1862:691355238c25
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jul 22 12:18:54 2011 -0400
+files:       blitz/array/ops.cc
+description:
+Added _bz_forceinline to array assignment operators.
+
+
+changeset:   1861:85ea8a3b7b34
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jul 22 12:07:53 2011 -0400
+files:       blitz/globeval.cc
+description:
+Commented out '#pragma forceinline recursive' in the evaluation functions, since it seems to increase compilation time catastrophically.
+
+
+changeset:   1860:e89dadf02f56
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jul 22 11:36:25 2011 -0400
+files:       blitz/Makefile.am
+description:
+Added tmevaluate.h to blitz_HEADERS.
+
+
+changeset:   1859:ec1d33eba15b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jul 22 11:24:21 2011 -0400
+files:       blitz/Makefile.am blitz/tinymat2.cc blitz/tinymat2.h blitz/tinyvec2.h blitz/tm2ops.cc blitz/tmevaluate.h blitz/tv2ops.cc blitz/tvevaluate.h
+description:
+Added compile-time selection of TinyVector-only expressions so the full evaluator is not instantiated in these cases. Ported the TinyVector-only evaluation machinery also for TinyMatrix, so TM expressions use the lightweight evaluation. (With some thinking, these two could probably be merged into one code.) With these changes, icpc v12 is now able to compile the multicomponent testcase.
+
+
+changeset:   1858:c7413cdd3fac
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jul 21 16:26:31 2011 -0400
+files:       blitz/funcs.h
+description:
+pow2-8 now works also for complex scalars.
+
+
+changeset:   1857:9a8d54c82f39
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jul 21 15:38:33 2011 -0400
+files:       blitz/funcs.h
+description:
+Restored pow2-8 functionality for builtin types.
+
+
+changeset:   1856:d0150e83962d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jul 21 13:38:50 2011 -0400
+files:       configure.ac
+description:
+Configure now defines BZ_ALIGN_VARIABLE to just a standard declaration if a simd width is not specified, rather than use alignment 1 as that gives warnings.
+
+
+changeset:   1855:494a2ee3abf9
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jul 20 14:27:13 2011 -0700
+files:       blitz/globeval.cc
+description:
+Fixed compilation error with gcc, which apparently insists that fastRead_tv be explicitly template qualified.
+
+
+changeset:   1854:f21b1f853e06
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jul 20 14:26:08 2011 -0700
+files:       blitz/generate/genstencils.py
+description:
+Fixed a typo in the generated stencil ET code.
+
+
+changeset:   1853:75e5322949b6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jul 20 14:25:26 2011 -0700
+files:       blitz/simdtypes.h
+description:
+Added inclusion of stdint.h to find uintptr_t.
+
+
+changeset:   1852:1642b5d3f4df
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jul 20 17:15:28 2011 -0400
+files:       blitz/array/expr.cc blitz/indexexpr.h blitz/timer.h
+description:
+Fixed some compilation errors with gcc.
+
+
+changeset:   1851:2cccdb4ade84
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jul 20 11:21:13 2011 -0400
+files:       blitz/array/asexpr.h
+description:
+Renamed template parameter T_result in the results traits classes.
+
+
+changeset:   1850:e61bfbb651fb
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jul 19 15:25:27 2011 -0400
+files:       blitz/array-impl.h
+description:
+Removed 'restrict' from the getInitializationIterator return type since it doesn't make sense.
+
+
+changeset:   1849:dc958e1d2c5b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jul 19 15:24:29 2011 -0400
+files:       blitz/Makefile.am
+description:
+Added tvevaluate.h to blitz_HEADERS.
+
+
+changeset:   1848:fbe66ccb53ee
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jul 19 15:23:36 2011 -0400
+files:       blitz/simdtypes.h
+description:
+Fixed an error where some compilers complain about the '<I>>1>' construct.
+
+
+changeset:   1847:6e8b33f8b407
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 20:54:52 2011 -0700
+files:       blitz/memblock.cc blitz/memblock.h blitz/simdtypes.h
+description:
+Fixed a bug in the shift-to-cache-line during memoryBlock allocation that would cause badness when T_numtype didn't fit evenly into a cache line (like for multicomponent Arrays.)
+
+
+changeset:   1846:4d4602e6c605
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 22:16:33 2011 -0400
+files:       blitz/tvevaluate.h
+description:
+Added tvevaluate.h which was forgotten in r1845.
+
+
+changeset:   1845:d2b487a42b58
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 18:46:06 2011 -0400
+files:       blitz/globeval.cc blitz/tinyvec2.cc blitz/tuning.h
+description:
+Moved the _tv_evalute_(un)aligned functions into a class _tv_evaluator for the purpose of avoiding meta-unrolling very long TinyVector expressions. It is advantageous to binary-unroll short array expressions and then use wider vector widths than the simd width itself during evaluation. Added defines BZ_MAX_BITS_FOR_BINARY_UNROLL and BZ_VECTORIZED_LOOP_WIDTH to tuning.h to control this.
+
+
+changeset:   1844:4db0fbbcc036
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 14:18:23 2011 -0400
+files:       blitz/memblock.cc
+description:
+Fixed typo in memblock.cc.
+
+
+changeset:   1843:6049c40c2237
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 10:35:05 2011 -0700
+files:       blitz/array-impl.h blitz/levicivita.h blitz/range.h
+description:
+Fixed a few more warnings.
+
+
+changeset:   1842:981ac7763b8d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 10:16:39 2011 -0700
+files:       blitz/tuning.h
+description:
+Fixed warning about redefined macros in tuning.h
+
+
+changeset:   1841:2adbcdadf146
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 10:15:18 2011 -0700
+files:       blitz/tuning.h
+description:
+Fixed warning about redefined macros in tuning.h
+
+
+changeset:   1840:6e1433edffa5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 09:50:15 2011 -0700
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop11.cpp benchmarks/floop12.cpp benchmarks/floop13.cpp benchmarks/floop14.cpp benchmarks/floop15.cpp benchmarks/floop16.cpp benchmarks/floop17.cpp benchmarks/floop18.cpp benchmarks/floop19.cpp benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop22.cpp benchmarks/floop23.cpp benchmarks/floop24.cpp benchmarks/floop25.cpp benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop5.cpp benchmarks/floop6.cpp benchmarks/floop8.cpp benchmarks/floop9.cpp benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop11.cpp benchmarks/loop12.cpp benchmarks/loop13.cpp benchmarks/loop14.cpp benchmarks/loop15.cpp benchmarks/loop16.cpp benchmarks/loop17.cpp benchmarks/loop18.cpp benchmarks/loop19.cpp benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop22.cpp benchmarks/loop23.cpp benchmarks/loop24.cpp benchmarks/loop25.cpp benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop5.cpp benchmarks/loop6.cpp benchmarks/loop8.cpp benchmarks/loop9.cpp blitz/generate/makeloops.py
+description:
+Removed the TinyVector version in the benchmark loops. Since we can't measure it reliably anyway, it seems more useful to run a denser set of array sizes.
+
+
+changeset:   1839:d79f66a7f6e7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 30 09:38:51 2011 -0700
+files:       blitz/memblock.cc blitz/simdtypes.h blitz/tuning.h
+description:
+Turned on the align blocks on cache line option, as it makes a substantial difference at least on my machine. Moved the definitions of the L1 cache line size and critical memory block size for aligning to tuning.h.
+
+
+changeset:   1838:06aa6f2889f6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 29 12:27:50 2011 -0700
+files:       blitz/array/ops.cc blitz/globeval.cc blitz/tinyvec2.cc blitz/tuning.h
+description:
+Added macro _bz_forceinline, which expands to __forceinline for icpc, and used that for the evaluation functions. Unfortunately, the directive doesn't actually do what it promises, leaving intermediate function calls. Asked Intel about this.
+
+
+changeset:   1837:6c2b4079cfe6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 29 10:39:20 2011 -0700
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop10f90.f90 benchmarks/floop11.cpp benchmarks/floop11f90.f90 benchmarks/floop12.cpp benchmarks/floop12f90.f90 benchmarks/floop13.cpp benchmarks/floop13f90.f90 benchmarks/floop14.cpp benchmarks/floop14f90.f90 benchmarks/floop15.cpp benchmarks/floop15f90.f90 benchmarks/floop16.cpp benchmarks/floop16f90.f90 benchmarks/floop17.cpp benchmarks/floop17f90.f90 benchmarks/floop18.cpp benchmarks/floop18f90.f90 benchmarks/floop19.cpp benchmarks/floop19f90.f90 benchmarks/floop1f90.f90 benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop21f90.f90 benchmarks/floop22.cpp benchmarks/floop22f90.f90 benchmarks/floop23.cpp benchmarks/floop23f90.f90 benchmarks/floop24.cpp benchmarks/floop24f90.f90 benchmarks/floop25.cpp benchmarks/floop25f90.f90 benchmarks/floop2f90.f90 benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop36f90.f90 benchmarks/floop5.cpp benchmarks/floop5f90.f90 benchmarks/floop6.cpp benchmarks/floop6f90.f90 benchmarks/floop8.cpp benchmarks/floop8f90.f90 benchmarks/floop9.cpp benchmarks/floop9f90.f90 benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop100f90.f90 benchmarks/loop10f90.f90 benchmarks/loop11.cpp benchmarks/loop11f90.f90 benchmarks/loop12.cpp benchmarks/loop12f90.f90 benchmarks/loop13.cpp benchmarks/loop13f90.f90 benchmarks/loop14.cpp benchmarks/loop14f90.f90 benchmarks/loop15.cpp benchmarks/loop15f90.f90 benchmarks/loop16.cpp benchmarks/loop16f90.f90 benchmarks/loop17.cpp benchmarks/loop17f90.f90 benchmarks/loop18.cpp benchmarks/loop18f90.f90 benchmarks/loop19.cpp benchmarks/loop19f90.f90 benchmarks/loop1f90.f90 benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop21f90.f90 benchmarks/loop22.cpp benchmarks/loop22f90.f90 benchmarks/loop23.cpp benchmarks/loop23f90.f90 benchmarks/loop24.cpp benchmarks/loop24f90.f90 benchmarks/loop25.cpp benchmarks/loop25f90.f90 benchmarks/loop2f90.f90 benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop36f90.f90 benchmarks/loop5.cpp benchmarks/loop5f90.f90 benchmarks/loop6.cpp benchmarks/loop6f90.f90 benchmarks/loop8.cpp benchmarks/loop8f90.f90 benchmarks/loop9.cpp benchmarks/loop9f90.f90 blitz/generate/makeloops.py
+description:
+Fixed yet another bug in makeloops.
+
+
+changeset:   1836:52fb01a72be8
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 29 10:11:57 2011 -0700
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop10f.f benchmarks/floop11.cpp benchmarks/floop11f.f benchmarks/floop12.cpp benchmarks/floop12f.f benchmarks/floop13.cpp benchmarks/floop13f.f benchmarks/floop14.cpp benchmarks/floop14f.f benchmarks/floop15.cpp benchmarks/floop15f.f benchmarks/floop16.cpp benchmarks/floop16f.f benchmarks/floop17.cpp benchmarks/floop17f.f benchmarks/floop18.cpp benchmarks/floop18f.f benchmarks/floop19.cpp benchmarks/floop19f.f benchmarks/floop1f.f benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop21f.f benchmarks/floop22.cpp benchmarks/floop22f.f benchmarks/floop23.cpp benchmarks/floop23f.f benchmarks/floop24.cpp benchmarks/floop24f.f benchmarks/floop25.cpp benchmarks/floop25f.f benchmarks/floop2f.f benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop36f.f benchmarks/floop3f.f benchmarks/floop5.cpp benchmarks/floop5f.f benchmarks/floop6.cpp benchmarks/floop6f.f benchmarks/floop8.cpp benchmarks/floop8f.f benchmarks/floop9.cpp benchmarks/floop9f.f benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop100f.f benchmarks/loop10f.f benchmarks/loop11.cpp benchmarks/loop11f.f benchmarks/loop12.cpp benchmarks/loop12f.f benchmarks/loop13.cpp benchmarks/loop13f.f benchmarks/loop14.cpp benchmarks/loop14f.f benchmarks/loop15.cpp benchmarks/loop15f.f benchmarks/loop16.cpp benchmarks/loop16f.f benchmarks/loop17.cpp benchmarks/loop17f.f benchmarks/loop18.cpp benchmarks/loop18f.f benchmarks/loop19.cpp benchmarks/loop19f.f benchmarks/loop1f.f benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop21f.f benchmarks/loop22.cpp benchmarks/loop22f.f benchmarks/loop23.cpp benchmarks/loop23f.f benchmarks/loop24.cpp benchmarks/loop24f.f benchmarks/loop25.cpp benchmarks/loop25f.f benchmarks/loop2f.f benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop36f.f benchmarks/loop3f.f benchmarks/loop5.cpp benchmarks/loop5f.f benchmarks/loop6.cpp benchmarks/loop6f.f benchmarks/loop8.cpp benchmarks/loop8f.f benchmarks/loop9.cpp benchmarks/loop9f.f blitz/generate/makeloops.py
+description:
+Fixed a bug in makeloops for loop expressions containing several statements.
+
+
+changeset:   1835:3b5d96bde968
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 15:08:12 2011 -0700
+files:       benchmarks/Makefile.am benchmarks/arrdaxpy.cpp benchmarks/arrdaxpy.m benchmarks/arrdaxpy2.m benchmarks/arrdaxpyf.f
+description:
+Made the arrdaxpy benchmark actually be included in the bench targets and compile.
+
+
+changeset:   1834:c31ec13b787a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 14:34:11 2011 -0700
+files:       benchmarks/acoustic.cpp
+description:
+Fixed flops parameter and some warnings in acoustic benchmark.
+
+
+changeset:   1833:0825284cb582
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 13:41:12 2011 -0700
+files:       blitz/array/expr.h blitz/array/stencil-et-macros.h blitz/array/stencil-et.h blitz/generate/genstencils.py blitz/globeval.cc
+description:
+Operations that can not use the vectorized fastRead_tv can now indicate this by setting minWidth=0. This will bypass the vectorized operations in _bz_evaluateWithUnitStride and go directly to the scalar path. Used this mechanism to turn of vectorization for stencils. Finished updating stencil classes with fastRead_tv. Tests with stencils now work again.
+
+
+changeset:   1832:8ad1428d6b8d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 12:36:50 2011 -0700
+files:       blitz/array/expr.h blitz/array/functorExpr.h blitz/array/map.h blitz/array/reduce.h blitz/array/stencil-et.h blitz/array/where.h blitz/generate/genstencils.py blitz/indexexpr.h blitz/levicivita.h blitz/range.h blitz/tv2fastiter.h
+description:
+Further cleanup of the now-unused tvtypeprop typedefs in the ET classes. Added fastRead_tv() and the tvresult classes to the stencil ET classes. Stencils are now attempted to be vectorized, but it's not clear how this functionality should work so at this point we get a precondition failure. Need to either work out how to do it or how to not vectorize them.
+
+
+changeset:   1831:8e406dc4dd1c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 12:34:05 2011 -0700
+files:       blitz/globeval.cc
+description:
+Rank>1 stack traversals now also use the evaluateWithUnitStride and evaluateWithCommonStride functions for the inner loop, if appropriate. This should enable vectorization for the inner loops of higher-rank expressions as long as they are unit stride.
+
+
+changeset:   1830:f3114d86ba95
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 09:14:08 2011 -0700
+files:       blitz/array/expr.h blitz/array/functorExpr.h blitz/array/where.h
+description:
+Cleaned up old fastRead_tv from readHelper classes.
+
+
+changeset:   1829:469fb9bd9755
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 09:13:51 2011 -0700
+files:       testsuite/loop1.cpp
+description:
+Updated loop1 test case to use new benchext interface.
+
+
+changeset:   1828:7e076a476614
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 28 08:59:41 2011 -0700
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop11.cpp benchmarks/floop12.cpp benchmarks/floop13.cpp benchmarks/floop14.cpp benchmarks/floop15.cpp benchmarks/floop16.cpp benchmarks/floop17.cpp benchmarks/floop18.cpp benchmarks/floop19.cpp benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop22.cpp benchmarks/floop23.cpp benchmarks/floop24.cpp benchmarks/floop25.cpp benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop5.cpp benchmarks/floop6.cpp benchmarks/floop8.cpp benchmarks/floop9.cpp benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop11.cpp benchmarks/loop12.cpp benchmarks/loop13.cpp benchmarks/loop14.cpp benchmarks/loop15.cpp benchmarks/loop16.cpp benchmarks/loop17.cpp benchmarks/loop18.cpp benchmarks/loop19.cpp benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop22.cpp benchmarks/loop23.cpp benchmarks/loop24.cpp benchmarks/loop25.cpp benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop5.cpp benchmarks/loop6.cpp benchmarks/loop8.cpp benchmarks/loop9.cpp blitz/benchext.cc blitz/benchext.h blitz/generate/makeloops.py blitz/timer.h
+description:
+Benchext functionality with dependent variable now works correctly. Updated makeloops so loop benchmarks make use of this, and also added array tensor notation to the benchmarks.
+
+
+changeset:   1827:85b6c418c275
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 15:32:51 2011 -0700
+files:       benchmarks/acoustic.cpp
+description:
+Updated acoustic benchmark to use the benchext and run on several sizes. Not working right yet, though.
+
+
+changeset:   1826:46a96a0bc719
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 15:32:28 2011 -0700
+files:       blitz/benchext.cc blitz/benchext.h
+description:
+Changed the "rate decription" in benchext to explicitly setting the dependent variable. Depending on whether the timer is reporting seconds or cycles, it will then create the proper output quantity. Also added method currentImplementation() that returns the implementation currently being benchmarked, so it can easily be printed.
+
+
+changeset:   1825:870827755b84
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:22:10 2011 -0700
+files:       blitz/globeval.cc
+description:
+Fixed typo in globeval.cc.
+
+
+changeset:   1824:729fe7dab4b8
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:21:58 2011 -0700
+files:       benchmarks/daxpy.cpp benchmarks/tinydaxpy.cpp
+description:
+Updated daxpy and tinydaxpy tests to run with new ET classes.
+
+
+changeset:   1823:979407299a71
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:21:06 2011 -0700
+files:       blitz/timer.h src/globals.cpp
+description:
+Made timer ivar_ member a string instead of const char*.
+
+
+changeset:   1822:6e69cd6bf77c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:15:01 2011 -0700
+files:       benchmarks/acou3d.cpp benchmarks/acou3db4.cpp benchmarks/acoustic.cpp
+description:
+Updated acoustic benchmarks to work with new stencil operator names.
+
+
+changeset:   1821:bf4d2dbfde7e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:13:50 2011 -0700
+files:       blitz/timer.h src/globals.cpp
+description:
+Reverted timer to report seconds instead of us.
+
+
+changeset:   1820:becc65b42c96
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 14:13:11 2011 -0700
+files:       blitz/traversal.cc
+description:
+Fixed typo in traversal.cc
+
+
+changeset:   1819:062688a03ef3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 13:18:50 2011 -0700
+files:       blitz/array/stencils.h testsuite/Makefile.am testsuite/stencil-extent.cpp
+description:
+Made stencilExtent member functions const so the automatic stencil extent detection works, and added testcase stencil-extent to test this.
+
+
+changeset:   1818:513fd16d68d8
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 27 12:01:12 2011 -0700
+files:       blitz/traversal.cc blitz/traversal.h blitz/vector2.h
+description:
+Added Vector default constructor and updated traversal functions to use new Vector instead of old.
+
+
+changeset:   1817:18a93bbfc6e5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 24 12:08:25 2011 -0700
+files:       blitz/array-impl.h blitz/array/methods.cc blitz/memblock.h
+description:
+Added method blockLength() to MemoryBlockReference and made Array::storageSize() use that. Converted some comments to doxygen strings.
+
+
+changeset:   1816:3268cc91465c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 23 17:30:24 2011 -0700
+files:       blitz/array-impl.h blitz/array/funcs.h blitz/array/interlace.cc blitz/array/methods.cc blitz/array/resize.cc blitz/array/storage.h blitz/blitz.h blitz/memblock.h blitz/tinyvec2.h testsuite/chris-jeffery-2.cpp testsuite/contiguous.cpp testsuite/peter-bienstman-3.cpp testsuite/preexisting.cpp testsuite/transpose.cpp testsuite/troyer-genilloud.cpp
+description:
+Moved the specification of padded/unpadded storage to the GeneralArrayStorage object, and created shortcuts paddedArray and contiguousArray shortcuts. Preexisting memory constructors will now throw an exception if the specified array is noncontiguous. Tests were updated to specify contiguous arrays if they rely on knowing the strides.
+
+
+changeset:   1815:25e0fde6666c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 23 17:30:02 2011 -0700
+files:       blitz/simdtypes.h
+description:
+Removed specialization of simdTypes for bools as we can't adjust alignment anyway.
+
+
+changeset:   1814:9ba706d744f5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 23 14:42:32 2011 -0700
+files:       blitz/array-impl.h blitz/array/interlace.cc blitz/array/methods.cc blitz/array/resize.cc blitz/array/storage.h blitz/blitz.h blitz/simdtypes.h blitz/tinyvec2.h configure.ac testsuite/contiguous.cpp testsuite/peter-bienstman-3.cpp testsuite/preexisting.cpp testsuite/transpose.cpp
+description:
+Added argument paddingPolicy to Array constructors and resize methods. The default value is set by the --enable-array-length-padding argument to configure. Reduced duplicated code in constructors. Restored tests that test storage to just specify unpadded storage.
+
+
+changeset:   1813:a672a5056a2d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 23 13:42:24 2011 -0700
+files:       testsuite/alignment.cpp
+description:
+Updated alignment test to check paddedLength, offsetToAlignment and _bz_meta_bitwidth.
+
+
+changeset:   1812:2c9dd168eb7c
+parent:      1808:7f1cd86bf252
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 23 13:36:16 2011 -0700
+files:       blitz/simdtypes.h
+description:
+Added paddedLength() function to simdTypes, and rewrite offsetToAlignment to not do a modulo. Added _bz_meta_bitwidth metaprogram to calculate the number of bits needed to fit a number.
+
+
+changeset:   1811:e8364831590c
+branch:      vectorization
+parent:      1605:1a3d913c4c80
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 08:33:02 2011 -0700
+description:
+Closed vectorization branch, this was only a proof-of-concept.
+
+
+changeset:   1810:7e7b743d45dc
+branch:      compat-64bit
+parent:      1662:243a3797fdec
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 08:30:27 2011 -0700
+description:
+Closed compat-64bit branch, as this has was merged in CVS.
+
+
+changeset:   1809:115f8f0c4aa3
+branch:      stencil-et
+parent:      1684:f42d3e515fbd
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 08:27:58 2011 -0700
+description:
+Closed stencil-et branch, as this has was merged in CVS.
+
+
+changeset:   1808:7f1cd86bf252
+parent:      1807:67c9701bd14b
+parent:      1796:695e799bdc3f
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 08:09:58 2011 -0700
+description:
+Merge.
+
+
+changeset:   1807:67c9701bd14b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 08:08:57 2011 -0700
+files:       blitz/array-impl.h blitz/array/methods.cc configure.ac testsuite/contiguous.cpp testsuite/ctors.cpp testsuite/peter-bienstman-3.cpp testsuite/preexisting.cpp testsuite/transpose.cpp
+description:
+Added configure option --enable-array-length-padding as a switch for padding the minor rank of arrays to even SIMD widths. Added back test of uneven array sizes in contiguous test, and removed the warning printout from the tests that assumed they knew what the strides should be unless this option is enabled.
+
+
+changeset:   1806:2be82135f511
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 07:58:17 2011 -0700
+files:       testsuite/expression-slicing.cpp testsuite/safeToReturn.cpp
+description:
+Fixed safeToReturn and expression-slicing tests to not compare floating-point expressions for equality.
+
+
+changeset:   1805:76b227678361
+parent:      1804:c5164c57d20b
+parent:      1799:51e03b388db3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 09:54:42 2011 -0400
+description:
+Merged from governator.
+
+
+changeset:   1804:c5164c57d20b
+parent:      1803:0759f0ead3b9
+parent:      1798:f6f34b144649
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 09:50:55 2011 -0400
+files:       blitz/applics.h blitz/array-old.h blitz/array/eval.cc blitz/benchext.cc blitz/extremum.h blitz/matdiag.h blitz/matexpr.h blitz/matgen.h blitz/mathf2.h blitz/matltri.h blitz/matref.h blitz/matrix.cc blitz/matrix.h blitz/matsymm.h blitz/mattoep.h blitz/matutri.h blitz/mstruct.h blitz/rand-dunif.h blitz/rand-mt.h blitz/rand-normal.h blitz/rand-tt800.h blitz/rand-uniform.h blitz/random.h blitz/randref.h blitz/tiny.h blitz/tinymat.h blitz/tinymatexpr.h blitz/tinymatio.cc blitz/tinyvec-et.h blitz/tinyvec.h blitz/tinyvecio.cc blitz/tinyveciter.h blitz/vecaccum.cc blitz/vecall.cc blitz/vecany.cc blitz/veccount.cc blitz/vecdelta.cc blitz/vecdot.cc blitz/vecexpr.h blitz/vecexprwrap.h blitz/vecglobs.cc blitz/vecglobs.h blitz/vecio.cc blitz/veciter.h blitz/vecmax.cc blitz/vecmin.cc blitz/vecnorm.cc blitz/vecnorm1.cc blitz/vecpick.cc blitz/vecpick.h blitz/vecpickio.cc blitz/vecpickiter.h blitz/vecproduct.cc blitz/vecsum.cc blitz/vector-et.h blitz/vector.cc blitz/vector.h blitz/vecwhere.h blitz/zero.cc blitz/zero.h test.cc
+description:
+Merged from governator.
+
+
+changeset:   1803:0759f0ead3b9
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 09:50:16 2011 -0400
+files:       blitz/benchext.cc blitz/benchext.h
+description:
+Benchext now uses long long integers to measure cycles instead of doubles.
+
+
+changeset:   1802:dd0c79809d3c
+parent:      1801:41a98caf5177
+parent:      1763:0532e5ff7ab5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 15 13:08:51 2011 -0400
+description:
+Merged makeloops.
+
+
+changeset:   1801:41a98caf5177
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 15 13:08:15 2011 -0400
+files:       blitz/benchext.cc
+description:
+Removed some debugging output from benchext.
+
+
+changeset:   1800:1934801ac8af
+parent:      1762:33cf8f76121c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 15 12:55:55 2011 -0400
+files:       blitz/benchext.cc blitz/benchext.h blitz/timer.h
+description:
+Changed PAPI timer to use PAPI_read_counters, because stopping and starting them is very expensive. Also changed so benchext only uses one timer class, since they never run concurrently and it complicates PAPI use.
+
+
+changeset:   1799:51e03b388db3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 22 06:54:14 2011 -0700
+files:       blitz/globeval.cc
+description:
+Fixed a typo in globeval.
+
+
+changeset:   1798:f6f34b144649
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 20:59:58 2011 -0700
+files:       blitz/benchext.cc
+description:
+Tweaked pylab graph.
+
+
+changeset:   1797:1521c60b11a6
+parent:      1795:924b46cce6ab
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 20:59:24 2011 -0700
+files:       blitz/globeval.cc
+description:
+Tweaked unit stride evaluation after looking at float outputs.
+
+
+changeset:   1796:695e799bdc3f
+user:        Paul P. Hilscher <starfox_@sf.net>
+date:        Wed Jun 22 01:38:27 2011 -0400
+files:       blitz/types.h
+description:
+Added types.h with typedefs for most famous array types (later also vectors)
+
+  e.g. typedef Array<double, 3>  Array3d;
+
+  thus instead of writing
+
+  void Func(Array<double, 3> A) { Array<std::complex<double>, 4> B; ... }
+
+  we can also write
+
+  void Func(Array3d A) { Array4z B; .... }
+
+
+changeset:   1795:924b46cce6ab
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 18:01:43 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Fixed bug in makeloops.
+
+
+changeset:   1794:3da65fac47c5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 17:45:14 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+makeloops.py now generates loops for unaligned/misaligned array expressions.
+
+
+changeset:   1793:ded58a3c9ac3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 15:21:43 2011 -0700
+files:       blitz/array/expr.h blitz/array/fastiter.h blitz/array/functorExpr.h blitz/array/map.h blitz/array/reduce.h blitz/array/stencil-et.h blitz/array/where.h blitz/globeval.cc blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Updated remaining expressions classes with minWidth/maxWidth members and new fastRead_tv template. Tests are now back to normal.
+
+
+changeset:   1792:4042693d9d96
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 14:33:06 2011 -0700
+files:       blitz/globeval.cc blitz/meta/vecassign.h blitz/tinyvec2.cc blitz/tinyvec2.h
+description:
+Major tweak to unit stride evaluation. Lowered overhead by meta-unrolling assignments for small arrays and sticking with unaligned accesses if the extra overhead in aligning isn't worth it. Also changed the chunked_updater to call _tv_evaluate directly instead of going through the assignment operator. This has increased performance for <10-element arrays significantly. However, there is now something going on with aligned arrays > 256 elements, where the performance drops by a factor of 2.
+
+
+changeset:   1791:cc6a1aabe044
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 10:54:42 2011 -0700
+files:       blitz/array/expr.h blitz/array/fastiter.h blitz/globeval.cc blitz/indexexpr.h blitz/levicivita.h blitz/range.h blitz/tv2fastiter.h testsuite/complex-test.cpp
+description:
+Changed fastRead_tv() to be a template so expressions can return vectorization units of different widths, chosen at evaluation, and make the expression classes return both the min and max simd width of their operands. Updated the unit stride evaluation to decide whether to do aligned or unaligned vectorization (though the actual aligned/unaligned routines remain to be written).
+
+
+changeset:   1790:b74fb32f5843
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 10:52:03 2011 -0700
+files:       testsuite/vectorization.cpp
+description:
+Added a test case vectorization to test that the vectorization routines do sensible things with weird expressions.
+
+
+changeset:   1789:6a999035167c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 21 08:33:24 2011 -0700
+files:       blitz/array/expr.h blitz/array/fastiter.h blitz/globeval.cc blitz/indexexpr.h blitz/levicivita.h blitz/range.h blitz/tv2fastiter.h
+description:
+Added simdWidth member to major expression classes.
+
+
+changeset:   1788:88184b5be7f8
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 20 16:47:05 2011 -0700
+files:       blitz/array/fastiter.h blitz/globeval.cc blitz/simdtypes.h blitz/tinymat2.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Debugged the evaluation loop for unaligned elements. Improved traverse debug messages. Fixed bug in simdTypes::offsetToAlignment and in other alignment checks. This has now broken complex-test, as it tries to vectorize it but doesn't get the type right.
+
+
+changeset:   1787:8f8e91ae2bb2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 20 14:32:22 2011 -0700
+files:       testsuite/alignment.cpp
+description:
+Updated alignment test case to test the offsetToAlignment function.
+
+
+changeset:   1786:e52d98b0127e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 20 14:31:11 2011 -0700
+files:       blitz/array-impl.h blitz/array/expr.h blitz/array/fastiter.h blitz/array/functorExpr.h blitz/array/map.h blitz/array/reduce.h blitz/array/stencil-et.h blitz/array/where.h blitz/globeval.cc blitz/indexexpr.h blitz/simdtypes.h blitz/tv2fastiter.h
+description:
+Added vectorization of unaligned expressions by completing the initial scalar operations. This works as long as source and dest have identical misalignment.
+
+
+changeset:   1785:b3bc1e1098e7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 20 13:21:09 2011 -0700
+files:       blitz/array-impl.h blitz/tinyvec2.h
+description:
+Added TinyVector constructor taking an expression.
+
+
+changeset:   1784:c85903971cb4
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 20 13:20:32 2011 -0700
+files:       blitz/array/asexpr.h
+description:
+Added BzReductionResult, BzIndexmapResult, BzStencilResult, and BzBinaryStencilResult traits classes.
+
+
+changeset:   1783:ee4cd02aec30
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 18 18:45:25 2011 -0700
+files:       blitz/tinyvec2.h
+description:
+Made TinyVector expression constructor explicit to avoid implicit conversion ambiguities.
+
+
+changeset:   1782:d59002128cfb
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 18 18:19:08 2011 -0700
+files:       blitz/array/Makefile.am
+description:
+Added stencil-et-macros.h to installed files.
+
+
+changeset:   1781:22c668d76b8c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 18 18:12:36 2011 -0700
+files:       blitz/Makefile.am blitz/array/Makefile.am
+description:
+Fixed Makefile so all new files are installed.
+
+
+changeset:   1780:c44f496f5545
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 18 18:12:11 2011 -0700
+files:       blitz/tinyvec2.h testsuite/tinyvec.cpp
+description:
+Added tinyvec expression constructor.
+
+
+changeset:   1779:46e8a4374790
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 18 12:54:57 2011 -0700
+files:       blitz/array/functorExpr.h testsuite/Makefile.am testsuite/member_function.cpp
+description:
+Fixed a bug in the functorExpr macros that caused member function functors to use out-of-scope temporary copies of their parent objects if expressions were passed by value.
+
+
+changeset:   1778:493d32bb7166
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 15:27:01 2011 -0700
+files:       blitz/array-impl.h blitz/array/expr.h blitz/array/fastiter.h blitz/array/functorExpr.h blitz/array/map.h blitz/array/ops.cc blitz/array/reduce.h blitz/array/stencil-et.h blitz/array/where.h blitz/globeval.cc blitz/indexexpr.h blitz/memblock.h blitz/range.h blitz/simdtypes.h blitz/tinyvec2.cc blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Tweaks to lower the evaluation overhead. Evaluation functions are now members of a helper class _bz_evaluator that is templated based on rank. Extracted 1-d unit stride and common stride functions into separate functions. Simplified alignment and unit stride checks. Removed the non-USE_FAST_READ_EXPR code. This has increased the performance for small arrays by ~50%.
+
+
+changeset:   1777:78209d59637b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 10:50:18 2011 -0700
+files:       blitz/array-impl.h
+description:
+Removed declarations of the now-unused evaluation functions in Array.
+
+
+changeset:   1776:173191ec4caf
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 10:46:55 2011 -0700
+files:       blitz/globeval.cc testsuite/alignment.cpp
+description:
+EvaluateWithStackTraversal1 now correctly deals with the ends of uneven-length arrays by using the non-vectorized update for those elements. The alignment test now checks that arrays report their alignment correctly and that the update doesn't overrun the end of the array.
+
+
+changeset:   1775:e1600266eb9d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 09:37:49 2011 -0700
+files:       blitz/array.cc
+description:
+array.cc now includes tinymat2.cc
+
+
+changeset:   1774:3f8e4553b7b2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 09:37:26 2011 -0700
+files:       testsuite/qcd.cpp
+description:
+Updated qcd test to use ranlib.
+
+
+changeset:   1773:57282f9614de
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 09:29:46 2011 -0700
+files:       test.cc
+description:
+Removed test.cc
+
+
+changeset:   1772:f0858eb48bde
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 11:36:56 2011 -0400
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop11.cpp benchmarks/floop12.cpp benchmarks/floop13.cpp benchmarks/floop14.cpp benchmarks/floop15.cpp benchmarks/floop16.cpp benchmarks/floop17.cpp benchmarks/floop18.cpp benchmarks/floop19.cpp benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop22.cpp benchmarks/floop23.cpp benchmarks/floop24.cpp benchmarks/floop25.cpp benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop5.cpp benchmarks/floop6.cpp benchmarks/floop8.cpp benchmarks/floop9.cpp benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop11.cpp benchmarks/loop12.cpp benchmarks/loop13.cpp benchmarks/loop14.cpp benchmarks/loop15.cpp benchmarks/loop16.cpp benchmarks/loop17.cpp benchmarks/loop18.cpp benchmarks/loop19.cpp benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop22.cpp benchmarks/loop23.cpp benchmarks/loop24.cpp benchmarks/loop25.cpp benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop5.cpp benchmarks/loop6.cpp benchmarks/loop8.cpp benchmarks/loop9.cpp blitz/Makefile.am blitz/generate/makeloops.py blitz/rand-dunif.h blitz/rand-mt.h blitz/rand-normal.h blitz/rand-tt800.h blitz/rand-uniform.h blitz/random.h blitz/randref.h testsuite/loop1.cpp
+description:
+More housecleaning. Removed the RNGs in blitz/ and redirected the loop benchmarks to use the ones in ranlib::.
+
+
+changeset:   1771:49f4a83346b6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 17 11:16:52 2011 -0400
+files:       blitz/Makefile.am blitz/applics.h blitz/array-impl.h blitz/array-old.h blitz/array/Makefile.am blitz/array/eval.cc blitz/extremum.h blitz/generate/Makefile.am blitz/matdiag.h blitz/matexpr.h blitz/matgen.h blitz/mathf2.h blitz/matltri.h blitz/matref.h blitz/matrix.cc blitz/matrix.h blitz/matsymm.h blitz/mattoep.h blitz/matutri.h blitz/memblock.h blitz/mstruct.h blitz/tiny.h blitz/tinymat.h blitz/tinymatexpr.h blitz/tinymatio.cc blitz/tinyvec-et.h blitz/tinyvec.h blitz/tinyvecio.cc blitz/tinyveciter.h blitz/vecaccum.cc blitz/vecall.cc blitz/vecany.cc blitz/veccount.cc blitz/vecdelta.cc blitz/vecdot.cc blitz/vecexpr.h blitz/vecexprwrap.h blitz/vecglobs.cc blitz/vecglobs.h blitz/vecio.cc blitz/veciter.h blitz/vecmax.cc blitz/vecmin.cc blitz/vecnorm.cc blitz/vecnorm1.cc blitz/vecpick.cc blitz/vecpick.h blitz/vecpickio.cc blitz/vecpickiter.h blitz/vecproduct.cc blitz/vecsum.cc blitz/vector-et.h blitz/vector.cc blitz/vector.h blitz/vecwhere.h blitz/zero.cc blitz/zero.h src/globals.cpp
+description:
+HOUSE CLEANING. Removed most old files for the old ET machinery that are no longer needed.
+
+
+changeset:   1770:292be3be8b3c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 20:31:23 2011 -0700
+files:       blitz/array-impl.h testsuite/Makefile.am testsuite/preexisting.cpp
+description:
+Added a warning if an Array is constructed from preexisting data but the array is not contiguous. Added a testcase that exercises this.
+
+
+changeset:   1769:3d1d9b901f0a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 20:03:20 2011 -0700
+files:       testsuite/Makefile.am testsuite/alignment.cpp
+description:
+Created a test case checking that TinyVector and TinyMatrix are aligned properly.
+
+
+changeset:   1768:727ee54426f5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 19:43:34 2011 -0700
+files:       blitz/array-impl.h blitz/array/methods.cc testsuite/contiguous.cpp testsuite/ctors.cpp testsuite/peter-bienstman-3.cpp testsuite/peter-nordlund-1.cpp testsuite/pthread.cpp testsuite/transpose.cpp
+description:
+Padded array minor rank to an even simd width. This changes strides and whether the array is contiguous, so necessitated changing some tests that assume they know what the stride should be. Also added array method storageSize() which returs the size of the memoryblock, since numElements is no longer a measure of how large that block is.
+
+
+changeset:   1767:9d70f0a558d2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 15:02:19 2011 -0700
+files:       benchmarks/loop100f.f benchmarks/loop100f90.f90
+description:
+Added loop100 fortran files.
+
+
+changeset:   1766:5c64913a62cc
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 15:01:43 2011 -0700
+files:       benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop11.cpp benchmarks/floop12.cpp benchmarks/floop13.cpp benchmarks/floop14.cpp benchmarks/floop15.cpp benchmarks/floop16.cpp benchmarks/floop17.cpp benchmarks/floop18.cpp benchmarks/floop19.cpp benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop22.cpp benchmarks/floop23.cpp benchmarks/floop24.cpp benchmarks/floop25.cpp benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop5.cpp benchmarks/floop6.cpp benchmarks/floop8.cpp benchmarks/floop9.cpp benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop100.cpp benchmarks/loop11.cpp benchmarks/loop12.cpp benchmarks/loop13.cpp benchmarks/loop14.cpp benchmarks/loop15.cpp benchmarks/loop16.cpp benchmarks/loop17.cpp benchmarks/loop18.cpp benchmarks/loop19.cpp benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop22.cpp benchmarks/loop23.cpp benchmarks/loop24.cpp benchmarks/loop25.cpp benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop5.cpp benchmarks/loop6.cpp benchmarks/loop8.cpp benchmarks/loop9.cpp
+description:
+Regenerated loops.
+
+
+changeset:   1765:0a1639f34c04
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 14:58:42 2011 -0700
+files:       blitz/array/stencil-et.h
+description:
+Added numTV/TMoperands to _bz_StencilExpr2.
+
+
+changeset:   1764:322758b11aca
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 16 14:58:11 2011 -0700
+files:       testsuite/tinyvec.cpp
+description:
+Fixed typo in tinyvec test.
+
+
+changeset:   1763:0532e5ff7ab5
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 15 10:06:49 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Conditionally re-added the Vector benchmark in makeloops.
+
+
+changeset:   1762:33cf8f76121c
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 15 09:47:45 2011 -0700
+files:       blitz/benchext.cc
+description:
+Fixed typo in pylab output.
+
+
+changeset:   1761:9feccebd61cc
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 14 09:36:23 2011 -0700
+files:       blitz/benchext.cc
+description:
+Tweaked python graph in benchext.
+
+
+changeset:   1760:8a7be5be87d2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 13 11:59:02 2011 -0700
+files:       benchmarks/Makefile.am
+description:
+Added loop100 target.
+
+
+changeset:   1759:ff330fda93ec
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 13 11:58:35 2011 -0700
+files:       blitz/benchext.cc
+description:
+Benchext now sets negative results to zero.
+
+
+changeset:   1758:9bb759a31af3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 13 11:57:51 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Updated makeloops to generate loop100 and to generate F77 continuation lines if the expression is too long.
+
+
+changeset:   1757:9586d37e6fda
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 13 08:20:15 2011 -0700
+files:       blitz/tinymat2.h blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Re-enabled fastRead_tv() for Tiny containers, since these are needed for mixed Array/tiny expressions. The chunked_updater prevents recursive instantiation loops now.
+
+
+changeset:   1756:67fe2f750fb4
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 14:30:24 2011 -0700
+files:       blitz/array/expr.h blitz/array/functorExpr.h blitz/array/map.h blitz/array/reduce.h blitz/array/stencil-et.h blitz/array/where.h blitz/benchext.cc blitz/globeval.cc blitz/indexexpr.h blitz/timer.h blitz/tinymat2.h blitz/tm2fastiter.h blitz/tuning.h blitz/tv2fastiter.h test.cc testsuite/loop1.cpp testsuite/qcd.cpp
+description:
+Added tvresult return type functionality to remaining expression classes. All tests now compile, and those that don't pass do so for different reasons.
+
+
+changeset:   1755:34ffda55e5ce
+parent:      1754:ed427d5babca
+parent:      1750:b47f69881d33
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 16:57:23 2011 -0400
+description:
+Merged from governator.
+
+
+changeset:   1754:ed427d5babca
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 16:56:27 2011 -0400
+files:       blitz/generate/makeloops.py
+description:
+Removed nops from loops, increased iters for low numbers, and fixed declaration of sink().
+
+
+changeset:   1753:d17056f4b08b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 16:53:49 2011 -0400
+files:       configure.ac
+description:
+Added check for PAPI library.
+
+
+changeset:   1752:f73e13fa07f2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 16:52:58 2011 -0400
+files:       blitz/benchext.cc blitz/benchext.h
+description:
+Added reporting of instructions per cycle and total flops per cycle to benchmark if PAPI is used.
+
+
+changeset:   1751:440bd8b86ed0
+parent:      1748:248ae0986c24
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 16:51:40 2011 -0400
+files:       blitz/timer.h src/globals.cpp
+description:
+Fixed timer class to work with PAPI.
+
+
+changeset:   1750:b47f69881d33
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 07:35:52 2011 -0700
+files:       blitz/array/expr.h
+description:
+Fixed typo in UnaryExprOp.
+
+
+changeset:   1749:4e0a0cf8b488
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 12 10:10:23 2011 -0400
+files:       blitz/array-impl.h blitz/array/expr.h blitz/array/fastiter.h blitz/globeval.cc blitz/indexexpr.h blitz/levicivita.h blitz/range.h blitz/tinyvec2.h blitz/tv2fastiter.h blitz/update.h test.cc
+description:
+Added fastRead_tv() function to main expression classes and routed aligned Array expressions through it. Basically functional, but many things don't compile.
+
+
+changeset:   1748:248ae0986c24
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 11 15:32:46 2011 -0700
+files:       benchmarks/Makefile.am benchmarks/floop1.cpp benchmarks/floop10.cpp benchmarks/floop10f.f benchmarks/floop10f90.f90 benchmarks/floop11.cpp benchmarks/floop11f.f benchmarks/floop11f90.f90 benchmarks/floop12.cpp benchmarks/floop12f.f benchmarks/floop12f90.f90 benchmarks/floop13.cpp benchmarks/floop13f.f benchmarks/floop13f90.f90 benchmarks/floop14.cpp benchmarks/floop14f.f benchmarks/floop14f90.f90 benchmarks/floop15.cpp benchmarks/floop15f.f benchmarks/floop15f90.f90 benchmarks/floop16.cpp benchmarks/floop16f.f benchmarks/floop16f90.f90 benchmarks/floop17.cpp benchmarks/floop17f.f benchmarks/floop17f90.f90 benchmarks/floop18.cpp benchmarks/floop18f.f benchmarks/floop18f90.f90 benchmarks/floop19.cpp benchmarks/floop19f.f benchmarks/floop19f90.f90 benchmarks/floop1f.f benchmarks/floop1f90.f90 benchmarks/floop2.cpp benchmarks/floop21.cpp benchmarks/floop21f.f benchmarks/floop21f90.f90 benchmarks/floop22.cpp benchmarks/floop22f.f benchmarks/floop22f90.f90 benchmarks/floop23.cpp benchmarks/floop23f.f benchmarks/floop23f90.f90 benchmarks/floop24.cpp benchmarks/floop24f.f benchmarks/floop24f90.f90 benchmarks/floop25.cpp benchmarks/floop25f.f benchmarks/floop25f90.f90 benchmarks/floop2f.f benchmarks/floop2f90.f90 benchmarks/floop3.cpp benchmarks/floop36.cpp benchmarks/floop36f.f benchmarks/floop36f90.f90 benchmarks/floop3f.f benchmarks/floop3f90.f90 benchmarks/floop5.cpp benchmarks/floop5f.f benchmarks/floop5f90.f90 benchmarks/floop6.cpp benchmarks/floop6f.f benchmarks/floop6f90.f90 benchmarks/floop8.cpp benchmarks/floop8f.f benchmarks/floop8f90.f90 benchmarks/floop9.cpp benchmarks/floop9f.f benchmarks/floop9f90.f90 benchmarks/loop1.cpp benchmarks/loop10.cpp benchmarks/loop10f.f benchmarks/loop10f90.f90 benchmarks/loop11.cpp benchmarks/loop11f.f benchmarks/loop11f90.f90 benchmarks/loop12.cpp benchmarks/loop12f.f benchmarks/loop12f90.f90 benchmarks/loop13.cpp benchmarks/loop13f.f benchmarks/loop13f90.f90 benchmarks/loop14.cpp benchmarks/loop14f.f benchmarks/loop14f90.f90 benchmarks/loop15.cpp benchmarks/loop15f.f benchmarks/loop15f90.f90 benchmarks/loop16.cpp benchmarks/loop16f.f benchmarks/loop16f90.f90 benchmarks/loop17.cpp benchmarks/loop17f.f benchmarks/loop17f90.f90 benchmarks/loop18.cpp benchmarks/loop18f.f benchmarks/loop18f90.f90 benchmarks/loop19.cpp benchmarks/loop19f.f benchmarks/loop19f90.f90 benchmarks/loop1f.f benchmarks/loop1f90.f90 benchmarks/loop2.cpp benchmarks/loop21.cpp benchmarks/loop21f.f benchmarks/loop21f90.f90 benchmarks/loop22.cpp benchmarks/loop22f.f benchmarks/loop22f90.f90 benchmarks/loop23.cpp benchmarks/loop23f.f benchmarks/loop23f90.f90 benchmarks/loop24.cpp benchmarks/loop24f.f benchmarks/loop24f90.f90 benchmarks/loop25.cpp benchmarks/loop25f.f benchmarks/loop25f90.f90 benchmarks/loop2f.f benchmarks/loop2f90.f90 benchmarks/loop3.cpp benchmarks/loop36.cpp benchmarks/loop36f.f benchmarks/loop36f90.f90 benchmarks/loop3f.f benchmarks/loop3f90.f90 benchmarks/loop5.cpp benchmarks/loop5f.f benchmarks/loop5f90.f90 benchmarks/loop6.cpp benchmarks/loop6f.f benchmarks/loop6f90.f90 benchmarks/loop8.cpp benchmarks/loop8f.f benchmarks/loop8f90.f90 benchmarks/loop9.cpp benchmarks/loop9f.f benchmarks/loop9f90.f90 test.cc
+description:
+Committed updated loop benchmarks and added versions using float.
+
+
+changeset:   1747:144bf0c077b7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 11 15:31:33 2011 -0700
+files:       blitz/benchext.cc blitz/benchext.h blitz/generate/makeloops.py blitz/timer.h
+description:
+Added an untested implementation for the timer class to use PAPI if available, and for the benchmark class to accept time info in cycles or seconds.
+
+
+changeset:   1746:b5406bbb53ae
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 11 14:23:36 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Now generates correct loop benchmarks. Added float benchmarks, too.
+
+
+changeset:   1745:ce5438656557
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 11 11:57:58 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Now writes all loops in loops.data.
+
+
+changeset:   1744:5a4a4105c96f
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 11 10:54:42 2011 -0700
+files:       blitz/generate/makeloops.py
+description:
+Started a makeloops.py to replace the hard-to-edit makeloops.cpp. Now writes the .cpp file.
+
+
+changeset:   1743:9de2c44d1b0e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 10 13:22:09 2011 -0700
+files:       blitz/array-impl.h blitz/listinit.h
+description:
+Changed Array ListInitializer to use the array iterator, which fixes the problems in the initialize test case but breaks the storage one since the iterators are buggy.
+
+
+changeset:   1742:b1be75056cc8
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 10 13:21:38 2011 -0700
+files:       blitz/globeval.cc
+description:
+Fixed an erroneously commented out line.
+
+
+changeset:   1741:a6d2118de27a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 10 10:44:04 2011 -0700
+files:       blitz/array/functorExpr.h blitz/array/methods.cc blitz/array/reduce.h blitz/array/stencil-et.h blitz/globeval.cc blitz/memblock.cc blitz/memblock.h blitz/simdtypes.h blitz/tinymat2.h testsuite/loop1.cpp testsuite/troyer-genilloud.cpp
+description:
+Fixed some test failures introduced by the TinyVector alignment.
+
+
+changeset:   1740:b1e1f01fe282
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 19:19:18 2011 -0700
+files:       blitz/tuning.h test.cc
+description:
+Changed tuning for icpc to not unroll. It makes no diff to the performance.
+
+
+changeset:   1739:26ee3e7ea757
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 18:35:15 2011 -0700
+files:       benchmarks/loop3.cpp blitz/tinyvec2.cc blitz/tuning.h src/globals.cpp
+description:
+Improved the prevention of loop elimination in loop3 by making the sink() function extern. Added macro BZ_TV_EVALUATE_UNROLL_LENGTH to be defined if TinyVectors below some length should be unrolled, and set this option for icpc in tuning.h. icpc now has very good TV performance, but gcc kinda sucks.
+
+
+changeset:   1738:e286af827d8e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 16:10:29 2011 -0700
+files:       benchmarks/loop3.cpp blitz/benchext.cc blitz/benchext.h blitz/memblock.cc blitz/memblock.h blitz/simdtypes.h blitz/tinyvec.h blitz/tinyvec2.cc blitz/tinyvec2.h configure.ac m4/ac_cxx_alignment_directive.m4 m4/ax_prefix_config_h.m4
+description:
+Merged the alignment changes from the cvs repo. (Grr...)
+
+
+changeset:   1737:8226fb873368
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 16:04:44 2011 -0700
+files:       blitz/globeval.cc
+description:
+Added shortcut evaluation for 1-element expressions of any rank.
+
+
+changeset:   1736:d6062dec88de
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 16:01:47 2011 -0700
+files:       benchmarks/loop3.cpp
+description:
+Upped the number of iterations for small sizes to decrease noise.
+
+
+changeset:   1735:31ad3c728214
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 15:00:13 2011 -0700
+files:       blitz/meta/vecassign.h blitz/tinyvec2.cc
+description:
+Added an alternative to meta-unroll the TV evaluation.
+
+
+changeset:   1734:cdaa0193fc68
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 14:59:11 2011 -0700
+files:       blitz/range.h
+description:
+Added numTVoperands to Range.
+
+
+changeset:   1733:908a72324c41
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 09 13:56:17 2011 -0700
+files:       test.cc
+description:
+Changed test to a simple TV test.
+
+
+changeset:   1732:deab9d6bea53
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 22:36:34 2011 -0400
+files:       blitz/levicivita.h
+description:
+Added numTV/TMoperands to Levicivita object.
+
+
+changeset:   1731:487b90783e8d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 22:33:54 2011 -0400
+files:       blitz/array/asexpr.h blitz/array/expr.h blitz/array/fastiter.h blitz/array/map.h blitz/array/where.h blitz/indexexpr.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tm2fastiter.h blitz/tv2fastiter.h
+description:
+Added a TinyVector-specific evaluation function that kicks in for TV-only expressions and is much simpler.
+
+
+changeset:   1730:89cf0320a448
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 14:05:07 2011 -0700
+files:       benchmarks/loop3.cpp
+description:
+Tweaked loop3 test to include TinyVector.
+
+
+changeset:   1729:bd0975bd5d2a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 13:21:26 2011 -0700
+files:       blitz/array/functorExpr.h blitz/array/map.h blitz/array/reduce.h blitz/array/where.h blitz/indexexpr.h
+description:
+Updated shift functions for multicomponent functionality for functors, index expressions and mappings, reductions and where statements.
+
+
+changeset:   1728:44b0d155ac28
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 12:21:22 2011 -0700
+files:       blitz/array/expr.h blitz/indexpar.h
+description:
+Undid _bz_Indexpar stuff because it doesn't work and I don't know what's going on.
+
+
+changeset:   1727:ed46b21750b4
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 11:55:58 2011 -0700
+files:       blitz/array/expr.h blitz/indexpar.h
+description:
+Started converting use of BZ_ARRAY_EXPR_PASS_INDEX_BY_VALUE to the _bz_Indexpar class, but something's wrong.
+
+
+changeset:   1726:7214fcf29e45
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 11:53:13 2011 -0700
+files:       blitz/array/stencil-et.h
+description:
+Added comment.
+
+
+changeset:   1725:c5319e4b1eea
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 08 11:05:12 2011 -0700
+files:       benchmarks/loop2.cpp benchmarks/loop3.cpp blitz/array-impl.h blitz/array/funcs.h blitz/array/map.h blitz/tinymat2.cc blitz/tinymat2.h blitz/tinyvec2.cc blitz/tinyvec2.h testsuite/levicivita.cpp testsuite/shape.cpp
+description:
+Levicivita object now works again. Container operator() and index mappings were updated to work with all containers. All tests except 'initialize' now pass.
+
+
+changeset:   1724:d3dc59c5adb6
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 07 23:17:53 2011 -0400
+files:       benchmarks/loop1.cpp blitz/benchext.cc blitz/vector2.h testsuite/initialize.cpp testsuite/loop1.cpp
+description:
+Added file vector2.h which declares Vector by deriving from Array<P_numtype,1>. It doesn't have the same syntax as the old vector, though.
+
+
+changeset:   1723:bedb9b347ded
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 07 22:54:43 2011 -0400
+files:       blitz/benchext.cc blitz/benchext.h testsuite/qcd.cpp
+description:
+Changed qcd benchmark to use rank-1 Arrays instead of Vectors. This also required changes to benchext.
+
+
+changeset:   1722:e38757c62997
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 07 18:16:32 2011 -0400
+files:       blitz/array/stencil-et-macros.h blitz/generate/genstencils.py testsuite/stencil-et.cpp
+description:
+Updated stencil-et-macros.h to not have C++-style comments in the macros.
+
+
+changeset:   1721:fe724f8ca2d3
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue Jun 07 17:08:18 2011 -0400
+files:       blitz/array/asexpr.cc blitz/array/expr.h blitz/array/fastiter.h blitz/array/multi.h blitz/array/stencil-et-macros.h blitz/array/stencilops.h blitz/generate/genstencils.py blitz/tinymat2.cc blitz/tinymat2.h blitz/tm2fastiter.h blitz/tv2fastiter.h test.cc testsuite/stencil-et.cpp
+description:
+Stencils now work, at least to the point that the tests using predefined stencils pass. This required adding the shift() methods to the type selection machinery, which remains to be done for the specialized ET classes, and changing the signatures of some stencil operators. Added TinyMatrix to multicomponent_traits. Also found a bug in the tv and tm copy iterators that caused iterators initialized from temporaries to be bad.
+
+
+changeset:   1720:c0f10b956e41
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 17:41:41 2011 -0400
+files:       blitz/generate/genstencils.py
+description:
+Added boilerplate multicomponent typedefs to stencil classes, but this is in many cases incorrect. The stencils that aren't simple element-wise operations need more thought.
+
+
+changeset:   1719:45a26e6719a9
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 14:51:09 2011 -0400
+files:       blitz/array.cc
+description:
+Fixed bad path to range.cc file in previous commit.
+
+
+changeset:   1718:483f43690120
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 14:48:31 2011 -0400
+files:       blitz/array.cc blitz/range.cc blitz/range.h test.cc testsuite/tvinitialize.cpp
+description:
+Added tvinitialize test case, and range.cc to the files included by array.cc.
+
+
+changeset:   1717:d1aacd22a60d
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 11:30:46 2011 -0700
+files:       testsuite/tvinitialize.cpp
+description:
+Added test for TinyVector list initializer
+
+
+changeset:   1716:fdb226333e76
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 14:28:36 2011 -0400
+files:       blitz/array/expr.h blitz/array/functorExpr.h blitz/update.h testsuite/Makefile.am testsuite/multicomponent-2.cpp testsuite/patrik-jonsson-1.cpp testsuite/reduce.cpp
+description:
+Added multicomponent support to functors, and added testcase multicomponent-2 to test it. Added test of reductions of expressions (these were broken even before). Fixed dereferencing operators on ternary and quaternary expressions.
+
+
+changeset:   1715:84d238c675e7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 11:17:10 2011 -0400
+files:       testsuite/safeToReturn.cpp
+description:
+Fixed safeToReturn testcase.
+
+
+changeset:   1714:4be3fc66da39
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Mon Jun 06 11:05:13 2011 -0400
+files:       blitz/array/expr.h blitz/array/map.h blitz/array/where.h testsuite/reduce.cpp
+description:
+Added reductions of expressions to reduce testcase and added first_value functions to expression classes. Unclear how to implement for index mapping.
+
+
+changeset:   1713:49d1756cefcb
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 22:52:08 2011 -0400
+files:       blitz/array/asexpr.h blitz/array/expr.h blitz/array/reduce.h
+description:
+Expressions now respect returntype imposed by operator.
+
+
+changeset:   1712:0fb16673a558
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 22:24:06 2011 -0400
+files:       blitz/array-impl.h blitz/array/expr.h blitz/array/map.h blitz/array/ops.cc blitz/array/reduce.h blitz/array/where.h blitz/globeval.cc blitz/indexexpr.h testsuite/peter-nordlund-1.cpp
+description:
+Added multicomponent types for reductions, mappings and where. All tests that compile pass.
+
+
+changeset:   1711:27726264ee65
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 18:37:28 2011 -0700
+files:       testsuite/arrayinitialize.cpp
+description:
+Added test that list initializer is working.
+
+
+changeset:   1710:f91aea787e4b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 17:40:24 2011 -0400
+files:       blitz/array.cc blitz/array/expr.cc blitz/array/ops.cc blitz/tinymat2.cc blitz/tinymat2.h blitz/tinyvec2.cc blitz/tm2ops.cc testsuite/multicomponent.cpp
+description:
+Further tweaks to multicomponent: return types, updater types. Fleshed out multicomponent test case, which now passes.
+
+
+changeset:   1709:d9fb47fca6aa
+parent:      1708:ad4ee52d4118
+parent:      1701:0a7d38f46c73
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 16:00:56 2011 -0400
+description:
+Merged changes from governator.
+
+
+changeset:   1708:ad4ee52d4118
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 16:00:30 2011 -0400
+files:       blitz/array/asexpr.h blitz/array/expr.h blitz/tinymat2.h blitz/tm2fastiter.h testsuite/multicomponent.cpp
+description:
+Added multicomponent machinery for ternary and quaternary expressions, and for TinyMatrix.
+
+
+changeset:   1707:3eb872d83f25
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 15:19:33 2011 -0400
+files:       blitz/array/ops.cc blitz/globeval.cc blitz/indexexpr.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tv2fastiter.h testsuite/multicomponent.cpp
+description:
+Now multi-multicomponent containers also work, at least as far as basic unary and binary expressions.
+
+
+changeset:   1706:ac56148d2e28
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 13:00:54 2011 -0400
+files:       blitz/array/asexpr.h blitz/array/expr.h testsuite/multicomponent.cpp
+description:
+Scalar expressions now appear to work, both POD scalars and scalar()-wrapped components.
+
+
+changeset:   1705:5f2e985727da
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 12:20:47 2011 -0400
+files:       blitz/array/asexpr.h blitz/array/expr.h blitz/array/fastiter.h blitz/ops.h blitz/tinyvec2.h blitz/tv2fastiter.h testsuite/multicomponent.cpp
+description:
+Binary multicomponent expressions now also work. Scalars don't.
+
+
+changeset:   1704:b2c4fbbcf808
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sat Jun 04 22:41:41 2011 -0400
+files:       blitz/array/asexpr.cc blitz/array/asexpr.h blitz/array/expr.h blitz/array/fastiter.h blitz/array/newet-macros.h blitz/array/ops.cc blitz/etbase.h blitz/globeval.cc blitz/levicivita.h blitz/ops.h blitz/range.h blitz/tv2fastiter.h blitz/update.h testsuite/multicomponent.cpp
+description:
+A lot of type fiddling to get operations on multicomponent arrays to work. Evaluating an expression on a container whose T_numtype is another container now returns a new expression with iterators that point to the subcomponents data. Introduced new types in expression classes and traits classes to get this to work. Only UnaryMinus is implemented currently.
+
+
+changeset:   1703:fe2cef578df4
+parent:      1702:deaeeb8ae3cc
+parent:      1700:f7c16a642396
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 03 22:55:51 2011 -0400
+description:
+Merged in multicomponent test.
+
+
+changeset:   1702:deaeeb8ae3cc
+parent:      1699:532db168738e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 03 22:50:18 2011 -0400
+files:       blitz/array-impl.h blitz/array.cc blitz/array/asexpr.cc blitz/array/asexpr.h blitz/array/expr.h blitz/array/stencilops.h blitz/array/where.h blitz/bounds.h blitz/et-forward.h blitz/range.cc blitz/range.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tv2fastiter.h blitz/tv2ops.cc blitz/tvecglobs.h test.cc
+description:
+More header file work. Range now fulfills the ET specifications.
+
+
+changeset:   1701:0a7d38f46c73
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Sun Jun 05 12:58:42 2011 -0700
+files:       blitz/tinymat2.cc
+description:
+Forgot to commit TinyMatrix implementation file before.
+
+
+changeset:   1700:f7c16a642396
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 03 19:54:34 2011 -0700
+files:       testsuite/multicomponent.cpp
+description:
+Started working on a test that multicomponent expressions work.
+
+
+changeset:   1699:532db168738e
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 03 17:22:24 2011 -0700
+files:       blitz/array/asexpr.cc blitz/array/asexpr.h blitz/array/domain.h blitz/array/expr.cc blitz/array/expr.h blitz/array/fastiter.h blitz/array/funcs.h blitz/array/map.h blitz/array/ops.h blitz/array/reduce.h blitz/array/stencil-et.h blitz/et-forward.h blitz/indexmap-forward.h blitz/meta/vecassign.h blitz/prettyprint.h blitz/reduce.h blitz/shapecheck.h blitz/tinyvec2.h test.cc testsuite/Makefile.am testsuite/stencil-et.cpp
+description:
+Worked on making the header files include cleanly using forward declarations to avoid the messy include dependencies.
+
+
+changeset:   1698:586e114347ea
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Fri Jun 03 08:45:47 2011 -0700
+files:       testsuite/tinyvec.cpp
+description:
+Updated tinyvec test to test correct application of functions.
+
+
+changeset:   1697:42f97230ee60
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 02 22:25:32 2011 -0700
+files:       blitz/array/ops.cc blitz/array/stencil-et-macros.h blitz/array/stencilops.h testsuite/extract.cpp testsuite/matthias-troyer-1.cpp testsuite/matthias-troyer-2.cpp
+description:
+Fixed typos in array/stencilops.h and restored the stencil ET macros in stencil-et-macros.h so users can define their own. 3 more tests now run, but there is a problem with expressions in multicomponent arrays that will take some thinking.
+
+
+changeset:   1696:4889434a766b
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 02 19:58:08 2011 -0700
+files:       blitz/array/asexpr.h blitz/array/funcs.h blitz/globeval.cc blitz/levicivita.h blitz/tv2ops.cc testsuite/Makefile.am testsuite/levicivita.cpp testsuite/tinyvec.cpp testsuite/where.cpp
+description:
+Added global functions dot() and cross() to funcs.h. These work on all types of expressions. The cross product is done with an expression object LeviCivita which represents the Levi-Civita symbol in 3d. Added a test case for the cross product and augmented tinyvec test.
+
+
+changeset:   1695:26cab2b56941
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Thu Jun 02 13:17:33 2011 -0700
+files:       blitz/array-impl.h blitz/array/fastiter.h blitz/array/stencil-et.h blitz/array/stencilops.h blitz/generate/Makefile.am blitz/generate/genstencils.py blitz/tinymat2.h testsuite/tinymat.cpp
+description:
+Restored stencil functionality. Removed the long stencil macros in stencil-et.h, since they make the generated code impossible to debug, and instead made a python script getstencils.py that generates the file stencil-classes.cc.
+
+
+changeset:   1694:c89e0d6018aa
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 01 20:58:09 2011 -0700
+files:       blitz/array/asexpr.h blitz/tinymat2.h blitz/tinymat2io.cc blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tinyvec2io.cc blitz/tm2fastiter.h blitz/tm2ops.cc blitz/tv2fastiter.h
+description:
+Cranked out an implementation of TinyMatrix that at least works internally. Need to sort out header dependencies.
+
+
+changeset:   1693:d4382faa1756
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Wed Jun 01 11:12:43 2011 -0700
+files:       blitz/array-impl.h blitz/array/asexpr.h blitz/array/fastiter.h blitz/array/ops.cc blitz/array/reduce.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tv2ops.cc test.cc testsuite/Makefile.am testsuite/initialize.cpp testsuite/reduce.cpp testsuite/tinyvec.cpp
+description:
+Further tweaks to make tests pass. All tests that compile now pass. Stencils remain, as do defining dot product for new expressions.
+
+
+changeset:   1692:363fc19b1e4a
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 21:44:59 2011 -0700
+files:       blitz/array-impl.h blitz/array/domain.h blitz/array/functorExpr.h blitz/array/reduce.cc blitz/array/reduce.h blitz/array/where.h blitz/globeval.cc blitz/indexexpr.h blitz/tinyvec2.h
+description:
+Changed includes from tinyvec.h to tinyvec2.h. Several tweaks to make testsuite compile. Still not there though.
+
+
+changeset:   1691:86c3627f3114
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 21:27:59 2011 -0700
+files:       blitz/array-impl.h blitz/array/asexpr.h blitz/array/expr.h blitz/array/fastiter.h blitz/array/map.h blitz/array/ops.h blitz/array/reduce.h blitz/array/slice.h blitz/array/storage.h blitz/array/where.h blitz/globeval.cc blitz/ops.h blitz/ranks.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tinyvec2io.cc blitz/tv2fastiter.h blitz/tv2ops.cc blitz/tvecglobs.h test.cc
+description:
+Array now uses the new TinyVector in tinyvec2.h in place of the old one. A few things are nonfunctional because they depend on TinyMatrix.
+
+
+changeset:   1690:1dad478e2fd7
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 18:43:06 2011 -0700
+files:       blitz/array/fastiter.h blitz/array/map.h blitz/array/slice.h blitz/globeval.cc blitz/indexexpr.h blitz/indexmap-forward.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tv2fastiter.h test.cc
+description:
+Moved TinyVector2 expressions back to the iterator, as just forwarding fastRead allows vectorization. Added support for TV2 index expressions.
+
+
+changeset:   1689:25a35896ffb4
+user:        patrik@governator.ucsc.edu
+date:        Tue May 31 16:41:03 2011 -0700
+files:       blitz/array/expr.h blitz/array/fastiter.h blitz/globeval.cc blitz/tinyvec2.h blitz/tv2fastiter.h
+description:
+Changed so TinyVector2 expressions use the TV2 objects directly and not the iterators. This allows the loops to be vectorized, otherwise the 'defereference is too complex'.
+
+
+changeset:   1688:a7f9abef3017
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 16:52:07 2011 -0400
+files:       test.cc
+description:
+Small test program.
+
+
+changeset:   1687:2a507de3ea58
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 16:32:58 2011 -0400
+files:       blitz/array-impl.h blitz/array/ops.cc blitz/globeval.cc blitz/tinyvec2.h blitz/tv2fastiter.h blitz/tv2ops.cc
+description:
+Make the Array evaluate() function a global one that works on any container that has the required methods. That way it also works for TinyVector2.
+
+
+changeset:   1686:36b9e6e658a2
+user:        Patrik Jonsson <grifgrif@users.sourceforge.net>
+date:        Tue May 31 12:46:03 2011 -0400
+files:       blitz/array/fastiter.h blitz/constpointerstack.h blitz/tinyvec2.cc blitz/tinyvec2.h blitz/tinyvec2io.cc blitz/tv2assign.h blitz/tv2fastiter.h blitz/tv2ops.cc
+description:
+Bare-bones implementation of TinyVector2 using a FastTV2iterator for expressions.
+
+
+changeset:   1685:1946604d4724
+parent:      1599:50fc41194253
+user:        convert-repo
+date:        Fri May 27 00:13:58 2011 +0000
+files:       .hgtags
+description:
+update tags
+
+
