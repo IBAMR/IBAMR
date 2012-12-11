@@ -79,19 +79,21 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_ascii2hdf2d_OBJECTS = ascii2hdf2d-ascii2hdf.$(OBJEXT)
 ascii2hdf2d_OBJECTS = $(am_ascii2hdf2d_OBJECTS)
-ascii2hdf2d_LDADD = $(LDADD)
+am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
+	${top_builddir}/ibtk/lib/libIBTK.a
+ascii2hdf2d_DEPENDENCIES = $(am__DEPENDENCIES_1)
 ascii2hdf2d_LINK = $(CXXLD) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_ascii2hdf3d_OBJECTS = ascii2hdf3d-ascii2hdf.$(OBJEXT)
 ascii2hdf3d_OBJECTS = $(am_ascii2hdf3d_OBJECTS)
-ascii2hdf3d_LDADD = $(LDADD)
+ascii2hdf3d_DEPENDENCIES = $(am__DEPENDENCIES_1)
 ascii2hdf3d_LINK = $(CXXLD) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_m3D_hdf5_fiber_converter_OBJECTS =  \
 	m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.$(OBJEXT)
 m3D_hdf5_fiber_converter_OBJECTS =  \
 	$(am_m3D_hdf5_fiber_converter_OBJECTS)
-m3D_hdf5_fiber_converter_LDADD = $(LDADD)
+m3D_hdf5_fiber_converter_DEPENDENCIES = $(am__DEPENDENCIES_1)
 m3D_hdf5_fiber_converter_LINK = $(CXXLD) \
 	$(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
@@ -99,7 +101,7 @@ am_m3D_hdf5_marker_converter_OBJECTS =  \
 	m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.$(OBJEXT)
 m3D_hdf5_marker_converter_OBJECTS =  \
 	$(am_m3D_hdf5_marker_converter_OBJECTS)
-m3D_hdf5_marker_converter_LDADD = $(LDADD)
+m3D_hdf5_marker_converter_DEPENDENCIES = $(am__DEPENDENCIES_1)
 m3D_hdf5_marker_converter_LINK = $(CXXLD) \
 	$(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -107,8 +109,6 @@ am_m3D_hdf5_strain_analyzer_OBJECTS =  \
 	m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.$(OBJEXT)
 m3D_hdf5_strain_analyzer_OBJECTS =  \
 	$(am_m3D_hdf5_strain_analyzer_OBJECTS)
-am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
-	${top_builddir}/ibtk/lib/libIBTK.a
 m3D_hdf5_strain_analyzer_DEPENDENCIES = $(am__DEPENDENCIES_1)
 m3D_hdf5_strain_analyzer_LINK = $(CXXLD) \
 	$(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -116,7 +116,7 @@ m3D_hdf5_strain_analyzer_LINK = $(CXXLD) \
 am_marker_flooder3d_OBJECTS =  \
 	marker_flooder3d-marker_flooder.$(OBJEXT)
 marker_flooder3d_OBJECTS = $(am_marker_flooder3d_OBJECTS)
-marker_flooder3d_LDADD = $(LDADD)
+marker_flooder3d_DEPENDENCIES = $(am__DEPENDENCIES_1)
 marker_flooder3d_LINK = $(CXXLD) $(marker_flooder3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
@@ -449,17 +449,22 @@ SUFFIXES = .f.m4
 
 # Dimension-dependent executables
 ascii2hdf2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ascii2hdf2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 ascii2hdf2d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.C
 ascii2hdf3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+ascii2hdf3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 ascii2hdf3d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.C
 m3D_hdf5_fiber_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+m3D_hdf5_fiber_converter_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 m3D_hdf5_fiber_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
 m3D_hdf5_marker_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+m3D_hdf5_marker_converter_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 m3D_hdf5_marker_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
 m3D_hdf5_strain_analyzer_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_strain_analyzer_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 m3D_hdf5_strain_analyzer_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
 marker_flooder3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+marker_flooder3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
 marker_flooder3d_SOURCES = $(top_srcdir)/src/tools/marker_flooder.C
 all: all-am
 
