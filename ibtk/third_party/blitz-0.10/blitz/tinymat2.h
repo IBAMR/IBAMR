@@ -32,10 +32,14 @@
 #ifndef BZ_TINYMAT_H
 #define BZ_TINYMAT_H
 
+#ifdef __GNUC__
+#if (__GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic push
+#endif
 #pragma GCC diagnostic ignored "-Wextra"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#endif
 
 #include <blitz/blitz.h>
 #include <blitz/tinyvec2.h>
@@ -360,6 +364,8 @@ namespace boost {
 #include <blitz/tm2fastiter.h>  // Iterators
 #include <blitz/tinymat2.cc>
 
+#if (__GNUC__ && (__GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop
+#endif
 
 #endif // BZ_TINYMAT_H
