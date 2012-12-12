@@ -569,7 +569,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
-            if (!d_F_fcn[F_var])
+            if (d_F_fcn[F_var])
             {
                 d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
@@ -584,7 +584,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
-            if (!d_Q_init[Q_var])
+            if (d_Q_init[Q_var])
             {
                 d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
