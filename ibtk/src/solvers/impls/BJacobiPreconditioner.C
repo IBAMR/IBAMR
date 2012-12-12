@@ -60,10 +60,10 @@ BJacobiPreconditioner::BJacobiPreconditioner(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      d_pc_map()
+    : d_pc_map()
 {
     // Setup default options.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     d_initial_guess_nonzero = false;
     d_max_iterations = 1;
 

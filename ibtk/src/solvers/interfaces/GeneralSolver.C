@@ -58,15 +58,18 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralSolver::GeneralSolver(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : d_object_name(object_name),
+GeneralSolver::GeneralSolver()
+    : d_object_name("unitialized"),
       d_is_initialized(false),
-      d_homogeneous_bc(homogeneous_bc),
+      d_homogeneous_bc(false),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_rel_residual_tol(0.0),
+      d_abs_residual_tol(0.0),
+      d_max_iterations(100),
+      d_current_iterations(0),
+      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
       d_hier_math_ops(NULL),
       d_hier_math_ops_external(false),
       d_enable_logging(false)
@@ -168,6 +171,61 @@ GeneralSolver::deallocateSolverState()
     return;
 }// deallocateSolverState
 
+
+void
+GeneralSolver::setMaxIterations(
+    int max_iterations)
+{
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+GeneralSolver::getMaxIterations() const
+{
+    return d_max_iterations;
+}// getMaxIterations
+
+void
+GeneralSolver::setAbsoluteTolerance(
+    double abs_residual_tol)
+{
+    d_abs_residual_tol = abs_residual_tol;
+    return;
+}// setAbsoluteTolerance
+
+double
+GeneralSolver::getAbsoluteTolerance() const
+{
+    return d_abs_residual_tol;
+}// getAbsoluteTolerance
+
+void
+GeneralSolver::setRelativeTolerance(
+    double rel_residual_tol)
+{
+    d_rel_residual_tol = rel_residual_tol;
+    return;
+}// setRelativeTolerance
+
+double
+GeneralSolver::getRelativeTolerance() const
+{
+    return d_rel_residual_tol;
+}// getRelativeTolerance
+
+int
+GeneralSolver::getNumIterations() const
+{
+    return d_current_iterations;
+}// getNumIterations
+
+double
+GeneralSolver::getResidualNorm() const
+{
+    return d_current_residual_norm;
+}// getResidualNorm
+
 void
 GeneralSolver::setLoggingEnabled(
     bool enable_logging)
@@ -193,11 +251,28 @@ GeneralSolver::printClassData(
            << "solution_time = " << d_solution_time << "\n"
            << "current_time = " << d_current_time << "\n"
            << "new_time = " << d_new_time << "\n"
+           << "rel_residual_tol = " << d_rel_residual_tol << "\n"
+           << "abs_residual_tol = " << d_abs_residual_tol << "\n"
+           << "max_iterations = " << d_max_iterations << "\n"
+           << "current_iterations = " << d_current_iterations << "\n"
+           << "current_residual_norm = " << d_current_residual_norm << "\n"
            << "hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
            << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
            << "enable_logging = " << d_enable_logging << "\n";
     return;
 }// printClassData
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+GeneralSolver::init(
+    const std::string& object_name,
+    bool homogeneous_bc)
+{
+    d_object_name    = object_name;
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// init
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

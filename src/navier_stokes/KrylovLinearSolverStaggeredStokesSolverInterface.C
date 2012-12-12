@@ -49,11 +49,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : LinearSolver(object_name, homogeneous_bc),
-      StaggeredStokesSolver(object_name, homogeneous_bc)
+KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;

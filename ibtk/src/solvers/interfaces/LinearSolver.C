@@ -55,20 +55,14 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LinearSolver::LinearSolver(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : GeneralSolver(object_name, homogeneous_bc),
-      d_initial_guess_nonzero(true),
-      d_rel_residual_tol(1.0e-5),
-      d_abs_residual_tol(1.0e-50),
-      d_max_iterations(10000),
-      d_current_iterations(0),
-      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()),
+LinearSolver::LinearSolver()
+    : d_initial_guess_nonzero(true),
       d_nullspace_contains_constant_vec(false),
       d_nullspace_basis_vecs()
 {
-    // intentionally blank
+    d_max_iterations = 10000;
+    d_rel_residual_tol = 1.0e-5;
+    d_abs_residual_tol = 1.0e-50;
     return;
 }// LinearSolver()
 
@@ -115,70 +109,11 @@ LinearSolver::getInitialGuessNonzero() const
 }// getInitialGuessNonzero
 
 void
-LinearSolver::setMaxIterations(
-    int max_iterations)
-{
-    d_max_iterations = max_iterations;
-    return;
-}// setMaxIterations
-
-int
-LinearSolver::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
-LinearSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}// setAbsoluteTolerance
-
-double
-LinearSolver::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-LinearSolver::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}// setRelativeTolerance
-
-double
-LinearSolver::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
-
-int
-LinearSolver::getNumIterations() const
-{
-    return d_current_iterations;
-}// getNumIterations
-
-double
-LinearSolver::getResidualNorm() const
-{
-    return d_current_residual_norm;
-}// getResidualNorm
-
-void
 LinearSolver::printClassData(
     std::ostream& stream)
 {
     GeneralSolver::printClassData(stream);
     stream << "initial_guess_nonzero = " << d_initial_guess_nonzero << "\n"
-           << "rel_residual_tol = " << d_rel_residual_tol << "\n"
-           << "abs_residual_tol = " << d_abs_residual_tol << "\n"
-           << "max_iterations = " << d_max_iterations << "\n"
-           << "current_iterations = " << d_current_iterations << "\n"
-           << "current_residual_norm = " << d_current_residual_norm << "\n"
            << "nullspace_contains_constant_vec = " << d_nullspace_contains_constant_vec << "\n"
            << "nullspace_basis_vecs.size() = " << d_nullspace_basis_vecs.size() << "\n";
     return;

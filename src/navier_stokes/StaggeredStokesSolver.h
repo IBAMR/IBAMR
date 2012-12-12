@@ -39,7 +39,7 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <ibtk/GeneralSolver.h>
 
 // SAMRAI INCLUDES
 #include <PoissonSpecifications.h>
@@ -54,15 +54,13 @@ namespace IBAMR
  * staggered-grid Stokes solvers.
  */
 class StaggeredStokesSolver
-    : public virtual IBTK::LinearSolver
+    : public virtual IBTK::GeneralSolver
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Deafult constructor.
      */
-    StaggeredStokesSolver(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    StaggeredStokesSolver();
 
     /*!
      * \brief Destructor.
@@ -115,13 +113,6 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    StaggeredStokesSolver();
-
     /*!
      * \brief Copy constructor.
      *

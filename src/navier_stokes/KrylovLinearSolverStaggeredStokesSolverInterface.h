@@ -58,11 +58,9 @@ class KrylovLinearSolverStaggeredStokesSolverInterface
 {
 public:
     /*!
-     * Constructor.
+     * Default constructor.
      */
-    KrylovLinearSolverStaggeredStokesSolverInterface(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    KrylovLinearSolverStaggeredStokesSolverInterface();
 
     /*!
      * Destructor.
@@ -104,13 +102,6 @@ public:
         SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    KrylovLinearSolverStaggeredStokesSolverInterface();
-
     /*!
      * \brief Copy constructor.
      *

@@ -61,9 +61,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralSolver(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    GeneralSolver();
 
     /*!
      * \brief Empty virtual destructor.
@@ -253,6 +251,72 @@ public:
 
     //\}
 
+
+    /*!
+     * \name Functions to access solver parameters.
+     */
+    //\{
+
+    /*!
+     * \brief Set the maximum number of nonlinear iterations to use per solve.
+     */
+    virtual void
+    setMaxIterations(
+        int max_iterations);
+
+    /*!
+     * \brief Get the maximum number of nonlinear iterations to use per solve.
+     */
+    virtual int
+    getMaxIterations() const;
+
+    /*!
+     * \brief Set the absolute residual tolerance for convergence.
+     */
+    virtual void
+    setAbsoluteTolerance(
+        double abs_residual_tol);
+
+    /*!
+     * \brief Get the absolute residual tolerance for convergence.
+     */
+    virtual double
+    getAbsoluteTolerance() const;
+
+    /*!
+     * \brief Set the relative residual tolerance for convergence.
+     */
+    virtual void
+    setRelativeTolerance(
+        double rel_residual_tol);
+
+    /*!
+     * \brief Get the relative residual tolerance for convergence.
+     */
+    virtual double
+    getRelativeTolerance() const;
+
+    //\}
+
+    /*!
+     * \name Functions to access data on the most recent solve.
+     */
+    //\{
+
+    /*!
+     * \brief Return the iteration count from the most recent solve.
+     */
+    virtual int
+    getNumIterations() const;
+
+    /*!
+     * \brief Return the residual norm from the most recent iteration.
+     */
+    virtual double
+    getResidualNorm() const;
+
+    //\}
+
     /*!
      * \name Logging functions.
      */
@@ -281,8 +345,14 @@ public:
     //\}
 
 protected:
+    // Basic initialization.
+    void
+    init(
+        const std::string& object_name,
+        bool homogeneous_bc);
+
     // Object name.
-    const std::string d_object_name;
+    std::string d_object_name;
 
     // Boolean value to indicate whether the preconditioner is presently
     // initialized.
@@ -291,6 +361,11 @@ protected:
     // Solver configuration.
     bool d_homogeneous_bc;
     double d_solution_time, d_current_time, d_new_time;
+    double d_rel_residual_tol;
+    double d_abs_residual_tol;
+    int d_max_iterations;
+    int d_current_iterations;
+    double d_current_residual_norm;
 
     // Mathematical operators.
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
@@ -300,13 +375,6 @@ protected:
     bool d_enable_logging;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    GeneralSolver();
-
     /*!
      * \brief Copy constructor.
      *

@@ -1632,8 +1632,12 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    regrid_projection_solver->setNullspace(true);
-    regrid_projection_solver->setInitialGuessNonzero(false);
+    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(regrid_projection_solver.getPointer()));
+    if (p_regrid_projection_solver)
+    {
+        p_regrid_projection_solver->setNullspace(true);
+        p_regrid_projection_solver->setInitialGuessNonzero(false);
+    }
 
     // Allocate temporary data.
     ComponentSelector scratch_idxs;
@@ -1877,10 +1881,14 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        d_velocity_solver->setInitialGuessNonzero(false);
-        if (has_velocity_nullspace)
+        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_velocity_solver.getPointer()));
+        if (p_velocity_solver)
         {
-            d_velocity_solver->setNullspace(false, d_U_nul_vecs);
+            p_velocity_solver->setInitialGuessNonzero(false);
+            if (has_velocity_nullspace)
+            {
+                p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+            }
         }
         if (d_velocity_solver_needs_init)
         {
@@ -1896,10 +1904,14 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        d_pressure_solver->setInitialGuessNonzero(false);
-        if (d_normalize_pressure)
+        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_pressure_solver.getPointer()));
+        if (p_pressure_solver)
         {
-            d_pressure_solver->setNullspace(true);
+            p_pressure_solver->setInitialGuessNonzero(false);
+            if (d_normalize_pressure)
+            {
+                p_pressure_solver->setNullspace(true);
+            }
         }
         if (d_pressure_solver_needs_init)
         {
@@ -1915,12 +1927,15 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);
-    d_stokes_solver->setInitialGuessNonzero(true);
-    Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
-    if (!p_stokes_linear_solver)
+    LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_stokes_solver.getPointer()));
+    if (p_stokes_linear_solver)
     {
-        Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
-        if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
+        p_stokes_linear_solver->setInitialGuessNonzero(true);
+    }
+    else
+    {
+        NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(dynamic_cast<GeneralSolver*>(d_stokes_solver.getPointer()));
+        if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
     }
     if (p_stokes_linear_solver)
     {
@@ -1928,11 +1943,11 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         {
             p_stokes_linear_solver->setNullspace(false, d_nul_vecs);
         }
-        Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
+        StaggeredStokesBlockPreconditioner* p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
-            if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+            KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
+            if (p_stokes_krylov_solver) p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
         }
         if (p_stokes_block_pc)
         {

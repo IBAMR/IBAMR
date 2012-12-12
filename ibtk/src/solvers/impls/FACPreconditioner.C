@@ -51,8 +51,7 @@ FACPreconditioner::FACPreconditioner(
     Pointer<FACPreconditionerStrategy> fac_strategy,
     tbox::Pointer<tbox::Database> input_db,
     const std::string& /*default_options_prefix*/)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      d_fac_strategy(fac_strategy),
+    : d_fac_strategy(fac_strategy),
       d_hierarchy(NULL),
       d_coarsest_ln(0),
       d_finest_ln(0),
@@ -63,6 +62,7 @@ FACPreconditioner::FACPreconditioner(
       d_r()
 {
     // Setup default options.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;

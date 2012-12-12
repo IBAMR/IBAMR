@@ -57,11 +57,9 @@ class KrylovLinearSolverPoissonSolverInterface
 {
 public:
     /*!
-     * Constructor.
+     * Default constructor.
      */
-    KrylovLinearSolverPoissonSolverInterface(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    KrylovLinearSolverPoissonSolverInterface();
 
     /*!
      * Destructor.
@@ -104,13 +102,6 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    KrylovLinearSolverPoissonSolverInterface();
-
     /*!
      * \brief Copy constructor.
      *

@@ -40,6 +40,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/LinearSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -50,14 +51,14 @@ namespace IBAMR
  * Stokes solvers that are implemented using block (subdomain) solvers.
  */
 class StaggeredStokesBlockPreconditioner
-    : public StaggeredStokesSolver
+    : public IBTK::LinearSolver,
+      public StaggeredStokesSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
     StaggeredStokesBlockPreconditioner(
-        const std::string& object_name,
         bool needs_velocity_solver,
         bool needs_pressure_solver);
 

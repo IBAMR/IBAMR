@@ -108,9 +108,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
-    : LinearSolver(object_name, /*homogeneous_bc*/ false),
-      PoissonSolver(object_name, /*homogeneous_bc*/ false),
-      d_hierarchy(),
+    : d_hierarchy(),
       d_level_num(-1),
       d_grid_aligned_anisotropy(true),
       d_depth(0),
@@ -139,6 +137,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
     }
 
     // Setup default options.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;

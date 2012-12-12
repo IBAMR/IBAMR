@@ -49,15 +49,13 @@ namespace IBTK
  * \f$Ax=b\f$.
  */
 class KrylovLinearSolver
-    : public virtual LinearSolver
+    : public LinearSolver
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Default constructor.
      */
-    KrylovLinearSolver(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    KrylovLinearSolver();
 
     /*!
      * \brief Empty destructor.
@@ -115,13 +113,6 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    KrylovLinearSolver();
-
     /*!
      * \brief Copy constructor.
      *

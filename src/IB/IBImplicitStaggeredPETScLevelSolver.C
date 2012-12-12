@@ -77,9 +77,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : LinearSolver(object_name),
-      PETScLevelSolver(object_name, input_db, default_options_prefix),
-      d_problem_coefs(),
+    : d_problem_coefs(),
       d_J_mat(NULL),
       d_interp_fcn(NULL),
       d_interp_stencil(0),
@@ -94,6 +92,9 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
       d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL)
 {
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
+    PETScLevelSolver::init(input_db, default_options_prefix);
+
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)

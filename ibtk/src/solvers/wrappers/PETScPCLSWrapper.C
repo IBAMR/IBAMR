@@ -61,14 +61,13 @@ namespace IBTK
 PETScPCLSWrapper::PETScPCLSWrapper(
     const std::string& object_name,
     const PC& petsc_pc)
-    : LinearSolver(object_name),
-      d_petsc_pc(petsc_pc),
+    : d_petsc_pc(petsc_pc),
       d_x(NULL),
       d_b(NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL)
 {
-    // intentionally blank
+    GeneralSolver::init(object_name, /*homogeneous_bc*/true);
     return;
 }// PETScPCLSWrapper()
 

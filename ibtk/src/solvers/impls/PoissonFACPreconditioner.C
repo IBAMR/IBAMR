@@ -61,11 +61,9 @@ PoissonFACPreconditioner::PoissonFACPreconditioner(
     Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix),
-      PoissonSolver(object_name, /*homogeneous_bc*/ true)
+    : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
-    // intentionally blank
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;
 }// PoissonFACPreconditioner
 

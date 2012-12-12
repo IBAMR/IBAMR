@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <ibtk/GeneralSolver.h>
 
 // SAMRAI INCLUDES
 #include <PoissonSpecifications.h>
@@ -50,15 +50,13 @@ namespace IBTK
  * \brief Class PoissonSolver is an abstract base class for Poisson solvers.
  */
 class PoissonSolver
-    : public virtual LinearSolver
+    : public virtual GeneralSolver
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Default constructor.
      */
-    PoissonSolver(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    PoissonSolver();
 
     /*!
      * \brief Destructor.
@@ -107,13 +105,6 @@ protected:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    PoissonSolver();
-
     /*!
      * \brief Copy constructor.
      *

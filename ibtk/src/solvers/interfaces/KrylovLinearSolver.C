@@ -55,11 +55,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolver::KrylovLinearSolver(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : LinearSolver(object_name, homogeneous_bc),
-      d_A(NULL),
+KrylovLinearSolver::KrylovLinearSolver()
+    : d_A(NULL),
       d_pc_solver(NULL),
       d_x(NULL),
       d_b(NULL)

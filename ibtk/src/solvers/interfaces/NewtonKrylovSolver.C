@@ -55,26 +55,20 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NewtonKrylovSolver::NewtonKrylovSolver(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : GeneralSolver(object_name, homogeneous_bc),
-      d_F(NULL),
+NewtonKrylovSolver::NewtonKrylovSolver()
+    : d_F(NULL),
       d_J(NULL),
       d_krylov_solver(NULL),
       d_x(NULL),
       d_b(NULL),
       d_r(NULL),
-      d_rel_residual_tol(1.0e-8),
-      d_abs_residual_tol(1.0e-50),
-      d_solution_tol(1.0e-8),
-      d_max_iterations(50),
       d_max_evaluations(10000),
-      d_current_iterations(0),
-      d_current_linear_iterations(0),
-      d_current_residual_norm(std::numeric_limits<double>::quiet_NaN())
+      d_solution_tol(1.0e-8),
+      d_current_linear_iterations(0)
 {
-    // intentionally blank
+    d_max_iterations = 50;
+    d_rel_residual_tol = 1.0e-8;
+    d_abs_residual_tol = 1.0e-50;
     return;
 }// NewtonKrylovSolver()
 
@@ -140,20 +134,6 @@ NewtonKrylovSolver::getLinearSolver() const
 }// getLinearSolver
 
 void
-NewtonKrylovSolver::setMaxIterations(
-    int max_iterations)
-{
-    d_max_iterations = max_iterations;
-    return;
-}// setMaxIterations
-
-int
-NewtonKrylovSolver::getMaxIterations() const
-{
-    return d_max_iterations;
-}// getMaxIterations
-
-void
 NewtonKrylovSolver::setMaxEvaluations(
     int max_evaluations)
 {
@@ -166,34 +146,6 @@ NewtonKrylovSolver::getMaxEvaluations() const
 {
     return d_max_evaluations;
 }// getMaxEvaluations
-
-void
-NewtonKrylovSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
-{
-    d_abs_residual_tol = abs_residual_tol;
-    return;
-}// setAbsoluteTolerance
-
-double
-NewtonKrylovSolver::getAbsoluteTolerance() const
-{
-    return d_abs_residual_tol;
-}// getAbsoluteTolerance
-
-void
-NewtonKrylovSolver::setRelativeTolerance(
-    double rel_residual_tol)
-{
-    d_rel_residual_tol = rel_residual_tol;
-    return;
-}// setRelativeTolerance
-
-double
-NewtonKrylovSolver::getRelativeTolerance() const
-{
-    return d_rel_residual_tol;
-}// getRelativeTolerance
 
 void
 NewtonKrylovSolver::setSolutionTolerance(
@@ -210,22 +162,10 @@ NewtonKrylovSolver::getSolutionTolerance() const
 }// getSolutionTolerance
 
 int
-NewtonKrylovSolver::getNumIterations() const
-{
-    return d_current_iterations;
-}// getNumIterations
-
-int
 NewtonKrylovSolver::getNumLinearIterations() const
 {
     return d_current_linear_iterations;
 }// getNumLinearIterations
-
-double
-NewtonKrylovSolver::getResidualNorm() const
-{
-    return d_current_residual_norm;
-}// getResidualNorm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -74,40 +74,23 @@ static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScLevelSolver::PETScLevelSolver(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const std::string& default_options_prefix)
-    : LinearSolver(object_name),
-      d_hierarchy(),
+PETScLevelSolver::PETScLevelSolver()
+    : d_hierarchy(),
       d_level_num(-1),
       d_ksp_type(KSPGMRES),
-      d_options_prefix(default_options_prefix),
+      d_options_prefix(""),
       d_petsc_ksp(PETSC_NULL),
       d_petsc_mat(PETSC_NULL),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL)
 {
     // Setup default options.
-    d_options_prefix = default_options_prefix;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
     d_ksp_type = KSPGMRES;
     d_initial_guess_nonzero = true;
     d_enable_logging = false;
-
-    // Get values from the input database.
-    if (input_db)
-    {
-        if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
-        if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
-        if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
-        if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
-        if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
-        if (input_db->keyExists("initial_guess_nonzero")) d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
-    }
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -328,6 +311,25 @@ PETScLevelSolver::deallocateSolverState()
 }// deallocateSolverState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+PETScLevelSolver::init(
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
+{
+    d_options_prefix = default_options_prefix;
+    if (input_db)
+    {
+        if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
+        if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
+        if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
+        if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
+        if (input_db->keyExists("ksp_type")) d_ksp_type = input_db->getString("ksp_type");
+        if (input_db->keyExists("initial_guess_nonzero")) d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
+        if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+    }
+    return;
+}// init
 
 void
 PETScLevelSolver::setupNullspace()

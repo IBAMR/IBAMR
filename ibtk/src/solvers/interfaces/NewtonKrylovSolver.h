@@ -54,11 +54,9 @@ class NewtonKrylovSolver
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Default constructor.
      */
-    NewtonKrylovSolver(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    NewtonKrylovSolver();
 
     /*!
      * \brief Empty virtual destructor.
@@ -144,19 +142,6 @@ public:
     //\{
 
     /*!
-     * \brief Set the maximum number of nonlinear iterations to use per solve.
-     */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of nonlinear iterations to use per solve.
-     */
-    virtual int
-    getMaxIterations() const;
-
-    /*!
      * \brief Set the maximum number of function evaluations to use per solve.
      */
     virtual void
@@ -168,32 +153,6 @@ public:
      */
     virtual int
     getMaxEvaluations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const;
 
     /*!
      * \brief Set the tolerance in terms of the norm of the change in the
@@ -218,23 +177,11 @@ public:
     //\{
 
     /*!
-     * \brief Return the iteration count from the most recent nonlinear solve.
-     */
-    virtual int
-    getNumIterations() const;
-
-    /*!
      * \brief Return the number of linear iterations from the most recent
      * nonlinear solve.
      */
     virtual int
     getNumLinearIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const;
 
     //\}
 
@@ -246,22 +193,11 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b, d_r;
 
     // Solver parameters.
-    double d_rel_residual_tol;
-    double d_abs_residual_tol;
-    double d_solution_tol;
-    int d_max_iterations;
     int d_max_evaluations;
-    int d_current_iterations, d_current_linear_iterations;
-    double d_current_residual_norm;
+    double d_solution_tol;
+    int d_current_linear_iterations;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    NewtonKrylovSolver();
-
     /*!
      * \brief Copy constructor.
      *

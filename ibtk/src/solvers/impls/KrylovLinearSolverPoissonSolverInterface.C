@@ -47,11 +47,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : LinearSolver(object_name, homogeneous_bc),
-      PoissonSolver(object_name, homogeneous_bc)
+KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterface()
 {
     // intentionally blank
     return;

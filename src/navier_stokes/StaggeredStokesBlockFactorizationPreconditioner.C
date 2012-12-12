@@ -91,8 +91,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     const std::string& object_name,
     Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      StaggeredStokesBlockPreconditioner(object_name, /*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
+    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -108,6 +107,8 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
       d_P_var(NULL),
       d_P_scratch_idx(-1)
 {
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+
     // Present implementation requires zero initial guess and can perform only
     // one iteration.
     d_initial_guess_nonzero = false;
@@ -235,8 +236,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     }
     else
     {
-        d_pressure_solver->setInitialGuessNonzero(false);
         d_pressure_solver->setHomogeneousBc(true);
+        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+        if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(false);
         d_pressure_solver->solveSystem(*P_scratch_vec,*F_P_vec);
         d_hier_math_ops->laplace(P_idx, P_cc_var, d_U_problem_coefs, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
         d_pressure_data_ops->scale(P_idx, -1.0, P_idx);
@@ -251,34 +253,42 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     //    = (C*I+D*L)^{-1} * [F_U - Grad * P]
     static const bool cf_bdry_synch = true;
     d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_no_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
-    d_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->setHomogeneousBc(true);
+    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec,*F_U_mod_vec);
 
     // (3) Account for any nullspace vectors.
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = d_velocity_solver->getNullspaceBasisVectors();
-    if (!U_nul_vecs.empty())
+    if (p_velocity_solver)
     {
-        for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+        const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
+        if (!U_nul_vecs.empty())
         {
-            const double alpha = U_vec->dot(U_nul_vecs[k])/U_nul_vecs[k]->dot(U_nul_vecs[k]);
-            U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+            for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+            {
+                const double alpha = U_vec->dot(U_nul_vecs[k])/U_nul_vecs[k]->dot(U_nul_vecs[k]);
+                U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+            }
         }
-    }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_velocity_solver->getNullspaceContainsConstantVector());
+        TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
 #endif
-    if (d_pressure_solver->getNullspaceContainsConstantVector())
+    }
+    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    if (p_pressure_solver)
     {
-        const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-        const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
-        d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
-    }
+        if (p_pressure_solver->getNullspaceContainsConstantVector())
+        {
+            const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+            const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
+            d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
+        }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_pressure_solver->getNullspaceBasisVectors().empty());
+        TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
 #endif
+    }
 
-// Deallocate the solver (if necessary).
+    // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
     IBAMR_TIMER_STOP(t_solve_system);

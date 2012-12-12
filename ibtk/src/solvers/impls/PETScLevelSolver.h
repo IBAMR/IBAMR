@@ -67,16 +67,13 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
 class PETScLevelSolver
-    : public virtual LinearSolver
+    : public LinearSolver
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Default constructor.
      */
-    PETScLevelSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    PETScLevelSolver();
 
     /*!
      * \brief Destructor.
@@ -218,6 +215,14 @@ public:
 
 protected:
     /*!
+     * \brief Basic initialization.
+     */
+    void
+    init(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
+
+    /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     virtual void
@@ -293,13 +298,6 @@ protected:
     //\}
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    PETScLevelSolver();
-
     /*!
      * \brief Copy constructor.
      *

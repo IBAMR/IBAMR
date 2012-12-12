@@ -70,15 +70,16 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : LinearSolver(object_name),
-      PETScLevelSolver(object_name, input_db, default_options_prefix),
-      PoissonSolver(object_name),
-      d_context(NULL),
+    : d_context(NULL),
       d_dof_index_idx(-1),
       d_dof_index_var(NULL),
       d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL)
 {
+    // Configure solver.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
+    PETScLevelSolver::init(input_db, default_options_prefix);
+
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");

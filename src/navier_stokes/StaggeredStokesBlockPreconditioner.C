@@ -60,14 +60,11 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(
-    const std::string& object_name,
     bool needs_velocity_solver,
     bool needs_pressure_solver)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      StaggeredStokesSolver(object_name, /*homogeneous_bc*/ true),
-      d_needs_velocity_solver(needs_velocity_solver),
+    : d_needs_velocity_solver(needs_velocity_solver),
       d_velocity_solver(),
-      d_P_problem_coefs(object_name+"::P_problem_coefs"),
+      d_P_problem_coefs("P_problem_coefs"),
       d_needs_pressure_solver(needs_pressure_solver),
       d_pressure_solver()
 {

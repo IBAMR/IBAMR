@@ -59,9 +59,7 @@ PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : LinearSolver(object_name),
-      PETScKrylovLinearSolver(object_name, input_db, default_options_prefix),
-      KrylovLinearSolverPoissonSolverInterface(object_name)
+    : PETScKrylovLinearSolver(object_name, input_db, default_options_prefix)
 {
     // intentionally blank
     return;

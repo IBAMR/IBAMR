@@ -75,10 +75,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : LinearSolver(object_name, /*homogeneous_bc*/ true),
-      PETScLevelSolver(object_name, input_db, default_options_prefix),
-      StaggeredStokesSolver(object_name, /*homogeneous_bc*/ true),
-      d_context(NULL),
+    : d_context(NULL),
       d_u_dof_index_idx(-1),
       d_p_dof_index_idx(-1),
       d_u_dof_index_var(NULL),
@@ -86,6 +83,9 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
       d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL)
 {
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
+    PETScLevelSolver::init(input_db, default_options_prefix);
+
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");

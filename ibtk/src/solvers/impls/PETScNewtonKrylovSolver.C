@@ -77,8 +77,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     Pointer<Database> input_db,
     const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
-    : NewtonKrylovSolver(object_name),
-      d_reinitializing_solver(false),
+    : d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
@@ -91,6 +90,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false)
 {
     // Setup default values.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_options_prefix = default_options_prefix;
     d_max_iterations = 50;
     d_abs_residual_tol = 1.0e-50;
@@ -117,8 +117,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& object_name,
     const SNES& petsc_snes)
-    : NewtonKrylovSolver(object_name),
-      d_reinitializing_solver(false),
+    : d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
       d_petsc_r(PETSC_NULL),
@@ -130,6 +129,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_function(false),
       d_user_provided_jacobian(false)
 {
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     if (d_petsc_snes != NULL) resetWrappedSNES(d_petsc_snes);
     common_ctor();
     return;

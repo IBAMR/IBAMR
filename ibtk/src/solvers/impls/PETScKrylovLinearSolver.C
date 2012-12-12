@@ -76,9 +76,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     Pointer<Database> input_db,
     const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
-    : LinearSolver(object_name),
-      KrylovLinearSolver(object_name),
-      d_ksp_type(KSPGMRES),
+    : d_ksp_type(KSPGMRES),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
@@ -96,6 +94,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_solver_has_attached_nullspace(false)
 {
     // Setup default values.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_options_prefix = default_options_prefix;
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
@@ -124,9 +123,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const std::string& object_name,
     const KSP& petsc_ksp)
-    : LinearSolver(object_name),
-      KrylovLinearSolver(object_name),
-      d_ksp_type("none"),
+    : d_ksp_type("none"),
       d_reinitializing_solver(false),
       d_petsc_x(PETSC_NULL),
       d_petsc_b(PETSC_NULL),
@@ -143,6 +140,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     if (d_petsc_ksp != NULL) resetWrappedKSP(d_petsc_ksp);
     common_ctor();
     return;

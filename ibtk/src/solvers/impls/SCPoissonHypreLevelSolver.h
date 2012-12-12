@@ -42,6 +42,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -101,7 +102,8 @@ namespace IBTK
  * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
 class SCPoissonHypreLevelSolver
-    : public PoissonSolver
+    : public LinearSolver,
+      public PoissonSolver
 {
 public:
     /*!
