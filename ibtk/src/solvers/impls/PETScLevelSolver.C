@@ -228,7 +228,7 @@ PETScLevelSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln))
+        if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);
