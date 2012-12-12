@@ -1,3 +1,5 @@
+.NOTPARALLEL:
+
 if HAVE_FORTRAN
 AM_CPPFLAGS = -I$(top_builddir) -I$(top_builddir)/include -I$(top_srcdir)/include
 LDADD=libqdmod.a libqd_f_main.a $(top_builddir)/src/libqd.a $(FCLIBS)
@@ -22,7 +24,7 @@ qdmod.lo: ddmod.lo $(DDMOD) qdext.lo
 $(QDMOD): qdmod.lo $(DDMOD)
 $(DDMOD): ddmod.lo
 $(DDEXT): ddext.lo
-$(QDEXT): qdext.lo $(DDEXT) 
+$(QDEXT): qdext.lo $(DDEXT)
 
 qdmoddir = $(includedir)/$(PACKAGE)
 qdmod_HEADERS = $(QDMOD) $(QDEXT) $(DDMOD) $(DDEXT)
@@ -78,4 +80,3 @@ qd_timer.f: zz_timer.f
 if HAVE_FORTRAN
 .PHONY: demo
 endif
-

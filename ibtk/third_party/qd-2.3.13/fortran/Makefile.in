@@ -769,12 +769,13 @@ uninstall-am: uninstall-libLIBRARIES uninstall-qdmodHEADERS
 	tags uninstall uninstall-am uninstall-libLIBRARIES \
 	uninstall-qdmodHEADERS
 
+.NOTPARALLEL:
 @HAVE_FORTRAN_TRUE@ddmod.lo: $(DDEXT) ddext.lo
 @HAVE_FORTRAN_TRUE@qdmod.lo: ddmod.lo $(DDMOD) qdext.lo
 @HAVE_FORTRAN_TRUE@$(QDMOD): qdmod.lo $(DDMOD)
 @HAVE_FORTRAN_TRUE@$(DDMOD): ddmod.lo
 @HAVE_FORTRAN_TRUE@$(DDEXT): ddext.lo
-@HAVE_FORTRAN_TRUE@$(QDEXT): qdext.lo $(DDEXT) 
+@HAVE_FORTRAN_TRUE@$(QDEXT): qdext.lo $(DDEXT)
 
 @HAVE_FORTRAN_TRUE@demo: $(DEMO)
 
