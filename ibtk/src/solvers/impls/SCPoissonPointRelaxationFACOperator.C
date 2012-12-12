@@ -453,7 +453,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_coarse_solver.getPointer()));
+        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
         xeqScheduleDataSynch(error.getComponentDescriptorIndex(0), coarsest_ln);

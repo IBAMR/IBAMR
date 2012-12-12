@@ -1632,7 +1632,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(regrid_projection_solver.getPointer()));
+    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setNullspace(true);
@@ -1881,7 +1881,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_velocity_solver.getPointer()));
+        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
         if (p_velocity_solver)
         {
             p_velocity_solver->setInitialGuessNonzero(false);
@@ -1904,7 +1904,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_pressure_solver.getPointer()));
+        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (p_pressure_solver)
         {
             p_pressure_solver->setInitialGuessNonzero(false);
@@ -1927,14 +1927,14 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);
-    LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_stokes_solver.getPointer()));
+    LinearSolver* p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (p_stokes_linear_solver)
     {
         p_stokes_linear_solver->setInitialGuessNonzero(true);
     }
     else
     {
-        NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(dynamic_cast<GeneralSolver*>(d_stokes_solver.getPointer()));
+        NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
     }
     if (p_stokes_linear_solver)

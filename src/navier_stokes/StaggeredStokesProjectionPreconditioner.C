@@ -213,7 +213,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     //
     // U^* := (C*I+D*L)^{-1} F_U
     d_velocity_solver->setHomogeneousBc(true);
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_velocity_solver.getPointer()));
+    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
 
@@ -228,7 +228,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     //    = D*(F_P + Div U^*)
     d_hier_math_ops->div(d_F_Phi_idx, d_F_Phi_var, -1.0, U_idx, U_sc_var, d_no_fill_op, d_new_time, /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(dynamic_cast<GeneralSolver*>(d_pressure_solver.getPointer()));
+    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
     d_Phi_bdry_fill_op->fillData(d_pressure_solver->getSolutionTime());

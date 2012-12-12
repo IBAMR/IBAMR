@@ -63,7 +63,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
     const PoissonSpecifications& poisson_spec)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -79,7 +79,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -95,7 +95,7 @@ void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif

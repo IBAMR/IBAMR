@@ -65,7 +65,7 @@ void
 KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -82,7 +82,7 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
@@ -98,7 +98,7 @@ void
 KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(dynamic_cast<LinearSolver*>(this));
+    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(p_this);
 #endif
