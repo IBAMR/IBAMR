@@ -506,6 +506,40 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getScratchContext() const;
 
+    /*!
+     * Check whether a patch data index corresponds to allocated data over the
+     * specified range of patch level numbers.
+     *
+     * NOTE: This method will return "false" without error for invalid (i.e.,
+     * negative) patch data indices.
+     */
+    bool
+    isAllocatedPatchData(
+        int data_idx,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * Allocate a patch data index over the specified range of patch level
+     * numbers.
+     */
+    void
+    allocatePatchData(
+        int data_idx,
+        double data_time,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * Deallocate a patch data index over the specified range of patch level
+     * numbers.
+     */
+    void
+    deallocatePatchData(
+        int data_idx,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
     ///
     ///  Routines to access utility classeses managed by the integrator.
     ///

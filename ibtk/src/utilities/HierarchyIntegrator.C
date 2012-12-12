@@ -866,6 +866,58 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 }// getScratchContext
 
+bool
+HierarchyIntegrator::isAllocatedPatchData(
+    const int data_idx,
+    int coarsest_ln,
+    int finest_ln) const
+{
+    if (data_idx < 0) return false;
+    if (coarsest_ln == -1) coarsest_ln = 0;
+    if (finest_ln   == -1) finest_ln   = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(data_idx)) return false;
+    }
+    return true;
+}// isAllocatedPatchData
+
+void
+HierarchyIntegrator::allocatePatchData(
+    const int data_idx,
+    const double data_time,
+    int coarsest_ln,
+    int finest_ln) const
+{
+    if (data_idx < 0) return;
+    if (coarsest_ln == -1) coarsest_ln = 0;
+    if (finest_ln   == -1) finest_ln   = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
+    }
+    return;
+}// allocatePatchData
+
+void
+HierarchyIntegrator::deallocatePatchData(
+    const int data_idx,
+    int coarsest_ln,
+    int finest_ln) const
+{
+    if (data_idx < 0) return;
+    if (coarsest_ln == -1) coarsest_ln = 0;
+    if (finest_ln   == -1) finest_ln   = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
+    }
+    return;
+}// deallocatePatchData
+
 Pointer<HierarchyMathOps>
 HierarchyIntegrator::getHierarchyMathOps() const
 {

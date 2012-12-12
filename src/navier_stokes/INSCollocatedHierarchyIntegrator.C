@@ -656,7 +656,10 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        if (isAllocatedPatchData(U_adv_diff_current_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        }
     }
     return;
 }// initializePatchHierarhcy
@@ -757,12 +760,21 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        if (isAllocatedPatchData(U_adv_diff_current_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        }
         d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
-        const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
-        d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, d_u_ADV_current_idx);
-        d_hier_fc_data_ops->copyData(U_adv_diff_new_idx    , d_u_ADV_current_idx);
+        if (isAllocatedPatchData(U_adv_diff_scratch_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, d_u_ADV_current_idx);
+        }
+        const int U_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+        if (isAllocatedPatchData(U_adv_diff_new_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, d_u_ADV_current_idx);
+        }
     }
 
     // Account for the convective acceleration term.
@@ -1073,10 +1085,16 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         // solver.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
-        d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, d_u_ADV_new_idx);
+        if (isAllocatedPatchData(U_adv_diff_new_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, d_u_ADV_new_idx);
+        }
         const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
-        d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
+        if (isAllocatedPatchData(U_adv_diff_scratch_idx))
+        {
+            d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
+        }
 
         // Update the state variables maintained by the advection-diffusion
         // solver.

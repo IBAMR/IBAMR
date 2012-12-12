@@ -85,16 +85,24 @@ BoussinesqForcing::setDataOnPatchHierarchy(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    // Allocate scratch data when needed.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
+    const bool T_scratch_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_scratch_idx);
+    if (!T_scratch_is_allocated)
+    {
+        d_adv_diff_hier_integrator->allocatePatchData(T_scratch_idx, data_time);
+    }
+
     // Communicate ghost-cell data.
     if (!initial_time)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getCurrentContext());
-        int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
+        const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
         Pointer<HierarchyDataOpsReal<NDIM,double> > hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
-        if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0)
+        if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {
             hier_cc_data_ops->copyData(T_scratch_idx, T_current_idx);
         }
@@ -118,6 +126,12 @@ BoussinesqForcing::setDataOnPatchHierarchy(
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
+    }
+
+    // Deallocate scratch data when needed.
+    if (!T_scratch_is_allocated)
+    {
+        d_adv_diff_hier_integrator->deallocatePatchData(T_scratch_idx);
     }
     return;
 }// setDataOnPatchHierarchy
