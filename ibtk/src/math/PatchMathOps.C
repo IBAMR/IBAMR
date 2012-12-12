@@ -2227,7 +2227,7 @@ PatchMathOps::grad(
 #endif
             dx);
 
-        if ((src2) && (beta != 0.0))
+        if (src2 && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2278,7 +2278,7 @@ PatchMathOps::grad(
             dx);
 
         // Account for non-zero beta.
-        if ((src2) && (beta != 0.0))
+        if (src2 && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2419,7 +2419,7 @@ PatchMathOps::grad(
 #endif
             dx);
 
-        if ((src2) && (beta != 0.0))
+        if (src2 && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -2470,7 +2470,7 @@ PatchMathOps::grad(
             dx);
 
         // Account for non-zero beta.
-        if ((src2) && (beta != 0.0))
+        if (src2 && (beta != 0.0))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             const int v_ghosts = (src2->getGhostCellWidth()).max();
