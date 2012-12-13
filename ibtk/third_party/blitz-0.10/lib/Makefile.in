@@ -170,8 +170,7 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libblitz_a_AR = $(AR) $(ARFLAGS)
-am__DEPENDENCIES_1 =
-libblitz_a_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+libblitz_a_LIBADD =
 am_libblitz_a_OBJECTS = globals.$(OBJEXT)
 libblitz_a_OBJECTS = $(am_libblitz_a_OBJECTS)
 DEFAULT_INCLUDES = 
@@ -358,7 +357,6 @@ EXTRA_DIST = readme.txt
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir) $(BOOST_CPPFLAGS)
 lib_LIBRARIES = libblitz.a
 libblitz_a_SOURCES = $(top_srcdir)/src/globals.cpp
-libblitz_a_LIBADD = $(LIBS) $(CXX_LIBS)
 all: all-am
 
 .SUFFIXES:
@@ -684,6 +682,7 @@ uninstall-am: uninstall-libLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-libLIBRARIES
 
+###libblitz_a_LIBADD = $(LIBS) $(CXX_LIBS)
 
 clean-local:
 	-rm -rf *.ii *.ti cxx_repository Template.dir ii_files ti_files
