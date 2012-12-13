@@ -247,9 +247,6 @@ GodunovAdvector::GodunovAdvector(
     const bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart)
-#if (NDIM == 3)
-    , d_using_full_ctu(true)
-#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -520,11 +517,6 @@ GodunovAdvector::getFromInput(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(db);
-#endif
-#if (NDIM == 3)
-    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
-#else
-    NULL_USE(db);
 #endif
     return;
 }// getFromInput
