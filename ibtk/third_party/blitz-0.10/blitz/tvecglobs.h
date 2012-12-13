@@ -68,7 +68,7 @@ template<typename T_numtype, int N_length>
 inline BZ_SUMTYPE(T_numtype)
 norm2(const TinyVector<T_numtype, N_length>& a)
 {
-    return sqrt(sum(pow2(a)));
+    return std::sqrt(sum(pow2(a)));
 }
 
 // explicit returntype functions follow

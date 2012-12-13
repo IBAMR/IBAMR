@@ -32,6 +32,7 @@
 #ifndef BZ_TINYVEC_H
 #define BZ_TINYVEC_H
 
+#ifndef __INTEL_COMPILER
 #ifdef __GNUC__
 #if (__GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic push
@@ -39,6 +40,7 @@
 #pragma GCC diagnostic ignored "-Wextra"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
+#endif
 #endif
 
 #include <blitz/blitz.h>
@@ -467,8 +469,10 @@ namespace boost {
 
 #include <blitz/tinyvec2.cc>
 
+#ifndef __INTEL_COMPILER
 #if (__GNUC__ && (__GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 #endif // BZ_TINYVEC_H

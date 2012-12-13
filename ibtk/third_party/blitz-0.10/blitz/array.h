@@ -31,7 +31,7 @@
 #ifndef BZ_ARRAY_ONLY_H
 #define BZ_ARRAY_ONLY_H
 
-
+#ifndef __INTEL_COMPILER
 #ifdef __GNUC__
 #if (__GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic push
@@ -40,14 +40,17 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #endif
+#endif
 
 // See comments in <blitz/array-old.h> for an explanation of the new
 // headers arrangement.
 
 #include <blitz/array-impl.h>
 
+#ifndef __INTEL_COMPILER
 #if (__GNUC__ && (__GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 #endif  // BZ_ARRAY_ONLY_H
