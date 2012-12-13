@@ -119,7 +119,7 @@ case $host in
   i?86-*-* | k?*-*-* | athlon-*-* | ia64-*-* | x86_64-*-*)
     case "$CXX_PROG_NAME" in
       icc|icpc|ecc)
-        REQ_CXXFLAGS="$REQ_CXXFLAGS -mp"
+##      REQ_CXXFLAGS="$REQ_CXXFLAGS -mp"
         if test "$enable_warnings" = "yes"; then
           CXXFLAGS="$CXXFLAGS -wd1572 -wd981 -wd1418 -wd1419"
         fi
