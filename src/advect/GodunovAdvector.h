@@ -52,7 +52,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class GodunovAdvector provides patch-based operations required to
+ * \brief TODO: update. Class GodunovAdvector provides patch-based operations required to
  * implement a second-order Godunov method for the linear advection equation in
  * conservative and non-conservative forms.
  *
@@ -108,6 +108,7 @@ public:
      * The destructor for GodunovAdvector unregisters the predictor object with
      * the restart manager when so registered.
      */
+    virtual
     ~GodunovAdvector();
 
     /*!
@@ -115,6 +116,20 @@ public:
      */
     const std::string&
     getName() const;
+
+    /*!
+     * Return the number of ghost cells for cell-
+     * centered data.
+     */
+    virtual SAMRAI::hier::IntVector<NDIM>
+    getNumberOfCellGhosts() const = 0;
+
+    /*!
+     * Returns the number of ghost cells for flux
+     * data (which are face-centered).
+     */
+    virtual SAMRAI::hier::IntVector<NDIM>
+    getNumberOfFluxGhosts() const = 0;
 
     /*!
      * \brief Compute the maximum stable time increment for the patch.
@@ -185,7 +200,7 @@ public:
      *
      * \see predictValueWithSourceTerm
      */
-    void
+    virtual void
     predictValue(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
@@ -214,7 +229,7 @@ public:
      *
      * \see predictValue
      */
-    void
+    virtual void
     predictValueWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
@@ -244,7 +259,7 @@ public:
      *
      * \see predictNormalVelocityWithSourceTerm
      */
-    void
+    virtual void
     predictNormalVelocity(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
@@ -273,7 +288,7 @@ public:
      *
      * \see predictNormalVelocity
      */
-    void
+    virtual void
     predictNormalVelocityWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& v_half,
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
@@ -281,22 +296,6 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
         double dt) const;
-
-    /*!
-     * \brief Subtract the face-centered gradient of a scalar from a predicted
-     * face-centered velocity field to enforce incompressibility \em
-     * approximately.
-     *
-     * \note The face-centered velocity field \p v_half must provide both normal
-     * and transverse velocity components at each cell face, i.e., \p v_half
-     * must \em NOT be a MAC velocity field.
-     */
-    void
-    enforceIncompressibility(
-        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
-        const SAMRAI::hier::Patch<NDIM>& patch) const;
 
     /*!
      * \brief Write state of GodunovAdvector object to the given database for
@@ -308,6 +307,50 @@ public:
     void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+protected:
+    /*
+     * Protected pure virtual functions used to compute the predicted values/fluxes.
+     */
+    virtual void
+    predict(
+        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
+        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
+        const SAMRAI::pdat::CellData<NDIM,double>& Q,
+        const SAMRAI::hier::Patch<NDIM>& patch,
+        double dt) const = 0;
+    virtual void
+    predictWithSourceTerm(
+        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
+        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
+        const SAMRAI::pdat::CellData<NDIM,double>& Q,
+        const SAMRAI::pdat::CellData<NDIM,double>& F,
+        const SAMRAI::hier::Patch<NDIM>& patch,
+        double dt) const = 0;
+
+    /*
+     * These protected member functions read data from input and restart.  When
+     * beginning a run from a restart file, all data members are read from the
+     * restart file.  If the boolean flag is true when reading from input, some
+     * restart values may be overridden by those in the input file.
+     *
+     * An assertion results if the database pointer is null.
+     */
+    virtual void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        bool is_from_restart);
+    virtual void
+    getFromRestart();
+
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.  The boolean is used to control restart
+     * file writing operations.
+     */
+    std::string d_object_name;
+    bool d_registered_for_restart;
+
 
 private:
     /*!
@@ -340,57 +383,6 @@ private:
     operator=(
         const GodunovAdvector& that);
 
-    /*
-     * Private functions used to compute the predicted values/fluxes.
-     */
-    void
-    predict(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
-    void
-    predictWithSourceTerm(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::pdat::CellData<NDIM,double>& F,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
-
-    /*
-     * These private member functions read data from input and restart.  When
-     * beginning a run from a restart file, all data members are read from the
-     * restart file.  If the boolean flag is true when reading from input, some
-     * restart values may be overridden by those in the input file.
-     *
-     * An assertion results if the database pointer is null.
-     */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
-    void
-    getFromRestart();
-
-    /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.  The boolean is used to control restart
-     * file writing operations.
-     */
-    std::string d_object_name;
-    bool d_registered_for_restart;
-
-    /*
-     *  Parameters for numerical method:
-     *
-     *    d_using_full_ctu ...... specifies whether full corner transport
-     *                            upwinding is used for 3D computations
-     */
-#if (NDIM == 3)
-    bool d_using_full_ctu;
-#endif
 };
 }// namespace IBAMR
 
