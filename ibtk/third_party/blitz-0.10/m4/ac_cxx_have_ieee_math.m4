@@ -7,7 +7,7 @@ ac_cv_cxx_have_ieee_math,
 [AC_LANG_SAVE
  AC_LANG_CPLUSPLUS
  ac_save_LIBS="$LIBS"
- LIBS="$LIBS -lm"
+ ###LIBS="$LIBS -lm"
  AC_TRY_LINK([
 #ifndef _ALL_SOURCE
  #define _ALL_SOURCE

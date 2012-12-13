@@ -8,7 +8,7 @@ ac_cv_cxx_have_complex_math2,
  AC_LANG_SAVE
  AC_LANG_CPLUSPLUS
  ac_save_LIBS="$LIBS"
- LIBS="$LIBS -lm"
+ ###LIBS="$LIBS -lm"
  AC_TRY_LINK([#include <complex>
 #ifdef HAVE_NAMESPACES
 using namespace std;
