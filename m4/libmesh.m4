@@ -73,36 +73,34 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   fi
 fi
 
+contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
+AC_MSG_NOTICE([checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}])
+if test "${contrib_lib_enabled}" == "yes" ; then
+  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
+  AC_LIB_HAVE_LINKFLAGS([GK])
+  if test "$HAVE_LIBGK" == "yes" ; then
+    LIBS="$LIBGK $LIBS"
+  else
+    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libGK])
+  fi
+  AC_LIB_HAVE_LINKFLAGS([metis])
+  if test "$HAVE_LIBMETIS" == "yes" ; then
+    LIBS="$LIBMETIS $LIBS"
+  else
+    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libmetis])
+  fi
+fi
+
 contrib_lib_enabled=`grep "enable-parmetis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
 AC_MSG_NOTICE([checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}])
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([parmetis])
-  if test "$HAVE_LIBPARMETIS" != "yes" ; then
+  if test "$HAVE_LIBPARMETIS" == "yes" ; then
+    LIBS="$LIBPARMETIS $LIBS"
+  else
     AC_MSG_WARN([libMesh contributed lib libparmetis is enabled, but could not find working libparmetis])
   fi
-fi
-
-contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" == "yes" ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([metis])
-  if test "$HAVE_LIBMETIS" != "yes" ; then
-    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libmetis])
-  fi
-  AC_LIB_HAVE_LINKFLAGS([GK])
-  if test "$HAVE_LIBGK" != "yes" ; then
-    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libGK])
-  fi
-fi
-
-if test "$HAVE_LIBMETIS" == "yes" -a "$HAVE_LIBPARMETIS" == "yes" ; then
-  LIBS="$LIBPARMETIS $LIBMETIS $LIBGK $LIBS"
-elif test "$HAVE_LIBMETIS" == "yes" ; then
-  LIBS="$LIBMETIS $LIBGK $LIBS"
-elif test "$HAVE_LIBPARMETIS" == "yes" ; then
-  LIBS="$LIBPARMETIS $LIBS"
 fi
 
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
