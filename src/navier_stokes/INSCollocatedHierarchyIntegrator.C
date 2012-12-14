@@ -1495,8 +1495,8 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
-        p_regrid_projection_solver->setNullspace(true);
         p_regrid_projection_solver->setInitialGuessNonzero(false);
+        p_regrid_projection_solver->setNullspace(true);
     }
 
     // Allocate temporary data.
@@ -1714,17 +1714,14 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
         LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
-        if (p_velocity_solver)
-        {
-            p_velocity_solver->setInitialGuessNonzero(true);
-            if (has_velocity_nullspace)
-            {
-                p_velocity_solver->setNullspace(false, d_U_nul_vecs);
-            }
-        }
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing velocity subdomain solver" << std::endl;
+            if (p_velocity_solver)
+            {
+                p_velocity_solver->setInitialGuessNonzero(true);
+                if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+            }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec,*d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
         }
@@ -1737,17 +1734,14 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
         LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
-        if (p_pressure_solver)
-        {
-            p_pressure_solver->setInitialGuessNonzero(true);
-            if (has_pressure_nullspace)
-            {
-                p_pressure_solver->setNullspace(true);
-            }
-        }
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing pressure subdomain solver" << std::endl;
+            if (p_pressure_solver)
+            {
+                p_pressure_solver->setInitialGuessNonzero(true);
+                if (has_pressure_nullspace) p_pressure_solver->setNullspace(true);
+            }
             d_pressure_solver->initializeSolverState(*d_Phi_vec,*d_Phi_rhs_vec);
             d_pressure_solver_needs_init = false;
         }
