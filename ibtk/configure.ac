@@ -24,6 +24,7 @@ AC_PROG_F77		# Check for a Fortran 77 compiler.
 AC_FC_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 AC_FC_WRAPPERS
 LIBS="$LIBS $FCLIBS"
+AM_PROG_AR
 
 if test "x$F77" != "x" -a "$F77" != "$FC" ; then
   AC_MSG_WARN([environment variables F77 and FC differ; using F77=$FC])

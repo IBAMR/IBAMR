@@ -18,8 +18,8 @@ echo "configuring $PACKAGE $VERSION..."
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([nostdinc])
-AM_CONFIG_HEADER([config.h])
-AM_CONFIG_HEADER([include/qd/qd_config.h])
+AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADER([include/qd/qd_config.h])
 
 AC_CANONICAL_HOST
 
