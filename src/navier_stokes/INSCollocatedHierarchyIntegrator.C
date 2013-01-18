@@ -787,17 +787,21 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
         d_hier_cc_data_ops->copyData(U_adv_idx, d_U_current_idx);
+        d_hier_fc_data_ops->copyData(d_u_ADV_scratch_idx, d_u_ADV_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
             Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
+            coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
+            coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
             coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
             getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]->coarsenData();
             getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
         }
-        d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+        d_convective_op->setAdvectionVelocity(d_u_ADV_scratch_idx);
         d_convective_op->setSolutionTime(current_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -909,24 +913,29 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
                 d_hier_cc_data_ops->linearSum(U_adv_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+                d_hier_fc_data_ops->linearSum(d_u_ADV_scratch_idx, 0.5, d_u_ADV_current_idx, 0.5, d_u_ADV_new_idx);
                 apply_time = half_time;
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
                 d_hier_cc_data_ops->copyData(U_adv_idx, d_U_new_idx);
+                d_hier_fc_data_ops->copyData(d_u_ADV_scratch_idx, d_u_ADV_new_idx);
                 apply_time = new_time;
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
                 Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
                 Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+                Pointer<CoarsenOperator<NDIM> > coarsen_op;
+                coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
+                coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
+                coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
                 coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
                 getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]->coarsenData();
                 getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
             }
-            d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+            d_convective_op->setAdvectionVelocity(d_u_ADV_scratch_idx);
             d_convective_op->setSolutionTime(apply_time);
             d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         }

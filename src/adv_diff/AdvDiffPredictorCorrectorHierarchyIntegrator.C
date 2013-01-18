@@ -1,4 +1,4 @@
-// Filename: AdvDiffGodunovHierarchyIntegrator.C
+// Filename: AdvDiffPredictorCorrectorHierarchyIntegrator.C
 // Created on 17 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvDiffGodunovHierarchyIntegrator.h"
+#include "AdvDiffPredictorCorrectorHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -65,16 +65,17 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Version of AdvDiffGodunovHierarchyIntegrator restart file data.
-static const int ADV_DIFF_GODUNOV_HIERARCHY_INTEGRATOR_VERSION = 1;
+// Version of AdvDiffPredictorCorrectorHierarchyIntegrator restart file data.
+// TODO: remove ?
+static const int ADV_DIFF_PREDICTOR_CORRECTOR_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
+AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<GodunovAdvector> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
       d_hyp_level_integrator(NULL),
@@ -97,9 +98,9 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     {
         d_hyp_level_integrator_db = new NullDatabase();
     }
-    if (input_db->keyExists("AdvDiffGodunovHypPatchOps"))
+    if (input_db->keyExists("AdvDiffPredictorCorrectorHyperbolicPatchOps"))
     {
-        d_hyp_patch_ops_db = input_db->getDatabase("AdvDiffGodunovHypPatchOps");
+        d_hyp_patch_ops_db = input_db->getDatabase("AdvDiffPredictorCorrectorHyperbolicPatchOps");
     }
     else
     {
@@ -114,33 +115,33 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
         case TRAPEZOIDAL_RULE:
             break;
         default:
-            TBOX_ERROR(d_object_name << "::AdvDiffGodunovHierarchyIntegrator():\n"
+            TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
                        << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
                        << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
-}// AdvDiffGodunovHierarchyIntegrator
+}// AdvDiffPredictorCorrectorHierarchyIntegrator
 
-AdvDiffGodunovHierarchyIntegrator::~AdvDiffGodunovHierarchyIntegrator()
+AdvDiffPredictorCorrectorHierarchyIntegrator::~AdvDiffPredictorCorrectorHierarchyIntegrator()
 {
     // intentionally blank
     return;
-}// ~AdvDiffGodunovHierarchyIntegrator
+}// ~AdvDiffPredictorCorrectorHierarchyIntegrator
 
 Pointer<HyperbolicLevelIntegrator<NDIM> >
-AdvDiffGodunovHierarchyIntegrator::getHyperbolicLevelIntegrator() const
+AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
     return d_hyp_level_integrator;
 }// getHyperbolicLevelIntegrator
 
-Pointer<AdvDiffGodunovHypPatchOps>
-AdvDiffGodunovHierarchyIntegrator::getHyperbolicPatchStrategy() const
+Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps>
+AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
 {
     return d_hyp_patch_ops;
 }// getHyperbolicPatchStrategy
 
 void
-AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -153,8 +154,8 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
     // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
     // objects that provide numerical routines for explicitly integrating the
     // advective terms.
-    d_hyp_patch_ops = new AdvDiffGodunovHypPatchOps(
-        d_object_name+"::AdvDiffGodunovHypPatchOps",
+    d_hyp_patch_ops = new AdvDiffPredictorCorrectorHyperbolicPatchOps(
+        d_object_name+"::AdvDiffPredictorCorrectorHyperbolicPatchOps",
         d_hyp_patch_ops_db,
         d_explicit_predictor,
         grid_geom,
@@ -198,6 +199,26 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
             "CONSERVATIVE_LINEAR_REFINE");
     }
 
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        d_hyp_level_integrator->registerVariable(
+            D_var, cell_ghosts,
+            HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+            d_hierarchy->getGridGeometry(),
+            "CONSERVATIVE_COARSEN",
+            "CONSERVATIVE_LINEAR_REFINE");
+        int D_scratch_idx;
+        registerVariable(D_scratch_idx, D_var, cell_ghosts, getScratchContext());
+    }
+
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin(); cit != d_diffusion_coef_rhs_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_rhs_var = *cit;
+        int D_rhs_scratch_idx;
+        registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
+    }
+
     for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = *cit;
@@ -235,7 +256,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
 }// initializeHierarchyIntegrator
 
 void
-AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
+AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
     const double current_time,
     const double new_time,
     const int cycle_num)
@@ -254,7 +275,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         IBAMR_DO_ONCE(
             {
-                pout << "AdvDiffGodunovHierarchyIntegrator::integrateHierarchy():\n"
+                pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy():\n"
                      << "  WARNING: num_cycles = " << d_current_num_cycles << " but expected num_cycles = " << expected_num_cycles << ".\n";
             }
                       );
@@ -280,6 +301,17 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time);
         }
     }
+    // Compute any time-dependent variable diffusion coefficients at time-level n.
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        if (D_fcn && D_fcn->isTimeDependent())
+        {
+            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, current_time);
+        }
+    }
 
     // Predict the advective terms and synchronize them across all levels of the
     // patch hierarchy.
@@ -288,8 +320,8 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
+        Pointer<SideVariable<NDIM,double> > D_var = d_Q_diffusion_coef_variable[Q_var];
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
         Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
@@ -298,6 +330,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
+        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
         const int Q_rhs_current_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getCurrentContext());
 
         // Allocate temporary data.
@@ -314,7 +347,15 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
 
         PoissonSpecifications kappa_spec("kappa_spec");
         kappa_spec.setCConstant(-lambda);
-        kappa_spec.setDConstant(+kappa );
+        if (isDiffusionCoefficientVariable(Q_var))
+        {
+            kappa_spec.setDPatchDataId(D_current_idx);
+        }
+        else
+        {
+            const double kappa = d_Q_diffusion_coef[Q_var];
+            kappa_spec.setDConstant(kappa);
+        }
 
         for (int depth = 0; depth < Q_depth; ++depth)
         {
@@ -361,6 +402,18 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
     }
 
+    // Compute any time-dependent variable diffusion coefficients at time-level n+1/2.
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit, ++l)
+    {
+        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        if (D_fcn && D_fcn->isTimeDependent())
+        {
+            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, half_time);
+        }
+    }
+
     // Indicate that all linear solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
     if (cycle_num == 0 && (initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0])))
@@ -376,9 +429,10 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
+        Pointer<SideVariable<NDIM,double> > D_var     = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<SideVariable<NDIM,double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
-        const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
@@ -389,6 +443,9 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
+        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
+        const int D_rhs_scratch_idx = (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Allocate temporary data.
@@ -397,6 +454,11 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
             level->allocatePatchData(Q_rhs_scratch_idx, new_time);
+            if (isDiffusionCoefficientVariable(Q_var))
+            {
+                level->allocatePatchData(D_scratch_idx, new_time); 
+                level->allocatePatchData(D_rhs_scratch_idx, new_time); 
+            }
         }
 
         if (F_var)
@@ -424,11 +486,24 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                            << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
-        solver_spec.setCConstant(1.0/dt+K*lambda);
-        solver_spec.setDConstant(      -K*kappa );
         PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
+        solver_spec.setCConstant(1.0/dt+K*lambda);
         rhs_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
-        rhs_spec.setDConstant(      +(1.0-K)*kappa );
+        if (isDiffusionCoefficientVariable(Q_var))
+        {
+            // set -K*kappa in solver_spec
+            d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_current_idx);
+            solver_spec.setDPatchDataId(D_scratch_idx);
+            // set (1.0-K)*kappa in rhs_spec
+            d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0-K), D_current_idx);
+            rhs_spec.setDPatchDataId(D_rhs_scratch_idx);
+        }
+        else
+        {
+            const double kappa = d_Q_diffusion_coef[Q_var];
+            solver_spec.setDConstant(-K*kappa );
+            rhs_spec.setDConstant(+(1.0-K)*kappa);
+        }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
         d_hier_bdry_fill_ops[l]->fillData(current_time);
@@ -481,6 +556,11 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
             level->deallocatePatchData(Q_rhs_scratch_idx);
+            if (isDiffusionCoefficientVariable(Q_var))
+            {
+                level->deallocatePatchData(D_scratch_idx);
+                level->deallocatePatchData(D_rhs_scratch_idx);
+            }
         }
     }
     return;
@@ -489,7 +569,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
-AdvDiffGodunovHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -506,7 +586,7 @@ AdvDiffGodunovHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 }// getMaximumTimeStepSizeSpecialized
 
 void
-AdvDiffGodunovHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
     const double new_time)
 {
     const int coarsest_ln = 0;
@@ -528,7 +608,7 @@ AdvDiffGodunovHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
 }// resetTimeDependentHierarchyDataSpecialized
 
 void
-AdvDiffGodunovHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
     // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
@@ -541,7 +621,7 @@ AdvDiffGodunovHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 }// resetIntegratorToPreadvanceStateSpecialized
 
 void
-AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -593,12 +673,35 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
                 }
             }
         }
+        // Set the initial value of any variable diffusion coefficient
+        for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+        {
+            Pointer<SideVariable<NDIM,double> > D_var = *cit;
+            const int D_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+            if (D_fcn)
+            {
+                D_fcn->setDataOnPatchLevel(D_idx, D_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<SideData<NDIM,double> > D_data = patch->getPatchData(D_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(D_data);
+#endif
+                    D_data->fillAll(0.0);
+                }
+            }
+        }
     }
     return;
 }// initializeLevelDataSpecialized
 
 void
-AdvDiffGodunovHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -610,7 +713,7 @@ AdvDiffGodunovHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 }// resetHierarchyConfigurationSpecialized
 
 void
-AdvDiffGodunovHierarchyIntegrator::applyGradientDetectorSpecialized(
+AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,

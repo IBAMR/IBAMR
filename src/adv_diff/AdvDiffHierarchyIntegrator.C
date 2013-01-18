@@ -288,6 +288,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     d_Q_diffusion_time_stepping_type[Q_var] = d_default_diffusion_time_stepping_type;
     d_Q_difference_form[Q_var] = d_default_convective_difference_form;
     d_Q_diffusion_coef[Q_var] = 0.0;
+    d_Q_diffusion_coef_variable[Q_var] = NULL;
+    d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = NULL;
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
@@ -393,6 +395,24 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     d_Q_diffusion_coef[Q_var] = kappa;
+    // indicate that the diffusion coefficient associated to Q_var is constant.
+    d_Q_is_diffusion_coef_variable[Q_var] = false;
+    // if there is already a variable diffusion coefficient associated to Q_var
+    if (d_Q_diffusion_coef_variable[Q_var])
+    {
+        const std::string& Q_var_name = Q_var->getName();
+        Pointer<SideVariable<NDIM,double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        // print a warning.
+        pout << d_object_name << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > Q_var, const double kappa): WARNING: \n"
+             << "   a variable diffusion coefficient for the variable " << Q_var_name << " has already been set.\n"
+             << "   this variable coefficient will be overriden by the constant diffusion coefficient "
+             << "kappa = " << kappa << "\n";
+        // erase entries from maps with key D_var
+        d_diffusion_coef_fcn.erase(D_var);
+        d_diffusion_coef_rhs_map.erase(D_var);
+        // set a null entry in the map for variable diffusion coefficients.
+        d_Q_diffusion_coef_variable[Q_var] = NULL;
+    }
     return;
 }// setDiffusionCoefficient
 
@@ -405,6 +425,109 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficient(
 #endif
     return d_Q_diffusion_coef.find(Q_var)->second;
 }// getDiffusionCoefficient
+
+void
+AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(
+    Pointer<SideVariable<NDIM,double> > D_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(D_var);
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+                == d_diffusion_coef_var.end());
+#endif
+    d_diffusion_coef_var.push_back(D_var);
+    Pointer<SideDataFactory<NDIM,double> > D_factory = D_var->getPatchDataFactory();
+    const int D_depth = D_factory->getDefaultDepth();
+    Pointer<SideVariable<NDIM,double> > D_rhs_var = new SideVariable<NDIM,double>(D_var->getName()+"::D_rhs",D_depth);
+
+    // Set default values.
+    d_diffusion_coef_fcn[D_var] = NULL;
+    d_diffusion_coef_rhs_map[D_var] = D_rhs_var;
+    // Also register D_rhs_var
+    d_diffusion_coef_rhs_var.push_back(D_rhs_var);
+    return;
+}// registerDiffusionCoefficientVariable
+
+void
+AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(
+    Pointer<SideVariable<NDIM,double> > D_var,
+    Pointer<IBTK::CartGridFunction> D_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+                != d_diffusion_coef_var.end());
+#endif
+    if (d_diffusion_coef_fcn[D_var])
+    {
+        const std::string& D_var_name = D_var->getName();
+        Pointer<CartGridFunctionSet> p_D_fcn = d_diffusion_coef_fcn[D_var];
+        if (!p_D_fcn)
+        {
+            pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
+                 << "  diffusion coefficient function for diffusion coefficient variable " 
+                 << D_var_name << " has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the source term value.\n";
+            p_D_fcn = new CartGridFunctionSet(d_object_name+"::"+D_var_name+"::diffusion_coef_function_set");
+            p_D_fcn->addFunction(d_diffusion_coef_fcn[D_var]);
+        }
+        p_D_fcn->addFunction(D_fcn);
+    }
+    else
+    {
+        d_diffusion_coef_fcn[D_var] = D_fcn;
+    }
+    return;
+}// setDiffusionCoefficientFunction
+
+Pointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(
+    Pointer<SideVariable<NDIM,double> > D_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+                != d_diffusion_coef_var.end());
+#endif
+    return d_diffusion_coef_fcn.find(D_var)->second;
+}// getDiffusionCoefficientFunction
+
+void
+AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<SideVariable<NDIM,double> > D_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+                != d_diffusion_coef_var.end());
+#endif
+    d_Q_diffusion_coef_variable[Q_var] = D_var;
+    // indicate that the diffusion coefficient associated to Q_var is variable
+    d_Q_is_diffusion_coef_variable[Q_var] = true;
+    // set the corresponding constant diffusion coefficient to zero.
+    d_Q_diffusion_coef[Q_var] = 0.0;
+    return;
+}// setDiffusionCoefficientVariable
+
+Pointer<SideVariable<NDIM,double> >
+AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    return d_Q_diffusion_coef_variable.find(Q_var)->second;
+}// getDiffusionCoefficientVariable
+
+bool
+AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    return d_Q_is_diffusion_coef_variable.find(Q_var)->second;
+}// isDiffusionCoefficientVariable
 
 void
 AdvDiffHierarchyIntegrator::setDampingCoefficient(
@@ -539,6 +662,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
+    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
@@ -602,6 +727,10 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_u_fcn(),
       d_F_var(),
       d_F_fcn(),
+      d_diffusion_coef_var(),
+      d_diffusion_coef_rhs_var(),
+      d_diffusion_coef_fcn(),
+      d_diffusion_coef_rhs_map(),
       d_Q_var(),
       d_Q_rhs_var(),
       d_Q_u_map(),
@@ -609,10 +738,13 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_Q_Q_rhs_map(),
       d_Q_difference_form(),
       d_Q_diffusion_coef(),
+      d_Q_diffusion_coef_variable(),
+      d_Q_is_diffusion_coef_variable(),
       d_Q_damping_coef(),
       d_Q_init(),
       d_Q_bc_coef(),
       d_hier_cc_data_ops(NULL),
+      d_hier_sc_data_ops(NULL),
       d_sol_vecs(),
       d_rhs_vecs(),
       d_helmholtz_solver_type(CCPoissonSolverManager::UNDEFINED),
@@ -708,6 +840,8 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
+    d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
 
     // Reset the interpolation operators.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -797,11 +931,23 @@ AdvDiffHierarchyIntegrator::registerVariables()
         const int F_depth = F_factory->getDefaultDepth();
         if (d_visit_writer) d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        int D_current_idx, D_new_idx, D_scratch_idx;
+        registerVariable(D_current_idx, D_new_idx, D_scratch_idx, D_var, face_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_diffusion_coef_fcn[D_var]);
+    }
     for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
+    }
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin(); cit != d_diffusion_coef_rhs_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_rhs_var = *cit;
+        int D_rhs_scratch_idx;
+        registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
     return;
 }// registerVariables

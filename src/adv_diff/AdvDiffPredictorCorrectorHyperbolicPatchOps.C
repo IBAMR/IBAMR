@@ -1,4 +1,4 @@
-// Filename: AdvDiffGodunovHypPatchOps.C
+// Filename: AdvDiffPredictorCorrectorHyperbolicPatchOps.C
 // Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvDiffGodunovHypPatchOps.h"
+#include "AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -125,26 +125,26 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffGodunovHypPatchOps::AdvDiffGodunovHypPatchOps(
+AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<GodunovAdvector> godunov_advector,
+    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : AdvectGodunovHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
+    : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name, input_db, explicit_predictor, grid_geom, register_for_restart)
 {
     d_overwrite_tags = false;
     return;
-}// AdvDiffGodunovHypPatchOps
+}// AdvDiffPredictorCorrectorHyperbolicPatchOps
 
-AdvDiffGodunovHypPatchOps::~AdvDiffGodunovHypPatchOps()
+AdvDiffPredictorCorrectorHyperbolicPatchOps::~AdvDiffPredictorCorrectorHyperbolicPatchOps()
 {
     // intentionally blank
     return;
-}// ~AdvDiffGodunovHypPatchOps
+}// ~AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 void
-AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
+AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
     const double /*time*/,
     const double dt,
@@ -269,14 +269,14 @@ AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
             case ADVECTIVE:
             {
                 CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
-                d_godunov_advector->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
+                d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(Q_data, -1.0/(dt*dt), Pointer<CellData<NDIM,double> >(&N_data,false), patch_box);
                 break;
             }
             default:
             {
-                TBOX_ERROR("AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch():\n"
+                TBOX_ERROR("AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch():\n"
                            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
@@ -286,7 +286,7 @@ AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
 }// conservativeDifferenceOnPatch
 
 void
-AdvDiffGodunovHypPatchOps::preprocessAdvanceLevelState(
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double /*dt*/,
@@ -311,7 +311,7 @@ AdvDiffGodunovHypPatchOps::preprocessAdvanceLevelState(
 }// preprocessAdvanceLevelState
 
 void
-AdvDiffGodunovHypPatchOps::postprocessAdvanceLevelState(
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,

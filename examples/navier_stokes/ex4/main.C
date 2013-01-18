@@ -42,7 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvDiffGodunovHierarchyIntegrator.h>
+#include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -117,8 +117,8 @@ main(
         const string adv_diff_solver_type = main_db->getStringWithDefault("adv_diff_solver_type", "GODUNOV");
         if (adv_diff_solver_type == "GODUNOV")
         {
-            Pointer<GodunovAdvector> predictor = new GodunovAdvector("GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
-            adv_diff_integrator = new AdvDiffGodunovHierarchyIntegrator("AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
+            Pointer<AdvectorExplicitPredictorStrategy> predictor = new AdvectorExplicitPredictorStrategy("AdvectorExplicitPredictorStrategy", app_initializer->getComponentDatabase("AdvectorExplicitPredictorStrategy"));
+            adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator("AdvDiffPredictorCorrectorHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
         }
         else if (adv_diff_solver_type == "SEMI_IMPLICIT")
         {

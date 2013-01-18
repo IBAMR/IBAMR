@@ -1,4 +1,4 @@
-// Filename: AdvectGodunovHypPatchOps.C
+// Filename: AdvectorPredictorCorrectorHyperbolicPatchOps.C
 // Created on 12 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvectGodunovHypPatchOps.h"
+#include "AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -165,28 +165,21 @@ namespace IBAMR
 
 namespace
 {
-// Number of ghosts cells used for each variable quantity.
-static const int CELLG = 4;
-static const int FLUXG = 1;
-
 // Values for cell tagging routines.
 static const int TRUE_VAL  = 1;
 static const int FALSE_VAL = 0;
-
-// Version of AdvectGodunovHypPatchOps restart file data.
-static const int ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
+AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<GodunovAdvector> godunov_advector,
+    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
     : d_integrator(NULL),
-      d_godunov_advector(godunov_advector),
+      d_explicit_predictor(explicit_predictor),
       d_u_var(),
       d_u_is_div_free(),
       d_u_fcn(),
@@ -207,8 +200,6 @@ AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
       d_grid_geometry(grid_geom),
       d_visit_writer(NULL),
       d_extrap_bc_helper(),
-      d_ghosts(CELLG),
-      d_flux_ghosts(FLUXG),
       d_extrap_type("CONSTANT"),
       d_refinement_criteria(),
       d_dev_tol(),
@@ -222,7 +213,7 @@ AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-    TBOX_ASSERT(godunov_advector);
+    TBOX_ASSERT(d_explicit_predictor);
     TBOX_ASSERT(grid_geom);
 #endif
 
@@ -235,26 +226,29 @@ AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
+    // Get number of ghost cells from the explicit predictor.
+    d_ghosts      = IntVector<NDIM> (explicit_predictor->getNumberCellGhosts());
+    d_flux_ghosts = IntVector<NDIM> (explicit_predictor->getNumberFluxGhosts());
     return;
-}// AdvectGodunovHypPatchOps
+}// AdvectorPredictorCorrectorHyperbolicPatchOps
 
-AdvectGodunovHypPatchOps::~AdvectGodunovHypPatchOps()
+AdvectorPredictorCorrectorHyperbolicPatchOps::~AdvectorPredictorCorrectorHyperbolicPatchOps()
 {
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-}// ~AdvectGodunovHypPatchOps
+}// ~AdvectorPredictorCorrectorHyperbolicPatchOps
 
 const std::string&
-AdvectGodunovHypPatchOps::getName() const
+AdvectorPredictorCorrectorHyperbolicPatchOps::getName() const
 {
     return d_object_name;
 }// getName
 
 void
-AdvectGodunovHypPatchOps::registerVisItDataWriter(
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -265,7 +259,7 @@ AdvectGodunovHypPatchOps::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
-AdvectGodunovHypPatchOps::registerAdvectionVelocity(
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -277,7 +271,7 @@ AdvectGodunovHypPatchOps::registerAdvectionVelocity(
 }// registerAdvectionVelocity
 
 void
-AdvectGodunovHypPatchOps::setAdvectionVelocityIsDivergenceFree(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(
     Pointer<FaceVariable<NDIM,double> > u_var,
     const bool is_div_free)
 {
@@ -289,7 +283,7 @@ AdvectGodunovHypPatchOps::setAdvectionVelocityIsDivergenceFree(
 }// setAdvectionVelocityIsDivergenceFree
 
 void
-AdvectGodunovHypPatchOps::setAdvectionVelocityFunction(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
     Pointer<FaceVariable<NDIM,double> > u_var,
     Pointer<CartGridFunction> u_fcn)
 {
@@ -301,7 +295,7 @@ AdvectGodunovHypPatchOps::setAdvectionVelocityFunction(
 }// setAdvectionVelocityFunction
 
 void
-AdvectGodunovHypPatchOps::registerSourceTerm(
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -312,7 +306,7 @@ AdvectGodunovHypPatchOps::registerSourceTerm(
 }// registerSourceTerm
 
 void
-AdvectGodunovHypPatchOps::setSourceTermFunction(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(
     Pointer<CellVariable<NDIM,double> > F_var,
     Pointer<CartGridFunction> F_fcn)
 {
@@ -342,7 +336,7 @@ AdvectGodunovHypPatchOps::setSourceTermFunction(
 }// setSourceTermFunction
 
 void
-AdvectGodunovHypPatchOps::registerTransportedQuantity(
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -354,7 +348,7 @@ AdvectGodunovHypPatchOps::registerTransportedQuantity(
 }// registerTransportedQuantity
 
 void
-AdvectGodunovHypPatchOps::setAdvectionVelocity(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
@@ -367,7 +361,7 @@ AdvectGodunovHypPatchOps::setAdvectionVelocity(
 }// setAdvectionVelocity
 
 void
-AdvectGodunovHypPatchOps::setSourceTerm(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CellVariable<NDIM,double> > F_var)
 {
@@ -380,7 +374,7 @@ AdvectGodunovHypPatchOps::setSourceTerm(
 }// setSourceTerm
 
 void
-AdvectGodunovHypPatchOps::setConvectiveDifferencingType(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form)
 {
@@ -392,7 +386,7 @@ AdvectGodunovHypPatchOps::setConvectiveDifferencingType(
 }// setConvectiveDifferencingType
 
 void
-AdvectGodunovHypPatchOps::setInitialConditions(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CartGridFunction> Q_init)
 {
@@ -404,7 +398,7 @@ AdvectGodunovHypPatchOps::setInitialConditions(
 }// setInitialConditions
 
 void
-AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
@@ -419,7 +413,7 @@ AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
 {
@@ -434,7 +428,7 @@ AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-AdvectGodunovHypPatchOps::registerModelVariables(
+AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -542,7 +536,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
 }// registerModelVariables
 
 void
-AdvectGodunovHypPatchOps::initializeDataOnPatch(
+AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(
     Patch<NDIM>& patch,
     const double data_time,
     const bool initial_time)
@@ -599,7 +593,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
 }// initializeDataOnPatch
 
 double
-AdvectGodunovHypPatchOps::computeStableDtOnPatch(
+AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(
     Patch<NDIM>& patch,
     const bool /*initial_time*/,
     const double /*dt_time*/)
@@ -609,13 +603,13 @@ AdvectGodunovHypPatchOps::computeStableDtOnPatch(
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
-        stable_dt = std::min(stable_dt,d_godunov_advector->computeStableDtOnPatch(*u_data,patch));
+        stable_dt = std::min(stable_dt,d_explicit_predictor->computeStableDtOnPatch(*u_data,patch));
     }
     return stable_dt;
 }// computeStableDtOnPatch
 
 void
-AdvectGodunovHypPatchOps::computeFluxesOnPatch(
+AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(
     Patch<NDIM>& patch,
     const double time,
     const double dt)
@@ -643,11 +637,11 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         if (F_var)
         {
             Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_var, getDataContext());
-            d_godunov_advector->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
+            d_explicit_predictor->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
         {
-            d_godunov_advector->predictValue(*q_integral_data, *u_data, *Q_data, patch, dt);
+            d_explicit_predictor->predictValue(*q_integral_data, *u_data, *Q_data, patch, dt);
         }
     }
 
@@ -689,7 +683,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
         {
             Pointer<FaceData<NDIM,double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
             Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
-            d_godunov_advector->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
+            d_explicit_predictor->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
 
         if (!conservation_form || !u_is_div_free)
@@ -705,7 +699,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
 }// computeFluxesOnPatch
 
 void
-AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
+AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
     const double /*time*/,
     const double dt,
@@ -811,14 +805,14 @@ AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
             case ADVECTIVE:
             {
                 CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
-                d_godunov_advector->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
+                d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
                 patch_cc_data_ops.axpy(Q_data, -1.0/dt, Pointer<CellData<NDIM,double> >(&N_data,false), Q_data, patch_box);
                 break;
             }
             default:
             {
-                TBOX_ERROR("AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch():\n"
+                TBOX_ERROR("AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch():\n"
                            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
@@ -828,7 +822,7 @@ AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
 }// conservativeDifferenceOnPatch
 
 void
-AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
+AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double /*dt*/,
@@ -865,7 +859,7 @@ AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
 }// preprocessAdvanceLevelState
 
 void
-AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
+AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
@@ -929,7 +923,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
 }// postprocessAdvanceLevelState
 
 void
-AdvectGodunovHypPatchOps::tagGradientDetectorCells(
+AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
     Patch<NDIM>& patch,
     const double regrid_time,
     const bool /*initial_error*/,
@@ -1082,7 +1076,7 @@ AdvectGodunovHypPatchOps::tagGradientDetectorCells(
 }// tagGradientDetectorCells
 
 void
-AdvectGodunovHypPatchOps::setPhysicalBoundaryConditions(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions(
     Patch<NDIM>& patch,
     const double fill_time,
     const IntVector<NDIM>& ghost_width_to_fill)
@@ -1122,17 +1116,14 @@ AdvectGodunovHypPatchOps::setPhysicalBoundaryConditions(
 }// setPhysicalBoundaryConditions
 
 void
-AdvectGodunovHypPatchOps::putToDatabase(
+AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(db);
 #endif
 
-    db->putInteger("ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION", ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION);
-
-    db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
-    db->putIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
+    // db->putIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
 
     if (d_refinement_criteria.getSize() > 0)
     {
@@ -1160,7 +1151,7 @@ AdvectGodunovHypPatchOps::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 Pointer<FaceData<NDIM,double> >
-AdvectGodunovHypPatchOps::getFluxIntegralData(
+AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1179,7 +1170,7 @@ AdvectGodunovHypPatchOps::getFluxIntegralData(
 }// getFluxIntegralData
 
 Pointer<FaceData<NDIM,double> >
-AdvectGodunovHypPatchOps::getQIntegralData(
+AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1198,7 +1189,7 @@ AdvectGodunovHypPatchOps::getQIntegralData(
 }// getQIntegralData
 
 Pointer<FaceData<NDIM,double> >
-AdvectGodunovHypPatchOps::getUIntegralData(
+AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1220,7 +1211,7 @@ AdvectGodunovHypPatchOps::getUIntegralData(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
+AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(
     Patch<NDIM>& patch,
     const double fill_time)
 {
@@ -1324,7 +1315,7 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
 }// setInflowBoundaryConditions
 
 void
-AdvectGodunovHypPatchOps::getFromInput(
+AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
@@ -1338,7 +1329,7 @@ AdvectGodunovHypPatchOps::getFromInput(
     if (db->keyExists("extrap_type")) d_extrap_type = db->getString("extrap_type");
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
-        TBOX_ERROR("AdvectGodunovHypPatchOps::getFromInput():\n"
+        TBOX_ERROR("AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput():\n"
                    << "  unknown extrapolation type: " << d_extrap_type << "\n"
                    << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
@@ -1493,7 +1484,7 @@ AdvectGodunovHypPatchOps::getFromInput(
 }// getFromInput
 
 void
-AdvectGodunovHypPatchOps::getFromRestart()
+AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
 {
     Pointer<Database> root_db =
         RestartManager::getManager()->getRootDatabase();
@@ -1511,26 +1502,12 @@ AdvectGodunovHypPatchOps::getFromRestart()
                    << d_object_name << " not found in restart file.");
     }
 
-    int ver = db->getInteger("ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION");
-    if (ver != ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION)
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  Restart file version different than class version.");
-    }
-
-    db->getIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
-    if (d_ghosts != IntVector<NDIM>(CELLG))
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  Key data `d_ghosts' in restart file != CELLG.\n");
-    }
-
-    db->getIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
-    if (d_flux_ghosts != IntVector<NDIM>(FLUXG))
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  Key data `d_flux_ghosts' in restart file != FLUXG.\n");
-    }
+    // db->getIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
+    // if (d_flux_ghosts != IntVector<NDIM>(FLUXG))
+    // {
+        // TBOX_ERROR(d_object_name << ":\n"
+                   // << "  Key data `d_flux_ghosts' in restart file != FLUXG.\n");
+    // }
 
     if (db->keyExists("d_refinement_criteria"))
     {

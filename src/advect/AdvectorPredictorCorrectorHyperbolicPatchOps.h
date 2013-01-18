@@ -1,4 +1,4 @@
-// Filename: AdvectGodunovHypPatchOps.h
+// Filename: AdvectorPredictorCorrectorHyperbolicPatchOps.h
 // Created on 14 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvectGodunovHypPatchOps
-#define included_AdvectGodunovHypPatchOps
+#ifndef included_AdvectorPredictorCorrectorHyperbolicPatchOps
+#define included_AdvectorPredictorCorrectorHyperbolicPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/GodunovAdvector.h>
+#include <ibamr/AdvectorExplicitPredictorStrategy.h>
 #include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>  // needed for less<SAMRAI::tbox::Pointer<T> >
 
@@ -77,11 +77,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class AdvectGodunovHypPatchOps is a concrete
- * SAMRAI::algs::HyperbolicPatchStrategy that makes use of class GodunovAdvector
+ * \brief Class AdvectorPredictorCorrectorHyperbolicPatchOps is a concrete
+ * SAMRAI::algs::HyperbolicPatchStrategy that makes use of class AdvectorExplicitPredictorStrategy
  * to solve the linear advection equation.
  *
- * Class AdvectGodunovHypPatchOps provides numerical routines for solving the advection
+ * Class AdvectorPredictorCorrectorHyperbolicPatchOps provides numerical routines for solving the advection
  * equation in conservative form, \f[
  *
  *      \frac{dQ}{dt} + \nabla \cdot (\vec{u}^{\mbox{\scriptsize ADV}} Q) = F - Q \nabla \cdot \vec{u}^{\mbox{\scriptsize ADV}},
@@ -112,13 +112,13 @@ namespace IBAMR
  *
  * \f]
  */
-class AdvectGodunovHypPatchOps
+class AdvectorPredictorCorrectorHyperbolicPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
       public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * The constructor for AdvectGodunovHypPatchOps sets default parameters for
+     * The constructor for AdvectorPredictorCorrectorHyperbolicPatchOps sets default parameters for
      * the advection solver.  The constructor also registers this object for
      * restart with the restart manager using the object name.
      *
@@ -127,19 +127,19 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvectGodunovHypPatchOps(
+    AdvectorPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for AdvectGodunovHypPatchOps unregisters the patch
+     * The destructor for AdvectorPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
     virtual
-    ~AdvectGodunovHypPatchOps();
+    ~AdvectorPredictorCorrectorHyperbolicPatchOps();
 
     /*!
      * Return the name of the patch operations object.
@@ -269,7 +269,7 @@ public:
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
     /*!
-     * \brief Register AdvectGodunovHypPatchOps model variables with the
+     * \brief Register AdvectorPredictorCorrectorHyperbolicPatchOps model variables with the
      * SAMRAI::algs::HyperbolicLevelIntegrator according to the variable
      * registration function provided by the integrator.
      *
@@ -390,7 +390,7 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
-     * \brief Write state of AdvectGodunovHypPatchOps object to the given
+     * \brief Write state of AdvectorPredictorCorrectorHyperbolicPatchOps object to the given
      * database for restart.
      *
      * This routine is a concrete implementation of the function declared in the
@@ -438,9 +438,9 @@ protected:
     SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator;
 
     /*
-     * The GodunovAdvector being used to advect the cell-centered quantities Q.
+     * The AdvectorExplicitPredictorStrategy being used to advect the cell-centered quantities Q.
      */
-    SAMRAI::tbox::Pointer<GodunovAdvector> d_godunov_advector;
+    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> d_explicit_predictor;
 
     /*
      * Advection velocity data.
@@ -495,7 +495,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectGodunovHypPatchOps();
+    AdvectorPredictorCorrectorHyperbolicPatchOps();
 
     /*!
      * \brief Copy constructor.
@@ -504,8 +504,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectGodunovHypPatchOps(
-        const AdvectGodunovHypPatchOps& from);
+    AdvectorPredictorCorrectorHyperbolicPatchOps(
+        const AdvectorPredictorCorrectorHyperbolicPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -516,9 +516,9 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectGodunovHypPatchOps&
+    AdvectorPredictorCorrectorHyperbolicPatchOps&
     operator=(
-        const AdvectGodunovHypPatchOps& that);
+        const AdvectorPredictorCorrectorHyperbolicPatchOps& that);
 
     /*
      * Set physical boundary conditions at inflow boundaries for predicted
@@ -595,8 +595,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvectGodunovHypPatchOps.I>
+//#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvectGodunovHypPatchOps
+#endif //#ifndef included_AdvectorPredictorCorrectorHyperbolicPatchOps

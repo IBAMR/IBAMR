@@ -258,7 +258,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
-     * Set the scalar diffusion coefficient corresponding to a quantity that has
+     * Set the constant scalar diffusion coefficient corresponding to a quantity that has
      * been registered with the hierarchy integrator.
      */
     void
@@ -267,11 +267,64 @@ public:
         double kappa);
 
     /*!
-     * Get the scalar diffusion coefficient corresponding to a quantity that has
+     * Get the constant scalar diffusion coefficient corresponding to a quantity that has
      * been registered with the hierarchy integrator.
      */
     double
     getDiffusionCoefficient(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
+     * Register a variable scalar diffusion coefficient corresponding to a quantity
+     * that has been registered with the hierarchy integrator.
+     */
+    void
+    registerDiffusionCoefficientVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > D_var);
+
+    /*!
+     * Supply an IBTK:CartGridFunction object to specify the value of a particular
+     * variable diffusion coefficient.
+     */
+    void
+    setDiffusionCoefficientFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > D_var,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> D_fcn);
+
+    /*!
+     * Get the IBTK::CartGridFunction object being used to specify the value of
+     * a particular variable diffusion coefficient.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
+    getDiffusionCoefficientFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > D_var) const;
+
+    /*!
+     * Set the cell-centered variable diffusion coefficient to be used with a particular
+     * cell-centered quantity.
+     *
+     * \note The specified source term must have been already registered with
+     * the hierarchy integrator.
+     */
+    void
+    setDiffusionCoefficientVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > D_var);
+
+    /*!
+     * Get the cell-centered variable diffusion coefficient being used with a particular
+     * cell-centered quantity.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
+    getDiffusionCoefficientVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*
+     * Return whether the diffusion coefficient being used with a particular
+     * cell-centered quantity is variable.
+     */
+    bool
+    isDiffusionCoefficientVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
@@ -438,6 +491,13 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
 
     /*!
+     * Diffusion coefficient data
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > > d_diffusion_coef_var, d_diffusion_coef_rhs_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_diffusion_coef_fcn;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double > > > d_diffusion_coef_rhs_map;
+
+    /*!
      * Transported quantities.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var, d_Q_rhs_var;
@@ -445,7 +505,12 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_F_map, d_Q_Q_rhs_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_diffusion_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveDifferencingType> d_Q_difference_form;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_diffusion_coef, d_Q_damping_coef;
+    
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_diffusion_coef;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > > d_Q_diffusion_coef_variable;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_is_diffusion_coef_variable;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_damping_coef;
+
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
 
@@ -453,6 +518,7 @@ protected:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
     std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 

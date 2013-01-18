@@ -1,4 +1,4 @@
-// Filename: GodunovAdvector.h
+// Filename: AdvectorExplicitPredictorStrategy.h
 // Created on 14 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_GodunovAdvector
-#define included_GodunovAdvector
+#ifndef included_AdvectorExplicitPredictorStrategy
+#define included_AdvectorExplicitPredictorStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,20 +43,24 @@
 #include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
 
+// IBAMR INCLUDES
+#include <ibamr/ibamr_enums.h>
+
 // C++ STDLIB INCLUDES
 #include <ostream>
 #include <string>
+
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class GodunovAdvector provides patch-based operations required to
+ * \brief Class AdvectorExplicitPredictorStrategy provides patch-based operations required to
  * implement a second-order Godunov method for the linear advection equation in
  * conservative and non-conservative forms.
  *
- * Class GodunovAdvector implements the predictors required to use an explicit
+ * Class AdvectorExplicitPredictorStrategy implements the predictors required to use an explicit
  * predictor-corrector method to solve the \em non-conservative advection
  * equation, \f[
  *
@@ -83,14 +87,14 @@ namespace IBAMR
  * non-conservative form of the source term must be supplied to the predictor
  * in-order to obtain a formally consistent method.
  *
- * \see IBAMR::GodunovHypPatchOps
+ * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class GodunovAdvector
+class AdvectorExplicitPredictorStrategy
     : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * The constructor for GodunovAdvector sets default parameters for the
+     * The constructor for AdvectorExplicitPredictorStrategy sets default parameters for the
      * advection predictor.  The constructor also registers this object for
      * restart with the restart manager using the object name.
      *
@@ -99,16 +103,16 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    GodunovAdvector(
+    AdvectorExplicitPredictorStrategy(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for GodunovAdvector unregisters the predictor object with
+     * The destructor for AdvectorExplicitPredictorStrategy unregisters the predictor object with
      * the restart manager when so registered.
      */
-    ~GodunovAdvector();
+    ~AdvectorExplicitPredictorStrategy();
 
     /*!
      * Return the name of the patch operations object.
@@ -298,8 +302,23 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
 
+    /*! \brief Get the number of ghosts cells required by the limiter for cell-centered and
+     *  face/side-centered variables.
+     *
+     *  \see getNumberFluxGhosts.
+     */
+    int
+    getNumberCellGhosts() const;
+
+    /*! \brief Get the number of ghosts cells required by the limiter for face-centered fluxes.
+     *
+     *  \see getNumberCellGhosts.
+     */
+    int
+    getNumberFluxGhosts() const;
+
     /*!
-     * \brief Write state of GodunovAdvector object to the given database for
+     * \brief Write state of AdvectorExplicitPredictorStrategy object to the given database for
      * restart.
      *
      * This routine is a concrete implementation of the function declared in the
@@ -315,7 +334,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    GodunovAdvector();
+    AdvectorExplicitPredictorStrategy();
 
     /*!
      * \brief Copy constructor.
@@ -324,8 +343,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GodunovAdvector(
-        const GodunovAdvector& from);
+    AdvectorExplicitPredictorStrategy(
+        const AdvectorExplicitPredictorStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -336,9 +355,9 @@ private:
      *
      * \return A reference to this object.
      */
-    GodunovAdvector&
+    AdvectorExplicitPredictorStrategy&
     operator=(
-        const GodunovAdvector& that);
+        const AdvectorExplicitPredictorStrategy& that);
 
     /*
      * Private functions used to compute the predicted values/fluxes.
@@ -385,9 +404,12 @@ private:
     /*
      *  Parameters for numerical method:
      *
+     *    d_limiter_type ........ specifies the type of slope limiting type used in
+     *                            computing numerical fluxes
      *    d_using_full_ctu ...... specifies whether full corner transport
      *                            upwinding is used for 3D computations
      */
+    LimiterType d_limiter_type;
 #if (NDIM == 3)
     bool d_using_full_ctu;
 #endif
@@ -396,8 +418,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/GodunovAdvector.I>
+//#include <ibamr/AdvectorExplicitPredictorStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_GodunovAdvector
+#endif //#ifndef included_AdvectorExplicitPredictorStrategy

@@ -1,4 +1,4 @@
-// Filename: AdvDiffGodunovHypPatchOps.h
+// Filename: AdvDiffPredictorCorrectorHyperbolicPatchOps.h
 // Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,14 +30,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffGodunovHypPatchOps
-#define included_AdvDiffGodunovHypPatchOps
+#ifndef included_AdvDiffPredictorCorrectorHyperbolicPatchOps
+#define included_AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/AdvectGodunovHypPatchOps.h>
-#include <ibamr/GodunovAdvector.h>
+#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
+#include <ibamr/AdvectorExplicitPredictorStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -53,19 +53,19 @@
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffGodunovHypPatchOps is a specialization of class
- * AdvectGodunovHypPatchOps for use with a linearly-implicit time integrator for
+ * \brief Class AdvDiffPredictorCorrectorHyperbolicPatchOps is a specialization of class
+ * AdvectorPredictorCorrectorHyperbolicPatchOps for use with a linearly-implicit time integrator for
  * the advection-diffusion equation.
  *
  * \see AdvDiffGodunovHierarchyIntegrator
- * \see AdvectGodunovHypPatchOps
+ * \see AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvDiffGodunovHypPatchOps
-    : public AdvectGodunovHypPatchOps
+class AdvDiffPredictorCorrectorHyperbolicPatchOps
+    : public AdvectorPredictorCorrectorHyperbolicPatchOps
 {
 public:
     /*!
-     * The constructor for AdvDiffGodunovHypPatchOps sets default parameters for
+     * The constructor for AdvDiffPredictorCorrectorHyperbolicPatchOps sets default parameters for
      * the patch strategy.  The constructor also registers this object for
      * restart with the restart manager using the object name when so requested.
      *
@@ -74,18 +74,18 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvDiffGodunovHypPatchOps(
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for AdvDiffGodunovHypPatchOps unregisters the patch
+     * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    ~AdvDiffGodunovHypPatchOps();
+    ~AdvDiffPredictorCorrectorHyperbolicPatchOps();
 
     /*!
      * Update solution variables by performing a conservative difference using
@@ -147,7 +147,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffGodunovHypPatchOps();
+    AdvDiffPredictorCorrectorHyperbolicPatchOps();
 
     /*!
      * \brief Copy constructor.
@@ -156,8 +156,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffGodunovHypPatchOps(
-        const AdvDiffGodunovHypPatchOps& from);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(
+        const AdvDiffPredictorCorrectorHyperbolicPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -168,16 +168,16 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffGodunovHypPatchOps&
+    AdvDiffPredictorCorrectorHyperbolicPatchOps&
     operator=(
-        const AdvDiffGodunovHypPatchOps& that);
+        const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvDiffGodunovHypPatchOps.I>
+//#include <ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffGodunovHypPatchOps
+#endif //#ifndef included_AdvDiffPredictorCorrectorHyperbolicPatchOps

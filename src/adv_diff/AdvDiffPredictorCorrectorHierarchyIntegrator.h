@@ -1,4 +1,4 @@
-// Filename: AdvDiffGodunovHierarchyIntegrator.h
+// Filename: AdvDiffPredictorCorrectorHierarchyIntegrator.h
 // Created on 16 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffGodunovHierarchyIntegrator
-#define included_AdvDiffGodunovHierarchyIntegrator
+#ifndef included_AdvDiffPredictorCorrectorHierarchyIntegrator
+#define included_AdvDiffPredictorCorrectorHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,7 +39,7 @@
 #include <petscsys.h>
 
 // IBAMR INCLUDES
-#include <ibamr/AdvDiffGodunovHypPatchOps.h>
+#include <ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 // SAMRAI INCLUDES
@@ -50,7 +50,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffGodunovHierarchyIntegrator manages the spatial
+ * \brief Class AdvDiffPredictorCorrectorHierarchyIntegrator manages the spatial
  * discretization and time integration of scalar- and vector-valued quantities
  * whose dynamics are governed by the advection-diffusion equation.
  *
@@ -66,39 +66,39 @@ namespace IBAMR
  *
  * Either Crank-Nicolson (i.e., the trapezoidal rule) or backward Euler is used
  * for the linearly implicit treatment of the diffusive terms.  The advective
- * terms are discretized by the GodunovAdvector object supplied to the class
+ * terms are discretized by the AdvectorExplicitPredictorStrategy object supplied to the class
  * constructor.
  *
- * \see AdvDiffGodunovHypPatchOps
+ * \see AdvDiffPredictorCorrectorHyperbolicPatchOps
  * \see HierarchyIntegrator
- * \see GodunovAdvector
+ * \see AdvectorExplicitPredictorStrategy
  * \see SAMRAI::algs::HyperbolicLevelIntegrator
  * \see SAMRAI::mesh::StandardTagAndInitStrategy
  * \see SAMRAI::algs::TimeRefinementIntegrator
  * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
-class AdvDiffGodunovHierarchyIntegrator
+class AdvDiffPredictorCorrectorHierarchyIntegrator
     : public AdvDiffHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class AdvDiffGodunovHierarchyIntegrator sets some
+     * The constructor for class AdvDiffPredictorCorrectorHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    AdvDiffGodunovHierarchyIntegrator(
+    AdvDiffPredictorCorrectorHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for class AdvDiffGodunovHierarchyIntegrator unregisters
+     * The destructor for class AdvDiffPredictorCorrectorHierarchyIntegrator unregisters
      * the integrator object with the restart manager when the object is so
      * registered.
      */
-    ~AdvDiffGodunovHierarchyIntegrator();
+    ~AdvDiffPredictorCorrectorHierarchyIntegrator();
 
     /*!
      * Return a pointer to the level integrator object used to integrate the
@@ -111,7 +111,7 @@ public:
      * Return a pointer to the patch strategy object used to specify the
      * numerical routines used to integrate the advective terms.
      */
-    SAMRAI::tbox::Pointer<AdvDiffGodunovHypPatchOps>
+    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps>
     getHyperbolicPatchStrategy() const;
 
     /*!
@@ -186,7 +186,7 @@ protected:
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to gradient criteria specified by the
-     * GodunovAdvector object.
+     * AdvectorExplicitPredictorStrategy object.
      */
     void
     applyGradientDetectorSpecialized(
@@ -203,7 +203,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffGodunovHierarchyIntegrator();
+    AdvDiffPredictorCorrectorHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -212,8 +212,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffGodunovHierarchyIntegrator(
-        const AdvDiffGodunovHierarchyIntegrator& from);
+    AdvDiffPredictorCorrectorHierarchyIntegrator(
+        const AdvDiffPredictorCorrectorHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -224,9 +224,9 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffGodunovHierarchyIntegrator&
+    AdvDiffPredictorCorrectorHierarchyIntegrator&
     operator=(
-        const AdvDiffGodunovHierarchyIntegrator& that);
+        const AdvDiffPredictorCorrectorHierarchyIntegrator& that);
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
@@ -237,16 +237,16 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffGodunovHypPatchOps> d_hyp_patch_ops;
+    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
+    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> d_explicit_predictor;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvDiffGodunovHierarchyIntegrator.I>
+//#include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffGodunovHierarchyIntegrator
+#endif //#ifndef included_AdvDiffPredictorCorrectorHierarchyIntegrator

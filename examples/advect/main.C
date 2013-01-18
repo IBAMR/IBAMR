@@ -42,8 +42,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvectGodunovHypPatchOps.h>
-#include <ibamr/GodunovAdvector.h>
+#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
+#include <ibamr/AdvectorExplicitPredictorStrategy.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -120,12 +120,12 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<GodunovAdvector> advector = new GodunovAdvector(
-            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+        Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor = new AdvectorExplicitPredictorStrategy(
+            "AdvectorExplicitPredictorStrategy", app_initializer->getComponentDatabase("AdvectorExplicitPredictorStrategy"));
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<AdvectGodunovHypPatchOps> hyp_patch_ops = new AdvectGodunovHypPatchOps(
-            "AdvectGodunovHypPatchOps", app_initializer->getComponentDatabase("AdvectGodunovHypPatchOps"), advector, grid_geometry);
+        Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops = new AdvectorPredictorCorrectorHyperbolicPatchOps(
+            "AdvectorPredictorCorrectorHyperbolicPatchOps", app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"), explicit_predictor, grid_geometry);
         Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(

@@ -102,6 +102,61 @@ enum_to_string<ConvectiveDifferencingType>(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different limiter types
+ */
+enum LimiterType
+{
+    CTU_ONLY=1, // the assigned integer values are used in src/advect/fortran/limitertypes.i
+    MINMOD_LIMITED=2,
+    MC_LIMITED=3,
+    SUPERBEE_LIMITED=4,
+    MUSCL_LIMITED=5,
+    SECOND_ORDER=6,
+    FOURTH_ORDER=7,
+    PPM=8,
+    XSPPM7=9,
+    UNKNOWN_LIMITER_TYPE=-1
+};
+
+template<>
+inline LimiterType
+string_to_enum<LimiterType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CTU_ONLY"      ) == 0) return CTU_ONLY;
+    if (strcasecmp(val.c_str(), "MINMOD_LIMITED") == 0) return MINMOD_LIMITED;
+    if (strcasecmp(val.c_str(), "MINMOD"        ) == 0) return MINMOD_LIMITED;
+    if (strcasecmp(val.c_str(), "MC_LIMITED"    ) == 0) return MC_LIMITED;
+    if (strcasecmp(val.c_str(), "MC"            ) == 0) return MC_LIMITED;
+    if (strcasecmp(val.c_str(), "SUPERBEE_LIMITED") == 0) return SUPERBEE_LIMITED;
+    if (strcasecmp(val.c_str(), "SUPERBEE"      ) == 0) return SUPERBEE_LIMITED;
+    if (strcasecmp(val.c_str(), "MUSCL_LIMITED" ) == 0) return MUSCL_LIMITED;
+    if (strcasecmp(val.c_str(), "MUSCL"         ) == 0) return MUSCL_LIMITED;
+    if (strcasecmp(val.c_str(), "SECOND_ORDER"  ) == 0) return SECOND_ORDER;
+    if (strcasecmp(val.c_str(), "FOURTH_ORDER"  ) == 0) return FOURTH_ORDER;
+    if (strcasecmp(val.c_str(), "PPM"           ) == 0) return PPM;
+    if (strcasecmp(val.c_str(), "XSPPM7"        ) == 0) return XSPPM7;
+    return UNKNOWN_LIMITER_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<LimiterType>(
+    LimiterType val)
+{
+    if (val == CTU_ONLY      ) return "CTU_ONLY";
+    if (val == MINMOD_LIMITED) return "MINMOD_LIMITED";
+    if (val == MC_LIMITED    ) return "MC_LIMITED";
+    if (val == SUPERBEE_LIMITED) return "SUPERBEE_LIMITED";
+    if (val == MUSCL_LIMITED ) return "MUSCL_LIMITED";
+    if (val == SECOND_ORDER  ) return "SECOND_ORDER";
+    if (val == FOURTH_ORDER  ) return "FOURTH_ORDER";
+    if (val == PPM           ) return "PPM";
+    if (val == XSPPM7        ) return "XSPPM7";
+    return "UNKNOWN_LIMITER_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
 enum TimeSteppingType

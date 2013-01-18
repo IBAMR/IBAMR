@@ -1,4 +1,4 @@
-// Filename: GodunovAdvector.C
+// Filename: AdvectorExplicitPredictorStrategy.C
 // Created on 14 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "GodunovAdvector.h"
+#include "AdvectorExplicitPredictorStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -65,8 +65,10 @@
 #define ADVECT_FLUX_FC FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
 #define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
 #define GODUNOV_INCOMPRESSIBILITY_FIX_FC FC_FUNC_(godunov_incompressibility_fix2d, GODUNOV_INCOMPRESSIBILITY_FIX2D)
-#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
-#define GODUNOV_PREDICT_WITH_SOURCE_FC FC_FUNC_(godunov_predict_with_source2d, GODUNOV_PREDICT_WITH_SOURCE2D)
+#define ADVECT_PREDICT_FC FC_FUNC_(advect_predict2d, ADVECT_PREDICT2D)
+#define ADVECT_PREDICT_WITH_SOURCE_FC FC_FUNC_(advect_predict_with_source2d, ADVECT_PREDICT_WITH_SOURCE2D)
+#define ADVECT_PREDICT_PPM_FC FC_FUNC_(advect_predict_ppm2d, ADVECT_PREDICT_PPM2D)
+#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC FC_FUNC_(advect_predict_ppm_with_source2d, ADVECT_PREDICT_PPM_WITH_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
@@ -74,8 +76,10 @@
 #define ADVECT_FLUX_FC FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
 #define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
 #define GODUNOV_INCOMPRESSIBILITY_FIX_FC FC_FUNC_(godunov_incompressibility_fix3d, GODUNOV_INCOMPRESSIBILITY_FIX3D)
-#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
-#define GODUNOV_PREDICT_WITH_SOURCE_FC FC_FUNC_(godunov_predict_with_source3d, GODUNOV_PREDICT_WITH_SOURCE3D)
+#define ADVECT_PREDICT_FC FC_FUNC_(advect_predict3d, ADVECT_PREDICT3D)
+#define ADVECT_PREDICT_WITH_SOURCE_FC FC_FUNC_(advect_predict_with_source3d, ADVECT_PREDICT_WITH_SOURCE3D)
+#define ADVECT_PREDICT_PPM_FC FC_FUNC_(advect_predict_ppm3d, ADVECT_PREDICT_PPM3D)
+#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC FC_FUNC_(advect_predict_ppm_with_source3d, ADVECT_PREDICT_PPM_WITH_SOURCE3D)
 #endif
 
 extern "C"
@@ -164,11 +168,73 @@ extern "C"
 #endif
 
     void
-    GODUNOV_PREDICT_FC(
+    ADVECT_PREDICT_FC(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
+        const int& ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const double* , double* ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        double* , double* ,
+        double* , double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        double* , double* , double* ,
+        double* , double* , double*
+#endif
+                       );
+
+    void
+    ADVECT_PREDICT_WITH_SOURCE_FC(
+        const double* , const double& ,
+#if (NDIM == 3)
+        const unsigned int& ,
+#endif
+        const int& ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , double* , 
+        const double* , double* ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        double* , double* ,
+        double* , double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , double* , double* , 
+        const double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        double* , double* , double* ,
+        double* , double* , double*
+#endif
+                                   );
+    void
+    ADVECT_PREDICT_PPM_FC(
+        const double* , const double& ,
+#if (NDIM == 3)
+        const unsigned int& ,
+#endif
+        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -192,11 +258,12 @@ extern "C"
                        );
 
     void
-    GODUNOV_PREDICT_WITH_SOURCE_FC(
+    ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
         const double* , const double& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
+        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -235,18 +302,20 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int FACEG = 1;
 
-// Version of GodunovAdvector restart file data
+// Version of AdvectorExplicitPredictorStrategy restart file data
+// TODO: get rid of this ?
 static const int GODUNOV_ADVECTOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GodunovAdvector::GodunovAdvector(
+AdvectorExplicitPredictorStrategy::AdvectorExplicitPredictorStrategy(
     const std::string& object_name,
     Pointer<Database> input_db,
     const bool register_for_restart)
     : d_object_name(object_name),
-      d_registered_for_restart(register_for_restart)
+      d_registered_for_restart(register_for_restart),
+      d_limiter_type(MC_LIMITED)
 #if (NDIM == 3)
     , d_using_full_ctu(true)
 #endif
@@ -266,25 +335,25 @@ GodunovAdvector::GodunovAdvector(
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
     return;
-}// GodunovAdvector
+}// AdvectorExplicitPredictorStrategy
 
-GodunovAdvector::~GodunovAdvector()
+AdvectorExplicitPredictorStrategy::~AdvectorExplicitPredictorStrategy()
 {
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-}// ~GodunovAdvector
+}// ~AdvectorExplicitPredictorStrategy
 
 const std::string&
-GodunovAdvector::getName() const
+AdvectorExplicitPredictorStrategy::getName() const
 {
     return d_object_name;
 }// getName
 
 double
-GodunovAdvector::computeStableDtOnPatch(
+AdvectorExplicitPredictorStrategy::computeStableDtOnPatch(
     const FaceData<NDIM,double>& u_ADV,
     const Patch<NDIM>& patch) const
 {
@@ -323,7 +392,7 @@ GodunovAdvector::computeStableDtOnPatch(
 }// computeStableDtOnPatch
 
 void
-GodunovAdvector::computeAdvectiveDerivative(
+AdvectorExplicitPredictorStrategy::computeAdvectiveDerivative(
     CellData<NDIM,double>& N,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& q_half,
@@ -378,7 +447,7 @@ GodunovAdvector::computeAdvectiveDerivative(
 }// computeAdvectiveDerivative
 
 void
-GodunovAdvector::computeFlux(
+AdvectorExplicitPredictorStrategy::computeFlux(
     FaceData<NDIM,double>& flux,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& q_half,
@@ -430,7 +499,7 @@ GodunovAdvector::computeFlux(
 }// computeFlux
 
 void
-GodunovAdvector::predictValue(
+AdvectorExplicitPredictorStrategy::predictValue(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -442,7 +511,7 @@ GodunovAdvector::predictValue(
 }// predictValue
 
 void
-GodunovAdvector::predictValueWithSourceTerm(
+AdvectorExplicitPredictorStrategy::predictValueWithSourceTerm(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -455,7 +524,7 @@ GodunovAdvector::predictValueWithSourceTerm(
 }// predictValueWithSourceTerm
 
 void
-GodunovAdvector::predictNormalVelocity(
+AdvectorExplicitPredictorStrategy::predictNormalVelocity(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& V,
@@ -478,7 +547,7 @@ GodunovAdvector::predictNormalVelocity(
 }// predictNormalVelocity
 
 void
-GodunovAdvector::predictNormalVelocityWithSourceTerm(
+AdvectorExplicitPredictorStrategy::predictNormalVelocityWithSourceTerm(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& V,
@@ -502,7 +571,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 }// predictNormalVelocityWithSourceTerm
 
 void
-GodunovAdvector::enforceIncompressibility(
+AdvectorExplicitPredictorStrategy::enforceIncompressibility(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& grad_phi,
@@ -554,13 +623,51 @@ GodunovAdvector::enforceIncompressibility(
     return;
 }// enforceIncompressibility
 
+int
+AdvectorExplicitPredictorStrategy::getNumberCellGhosts() const
+{
+    // The number of ghosts cells needed for the advected quantity
+    // only depends on the slope limiter (see fortran/advect_predictors2d.f.m4)
+    switch (d_limiter_type)
+    {
+        case CTU_ONLY:
+        case MINMOD_LIMITED:
+        case MC_LIMITED:
+        case SUPERBEE_LIMITED:
+        case SECOND_ORDER:
+            return 2;
+        case FOURTH_ORDER:
+        case MUSCL_LIMITED:
+        case PPM:
+            return 3;
+        case XSPPM7:
+            return 4;
+        case UNKNOWN_LIMITER_TYPE:
+            TBOX_ERROR(d_object_name << "::getNumberCellGhosts():\n" <<
+                    "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                    << " not implemented");
+        break;
+    }
+    // add one more return statement to avoid warning
+    return 4;
+}// getNumberCellGhosts
+
+int
+AdvectorExplicitPredictorStrategy::getNumberFluxGhosts() const
+{
+    // The number of ghosts cells for flux computations is the same,
+    // regardless of the slope limiter
+    return FACEG;
+}// getNumberFluxGhosts
+
 void
-GodunovAdvector::putToDatabase(
+AdvectorExplicitPredictorStrategy::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(db);
 #endif
+    db->putString("d_limiter_type", IBAMR::enum_to_string<LimiterType>(d_limiter_type));
     db->putInteger("GODUNOV_ADVECTOR_VERSION",GODUNOV_ADVECTOR_VERSION);
 #if (NDIM == 3)
     db->putBool("d_using_full_ctu", d_using_full_ctu);
@@ -571,7 +678,7 @@ GodunovAdvector::putToDatabase(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-GodunovAdvector::predict(
+AdvectorExplicitPredictorStrategy::predict(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -609,39 +716,87 @@ GodunovAdvector::predict(
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
+        switch (d_limiter_type)
+        {
+            case CTU_ONLY:
+            case MINMOD_LIMITED:
+            case MC_LIMITED:
+            case SUPERBEE_LIMITED:
+            case MUSCL_LIMITED:
+            case SECOND_ORDER:
+            case FOURTH_ORDER:
 #if (NDIM == 2)
-        GODUNOV_PREDICT_FC(
-            dx,dt,
-            ilower(0),iupper(0),ilower(1),iupper(1),
-            Q_ghost_cells(0),Q_ghost_cells(1),
-            Q.getPointer(depth),Q_temp1.getPointer(0),
-            dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
-            u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),
-            u_ADV.getPointer(0),u_ADV.getPointer(1),
-            q_half_temp.getPointer(0),q_half_temp.getPointer(1),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth));
+                ADVECT_PREDICT_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    Q_ghost_cells(0),Q_ghost_cells(1),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_PREDICT_FC(
-            dx,dt,
-            static_cast<unsigned int>(d_using_full_ctu),
-            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
-            Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
-            dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
-            u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
-            u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
-            q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
+                ADVECT_PREDICT_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    static_cast<unsigned int>(d_using_full_ctu),
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
+                break;
+            case PPM:
+            case XSPPM7:
+#if (NDIM == 2)
+                ADVECT_PREDICT_PPM_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    Q_ghost_cells(0),Q_ghost_cells(1),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),
+                    dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth));
+#endif
+#if (NDIM == 3)
+                ADVECT_PREDICT_PPM_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    static_cast<unsigned int>(d_using_full_ctu),
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+                    dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
+#endif
+                break;
+            case UNKNOWN_LIMITER_TYPE:
+                TBOX_ERROR(d_object_name << "::predict(q_half, u_ADV, Q, patch, dt):\n" <<
+                        "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                        << " not implemented");
+                break;
+        }
     }
     return;
 }// predict
 
 void
-GodunovAdvector::predictWithSourceTerm(
+AdvectorExplicitPredictorStrategy::predictWithSourceTerm(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -685,59 +840,114 @@ GodunovAdvector::predictWithSourceTerm(
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
     {
+        switch (d_limiter_type)
+        {
+            case CTU_ONLY:
+            case MINMOD_LIMITED:
+            case MC_LIMITED:
+            case SUPERBEE_LIMITED:
+            case MUSCL_LIMITED:
+            case SECOND_ORDER:
+            case FOURTH_ORDER:
 #if (NDIM == 2)
-        GODUNOV_PREDICT_WITH_SOURCE_FC(
-            dx,dt,
-            ilower(0),iupper(0),ilower(1),iupper(1),
-            Q_ghost_cells(0),Q_ghost_cells(1),
-            F_ghost_cells(0),F_ghost_cells(1),
-            Q.getPointer(depth),Q_temp1.getPointer(0),
-            dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
-            F.getPointer(depth),F_temp1.getPointer(0),
-            u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),
-            u_ADV.getPointer(0),u_ADV.getPointer(1),
-            q_half_temp.getPointer(0),q_half_temp.getPointer(1),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth));
+                ADVECT_PREDICT_WITH_SOURCE_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    Q_ghost_cells(0),Q_ghost_cells(1),
+                    F_ghost_cells(0),F_ghost_cells(1),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),
+                    F.getPointer(depth),F_temp1.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_PREDICT_WITH_SOURCE_FC(
-            dx,dt,
-            static_cast<unsigned int>(d_using_full_ctu),
-            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
-            F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
-            Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
-            dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
-            F.getPointer(depth),F_temp1.getPointer(0),F_temp2.getPointer(0),
-            u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
-            q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
-            u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
-            q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
-            q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
+                ADVECT_PREDICT_WITH_SOURCE_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    static_cast<unsigned int>(d_using_full_ctu),
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
+                    F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+                    F.getPointer(depth),F_temp1.getPointer(0),F_temp2.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
+                break;
+            case PPM:
+            case XSPPM7:
+#if (NDIM == 2)
+                ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    Q_ghost_cells(0),Q_ghost_cells(1),
+                    F_ghost_cells(0),F_ghost_cells(1),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),
+                    dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
+                    F.getPointer(depth),F_temp1.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth));
+#endif
+#if (NDIM == 3)
+                ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
+                    dx,dt,
+                    d_limiter_type,
+                    static_cast<unsigned int>(d_using_full_ctu),
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    Q_ghost_cells(0),Q_ghost_cells(1),Q_ghost_cells(2),
+                    F_ghost_cells(0),F_ghost_cells(1),F_ghost_cells(2),
+                    Q.getPointer(depth),Q_temp1.getPointer(0),Q_temp2.getPointer(0),
+                    dQ.getPointer(0),Q_L.getPointer(0),Q_R.getPointer(0),
+                    F.getPointer(depth),F_temp1.getPointer(0),F_temp2.getPointer(0),
+                    u_ADV_ghost_cells(0),u_ADV_ghost_cells(1),u_ADV_ghost_cells(2),
+                    q_half_ghost_cells(0),q_half_ghost_cells(1),q_half_ghost_cells(2),
+                    u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
+                    q_half_temp.getPointer(0),q_half_temp.getPointer(1),q_half_temp.getPointer(2),
+                    q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
+#endif
+                break;
+            case UNKNOWN_LIMITER_TYPE:
+                TBOX_ERROR(d_object_name << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n" <<
+                        "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                        << " not implemented");
+                break;
+        }
     }
     return;
 }// predictWithSourceTerm
 
 void
-GodunovAdvector::getFromInput(
+AdvectorExplicitPredictorStrategy::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(db);
 #endif
+    if (db->keyExists("limiter_type"))
+    {
+        d_limiter_type = IBAMR::string_to_enum<LimiterType>(db->getString("limiter_type"));
+        TBOX_ASSERT(d_limiter_type != UNKNOWN_LIMITER_TYPE);
+    }
 #if (NDIM == 3)
     if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
-#else
-    NULL_USE(db);
 #endif
     return;
 }// getFromInput
 
 void
-GodunovAdvector::getFromRestart()
+AdvectorExplicitPredictorStrategy::getFromRestart()
 {
     Pointer<Database> root_db =
         RestartManager::getManager()->getRootDatabase();
@@ -754,6 +964,8 @@ GodunovAdvector::getFromRestart()
                    << "  Restart database corresponding to "
                    << d_object_name << " not found in restart file.");
     }
+
+    d_limiter_type = IBAMR::string_to_enum<LimiterType>(db->getString("d_limiter_type"));
 
     int ver = db->getInteger("GODUNOV_ADVECTOR_VERSION");
     if (ver != GODUNOV_ADVECTOR_VERSION)

@@ -59,11 +59,17 @@ ConcentrationBcCoefs {
    gcoef_function_3 = dC_dn3
 }
 
-GodunovAdvector {
-   // intentionally blank
+AdvectorExplicitPredictorStrategy {
+// Available values for limiter_type:
+// "CTU_ONLY", "MINMOD_LIMITED", "MC_LIMITED",
+// "SUPERBEE_LIMITED", "MUSCL_LIMITED"
+// "SECOND_ORDER", "FOURTH_ORDER",
+// "PPM", "XSPPM7"
+   limiter_type = "XSPPM7"
+   using_full_ctu = TRUE
 }
 
-AdvDiffGodunovHierarchyIntegrator {
+AdvDiffPredictorCorrectorHierarchyIntegrator {
    start_time                 = START_TIME
    end_time                   = END_TIME
    grow_dt                    = GROW_DT
@@ -74,7 +80,7 @@ AdvDiffGodunovHierarchyIntegrator {
    regrid_interval            = REGRID_INTERVAL
    enable_logging             = ENABLE_LOGGING
 
-   AdvDiffGodunovHypPatchOps {
+   AdvDiffPredictorCorrectorHyperbolicPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE

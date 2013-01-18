@@ -446,6 +446,18 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_u_fcn[u_var]->setDataOnPatchHierarchy(u_current_idx, u_var, d_hierarchy, current_time);
         }
     }
+    // Update the diffusion coefficient
+    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    {
+        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        // if (D_fcn && D_fcn->isTimeDependent())
+        if (D_fcn)
+        {
+            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, current_time);
+        }
+    }
 
     // Setup the operators and solvers and compute the right-hand-side terms.
     unsigned int l = 0;
@@ -453,8 +465,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariable<NDIM,double> > D_var     = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<SideVariable<NDIM,double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
-        const double kappa  = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef  [Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
@@ -465,6 +478,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
+        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
+        const int D_rhs_scratch_idx = (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
 
         // Setup the problem coefficients and right-hand-side for the linear
         // solve for Q(n+1).
@@ -485,10 +501,23 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
         PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
         solver_spec.setCConstant(1.0/dt+K*lambda);
-        solver_spec.setDConstant(      -K*kappa );
         PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
         rhs_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
-        rhs_spec.setDConstant(      +(1.0-K)*kappa );
+        if (isDiffusionCoefficientVariable(Q_var))
+        {
+            // set -K*kappa in solver_spec
+            d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_current_idx);
+            solver_spec.setDPatchDataId(D_scratch_idx);
+            // set (1.0-K)*kappa in rhs_spec
+            d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0-K), D_current_idx);
+            rhs_spec.setDPatchDataId(D_rhs_scratch_idx);
+        }
+        else
+        {
+            const double kappa = d_Q_diffusion_coef[Q_var];
+            solver_spec.setDConstant(-K*kappa );
+            rhs_spec.setDConstant(+(1.0-K)*kappa);
+        }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
         d_hier_bdry_fill_ops[l]->fillData(current_time);

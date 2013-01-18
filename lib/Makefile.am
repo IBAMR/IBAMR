@@ -21,7 +21,7 @@ clean-local:
 
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
-$(top_builddir)/src/advect/fortran/godunov_helpers.f \
+$(top_builddir)/src/advect/fortran/advect_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
 $(top_srcdir)/src/navier_stokes/StokesSpecifications.C \
 $(top_srcdir)/src/utilities/RNG.C
@@ -82,15 +82,15 @@ $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
 $(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.C \
-$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
-$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
-$(top_srcdir)/src/advect/GodunovAdvector.C \
+$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.C \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
@@ -173,15 +173,15 @@ $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
 $(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.h \
-$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
-$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
-$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
-$(top_srcdir)/src/advect/GodunovAdvector.h \
+$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -234,7 +234,7 @@ $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
-$(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
+$(top_builddir)/src/advect/fortran/advect_predictors2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
@@ -249,7 +249,7 @@ $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
-$(top_builddir)/src/advect/fortran/godunov_predictors3d.f \
+$(top_builddir)/src/advect/fortran/advect_predictors3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
