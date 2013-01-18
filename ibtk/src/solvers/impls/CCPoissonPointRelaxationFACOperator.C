@@ -66,9 +66,11 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define GS_SMOOTH_FC FC_FUNC(gssmooth2d,GSSMOOTH2D)
+#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
 #endif
 #if (NDIM == 3)
 #define GS_SMOOTH_FC FC_FUNC(gssmooth3d,GSSMOOTH3D)
+#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
 #endif
 
 // Function interfaces
@@ -84,7 +86,20 @@ extern "C"
 #if (NDIM == 3)
         const int& ilower2, const int& iupper2,
 #endif
-        const double* dx, const int& sweeps);
+        const double* dx);
+
+    void
+    RB_GS_SMOOTH_FC(
+        double* U, const int& U_gcw,
+        const double& alpha, const double& beta,
+        const double* F, const int& F_gcw,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const double* dx,
+        const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -138,6 +153,53 @@ struct IndexComp
                     );
         }// operator()
 };
+
+enum SmootherType
+{
+    PATCH_GAUSS_SEIDEL,
+    PROCESSOR_GAUSS_SEIDEL,
+    RED_BLACK_GAUSS_SEIDEL,
+    UNKNOWN=-1
+};
+
+inline SmootherType
+get_smoother_type(
+    const std::string& smoother_type_string)
+{
+    if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
+    if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL") return PROCESSOR_GAUSS_SEIDEL;
+    if (smoother_type_string == "RED_BLACK_GAUSS_SEIDEL") return RED_BLACK_GAUSS_SEIDEL;
+    else return UNKNOWN;
+}// get_smoother_type
+
+inline bool
+use_red_black_ordering(
+    SmootherType smoother_type)
+{
+    if (smoother_type == RED_BLACK_GAUSS_SEIDEL)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}// use_red_black_ordering
+
+inline bool
+do_local_data_update(
+    SmootherType smoother_type)
+{
+    if (smoother_type == PROCESSOR_GAUSS_SEIDEL ||
+        smoother_type == RED_BLACK_GAUSS_SEIDEL)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}// do_local_data_update
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -154,10 +216,10 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
       d_patch_vec_f(),
       d_patch_mat(),
       d_patch_bc_box_overlap(),
-      d_patch_smoother_bc_boxes()
+      d_patch_neighbor_overlap()
 {
     // Set some default values.
-    d_smoother_type = "ADDITIVE";
+    d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "LINEAR_REFINE";
     d_restriction_method  = "CONSERVATIVE_COARSEN";
     d_coarse_solver_type  = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
@@ -222,17 +284,9 @@ void
 CCPoissonPointRelaxationFACOperator::setSmootherType(
     const std::string& smoother_type)
 {
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (smoother_type != "ADDITIVE" && smoother_type != "MULTIPLICATIVE")
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
-                   << "  unknown smoother type: " << smoother_type << "\n"
-                   << "  valid types are: ADDITIVE, MULTIPLICATIVE" << std::endl);
-    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
+#endif
     d_smoother_type = smoother_type;
     return;
 }// setSmootherType
@@ -248,7 +302,7 @@ CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
-    if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
+    if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
     {
         d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
     }
@@ -272,6 +326,16 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     const int   error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
+    // Determine the smoother type.
+    const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
+    const SmootherType smoother_type = get_smoother_type(smoother_type_string);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(smoother_type != UNKNOWN);
+    if (d_using_petsc_smoothers) TBOX_ASSERT(smoother_type == PATCH_GAUSS_SEIDEL || smoother_type == PROCESSOR_GAUSS_SEIDEL);
+#endif
+    const bool red_black_ordering = use_red_black_ordering(smoother_type);
+    const bool update_local_data = do_local_data_update(smoother_type);
+
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
@@ -292,6 +356,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     }
 
     // Smooth the error by the specified number of sweeps.
+    if (red_black_ordering) num_sweeps *= 2;
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
@@ -354,11 +419,11 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
-            // Copy updated values from other local patches.
-            if (d_smoother_type == "MULTIPLICATIVE")
+            // Copy updated values from neighboring local patches.
+            if (update_local_data)
             {
-                const std::map<int,Box<NDIM> > smoother_bc_boxes = d_patch_smoother_bc_boxes[level_num][patch_counter];
-                for (std::map<int,Box<NDIM> >::const_iterator cit = smoother_bc_boxes.begin(); cit != smoother_bc_boxes.end(); ++cit)
+                const std::map<int,Box<NDIM> > neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
+                for (std::map<int,Box<NDIM> >::const_iterator cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
                 {
                     const int src_patch_num = cit->first;
                     const Box<NDIM>& overlap = cit->second;
@@ -426,17 +491,33 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     const int U_ghosts = (error_data->getGhostCellWidth()).max();
                     const double* const F = residual_data->getPointer(depth);
                     const int F_ghosts = (residual_data->getGhostCellWidth()).max();
-                    static const int its = 1;
-                    GS_SMOOTH_FC(
-                        U, U_ghosts,
-                        alpha, beta,
-                        F, F_ghosts,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
+                    if (red_black_ordering)
+                    {
+                        int red_or_black = isweep % 2;  // "red" = 0, "black" = 1
+                        RB_GS_SMOOTH_FC(
+                            U, U_ghosts,
+                            alpha, beta,
+                            F, F_ghosts,
+                            patch_box.lower(0), patch_box.upper(0),
+                            patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                        patch_box.lower(2), patch_box.upper(2),
+                            patch_box.lower(2), patch_box.upper(2),
 #endif
-                        dx, its);
+                            dx, red_or_black);
+                    }
+                    else
+                    {
+                        GS_SMOOTH_FC(
+                            U, U_ghosts,
+                            alpha, beta,
+                            F, F_ghosts,
+                            patch_box.lower(0), patch_box.upper(0),
+                            patch_box.lower(1), patch_box.upper(1),
+#if (NDIM == 3)
+                            patch_box.lower(2), patch_box.upper(2),
+#endif
+                            dx);
+                    }
                 }
             }
         }
@@ -455,14 +536,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-    if (!d_coarse_solver)
-    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
-#endif
-        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
-    }
-    else
+    if (d_coarse_solver)
     {
         d_coarse_solver->setSolutionTime(d_solution_time);
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
@@ -472,6 +546,13 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
+    }
+    else
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
+#endif
+        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
@@ -564,7 +645,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
     // Initialize the coarse level solvers when needed.
-    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
     {
         // Note that since the coarse level solver is solving for the error, it
         // must always employ homogeneous boundary conditions.
@@ -651,39 +732,32 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Get overlap information for re-setting patch boundary conditions during
-    // multiplicative smoothing.
-    if (d_smoother_type == "MULTIPLICATIVE")
+    // smoothing.
+    d_patch_neighbor_overlap.resize(d_finest_ln+1);
+    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        d_patch_smoother_bc_boxes.resize(d_finest_ln+1);
-        for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        d_patch_neighbor_overlap[ln].resize(num_local_patches);
+        int patch_counter1 = 0;
+        for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-            d_patch_smoother_bc_boxes[ln].resize(num_local_patches);
-            int patch_counter1 = 0;
-            for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
+            d_patch_neighbor_overlap[ln][patch_counter1].clear();
+            Pointer<Patch<NDIM> > dst_patch = level->getPatch(p1());
+            const Box<NDIM>& dst_patch_box = dst_patch->getBox();
+            const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
+            int patch_counter2 = 0;
+            for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
             {
-                d_patch_smoother_bc_boxes[ln][patch_counter1].clear();
-                Pointer<Patch<NDIM> > dst_patch = level->getPatch(p1());
-                const Box<NDIM>& dst_patch_box = dst_patch->getBox();
-                const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
-                int patch_counter2 = 0;
-                for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+                Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
+                const Box<NDIM>& src_patch_box = src_patch->getBox();
+                const Box<NDIM> overlap = dst_ghost_box * src_patch_box;
+                if (!overlap.empty())
                 {
-                    Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
-                    const Box<NDIM>& src_patch_box = src_patch->getBox();
-                    const Box<NDIM> overlap = dst_ghost_box * src_patch_box;
-                    if (!overlap.empty())
-                    {
-                        d_patch_smoother_bc_boxes[ln][patch_counter1][p2()] = overlap;
-                    }
+                    d_patch_neighbor_overlap[ln][patch_counter1][p2()] = overlap;
                 }
             }
         }
-    }
-    else
-    {
-        d_patch_smoother_bc_boxes.clear();
     }
     return;
 }// initializeOperatorStateSpecialized
@@ -727,7 +801,7 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
         d_patch_vec_f.clear();
         d_patch_mat.clear();
         d_patch_bc_box_overlap.clear();
-        d_patch_smoother_bc_boxes.clear();
+        d_patch_neighbor_overlap.clear();
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;

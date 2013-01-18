@@ -75,7 +75,7 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "ADDITIVE"                   // see setSmootherType()
+ smoother_type = "PATCH_GAUSS_SEIDEL"         // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
  coarse_solver_type = "HYPRE_LEVEL_SOLVER"    // see setCoarseSolverType()
@@ -130,11 +130,9 @@ public:
      * \brief Specify the smoother type.
      *
      * Select from:
-     * - \c "ADDITIVE"
-     * - \c "MULTIPLICATIVE"
-     *
-     * \note The smoother is always additive between processors ("processor
-     * block Gauss-Seidel").
+     * - \c "PATCH_GAUSS_SEIDEL"
+     * - \c "PROCESSOR_GAUSS_SEIDEL"
+     * - \c "RED_BLACK_GAUSS_SEIDEL"
      */
     void
     setSmootherType(
@@ -307,7 +305,7 @@ private:
      * Patch overlap data.
      */
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_smoother_bc_boxes;
+    std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
 };
 }// namespace IBTK
 
