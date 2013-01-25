@@ -872,12 +872,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
 
     // Set up inhomogeneous BCs.
     d_stokes_solver->setHomogeneousBc(false);
-    Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
-    if (p_stokes_solver)
-    {
-        p_stokes_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vec);
-        p_stokes_solver->setHomogeneousBc(true);
-    }
 
     // Initialize any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1099,6 +1093,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations() << "\n";
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()  << "\n";
+
+    // Enforce Dirichlet boundary conditions.
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(d_sol_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(1), d_U_bc_coefs, new_time, /*homogeneous_bc*/ false);
 
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);

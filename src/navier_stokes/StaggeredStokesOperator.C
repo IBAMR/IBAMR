@@ -230,7 +230,7 @@ StaggeredStokesOperator::apply(
     d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, d_new_time);
     d_hier_math_ops->laplace(A_U_idx, A_U_sc_var, d_U_problem_coefs, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
     d_hier_math_ops->div(A_P_idx, A_P_cc_var, -1.0, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
     return;
