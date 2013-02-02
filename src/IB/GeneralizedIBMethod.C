@@ -632,8 +632,7 @@ GeneralizedIBMethod::initializePatchHierarchy(
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
 
-    // Indicate that the force-and-torque strategy_needs
-    // to be re-initialized.
+    // Indicate that the force-and-torque strategy needs to be re-initialized.
     d_ib_force_and_torque_fcn_needs_init = true;
     return;
 }// initializePatchHierarchy
