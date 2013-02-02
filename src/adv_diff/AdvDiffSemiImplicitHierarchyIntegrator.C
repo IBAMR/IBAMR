@@ -441,11 +441,19 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
+        const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, getNewContext()    );
         if (d_u_fcn[u_var])
         {
-            const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
             d_u_fcn[u_var]->setDataOnPatchHierarchy(u_current_idx, u_var, d_hierarchy, current_time);
+            d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx    , u_var, d_hierarchy,     new_time);
         }
+        else
+        {
+            d_hier_fc_data_ops->copyData(u_new_idx, u_current_idx);
+        }
+        d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     }
 
     // Update the diffusion coefficient
@@ -793,18 +801,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    // Update the advection velocity.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
-    {
-        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
-        {
-            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
-            d_u_fcn[u_var]->setDataOnPatchHierarchy(u_idx, u_var, d_hierarchy, new_time);
-        }
-    }
     return;
 }// postprocessIntegrateHierarchy
 

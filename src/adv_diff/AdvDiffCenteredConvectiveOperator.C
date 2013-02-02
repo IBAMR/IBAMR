@@ -209,7 +209,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
       d_bc_coefs(bc_coefs),
-      d_bdry_extrap_type("CONSTANT"),
+      d_outflow_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -232,7 +232,12 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
 
     if (input_db)
     {
-        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->keyExists("outflow_bdry_extrap_type")) d_outflow_bdry_extrap_type = input_db->getString("outflow_bdry_extrap_type");
+        if (input_db->keyExists("bdry_extrap_type"))
+        {
+            TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
+                       << "  input database key ``bdry_extrap_type'' has been changed to ``outflow_bdry_extrap_type''\n");
+        }
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -336,7 +341,7 @@ AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(
             TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
 #endif
             // Enforce physical boundary conditions at inflow boundaries.
-            AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time);
+            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time, /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE");
 
             // Interpolate from cell centers to cell faces.
             for (unsigned int d = 0; d < d_Q_data_depth; ++d)
@@ -553,7 +558,7 @@ AdvDiffCenteredConvectiveOperator::initializeOperatorState(
     Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
-    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_bdry_extrap_type);
+    if (d_outflow_bdry_extrap_type != "NONE") d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_outflow_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {

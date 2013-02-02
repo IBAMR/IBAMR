@@ -62,20 +62,20 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
+AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
     Pointer<CellData<NDIM,double> > Q_data,
     Pointer<FaceData<NDIM,double> > u_ADV_data,
     Pointer<Patch<NDIM> > patch,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const double fill_time)
+    const double fill_time,
+    const bool inflow_boundaries_only)
 {
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
     const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
 
-    // Loop over the boundary fill boxes and set boundary conditions at inflow
-    // boundaries only.
+    // Loop over the boundary fill boxes and set boundary conditions.
     const Box<NDIM>& patch_box = patch->getBox();
     const double* const dx = pgeom->getDx();
 
@@ -121,35 +121,37 @@ AdvDiffPhysicalBoundaryUtilities::setInflowBoundaryConditions(
                 const Index<NDIM>& i = bc();
                 const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
-                if (!is_inflow_bdry) continue;
-                const double& a = (*acoef_data)(i,0);
-                const double& b = (*bcoef_data)(i,0);
-                const double& g = (*gcoef_data)(i,0);
-                const double& h = dx[bdry_normal_axis];
-                int sgn;
-                Index<NDIM> i_intr(i);
-                if (is_lower)
+                if (!inflow_boundaries_only || is_inflow_bdry)
                 {
-                    sgn = -1;
-                }
-                else
-                {
-                    sgn = +1;
-                    i_intr(bdry_normal_axis) -= 1;
-                }
-                Index<NDIM> i_true(i_intr), i_ghost(i_intr);
-                for (int k = 1; k <= gcw(bdry_normal_axis); ++k)
-                {
-                    i_ghost(bdry_normal_axis) = i_intr(bdry_normal_axis) + sgn*k;
-                    i_true (bdry_normal_axis) = i_intr(bdry_normal_axis) - sgn*(k-1);
-                    const double Q_i = (*Q_data)(i_true,depth);
-                    (*Q_data)(i_ghost,depth) = -(-4.0*g*h*k-2.0*g*h+2.0*a*Q_i*h*k+a*Q_i*h-2.0*b*Q_i)/(2.0*a*h*k+a*h+2.0*b);
+                    const double& a = (*acoef_data)(i,0);
+                    const double& b = (*bcoef_data)(i,0);
+                    const double& g = (*gcoef_data)(i,0);
+                    const double& h = dx[bdry_normal_axis];
+                    int sgn;
+                    Index<NDIM> i_intr(i);
+                    if (is_lower)
+                    {
+                        sgn = -1;
+                    }
+                    else
+                    {
+                        sgn = +1;
+                        i_intr(bdry_normal_axis) -= 1;
+                    }
+                    Index<NDIM> i_true(i_intr), i_ghost(i_intr);
+                    for (int k = 1; k <= gcw(bdry_normal_axis); ++k)
+                    {
+                        i_ghost(bdry_normal_axis) = i_intr(bdry_normal_axis) + sgn*k;
+                        i_true (bdry_normal_axis) = i_intr(bdry_normal_axis) - sgn*(k-1);
+                        const double Q_i = (*Q_data)(i_true,depth);
+                        (*Q_data)(i_ghost,depth) = -(-4.0*g*h*k-2.0*g*h+2.0*a*Q_i*h*k+a*Q_i*h-2.0*b*Q_i)/(2.0*a*h*k+a*h+2.0*b);
+                    }
                 }
             }
         }
     }
     return;
-}// setInflowBoundaryConditions
+}// setPhysicalBoundaryConditions
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
