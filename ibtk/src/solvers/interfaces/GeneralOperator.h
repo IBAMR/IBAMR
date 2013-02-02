@@ -86,14 +86,15 @@ public:
     getIsInitialized() const;
 
     /*!
-     * \brief Set whether the solver should use homogeneous boundary conditions.
+     * \brief Set whether the operator should use homogeneous boundary
+     * conditions.
      */
     virtual void
     setHomogeneousBc(
         bool homogeneous_bc);
 
     /*!
-     * \brief Return whether the solver is using homogeneous boundary
+     * \brief Return whether the operator is using homogeneous boundary
      * conditions.
      */
     virtual bool
