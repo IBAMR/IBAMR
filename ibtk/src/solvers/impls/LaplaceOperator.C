@@ -96,6 +96,12 @@ LaplaceOperator::setPoissonSpecifications(
     return;
 }// setPoissonSpecifications
 
+const PoissonSpecifications&
+LaplaceOperator::getPoissonSpecifications() const
+{
+    return d_poisson_spec;
+}// getPoissonSpecifications
+
 void
 LaplaceOperator::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* const bc_coef)
@@ -111,7 +117,7 @@ LaplaceOperator::setPhysicalBcCoefs(
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[l])
         {
             d_bc_coefs[l] = bc_coefs[l];
         }
@@ -122,6 +128,12 @@ LaplaceOperator::setPhysicalBcCoefs(
     }
     return;
 }// setPhysicalBcCoefs
+
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+LaplaceOperator::getPhysicalBcCoefs() const
+{
+    return d_bc_coefs;
+}// getPhysicalBcCoefs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
