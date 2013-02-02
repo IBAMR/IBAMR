@@ -1087,7 +1087,7 @@ LDataManager::scatterToAll(
     Vec& sequential_vec) const
 {
     int ierr;
-    const bool create_vout = sequential_vec == PETSC_NULL;
+    const bool create_vout = !sequential_vec;
     VecScatter ctx;
     ierr = VecScatterCreateToAll(parallel_vec, &ctx, (create_vout ? &sequential_vec : PETSC_NULL));  IBTK_CHKERRQ(ierr);
     ierr = VecScatterBegin(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
@@ -1102,7 +1102,7 @@ LDataManager::scatterToZero(
     Vec& sequential_vec) const
 {
     int ierr;
-    const bool create_vout = sequential_vec == PETSC_NULL;
+    const bool create_vout = !sequential_vec;
     VecScatter ctx;
     ierr = VecScatterCreateToZero(parallel_vec, &ctx, (create_vout ? &sequential_vec : PETSC_NULL));  IBTK_CHKERRQ(ierr);
     ierr = VecScatterBegin(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);

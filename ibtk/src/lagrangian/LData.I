@@ -218,7 +218,7 @@ LData::getArrayCommon()
 inline void
 LData::getGhostedLocalFormArrayCommon()
 {
-    if (d_ghosted_local_vec == PETSC_NULL)
+    if (!d_ghosted_local_vec)
     {
         int ierr = VecGhostGetLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
     }

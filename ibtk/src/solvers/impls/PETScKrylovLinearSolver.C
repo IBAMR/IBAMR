@@ -361,7 +361,7 @@ PETScKrylovLinearSolver::initializeSolverState(
         ierr = KSPCreate(d_petsc_comm, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
         resetKSPOptions();
     }
-    else if (d_petsc_ksp == PETSC_NULL)
+    else if (!d_petsc_ksp)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                    << "  cannot initialize solver state for wrapped PETSc KSP object if the wrapped object is NULL" << std::endl);
@@ -530,7 +530,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(
     TBOX_ASSERT(!d_managing_petsc_ksp);
 #endif
     d_petsc_ksp = petsc_ksp;
-    if (d_petsc_ksp == PETSC_NULL) return;
+    if (!d_petsc_ksp) return;
     int ierr;
 
     // Set d_petsc_comm to be the MPI communicator used by the supplied KSP.
@@ -591,7 +591,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(
 void
 PETScKrylovLinearSolver::resetKSPOptions()
 {
-    if (d_petsc_ksp == PETSC_NULL) return;
+    if (!d_petsc_ksp) return;
     int ierr;
     const KSPType ksp_type = d_ksp_type.c_str();
     ierr = KSPSetType(d_petsc_ksp, ksp_type); IBTK_CHKERRQ(ierr);
@@ -622,7 +622,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
             d_petsc_mat = PETSC_NULL;
         }
     }
-    if (d_petsc_mat == PETSC_NULL)
+    if (!d_petsc_mat)
     {
         ierr = MatCreateShell(d_petsc_comm, 0, 0, 0, 0, static_cast<void*>(this), &d_petsc_mat); IBTK_CHKERRQ(ierr);
     }
@@ -641,7 +641,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
 void
 PETScKrylovLinearSolver::resetKSPPC()
 {
-    if (d_petsc_ksp == PETSC_NULL) return;
+    if (!d_petsc_ksp) return;
     int ierr;
 
     // Determine the preconditioner type to use.
@@ -684,7 +684,7 @@ PETScKrylovLinearSolver::resetKSPPC()
 void
 PETScKrylovLinearSolver::resetKSPNullspace()
 {
-    if (d_petsc_ksp == PETSC_NULL) return;
+    if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;
     ierr = PetscOptionsHasName(d_options_prefix.c_str(), "-ksp_constant_null_space", &flg); IBTK_CHKERRQ(ierr);

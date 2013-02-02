@@ -359,7 +359,7 @@ PETScNewtonKrylovSolver::initializeSolverState(
         ierr = SNESCreate(d_petsc_comm, &d_petsc_snes); IBTK_CHKERRQ(ierr);
         resetSNESOptions();
     }
-    else if (d_petsc_snes == PETSC_NULL)
+    else if (!d_petsc_snes)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                    << "  cannot initialize solver state for wrapped PETSc SNES object if the wrapped object is NULL" << std::endl);
@@ -549,7 +549,7 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
     TBOX_ASSERT(!d_managing_petsc_snes);
 #endif
     d_petsc_snes = petsc_snes;
-    if (d_petsc_snes == PETSC_NULL) return;
+    if (!d_petsc_snes) return;
 
     int ierr;
 
@@ -604,7 +604,7 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
 void
 PETScNewtonKrylovSolver::resetSNESOptions()
 {
-    if (d_petsc_snes == PETSC_NULL) return;
+    if (!d_petsc_snes) return;
     int ierr = SNESSetTolerances(d_petsc_snes, d_abs_residual_tol, d_rel_residual_tol, d_solution_tol, d_max_iterations, d_max_evaluations); IBTK_CHKERRQ(ierr);
     return;
 }// resetSNESSNESOptions
@@ -612,7 +612,7 @@ PETScNewtonKrylovSolver::resetSNESOptions()
 void
 PETScNewtonKrylovSolver::resetSNESFunction()
 {
-    if (d_petsc_snes == PETSC_NULL) return;
+    if (!d_petsc_snes) return;
     int ierr = SNESSetFunction(d_petsc_snes, d_petsc_r, PETScNewtonKrylovSolver::FormFunction_SAMRAI, static_cast<void*>(this)); IBTK_CHKERRQ(ierr);
     return;
 }// resetSNESFunction
@@ -620,7 +620,7 @@ PETScNewtonKrylovSolver::resetSNESFunction()
 void
 PETScNewtonKrylovSolver::resetSNESJacobian()
 {
-    if (d_petsc_snes == PETSC_NULL) return;
+    if (!d_petsc_snes) return;
     int ierr;
 
     // Create and configure the Jacobian matrix.
