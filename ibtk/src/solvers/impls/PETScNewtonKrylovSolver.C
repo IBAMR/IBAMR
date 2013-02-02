@@ -141,12 +141,12 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
 
     // Delete allocated PETSc solver components.
     int ierr;
-    if (d_petsc_jac != PETSC_NULL)
+    if (d_petsc_jac)
     {
         ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
         d_petsc_jac = PETSC_NULL;
     }
-    if (d_managing_petsc_snes && d_petsc_snes != PETSC_NULL)
+    if (d_managing_petsc_snes && d_petsc_snes)
     {
         ierr = SNESDestroy(&d_petsc_snes); IBTK_CHKERRQ(ierr);
         d_petsc_snes = PETSC_NULL;
@@ -250,7 +250,7 @@ PETScNewtonKrylovSolver::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_petsc_snes != PETSC_NULL);
+    TBOX_ASSERT(d_petsc_snes);
 #endif
     resetSNESOptions();
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
@@ -624,7 +624,7 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
     int ierr;
 
     // Create and configure the Jacobian matrix.
-    if (d_petsc_jac != PETSC_NULL)
+    if (d_petsc_jac)
     {
         ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
         d_petsc_jac = PETSC_NULL;
@@ -752,13 +752,13 @@ PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(newton_solver);
 #endif
-    if (right != PETSC_NULL)
+    if (right)
     {
         // vector that the matrix can be multiplied against
         ierr = VecDuplicate(newton_solver->d_petsc_x, right); IBTK_CHKERRQ(ierr);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*right)); IBTK_CHKERRQ(ierr);
     }
-    if (left != PETSC_NULL)
+    if (left)
     {
         // vector that the matrix vector product can be stored in
         ierr = VecDuplicate(newton_solver->d_petsc_b, left); IBTK_CHKERRQ(ierr);

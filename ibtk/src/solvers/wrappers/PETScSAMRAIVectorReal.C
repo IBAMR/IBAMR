@@ -112,8 +112,8 @@ VecDot_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_dot);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_dot);
@@ -129,10 +129,10 @@ VecMDot_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_m_dot);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     static const bool local_only = true;
@@ -153,7 +153,7 @@ VecNorm_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_norm);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     if (type == NORM_1)
     {
@@ -193,8 +193,8 @@ VecTDot_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_t_dot);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_t_dot);
@@ -210,10 +210,10 @@ VecMTDot_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_m_t_dot);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     static const bool local_only = true;
@@ -233,7 +233,7 @@ VecScale_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_scale);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->scale(alpha,PSVR_CAST2(x), interior_only);
@@ -249,8 +249,8 @@ VecCopy_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_copy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(y)->copyVector(PSVR_CAST2(x), interior_only);
@@ -266,7 +266,7 @@ VecSet_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_set);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->setToScalar(alpha, interior_only);
@@ -282,8 +282,8 @@ VecSwap_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_swap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     PSVR_CAST2(x)->swapVectors(PSVR_CAST2(y));
     int ierr;
@@ -301,8 +301,8 @@ VecAXPY_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_axpy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -331,8 +331,8 @@ VecAXPBY_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_axpby);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0) && MathUtilities<double>::equalEps(beta,1.0))
@@ -365,10 +365,10 @@ VecMAXPY_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_maxpy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(y);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(x[i] != PETSC_NULL);
+        TBOX_ASSERT(x[i]);
     }
 #endif
     static const bool interior_only = false;
@@ -400,8 +400,8 @@ VecAYPX_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_aypx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -430,9 +430,9 @@ VecWAXPY_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_waxpy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(w != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(w);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -463,9 +463,9 @@ VecAXPBYPCZ_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_axpbypcz);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(z != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(z);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(z)->linearSum(alpha, PSVR_CAST2(x), gamma, PSVR_CAST2(z), interior_only);
@@ -483,9 +483,9 @@ VecPointwiseMult_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_pointwise_mult);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(w != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(w);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->multiply(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
@@ -502,9 +502,9 @@ VecPointwiseDivide_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_pointwise_divide);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(w != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(w);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->divide(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
@@ -520,7 +520,7 @@ VecGetSize_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_get_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #else
     NULL_USE(v);
 #endif
@@ -536,7 +536,7 @@ VecGetLocalSize_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_get_local_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #else
     NULL_USE(v);
 #endif
@@ -553,7 +553,7 @@ VecMax_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_max);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     *p = -1;
     *val = PSVR_CAST2(x)->max();
@@ -569,7 +569,7 @@ VecMin_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_min);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     *p = -1;
     *val = PSVR_CAST2(x)->min();
@@ -584,7 +584,7 @@ VecSetRandom_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_set_random);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     PetscScalar lo, hi;
     int ierr;
@@ -603,8 +603,8 @@ VecDot_local_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_dot_local);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
@@ -620,8 +620,8 @@ VecTDot_local_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_t_dot_local);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
@@ -637,7 +637,7 @@ VecNorm_local_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_norm_local);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     static const bool local_only = true;
     if (type == NORM_1)
@@ -675,10 +675,10 @@ VecMDot_local_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_m_dot_local);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     static const bool local_only = true;
@@ -699,10 +699,10 @@ VecMTDot_local_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_m_t_dot_local);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     static const bool local_only = true;
@@ -722,8 +722,8 @@ VecMaxPointwiseDivide_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_max_pointwise_divide);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     *max = PSVR_CAST2(x)->maxPointwiseDivide(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_max_pointwise_divide);
@@ -739,8 +739,8 @@ VecDotNorm2_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_dot_norm2);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(s != PETSC_NULL);
-    TBOX_ASSERT(t != PETSC_NULL);
+    TBOX_ASSERT(s);
+    TBOX_ASSERT(t);
 #endif
     *dp = PSVR_CAST2(s)->dot(PSVR_CAST2(t));
     *nm = PSVR_CAST2(t)->dot(PSVR_CAST2(t));
@@ -896,7 +896,7 @@ PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(
     IBTK_TIMER_START(t_vec_duplicate);
     PetscErrorCode ierr;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     Pointer<SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
@@ -916,7 +916,7 @@ PETScSAMRAIVectorReal::VecDestroy_SAMRAI(
 {
     IBTK_TIMER_START(t_vec_destroy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {

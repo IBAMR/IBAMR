@@ -97,7 +97,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    if (mat != PETSC_NULL)
+    if (mat)
     {
         ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
@@ -239,7 +239,7 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    if (mat != PETSC_NULL)
+    if (mat)
     {
         ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
@@ -401,7 +401,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     int ierr;
-    if (mat != PETSC_NULL)
+    if (mat)
     {
         ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
@@ -539,7 +539,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
     if (interp_stencil%2 != 0) interp_stencil += 1;
 
     int ierr;
-    if (mat != PETSC_NULL)
+    if (mat)
     {
         ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }

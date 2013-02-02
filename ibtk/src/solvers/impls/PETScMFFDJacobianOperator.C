@@ -238,7 +238,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();
         Vec rhs;
         ierr = SNESGetRhs(snes, &rhs); IBTK_CHKERRQ(ierr);
-        if (rhs != PETSC_NULL)
+        if (rhs)
         {
             VecAXPY(f, -1.0, rhs); IBTK_CHKERRQ(ierr);
         }

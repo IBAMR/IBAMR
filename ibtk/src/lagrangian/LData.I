@@ -156,7 +156,7 @@ LData::restoreArrays()
         d_blitz_ghosted_local_array.free();
         d_blitz_vec_ghosted_local_array.free();
     }
-    if (d_ghosted_local_vec != PETSC_NULL)
+    if (d_ghosted_local_vec)
     {
         int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
         d_ghosted_local_vec = PETSC_NULL;

@@ -152,12 +152,12 @@ PETScKrylovLinearSolver::~PETScKrylovLinearSolver()
 
     // Delete allocated PETSc solver components.
     int ierr;
-    if (d_petsc_mat != PETSC_NULL)
+    if (d_petsc_mat)
     {
         ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
         d_petsc_mat = PETSC_NULL;
     }
-    if (d_managing_petsc_ksp && d_petsc_ksp != PETSC_NULL)
+    if (d_managing_petsc_ksp && d_petsc_ksp)
     {
         ierr = KSPDestroy(&d_petsc_ksp); IBTK_CHKERRQ(ierr);
         d_petsc_ksp = PETSC_NULL;
@@ -264,7 +264,7 @@ PETScKrylovLinearSolver::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_petsc_ksp != PETSC_NULL);
+    TBOX_ASSERT(d_petsc_ksp);
 #endif
     resetKSPOptions();
 
@@ -612,7 +612,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
     int ierr;
 
     // Create and configure the MatShell object.
-    if (d_petsc_mat != PETSC_NULL)
+    if (d_petsc_mat)
     {
         const MatType mat_type;
         ierr = MatGetType(d_petsc_mat, &mat_type); IBTK_CHKERRQ(ierr);
@@ -631,7 +631,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
     ierr = MatShellSetOperation(d_petsc_mat, MATOP_GET_VECS, reinterpret_cast<void(*)(void)>(PETScKrylovLinearSolver::MatGetVecs_SAMRAI   )); IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
-    if (d_petsc_ksp != PETSC_NULL)
+    if (d_petsc_ksp)
     {
         ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
     }
@@ -736,13 +736,13 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 {
     int ierr;
 
-    if (d_petsc_nullsp != PETSC_NULL)
+    if (d_petsc_nullsp)
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp); IBTK_CHKERRQ(ierr);
         d_petsc_nullsp = PETSC_NULL;
     }
 
-    if (d_petsc_nullspace_constant_vec != PETSC_NULL)
+    if (d_petsc_nullspace_constant_vec)
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
         d_petsc_nullspace_constant_vec = PETSC_NULL;
@@ -811,13 +811,13 @@ PETScKrylovLinearSolver::MatGetVecs_SAMRAI(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(krylov_solver);
 #endif
-    if (right != PETSC_NULL)
+    if (right)
     {
         // vector that the matrix can be multiplied against
         ierr = VecDuplicate(krylov_solver->d_petsc_x, right); IBTK_CHKERRQ(ierr);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*right)); IBTK_CHKERRQ(ierr);
     }
-    if (left != PETSC_NULL)
+    if (left)
     {
         // vector that the matrix vector product can be stored in
         ierr = VecDuplicate(krylov_solver->d_petsc_b, left); IBTK_CHKERRQ(ierr);
