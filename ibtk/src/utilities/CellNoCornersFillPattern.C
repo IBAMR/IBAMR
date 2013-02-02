@@ -91,7 +91,7 @@ CellNoCornersFillPattern::calculateOverlap(
 #endif
     const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     BoxList<NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
@@ -161,7 +161,7 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(
 #endif
     const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     BoxList<NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())

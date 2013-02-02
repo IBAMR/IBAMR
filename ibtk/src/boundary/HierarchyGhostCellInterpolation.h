@@ -98,7 +98,7 @@ public:
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef == NULL ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>() :  std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef)),
+              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef) : std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
               d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank
@@ -153,7 +153,7 @@ public:
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef == NULL ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>() :  std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef)),
+              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1,robin_bc_coef) : std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
               d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>())
             {
                 // intentionally blank

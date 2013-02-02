@@ -228,7 +228,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(
 {
     PETScMFFDJacobianOperator* jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(jac_op != NULL);
+    TBOX_ASSERT(jac_op);
     TBOX_ASSERT(jac_op->d_F);
 #endif
     int ierr;

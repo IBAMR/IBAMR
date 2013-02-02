@@ -94,7 +94,7 @@ SideNoCornersFillPattern::calculateOverlap(
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
@@ -167,7 +167,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())

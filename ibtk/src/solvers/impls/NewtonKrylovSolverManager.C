@@ -75,7 +75,7 @@ unsigned char NewtonKrylovSolverManager::s_shutdown_priority = 200;
 NewtonKrylovSolverManager*
 NewtonKrylovSolverManager::getManager()
 {
-    if (s_solver_manager_instance == NULL)
+    if (!s_solver_manager_instance)
     {
         s_solver_manager_instance = new NewtonKrylovSolverManager();
     }

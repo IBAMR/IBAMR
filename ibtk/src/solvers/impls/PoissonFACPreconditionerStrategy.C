@@ -179,7 +179,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
                    << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
-    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
+    delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
 }// ~PoissonFACPreconditionerStrategy
@@ -207,7 +207,7 @@ PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[l])
         {
             d_bc_coefs[l] = bc_coefs[l];
         }

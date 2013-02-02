@@ -1291,7 +1291,7 @@ FEDataManager::buildL2ProjectionSolver(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
+                if (elem->neighbor(side)) continue;
                 static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
@@ -1438,7 +1438,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
+                if (elem->neighbor(side)) continue;
                 static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
@@ -2209,13 +2209,15 @@ FEDataManager::collectActivePatchElements(
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
                     Elem* const nghbr_elem = elem->neighbor(n);
-                    if (nghbr_elem == NULL) continue;
-                    const bool    is_local_elem =    local_elems.find(nghbr_elem) !=    local_elems.end();
-                    const bool is_nonlocal_elem = nonlocal_elems.find(nghbr_elem) != nonlocal_elems.end();
-                    if (!(is_local_elem || is_nonlocal_elem))
+                    if (nghbr_elem)
                     {
-                        frontier_elems.insert(nghbr_elem);
-                        new_frontier = true;
+                        const bool    is_local_elem =    local_elems.find(nghbr_elem) !=    local_elems.end();
+                        const bool is_nonlocal_elem = nonlocal_elems.find(nghbr_elem) != nonlocal_elems.end();
+                        if (!(is_local_elem || is_nonlocal_elem))
+                        {
+                            frontier_elems.insert(nghbr_elem);
+                            new_frontier = true;
+                        }
                     }
                 }
             }

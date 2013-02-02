@@ -92,13 +92,13 @@ AppInitializer::AppInitializer(
     {
         // Check whether this appears to be a restarted run.
         FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
-        if (SAMRAI_MPI::bcast(fstream != NULL ? 1 : 0, 0) == 1)
+        if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
             restart_read_dirname = argv[2];
             restore_num = atoi(argv[3]);
             d_is_from_restart = true;
         }
-        if (fstream != NULL)
+        if (fstream)
         {
             fclose(fstream);
         }

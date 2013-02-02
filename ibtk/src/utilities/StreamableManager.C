@@ -72,7 +72,7 @@ unsigned char StreamableManager::s_shutdown_priority = 200;
 StreamableManager*
 StreamableManager::getManager()
 {
-    if (s_data_manager_instance == NULL)
+    if (!s_data_manager_instance)
     {
         s_data_manager_instance = new StreamableManager();
     }

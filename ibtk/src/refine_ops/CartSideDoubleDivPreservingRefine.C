@@ -133,7 +133,7 @@ CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_fill_time));
 #endif
-    if (d_phys_bdry_op != NULL) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+    if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 }// setPhysicalBoundaryConditions
 

@@ -84,7 +84,7 @@ unsigned char SCPoissonSolverManager::s_shutdown_priority = 200;
 SCPoissonSolverManager*
 SCPoissonSolverManager::getManager()
 {
-    if (s_solver_manager_instance == NULL)
+    if (!s_solver_manager_instance)
     {
         s_solver_manager_instance = new SCPoissonSolverManager();
     }

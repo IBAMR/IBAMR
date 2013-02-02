@@ -130,7 +130,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_user_provided_jacobian(false)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    if (d_petsc_snes != NULL) resetWrappedSNES(d_petsc_snes);
+    if (d_petsc_snes) resetWrappedSNES(d_petsc_snes);
     common_ctor();
     return;
 }// PETScNewtonKrylovSolver()
@@ -662,7 +662,7 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(newton_solver != NULL);
+    TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_F);
 #endif
     newton_solver->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
@@ -682,7 +682,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(newton_solver != NULL);
+    TBOX_ASSERT(newton_solver);
 #endif
     if (newton_solver->d_J)
     {
@@ -711,7 +711,7 @@ PETScNewtonKrylovSolver::MatVecMult_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(newton_solver != NULL);
+    TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
 #endif
     newton_solver->d_J->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
@@ -731,7 +731,7 @@ PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(newton_solver != NULL);
+    TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
 #endif
     newton_solver->d_J->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y), *PETScSAMRAIVectorReal::getSAMRAIVector(z));
@@ -750,7 +750,7 @@ PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(newton_solver != NULL);
+    TBOX_ASSERT(newton_solver);
 #endif
     if (right != PETSC_NULL)
     {

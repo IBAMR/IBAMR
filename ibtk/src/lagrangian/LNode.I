@@ -151,7 +151,7 @@ LNode::getNodeDataItem() const
         T* ret_val = NULL;
         Streamable* it_val;
         unsigned int k;
-        for (k = 0; k < node_data_sz && ret_val == NULL; ++k)
+        for (k = 0; k < node_data_sz && !ret_val; ++k)
         {
             it_val = d_node_data[k];
             if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
@@ -191,7 +191,7 @@ LNode::copySourceItem(
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
     const LNode* const p_src_item = dynamic_cast<const LNode*>(&src_item);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(p_src_item != NULL);
+    TBOX_ASSERT(p_src_item);
 #endif
     assignThatToThis(*p_src_item);
     return;
@@ -245,7 +245,7 @@ LNode::setupNodeDataTypeArray()
     {
         it_val = *cit;
         class_id = it_val->getStreamableClassID();
-        if (LIKELY(class_id < MAX_SIZE && d_node_data_type_arr[class_id] == NULL))
+        if (LIKELY(class_id < MAX_SIZE && !d_node_data_type_arr[class_id]))
         {
             d_node_data_type_arr[class_id] = it_val;
         }

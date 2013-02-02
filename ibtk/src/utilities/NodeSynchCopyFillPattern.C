@@ -87,7 +87,7 @@ NodeSynchCopyFillPattern::calculateOverlap(
 
     const NodeGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const NodeGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     BoxList<NDIM> dst_boxes;
     bool skip = false;

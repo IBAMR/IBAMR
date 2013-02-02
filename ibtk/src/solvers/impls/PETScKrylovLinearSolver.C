@@ -141,7 +141,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_solver_has_attached_nullspace(false)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    if (d_petsc_ksp != NULL) resetWrappedKSP(d_petsc_ksp);
+    if (d_petsc_ksp) resetWrappedKSP(d_petsc_ksp);
     common_ctor();
     return;
 }// PETScKrylovLinearSolver()
@@ -770,7 +770,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(krylov_solver != NULL);
+    TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
     krylov_solver->d_A->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
@@ -790,7 +790,7 @@ PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(krylov_solver != NULL);
+    TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
     krylov_solver->d_A->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y), *PETScSAMRAIVectorReal::getSAMRAIVector(z));
@@ -809,7 +809,7 @@ PETScKrylovLinearSolver::MatGetVecs_SAMRAI(
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(krylov_solver != NULL);
+    TBOX_ASSERT(krylov_solver);
 #endif
     if (right != PETSC_NULL)
     {
@@ -837,7 +837,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(
     ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(krylov_solver != NULL);
+    TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_pc_solver);
 #endif
 

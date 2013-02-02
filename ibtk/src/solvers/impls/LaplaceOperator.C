@@ -83,7 +83,7 @@ LaplaceOperator::LaplaceOperator(
 
 LaplaceOperator::~LaplaceOperator()
 {
-    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
+    delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
 }// ~LaplaceOperator()

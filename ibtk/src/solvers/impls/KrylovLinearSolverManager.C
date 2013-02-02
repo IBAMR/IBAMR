@@ -75,7 +75,7 @@ unsigned char KrylovLinearSolverManager::s_shutdown_priority = 200;
 KrylovLinearSolverManager*
 KrylovLinearSolverManager::getManager()
 {
-    if (s_solver_manager_instance == NULL)
+    if (!s_solver_manager_instance)
     {
         s_solver_manager_instance = new KrylovLinearSolverManager();
     }

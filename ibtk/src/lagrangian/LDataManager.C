@@ -757,7 +757,7 @@ LDataManager::reinitLagrangianStructure(
         {
             const Index<NDIM>& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
-            if (node_set != NULL)
+            if (node_set)
             {
                 LNodeSet::DataSet unmoved_idxs;
                 unmoved_idxs.reserve(node_set->size());
@@ -840,7 +840,7 @@ LDataManager::displaceLagrangianStructure(
         {
             const Index<NDIM>& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
-            if (node_set != NULL)
+            if (node_set)
             {
                 LNodeSet::DataSet unmoved_idxs;
                 unmoved_idxs.reserve(node_set->size());

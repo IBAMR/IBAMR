@@ -151,17 +151,17 @@ HierarchyIntegrator::~HierarchyIntegrator()
 
     for (RefinePatchStrategyMap::iterator it = d_ghostfill_strategies.begin(); it != d_ghostfill_strategies.end(); ++it)
     {
-        if (it->second != NULL) delete it->second;
+        delete it->second;
     }
 
     for (RefinePatchStrategyMap::iterator it = d_prolong_strategies.begin(); it != d_prolong_strategies.end(); ++it)
     {
-        if (it->second != NULL) delete it->second;
+        delete it->second;
     }
 
     for (CoarsenPatchStrategyMap::iterator it = d_coarsen_strategies.begin(); it != d_coarsen_strategies.end(); ++it)
     {
-        if (it->second != NULL) delete it->second;
+        delete it->second;
     }
     return;
 }// ~HierarchyIntegrator
@@ -177,7 +177,7 @@ HierarchyIntegrator::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    if (d_hierarchy_is_initialized || d_parent_integrator != NULL) return;
+    if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(hierarchy);
@@ -672,7 +672,7 @@ HierarchyIntegrator::initializeLevelData(
         std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_prolong_patch_strategies;
         CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
         fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
-        if (d_fill_after_regrid_phys_bdry_bc_op != NULL)
+        if (d_fill_after_regrid_phys_bdry_bc_op)
         {
             fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
         }
@@ -829,7 +829,7 @@ HierarchyIntegrator::applyGradientDetector(
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
-    if (d_parent_integrator == NULL)
+    if (!d_parent_integrator)
     {
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -1058,7 +1058,7 @@ HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 bool
 HierarchyIntegrator::atRegridPointSpecialized() const
 {
-    if (d_parent_integrator != NULL)
+    if (d_parent_integrator)
     {
         return false;
     }
@@ -1359,7 +1359,7 @@ Pointer<HierarchyMathOps>
 HierarchyIntegrator::buildHierarchyMathOps(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-    if (d_parent_integrator == NULL)
+    if (!d_parent_integrator)
     {
         if (!d_hier_math_ops)
         {

@@ -124,12 +124,12 @@ VecCellData<TYPE>::copy(
 {
     const VecCellData<TYPE>* const t_vcd_src = dynamic_cast<const VecCellData<TYPE>*>(&src);
     const CellData<NDIM,TYPE>* const t_cd_src = dynamic_cast<const CellData<NDIM,TYPE>*>(&src);
-    if (t_vcd_src != NULL)
+    if (t_vcd_src)
     {
         const Box<NDIM> box = getGhostBox() * t_vcd_src->getGhostBox();
         copyOnBox(*t_vcd_src, box);
     }
-    else if (t_cd_src != NULL)
+    else if (t_cd_src)
     {
         const Box<NDIM> box = getGhostBox() * t_cd_src->getGhostBox();
         copyOnBox(*t_cd_src, box);
@@ -149,14 +149,14 @@ VecCellData<TYPE>::copy2(
     VecCellData<TYPE>* const t_vcd_dst = dynamic_cast<VecCellData<TYPE>*>(&dst);
     CellData<NDIM,TYPE>* const t_cd_dst = dynamic_cast<CellData<NDIM,TYPE>*>(&dst);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_vcd_dst != NULL || t_cd_dst != NULL);
+    TBOX_ASSERT(t_vcd_dst || t_cd_dst);
 #endif
-    if (t_vcd_dst != NULL)
+    if (t_vcd_dst)
     {
         const Box<NDIM> box = getGhostBox() * t_vcd_dst->getGhostBox();
         t_vcd_dst->copyOnBox(*this, box);
     }
-    else if (t_cd_dst != NULL)
+    else if (t_cd_dst)
     {
         const Box<NDIM> box = getGhostBox() * t_cd_dst->getGhostBox();
         copy2OnBox(*t_cd_dst, box);
@@ -172,7 +172,7 @@ VecCellData<TYPE>::copy(
 {
     const VecCellData<TYPE>* const t_src = dynamic_cast<const VecCellData<TYPE>*>(&src);
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
-    if ((t_src == NULL) || (t_overlap == NULL))
+    if (!t_src || !t_overlap)
     {
         src.copy2(*this, overlap);
     }
@@ -196,8 +196,8 @@ void VecCellData<TYPE>::copy2(
     VecCellData<TYPE>* const t_dst = dynamic_cast<VecCellData<TYPE>*>(&dst);
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst != NULL);
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_dst);
+    TBOX_ASSERT(t_overlap);
 #endif
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
     const IntVector<NDIM>& src_offset = t_overlap->getSourceOffset();
@@ -258,7 +258,7 @@ VecCellData<bool>::getDataStreamSize(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     int size = 0;
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
@@ -277,7 +277,7 @@ VecCellData<char>::getDataStreamSize(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     int size = 0;
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
@@ -296,7 +296,7 @@ VecCellData<double>::getDataStreamSize(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     int size = 0;
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
@@ -315,7 +315,7 @@ VecCellData<float>::getDataStreamSize(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     int size = 0;
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
@@ -334,7 +334,7 @@ VecCellData<dcomplex>::getDataStreamSize(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     int size = 0;
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
@@ -354,7 +354,7 @@ VecCellData<TYPE>::packStream(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
     const IntVector<NDIM>& src_offset = t_overlap->getSourceOffset();
@@ -385,7 +385,7 @@ VecCellData<TYPE>::unpackStream(
 {
     const CellOverlap<NDIM>* const t_overlap = dynamic_cast<const CellOverlap<NDIM>*>(&overlap);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_overlap != NULL);
+    TBOX_ASSERT(t_overlap);
 #endif
     const BoxList<NDIM>& dst_box_list = t_overlap->getDestinationBoxList();
     for (BoxList<NDIM>::Iterator b(dst_box_list); b; b++)
