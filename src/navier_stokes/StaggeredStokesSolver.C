@@ -85,9 +85,9 @@ StaggeredStokesSolver::StaggeredStokesSolver()
 
 StaggeredStokesSolver::~StaggeredStokesSolver()
 {
-    if (d_default_U_bc_coef != NULL) delete d_default_U_bc_coef;
+    delete d_default_U_bc_coef;
     d_default_U_bc_coef = NULL;
-    if (d_default_P_bc_coef != NULL) delete d_default_P_bc_coef;
+    delete d_default_P_bc_coef;
     d_default_P_bc_coef = NULL;
     return;
 }// ~StaggeredStokesSolver()
@@ -110,7 +110,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        if (U_bc_coefs[d] != NULL)
+        if (U_bc_coefs[d])
         {
             d_U_bc_coefs[d] = U_bc_coefs[d];
         }
@@ -120,7 +120,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(
         }
     }
 
-    if (P_bc_coef != NULL)
+    if (P_bc_coef)
     {
         d_P_bc_coef = P_bc_coef;
     }

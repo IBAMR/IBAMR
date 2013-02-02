@@ -99,7 +99,7 @@ SCPoissonSolverManager::getManager()
 void
 SCPoissonSolverManager::freeManager()
 {
-    if (s_solver_manager_instance) delete s_solver_manager_instance;
+    delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
     return;
 }// freeManager

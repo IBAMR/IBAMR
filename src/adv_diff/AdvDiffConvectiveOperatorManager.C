@@ -71,7 +71,7 @@ unsigned char AdvDiffConvectiveOperatorManager::s_shutdown_priority = 200;
 AdvDiffConvectiveOperatorManager*
 AdvDiffConvectiveOperatorManager::getManager()
 {
-    if (s_operator_manager_instance == NULL)
+    if (!s_operator_manager_instance)
     {
         s_operator_manager_instance = new AdvDiffConvectiveOperatorManager();
     }
@@ -86,7 +86,7 @@ AdvDiffConvectiveOperatorManager::getManager()
 void
 AdvDiffConvectiveOperatorManager::freeManager()
 {
-    if (s_operator_manager_instance) delete s_operator_manager_instance;
+    delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
     return;
 }// freeManager

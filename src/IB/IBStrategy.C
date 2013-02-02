@@ -353,7 +353,7 @@ Pointer<HierarchyDataOpsReal<NDIM,double> >
 IBStrategy::getVelocityHierarchyDataOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_velocity_data_ops;
 }// getVelocityHierarchyDataOps
@@ -362,7 +362,7 @@ Pointer<HierarchyDataOpsReal<NDIM,double> >
 IBStrategy::getPressureHierarchyDataOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_pressure_data_ops;
 }// getPressureHierarchyDataOps
@@ -371,7 +371,7 @@ Pointer<HierarchyMathOps>
 IBStrategy::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_math_ops;
 }// getHierarchyMathOps
@@ -388,7 +388,7 @@ IBStrategy::registerVariable(
     Pointer<CartGridFunction> init_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
     return;
@@ -402,7 +402,7 @@ IBStrategy::registerVariable(
     Pointer<VariableContext> ctx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
     return;

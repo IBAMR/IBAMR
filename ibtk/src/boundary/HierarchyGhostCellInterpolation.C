@@ -507,12 +507,12 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     // Clear cached communication schedules.
     d_coarsen_alg.setNull();
-    if (d_coarsen_strategy) delete d_coarsen_strategy;
+    delete d_coarsen_strategy;
     d_coarsen_strategy = NULL;
     d_coarsen_scheds.clear();
 
     d_refine_alg.setNull();
-    if (d_refine_strategy) delete d_refine_strategy;
+    delete d_refine_strategy;
     d_refine_strategy = NULL;
     d_refine_scheds.clear();
 

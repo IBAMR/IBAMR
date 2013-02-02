@@ -228,7 +228,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
@@ -343,7 +343,7 @@ INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());

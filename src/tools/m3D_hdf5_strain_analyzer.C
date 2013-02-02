@@ -357,8 +357,7 @@ main(
     {
         string silo_filename = "silo/" + string(input_filenames[n]) + ".silo";
         DBfile *dbfile;
-        if ((dbfile = DBCreate(silo_filename.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
-            == NULL)
+        if (!(dbfile = DBCreate(silo_filename.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             cerr << "main():\n"
                  << "  Could not create DBfile named " << silo_filename << endl;

@@ -161,7 +161,7 @@ main(
                 Elem* const elem = *el;
                 for (unsigned int side = 0; side < elem->n_sides(); ++side)
                 {
-                    const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                    const bool at_mesh_bdry = !elem->neighbor(side);
                     if (!at_mesh_bdry) continue;
                     for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                     {

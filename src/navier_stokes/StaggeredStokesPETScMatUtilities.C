@@ -86,7 +86,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    if (mat != PETSC_NULL)
+    if (mat)
     {
         ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }

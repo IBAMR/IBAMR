@@ -108,7 +108,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
     setHomogeneousBc(d_homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        if (u_bc_coefs[d] != NULL)
+        if (u_bc_coefs[d])
         {
             d_u_bc_coefs[d] = u_bc_coefs[d];
         }

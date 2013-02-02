@@ -222,7 +222,7 @@ main(
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
                     const short int boundary_id = lower_mesh.boundary_info->boundary_id(elem,side);
@@ -247,7 +247,7 @@ main(
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
                     const short int boundary_id = upper_mesh.boundary_info->boundary_id(elem,side);

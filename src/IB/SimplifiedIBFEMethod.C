@@ -645,7 +645,7 @@ SimplifiedIBFEMethod::initializeFEData()
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (!at_mesh_bdry) continue;
 
                 static const short int dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };

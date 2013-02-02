@@ -638,7 +638,7 @@ IBFEMethod::initializeFEData()
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (!at_mesh_bdry) continue;
 
                 static const short int dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };
@@ -1001,7 +1001,7 @@ IBFEMethod::computeInteriorForceDensity(
     const std::vector<std::vector<double> >* F_dil_bar_phi = NULL;
     AutoPtr<FEBase> F_dil_bar_fe_face;
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_vec != NULL)
+    if (F_dil_bar_vec)
     {
         F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
@@ -1083,7 +1083,7 @@ IBFEMethod::computeInteriorForceDensity(
             }
         }
 
-        if (F_dil_bar_vec != NULL)
+        if (F_dil_bar_vec)
         {
             F_dil_bar_fe->reinit(elem);
             F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
@@ -1093,13 +1093,13 @@ IBFEMethod::computeInteriorForceDensity(
         const unsigned int n_basis = dof_indices(0).size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        if (F_dil_bar_vec != NULL) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
+        if (F_dil_bar_vec) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(FF,qp,X_node,dphi);
-            if (F_dil_bar_vec != NULL)
+            if (F_dil_bar_vec)
             {
                 jacobian(FF_bar,qp,X_node,dphi,F_dil_bar_node,*F_dil_bar_phi);
             }
@@ -1108,7 +1108,7 @@ IBFEMethod::computeInteriorForceDensity(
                 FF_bar = FF;
             }
 
-            if (d_PK1_stress_fcns[part] != NULL)
+            if (d_PK1_stress_fcns[part])
             {
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
@@ -1124,7 +1124,7 @@ IBFEMethod::computeInteriorForceDensity(
                 }
             }
 
-            if (d_lag_body_force_fcns[part] != NULL)
+            if (d_lag_body_force_fcns[part])
             {
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
@@ -1146,7 +1146,7 @@ IBFEMethod::computeInteriorForceDensity(
         {
             // Determine whether we are at a physical boundary and, if so,
             // whether it is a Dirichlet boundary.
-            bool at_physical_bdry = elem->neighbor(side) == NULL;
+            bool at_physical_bdry = !elem->neighbor(side);
             const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
             for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
             {
@@ -1159,20 +1159,20 @@ IBFEMethod::computeInteriorForceDensity(
 
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
-            const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && (( d_split_forces && !at_dirichlet_bdry) ||
+            const bool compute_transmission_force = d_PK1_stress_fcns       [part] && (( d_split_forces && !at_dirichlet_bdry) ||
                                                                                                (!d_split_forces &&  at_dirichlet_bdry));
-            const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
-            const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
+            const bool compute_pressure           = d_lag_pressure_fcns     [part] && ( !d_split_forces && !at_dirichlet_bdry );
+            const bool compute_surface_force      = d_lag_surface_force_fcns[part] && ( !d_split_forces && !at_dirichlet_bdry );
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
-            if (F_dil_bar_vec != NULL) F_dil_bar_fe_face->reinit(elem, side);
+            if (F_dil_bar_vec) F_dil_bar_fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
             const unsigned int n_basis = dof_indices(0).size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
-            if (F_dil_bar_vec != NULL) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
+            if (F_dil_bar_vec) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
@@ -1180,7 +1180,7 @@ IBFEMethod::computeInteriorForceDensity(
                 jacobian(FF,qp,X_node,dphi_face);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                if (F_dil_bar_vec != NULL)
+                if (F_dil_bar_vec)
                 {
                     jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
                 }
@@ -1197,7 +1197,7 @@ IBFEMethod::computeInteriorForceDensity(
                     d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                     F += PP*normal_face[qp];
                 }
-                if (compute_pressure && d_lag_pressure_fcns[part] != NULL)
+                if (compute_pressure && d_lag_pressure_fcns[part])
                 {
                     // Compute the value of the pressure at the quadrature point
                     // and add the corresponding force to the right-hand-side
@@ -1297,7 +1297,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     F_dil_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> F_dil_bar_fe_face;
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_ghost_vec != NULL)
+    if (F_dil_bar_ghost_vec)
     {
         F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
@@ -1372,7 +1372,7 @@ IBFEMethod::spreadTransmissionForceDensity(
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
+                bool at_physical_bdry = !elem->neighbor(side);
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1387,7 +1387,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
-            if (F_dil_bar_ghost_vec != NULL)
+            if (F_dil_bar_ghost_vec)
             {
                 F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
                 get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_ghost_vec, F_dil_bar_dof_indices);
@@ -1398,7 +1398,7 @@ IBFEMethod::spreadTransmissionForceDensity(
             {
                 // Determine whether we are at a physical boundary and, if so,
                 // whether it is a Dirichlet boundary.
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
+                bool at_physical_bdry = !elem->neighbor(side);
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1412,9 +1412,9 @@ IBFEMethod::spreadTransmissionForceDensity(
                 // Determine whether we need to compute surface forces along
                 // this part of the physical boundary; if not, skip the present
                 // side.
-                const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && !at_dirichlet_bdry;
-                const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && !at_dirichlet_bdry;
-                const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && !at_dirichlet_bdry;
+                const bool compute_transmission_force = d_PK1_stress_fcns       [part] && !at_dirichlet_bdry;
+                const bool compute_pressure           = d_lag_pressure_fcns     [part] && !at_dirichlet_bdry;
+                const bool compute_surface_force      = d_lag_surface_force_fcns[part] && !at_dirichlet_bdry;
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -1431,10 +1431,10 @@ IBFEMethod::spreadTransmissionForceDensity(
                 {
                     qrule_face = QBase::build(QGAUSS, dim-1, order);
                     fe_face->attach_quadrature_rule(qrule_face.get());
-                    if (F_dil_bar_ghost_vec != NULL) F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
+                    if (F_dil_bar_ghost_vec) F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
                 }
                 fe_face->reinit(elem, side);
-                if (F_dil_bar_ghost_vec != NULL)
+                if (F_dil_bar_ghost_vec)
                 {
                     F_dil_bar_fe_face->reinit(elem, side);
                 }
@@ -1451,7 +1451,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    if (F_dil_bar_ghost_vec != NULL)
+                    if (F_dil_bar_ghost_vec)
                     {
                         jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
                     }
@@ -1551,7 +1551,7 @@ IBFEMethod::imposeJumpConditions(
     F_dil_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> F_dil_bar_fe_face;
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_ghost_vec != NULL)
+    if (F_dil_bar_ghost_vec)
     {
         F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
@@ -1628,7 +1628,7 @@ IBFEMethod::imposeJumpConditions(
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
+                bool at_physical_bdry = !elem->neighbor(side);
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1648,7 +1648,7 @@ IBFEMethod::imposeJumpConditions(
             {
                 // Determine whether we are at a physical boundary and, if so,
                 // whether it is a Dirichlet boundary.
-                bool at_physical_bdry = elem->neighbor(side) == NULL;
+                bool at_physical_bdry = !elem->neighbor(side);
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1662,10 +1662,10 @@ IBFEMethod::imposeJumpConditions(
                 // Determine whether we need to compute surface forces along
                 // this part of the physical boundary; if not, skip the present
                 // side.
-                const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && (( d_split_forces && !at_dirichlet_bdry) ||
+                const bool compute_transmission_force = d_PK1_stress_fcns       [part] && (( d_split_forces && !at_dirichlet_bdry) ||
                                                                                                    (!d_split_forces &&  at_dirichlet_bdry));
-                const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
-                const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
+                const bool compute_pressure           = d_lag_pressure_fcns     [part] && ( !d_split_forces && !at_dirichlet_bdry );
+                const bool compute_surface_force      = d_lag_surface_force_fcns[part] && ( !d_split_forces && !at_dirichlet_bdry );
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Construct a side element.
@@ -1777,7 +1777,7 @@ IBFEMethod::imposeJumpConditions(
                 }
                 get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
-                if (F_dil_bar_ghost_vec != NULL)
+                if (F_dil_bar_ghost_vec)
                 {
                     F_dil_bar_fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
                     F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
@@ -1819,7 +1819,7 @@ IBFEMethod::imposeJumpConditions(
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    if (F_dil_bar_ghost_vec != NULL)
+                    if (F_dil_bar_ghost_vec)
                     {
                         jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
                     }
@@ -1945,7 +1945,7 @@ IBFEMethod::initializeCoordinates(
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    const bool identity_mapping = d_coordinate_mapping_fcns[part] == NULL;
+    const bool identity_mapping = !d_coordinate_mapping_fcns[part];
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;

@@ -230,7 +230,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     // Set the unmodified velocity bc coefs.
@@ -335,7 +335,7 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());

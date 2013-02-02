@@ -487,7 +487,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 #endif
             if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
             T = force_fcn(R,params,lag_mastr_idx,lag_slave_idx);
-            if (force_deriv_fcn == NULL)
+            if (!force_deriv_fcn)
             {
                 // Use finite differences to approximate dT/dR.
                 eps = std::max(R,1.0)*pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
@@ -663,7 +663,7 @@ IBStandardForceGen::initializeSpringLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
+        if (force_spec) num_springs += force_spec->getNumberOfSprings();
     }
 
     // Resize arrays for storing cached values used to compute spring forces.
@@ -684,7 +684,7 @@ IBStandardForceGen::initializeSpringLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec == NULL) continue;
+        if (!force_spec) continue;
 
         const int lag_idx = node_idx->getLagrangianIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -885,7 +885,7 @@ IBStandardForceGen::initializeBeamLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec != NULL) num_beams += force_spec->getNumberOfBeams();
+        if (force_spec) num_beams += force_spec->getNumberOfBeams();
     }
     petsc_mastr_node_idxs.resize(num_beams);
     petsc_next_node_idxs .resize(num_beams);
@@ -902,7 +902,7 @@ IBStandardForceGen::initializeBeamLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec == NULL) continue;
+        if (!force_spec) continue;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         const int lag_idx = node_idx->getLagrangianIndex();
@@ -1108,7 +1108,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec != NULL) num_target_points += 1;
+        if (force_spec) num_target_points += 1;
     }
 
     // Resize arrays for storing cached values used to compute target point
@@ -1127,7 +1127,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec == NULL) continue;
+        if (!force_spec) continue;
         petsc_node_idxs(current_target_point) = node_idx->getGlobalPETScIndex();
         kappa          (current_target_point) = &force_spec->getStiffness();
         eta            (current_target_point) = &force_spec->getDamping();

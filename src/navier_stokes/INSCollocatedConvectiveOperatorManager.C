@@ -71,7 +71,7 @@ unsigned char INSCollocatedConvectiveOperatorManager::s_shutdown_priority = 200;
 INSCollocatedConvectiveOperatorManager*
 INSCollocatedConvectiveOperatorManager::getManager()
 {
-    if (s_operator_manager_instance == NULL)
+    if (!s_operator_manager_instance)
     {
         s_operator_manager_instance = new INSCollocatedConvectiveOperatorManager();
     }
@@ -86,7 +86,7 @@ INSCollocatedConvectiveOperatorManager::getManager()
 void
 INSCollocatedConvectiveOperatorManager::freeManager()
 {
-    if (s_operator_manager_instance) delete s_operator_manager_instance;
+    delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
     return;
 }// freeManager

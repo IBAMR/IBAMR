@@ -432,7 +432,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(integrator != static_cast<HyperbolicLevelIntegrator<NDIM>*>(NULL));
+    TBOX_ASSERT(integrator);
 #endif
     d_integrator = integrator;
 

@@ -559,7 +559,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int m = spec->getMeterIndex();
                     max_meter_index = std::max(m, max_meter_index);
@@ -706,7 +706,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_arr[NDIM*petsc_idx];
@@ -1042,7 +1042,7 @@ IBInstrumentPanel::readInstrumentData(
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const U = &U_arr[NDIM*petsc_idx];
@@ -1176,7 +1176,7 @@ IBInstrumentPanel::writePlotData(
     current_file_name += temp_buf;
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-    if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)) == NULL)
+    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
                    << "  Could not create DBfile named " << current_file_name << std::endl);
@@ -1206,7 +1206,7 @@ IBInstrumentPanel::writePlotData(
         // process.
         sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
-        if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)) == NULL)
+        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
                        << "  Could not create DBfile named " << summary_file_name << std::endl);

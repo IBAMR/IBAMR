@@ -91,7 +91,7 @@ unsigned char StaggeredStokesSolverManager::s_shutdown_priority = 200;
 StaggeredStokesSolverManager*
 StaggeredStokesSolverManager::getManager()
 {
-    if (s_solver_manager_instance == NULL)
+    if (!s_solver_manager_instance)
     {
         s_solver_manager_instance = new StaggeredStokesSolverManager();
     }
@@ -106,7 +106,7 @@ StaggeredStokesSolverManager::getManager()
 void
 StaggeredStokesSolverManager::freeManager()
 {
-    if (s_solver_manager_instance) delete s_solver_manager_instance;
+    delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
     return;
 }// freeManager

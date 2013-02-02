@@ -1163,7 +1163,7 @@ IBMethod::endDataRedistribution(
         {
             const LNode* const node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
-            if (anchor_point_spec != NULL)
+            if (anchor_point_spec)
             {
                 d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
             }

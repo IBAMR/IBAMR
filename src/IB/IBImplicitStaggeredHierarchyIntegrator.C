@@ -537,7 +537,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::initializeOperatorState(
 void
 IBImplicitStaggeredHierarchyIntegrator::Jacobian::deallocateOperatorState()
 {
-    if (d_J_mat != PETSC_NULL)
+    if (d_J_mat)
     {
         int ierr = MatDestroy(&d_J_mat); IBTK_CHKERRQ(ierr);
         d_J_mat = PETSC_NULL;
