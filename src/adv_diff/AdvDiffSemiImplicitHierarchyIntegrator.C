@@ -424,6 +424,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     if (dt_change)
     {
         std::fill(d_helmholtz_solvers_need_init.begin(),d_helmholtz_solvers_need_init.end(), true);
+        std::fill(d_helmholtz_rhs_ops_need_init.begin(),d_helmholtz_rhs_ops_need_init.end(), true);
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
@@ -446,12 +447,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_u_fcn[u_var]->setDataOnPatchHierarchy(u_current_idx, u_var, d_hierarchy, current_time);
         }
     }
+
     // Update the diffusion coefficient
     for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
     {
         Pointer<SideVariable<NDIM,double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
-        // if (D_fcn && D_fcn->isTimeDependent())
         if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
@@ -471,9 +472,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         const double lambda = d_Q_damping_coef  [Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
-        Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
-
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
@@ -482,8 +480,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
         const int D_rhs_scratch_idx = (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
 
-        // Setup the problem coefficients and right-hand-side for the linear
-        // solve for Q(n+1).
+        // Setup the problem coefficients for the linear solve for Q(n+1).
         double K = 0.0;
         switch (diffusion_time_stepping_type)
         {
@@ -497,34 +494,49 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
                 K = 0.5;
                 break;
             default:
-                TBOX_ERROR("this statment should not be reached");
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                           << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
+        PoissonSpecifications rhs_op_spec(d_object_name+"::rhs_op_spec::"+Q_var->getName());
         solver_spec.setCConstant(1.0/dt+K*lambda);
-        PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec::"+Q_var->getName());
-        rhs_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
+        rhs_op_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
         if (isDiffusionCoefficientVariable(Q_var))
         {
             // set -K*kappa in solver_spec
             d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_current_idx);
             solver_spec.setDPatchDataId(D_scratch_idx);
-            // set (1.0-K)*kappa in rhs_spec
+            // set (1.0-K)*kappa in rhs_op_spec
             d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0-K), D_current_idx);
-            rhs_spec.setDPatchDataId(D_rhs_scratch_idx);
+            rhs_op_spec.setDPatchDataId(D_rhs_scratch_idx);
         }
         else
         {
             const double kappa = d_Q_diffusion_coef[Q_var];
-            solver_spec.setDConstant(-K*kappa );
-            rhs_spec.setDConstant(+(1.0-K)*kappa);
+            solver_spec.setDConstant(-K*kappa);
+            rhs_op_spec.setDConstant(+(1.0-K)*kappa);
+        }
+
+        // Initialize the RHS operator and compute the RHS vector.
+        Pointer<LaplaceOperator> helmholtz_rhs_op = d_helmholtz_rhs_ops[l];
+        helmholtz_rhs_op->setPoissonSpecifications(rhs_op_spec);
+        helmholtz_rhs_op->setPhysicalBcCoefs(Q_bc_coef);
+        helmholtz_rhs_op->setHomogeneousBc(false);
+        helmholtz_rhs_op->setSolutionTime(current_time);
+        helmholtz_rhs_op->setTimeInterval(current_time, new_time);
+        if (d_helmholtz_rhs_ops_need_init[l])
+        {
+            if (d_enable_logging)
+            {
+                plog << d_object_name << ": "
+                     << "Initializing Helmholtz RHS operator for variable number " << l << "\n";
+            }
+            helmholtz_rhs_op->initializeOperatorState(*d_sol_vecs[l],*d_rhs_vecs[l]);
+            d_helmholtz_rhs_ops_need_init[l] = false;
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
-        d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-        d_hier_bdry_fill_ops[l]->fillData(current_time);
-        for (int depth = 0; depth < Q_depth; ++depth)
-        {
-            d_hier_math_ops->laplace(Q_rhs_scratch_idx, Q_rhs_var, rhs_spec, Q_scratch_idx, Q_var, d_no_fill_op, current_time, 0.0, -1, NULL, depth, depth, depth);
-        }
+        helmholtz_rhs_op->apply(*d_sol_vecs[l],*d_rhs_vecs[l]);
 
         // Initialize the linear solver.
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];

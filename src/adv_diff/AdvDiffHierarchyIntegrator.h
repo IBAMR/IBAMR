@@ -44,6 +44,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/HierarchyIntegrator.h>
+#include <ibtk/LaplaceOperator.h>
 #include <ibtk/PoissonSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -389,7 +390,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
-     * Register a solver for the Helmholtz equation.
+     * Register a solver for the Helmholtz equation (time-discretized diffusion
+     * equation).
      */
     void
     setHelmholtzSolver(
@@ -397,10 +399,28 @@ public:
         SAMRAI::tbox::Pointer<IBTK::PoissonSolver> helmholtz_solver);
 
     /*!
-     * Get the solver for the Helmholtz equation used by this solver class.
+     * Get the solver for the Helmholtz equation (time-discretized diffusion
+     * equation) used by this solver class.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getHelmholtzSolver(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
+
+    /*!
+     * Register an operator to use to setup the right-hand side for the
+     * Helmholtz solver (time-discretized diffusion equation).
+     */
+    void
+    setHelmholtzRHSOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> helmholtz_rhs_operator);
+
+    /*!
+     * Get the operator to use to setup the right-hand side for the Helmholtz
+     * equation (discretized diffusion equation).
+     */
+    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
+    getHelmholtzRHSOperator(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
 
     /*!
@@ -505,7 +525,7 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_F_map, d_Q_Q_rhs_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_diffusion_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveDifferencingType> d_Q_difference_form;
-    
+
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_diffusion_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > > d_Q_diffusion_coef_variable;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_is_diffusion_coef_variable;
@@ -529,10 +549,9 @@ protected:
     std::string d_helmholtz_solver_type, d_helmholtz_precond_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db;
     std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
-    std::vector<bool> d_helmholtz_solvers_need_init;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
+    std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
-
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;
 
 private:
     /*!

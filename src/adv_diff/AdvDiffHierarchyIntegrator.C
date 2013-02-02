@@ -49,6 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/CartGridFunctionSet.h>
 
@@ -121,6 +122,7 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
 {
     d_helmholtz_solvers.clear();
+    d_helmholtz_rhs_ops.clear();
     return;
 }// ~AdvDiffHierarchyIntegrator
 
@@ -432,7 +434,7 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(D_var);
-    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var)
                 == d_diffusion_coef_var.end());
 #endif
     d_diffusion_coef_var.push_back(D_var);
@@ -454,7 +456,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(
     Pointer<IBTK::CartGridFunction> D_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var)
                 != d_diffusion_coef_var.end());
 #endif
     if (d_diffusion_coef_fcn[D_var])
@@ -464,7 +466,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(
         if (!p_D_fcn)
         {
             pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
-                 << "  diffusion coefficient function for diffusion coefficient variable " 
+                 << "  diffusion coefficient function for diffusion coefficient variable "
                  << D_var_name << " has already been set.\n"
                  << "  functions will be evaluated in the order in which they were registered with the solver\n"
                  << "  when evaluating the source term value.\n";
@@ -485,7 +487,7 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(
     Pointer<SideVariable<NDIM,double> > D_var) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var)
                 != d_diffusion_coef_var.end());
 #endif
     return d_diffusion_coef_fcn.find(D_var)->second;
@@ -498,7 +500,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
-    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) 
+    TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var)
                 != d_diffusion_coef_var.end());
 #endif
     d_Q_diffusion_coef_variable[Q_var] = D_var;
@@ -648,6 +650,44 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(
 }// getHelmholtzSolver
 
 void
+AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<LaplaceOperator> helmholtz_op)
+{
+    d_helmholtz_rhs_ops.resize(d_Q_var.size());
+    d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const unsigned int l = distance(d_Q_var.begin(),std::find(d_Q_var.begin(),d_Q_var.end(),Q_var));
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_helmholtz_rhs_ops[l]);
+#endif
+    d_helmholtz_rhs_ops[l] = helmholtz_op;
+    d_helmholtz_rhs_ops_need_init[l] = true;
+    return;
+}// setHelmholtzRHSOperator
+
+Pointer<LaplaceOperator>
+AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(
+    Pointer<CellVariable<NDIM,double> > Q_var)
+{
+    d_helmholtz_rhs_ops.resize(d_Q_var.size());
+    d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const unsigned int l = distance(d_Q_var.begin(),std::find(d_Q_var.begin(),d_Q_var.end(),Q_var));
+    if (!d_helmholtz_rhs_ops[l])
+    {
+        const std::string& name = Q_var->getName();
+        d_helmholtz_rhs_ops[l] = new CCLaplaceOperator(d_object_name+"::helmholtz_rhs_op::"+name, /*homogeneous_bc*/ false);
+        d_helmholtz_rhs_ops_need_init[l] = true;
+    }
+    return d_helmholtz_rhs_ops[l];
+}// getHelmholtzRHSOperator
+
+void
 AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
@@ -705,6 +745,14 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         const unsigned int l = distance(d_Q_var.begin(),std::find(d_Q_var.begin(),d_Q_var.end(),Q_var));
         d_helmholtz_solvers[l] = getHelmholtzSolver(Q_var);
     }
+    d_helmholtz_rhs_ops.resize(d_Q_var.size());
+    d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
+    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const unsigned int l = distance(d_Q_var.begin(),std::find(d_Q_var.begin(),d_Q_var.end(),Q_var));
+        d_helmholtz_rhs_ops[l] = getHelmholtzRHSOperator(Q_var);
+    }
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -752,11 +800,11 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_helmholtz_solver_db(),
       d_helmholtz_precond_db(),
       d_helmholtz_solvers(),
+      d_helmholtz_rhs_ops(),
       d_helmholtz_solvers_need_init(),
+      d_helmholtz_rhs_ops_need_init(),
       d_coarsest_reset_ln(-1),
-      d_finest_reset_ln(-1),
-      d_fac_op_db(NULL),
-      d_fac_pc_db(NULL)
+      d_finest_reset_ln(-1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -883,6 +931,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     // Indicate that all linear solvers must be re-initialized.
     std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+    std::fill(d_helmholtz_rhs_ops_need_init.begin(), d_helmholtz_rhs_ops_need_init.end(), true);
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
     return;
