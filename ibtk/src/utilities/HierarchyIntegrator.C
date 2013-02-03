@@ -953,6 +953,17 @@ HierarchyIntegrator::putToDatabase(
     return;
 }// putToDatabase
 
+void
+HierarchyIntegrator::registerUseNewVariableCallbackFcn(
+    UseNewVariableCallbackFcnPtr callback,
+    void* ctx)
+{
+
+    d_new_var_callbacks.push_back(callback);
+    d_new_var_callback_ctxs.push_back(ctx);
+
+}//registerUseNewVariableCallbackFcn
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
@@ -1389,6 +1400,22 @@ HierarchyIntegrator::setupTagBuffer(
     }
     return;
 }// setupTagBuffer
+
+void
+HierarchyIntegrator::callUseNewVariableCallbackFcn(
+    const double current_time,
+    const double new_time,
+    const int cycle_num)
+{
+
+    for (unsigned int k = 0; k < d_new_var_callbacks.size(); ++k)
+    {
+        (*d_new_var_callbacks[k])(current_time, new_time, cycle_num, d_new_var_callback_ctxs[k]);
+    }
+
+    return;
+
+}//callUseNewVariableCallbackFcn
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

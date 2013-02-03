@@ -408,6 +408,26 @@ public:
         PostprocessIntegrateHierarchyCallbackFcnPtr callback,
         void* ctx=NULL);
 
+    /*!
+     * Callback function specification to enable usage of new variable V^n+1 in 
+     * other modules.
+     */
+    typedef void
+    (*UseNewVariableCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        int cycle_num,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable usage of computed Q^n+1 in 
+     * other modules.
+     */
+    void
+    registerUseNewVariableCallbackFcn(
+        UseNewVariableCallbackFcnPtr callback,
+        void* ctx=NULL);
+
     ///
     ///  Implementations of functions declared in the
     ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
@@ -680,6 +700,15 @@ protected:
     virtual void
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Call the registered functions for using V^n+1.
+     */
+    virtual void
+    callUseNewVariableCallbackFcn(
+        const double current_time,
+        const double new_time,
+        const int cycle_num);
 
     /*!
      * Register a state variable with the integrator.  When a refine operator is
@@ -961,6 +990,12 @@ protected:
     std::vector<void*> d_integrate_hierarchy_callback_ctxs;
     std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr> d_postprocess_integrate_hierarchy_callbacks;
     std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
+
+    /*!
+     * Callback functions and callback function contexts for using newly integrated variables.
+     */
+    std::vector<UseNewVariableCallbackFcnPtr> d_new_var_callbacks;
+    std::vector<void*> d_new_var_callback_ctxs;
 
 private:
     /*!

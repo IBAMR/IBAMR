@@ -790,6 +790,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             d_hier_cc_data_ops->copyData(F_new_idx, F_scratch_idx);
         }
     }
+
+    callUseNewVariableCallbackFcn(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
 
