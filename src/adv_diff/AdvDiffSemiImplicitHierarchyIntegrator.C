@@ -618,6 +618,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             p_helmholtz_solver->setHomogeneousBc(true);
         }
     }
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
 }// preprocessIntegrateHierarchy
 
@@ -790,6 +793,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             d_hier_cc_data_ops->copyData(F_new_idx, F_scratch_idx);
         }
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
 
@@ -801,6 +807,9 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 }// postprocessIntegrateHierarchy
 

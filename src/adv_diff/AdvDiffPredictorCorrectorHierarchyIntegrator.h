@@ -129,6 +129,15 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
+     * Prepare to advance the data from current_time to new_time.
+     */
+    void
+    preprocessIntegrateHierarchy(
+        double current_time,
+        double new_time,
+        int num_cycles=1);
+
+    /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
@@ -137,6 +146,16 @@ public:
         double current_time,
         double new_time,
         int cycle_num=0);
+
+    /*!
+     * Clean up data following call(s) to integrateHierarchy().
+     */
+    void
+    postprocessIntegrateHierarchy(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles=1);
 
 protected:
     /*!

@@ -141,6 +141,19 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
 }// getHyperbolicPatchStrategy
 
 void
+AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const int num_cycles)
+{
+    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+    return;
+}// preprocessIntegrateHierarchy
+
+void
 AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
@@ -573,8 +586,25 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
             }
         }
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
+
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
+{
+    AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    return;
+}// postprocessIntegrateHierarchy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

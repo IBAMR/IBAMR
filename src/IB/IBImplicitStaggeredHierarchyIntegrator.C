@@ -146,6 +146,9 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // curvilinear mesh and should not need to be re-interpolated.
     if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
     d_ib_method_ops->eulerStep(current_time, new_time);
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
 }// preprocessIntegrateHierarchy
 
@@ -211,6 +214,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
 
@@ -293,6 +299,9 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
 
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time = std::numeric_limits<double>::quiet_NaN();
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 }// postprocessIntegrateHierarchy
 

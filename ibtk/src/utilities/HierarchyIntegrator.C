@@ -285,14 +285,6 @@ HierarchyIntegrator::advanceHierarchy(
     // recursively execute all preprocessing callbacks registered with the
     // parent and child integrators.
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
-    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
-    while (!hier_integrators.empty())
-    {
-        HierarchyIntegrator* integrator = hier_integrators.front();
-        integrator->executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, d_current_num_cycles);
-        hier_integrators.pop_front();
-        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-    }
 
     // Perform one or more cycles.  In each cycle, execute the integration
     // method of the parent integrator, and recursively execute all integration
@@ -305,14 +297,6 @@ HierarchyIntegrator::advanceHierarchy(
             if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num+1 << " of " << d_current_num_cycles << "\n";
         }
         integrateHierarchy(current_time, new_time, cycle_num);
-        hier_integrators.push_back(this);
-        while (!hier_integrators.empty())
-        {
-            HierarchyIntegrator* integrator = hier_integrators.front();
-            integrator->executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
-            hier_integrators.pop_front();
-            hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-        }
     }
 
     // Execute the postprocessing method of the parent integrator, and
@@ -320,18 +304,10 @@ HierarchyIntegrator::advanceHierarchy(
     // parent and child integrators.
     static const bool skip_synchronize_new_state_data = true;
     postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, d_current_num_cycles);
-    hier_integrators.push_back(this);
-    while (!hier_integrators.empty())
-    {
-        HierarchyIntegrator* integrator = hier_integrators.front();
-        integrator->executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, d_current_num_cycles);
-        hier_integrators.pop_front();
-        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-    }
 
     // Ensure that the current values of num_cycles, cycle_num, and dt are
     // reset.
-    hier_integrators.push_back(this);
+    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
     while (!hier_integrators.empty())
     {
         HierarchyIntegrator* integrator = hier_integrators.front();

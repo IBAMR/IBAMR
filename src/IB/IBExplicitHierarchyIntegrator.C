@@ -190,6 +190,9 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
                        << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                        << "  supported time stepping types are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
 }// preprocessIntegrateHierarchy
 
@@ -338,6 +341,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
 
@@ -417,6 +423,9 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data    );
     }
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 }// postprocessIntegrateHierarchy
 

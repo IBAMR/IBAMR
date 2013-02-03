@@ -815,6 +815,9 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0), -0.5*rho, N_idx, d_U_rhs_vec->getComponentDescriptorIndex(0));
         }
     }
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
 }// preprocessIntegrateHierarchy
 
@@ -1121,6 +1124,9 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
             }
         }
     }
+
+    // Execute any registered callbacks.
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 }// integrateHierarchy
 
@@ -1173,6 +1179,9 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 }// postprocessIntegrateHierarchy
 
