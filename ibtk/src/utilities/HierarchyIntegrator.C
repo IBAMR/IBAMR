@@ -289,12 +289,7 @@ HierarchyIntegrator::advanceHierarchy(
     while (!hier_integrators.empty())
     {
         HierarchyIntegrator* integrator = hier_integrators.front();
-        std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr>& callbacks = integrator->d_preprocess_integrate_hierarchy_callbacks;
-        std::vector<void*>& ctxs = integrator->d_preprocess_integrate_hierarchy_callback_ctxs;
-        for (unsigned int k = 0; k < callbacks.size(); ++k)
-        {
-            (*callbacks[k])(current_time, new_time, d_current_num_cycles, ctxs[k]);
-        }
+        integrator->executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, d_current_num_cycles);
         hier_integrators.pop_front();
         hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
@@ -314,12 +309,7 @@ HierarchyIntegrator::advanceHierarchy(
         while (!hier_integrators.empty())
         {
             HierarchyIntegrator* integrator = hier_integrators.front();
-            std::vector<IntegrateHierarchyCallbackFcnPtr>& callbacks = integrator->d_integrate_hierarchy_callbacks;
-            std::vector<void*>& ctxs = integrator->d_integrate_hierarchy_callback_ctxs;
-            for (unsigned int k = 0; k < callbacks.size(); ++k)
-            {
-                (*callbacks[k])(current_time, new_time, cycle_num, ctxs[k]);
-            }
+            integrator->executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
             hier_integrators.pop_front();
             hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
         }
@@ -334,12 +324,7 @@ HierarchyIntegrator::advanceHierarchy(
     while (!hier_integrators.empty())
     {
         HierarchyIntegrator* integrator = hier_integrators.front();
-        std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr>& callbacks = integrator->d_postprocess_integrate_hierarchy_callbacks;
-        std::vector<void*>& ctxs = integrator->d_postprocess_integrate_hierarchy_callback_ctxs;
-        for (unsigned int k = 0; k < callbacks.size(); ++k)
-        {
-            (*callbacks[k])(current_time, new_time, skip_synchronize_new_state_data, d_current_num_cycles, ctxs[k]);
-        }
+        integrator->executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, d_current_num_cycles);
         hier_integrators.pop_front();
         hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
@@ -1119,6 +1104,52 @@ HierarchyIntegrator::putToDatabaseSpecialized(
     // intentionally blank
     return;
 }// putToDatabaseSpecialized
+
+void
+HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(
+    double current_time,
+    double new_time,
+    int num_cycles)
+{
+    std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr>& callbacks = d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<void*>& ctxs = d_preprocess_integrate_hierarchy_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(current_time, new_time, num_cycles, ctxs[k]);
+    }
+    return;
+}// executePreprocessIntegrateHierarchyCallbackFcns
+
+void
+HierarchyIntegrator::executeIntegrateHierarchyCallbackFcns(
+    double current_time,
+    double new_time,
+    int cycle_num)
+{
+    std::vector<IntegrateHierarchyCallbackFcnPtr>& callbacks = d_integrate_hierarchy_callbacks;
+    std::vector<void*>& ctxs = d_integrate_hierarchy_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(current_time, new_time, cycle_num, ctxs[k]);
+    }
+    return;
+}// executeIntegrateHierarchyCallbackFcns
+
+void
+HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(
+    double current_time,
+    double new_time,
+    bool skip_synchronize_new_state_data,
+    int num_cycles)
+{
+    std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr>& callbacks = d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<void*>& ctxs = d_postprocess_integrate_hierarchy_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(current_time, new_time, skip_synchronize_new_state_data, num_cycles, ctxs[k]);
+    }
+    return;
+}// executePostprocessIntegrateHierarchyCallbackFcns
 
 void
 HierarchyIntegrator::registerVariable(

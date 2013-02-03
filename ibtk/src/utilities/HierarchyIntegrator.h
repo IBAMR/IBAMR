@@ -682,6 +682,36 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
+     * Execute any user-specified preprocessIntegrateHierarchy callback
+     * functions.
+     */
+    virtual void
+    executePreprocessIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        int num_cycles);
+
+    /*!
+     * Execute any user-specified integrateHierarchy callback functions.
+     */
+    virtual void
+    executeIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        int cycle_num);
+
+    /*!
+     * Execute any user-specified postprocessIntegrateHierarchy callback
+     * functions.
+     */
+    virtual void
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles);
+
+    /*!
      * Register a state variable with the integrator.  When a refine operator is
      * specified, the data for the variable are automatically maintained as the
      * patch hierarchy evolves.
