@@ -6,7 +6,7 @@ AC_INIT([IBAMR],[101029],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
 AX_PREFIX_CONFIG_H([config/IBAMR_prefix_config.h])
-AM_INIT_AUTOMAKE([1.12.5 -Wall -Werror dist-bzip2 foreign  -Wno-extra-portability])
+AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror dist-bzip2 foreign  -Wno-extra-portability])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
 
