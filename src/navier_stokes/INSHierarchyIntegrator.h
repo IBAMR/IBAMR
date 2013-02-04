@@ -239,6 +239,28 @@ public:
     getProjectionBoundaryConditions() const;
 
     /*!
+     * Register a variable mass density variable with the hierarchy integrator.
+     */
+    void
+    registerMassDensityVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
+
+    /*!
+     * Supply an IBTK:CartGridFunction object to specify the value the mass
+     * density variable.
+     */
+    void
+    setMassDensityFunction(
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
+
+    /*!
+     * Get the IBTK::CartGridFunction object being used to specify the value of
+     * the mass density variable.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
+    getMassDensityFunction() const;
+
+    /*!
      * \brief Set the convective operator type to be used by the solver.
      */
     void
@@ -478,7 +500,7 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
@@ -488,7 +510,7 @@ protected:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
 
     /*!

@@ -260,6 +260,35 @@ INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 }// getProjectionBoundaryConditions
 
 void
+INSHierarchyIntegrator::registerMassDensityVariable(
+    Pointer<Variable<NDIM> > rho_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_rho_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_var = rho_var;
+    return;
+}// registerMassDensityVariable
+
+void
+INSHierarchyIntegrator::setMassDensityFunction(
+    Pointer<CartGridFunction> rho_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_fcn = rho_fcn;
+    return;
+}// registerMassDensityFunction
+
+Pointer<CartGridFunction>
+INSHierarchyIntegrator::getMassDensityFunction() const
+{
+    return d_rho_fcn;
+}// getMassDensityFunction
+
+void
 INSHierarchyIntegrator::setCreepingFlow(
     bool creeping_flow)
 {

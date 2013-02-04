@@ -630,6 +630,23 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx, d_N_old_var, side_ghosts, "CONSERVATIVE_COARSEN", "SPECIALIZED_LINEAR_REFINE");
 
+    d_rho_var = INSHierarchyIntegrator::d_rho_var;
+    if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
+    {
+        TBOX_ERROR("INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                   << "  mass density variable must be side-centered.\n");
+    }
+    if (d_rho_var)
+    {
+        registerVariable(d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx, d_rho_var, side_ghosts, "CONSERVATIVE_COARSEN", "SPECIALIZED_LINEAR_REFINE", d_rho_fcn);
+    }
+    else
+    {
+        d_rho_current_idx = -1;
+        d_rho_new_idx     = -1;
+        d_rho_scratch_idx = -1;
+    }
+
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
@@ -643,6 +660,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     }
     registerVariable(d_Omega_idx, d_Omega_var,   no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    if (d_rho_var)
+    {
+        d_rho_cc_var = new CellVariable<NDIM,double>(d_object_name+"::rho_cc");
+        registerVariable(d_rho_cc_idx, d_rho_cc_var, no_ghosts, getCurrentContext());
+    }
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
@@ -937,6 +959,21 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
         {
             d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -0.5*rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         }
+    }
+
+    // Compute variable mass density.
+    if (d_rho_var)
+    {
+        if (d_rho_fcn)
+        {
+            d_rho_fcn->setDataOnPatchHierarchy(d_rho_current_idx, d_rho_var, d_hierarchy, current_time);
+            d_rho_fcn->setDataOnPatchHierarchy(d_rho_new_idx    , d_rho_var, d_hierarchy, new_time    );
+        }
+        else
+        {
+            d_hier_sc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
+        }
+        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
     }
 
     // Execute any registered callbacks.
@@ -1768,7 +1805,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     U_problem_coefs.setDConstant(        -K*mu    );
     PoissonSpecifications P_problem_coefs(d_object_name+"::P_problem_coefs");
     P_problem_coefs.setCZero();
-    P_problem_coefs.setDConstant(-1.0);
+    P_problem_coefs.setDConstant(-(1.0/rho));
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
