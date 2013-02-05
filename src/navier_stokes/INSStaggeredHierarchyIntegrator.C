@@ -1805,7 +1805,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     U_problem_coefs.setDConstant(        -K*mu    );
     PoissonSpecifications P_problem_coefs(d_object_name+"::P_problem_coefs");
     P_problem_coefs.setCZero();
-    P_problem_coefs.setDConstant(-(1.0/rho));
+    P_problem_coefs.setDConstant(-1.0);
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
