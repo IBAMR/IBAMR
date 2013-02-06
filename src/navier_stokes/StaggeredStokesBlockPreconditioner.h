@@ -129,13 +129,64 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
+    /*!
+     * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
+     *
+     * \param x solution vector
+     * \param b right-hand-side vector
+     *
+     * <b>Conditions on Parameters:</b>
+     * - vectors \a x and \a b must have same patch hierarchy
+     * - vectors \a x and \a b must have same structure, depth, etc.
+     *
+     * \note It is safe to call initializeSolverState() when the solver state is
+     * already initialized.
+     *
+     * \see deallocateSolverState
+     *
+     * \note A default implementation is provided which does nothing.
+     */
+    void
+    initializeSolverState(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+
+    /*!
+     * \brief Remove all hierarchy dependent data allocated by
+     * initializeSolverState().
+     *
+     * \note It is safe to call deallocateSolverState() when the solver state is
+     * already deallocated.
+     *
+     * \see initializeSolverState
+     *
+     * \note A default implementation is provided which does nothing.
+     */
+    void
+    deallocateSolverState();
+
 protected:
+    /*!
+     * \brief Remove components in operator null space.
+     */
+    void
+    correctNullspace(
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_vec,
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_vec);
+
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
     SAMRAI::solv::PoissonSpecifications d_P_problem_coefs;
     const bool d_needs_pressure_solver;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+
+    // Hierarchy data.
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    int d_coarsest_ln, d_finest_ln;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_velocity_data_ops, d_pressure_data_ops;
+    int d_velocity_wgt_idx, d_pressure_wgt_idx;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
     /*!

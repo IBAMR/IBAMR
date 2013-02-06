@@ -49,6 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
 #include <LocationIndexRobinBcCoefs.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -66,7 +67,15 @@ StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(
       d_velocity_solver(),
       d_P_problem_coefs("P_problem_coefs"),
       d_needs_pressure_solver(needs_pressure_solver),
-      d_pressure_solver()
+      d_pressure_solver(),
+      d_hierarchy(NULL),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1),
+      d_velocity_data_ops(NULL),
+      d_pressure_data_ops(NULL),
+      d_velocity_wgt_idx(-1),
+      d_pressure_wgt_idx(-1),
+      d_hier_math_ops(NULL)
 {
     // intentionally blank
     return;
@@ -151,6 +160,92 @@ StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
     if (d_pressure_solver) d_pressure_solver->setPhysicalBcCoef(d_P_bc_coef);
     return;
 }// setPhysicalBcCoefs
+
+void
+StaggeredStokesBlockPreconditioner::initializeSolverState(
+    const SAMRAIVectorReal<NDIM,double>& x,
+    const SAMRAIVectorReal<NDIM,double>& b)
+{
+    // Get the hierarchy configuration.
+    d_hierarchy = x.getPatchHierarchy();
+    d_coarsest_ln = x.getCoarsestLevelNumber();
+    d_finest_ln = x.getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
+    TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
+#else
+    NULL_USE(b);
+#endif
+
+    // Setup hierarchy operators.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+
+    d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
+    d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
+    d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_velocity_wgt_idx = x.getControlVolumeIndex(0);
+
+    d_pressure_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
+    d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
+    d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    d_pressure_wgt_idx = x.getControlVolumeIndex(1);
+
+    d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    return;
+}// initializeSolverState
+
+void
+StaggeredStokesBlockPreconditioner::deallocateSolverState()
+{
+    d_velocity_data_ops.setNull();
+    d_pressure_data_ops.setNull();
+    d_velocity_wgt_idx = -1;
+    d_pressure_wgt_idx = -1;
+    d_hier_math_ops.setNull();
+    return;
+}// deallocateSolverState
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+StaggeredStokesBlockPreconditioner::correctNullspace(
+    Pointer<SAMRAIVectorReal<NDIM,double> > U_vec,
+    Pointer<SAMRAIVectorReal<NDIM,double> > P_vec)
+{
+    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    if (p_velocity_solver)
+    {
+        const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
+        if (!U_nul_vecs.empty())
+        {
+            for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
+            {
+                const double alpha = U_vec->dot(U_nul_vecs[k])/U_nul_vecs[k]->dot(U_nul_vecs[k]);
+                U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
+            }
+        }
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
+#endif
+    }
+
+    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    if (p_pressure_solver)
+    {
+        if (p_pressure_solver->getNullspaceContainsConstantVector())
+        {
+            const int P_idx = P_vec->getComponentDescriptorIndex(0);
+            const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
+            const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
+            d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
+        }
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
+#endif
+    }
+    return;
+}// correctNullspace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

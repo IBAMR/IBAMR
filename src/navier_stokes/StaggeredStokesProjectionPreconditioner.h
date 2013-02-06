@@ -182,13 +182,6 @@ private:
     operator=(
         const StaggeredStokesProjectionPreconditioner& that);
 
-    // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_velocity_data_ops, d_pressure_data_ops;
-    int d_velocity_wgt_idx, d_pressure_wgt_idx;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-
     // Boundary condition objects.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 

@@ -51,9 +51,6 @@
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
 
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -92,14 +89,6 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_velocity_data_ops(NULL),
-      d_pressure_data_ops(NULL),
-      d_velocity_wgt_idx(-1),
-      d_pressure_wgt_idx(-1),
-      d_hier_math_ops(NULL),
       d_P_bdry_fill_op(NULL),
       d_no_fill_op(NULL),
       d_U_var(NULL),
@@ -173,8 +162,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
 
-    // Set the initial guess to equal zero.
-    x.setToScalar(0.0,false);
+    // Determine whether we are solving a steady-state problem.
+    const bool steady_state = d_U_problem_coefs.cIsZero() || (d_U_problem_coefs.cIsConstant() && MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0));
 
     // Get the vector components.
     const int F_U_idx = b.getComponentDescriptorIndex(0);
@@ -222,15 +211,50 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     InterpolationTransactionComponent         P_transaction_comp(          P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
 
-    // (1) Solve the pressure sub-problem.
+    // (1) Solve the pressure sub-problem by applying inv(S^) to F_P, in which
+    // S^ is the approximate Schur complement.
     //
-    // P := -(C*I+D*L) * (-L)^{-1} * F_P
+    // The Schur complement S is
     //
-    // NOTE: When C=0, then
+    //    S = D inv(rho/dt - K*mu*L) G
     //
-    // P := -(D*L) * (-L)^{-1} * F_P
-    //    = D*F_P
-    if (d_U_problem_coefs.cIsZero() || MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0))
+    // We obtain S^ by assuming that
+    //
+    //    D inv(rho/dt - K*mu*L) G ~ L_p inv(rho/dt - K*mu*L_p)
+    //
+    // in which L_p = D*G.
+    //
+    // We treat two cases:
+    //
+    // (i) rho/dt = 0.
+    //
+    // In this case,
+    //
+    //    inv(S^) = inv(L_p inv(-K*mu*L_p)) = -K*mu
+    //
+    // so that
+    //
+    //    P := -K*mu*F_P
+    //
+    // (ii) rho/dt != 0.
+    //
+    // In this case, we make the further approximation that
+    //
+    //    L_p ~ rho L_rho = rho (D (1/rho) G)
+    //
+    // so that
+    //
+    //    inv(S^) = (1/dt) inv(L_rho) - K*mu
+    //
+    // and
+    //
+    //    P := [(1/dt) inv(L_rho) - K*mu] F_P
+    //
+    // NOTE: d_U_problem_coefs.getCConstant() == rho/dt
+    //       d_U_problem_coefs.getDConstant() == -K*mu
+    //
+    // in which K depends on the form of the time stepping scheme.
+    if (steady_state)
     {
         d_pressure_data_ops->scale(P_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }
@@ -239,9 +263,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
         d_pressure_solver->setHomogeneousBc(true);
         LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(false);
-        d_pressure_solver->solveSystem(*P_scratch_vec,*F_P_vec);
-        d_hier_math_ops->laplace(P_idx, P_cc_var, d_U_problem_coefs, d_P_scratch_idx, d_P_var, d_P_bdry_fill_op, d_pressure_solver->getSolutionTime());
-        d_pressure_data_ops->scale(P_idx, -1.0, P_idx);
+        d_pressure_solver->solveSystem(*P_scratch_vec,*F_P_vec);  // P_scratch_idx := -inv(L_rho)*F_P
+        d_pressure_data_ops->linearSum(P_idx, -1.0/getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }
     d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
     d_P_bdry_fill_op->fillData(d_pressure_solver->getSolutionTime());
@@ -249,8 +272,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
 
     // (2) Solve the velocity sub-problem.
     //
-    // U := (C*I+D*L)^{-1} * [F_U + Grad * (C*I+D*L) * (-L)^{-1} * F_P]
-    //    = (C*I+D*L)^{-1} * [F_U - Grad * P]
+    // U := inv(rho/dt - K*mu*L) * [F_U - G P]
     static const bool cf_bdry_synch = true;
     d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_no_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
     d_velocity_solver->setHomogeneousBc(true);
@@ -258,35 +280,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec,*F_U_mod_vec);
 
-    // (3) Account for any nullspace vectors.
-    if (p_velocity_solver)
-    {
-        const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
-        if (!U_nul_vecs.empty())
-        {
-            for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
-            {
-                const double alpha = U_vec->dot(U_nul_vecs[k])/U_nul_vecs[k]->dot(U_nul_vecs[k]);
-                U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
-            }
-        }
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
-#endif
-    }
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
-    if (p_pressure_solver)
-    {
-        if (p_pressure_solver->getNullspaceContainsConstantVector())
-        {
-            const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-            const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
-            d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
-        }
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
-#endif
-    }
+    // Account for nullspace vectors.
+    correctNullspace(U_vec, P_vec);
 
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
@@ -304,33 +299,10 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(
 
     if (d_is_initialized) deallocateSolverState();
 
-    // Get the hierarchy configuration.
-    d_hierarchy = x.getPatchHierarchy();
-    d_coarsest_ln = x.getCoarsestLevelNumber();
-    d_finest_ln = x.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
-    TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
-#else
-    NULL_USE(b);
-#endif
+    // Parent class initialization.
+    StaggeredStokesBlockPreconditioner::initializeSolverState(x,b);
 
     // Setup hierarchy operators.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-
-    d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
-    d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
-    d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_velocity_wgt_idx = x.getControlVolumeIndex(0);
-
-    d_pressure_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
-    d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
-    d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_pressure_wgt_idx = x.getControlVolumeIndex(1);
-
-    d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
-
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
@@ -345,6 +317,7 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(
         if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
         if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
     }
+
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
@@ -358,18 +331,20 @@ StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 
     IBAMR_TIMER_START(t_deallocate_solver_state);
 
-    d_velocity_data_ops.setNull();
-    d_pressure_data_ops.setNull();
-    d_velocity_wgt_idx = -1;
-    d_pressure_wgt_idx = -1;
-    d_hier_math_ops.setNull();
+    // Parent class deallocation.
+    StaggeredStokesBlockPreconditioner::deallocateSolverState();
+
+    // Deallocate hierarchy operators.
     d_P_bdry_fill_op.setNull();
+
+    // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
         if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
     }
+
     d_is_initialized = false;
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
