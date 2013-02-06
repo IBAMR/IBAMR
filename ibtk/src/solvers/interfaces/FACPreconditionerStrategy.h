@@ -139,6 +139,12 @@ public:
     getTimeInterval() const;
 
     /*!
+     * \brief Get the current time step size.
+     */
+    virtual double
+    getDt() const;
+
+    /*!
      * \brief Restrict the residual from the source vector to the destination
      * vector on the specified level of the patch hierarchy.
      *

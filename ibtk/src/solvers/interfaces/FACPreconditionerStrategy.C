@@ -129,6 +129,12 @@ FACPreconditionerStrategy::getTimeInterval() const
     return std::make_pair(d_current_time,d_new_time);
 }// getTimeInterval
 
+double
+FACPreconditionerStrategy::getDt() const
+{
+    return d_new_time-d_current_time;
+}// getDt
+
 void
 FACPreconditionerStrategy::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& /*solution*/,

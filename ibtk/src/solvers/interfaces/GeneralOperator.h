@@ -128,6 +128,12 @@ public:
     getTimeInterval() const;
 
     /*!
+     * \brief Get the current time step size.
+     */
+    virtual double
+    getDt() const;
+
+    /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
     virtual void
