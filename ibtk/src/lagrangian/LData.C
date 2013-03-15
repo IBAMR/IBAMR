@@ -67,6 +67,7 @@ LData::LData(
       d_depth(depth),
       d_nonlocal_petsc_indices(nonlocal_petsc_indices),
       d_global_vec(NULL),
+      d_managing_petsc_vec(true),
       d_array(NULL),
       d_blitz_array(),
       d_blitz_local_array(),
@@ -112,7 +113,8 @@ LData::LData(
 LData::LData(
     const std::string& name,
     Vec vec,
-    const std::vector<int>& nonlocal_petsc_indices)
+    const std::vector<int>& nonlocal_petsc_indices,
+    const bool manage_petsc_vec)
     : d_name(name),
       d_global_node_count(0),
       d_local_node_count(0),
@@ -120,6 +122,7 @@ LData::LData(
       d_depth(0),
       d_nonlocal_petsc_indices(nonlocal_petsc_indices),
       d_global_vec(vec),
+      d_managing_petsc_vec(manage_petsc_vec),
       d_array(NULL),
       d_blitz_array(),
       d_blitz_local_array(),
@@ -228,18 +231,25 @@ LData::LData(
 LData::~LData()
 {
     restoreArrays();
-    const int ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
+    if(d_managing_petsc_vec)
+    {
+        const int ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
+    }
     return;
 }// ~LData
 
 void
 LData::resetData(
     Vec vec,
-    const std::vector<int>& nonlocal_petsc_indices)
+    const std::vector<int>& nonlocal_petsc_indices,
+    const bool manage_petsc_vec)
 {
     restoreArrays();
     int ierr;
-    ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
+    if(d_managing_petsc_vec)
+    {
+        ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
+    }
     d_global_vec = vec;
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);

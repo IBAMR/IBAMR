@@ -38,6 +38,9 @@
 // IBTK INCLUDES
 #include <ibtk/HierarchyMathOps.h>
 
+// PETSc INCLUDES
+#include <petscvec.h>
+
 // SAMRAI INCLUDES
 #include <SAMRAIVectorReal.h>
 #include <tbox/DescribedClass.h>
@@ -176,6 +179,87 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y) = 0;
 
     /*!
+     * \brief Compute \f$y=F[x]\f$.
+     *
+     * Before calling apply(), the form of the SAMRAI vector \a x should be set properly 
+     * by the user on all patch interiors on the specified range of levels in the patch 
+     * hierarchy.  The PETSc Vec object \a y contains the storage for IBTK::LData quantity. 
+     * For IBTK::LData defined on multiple levels, Vec of the type VecNest should be used. 
+     * The user is responsible for all data management for the quantities associated with 
+     * the vectors.  In particular, patch data and IBTK::LData in these vectors must be allocated 
+     * prior to calling this method.
+     *
+     * \param x input vector
+     * \param y output vector, i.e., \f$y=F[x]\f$
+     *
+     * \note Subclasses may require that the operator be initialized prior to
+     * calling apply().
+     *
+     * \see initializeOperatorState
+     */
+    virtual void
+    apply(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        Vec y)
+    {   //intentionally left blank.
+        return;  
+    }//apply
+
+    /*!
+     * \brief Compute \f$y=F[x]\f$.
+     *
+     * Before calling apply(), the form of the SAMRAI vector \a y should be set properly 
+     * by the user on all patch interiors on the specified range of levels in the patch 
+     * hierarchy.  The PETSc Vec object \a x contains the storage for IBTK::LData quantity. 
+     * For IBTK::LData defined on multiple levels, Vec of the type VecNest should be used. 
+     * The user is responsible for all data management for the quantities associated with 
+     * the vectors.  In particular, patch data and IBTK::LData in these vectors must be allocated 
+     * prior to calling this method.
+     *
+     * \param x input vector
+     * \param y output vector, i.e., \f$y=F[x]\f$
+     *
+     * \note Subclasses may require that the operator be initialized prior to
+     * calling apply().
+     *
+     * \see initializeOperatorState
+     */
+    virtual void
+    apply(
+        Vec x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y)
+    {   //intentionally left blank.
+        return;  
+    }//apply 
+
+    /*!
+     * \brief Compute \f$y=F[x]\f$.
+     *
+     * Before calling apply(), the PETSc Vec objects \a x and \a y should be set properly by the user.
+     * Vectors \a x and \a y contain the storage for IBTK::LData quantity. 
+     * For IBTK::LData defined on multiple levels, Vec of the type VecNest should be used. 
+     * The user is responsible for all data management for the quantities associated with 
+     * the vectors.  In particular, IBTK::LData in these vectors must be allocated 
+     * prior to calling this method.
+     *
+     * \param x input vector
+     * \param y output vector, i.e., \f$y=F[x]\f$
+     *
+     * \note Subclasses may require that the operator be initialized prior to
+     * calling apply().
+     *
+     * \see initializeOperatorState
+     */   
+	
+    virtual void
+    apply(
+        Vec x,
+        Vec y)
+    {   //intentionally left blank.
+        return;  
+    }//apply 
+    
+    /*!
      * \brief Compute \f$z=F[x]+y\f$.
      *
      * Before calling applyAdd(), the form of the vectors \a x, \a y, and \a z
@@ -244,6 +328,104 @@ public:
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
 
+    /*!
+     * \brief Compute hierarchy dependent data required for computing y=F[x] and
+     * z=F[x]+y.
+     *
+     * The vector arguments for apply() need not match those for initializeOperatorState().  
+     * However, there must be a certain degree of similarity, including
+     *
+     * - hierarchy configuration (hierarchy pointer and level range)
+     * - number, type and alignment of vector component data
+     * - ghost cell widths of data in the input and output vectors
+     *
+     * \note It is generally necessary to reinitialize the operator state when
+     * the hierarchy configuration changes.
+     *
+     * It is safe to call initializeOperatorState() when the state is already
+     * initialized.  In this case, the operator state is first deallocated and
+     * then reinitialized.
+     *
+     *
+     * Call deallocateOperatorState() to remove any data allocated by this
+     * method.
+     *
+     * \see deallocateOperatorState
+     *
+     * \param in input vector
+     * \param out output vector
+     */    
+    virtual void
+    initializeOperatorState(
+        Vec in,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+
+    /*!
+     * \brief Compute hierarchy dependent data required for computing y=F[x] and
+     * z=F[x]+y.
+     *
+     * The vector arguments for apply() need not match those for initializeOperatorState().  
+     * However, there must be a certain degree of similarity, including
+     *
+     * - hierarchy configuration (hierarchy pointer and level range)
+     * - number, type and alignment of vector component data
+     * - ghost cell widths of data in the input and output vectors
+     *
+     * \note It is generally necessary to reinitialize the operator state when
+     * the hierarchy configuration changes.
+     *
+     * It is safe to call initializeOperatorState() when the state is already
+     * initialized.  In this case, the operator state is first deallocated and
+     * then reinitialized.
+     *
+     *
+     * Call deallocateOperatorState() to remove any data allocated by this
+     * method.
+     *
+     * \see deallocateOperatorState
+     *
+     * \param in input vector
+     * \param out output vector
+     */ 
+    
+    virtual void
+    initializeOperatorState(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
+        Vec out);
+
+    /*!
+     * \brief Compute hierarchy dependent data required for computing y=F[x] and
+     * z=F[x]+y.
+     *
+     * The vector arguments for apply() need not match those for initializeOperatorState().  
+     * However, there must be a certain degree of similarity, including
+     *
+     * - hierarchy configuration (hierarchy pointer and level range)
+     * - number, type and alignment of vector component data
+     * - ghost cell widths of data in the input and output vectors
+     *
+     * \note It is generally necessary to reinitialize the operator state when
+     * the hierarchy configuration changes.
+     *
+     * It is safe to call initializeOperatorState() when the state is already
+     * initialized.  In this case, the operator state is first deallocated and
+     * then reinitialized.
+     *
+     *
+     * Call deallocateOperatorState() to remove any data allocated by this
+     * method.
+     *
+     * \see deallocateOperatorState
+     *
+     * \param in input vector
+     * \param out output vector
+     */ 
+    
+    virtual void
+    initializeOperatorState(
+        Vec in,
+        Vec out);
+    
     /*!
      * \brief Remove all hierarchy dependent data allocated by
      * initializeOperatorState().

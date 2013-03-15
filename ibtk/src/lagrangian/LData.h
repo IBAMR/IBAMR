@@ -78,9 +78,10 @@ public:
      * \brief Constructor.
      *
      * \note This constructor \em does \em not allocate a PETSc Vec object.
-     * Instead, it assumes responsibilities for data management for the supplied
+     * Instead, it can assume responsibilities for data management for the supplied
      * PETSc Vec object.  In particular, the caller \em must \em not destroy the
-     * PETSc Vec object provided to the class constructor.
+     * PETSc Vec object provided to the class constructor, if it is instructed to
+     * manage the PETSc Vec.
      *
      * \note The blocksize of the supplied PETSc Vec object \em must be set
      * appropriately.  Its value is used to determine the data depth (i.e., the
@@ -89,7 +90,8 @@ public:
     LData(
         const std::string& name,
         Vec vec,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0),
+        const bool manage_petsc_vec=true);
 
     /*!
      * \brief Constructor.
@@ -117,7 +119,8 @@ public:
     virtual void
     resetData(
         Vec vec,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0),
+        const bool manage_petsc_vec=true);
 
     /*!
      * \brief Returns a const reference to the name of this LData object.
@@ -369,6 +372,7 @@ private:
      * array, and a blitz::Array object that wraps that array.
      */
     Vec d_global_vec;
+    bool d_managing_petsc_vec;
     double* d_array;
     blitz::Array<double,1> d_blitz_array, d_blitz_local_array;
     blitz::Array<double,2> d_blitz_vec_array, d_blitz_local_vec_array;
