@@ -798,81 +798,58 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
     int ierr;
     ierr = VecCreate(comm, &d_petsc_vector); IBTK_CHKERRQ(ierr);
 
-    // Set PETSc vector data to this abstract vector object
-    d_petsc_vector->petscnative                  = PETSC_FALSE;
-    d_petsc_vector->map->n                       = 0;
-    d_petsc_vector->map->N                       = 0;
-    d_petsc_vector->map->bs                      = 1;
-
     // Assign vector operations to PETSc vector object.
-    d_petsc_vector->ops->duplicate               = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
-    d_petsc_vector->ops->duplicatevecs           = VecDuplicateVecs_Default;
-    d_petsc_vector->ops->destroyvecs             = VecDestroyVecs_Default;
-    d_petsc_vector->ops->dot                     = VecDot_SAMRAI;
-    d_petsc_vector->ops->mdot                    = VecMDot_SAMRAI;
-    d_petsc_vector->ops->norm                    = VecNorm_SAMRAI;
-    d_petsc_vector->ops->tdot                    = VecTDot_SAMRAI;
-    d_petsc_vector->ops->mtdot                   = VecMTDot_SAMRAI;
-    d_petsc_vector->ops->scale                   = VecScale_SAMRAI;
-    d_petsc_vector->ops->copy                    = VecCopy_SAMRAI;
-    d_petsc_vector->ops->set                     = VecSet_SAMRAI;
-    d_petsc_vector->ops->swap                    = VecSwap_SAMRAI;
-    d_petsc_vector->ops->axpy                    = VecAXPY_SAMRAI;
-    d_petsc_vector->ops->axpby                   = VecAXPBY_SAMRAI;
-    d_petsc_vector->ops->maxpy                   = VecMAXPY_SAMRAI;
-    d_petsc_vector->ops->aypx                    = VecAYPX_SAMRAI;
-    d_petsc_vector->ops->waxpy                   = VecWAXPY_SAMRAI;
-    d_petsc_vector->ops->axpbypcz                = VecAXPBYPCZ_SAMRAI;
-    d_petsc_vector->ops->pointwisemult           = VecPointwiseMult_SAMRAI;
-    d_petsc_vector->ops->pointwisedivide         = VecPointwiseDivide_SAMRAI;
-    d_petsc_vector->ops->setvalues               = PETSC_NULL;
-    d_petsc_vector->ops->assemblybegin           = PETSC_NULL;
-    d_petsc_vector->ops->assemblyend             = PETSC_NULL;
-    d_petsc_vector->ops->getarray                = PETSC_NULL;
-    d_petsc_vector->ops->getsize                 = VecGetSize_SAMRAI;
-    d_petsc_vector->ops->getlocalsize            = VecGetLocalSize_SAMRAI;
-    d_petsc_vector->ops->restorearray            = PETSC_NULL;
-    d_petsc_vector->ops->max                     = VecMax_SAMRAI;
-    d_petsc_vector->ops->min                     = VecMin_SAMRAI;
-    d_petsc_vector->ops->setrandom               = VecSetRandom_SAMRAI;
-    d_petsc_vector->ops->setoption               = PETSC_NULL;
-    d_petsc_vector->ops->setvaluesblocked        = PETSC_NULL;
-    d_petsc_vector->ops->destroy                 = PETScSAMRAIVectorReal::VecDestroy_SAMRAI;
-    d_petsc_vector->ops->view                    = PETSC_NULL;
-    d_petsc_vector->ops->placearray              = PETSC_NULL;
-    d_petsc_vector->ops->replacearray            = PETSC_NULL;
-    d_petsc_vector->ops->dot_local               = VecDot_local_SAMRAI;
-    d_petsc_vector->ops->tdot_local              = VecTDot_local_SAMRAI;
-    d_petsc_vector->ops->norm_local              = VecNorm_local_SAMRAI;
-    d_petsc_vector->ops->mdot_local              = VecMDot_local_SAMRAI;
-    d_petsc_vector->ops->mtdot_local             = VecMTDot_local_SAMRAI;
-    d_petsc_vector->ops->load                    = PETSC_NULL;
-    d_petsc_vector->ops->reciprocal              = PETSC_NULL;
-    d_petsc_vector->ops->conjugate               = PETSC_NULL;
-    d_petsc_vector->ops->setlocaltoglobalmapping = PETSC_NULL;
-    d_petsc_vector->ops->setvalueslocal          = PETSC_NULL;
-    d_petsc_vector->ops->resetarray              = PETSC_NULL;
-    d_petsc_vector->ops->setfromoptions          = PETSC_NULL;
-    d_petsc_vector->ops->maxpointwisedivide      = VecMaxPointwiseDivide_SAMRAI;
-    d_petsc_vector->ops->pointwisemax            = PETSC_NULL;
-    d_petsc_vector->ops->pointwisemaxabs         = PETSC_NULL;
-    d_petsc_vector->ops->pointwisemin            = PETSC_NULL;
-    d_petsc_vector->ops->getvalues               = PETSC_NULL;
-    d_petsc_vector->ops->sqrt                    = PETSC_NULL;
-    d_petsc_vector->ops->abs                     = PETSC_NULL;
-    d_petsc_vector->ops->exp                     = PETSC_NULL;
-    d_petsc_vector->ops->log                     = PETSC_NULL;
-    d_petsc_vector->ops->shift                   = PETSC_NULL;
-    d_petsc_vector->ops->create                  = PETSC_NULL;
-    d_petsc_vector->ops->stridegather            = PETSC_NULL;
-    d_petsc_vector->ops->stridescatter           = PETSC_NULL;
-    d_petsc_vector->ops->dotnorm2                = VecDotNorm2_SAMRAI;
-    d_petsc_vector->ops->getsubvector            = PETSC_NULL;
-    d_petsc_vector->ops->restoresubvector        = PETSC_NULL;
+    static struct _VecOps DvOps;
+    IBTK_DO_ONCE(
+        DvOps.duplicate          = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
+        DvOps.duplicatevecs      = VecDuplicateVecs_Default;
+        DvOps.destroyvecs        = VecDestroyVecs_Default;
+        DvOps.dot                = VecDot_SAMRAI;
+        DvOps.mdot               = VecMDot_SAMRAI;
+        DvOps.norm               = VecNorm_SAMRAI;
+        DvOps.tdot               = VecTDot_SAMRAI;
+        DvOps.mtdot              = VecMTDot_SAMRAI;
+        DvOps.scale              = VecScale_SAMRAI;
+        DvOps.copy               = VecCopy_SAMRAI;
+        DvOps.set                = VecSet_SAMRAI;
+        DvOps.swap               = VecSwap_SAMRAI;
+        DvOps.axpy               = VecAXPY_SAMRAI;
+        DvOps.axpby              = VecAXPBY_SAMRAI;
+        DvOps.maxpy              = VecMAXPY_SAMRAI;
+        DvOps.aypx               = VecAYPX_SAMRAI;
+        DvOps.waxpy              = VecWAXPY_SAMRAI;
+        DvOps.axpbypcz           = VecAXPBYPCZ_SAMRAI;
+        DvOps.pointwisemult      = VecPointwiseMult_SAMRAI;
+        DvOps.pointwisedivide    = VecPointwiseDivide_SAMRAI;
+        DvOps.getsize            = VecGetSize_SAMRAI;
+        DvOps.getlocalsize       = VecGetLocalSize_SAMRAI;
+        DvOps.max                = VecMax_SAMRAI;
+        DvOps.min                = VecMin_SAMRAI;
+        DvOps.setrandom          = VecSetRandom_SAMRAI;
+        DvOps.destroy            = PETScSAMRAIVectorReal::VecDestroy_SAMRAI;
+        DvOps.dot_local          = VecDot_local_SAMRAI;
+        DvOps.tdot_local         = VecTDot_local_SAMRAI;
+        DvOps.norm_local         = VecNorm_local_SAMRAI;
+        DvOps.mdot_local         = VecMDot_local_SAMRAI;
+        DvOps.mtdot_local        = VecMTDot_local_SAMRAI;
+        DvOps.maxpointwisedivide = VecMaxPointwiseDivide_SAMRAI;
+        DvOps.dotnorm2           = VecDotNorm2_SAMRAI;
+                 );
+    ierr = PetscMemcpy(d_petsc_vector->ops,&DvOps,sizeof(DvOps)); IBTK_CHKERRQ(ierr);
 
+    // Set PETSc vector data.
+    d_petsc_vector->data        = this;
+    d_petsc_vector->petscnative = PETSC_FALSE;
+    int size;
+    MPI_Comm_size(comm, &size);
+    d_petsc_vector->map->n  = 1;     // NOTE: Here we are giving a bogus local  size.
+    d_petsc_vector->map->N  = size;  // NOTE: Here we are giving a bogus global size.
+    d_petsc_vector->map->bs = 1;     // NOTE: Here we are giving a bogus block  size.
+
+    // Set the PETSc vector type name.
     ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(d_petsc_vector),"Vec_SAMRAI");  IBTK_CHKERRQ(ierr);
 
-    d_petsc_vector->data = this;
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_vector)); IBTK_CHKERRQ(ierr);
     return;
 }// PETScSAMRAIVectorReal
 
