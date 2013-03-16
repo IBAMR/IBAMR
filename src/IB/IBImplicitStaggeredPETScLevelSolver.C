@@ -172,7 +172,7 @@ IBImplicitStaggeredPETScLevelSolver::initializeOperator()
     Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL); IBTK_CHKERRQ(ierr);
     d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
@@ -201,7 +201,7 @@ IBImplicitStaggeredPETScLevelSolver::updateOperator()
     Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL); IBTK_CHKERRQ(ierr);
     d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
@@ -233,7 +233,7 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL); IBTK_CHKERRQ(ierr);
     d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);

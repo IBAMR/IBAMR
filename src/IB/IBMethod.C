@@ -637,7 +637,7 @@ IBMethod::computeLagrangianForceJacobian(
     std::vector<int> anchor_idxs(d_anchor_point_local_idxs[finest_ln].begin(), d_anchor_point_local_idxs[finest_ln].end());
     const int global_node_offset = d_l_data_manager->getGlobalNodeOffset(finest_ln);
     std::transform(anchor_idxs.begin(), anchor_idxs.end(), anchor_idxs.begin(), std::bind2nd(std::plus<int>(), global_node_offset));
-    ierr = MatZeroRowsColumns(J_mat, anchor_idxs.size(), (anchor_idxs.empty() ? PETSC_NULL : &anchor_idxs[0]), 0.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    ierr = MatZeroRowsColumns(J_mat, anchor_idxs.size(), (anchor_idxs.empty() ? NULL : &anchor_idxs[0]), 0.0, NULL, NULL); IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobian
 

@@ -453,7 +453,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::Jacobian(
     IBImplicitStaggeredHierarchyIntegrator* ib_solver)
     : JacobianOperator(ib_solver->getName()+"::Jacobian"),
       d_ib_solver(ib_solver),
-      d_J_mat(PETSC_NULL),
+      d_J_mat(NULL),
       d_J_is_set(false),
       d_x_base(NULL)
 {
@@ -536,7 +536,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::initializeOperatorState(
     ib_method_ops->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz);
     const int n_local = d_nnz.size();
     int ierr;
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, (n_local == 0 ? PETSC_NULL : &d_nnz[0]), 0, (n_local == 0 ? PETSC_NULL : &o_nnz[0]), &d_J_mat); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, (n_local == 0 ? NULL : &d_nnz[0]), 0, (n_local == 0 ? NULL : &o_nnz[0]), &d_J_mat); IBTK_CHKERRQ(ierr);
     ierr = MatSetBlockSize(d_J_mat, NDIM);
     d_ib_solver->d_J_mat = d_J_mat;
     d_J_is_set = false;
@@ -549,7 +549,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::deallocateOperatorState()
     if (d_J_mat)
     {
         int ierr = MatDestroy(&d_J_mat); IBTK_CHKERRQ(ierr);
-        d_J_mat = PETSC_NULL;
+        d_J_mat = NULL;
     }
     return;
 }// deallocateOperatorState

@@ -344,8 +344,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
         ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
                              3*3, 3*3*local_sz, 3*3*num_local_nodes,
                              PETSC_DETERMINE, PETSC_DETERMINE,
-                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
-                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &D_next_mat);  IBTK_CHKERRQ(ierr);
 
         blitz::TinyMatrix<double,3*3,3*3> curr_vals; curr_vals = 0.0;
@@ -358,7 +358,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, PETSC_NULL);
+        ierr = MatGetOwnershipRange(D_next_mat, &i_offset, NULL);
         IBTK_CHKERRQ(ierr);
         i_offset /= 3*3;
 
@@ -376,8 +376,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
         ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
                              NDIM, NDIM*local_sz, NDIM*num_local_nodes,
                              PETSC_DETERMINE, PETSC_DETERMINE,
-                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : PETSC_NULL,
-                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_d_nz[0] : NULL,
+                             PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &X_next_mat);  IBTK_CHKERRQ(ierr);
 
         blitz::TinyMatrix<double,NDIM,NDIM> curr_vals;  curr_vals = 0.0;
@@ -390,7 +390,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
         int i_offset;
 
-        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, PETSC_NULL);
+        ierr = MatGetOwnershipRange(X_next_mat, &i_offset, NULL);
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 
