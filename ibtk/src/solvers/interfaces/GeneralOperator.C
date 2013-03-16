@@ -185,33 +185,6 @@ GeneralOperator::initializeOperatorState(
 }// initializeOperatorState
 
 void
-GeneralOperator::initializeOperatorState(
-    Vec /*in*/,
-    const SAMRAIVectorReal<NDIM,double>& /*out*/)
-{
-    d_is_initialized = true;
-    return;  
-}// initializeOperatorState
-
-void
-GeneralOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& /*in*/,
-    Vec /*out*/)
-{
-    d_is_initialized = true;
-    return;  
-}// initializeOperatorState
-
-void
-GeneralOperator::initializeOperatorState(
-    Vec /*in*/,
-    Vec /*out*/)
-{
-    d_is_initialized = true;
-    return;  
-}// initializeOperatorState
-
-void
 GeneralOperator::deallocateOperatorState()
 {
     d_is_initialized = false;

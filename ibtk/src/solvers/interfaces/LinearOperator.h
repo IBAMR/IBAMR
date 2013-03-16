@@ -93,30 +93,6 @@ public:
     modifyRhsForInhomogeneousBc(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
-    /*!
-     * \brief Modify y to account for inhomogeneous boundary conditions.
-     *
-     * Before calling this function, the form of the Vec y should be set
-     * properly by the user on the range of levels covered by the operator.  
-     * All data in this vector should be allocated. For the Vec defined
-     * on multiple levels, VecNest should be used. The user is responsible 
-     * for managing the storage for the vectors.
-     *
-     * \note The operator MUST be initialized prior to calling
-     * modifyRhsForInhomogeneousBc.
-     *
-     * \see initializeOperatorState
-     *
-     * \param y output: y=Ax
-     *
-     * \note A default implementation is provided which does nothing but warns
-     * that inhomogeneous boundary conditions are not properly supported.
-     */
-    
-    virtual void
-    modifyRhsForInhomogeneousBc(
-        Vec y);    
-
     //\}
 
     /*!

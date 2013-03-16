@@ -95,31 +95,6 @@ LinearOperator::modifyRhsForInhomogeneousBc(
 }// modifyRhsForInhomogeneousBc
 
 void
-LinearOperator::modifyRhsForInhomogeneousBc(
-    Vec y)
-{
-    if (d_homogeneous_bc) return;
-
-    int ierr;
-    PetscScalar alpha;
-    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
-    // inhomogeneous boundary conditions.
-    Vec x,b;
-    ierr = VecDuplicate(y,&x); IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(y,&b); IBTK_CHKERRQ(ierr);
-    alpha = 0.0;
-    ierr = VecSet(x,alpha);    IBTK_CHKERRQ(ierr);
-    d_correcting_rhs = true;
-    apply(x,b);
-    alpha = -1.0;
-    ierr = VecAXPY(y,alpha,b); IBTK_CHKERRQ(ierr); 
-    ierr = VecDestroy(&x);     IBTK_CHKERRQ(ierr); 
-    ierr = VecDestroy(&b);     IBTK_CHKERRQ(ierr);
-    d_correcting_rhs = false;
-    return;
-}// modifyRhsForInhomogeneousBc
-
-void
 LinearOperator::printClassData(
     std::ostream& stream)
 {
