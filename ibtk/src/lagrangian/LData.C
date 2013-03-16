@@ -247,8 +247,6 @@ LData::resetData(
     restoreArrays();
     int ierr;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    d_managing_petsc_vec = manage_petsc_vec;
-
     int depth;
     ierr = VecGetBlockSize(vec, &depth);  IBTK_CHKERRQ(ierr);
     TBOX_ASSERT(depth >= 0);
