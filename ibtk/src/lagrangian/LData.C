@@ -231,7 +231,7 @@ LData::LData(
 LData::~LData()
 {
     restoreArrays();
-    if(d_managing_petsc_vec)
+    if (d_managing_petsc_vec)
     {
         const int ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
     }
@@ -246,11 +246,15 @@ LData::resetData(
 {
     restoreArrays();
     int ierr;
-    if(d_managing_petsc_vec)
+    if (d_managing_petsc_vec)
     {
         ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
     }
+
+    // Take ownership of new Vec
     d_global_vec = vec;
+    d_managing_petsc_vec = manage_petsc_vec;
+
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS
