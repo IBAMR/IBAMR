@@ -246,35 +246,30 @@ LData::resetData(
 {
     restoreArrays();
     int ierr;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    d_managing_petsc_vec = manage_petsc_vec;
+
+    int depth;
+    ierr = VecGetBlockSize(vec, &depth);  IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(depth >= 0);
+    TBOX_ASSERT(d_depth == static_cast<unsigned int>(depth));
+    int global_node_count;
+    ierr = VecGetSize(vec, &global_node_count);  IBTK_CHKERRQ(ierr);
+    global_node_count /= depth;
+    TBOX_ASSERT(global_node_count >= 0);
+    TBOX_ASSERT(d_global_node_count == static_cast<unsigned int>(global_node_count));
+    int local_node_count;
+    ierr = VecGetLocalSize(vec, &local_node_count);  IBTK_CHKERRQ(ierr);
+    local_node_count /= depth;
+    TBOX_ASSERT(local_node_count >= 0);
+    TBOX_ASSERT(d_local_node_count == static_cast<unsigned int>(local_node_count));
+#endif
     if (d_managing_petsc_vec)
     {
         ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
     }
-
-    // Take ownership of new Vec
     d_global_vec = vec;
     d_managing_petsc_vec = manage_petsc_vec;
-
-    int depth;
-    ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(depth >= 0);
-#endif
-    d_depth = depth;
-    int global_node_count;
-    ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(global_node_count >= 0);
-#endif
-    d_global_node_count = global_node_count;
-    d_global_node_count /= d_depth;
-    int local_node_count;
-    ierr = VecGetLocalSize(d_global_vec, &local_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(local_node_count >= 0);
-#endif
-    d_local_node_count = local_node_count;
-    d_local_node_count /= d_depth;
     d_nonlocal_petsc_indices = nonlocal_petsc_indices;
     d_ghost_node_count = d_nonlocal_petsc_indices.size();
     return;
