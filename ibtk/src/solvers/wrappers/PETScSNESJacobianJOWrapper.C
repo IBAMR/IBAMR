@@ -67,15 +67,15 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     void* const petsc_snes_jac_ctx)
     : JacobianOperator(object_name),
       d_petsc_snes(petsc_snes),
-      d_petsc_snes_jac(PETSC_NULL),
+      d_petsc_snes_jac(NULL),
       d_petsc_snes_form_jac(petsc_snes_form_jac),
       d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
       d_x(NULL),
       d_y(NULL),
       d_z(NULL),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_y(PETSC_NULL),
-      d_petsc_z(PETSC_NULL)
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
 {
     // intentionally blank
     return;
@@ -113,11 +113,11 @@ PETScSNESJacobianJOWrapper::formJacobian(
     Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
 
     // Setup the Jacobian matrix.
-    int ierr = d_petsc_snes_form_jac(d_petsc_snes,petsc_x,&d_petsc_snes_jac,PETSC_NULL,PETSC_NULL,d_petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
+    int ierr = d_petsc_snes_form_jac(d_petsc_snes,petsc_x,&d_petsc_snes_jac,NULL,NULL,d_petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
 
     // Destroy the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::destroyPETScVector(petsc_x);
-    petsc_x = PETSC_NULL;
+    petsc_x = NULL;
     return;
 }// formJacobian
 

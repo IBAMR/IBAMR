@@ -65,9 +65,9 @@ PETScMatLOWrapper::PETScMatLOWrapper(
       d_x(NULL),
       d_y(NULL),
       d_z(NULL),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_y(PETSC_NULL),
-      d_petsc_z(PETSC_NULL)
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
 {
     // intentionally blank
     return;

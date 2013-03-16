@@ -1089,7 +1089,7 @@ LDataManager::scatterToAll(
     int ierr;
     const bool create_vout = !sequential_vec;
     VecScatter ctx;
-    ierr = VecScatterCreateToAll(parallel_vec, &ctx, (create_vout ? &sequential_vec : PETSC_NULL));  IBTK_CHKERRQ(ierr);
+    ierr = VecScatterCreateToAll(parallel_vec, &ctx, (create_vout ? &sequential_vec : NULL));  IBTK_CHKERRQ(ierr);
     ierr = VecScatterBegin(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     ierr = VecScatterDestroy(&ctx);  IBTK_CHKERRQ(ierr);
@@ -1104,7 +1104,7 @@ LDataManager::scatterToZero(
     int ierr;
     const bool create_vout = !sequential_vec;
     VecScatter ctx;
-    ierr = VecScatterCreateToZero(parallel_vec, &ctx, (create_vout ? &sequential_vec : PETSC_NULL));  IBTK_CHKERRQ(ierr);
+    ierr = VecScatterCreateToZero(parallel_vec, &ctx, (create_vout ? &sequential_vec : NULL));  IBTK_CHKERRQ(ierr);
     ierr = VecScatterBegin(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx, parallel_vec, sequential_vec, INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     ierr = VecScatterDestroy(&ctx);  IBTK_CHKERRQ(ierr);
@@ -2596,7 +2596,7 @@ LDataManager::scatterData(
     // representation to the distributed Lagrangian representation.
     VecScatter vec_scatter;
     ierr = VecScatterCreate(petsc_vec, lag_is, lagrangian_vec,
-                            PETSC_NULL, &vec_scatter);  IBTK_CHKERRQ(ierr);
+                            NULL, &vec_scatter);  IBTK_CHKERRQ(ierr);
 
     // Scatter the values.
     ierr = VecScatterBegin(vec_scatter, petsc_vec, lagrangian_vec,

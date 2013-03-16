@@ -73,7 +73,7 @@ LData::LData(
       d_blitz_local_array(),
       d_blitz_vec_array(),
       d_blitz_local_vec_array(),
-      d_ghosted_local_vec(PETSC_NULL),
+      d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
       d_blitz_ghosted_local_array(),
       d_blitz_vec_ghosted_local_array()
@@ -128,7 +128,7 @@ LData::LData(
       d_blitz_local_array(),
       d_blitz_vec_array(),
       d_blitz_local_vec_array(),
-      d_ghosted_local_vec(PETSC_NULL),
+      d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
       d_blitz_ghosted_local_array(),
       d_blitz_vec_ghosted_local_array()
@@ -166,13 +166,13 @@ LData::LData(
       d_ghost_node_count(0),
       d_depth(db->getInteger("d_depth")),
       d_nonlocal_petsc_indices(),
-      d_global_vec(PETSC_NULL),
+      d_global_vec(NULL),
       d_array(NULL),
       d_blitz_array(),
       d_blitz_local_array(),
       d_blitz_vec_array(),
       d_blitz_local_vec_array(),
-      d_ghosted_local_vec(PETSC_NULL),
+      d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
       d_blitz_ghosted_local_array(),
       d_blitz_vec_ghosted_local_array()

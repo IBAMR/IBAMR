@@ -2200,7 +2200,7 @@ LSiloDataWriter::buildVecScatters(
 
         IS src_is;
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
-                             (idxs.empty() ? PETSC_NULL : &idxs[0]),
+                             (idxs.empty() ? NULL : &idxs[0]),
                              PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
@@ -2221,7 +2221,7 @@ LSiloDataWriter::buildVecScatters(
             ierr = VecScatterDestroy(&vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL,
+        ierr = VecScatterCreate(src_vec, src_is, dst_vec, NULL,
                                 &vec_scatter);
         IBTK_CHKERRQ(ierr);
 

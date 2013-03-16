@@ -78,18 +78,18 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES),
       d_reinitializing_solver(false),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
       d_options_prefix(default_options_prefix),
       d_petsc_comm  (petsc_comm),
-      d_petsc_ksp   (PETSC_NULL),
-      d_petsc_mat   (PETSC_NULL),
-      d_petsc_nullsp(PETSC_NULL),
+      d_petsc_ksp   (NULL),
+      d_petsc_mat   (NULL),
+      d_petsc_nullsp(NULL),
       d_managing_petsc_ksp(true),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
       d_nullspace_constant_vec(NULL),
-      d_petsc_nullspace_constant_vec(PETSC_NULL),
+      d_petsc_nullspace_constant_vec(NULL),
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
@@ -125,18 +125,18 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const KSP& petsc_ksp)
     : d_ksp_type("none"),
       d_reinitializing_solver(false),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
       d_options_prefix(""),
       d_petsc_comm  (PETSC_COMM_WORLD),
       d_petsc_ksp   (petsc_ksp),
-      d_petsc_mat   (PETSC_NULL),
-      d_petsc_nullsp(PETSC_NULL),
+      d_petsc_mat   (NULL),
+      d_petsc_nullsp(NULL),
       d_managing_petsc_ksp(false),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
       d_nullspace_constant_vec(NULL),
-      d_petsc_nullspace_constant_vec(PETSC_NULL),
+      d_petsc_nullspace_constant_vec(NULL),
       d_petsc_nullspace_basis_vecs(),
       d_solver_has_attached_nullspace(false)
 {
@@ -155,12 +155,12 @@ PETScKrylovLinearSolver::~PETScKrylovLinearSolver()
     if (d_petsc_mat)
     {
         ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
-        d_petsc_mat = PETSC_NULL;
+        d_petsc_mat = NULL;
     }
     if (d_managing_petsc_ksp && d_petsc_ksp)
     {
         ierr = KSPDestroy(&d_petsc_ksp); IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = PETSC_NULL;
+        d_petsc_ksp = NULL;
     }
     return;
 }// ~PETScKrylovLinearSolver()
@@ -397,7 +397,7 @@ PETScKrylovLinearSolver::initializeSolverState(
     PetscBool initial_guess_nonzero;
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero); IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations); IBTK_CHKERRQ(ierr);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations); IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
     resetKSPNullspace();
@@ -429,13 +429,13 @@ PETScKrylovLinearSolver::deallocateSolverState()
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = PETSC_NULL;
+    d_petsc_x = NULL;
     d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
-    d_petsc_b = PETSC_NULL;
+    d_petsc_b = NULL;
     d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
@@ -447,7 +447,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     if (d_managing_petsc_ksp)
     {
         ierr = KSPDestroy(&d_petsc_ksp);  IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = PETSC_NULL;
+        d_petsc_ksp = NULL;
         d_solver_has_attached_nullspace = false;
     }
 
@@ -556,7 +556,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(
         // Create a LinearOperator wrapper to correspond to the PETSc Mat used
         // by the KSP.
         Mat petsc_mat;
-        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+        ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, NULL, NULL); IBTK_CHKERRQ(ierr);
         d_A = new PETScMatLOWrapper(d_object_name+"::Mat Wrapper", petsc_mat);
         d_A->setHomogeneousBc(d_homogeneous_bc);
         d_A->setSolutionTime(d_solution_time);
@@ -584,7 +584,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(
     PetscBool initial_guess_nonzero;
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero); IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations); IBTK_CHKERRQ(ierr);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations); IBTK_CHKERRQ(ierr);
     return;
 }// resetWrappedKSP
 
@@ -619,7 +619,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
         if (strcmp(mat_type,MATSHELL))
         {
             ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
-            d_petsc_mat = PETSC_NULL;
+            d_petsc_mat = NULL;
         }
     }
     if (!d_petsc_mat)
@@ -725,7 +725,7 @@ PETScKrylovLinearSolver::resetKSPNullspace()
     else if (d_solver_has_attached_nullspace)
     {
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, PETSC_NULL, &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, 0, NULL, &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
         ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp); IBTK_CHKERRQ(ierr);
     }
     return;
@@ -739,13 +739,13 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     if (d_petsc_nullsp)
     {
         ierr = MatNullSpaceDestroy(&d_petsc_nullsp); IBTK_CHKERRQ(ierr);
-        d_petsc_nullsp = PETSC_NULL;
+        d_petsc_nullsp = NULL;
     }
 
     if (d_petsc_nullspace_constant_vec)
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
-        d_petsc_nullspace_constant_vec = PETSC_NULL;
+        d_petsc_nullspace_constant_vec = NULL;
         d_nullspace_constant_vec->resetLevels(d_nullspace_constant_vec->getCoarsestLevelNumber(), std::min(d_nullspace_constant_vec->getFinestLevelNumber(),d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->freeVectorComponents();
         d_nullspace_constant_vec.setNull();

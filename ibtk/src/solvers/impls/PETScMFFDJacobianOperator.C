@@ -63,13 +63,13 @@ PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(
     : JacobianOperator(object_name),
       d_F(NULL),
       d_nonlinear_solver(NULL),
-      d_petsc_jac(PETSC_NULL),
+      d_petsc_jac(NULL),
       d_op_u(NULL),
       d_op_x(NULL),
       d_op_y(NULL),
-      d_petsc_u(PETSC_NULL),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_y(PETSC_NULL),
+      d_petsc_u(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
       d_options_prefix(options_prefix)
 {
     // intentionally blank
@@ -108,7 +108,7 @@ PETScMFFDJacobianOperator::formJacobian(
         SNES snes = d_nonlinear_solver->getPETScSNES();
         Vec u, f;
         ierr = SNESGetSolution(snes, &u); IBTK_CHKERRQ(ierr);
-        ierr = SNESGetFunction(snes, &f, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+        ierr = SNESGetFunction(snes, &f, NULL, NULL); IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetBase(d_petsc_jac, u, f); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_petsc_jac, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyEnd(d_petsc_jac, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
@@ -117,7 +117,7 @@ PETScMFFDJacobianOperator::formJacobian(
     {
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&u,false), false);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_u)); IBTK_CHKERRQ(ierr);
-        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, PETSC_NULL); IBTK_CHKERRQ(ierr);
+        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, NULL); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_petsc_jac, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyEnd(d_petsc_jac, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     }
@@ -194,25 +194,25 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
-    d_petsc_u = PETSC_NULL;
+    d_petsc_u = NULL;
     d_op_u->resetLevels(d_op_u->getCoarsestLevelNumber(), std::min(d_op_u->getFinestLevelNumber(),d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = PETSC_NULL;
+    d_petsc_x = NULL;
     d_op_x->resetLevels(d_op_x->getCoarsestLevelNumber(), std::min(d_op_x->getFinestLevelNumber(),d_op_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_x->freeVectorComponents();
     d_op_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
-    d_petsc_y = PETSC_NULL;
+    d_petsc_y = NULL;
     d_op_y->resetLevels(d_op_y->getCoarsestLevelNumber(), std::min(d_op_y->getFinestLevelNumber(),d_op_y->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_y->freeVectorComponents();
     d_op_y.setNull();
 
     int ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
-    d_petsc_jac = PETSC_NULL;
+    d_petsc_jac = NULL;
 
     d_is_initialized = false;
     return;

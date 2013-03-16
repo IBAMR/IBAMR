@@ -1145,7 +1145,7 @@ LM3DDataWriter::buildVecScatters(
         const std::vector<int>& idxs = it->second;
 
         IS src_is;
-        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), PETSC_COPY_VALUES, &src_is);
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : NULL), PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
@@ -1164,7 +1164,7 @@ LM3DDataWriter::buildVecScatters(
             ierr = VecScatterDestroy(&vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL, &vec_scatter);
+        ierr = VecScatterCreate(src_vec, src_is, dst_vec, NULL, &vec_scatter);
         IBTK_CHKERRQ(ierr);
 
         ierr = ISDestroy(&src_is);  IBTK_CHKERRQ(ierr);

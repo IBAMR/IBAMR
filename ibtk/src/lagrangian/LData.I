@@ -159,7 +159,7 @@ LData::restoreArrays()
     if (d_ghosted_local_vec)
     {
         int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
-        d_ghosted_local_vec = PETSC_NULL;
+        d_ghosted_local_vec = NULL;
     }
     return;
 }// restoreArray

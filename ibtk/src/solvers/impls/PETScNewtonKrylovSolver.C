@@ -78,13 +78,13 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
     : d_reinitializing_solver(false),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL),
-      d_petsc_r(PETSC_NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
+      d_petsc_r(NULL),
       d_options_prefix(default_options_prefix),
       d_petsc_comm(petsc_comm),
-      d_petsc_snes(PETSC_NULL),
-      d_petsc_jac (PETSC_NULL),
+      d_petsc_snes(NULL),
+      d_petsc_jac (NULL),
       d_managing_petsc_snes(true),
       d_user_provided_function(false),
       d_user_provided_jacobian(false)
@@ -118,13 +118,13 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& object_name,
     const SNES& petsc_snes)
     : d_reinitializing_solver(false),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL),
-      d_petsc_r(PETSC_NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL),
+      d_petsc_r(NULL),
       d_options_prefix(""),
       d_petsc_comm(PETSC_COMM_WORLD),
       d_petsc_snes(petsc_snes),
-      d_petsc_jac (PETSC_NULL),
+      d_petsc_jac (NULL),
       d_managing_petsc_snes(false),
       d_user_provided_function(false),
       d_user_provided_jacobian(false)
@@ -144,12 +144,12 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
     if (d_petsc_jac)
     {
         ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
-        d_petsc_jac = PETSC_NULL;
+        d_petsc_jac = NULL;
     }
     if (d_managing_petsc_snes && d_petsc_snes)
     {
         ierr = SNESDestroy(&d_petsc_snes); IBTK_CHKERRQ(ierr);
-        d_petsc_snes = PETSC_NULL;
+        d_petsc_snes = NULL;
     }
     return;
 }// ~PETScNewtonKrylovSolver()
@@ -223,7 +223,7 @@ Pointer<SAMRAIVectorReal<NDIM,double> >
 PETScNewtonKrylovSolver::getFunctionVector() const
 {
     Vec petsc_f;
-    int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, NULL, NULL); IBTK_CHKERRQ(ierr);
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_f);
 }// getFunctionVector
 
@@ -434,19 +434,19 @@ PETScNewtonKrylovSolver::deallocateSolverState()
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = PETSC_NULL;
+    d_petsc_x = NULL;
     d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
-    d_petsc_b = PETSC_NULL;
+    d_petsc_b = NULL;
     d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
-    d_petsc_r = PETSC_NULL;
+    d_petsc_r = NULL;
     d_r->resetLevels(d_r->getCoarsestLevelNumber(), std::min(d_r->getFinestLevelNumber(),d_r->getPatchHierarchy()->getFinestLevelNumber()));
     d_r->freeVectorComponents();
     d_r.setNull();
@@ -455,7 +455,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     if (d_managing_petsc_snes)
     {
         ierr = SNESDestroy(&d_petsc_snes);  IBTK_CHKERRQ(ierr);
-        d_petsc_snes = PETSC_NULL;
+        d_petsc_snes = NULL;
     }
 
     // Indicate that the solver is NOT initialized.
@@ -470,7 +470,7 @@ void
 PETScNewtonKrylovSolver::common_ctor()
 {
     // Setup linear solver wrapper.
-    KSP petsc_ksp = PETSC_NULL;
+    KSP petsc_ksp = NULL;
     d_krylov_solver = new PETScKrylovLinearSolver(d_object_name+"::KSP Wrapper", petsc_ksp);
     d_krylov_solver->setHomogeneousBc(d_homogeneous_bc);
     d_krylov_solver->setSolutionTime(d_solution_time);
@@ -568,7 +568,7 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
         // Create an GeneralOperator wrapper to correspond to the SNES function.
         PetscErrorCode (*petsc_snes_form_func)(SNES,Vec,Vec,void*);
         void* petsc_snes_func_ctx;
-        ierr = SNESGetFunction(d_petsc_snes, PETSC_NULL, &petsc_snes_form_func, &petsc_snes_func_ctx); IBTK_CHKERRQ(ierr);
+        ierr = SNESGetFunction(d_petsc_snes, NULL, &petsc_snes_form_func, &petsc_snes_func_ctx); IBTK_CHKERRQ(ierr);
         d_F = new PETScSNESFunctionGOWrapper(d_object_name+"::SNESFunction Wrapper", d_petsc_snes, petsc_snes_form_func, petsc_snes_func_ctx);
         d_F->setHomogeneousBc(d_homogeneous_bc);
         d_F->setSolutionTime(d_solution_time);
@@ -581,7 +581,7 @@ PETScNewtonKrylovSolver::resetWrappedSNES(
         // Create a JacobianOperator wrapper to correspond to the SNES Jacobian.
         PetscErrorCode (*petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*);
         void* petsc_snes_jac_ctx;
-        ierr = SNESGetJacobian(d_petsc_snes, PETSC_NULL, PETSC_NULL, &petsc_snes_form_jac, &petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
+        ierr = SNESGetJacobian(d_petsc_snes, NULL, NULL, &petsc_snes_form_jac, &petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
         d_J = new PETScSNESJacobianJOWrapper(d_object_name+"::SNESJacobian Wrapper", d_petsc_snes, petsc_snes_form_jac, petsc_snes_jac_ctx);
         d_J->setHomogeneousBc(true);
         d_J->setSolutionTime(d_solution_time);
@@ -627,7 +627,7 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
     if (d_petsc_jac)
     {
         ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
-        d_petsc_jac = PETSC_NULL;
+        d_petsc_jac = NULL;
     }
     if (d_J && d_user_provided_jacobian)
     {
@@ -692,7 +692,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(
     {
         Vec u, f;
         ierr = SNESGetSolution(snes, &u); IBTK_CHKERRQ(ierr);
-        ierr = SNESGetFunction(snes, &f, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+        ierr = SNESGetFunction(snes, &f, NULL, NULL); IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetBase(*A, u, f); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);

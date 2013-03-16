@@ -79,10 +79,10 @@ PETScLevelSolver::PETScLevelSolver()
       d_level_num(-1),
       d_ksp_type(KSPGMRES),
       d_options_prefix(""),
-      d_petsc_ksp(PETSC_NULL),
-      d_petsc_mat(PETSC_NULL),
-      d_petsc_x(PETSC_NULL),
-      d_petsc_b(PETSC_NULL)
+      d_petsc_ksp(NULL),
+      d_petsc_mat(NULL),
+      d_petsc_x(NULL),
+      d_petsc_b(NULL)
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -298,10 +298,10 @@ PETScLevelSolver::deallocateSolverState()
     ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
 
-    d_petsc_ksp = PETSC_NULL;
-    d_petsc_mat = PETSC_NULL;
-    d_petsc_x = PETSC_NULL;
-    d_petsc_b = PETSC_NULL;
+    d_petsc_ksp = NULL;
+    d_petsc_mat = NULL;
+    d_petsc_x = NULL;
+    d_petsc_b = NULL;
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -340,7 +340,7 @@ PETScLevelSolver::setupNullspace()
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
         Vec& petsc_nullspace_vec = petsc_nullspace_basis_vecs[k];
-        ierr = MatGetVecs(d_petsc_mat, PETSC_NULL, &petsc_nullspace_vec); IBTK_CHKERRQ(ierr);
+        ierr = MatGetVecs(d_petsc_mat, NULL, &petsc_nullspace_vec); IBTK_CHKERRQ(ierr);
         copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k], patch_level);
         double dot;
         ierr = VecDot(petsc_nullspace_vec, petsc_nullspace_vec, &dot); IBTK_CHKERRQ(ierr);
@@ -349,7 +349,7 @@ PETScLevelSolver::setupNullspace()
     ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
                               d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               petsc_nullspace_basis_vecs.size(),
-                              (petsc_nullspace_basis_vecs.empty() ? PETSC_NULL : &petsc_nullspace_basis_vecs[0]), &d_petsc_nullsp);
+                              (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]), &d_petsc_nullsp);
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp); IBTK_CHKERRQ(ierr);
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
