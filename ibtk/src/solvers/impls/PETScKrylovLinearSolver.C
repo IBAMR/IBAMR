@@ -624,7 +624,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(d_petsc_comm, 0, 0, 0, 0, static_cast<void*>(this), &d_petsc_mat); IBTK_CHKERRQ(ierr);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat); IBTK_CHKERRQ(ierr);
     }
     ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT    , reinterpret_cast<void(*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI   )); IBTK_CHKERRQ(ierr);
     ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT_ADD, reinterpret_cast<void(*)(void)>(PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI)); IBTK_CHKERRQ(ierr);

@@ -631,14 +631,14 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
     }
     if (d_J && d_user_provided_jacobian)
     {
-        ierr = MatCreateShell(d_petsc_comm, 0, 0, 0, 0, static_cast<void*>(this), &d_petsc_jac); IBTK_CHKERRQ(ierr);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_jac); IBTK_CHKERRQ(ierr);
         ierr = MatShellSetOperation(d_petsc_jac, MATOP_MULT    , reinterpret_cast<void(*)(void)>(PETScNewtonKrylovSolver::MatVecMult_SAMRAI   )); IBTK_CHKERRQ(ierr);
         ierr = MatShellSetOperation(d_petsc_jac, MATOP_MULT_ADD, reinterpret_cast<void(*)(void)>(PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI)); IBTK_CHKERRQ(ierr);
         ierr = MatShellSetOperation(d_petsc_jac, MATOP_GET_VECS, reinterpret_cast<void(*)(void)>(PETScNewtonKrylovSolver::MatGetVecs_SAMRAI   )); IBTK_CHKERRQ(ierr);
     }
     else
     {
-        ierr = MatCreateMFFD(d_petsc_comm, 0, 0, 0, 0, &d_petsc_jac); IBTK_CHKERRQ(ierr);
+        ierr = MatCreateMFFD(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, &d_petsc_jac); IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetFunction(d_petsc_jac, reinterpret_cast<PetscErrorCode(*)(void*, Vec, Vec)>(SNESComputeFunction), d_petsc_snes); IBTK_CHKERRQ(ierr);
         if (!d_options_prefix.empty())
         {
