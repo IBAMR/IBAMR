@@ -266,7 +266,7 @@ if test "$enable_fortran" != "no"; then
       i?86-*-* | k?*-*-* | athlon-*-* | ia64-*-* | x86_64-*-*)
         case "$FC_PROG_NAME" in
           ifc|ifort|efc)
-            REQ_FCFLAGS="$REQ_FCFLAGS -mp -Vaxlib"
+            REQ_FCFLAGS="$REQ_FCFLAGS" # BEG " -mp -Vaxlib"
           ;;
         esac
       ;;
