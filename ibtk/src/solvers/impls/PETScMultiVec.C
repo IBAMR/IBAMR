@@ -77,12 +77,12 @@ VecDuplicate_MultiVec(
     }
     MPI_Comm comm;
     ierr = PetscObjectGetComm((PetscObject)v,&comm); CHKERRQ(ierr);
-    ierr = VecCreateMultiVec(comm, mv->n, newarray, newv); CHKERRQ(ierr);
+    ierr = VecCreateMultiVec(comm, mv->n, newv); CHKERRQ(ierr);
     Vec_MultiVec* mnewv = static_cast<Vec_MultiVec*>((*newv)->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(mnewv);
-    TBOX_ASSERT(mnewv->array == newarray);
 #endif
+    mnewv->array = newarray;
     mnewv->array_allocated = mnewv->array;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -987,11 +987,10 @@ PetscErrorCode
 VecCreateMultiVec(
     MPI_Comm comm,
     PetscInt n,
-    Vec* v,
-    Vec* vv)
+    Vec* v)
 {
     PetscErrorCode ierr;
-    ierr = VecCreate(comm, vv); CHKERRQ(ierr);
+    ierr = VecCreate(comm, v); CHKERRQ(ierr);
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
@@ -1030,36 +1029,36 @@ VecCreateMultiVec(
         DvOps.maxpointwisedivide = VecMaxPointwiseDivide_MultiVec;
         DvOps.dotnorm2 = VecDotNorm2_MultiVec;
                  );
-    ierr = PetscMemcpy((*vv)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
+    ierr = PetscMemcpy((*v)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
 
     // Set PETSc vector data.
     Vec_MultiVec* mv;
     ierr = PetscNew(Vec_MultiVec,&mv); CHKERRQ(ierr);
     mv->n = n;
-    mv->array = v;
+    mv->array = NULL;
     mv->array_allocated = NULL;
-    (*vv)->data = mv;
-    (*vv)->petscnative = PETSC_FALSE;
-    (*vv)->map->n = 0;
-    (*vv)->map->N = 0;
+    (*v)->data = mv;
+    (*v)->petscnative = PETSC_FALSE;
+    (*v)->map->n = 0;
+    (*v)->map->N = 0;
     for (PetscInt k = 0; k < n; ++k)
     {
-        (*vv)->map->n += v[k]->map->n;
-        (*vv)->map->N += v[k]->map->N;
+        (*v)->map->n += v[k]->map->n;
+        (*v)->map->N += v[k]->map->N;
     }
-    (*vv)->map->bs = 1;  // NOTE: Here we are giving a bogus block size.
+    (*v)->map->bs = 1;  // NOTE: Here we are giving a bogus block size.
 
     // Set the PETSc vector type name.
-    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*vv), "Vec_MultiVec"); CHKERRQ(ierr);
+    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*v), "Vec_MultiVec"); CHKERRQ(ierr);
 
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*vv)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*v)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// VecCreateMultiVec
 
 #undef __FUNCT__
-#define __FUNCT__ "VecMultiVecGetNumberOfVecs"
+#define __FUNCT__ "VecMultiVecGetNumberOfSubVecs"
 PetscErrorCode
-VecMultiVecGetNumberOfVecs(
+VecMultiVecGetNumberOfSubVecs(
     Vec v,
     PetscInt* n)
 {
@@ -1072,12 +1071,12 @@ VecMultiVecGetNumberOfVecs(
 #endif
     *n = mv->n;
     PetscFunctionReturn(0);
-}// VecMultiVecGetNumberOfVecs
+}// VecMultiVecGetNumberOfSubVecs
 
 #undef __FUNCT__
-#define __FUNCT__ "VecMultiVecGetVecs"
+#define __FUNCT__ "VecMultiVecGetSubVecs"
 PetscErrorCode
-VecMultiVecGetVecs(
+VecMultiVecGetSubVecs(
     Vec v,
     Vec* vv[])
 {
@@ -1090,7 +1089,67 @@ VecMultiVecGetVecs(
 #endif
     *vv = mv->array;
     PetscFunctionReturn(0);
-}// VecMultiVecGetVecs
+}// VecMultiVecGetSubVecs
+
+#undef __FUNCT__
+#define __FUNCT__ "VecMultiVecSetSubVecs"
+PetscErrorCode
+VecMultiVecSetSubVecs(
+    Vec v,
+    Vec vv[])
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(v);
+#endif
+    Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(mv);
+#endif
+    mv->array = vv;
+    PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
+    PetscFunctionReturn(ierr);
+}// VecMultiVecSetSubVecs
+
+#undef __FUNCT__
+#define __FUNCT__ "VecMultiVecGetSubVec"
+PetscErrorCode
+VecMultiVecGetSubVec(
+    Vec v,
+    PetscInt idx,
+    Vec* subv)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(v);
+#endif
+    Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(mv);
+    TBOX_ASSERT(0 <= idx && idx < mv->n);
+#endif
+    *subv = mv->array[idx];
+    PetscFunctionReturn(0);
+}// VecMultiVecGetSubVec
+
+#undef __FUNCT__
+#define __FUNCT__ "VecMultiVecSetSubVec"
+PetscErrorCode
+VecMultiVecSetSubVec(
+    Vec v,
+    PetscInt idx,
+    Vec subv)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(v);
+#endif
+    Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(mv);
+    TBOX_ASSERT(0 <= idx && idx < mv->n);
+#endif
+    mv->array[idx] = subv;
+    PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
+    PetscFunctionReturn(ierr);
+}// VecMultiVecSetSubVec
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
