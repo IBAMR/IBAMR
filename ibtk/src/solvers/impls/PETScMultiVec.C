@@ -1039,13 +1039,8 @@ VecCreateMultiVec(
     mv->array_allocated = NULL;
     (*v)->data = mv;
     (*v)->petscnative = PETSC_FALSE;
-    (*v)->map->n = 0;
+    (*v)->map->n = 0;   // NOTE: map->n and map->N will be filled in when setting the subvecs
     (*v)->map->N = 0;
-    for (PetscInt k = 0; k < n; ++k)
-    {
-        (*v)->map->n += v[k]->map->n;
-        (*v)->map->N += v[k]->map->N;
-    }
     (*v)->map->bs = 1;  // NOTE: Here we are giving a bogus block size.
 
     // Set the PETSc vector type name.
@@ -1106,6 +1101,13 @@ VecMultiVecSetSubVecs(
     TBOX_ASSERT(mv);
 #endif
     mv->array = vv;
+    v->map->n = 0;
+    v->map->N = 0;
+    for (PetscInt k = 0; k < n; ++k)
+    {
+        v->map->n += vv[k]->map->n;
+        v->map->N += vv[k]->map->N;
+    }
     PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
     PetscFunctionReturn(ierr);
 }// VecMultiVecSetSubVecs
@@ -1147,6 +1149,13 @@ VecMultiVecSetSubVec(
     TBOX_ASSERT(0 <= idx && idx < mv->n);
 #endif
     mv->array[idx] = subv;
+    v->map->n = 0;
+    v->map->N = 0;
+    for (PetscInt k = 0; k < n; ++k)
+    {
+        v->map->n += vv[k]->map->n;
+        v->map->N += vv[k]->map->N;
+    }
     PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
     PetscFunctionReturn(ierr);
 }// VecMultiVecSetSubVec
