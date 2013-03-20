@@ -114,7 +114,7 @@ VecMultiVecGetSubVec(
  * \param subv component vector
  */
 PetscErrorCode
-VecMultiVecGetSubVec(
+VecMultiVecSetSubVec(
     Vec v,
     PetscInt idx,
     Vec subv);
