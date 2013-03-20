@@ -516,15 +516,13 @@ VecPointwiseDivide_SAMRAI(
 PetscErrorCode
 VecGetSize_SAMRAI(
     Vec v,
-    PetscInt* n)
+    PetscInt* size)
 {
     IBTK_TIMER_START(t_vec_get_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v);
-#else
-    NULL_USE(v);
 #endif
-    *n = 0;
+    *size = v->map->N;
     IBTK_TIMER_STOP(t_vec_get_size);
     PetscFunctionReturn(0);
 }// VecGetSize
@@ -532,15 +530,13 @@ VecGetSize_SAMRAI(
 PetscErrorCode
 VecGetLocalSize_SAMRAI(
     Vec v,
-    PetscInt* n)
+    PetscInt* size)
 {
     IBTK_TIMER_START(t_vec_get_local_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v);
-#else
-    NULL_USE(v);
 #endif
-    *n = 0;
+    *size = v->map->n;
     IBTK_TIMER_STOP(t_vec_get_local_size);
     PetscFunctionReturn(0);
 }// VecGetLocalSize

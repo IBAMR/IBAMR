@@ -604,18 +604,7 @@ VecGetSize_MultiVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(x);
 #endif
-    Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx);
-#endif
-    PetscErrorCode ierr;
-    *size = 0;
-    for (PetscInt k = 0; k < mx->n; ++k)
-    {
-        PetscInt component_size;
-        ierr = VecGetSize(mx->array[k], &component_size); CHKERRQ(ierr);
-        *size += component_size;
-    }
+    *size = x->map->N;
     PetscFunctionReturn(0);
 }// VecGetSize_MultiVec
 
@@ -629,18 +618,7 @@ VecGetLocalSize_MultiVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(x);
 #endif
-    Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx);
-#endif
-    PetscErrorCode ierr;
-    *size = 0;
-    for (PetscInt k = 0; k < mx->n; ++k)
-    {
-        PetscInt component_size;
-        ierr = VecGetLocalSize(mx->array[k], &component_size); CHKERRQ(ierr);
-        *size += component_size;
-    }
+    *size = x->map->n;
     PetscFunctionReturn(0);
 }// VecGetLocalSize_MultiVec
 
