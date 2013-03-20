@@ -1103,10 +1103,10 @@ VecMultiVecSetSubVecs(
     mv->array = vv;
     v->map->n = 0;
     v->map->N = 0;
-    for (PetscInt k = 0; k < n; ++k)
+    for (PetscInt k = 0; k < mv->n; ++k)
     {
-        v->map->n += vv[k]->map->n;
-        v->map->N += vv[k]->map->N;
+        v->map->n += mv->array[k]->map->n;
+        v->map->N += mv->array[k]->map->N;
     }
     PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
     PetscFunctionReturn(ierr);
@@ -1151,10 +1151,10 @@ VecMultiVecSetSubVec(
     mv->array[idx] = subv;
     v->map->n = 0;
     v->map->N = 0;
-    for (PetscInt k = 0; k < n; ++k)
+    for (PetscInt k = 0; k < mv->n; ++k)
     {
-        v->map->n += vv[k]->map->n;
-        v->map->N += vv[k]->map->N;
+        v->map->n += mv->array[k]->map->n;
+        v->map->N += mv->array[k]->map->N;
     }
     PetscErrorCode ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(v)); CHKERRQ(ierr);
     PetscFunctionReturn(ierr);
