@@ -82,7 +82,7 @@ VecDuplicate_MultiVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(mnewv);
 #endif
-    ierr = VecMultiVecSetSubVecs(v, newarray); CHKERRQ(ierr);
+    ierr = VecMultiVecSetSubVecs(*newv, newarray); CHKERRQ(ierr);
     mnewv->array_allocated = mnewv->array;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
