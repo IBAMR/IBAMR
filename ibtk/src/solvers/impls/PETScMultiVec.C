@@ -51,7 +51,7 @@ struct Vec_MultiVec
 {
     PetscInt n;           // the number of component vector objects
     Vec* array;           // the array  of component vector objects
-    Vec* array_allocated; // if the array was allocated by PETSc (e.g., via VecDuplicate()), this is its pointer
+    Vec* array_allocated; // if the array was allocated by PetscMalloc, this is its pointer
 };
 
 #undef __FUNCT__
@@ -69,12 +69,6 @@ VecDuplicate_MultiVec(
     TBOX_ASSERT(mv);
 #endif
     PetscErrorCode ierr;
-    Vec* newarray = NULL;
-    ierr = PetscMalloc(mv->n*sizeof(Vec),&newarray); CHKERRQ(ierr);
-    for (PetscInt k = 0; k < mv->n; ++k)
-    {
-        ierr = VecDuplicate(mv->array[k], &newarray[k]); CHKERRQ(ierr);
-    }
     MPI_Comm comm;
     ierr = PetscObjectGetComm((PetscObject)v,&comm); CHKERRQ(ierr);
     ierr = VecCreateMultiVec(comm, mv->n, newv); CHKERRQ(ierr);
@@ -82,8 +76,10 @@ VecDuplicate_MultiVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(mnewv);
 #endif
-    ierr = VecMultiVecSetSubVecs(*newv, newarray); CHKERRQ(ierr);
-    mnewv->array_allocated = mnewv->array;
+    for (PetscInt k = 0; k < mv->n; ++k)
+    {
+        ierr = VecDuplicate(mv->array[k], &mnewv->array[k]); CHKERRQ(ierr);
+    }
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// VecDuplicate_MultiVec
@@ -1013,8 +1009,8 @@ VecCreateMultiVec(
     Vec_MultiVec* mv;
     ierr = PetscNew(Vec_MultiVec,&mv); CHKERRQ(ierr);
     mv->n = n;
-    mv->array = NULL;
-    mv->array_allocated = NULL;
+    ierr = PetscMalloc(mv->n*sizeof(Vec),&mv->array); CHKERRQ(ierr);
+    mv->array_allocated = mv->array;
     (*v)->data = mv;
     (*v)->petscnative = PETSC_FALSE;
     (*v)->map->n = 0;   // NOTE: map->n and map->N will be filled in when setting the subvecs
