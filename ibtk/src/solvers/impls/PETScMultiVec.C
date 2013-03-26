@@ -1014,7 +1014,7 @@ VecCreateMultiVec(
     ierr = PetscNew(Vec_MultiVec,&mv); CHKERRQ(ierr);
     mv->n = n;
     mv->array = vv;
-    mv->array_allocated = PETSC_NULL;
+    mv->array_allocated = NULL;
     (*v)->data = mv;
     (*v)->petscnative = PETSC_FALSE;
     (*v)->map->n = 0;
