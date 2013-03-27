@@ -114,6 +114,8 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_enable_logging = false;
     d_bdry_extrap_type = "LINEAR";
     d_manage_hier_math_ops = true;
+    d_tag_buffer.resizeArray(1);
+    d_tag_buffer[0] = 0;
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -1387,13 +1389,14 @@ HierarchyIntegrator::setupTagBuffer(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
-    const int tsize = d_tag_buffer.size();
-    d_tag_buffer.resizeArray(std::max(finest_hier_ln,1));
-    for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
-    for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
+    Array<int> new_tag_buffer(std::max(finest_hier_ln,1));
+    new_tag_buffer[0] = 0;
+    for (int i = 0; i < finest_hier_ln; ++i)
     {
-        d_tag_buffer[i] = d_tag_buffer[i-1];
+        if (i < d_tag_buffer.size()) new_tag_buffer[i] = d_tag_buffer[i];
+        else if (i > 0) new_tag_buffer[i] = new_tag_buffer[i-1];
     }
+    d_tag_buffer = new_tag_buffer;
     return;
 }// setupTagBuffer
 
