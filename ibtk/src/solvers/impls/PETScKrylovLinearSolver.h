@@ -180,28 +180,6 @@ public:
     //\{
 
     /*!
-     * \brief Set whether the solver should use homogeneous boundary conditions.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Set the time at which the solution is to be evaluated.
-     */
-    void
-    setSolutionTime(
-        double solution_time);
-
-    /*!
-     * \brief Set the current time interval.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
-    /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
     void

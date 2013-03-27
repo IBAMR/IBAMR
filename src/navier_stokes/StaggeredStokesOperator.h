@@ -106,16 +106,6 @@ public:
         SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
-     * \brief Implementation of the apply method which supports either
-     * homogeneous or inhomogeneous boundary conditions.
-     */
-    void
-    apply(
-        bool homogeneous_bc,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-    /*!
      * \name Linear operator functionality.
      */
     //\{

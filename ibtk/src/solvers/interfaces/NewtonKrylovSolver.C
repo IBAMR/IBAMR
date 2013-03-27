@@ -90,6 +90,39 @@ NewtonKrylovSolver::setHierarchyMathOps(
 }// setHierarchyMathOps
 
 void
+NewtonKrylovSolver::setHomogeneousBc(
+    const bool homogeneous_bc)
+{
+    GeneralSolver::setHomogeneousBc(homogeneous_bc);
+    if (d_F) d_F->setHomogeneousBc(homogeneous_bc);
+    if (d_krylov_solver) d_krylov_solver->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+void
+NewtonKrylovSolver::setSolutionTime(
+    const double solution_time)
+{
+    GeneralSolver::setSolutionTime(solution_time);
+    if (d_F) d_F->setSolutionTime(solution_time);
+    if (d_J) d_J->setSolutionTime(solution_time);
+    if (d_krylov_solver) d_krylov_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+void
+NewtonKrylovSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    GeneralSolver::setTimeInterval(current_time, new_time);
+    if (d_F) d_F->setTimeInterval(current_time, new_time);
+    if (d_J) d_J->setTimeInterval(current_time, new_time);
+    if (d_krylov_solver) d_krylov_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+void
 NewtonKrylovSolver::setOperator(
     Pointer<GeneralOperator> F)
 {

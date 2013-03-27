@@ -95,27 +95,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Print class data to stream.
-     */
-    virtual void
-    printClassData(
-        std::ostream& stream);
-
-    //\}
-
-protected:
-    /*
-     * Boolean indicating whether the operator is currently correcting a
-     * right-hand side vector to account for inhomogeneous boundary conditions.
-     */
-    bool d_correcting_rhs;
-
 private:
     /*!
      * \brief Default constructor.

@@ -545,6 +545,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         helmholtz_rhs_op->apply(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        d_hier_cc_data_ops->add(Q_rhs_scratch_idx, Q_rhs_scratch_idx, Q_new_idx);
 
         // Initialize the linear solver.
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
@@ -565,16 +566,16 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
 
         // Account for the convective difference term.
-        TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
-        if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
-        {
-            convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
-        }
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
         if (u_var)
         {
+            Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
+            Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
+            TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
+            if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
+            {
+                convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
+            }
             if ((num_cycles == 1) && (convective_time_stepping_type == MIDPOINT_RULE || convective_time_stepping_type == TRAPEZOIDAL_RULE))
             {
                 TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
@@ -608,15 +609,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
 
         // Set the initial guess.
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_current_idx);
-
-        // Setup inhomogeneous boundary conditions.
-        helmholtz_solver->setHomogeneousBc(false);
-        Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
-        if (p_helmholtz_solver)
-        {
-            p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
-            p_helmholtz_solver->setHomogeneousBc(true);
-        }
     }
 
     // Execute any registered callbacks.
@@ -683,34 +675,35 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         }
 
         // Account for the convective difference term.
-        TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
-        if (is_multistep_time_stepping_type(convective_time_stepping_type))
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
-#endif
-            if (getIntegratorStep() == 0)
-            {
-                convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
-            }
-            else if (cycle_num > 0)
-            {
-                convective_time_stepping_type = MIDPOINT_RULE;
-                IBAMR_DO_ONCE(
-                    {
-                        pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                             << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                             << "           using " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " only for the first cycle in each time step;\n"
-                             << "           using " << enum_to_string<TimeSteppingType>(    convective_time_stepping_type       ) << " for subsequent cycles.\n";
-                    }
-                              );
-            }
-        }
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
         Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
-        if (u_var && convective_time_stepping_type != FORWARD_EULER)
+        TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
+        if (u_var)
         {
+            Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
+            convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
+            if (is_multistep_time_stepping_type(convective_time_stepping_type))
+            {
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
+#endif
+                if (getIntegratorStep() == 0)
+                {
+                    convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
+                }
+                else if (cycle_num > 0)
+                {
+                    convective_time_stepping_type = MIDPOINT_RULE;
+                    IBAMR_DO_ONCE(
+                        {
+                            pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
+                                 << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                                 << "           using " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " only for the first cycle in each time step;\n"
+                                 << "           using " << enum_to_string<TimeSteppingType>(    convective_time_stepping_type       ) << " for subsequent cycles.\n";
+                        }
+                                  );
+                }
+            }
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             if (cycle_num > 0)
             {

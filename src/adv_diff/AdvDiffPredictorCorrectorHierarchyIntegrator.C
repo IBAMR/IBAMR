@@ -320,7 +320,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<SideVariable<NDIM,double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
-        if (D_fcn && D_fcn->isTimeDependent())
+        if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, current_time);
@@ -421,7 +421,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
     {
         Pointer<SideVariable<NDIM,double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
-        if (D_fcn && D_fcn->isTimeDependent())
+        if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, half_time);
@@ -534,6 +534,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         helmholtz_rhs_op->apply(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        d_hier_cc_data_ops->add(Q_rhs_scratch_idx, Q_rhs_scratch_idx, Q_new_idx);
 
         // Initialize the linear solver.
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
@@ -551,15 +552,6 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
-        }
-
-        // Setup inhomogeneous boundary conditions.
-        helmholtz_solver->setHomogeneousBc(false);
-        Pointer<KrylovLinearSolver> p_helmholtz_solver = helmholtz_solver;
-        if (p_helmholtz_solver)
-        {
-            p_helmholtz_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_rhs_vecs[l]);
-            p_helmholtz_solver->setHomogeneousBc(true);
         }
 
         // Solve for Q(n+1).
@@ -685,8 +677,9 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     // possible.
     d_hyp_level_integrator->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
-    // Set the initial values of any forcing terms.  All other variables are
-    // initialized by the hyperbolic level integrator.
+    // Set the initial values of any forcing terms and variable-coefficient
+    // diffusion coefficient variables.  All other variables are initialized by
+    // the hyperbolic level integrator.
     if (initial_time)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -713,6 +706,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
                 }
             }
         }
+
         // Set the initial value of any variable diffusion coefficient
         for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
         {

@@ -193,7 +193,6 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(
 
 void
 StaggeredStokesOperator::apply(
-    const bool homogeneous_bc,
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -217,8 +216,8 @@ StaggeredStokesOperator::apply(
     transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx, U_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
     transaction_comps[1] = InterpolationTransactionComponent(P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
-    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, homogeneous_bc);
+    d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
@@ -233,15 +232,6 @@ StaggeredStokesOperator::apply(
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
-    return;
-}// apply
-
-void
-StaggeredStokesOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    apply(d_correcting_rhs ? d_homogeneous_bc : true, x, y);
     return;
 }// apply
 

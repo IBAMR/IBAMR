@@ -188,36 +188,6 @@ PETScKrylovLinearSolver::getPETScKSP() const
 }// getPETScKSP
 
 void
-PETScKrylovLinearSolver::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    KrylovLinearSolver::setHomogeneousBc(homogeneous_bc);
-    if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
-    return;
-}// setHomogeneousBc
-
-void
-PETScKrylovLinearSolver::setSolutionTime(
-    const double solution_time)
-{
-    KrylovLinearSolver::setSolutionTime(solution_time);
-    if (d_A) d_A->setSolutionTime(solution_time);
-    if (d_pc_solver) d_pc_solver->setSolutionTime(solution_time);
-    return;
-}// setSolutionTime
-
-void
-PETScKrylovLinearSolver::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    KrylovLinearSolver::setTimeInterval(current_time, new_time);
-    if (d_A) d_A->setTimeInterval(current_time, new_time);
-    if (d_pc_solver) d_pc_solver->setTimeInterval(current_time, new_time);
-    return;
-}// setTimeInterval
-
-void
 PETScKrylovLinearSolver::setOperator(
     Pointer<LinearOperator> A)
 {
@@ -270,13 +240,24 @@ PETScKrylovLinearSolver::solveSystem(
 
     // Solve the system using a PETSc KSP object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
-    d_A->modifyRhsForInhomogeneousBc(*d_b);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
+    if (d_homogeneous_bc)
+    {
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+    }
+    else
+    {
+        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+        d_A->modifyRhsForInhomogeneousBc(*d_b);
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
+        d_A->setHomogeneousBc(true);
+    }
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_x)); IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b)); IBTK_CHKERRQ(ierr);
-
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations); IBTK_CHKERRQ(ierr);
     ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm); IBTK_CHKERRQ(ierr);
+    d_A->setHomogeneousBc(d_homogeneous_bc);
 
     // Determine the convergence reason.
     KSPConvergedReason reason;

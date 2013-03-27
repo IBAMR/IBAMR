@@ -257,7 +257,6 @@ public:
 
     //\}
 
-
     /*!
      * \name Functions to access solver parameters.
      */

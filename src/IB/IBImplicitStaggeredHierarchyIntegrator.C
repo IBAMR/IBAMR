@@ -412,8 +412,9 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
 
     // Compute the "fluid" part of the operator.
     Pointer<StaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
+    stokes_op->setHomogeneousBc(false);
     stokes_op->setTimeInterval(current_time, new_time);
-    stokes_op->apply(/* homogeneous_bc */ true, x, y);
+    stokes_op->apply(x, y);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
@@ -514,8 +515,9 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::apply(
 
     // Compute the "fluid" part of the operator.
     Pointer<StaggeredStokesOperator> stokes_op = d_ib_solver->d_stokes_op;
+    stokes_op->setHomogeneousBc(true);
     stokes_op->setTimeInterval(current_time, new_time);
-    stokes_op->apply(/* homogeneous_bc */ true, x, y);
+    stokes_op->apply(x, y);
 
     // Compute the "structure" part of the operator.
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");

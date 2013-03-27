@@ -59,8 +59,7 @@ namespace IBTK
 LinearOperator::LinearOperator(
     const std::string& object_name,
     bool homogeneous_bc)
-    : GeneralOperator(object_name, homogeneous_bc),
-      d_correcting_rhs(false)
+    : GeneralOperator(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;
@@ -85,23 +84,12 @@ LinearOperator::modifyRhsForInhomogeneousBc(
     x->allocateVectorData();
     b->allocateVectorData();
     x->setToScalar(0.0);
-    d_correcting_rhs = true;
     apply(*x,*b);
     y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), b);
     x->freeVectorComponents();
     b->freeVectorComponents();
-    d_correcting_rhs = false;
     return;
 }// modifyRhsForInhomogeneousBc
-
-void
-LinearOperator::printClassData(
-    std::ostream& stream)
-{
-    GeneralOperator::printClassData(stream);
-    stream << "correcting_rhs = " << d_correcting_rhs << "\n";
-    return;
-}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

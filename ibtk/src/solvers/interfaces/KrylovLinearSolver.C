@@ -82,6 +82,36 @@ KrylovLinearSolver::setHierarchyMathOps(
 }// setHierarchyMathOps
 
 void
+KrylovLinearSolver::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    LinearSolver::setHomogeneousBc(homogeneous_bc);
+    if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
+    return;
+}// setHomogeneousBc
+
+void
+KrylovLinearSolver::setSolutionTime(
+    const double solution_time)
+{
+    LinearSolver::setSolutionTime(solution_time);
+    if (d_A) d_A->setSolutionTime(solution_time);
+    if (d_pc_solver) d_pc_solver->setSolutionTime(solution_time);
+    return;
+}// setSolutionTime
+
+void
+KrylovLinearSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    LinearSolver::setTimeInterval(current_time, new_time);
+    if (d_A) d_A->setTimeInterval(current_time, new_time);
+    if (d_pc_solver) d_pc_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+void
 KrylovLinearSolver::setOperator(
     Pointer<LinearOperator> A)
 {

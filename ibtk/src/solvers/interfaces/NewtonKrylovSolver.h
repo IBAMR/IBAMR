@@ -72,6 +72,35 @@ public:
         SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
+     * \name General-purpose solver functionality.
+     */
+    //\{
+
+    /*!
+     * \brief Set whether the solver should use homogeneous boundary conditions.
+     */
+    void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    //\}
+
+    /*!
      * \name Newton-Krylov solver functionality.
      */
     //\{

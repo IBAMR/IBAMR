@@ -743,15 +743,6 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_hier_fc_data_ops->copyData(d_u_ADV_new_idx, d_u_ADV_current_idx);
     d_hier_cc_data_ops->copyData(    d_P_new_idx,     d_P_current_idx);
 
-    // Setup inhomogeneous boundary conditions.
-    d_velocity_solver->setHomogeneousBc(false);
-    Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
-    if (p_velocity_solver)
-    {
-        p_velocity_solver->getOperator()->modifyRhsForInhomogeneousBc(*d_U_rhs_vec);
-        p_velocity_solver->setHomogeneousBc(true);
-    }
-
     // Initialize any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
     {

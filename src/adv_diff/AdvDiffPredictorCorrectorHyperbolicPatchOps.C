@@ -160,126 +160,125 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-
-        if (!u_var)
-        {
-            Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-            Q_data->fillAll(0.0);
-            continue;
-        }
-
-        const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
-        const bool u_is_div_free = d_u_is_div_free[u_var];
-
-        Pointer<FaceVariable<NDIM,double> > flux_integral_var = d_flux_integral_var[Q_var];
-        Pointer<FaceVariable<NDIM,double> > q_integral_var = d_q_integral_var[Q_var];
-        Pointer<FaceVariable<NDIM,double> > u_integral_var = d_u_integral_var[u_var];
-
         Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceData<NDIM,double> > flux_integral_data =
-            (conservation_form
-             ? patch.getPatchData(flux_integral_var, getDataContext())
-             : Pointer<PatchData<NDIM> >(NULL));
-        Pointer<FaceData<NDIM,double> > q_integral_data =
-            (!conservation_form || !u_is_div_free
-             ? patch.getPatchData(q_integral_var, getDataContext())
-             : Pointer<PatchData<NDIM> >(NULL));
-        Pointer<FaceData<NDIM,double> > u_integral_data =
-            (!conservation_form || !u_is_div_free
-             ? patch.getPatchData(u_integral_var, getDataContext())
-             : Pointer<PatchData<NDIM> >(NULL));
-
-        const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-        const IntVector<NDIM>& flux_integral_data_ghost_cells = (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
-        const IntVector<NDIM>& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
-        const IntVector<NDIM>& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
-
-        switch (d_Q_difference_form[Q_var])
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+        if (u_var)
         {
-            case CONSERVATIVE:
+            const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
+            const bool u_is_div_free = d_u_is_div_free[u_var];
+
+            Pointer<FaceVariable<NDIM,double> > flux_integral_var = d_flux_integral_var[Q_var];
+            Pointer<FaceVariable<NDIM,double> > q_integral_var = d_q_integral_var[Q_var];
+            Pointer<FaceVariable<NDIM,double> > u_integral_var = d_u_integral_var[u_var];
+
+            Pointer<FaceData<NDIM,double> > flux_integral_data =
+                (conservation_form
+                 ? patch.getPatchData(flux_integral_var, getDataContext())
+                 : Pointer<PatchData<NDIM> >(NULL));
+            Pointer<FaceData<NDIM,double> > q_integral_data =
+                (!conservation_form || !u_is_div_free
+                 ? patch.getPatchData(q_integral_var, getDataContext())
+                 : Pointer<PatchData<NDIM> >(NULL));
+            Pointer<FaceData<NDIM,double> > u_integral_data =
+                (!conservation_form || !u_is_div_free
+                 ? patch.getPatchData(u_integral_var, getDataContext())
+                 : Pointer<PatchData<NDIM> >(NULL));
+
+            const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
+            const IntVector<NDIM>& flux_integral_data_ghost_cells = (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
+            const IntVector<NDIM>& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
+            const IntVector<NDIM>& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
+
+            switch (d_Q_difference_form[Q_var])
             {
-                for (int depth = 0; depth < Q_data->getDepth(); ++depth)
+                case CONSERVATIVE:
                 {
-                    if (u_is_div_free)
+                    for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
+                        if (u_is_div_free)
+                        {
 #if (NDIM == 2)
-                        ADV_DIFF_CONSDIFF_FC(
-                            dx,dt,
-                            ilower(0),iupper(0),ilower(1),iupper(1),
-                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                            flux_integral_data->getPointer(0,depth),
-                            flux_integral_data->getPointer(1,depth),
-                            Q_data->getPointer(depth));
+                            ADV_DIFF_CONSDIFF_FC(
+                                dx,dt,
+                                ilower(0),iupper(0),ilower(1),iupper(1),
+                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
+                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),
+                                flux_integral_data->getPointer(0,depth),
+                                flux_integral_data->getPointer(1,depth),
+                                Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                        ADV_DIFF_CONSDIFF_FC(
-                            dx,dt,
-                            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                            flux_integral_data->getPointer(0,depth),
-                            flux_integral_data->getPointer(1,depth),
-                            flux_integral_data->getPointer(2,depth),
-                            Q_data->getPointer(depth));
+                            ADV_DIFF_CONSDIFF_FC(
+                                dx,dt,
+                                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
+                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
+                                flux_integral_data->getPointer(0,depth),
+                                flux_integral_data->getPointer(1,depth),
+                                flux_integral_data->getPointer(2,depth),
+                                Q_data->getPointer(depth));
 #endif
-                    }
-                    else
-                    {
+                        }
+                        else
+                        {
 #if (NDIM == 2)
-                        ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-                            dx,dt,
-                            ilower(0),iupper(0),ilower(1),iupper(1),
-                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                            q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),
-                            u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),
-                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                            flux_integral_data->getPointer(0,depth),
-                            flux_integral_data->getPointer(1,depth),
-                            q_integral_data->getPointer(0,depth),
-                            q_integral_data->getPointer(1,depth),
-                            u_integral_data->getPointer(0),
-                            u_integral_data->getPointer(1),
-                            Q_data->getPointer(depth));
+                            ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
+                                dx,dt,
+                                ilower(0),iupper(0),ilower(1),iupper(1),
+                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
+                                q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),
+                                u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),
+                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),
+                                flux_integral_data->getPointer(0,depth),
+                                flux_integral_data->getPointer(1,depth),
+                                q_integral_data->getPointer(0,depth),
+                                q_integral_data->getPointer(1,depth),
+                                u_integral_data->getPointer(0),
+                                u_integral_data->getPointer(1),
+                                Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                        ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-                            dx,dt,
-                            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                            q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),q_integral_data_ghost_cells(2),
-                            u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),u_integral_data_ghost_cells(2),
-                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                            flux_integral_data->getPointer(0,depth),
-                            flux_integral_data->getPointer(1,depth),
-                            flux_integral_data->getPointer(2,depth),
-                            q_integral_data->getPointer(0,depth),
-                            q_integral_data->getPointer(1,depth),
-                            q_integral_data->getPointer(2,depth),
-                            u_integral_data->getPointer(0),
-                            u_integral_data->getPointer(1),
-                            u_integral_data->getPointer(2),
-                            Q_data->getPointer(depth));
+                            ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
+                                dx,dt,
+                                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
+                                q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),q_integral_data_ghost_cells(2),
+                                u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),u_integral_data_ghost_cells(2),
+                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
+                                flux_integral_data->getPointer(0,depth),
+                                flux_integral_data->getPointer(1,depth),
+                                flux_integral_data->getPointer(2,depth),
+                                q_integral_data->getPointer(0,depth),
+                                q_integral_data->getPointer(1,depth),
+                                q_integral_data->getPointer(2,depth),
+                                u_integral_data->getPointer(0),
+                                u_integral_data->getPointer(1),
+                                u_integral_data->getPointer(2),
+                                Q_data->getPointer(depth));
 #endif
+                        }
                     }
+                    break;
                 }
-                break;
+                case ADVECTIVE:
+                {
+                    CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
+                    d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
+                    PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
+                    patch_cc_data_ops.scale(Q_data, -1.0/(dt*dt), Pointer<CellData<NDIM,double> >(&N_data,false), patch_box);
+                    break;
+                }
+                default:
+                {
+                    TBOX_ERROR("AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch():\n"
+                               << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
+                               << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+                }
             }
-            case ADVECTIVE:
-            {
-                CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
-                d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
-                PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
-                patch_cc_data_ops.scale(Q_data, -1.0/(dt*dt), Pointer<CellData<NDIM,double> >(&N_data,false), patch_box);
-                break;
-            }
-            default:
-            {
-                TBOX_ERROR("AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch():\n"
-                           << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
-                           << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
-            }
+        }
+        else
+        {
+            Q_data->fillAll(0.0);
         }
     }
     return;
