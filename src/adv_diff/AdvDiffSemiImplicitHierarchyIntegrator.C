@@ -545,7 +545,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         helmholtz_rhs_op->apply(*d_sol_vecs[l],*d_rhs_vecs[l]);
-        d_hier_cc_data_ops->add(Q_rhs_scratch_idx, Q_rhs_scratch_idx, Q_new_idx);
 
         // Initialize the linear solver.
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
