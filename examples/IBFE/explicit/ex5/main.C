@@ -54,12 +54,61 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+
+inline double
+kernel(
+    double x)
+{
+    x += 4.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    const double x5 = x*x4;
+    const double x6 = x*x5;
+    const double x7 = x*x6;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .1984126984126984e-3*x7;
+    else if (x <= 2.)
+        return .1111111111111111e-1*x6-.1388888888888889e-2*x7-.3333333333333333e-1*x5+.5555555555555556e-1*x4-.5555555555555556e-1*x3+.3333333333333333e-1*x2-.1111111111111111e-1*x+.1587301587301587e-2;
+    else if (x <= 3.)
+        return .4333333333333333*x5-.6666666666666667e-1*x6+.4166666666666667e-2*x7-1.500000000000000*x4+3.055555555555556*x3-3.700000000000000*x2+2.477777777777778*x-.7095238095238095;
+    else if (x <= 4.)
+        return 9.*x4-1.666666666666667*x5+.1666666666666667*x6-.6944444444444444e-2*x7-28.44444444444444*x3+53.*x2-54.22222222222222*x+23.59047619047619;
+    else if (x <= 5.)
+        return 96.*x3-22.11111111111111*x4+3.*x5-.2222222222222222*x6+.6944444444444444e-2*x7-245.6666666666667*x2+344.*x-203.9650793650794;
+    else if (x <= 6.)
+        return 483.5000000000000*x2-147.0555555555556*x3+26.50000000000000*x4-2.833333333333333*x5+.1666666666666667*x6-.4166666666666667e-2*x7-871.2777777777778*x+664.0904761904762;
+    else if (x <= 7.)
+        return 943.1222222222222*x-423.7000000000000*x2+104.9444444444444*x3-15.50000000000000*x4+1.366666666666667*x5-.6666666666666667e-1*x6+.1388888888888889e-2*x7-891.1095238095238;
+    else if (x <= 8.)
+        return 416.1015873015873-364.0888888888889*x+136.5333333333333*x2-28.44444444444444*x3+3.555555555555556*x4-.2666666666666667*x5+.1111111111111111e-1*x6-.1984126984126984e-3*x7;
+    else
+        return 0.;
+}// kernel
 
 // Elasticity model data.
 namespace ModelData
 {
+void
+body_velocity_fcn(
+    NumericVector<double>& U_b,
+    NumericVector<double>& /*U*/,
+    NumericVector<double>& /*X*/,
+    MeshBase& /*mesh*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    U_b = 1.0;
+    U_b.close();
+    return;
+}// body_velocity_fcn
+
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
 void
@@ -121,6 +170,11 @@ main(
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        // Setup user-defined delta function.
+        LEInteractor::s_delta_fcn = &kernel;
+        LEInteractor::s_delta_fcn_stencil_size = 8;
+        LEInteractor::s_delta_fcn_C = -1.0;
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -218,7 +272,8 @@ main(
         if (use_constraint_method)
         {
             ib_method_ops->setMassDensity(input_db->getDouble("RHO"));
-            ib_method_ops->registerRigidStructure();
+            ib_method_ops->registerConstrainedPart();
+            ib_method_ops->registerConstrainedPartVelocityFunction(body_velocity_fcn);
         }
         else
         {
