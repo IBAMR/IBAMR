@@ -357,7 +357,7 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
             CellData<NDIM,double> Q_R_data(patch_box, 1, Q_data_gcw);
 
             // Enforce physical boundary conditions at inflow boundaries.
-            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time, /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE");
+            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time, /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE", d_homogeneous_bc);
 
             // Extrapolate from cell centers to cell faces.
             for (unsigned int d = 0; d < d_Q_data_depth; ++d)

@@ -68,7 +68,8 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
     Pointer<Patch<NDIM> > patch,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const double fill_time,
-    const bool inflow_boundaries_only)
+    const bool inflow_boundaries_only,
+    const bool homogeneous_bc)
 {
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
@@ -86,7 +87,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
         if (extended_bc_coef)
         {
             extended_bc_coef->clearTargetPatchDataIndex();
-            extended_bc_coef->setHomogeneousBc(false);
+            extended_bc_coef->setHomogeneousBc(homogeneous_bc);
         }
     }
 
@@ -116,6 +117,8 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const Index<NDIM>& i = bc();

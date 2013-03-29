@@ -341,7 +341,7 @@ AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(
             TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
 #endif
             // Enforce physical boundary conditions at inflow boundaries.
-            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time, /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE");
+            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time, /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE", d_homogeneous_bc);
 
             // Interpolate from cell centers to cell faces.
             for (unsigned int d = 0; d < d_Q_data_depth; ++d)
