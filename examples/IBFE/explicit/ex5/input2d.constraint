@@ -5,17 +5,17 @@ RHO = 1.0
 
 // grid spacing parameters
 L = 16.0                                       // width of computational domain
-MAX_LEVELS = 5                                 // maximum number of levels in locally refined grid
+MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 16                                         // actual    number of grid cells on coarsest grid level
+N = 8                                          // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 3.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI3"                             // type of element to use for structure discretization
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI6"                             // type of element to use for structure discretization
 
 // solver parameters
-USE_IB_DELTA_FUNCTIONS     = FALSE             // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
+USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
 DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = FALSE             // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
@@ -26,14 +26,14 @@ SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGG
 START_TIME                 = 0.0e0             // initial simulation time
 END_TIME                   = 300.0             // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
-NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
+NUM_CYCLES                 = 2                 // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE         = "MIDPOINT_RULE"   // convective time stepping type
 CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.25              // maximum CFL number
-DT                         = CFL_MAX*DX/2.0    // maximum timestep size
-ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
+CFL_MAX                    = 0.475             // maximum CFL number
+DT                         = 4.0*CFL_MAX*DX    // maximum timestep size
+ERROR_ON_DT_CHANGE         = FALSE             // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -46,8 +46,7 @@ ENABLE_LOGGING             = TRUE
 
 // model parameters
 USE_CONSTRAINT_METHOD = TRUE
-CONSTRAINT_OMEGA = 1.5                // "how hard to push" on the fluid
-USE_CONSTRAINT_PROJECTION = TRUE
+CONSTRAINT_OMEGA = 2.0
 KAPPA_S = 6.25e1*DX/DT^2
 
 // collocated solver parameters
@@ -112,7 +111,6 @@ IBFEMethod {
    use_Fbar_projection        = USE_FBAR_PROJECTION
    IB_point_density           = IB_POINT_DENSITY
    constraint_omega           = CONSTRAINT_OMEGA
-   use_constraint_projection  = USE_CONSTRAINT_PROJECTION
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -141,6 +139,7 @@ INSCollocatedHierarchyIntegrator {
 }
 
 INSStaggeredHierarchyIntegrator {
+   num_cycles = NUM_CYCLES
    mu                            = MU
    rho                           = RHO
    start_time                    = START_TIME
@@ -189,10 +188,10 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(2*N - 1,N - 1) ]
+   domain_boxes = [ (0,0),(4*N - 1,4*N - 1) ]
    x_lo = -0.5*L,-0.5*L
-   x_up =  1.5*L, 0.5*L
-   periodic_dimension = 0,0
+   x_up =  3.5*L, 3.5*L
+   periodic_dimension = 1,1 //0,0
 }
 
 GriddingAlgorithm {
