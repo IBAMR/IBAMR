@@ -65,7 +65,7 @@ namespace IBTK
  * \see StreamableManager
  */
 class Streamable
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

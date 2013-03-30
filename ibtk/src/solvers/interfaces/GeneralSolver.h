@@ -55,7 +55,7 @@ namespace IBTK
  * defined on an AMR patch hierarchy.
  */
 class GeneralSolver
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

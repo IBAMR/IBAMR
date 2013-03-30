@@ -57,7 +57,7 @@ namespace IBAMR
  * specifying post-processing code for use in an IB computation.
  */
 class IBMethodPostProcessStrategy
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

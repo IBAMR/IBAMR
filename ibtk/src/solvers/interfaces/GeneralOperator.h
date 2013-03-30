@@ -52,7 +52,7 @@ namespace IBTK
  * \f$.
  */
 class GeneralOperator
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

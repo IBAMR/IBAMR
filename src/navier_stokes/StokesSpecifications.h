@@ -48,7 +48,7 @@ namespace IBAMR
  * equations.
  */
 class StokesSpecifications
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
