@@ -261,6 +261,33 @@ LDataManager::resetLevels(
 void
 LDataManager::spread(
     const int f_data_idx,
+    Pointer<LData>  F_data,
+    Pointer<LData>  X_data,
+    Pointer<LData> ds_data,
+    const int level_num,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const bool  F_data_ghost_node_update,
+    const bool  X_data_ghost_node_update,
+    const bool ds_data_ghost_node_update)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> >  F_data_vec(finest_ln+1);
+    std::vector<Pointer<LData> >  X_data_vec(finest_ln+1);
+    std::vector<Pointer<LData> > ds_data_vec(finest_ln+1);
+    F_data_vec [level_num] =  F_data;
+    X_data_vec [level_num] =  X_data;
+    ds_data_vec[level_num] = ds_data;
+    this->spread(f_data_idx, F_data_vec, X_data_vec, ds_data_vec, f_prolongation_scheds, F_data_ghost_node_update, X_data_ghost_node_update, ds_data_ghost_node_update, coarsest_ln, finest_ln);
+    return;
+}// spread
+
+void
+LDataManager::spread(
+    const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<LData> >& ds_data,
@@ -309,6 +336,29 @@ LDataManager::spread(
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
     spread(f_data_idx, F_ds_data, X_data, f_prolongation_scheds, F_data_ghost_node_update || ds_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
+    return;
+}// spread
+
+void
+LDataManager::spread(
+    const int f_data_idx,
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    const int level_num,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const bool F_data_ghost_node_update,
+    const bool X_data_ghost_node_update)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln+1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    this->spread(f_data_idx, F_data_vec, X_data_vec, f_prolongation_scheds, F_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
     return;
 }// spread
 
@@ -419,6 +469,29 @@ LDataManager::spread(
     IBTK_TIMER_STOP(t_spread);
     return;
 }// spread
+
+void
+LDataManager::interp(
+    const int f_data_idx,
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    const int level_num,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+    const double fill_data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln+1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    this->interp(f_data_idx, F_data_vec, X_data_vec, f_synch_scheds, f_ghost_fill_scheds, fill_data_time, coarsest_ln, finest_ln);
+    return;
+}// interp
 
 void
 LDataManager::interp(
