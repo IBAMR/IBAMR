@@ -105,7 +105,7 @@ public:
         double rho);
 
     /*!
-     * Register a body as constrained.
+     * Indicate that a part is constrained.
      */
     void
     registerConstrainedPart(
