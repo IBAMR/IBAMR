@@ -120,19 +120,22 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
 
     // Here we implement a simple time integration scheme:
     //
-    // (1) Compute Lagrangian forces and spread those forces to the grid.
+    // (1) Compute Lagrangian forces and spread those forces to the grid: f =
+    //     S[X^{n}] F^{n}.
     //
     // (2) Solve the fluid equations using the fluid solver registered with this
-    // class.
+    //     class using the forcing computed in (1).
     //
     // (3) Interpolate the Eulerian velocity and update the positions of the
-    // Lagrangian points.
+    //     Lagrangian points: X^{n+1} = X^{n} + dt*S^{*}[X^{n}] u^{n+1}.
     //
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
 
+
     ///////////////////////////////////////////////////////////////////////////
-    // (1) Compute Lagrangian forces and spread those forces to the grid.
+    // (1) Compute Lagrangian forces and spread those forces to the grid: f =
+    //     S[X^{n}] F^{n}..
 
     // For simplicity, set the Lagrangian force density to equal zero.
     ierr = VecZeroEntries(d_F_data->getVec());  IBTK_CHKERRQ(ierr);
@@ -147,7 +150,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
 
     ///////////////////////////////////////////////////////////////////////////
     // (2) Solve the fluid equations using the fluid solver registered with this
-    // class.
+    // class using the forcing computed in (1).
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
     for (int ins_cycle_num = 0; ins_cycle_num < ins_num_cycles; ++ins_cycle_num)
     {
@@ -156,7 +159,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
 
     ///////////////////////////////////////////////////////////////////////////
     // (3) Interpolate the Eulerian velocity and update the positions of the
-    // Lagrangian points.
+    // Lagrangian points: X^{n+1} = X^{n} + dt*S^{*}[X^{n}] u^{n+1}.
     //
     // NOTE: We use the "new" velocity data (defined at time level n+1) to
     // determine the velocity of the Lagrangian nodes.  We could also use the
