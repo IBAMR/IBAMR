@@ -63,10 +63,13 @@ LIndexSetData<T>::LIndexSetData(
     const Box<NDIM>& box,
     const IntVector<NDIM>& ghosts)
     : LSetData<T>(box,ghosts),
+      d_lag_indices(),
       d_interior_lag_indices(),
       d_ghost_lag_indices(),
+      d_global_petsc_indices(),
       d_interior_global_petsc_indices(),
       d_ghost_global_petsc_indices(),
+      d_local_petsc_indices(),
       d_interior_local_petsc_indices(),
       d_ghost_local_petsc_indices(),
       d_ghost_periodic_offsets()
@@ -88,10 +91,13 @@ LIndexSetData<T>::cacheLocalIndices(
     Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& periodic_shift)
 {
+    d_lag_indices                  .clear();
     d_interior_lag_indices         .clear();
     d_ghost_lag_indices            .clear();
+    d_global_petsc_indices         .clear();
     d_interior_global_petsc_indices.clear();
     d_ghost_global_petsc_indices   .clear();
+    d_local_petsc_indices          .clear();
     d_interior_local_petsc_indices .clear();
     d_ghost_local_petsc_indices    .clear();
     d_ghost_periodic_offsets       .clear();
@@ -136,6 +142,9 @@ LIndexSetData<T>::cacheLocalIndices(
             const int          lag_idx = idx->getLagrangianIndex();
             const int global_petsc_idx = idx->getGlobalPETScIndex();
             const int  local_petsc_idx = idx->getLocalPETScIndex();
+            d_lag_indices         .push_back(         lag_idx);
+            d_global_petsc_indices.push_back(global_petsc_idx);
+            d_local_petsc_indices .push_back( local_petsc_idx);
             if (patch_owns_idx_set)
             {
                 d_interior_lag_indices         .push_back(         lag_idx);
@@ -144,9 +153,9 @@ LIndexSetData<T>::cacheLocalIndices(
             }
             else
             {
-                d_ghost_lag_indices         .push_back(         lag_idx);
-                d_ghost_global_petsc_indices.push_back(global_petsc_idx);
-                d_ghost_local_petsc_indices .push_back( local_petsc_idx);
+                d_ghost_lag_indices            .push_back(         lag_idx);
+                d_ghost_global_petsc_indices   .push_back(global_petsc_idx);
+                d_ghost_local_petsc_indices    .push_back( local_petsc_idx);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_ghost_periodic_offsets.push_back(static_cast<double>(offset[d])*dx[d]);

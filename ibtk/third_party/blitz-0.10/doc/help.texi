@@ -1,0 +1,53 @@
+
+@node help, , legal, Introduction
+@section Mailing lists and support
+
+@subsection How to get help
+@cindex help, obtaining
+@cindex support, obtaining
+
+The starting point for all bug reports, feature requests and support
+questions is the SourceForge Blitz++ project web page, at
+@uref{http://sourceforge.net/projects/blitz}.  From this page, you can 
+click on the Support link to browse previous Blitz++ support requests
+or make your own request.
+
+There is also a Lists link that provides access to and lets you search
+the blitz mailing list archives.  This will often turn up answers to your 
+question if it has been asked before.  Finally, if you continue to experience
+a problem with using Blitz++, there is a Bugs link that allows you to file
+a bug report and check the status of existing bug reports.
+
+@subsection How to subscribe to a mailing list
+@cindex mailing lists
+
+The main mailing list for Blitz++ support questions and information is
+@email{blitz-support@@lists.sourceforge.net}.  Anyone is free to post a 
+question to this list, although the list is moderated.  You can subscribe
+to the list via the Lists link on the SourceForge Blitz++ project page,
+@uref{http://sourceforge.net/projects/blitz}.  Besides the main support list,
+there is also a @code{blitz-devel} list for comments or questions about future 
+development of Blitz++ and a @code{blitz-cvs} list that sends notification of 
+changes to the Blitz++ cvs repository.  These lists generally have far less
+traffic than the @code{blitz-support} list.
+
+@subsection blitz-devel
+@cindex blitz-devel list
+@cindex contributing to Blitz++
+
+Blitz++ is in open development: anyone can contribute features and code to
+the library.  If you are interested in helping out with coding or porting,
+you should start by subscribing to the @code{blitz-devel} mailing list.  
+
+This list is also an appropriate place to send suggestions for features;
+just send email to @email{blitz-devel@@lists.sourceforge.net}.  We can't 
+implement it if you don't suggest it.
+
+Archives of this list are available from the Blitz++ web site.
+
+@subsection blitz-support
+@cindex blitz-support list
+
+This mailing list is for posting and answering questions about using the
+Blitz++ library.  Anyone can post questions; anyone can answer.
+

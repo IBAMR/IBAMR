@@ -1,0 +1,11 @@
+      INTEGER ctu_only,minmod_limited,mc_limited,superbee_limited,
+     &        muscl_limited,second_order,fourth_order,ppm,xsppm7
+      parameter (ctu_only=1)
+      parameter (minmod_limited=2)
+      parameter (mc_limited=3)
+      parameter (superbee_limited=4)
+      parameter (muscl_limited=5)
+      parameter (second_order=6)
+      parameter (fourth_order=7)
+      parameter (ppm=8)
+      parameter (xsppm7=9)

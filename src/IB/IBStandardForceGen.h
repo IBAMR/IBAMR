@@ -66,8 +66,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBStandardForceGen(
-        bool constant_material_properties=false);
+    IBStandardForceGen();
 
     /*!
      * \brief Destructor.
@@ -88,7 +87,8 @@ public:
     void
     registerSpringForceFunction(
         int force_fcn_index,
-        const SpringForceFcnPtr spring_force_fcn_ptr);
+        const SpringForceFcnPtr spring_force_fcn_ptr,
+        const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr=NULL);
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level
@@ -130,7 +130,6 @@ public:
         std::vector<int>& o_nnz,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
-        double data_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -191,12 +190,6 @@ private:
         const IBStandardForceGen& that);
 
     /*!
-     * This boolean value determines whether or not to assume constant material
-     * properties when computing forces.
-     */
-    bool d_constant_material_properties;
-
-    /*!
      * \name Data maintained separately for each level of the patch hierarchy.
      */
     //\{
@@ -205,28 +198,24 @@ private:
         blitz::Array<int,1> lag_mastr_node_idxs, lag_slave_node_idxs;
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_slave_node_idxs;
         blitz::Array<SpringForceFcnPtr,1> force_fcns;
-        blitz::Array<double,1> stiffnesses, rest_lengths;
-        blitz::Array<const double*,1> dynamic_stiffnesses, dynamic_rest_lengths;
+        blitz::Array<SpringForceDerivFcnPtr,1> force_deriv_fcns;
+        blitz::Array<const double*,1> parameters;
     };
     std::vector<SpringData> d_spring_data;
 
     struct BeamData
     {
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
-        blitz::Array<double,1> rigidities;
-        blitz::Array<blitz::TinyVector<double,NDIM>,1> curvatures;
-        blitz::Array<const double*,1> dynamic_rigidities;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> dynamic_curvatures;
+        blitz::Array<const double*,1> rigidities;
+        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
     struct TargetPointData
     {
         blitz::Array<int,1> petsc_node_idxs;
-        blitz::Array<double,1> kappa, eta;
-        blitz::Array<blitz::TinyVector<double,NDIM>,1> X0;
-        blitz::Array<const double*,1> dynamic_kappa, dynamic_eta;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> dynamic_X0;
+        blitz::Array<const double*,1> kappa, eta;
+        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 
@@ -299,6 +288,7 @@ private:
      * \brief Spring force functions.
      */
     std::map<int,SpringForceFcnPtr> d_spring_force_fcn_map;
+    std::map<int,SpringForceDerivFcnPtr> d_spring_force_deriv_fcn_map;
 };
 }// namespace IBAMR
 

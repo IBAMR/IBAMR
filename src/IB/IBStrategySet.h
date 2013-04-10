@@ -64,9 +64,8 @@ public:
         }// IBStrategySet
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBStrategySet();
 
     /*!
@@ -103,6 +102,14 @@ public:
     getMinimumGhostCellWidth() const;
 
     /*!
+     * Setup the tag buffer.
+     */
+    void
+    setupTagBuffer(
+        SAMRAI::tbox::Array<int>& tag_buffer,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void
@@ -119,6 +126,13 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+
+    /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     */
+    void
+    updateFixedLEOperators();
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -178,8 +192,6 @@ public:
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
-     *
-     * A default implementation is provided that returns false.
      */
     bool
     hasFluidSources() const;

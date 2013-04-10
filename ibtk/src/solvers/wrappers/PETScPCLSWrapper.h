@@ -54,7 +54,7 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScPCLSWrapper provides a LinearSolver interface for a <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> PC object.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> PC object.
  */
 class PETScPCLSWrapper
     : public LinearSolver
@@ -289,20 +289,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -334,8 +320,6 @@ private:
     operator=(
         const PETScPCLSWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
     const PC d_petsc_pc;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
     Vec d_petsc_x, d_petsc_b;
@@ -344,7 +328,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScPCLSWrapper.I>
+//#include <ibtk/PETScPCLSWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -40,12 +40,17 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <ArrayDataBasicOps.h>
+#include <CellData.h>
+#include <CellVariable.h>
 #include <RefineAlgorithm.h>
+#include <SideData.h>
+#include <SideVariable.h>
+
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <numeric>
-#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -56,179 +61,42 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-PETScVecUtilities::constructPatchVecWrapper(
-    Vec& vec,
-    CellData<NDIM,double>& data)
-{
-    int ierr;
-    if (vec != PETSC_NULL)
-    {
-        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
-    }
-    const int nvals = data.getDepth()*CellGeometry<NDIM>::toCellBox(data.getGhostBox()).size();
-    double* data_ptr = data.getPointer();
-    ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, nvals, data_ptr, &vec); IBTK_CHKERRQ(ierr);
-    return;
-}// constructPatchVecWrapper
-
-void
-PETScVecUtilities::constructPatchVecWrappers(
-    blitz::TinyVector<Vec,NDIM>& vecs,
-    SideData<NDIM,double>& data)
-{
-    int ierr;
-    for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-    {
-        if (vecs[component_axis] != PETSC_NULL)
-        {
-            ierr = VecDestroy(&vecs[component_axis]); IBTK_CHKERRQ(ierr);
-        }
-        const int nvals = data.getDepth()*SideGeometry<NDIM>::toSideBox(data.getGhostBox(),component_axis).size();
-        double* data_ptr = data.getPointer(component_axis);
-        ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, nvals, data_ptr, &vecs[component_axis]); IBTK_CHKERRQ(ierr);
-    }
-    return;
-}// constructPatchVecWrappers
-
-int
-PETScVecUtilities::constructPatchDOFIndices(
-    CellData<NDIM,int>& dof_index,
-    CellData<NDIM,double>& data)
-{
-    int counter = 0;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(dof_index.getBox() == data.getBox());
-    TBOX_ASSERT(dof_index.getGhostBox().contains(data.getGhostBox()));
-    TBOX_ASSERT(dof_index.getDepth() == data.getDepth());
-#endif
-    dof_index.fillAll(-1);
-    const Box<NDIM>& data_box = CellGeometry<NDIM>::toCellBox(data.getGhostBox());
-    const int depth = data.getDepth();
-    for (int d = 0; d < depth; ++d)
-    {
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
-        {
-            const CellIndex<NDIM>& i = b();
-            dof_index(i,d) = counter++;
-        }
-    }
-    return counter;
-}// constructPatchDOFIndices
-
-blitz::TinyVector<int,NDIM>
-PETScVecUtilities::constructPatchDOFIndices(
-    SideData<NDIM,int>& dof_index,
-    SideData<NDIM,double>& data)
-{
-    blitz::TinyVector<int,NDIM> axis_counter(0);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(dof_index.getBox() == data.getBox());
-    TBOX_ASSERT(dof_index.getGhostBox().contains(data.getGhostBox()));
-    TBOX_ASSERT(dof_index.getDepth() == data.getDepth());
-#endif
-    dof_index.fillAll(-1);
-    for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-    {
-        const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(data.getGhostBox(), component_axis);
-        const int depth = data.getDepth();
-        for (int d = 0; d < depth; ++d)
-        {
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
-            {
-                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
-                dof_index(i,d) = axis_counter[component_axis]++;
-            }
-        }
-    }
-    return axis_counter;
-}// constructPatchDOFIndices
-
-void
-PETScVecUtilities::constructPatchLevelVec(
-    Vec& vec,
-    const int data_idx,
-    Pointer<CellVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    int ierr;
-    if (vec != PETSC_NULL)
-    {
-        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
-    }
-
-    int nvals_local = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
-#endif
-        nvals_local += data->getDepth()*CellGeometry<NDIM>::toCellBox(data->getGhostBox()).size();
-    }
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, nvals_local, PETSC_DETERMINE, &vec); IBTK_CHKERRQ(ierr);
-    return;
-}// constructPatchLevelVec
-
-void
-PETScVecUtilities::constructPatchLevelVec(
-    Vec& vec,
-    const int data_idx,
-    Pointer<SideVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    int ierr;
-    if (vec != PETSC_NULL)
-    {
-        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
-    }
-
-    int nvals_local = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
-#endif
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            nvals_local += data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
-        }
-    }
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, nvals_local, PETSC_DETERMINE, &vec); IBTK_CHKERRQ(ierr);
-    return;
-}// constructPatchLevelVec
-
-void
 PETScVecUtilities::copyToPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > /*data_var*/,
+    const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-    int ierr;
-    int local_offset;
-    ierr = VecGetOwnershipRange(vec, &local_offset, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    int current_offset = local_offset;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > data_var;
+    var_db->mapIndexToVariable(data_idx, data_var);
+    Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
+    Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
+    if (data_cc_var)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
+        TBOX_ASSERT(dof_index_cc_var);
 #endif
-        const int nvals_patch = data->getDepth()*CellGeometry<NDIM>::toCellBox(data->getGhostBox()).size();
-        std::vector<int> idxs(nvals_patch);
-        for (int k = 0; k < nvals_patch; ++k)
-        {
-            idxs[k] = k+current_offset;
-        }
-        current_offset += nvals_patch;
-        ierr = VecSetValues(vec, nvals_patch, &idxs[0], data->getPointer(), INSERT_VALUES); IBTK_CHKERRQ(ierr);
+        copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
-    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
+    else if (data_sc_var)
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
+        TBOX_ASSERT(dof_index_sc_var);
+#endif
+        copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
+    }
+    else
+    {
+        TBOX_ERROR("PETScVecUtilities::copyToPatchLevelVec():\n"
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+    }
     return;
 }// copyToPatchLevelVec
 
@@ -236,353 +104,476 @@ void
 PETScVecUtilities::copyFromPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level,
+    Pointer<RefineSchedule<NDIM> > data_synch_sched,
+    Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
 {
-    int ierr;
-    int local_offset;
-    ierr = VecGetOwnershipRange(vec, &local_offset, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    int current_offset = local_offset;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > data_var;
+    var_db->mapIndexToVariable(data_idx, data_var);
+    Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
+    Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
+    if (data_cc_var)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
+        TBOX_ASSERT(dof_index_cc_var);
 #endif
-        const int nvals_patch = data->getDepth()*CellGeometry<NDIM>::toCellBox(data->getGhostBox()).size();
-        std::vector<int> idxs(nvals_patch);
-        for (int k = 0; k < nvals_patch; ++k)
+        copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
+    }
+    else if (data_sc_var)
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
+        TBOX_ASSERT(dof_index_sc_var);
+#endif
+        copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
+        if (data_synch_sched)
         {
-            idxs[k] = k+current_offset;
+            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
+            RefineAlgorithm<NDIM> data_synch_alg;
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.resetSchedule(data_synch_sched);
+            data_synch_sched->fillData(0.0);
+            data_synch_sched->reset(data_synch_config);
         }
-        current_offset += nvals_patch;
-        ierr = VecGetValues(vec, nvals_patch, &idxs[0], data->getPointer()); IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+    }
+    if (ghost_fill_sched)
+    {
+        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        RefineAlgorithm<NDIM> ghost_fill_alg;
+        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+        ghost_fill_alg.resetSchedule(ghost_fill_sched);
+        ghost_fill_sched->fillData(0.0);
+        ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
 }// copyFromPatchLevelVec
 
-void
-PETScVecUtilities::copyToPatchLevelVec(
-    Vec& vec,
+Pointer<RefineSchedule<NDIM> >
+PETScVecUtilities::constructDataSynchSchedule(
     const int data_idx,
-    Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-    int ierr;
-    int local_offset;
-    ierr = VecGetOwnershipRange(vec, &local_offset, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    int current_offset = local_offset;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
-#endif
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            const int nvals_patch = data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
-            std::vector<int> idxs(nvals_patch);
-            for (int k = 0; k < nvals_patch; ++k)
-            {
-                idxs[k] = k+current_offset;
-            }
-            current_offset += nvals_patch;
-            ierr = VecSetValues(vec, nvals_patch, &idxs[0], data->getPointer(component_axis), INSERT_VALUES); IBTK_CHKERRQ(ierr);
-        }
-    }
-    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
-    return;
-}// copyToPatchLevelVec
-
-void
-PETScVecUtilities::copyFromPatchLevelVec(
-    Vec& vec,
-    const int data_idx,
-    Pointer<SideVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    int ierr;
-    int local_offset;
-    ierr = VecGetOwnershipRange(vec, &local_offset, PETSC_NULL); IBTK_CHKERRQ(ierr);
-    int current_offset = local_offset;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
-#endif
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            const int nvals_patch = data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
-            std::vector<int> idxs(nvals_patch);
-            for (int k = 0; k < nvals_patch; ++k)
-            {
-                idxs[k] = k+current_offset;
-            }
-            current_offset += nvals_patch;
-            ierr = VecGetValues(vec, nvals_patch, &idxs[0], data->getPointer(component_axis)); IBTK_CHKERRQ(ierr);
-        }
-    }
-    return;
-}// copyFromPatchLevelVec
-
-void
-PETScVecUtilities::constructPatchLevelDOFIndices(
-    const int dof_index_idx,
-    Pointer<CellVariable<NDIM,int> > /*dof_index_var*/,
-    const int data_idx,
-    Pointer<CellVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    ArrayDataBasicOps<NDIM,int> patch_ops;
-
-    // Initialize the DOF indices and determine the number of local DOF indices.
-    int local_dof_count = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
-        const int patch_dof_count = constructPatchDOFIndices(*dof_index, *data);
-        patch_ops.addScalar(dof_index->getArrayData(),
-                            dof_index->getArrayData(),
-                            local_dof_count,
-                            data->getArrayData().getBox());
-        local_dof_count += patch_dof_count;
-    }
-
-    // Determine the DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    std::vector<int> num_dofs_proc(mpi_size,0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_proc[0]);
-    const int local_dof_offset = std::accumulate(num_dofs_proc.begin(), num_dofs_proc.begin()+mpi_rank, 0);
-
-    // Shift the DOF indices.
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
-        patch_ops.addScalar(dof_index->getArrayData(),
-                            dof_index->getArrayData(),
-                            local_dof_offset,
-                            data->getArrayData().getBox());
-    }
-    return;
-}// constructPatchLevelDOFIndices
-
-void
-PETScVecUtilities::constructPatchLevelDOFIndices(
-    const int dof_index_idx,
-    Pointer<SideVariable<NDIM,int> > /*dof_index_var*/,
-    const int data_idx,
-    Pointer<SideVariable<NDIM,double> > /*data_var*/,
-    Pointer<PatchLevel<NDIM> > patch_level)
-{
-    ArrayDataBasicOps<NDIM,int> patch_ops;
-
-    // Initialize the DOF indices and determine the number of local DOF indices.
-    int local_dof_count = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-        const blitz::TinyVector<int,NDIM> patch_dof_counts = constructPatchDOFIndices(*dof_index, *data);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            patch_ops.addScalar(dof_index->getArrayData(component_axis),
-                                dof_index->getArrayData(component_axis),
-                                local_dof_count,
-                                data->getArrayData(component_axis).getBox());
-            local_dof_count += patch_dof_counts[component_axis];
-        }
-    }
-
-    // Determine the DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    std::vector<int> num_dofs_proc(mpi_size,0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_proc[0]);
-    const int local_dof_offset = std::accumulate(num_dofs_proc.begin(), num_dofs_proc.begin()+mpi_rank, 0);
-
-    // Shift the DOF indices.
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            patch_ops.addScalar(dof_index->getArrayData(component_axis),
-                                dof_index->getArrayData(component_axis),
-                                local_dof_offset,
-                                data->getArrayData(component_axis).getBox());
-        }
-    }
-    return;
-}// constructPatchLevelDOFIndices
-
-void
-PETScVecUtilities::constrainPatchLevelVec(
-    Vec& vec,
-    const int dof_index_idx,
-    Pointer<CellVariable<NDIM,int> > dof_index_var,
-    Pointer<PatchLevel<NDIM> > patch_level,
-    Pointer<RefineSchedule<NDIM> > dof_index_fill)
-{
-    int ierr;
-
-    // Create a clone of the DOF index data and fill ghost cell values using the
-    // original DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int dof_master_index_idx = var_db->registerClonedPatchDataIndex(dof_index_var, dof_index_idx);
-    patch_level->allocatePatchData(dof_master_index_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    Pointer<Variable<NDIM> > data_var;
+    var_db->mapIndexToVariable(data_idx, data_var);
+    Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
+    Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
+    Pointer<RefineSchedule<NDIM> > data_synch_sched;
+    if (data_cc_var)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<CellData<NDIM,int> > dof_master_index = patch->getPatchData(dof_master_index_idx);
-        dof_master_index->copy(*dof_index);
+        // intentionally blank
+        //
+        // NOTE: This is the only standard SAMRAI data centering that does not
+        // require synchronization.
     }
-    RefineAlgorithm<NDIM> ref_algorithm;
-    ref_algorithm.registerRefine(dof_master_index_idx, dof_index_idx, dof_master_index_idx, NULL);
-    if (dof_index_fill.isNull())
+    else if (data_sc_var)
     {
-        dof_index_fill = ref_algorithm.createSchedule(patch_level);
+        RefineAlgorithm<NDIM> data_synch_alg;
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
     {
-        ref_algorithm.resetSchedule(dof_index_fill);
+        TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
-    dof_index_fill->fillData(0.0);
+    return data_synch_sched;
+}// constructDataSynchSchedule
 
-    // Loop over the patches and constrain the ghost DOFs to their "true"
-    // interior values.
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<CellData<NDIM,int> > dof_master_index = patch->getPatchData(dof_master_index_idx);
-        const Box<NDIM>& patch_box = CellGeometry<NDIM>::toCellBox(patch->getBox());
-        const Box<NDIM>& ghost_box = CellGeometry<NDIM>::toCellBox(dof_index->getGhostBox());
-        BoxList<NDIM> ghost_boxes(ghost_box);
-        ghost_boxes.removeIntersections(patch_box);
-        const int data_depth = dof_index->getDepth();
-
-        // Ghost region values.
-        for (int d = 0; d < data_depth; ++d)
-        {
-            for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
-            {
-                for (Box<NDIM>::Iterator b(bl()); b; b++)
-                {
-                    const CellIndex<NDIM>& i = b();
-                    const int idx = (*dof_index)(i,d);
-                    const int mastr_idx = (*dof_master_index)(i,d);
-                    if (idx != mastr_idx)
-                    {
-                        ierr = VecSetValue(vec, idx, 0.0, INSERT_VALUES); IBTK_CHKERRQ(ierr);
-                    }
-                }
-            }
-        }
-    }
-
-    // Free the temporary data and assemble the vector.
-    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
-    patch_level->deallocatePatchData(dof_master_index_idx);
-    var_db->removePatchDataIndex(dof_master_index_idx);
-    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
-    return;
-}// constrainPatchLevelVec
+Pointer<RefineSchedule<NDIM> >
+PETScVecUtilities::constructGhostFillSchedule(
+    const int data_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+    return ghost_fill_alg.createSchedule(patch_level);
+}// constructGhostFillSchedule
 
 void
-PETScVecUtilities::constrainPatchLevelVec(
-    Vec& vec,
+PETScVecUtilities::constructPatchLevelDOFIndices(
+    std::vector<int>& num_dofs_per_proc,
     const int dof_index_idx,
-    Pointer<SideVariable<NDIM,int> > dof_index_var,
-    Pointer<PatchLevel<NDIM> > patch_level,
-    Pointer<RefineSchedule<NDIM> > dof_index_fill)
+    Pointer<PatchLevel<NDIM> > patch_level)
 {
-    int ierr;
-
-    // Create a clone of the DOF index data and fill ghost cell values using the
-    // original DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int dof_master_index_idx = var_db->registerClonedPatchDataIndex(dof_index_var, dof_index_idx);
-    patch_level->allocatePatchData(dof_master_index_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    Pointer<Variable<NDIM> > dof_index_var;
+    var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+    Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
+    Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
+    if (dof_index_cc_var)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<SideData<NDIM,int> > dof_master_index = patch->getPatchData(dof_master_index_idx);
-        dof_master_index->copy(*dof_index);
+        constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
     }
-    RefineAlgorithm<NDIM> ref_algorithm;
-    ref_algorithm.registerRefine(dof_master_index_idx, dof_index_idx, dof_master_index_idx, NULL);
-    ref_algorithm.registerRefine(dof_master_index_idx, dof_master_index_idx, dof_master_index_idx, NULL, new SideSynchCopyFillPattern());
-    if (dof_index_fill.isNull())
+    else if (dof_index_sc_var)
     {
-        dof_index_fill = ref_algorithm.createSchedule(patch_level);
+        constructPatchLevelDOFIndices_side(num_dofs_per_proc, dof_index_idx, patch_level);
     }
     else
     {
-        ref_algorithm.resetSchedule(dof_index_fill);
+        TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
-    dof_index_fill->fillData(0.0);
-
-    // Loop over the patches and constrain the ghost DOFs to their "true"
-    // interior values.
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
-        Pointer<SideData<NDIM,int> > dof_master_index = patch->getPatchData(dof_master_index_idx);
-        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
-        {
-            const Box<NDIM>& patch_box = SideGeometry<NDIM>::toSideBox(patch->getBox(),component_axis);
-            const Box<NDIM>& ghost_box = SideGeometry<NDIM>::toSideBox(dof_index->getGhostBox(),component_axis);
-            BoxList<NDIM> ghost_boxes(ghost_box);
-            ghost_boxes.removeIntersections(patch_box);
-            const int data_depth = dof_index->getDepth();
-
-            // Ghost region values.
-            for (int d = 0; d < data_depth; ++d)
-            {
-                for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
-                {
-                    for (Box<NDIM>::Iterator b(bl()); b; b++)
-                    {
-                        const SideIndex<NDIM> i(b(),component_axis,SideIndex<NDIM>::Lower);
-                        const int idx = (*dof_index)(i,d);
-                        const int mastr_idx = (*dof_master_index)(i,d);
-                        if (idx != mastr_idx)
-                        {
-                            ierr = VecSetValue(vec, idx, 0.0, INSERT_VALUES); IBTK_CHKERRQ(ierr);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Free the temporary data and assemble the vector.
-    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
-    patch_level->deallocatePatchData(dof_master_index_idx);
-    var_db->removePatchDataIndex(dof_master_index_idx);
-    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
     return;
-}// constrainPatchLevelVec
+}// constructPatchLevelDOFIndices
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+PETScVecUtilities::copyToPatchLevelVec_cell(
+    Vec& vec,
+    const int data_idx,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
+        const int depth = data->getDepth();
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == dof_index_data->getDepth());
+#endif
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < depth; ++d)
+            {
+                const int dof_index = (*dof_index_data)(i,d);
+                if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
+                {
+                    ierr = VecSetValues(vec, 1, &dof_index, &(*data)(i,d), INSERT_VALUES); IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+    }
+    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
+    return;
+}// copyToPatchLevelVec_cell
+
+void
+PETScVecUtilities::copyToPatchLevelVec_side(
+    Vec& vec,
+    const int data_idx,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
+        const int depth = data->getDepth();
+        Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == dof_index_data->getDepth());
+#endif
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                for (int d = 0; d < depth; ++d)
+                {
+                    const int dof_index = (*dof_index_data)(i,d);
+                    if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
+                    {
+                        ierr = VecSetValues(vec, 1, &dof_index, &(*data)(i,d), INSERT_VALUES); IBTK_CHKERRQ(ierr);
+                    }
+                }
+            }
+        }
+    }
+    ierr = VecAssemblyBegin(vec); IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(vec); IBTK_CHKERRQ(ierr);
+    return;
+}// copyToPatchLevelVec_side
+
+void
+PETScVecUtilities::copyFromPatchLevelVec_cell(
+    Vec& vec,
+    const int data_idx,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
+        const int depth = data->getDepth();
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == dof_index_data->getDepth());
+#endif
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < depth; ++d)
+            {
+                const int dof_index = (*dof_index_data)(i,d);
+                if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
+                {
+                    ierr = VecGetValues(vec, 1, &dof_index, &(*data)(i,d)); IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+    }
+    return;
+}// copyFromPatchLevelVec_cell
+
+void
+PETScVecUtilities::copyFromPatchLevelVec_side(
+    Vec& vec,
+    const int data_idx,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
+        const int depth = data->getDepth();
+        Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == dof_index_data->getDepth());
+#endif
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                for (int d = 0; d < depth; ++d)
+                {
+                    const int dof_index = (*dof_index_data)(i,d);
+                    if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
+                    {
+                        ierr = VecGetValues(vec, 1, &dof_index, &(*data)(i,d)); IBTK_CHKERRQ(ierr);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// copyFromPatchLevelVec_side
+
+void
+PETScVecUtilities::constructPatchLevelDOFIndices_cell(
+    std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    // Determine the number of local DOFs.
+    int local_dof_count = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        local_dof_count += depth*CellGeometry<NDIM>::toCellBox(patch_box).size();
+    }
+
+    // Determine the number of DOFs local to each MPI process and compute the
+    // local DOF index offset.
+    const int mpi_size = SAMRAI_MPI::getNodes();
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    num_dofs_per_proc.resize(mpi_size);
+    std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
+
+    // Assign local DOF indices.
+    int counter = local_dof_offset;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        dof_index_data->fillAll(-1);
+        const int depth = dof_index_data->getDepth();
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < depth; ++d)
+            {
+                (*dof_index_data)(i,d) = counter++;
+            }
+        }
+    }
+
+    // Communicate ghost DOF indices.
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
+    return;
+}// constructPatchLevelDOFIndices_cell
+
+void
+PETScVecUtilities::constructPatchLevelDOFIndices_side(
+    std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    // Create variables to keep track of whether a particular location is the
+    // "master" location.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM,int > > patch_num_var = new SideVariable<NDIM,int >("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
+    static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
+    patch_level->allocatePatchData(patch_num_idx);
+    Pointer<SideVariable<NDIM,bool> > mastr_loc_var = new SideVariable<NDIM,bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
+    static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
+    patch_level->allocatePatchData(mastr_loc_idx);
+    int counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        Pointer<SideData<NDIM,int > > patch_num_data = patch->getPatchData(patch_num_idx);
+        patch_num_data->fillAll(patch_num);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        mastr_loc_data->fillAll(false);
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                for (int d = 0; d < depth; ++d)
+                {
+                    (*dof_index_data)(i,d) = counter++;
+                }
+            }
+        }
+    }
+
+    // Synchronize the patch number and preliminary DOF index data at patch
+    // boundaries to determine which patch owns a given DOF along patch
+    // boundaries.
+    RefineAlgorithm<NDIM> bdry_synch_alg;
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
+
+    // Determine the number of local DOFs.
+    int local_dof_count = 0;
+    counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        Pointer<SideData<NDIM,int > > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                bool mastr_loc = (*patch_num_data)(i) == patch_num;
+                for (int d = 0; d < depth; ++d)
+                {
+                    mastr_loc = ((*dof_index_data)(i,d) == counter++) && mastr_loc;
+                }
+                (*mastr_loc_data)(i) = mastr_loc;
+                if (LIKELY(mastr_loc)) local_dof_count += depth;
+            }
+        }
+    }
+
+    // Determine the number of DOFs local to each MPI process and compute the
+    // local DOF index offset.
+    const int mpi_size = SAMRAI_MPI::getNodes();
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    num_dofs_per_proc.resize(mpi_size);
+    std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
+
+    // Assign local DOF indices.
+    counter = local_dof_offset;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        dof_index_data->fillAll(-1);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
+        BoxList<NDIM> data_box_union(patch_box);
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            data_boxes[component_axis] = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
+            data_box_union.unionBoxes(data_boxes[component_axis]);
+        }
+        data_box_union.simplifyBoxes();
+        for (BoxList<NDIM>::Iterator bl(data_box_union); bl; bl++)
+        {
+            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            {
+                const Index<NDIM>& ic = b();
+                for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+                {
+                    if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
+                    const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
+                    if (UNLIKELY(!(*mastr_loc_data)(is))) continue;
+                    for (int d = 0; d < depth; ++d)
+                    {
+                        (*dof_index_data)(is,d) = counter++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Deallocate temporary variable data.
+    patch_level->deallocatePatchData(patch_num_idx);
+    patch_level->deallocatePatchData(mastr_loc_idx);
+
+    // Communicate ghost DOF indices.
+    RefineAlgorithm<NDIM> dof_synch_alg;
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
+    return;
+}// constructPatchLevelDOFIndices_side
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -10,19 +10,19 @@ c     Redistribution and use in source and binary forms, with or without
 c     modification, are permitted provided that the following conditions
 c     are met:
 c
-c        * Redistributions of source code must retain the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer.
+c     * Redistributions of source code must retain the above
+c     copyright notice, this list of conditions and the following
+c     disclaimer.
 c
-c        * Redistributions in binary form must reproduce the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer in the documentation and/or other materials
-c          provided with the distribution.
+c     * Redistributions in binary form must reproduce the above
+c     copyright notice, this list of conditions and the following
+c     disclaimer in the documentation and/or other materials
+c     provided with the distribution.
 c
-c        * Neither the name of New York University nor the names of its
-c          contributors may be used to endorse or promote products
-c          derived from this software without specific prior written
-c          permission.
+c     * Neither the name of New York University nor the names of its
+c     contributors may be used to endorse or promote products
+c     derived from this software without specific prior written
+c     permission.
 c
 c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
@@ -45,7 +45,8 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Gauss-Seidel sweeps for F = alpha div grad U + beta U.
+c     Perform a single Gauss-Seidel sweep for F = alpha div grad U +
+c     beta U.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -56,8 +57,7 @@ c
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
-     &     dx,
-     &     sweeps)
+     &     dx)
 c
       implicit none
 c
@@ -67,44 +67,41 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER U_gcw,F_gcw
-      INTEGER sweeps
 
       REAL alpha,beta
 
       REAL F(ilower0-F_gcw:iupper0+F_gcw,
-     &       ilower1-F_gcw:iupper1+F_gcw,
-     &       ilower2-F_gcw:iupper2+F_gcw)
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
 
       REAL dx(0:NDIM-1)
 c
 c     Input/Output.
 c
       REAL U(ilower0-U_gcw:iupper0+U_gcw,
-     &       ilower1-U_gcw:iupper1+U_gcw,
-     &       ilower2-U_gcw:iupper2+U_gcw)
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2,l
+      INTEGER i0,i1,i2
       REAL    fac0,fac1,fac2,fac
 c
-c     Perform one or more Gauss-Seidel sweeps.
+c     Perform a single Gauss-Seidel sweep.
 c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac2 = alpha/(dx(2)*dx(2))
       fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
 
-      do l = 1,sweeps
-         do i2 = ilower2,iupper2
-            do i1 = ilower1,iupper1
-               do i0 = ilower0,iupper0
-                  U(i0,i1,i2) = fac*(
-     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
-     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
-     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
-     &                 F(i0,i1,i2))
-               enddo
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               U(i0,i1,i2) = fac*(
+     &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &              fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &              F(i0,i1,i2))
             enddo
          enddo
       enddo
@@ -114,7 +111,8 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Red-black Gauss-Seidel sweeps for F = alpha div grad U + beta U.
+c     Perform a single "red" or "black" Gauss-Seidel sweep for F = alpha
+c     div grad U + beta U.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -126,7 +124,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     dx,
-     &     sweeps)
+     &     red_or_black)
 c
       implicit none
 c
@@ -136,48 +134,201 @@ c
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
       INTEGER U_gcw,F_gcw
-      INTEGER sweeps
+      INTEGER red_or_black
 
       REAL alpha,beta
 
       REAL F(ilower0-F_gcw:iupper0+F_gcw,
-     &       ilower1-F_gcw:iupper1+F_gcw,
-     &       ilower2-F_gcw:iupper2+F_gcw)
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
 
       REAL dx(0:NDIM-1)
 c
 c     Input/Output.
 c
       REAL U(ilower0-U_gcw:iupper0+U_gcw,
-     &       ilower1-U_gcw:iupper1+U_gcw,
-     &       ilower2-U_gcw:iupper2+U_gcw)
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2,l,m
+      INTEGER i0,i1,i2
       REAL    fac0,fac1,fac2,fac
 c
-c     Perform one or more red-black Gauss-Seidel sweeps.
+c     Perform a single "red" or "black" Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+
+      fac0 = alpha/(dx(0)*dx(0))
+      fac1 = alpha/(dx(1)*dx(1))
+      fac2 = alpha/(dx(2)*dx(2))
+      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
+                  U(i0,i1,i2) = fac*(
+     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &                 F(i0,i1,i2))
+               endif
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single Gauss-Seidel sweep for F = alpha div grad U +
+c     beta U with masking of certain degrees of freedom.
+c
+c     NOTE: The solution U is unmodified at masked degrees of freedom.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine gssmoothmask3d(
+     &     U,U_gcw,
+     &     alpha,beta,
+     &     F,F_gcw,
+     &     mask,mask_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,F_gcw,mask_gcw
+
+      REAL alpha,beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
+
+      INTEGER mask(ilower0-mask_gcw:iupper0+mask_gcw,
+     &     ilower1-mask_gcw:iupper1+mask_gcw,
+     &     ilower2-mask_gcw:iupper2+mask_gcw)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    fac0,fac1,fac2,fac
+c
+c     Perform a single Gauss-Seidel sweep.
 c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac2 = alpha/(dx(2)*dx(2))
       fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
 
-      do l = 1,sweeps
-         do m = 0,1
-            do i2 = ilower2,iupper2
-               do i1 = ilower1,iupper1
-                  do i0 = ilower0,iupper0
-                     if ( mod(i0+i1+i2,2) .eq. m ) then
-                        U(i0,i1,i2) = fac*(
-     &                       fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
-     &                       fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
-     &                       fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
-     &                       F(i0,i1,i2))
-                     endif
-                  enddo
-               enddo
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if (mask(i0,i1,i2) .eq. 0) then
+                  U(i0,i1,i2) = fac*(
+     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &                 F(i0,i1,i2))
+               endif
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep for F = alpha
+c     div grad U + beta U with masking of certain degrees of freedom.
+c
+c     NOTE: The solution U is unmodified at masked degrees of freedom.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine rbgssmoothmask3d(
+     &     U,U_gcw,
+     &     alpha,beta,
+     &     F,F_gcw,
+     &     mask,mask_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     red_or_black)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,F_gcw,mask_gcw
+      INTEGER red_or_black
+
+      REAL alpha,beta
+
+      REAL F(ilower0-F_gcw:iupper0+F_gcw,
+     &     ilower1-F_gcw:iupper1+F_gcw,
+     &     ilower2-F_gcw:iupper2+F_gcw)
+
+      INTEGER mask(ilower0-mask_gcw:iupper0+mask_gcw,
+     &     ilower1-mask_gcw:iupper1+mask_gcw,
+     &     ilower2-mask_gcw:iupper2+mask_gcw)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(ilower0-U_gcw:iupper0+U_gcw,
+     &     ilower1-U_gcw:iupper1+U_gcw,
+     &     ilower2-U_gcw:iupper2+U_gcw)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    fac0,fac1,fac2,fac
+c
+c     Perform a single "red" or "black" Gauss-Seidel sweep.
+c
+      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
+
+      fac0 = alpha/(dx(0)*dx(0))
+      fac1 = alpha/(dx(1)*dx(1))
+      fac2 = alpha/(dx(2)*dx(2))
+      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               if ( (mod(i0+i1+i2,2) .eq. red_or_black) .and.
+     &              (mask(i0,i1,i2) .eq. 0) ) then
+                  U(i0,i1,i2) = fac*(
+     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &                 F(i0,i1,i2))
+               endif
             enddo
          enddo
       enddo

@@ -268,7 +268,7 @@ HierarchyMathOps::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -298,7 +298,7 @@ HierarchyMathOps::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
                 (finest_ln <= d_hierarchy->getFinestLevelNumber()));
@@ -609,7 +609,7 @@ HierarchyMathOps::curl(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
@@ -780,7 +780,7 @@ HierarchyMathOps::curl(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -811,7 +811,7 @@ HierarchyMathOps::curl(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -842,7 +842,7 @@ HierarchyMathOps::curl(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -873,7 +873,7 @@ HierarchyMathOps::curl(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -910,7 +910,7 @@ HierarchyMathOps::div(
     const int dst_depth,
     const int src2_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
@@ -985,7 +985,7 @@ HierarchyMathOps::div(
     const int dst_depth,
     const int src2_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
@@ -1051,7 +1051,7 @@ HierarchyMathOps::div(
     const int dst_depth,
     const int src2_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
@@ -1115,7 +1115,7 @@ HierarchyMathOps::grad(
     const Pointer<CellVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
@@ -1219,7 +1219,7 @@ HierarchyMathOps::grad(
     const Pointer<FaceVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1286,7 +1286,7 @@ HierarchyMathOps::grad(
     const Pointer<SideVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1353,7 +1353,7 @@ HierarchyMathOps::grad(
     const Pointer<CellVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     // Compute the face centered gradient and interpolate.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1429,7 +1429,7 @@ HierarchyMathOps::grad(
     const Pointer<CellVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     // Compute the side centered gradient and interpolate.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1506,7 +1506,7 @@ HierarchyMathOps::grad(
     const Pointer<FaceVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1611,7 +1611,7 @@ HierarchyMathOps::grad(
     const Pointer<SideVariable<NDIM,double> > /*src2_var*/,
     const int src1_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1710,7 +1710,7 @@ HierarchyMathOps::interp(
     const double src_ghost_fill_time,
     const bool src_cf_bdry_synch)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
@@ -1761,7 +1761,7 @@ HierarchyMathOps::interp(
     const double src_ghost_fill_time,
     const bool src_cf_bdry_synch)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
@@ -1812,7 +1812,7 @@ HierarchyMathOps::interp(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1866,7 +1866,7 @@ HierarchyMathOps::interp(
     const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
     const double src_ghost_fill_time)
 {
-    if (!src_ghost_fill.isNull()) src_ghost_fill->fillData(src_ghost_fill_time);
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -1926,7 +1926,7 @@ HierarchyMathOps::laplace(
     const int src1_depth,
     const int src2_depth)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     const double alpha = poisson_spec.dIsConstant() ? poisson_spec.getDConstant() : 0.0;
     const double  beta = poisson_spec.cIsConstant() ? poisson_spec.getCConstant() : 0.0;
@@ -1945,11 +1945,11 @@ HierarchyMathOps::laplace(
         var_db->mapIndexToVariable(alpha_idx, dummy_var);
         alpha_var = dummy_var;
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!alpha_var.isNull());
+        TBOX_ASSERT(alpha_var);
 #endif
         Pointer<SideDataFactory<NDIM,double> > alpha_fac = var_db->getPatchDescriptor()->getPatchDataFactory(alpha_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!alpha_fac.isNull());
+        TBOX_ASSERT(alpha_fac);
 #endif
         nonaligned_anisotropy = alpha_fac->getDefaultDepth() > 1;
     }
@@ -1961,7 +1961,7 @@ HierarchyMathOps::laplace(
         var_db->mapIndexToVariable(beta_idx, dummy_var);
         beta_var = dummy_var;
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!beta_var.isNull());
+        TBOX_ASSERT(beta_var);
 #endif
     }
 
@@ -2113,7 +2113,7 @@ HierarchyMathOps::laplace(
     const int src2_idx,
     const Pointer<SideVariable<NDIM,double> > src2_var)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     const double alpha = poisson_spec.dIsConstant() ? poisson_spec.getDConstant() : 0.0;
     const double  beta = poisson_spec.cIsConstant() ? poisson_spec.getCConstant() : 0.0;
@@ -2147,7 +2147,7 @@ HierarchyMathOps::laplace(
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires scalar-valued data" << std::endl);
     }
-    if (!src2_var.isNull())
+    if (src2_var)
     {
         Pointer<SideDataFactory<NDIM,double> > src2_factory = src2_var->getPatchDataFactory();
         if (src2_factory->getDefaultDepth() != 1)
@@ -2231,7 +2231,7 @@ HierarchyMathOps::vc_laplace(
     const int src2_idx,
     const Pointer<SideVariable<NDIM,double> > src2_var)
 {
-    if (!src1_ghost_fill.isNull()) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
     Pointer<SideDataFactory<NDIM,double> >  dst_factory =  dst_var->getPatchDataFactory();
     Pointer<SideDataFactory<NDIM,double> > src1_factory = src1_var->getPatchDataFactory();
@@ -2240,7 +2240,7 @@ HierarchyMathOps::vc_laplace(
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
                    << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
-    if (!src2_var.isNull())
+    if (src2_var)
     {
         Pointer<SideDataFactory<NDIM,double> > src2_factory = src2_var->getPatchDataFactory();
         if (src2_factory->getDefaultDepth() != 1)
@@ -2988,7 +2988,7 @@ void
 HierarchyMathOps::resetCoarsenOperators()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_grid_geom.isNull());
+    TBOX_ASSERT(d_grid_geom);
 #endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
@@ -3009,7 +3009,7 @@ void
 HierarchyMathOps::resetRefineOperators()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_grid_geom.isNull());
+    TBOX_ASSERT(d_grid_geom);
 #endif
     // intentionally blank
     return;

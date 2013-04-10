@@ -106,12 +106,12 @@ FaceDataSynchronization::initializeOperatorState(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -139,8 +139,8 @@ FaceDataSynchronization::initializeOperatorState(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        Pointer<FaceVariable<NDIM,double> > fc_var = var;
+        if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision face-centered data is supported." << std::endl);
@@ -211,12 +211,12 @@ FaceDataSynchronization::resetTransactionComponents(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -240,8 +240,8 @@ FaceDataSynchronization::resetTransactionComponents(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        Pointer<FaceVariable<NDIM,double> > fc_var = var;
+        if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision face-centered data is supported." << std::endl);
@@ -295,7 +295,7 @@ FaceDataSynchronization::synchronizeData(
 
         // When appropriate, coarsen data from the current level to the next
         // coarser level.
-        if (ln > d_coarsest_ln && !d_coarsen_scheds[ln].isNull()) d_coarsen_scheds[ln]->coarsenData();
+        if (ln > d_coarsest_ln && d_coarsen_scheds[ln]) d_coarsen_scheds[ln]->coarsenData();
     }
     return;
 }// synchronizeData

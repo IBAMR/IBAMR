@@ -94,11 +94,7 @@ public:
      * \brief Default constructor.
      */
     IBAnchorPointSpec(
-        int node_idx=-1
-#if ENABLE_SUBDOMAIN_INDICES
-        ,int subdomain_idx=-1
-#endif
-                      );
+        int node_idx=-1);
 
     /*!
      * \brief Destructor.
@@ -116,22 +112,6 @@ public:
      */
     int&
     getNodeIndex();
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * \return A const reference to the subdomain index associated with this
-     * force spec object.
-     */
-    const int&
-    getSubdomainIndex() const;
-
-    /*!
-     * \return A non-const reference to the subdomain index associated with this
-     * force spec object.
-     */
-    int&
-    getSubdomainIndex();
-#endif
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -183,13 +163,6 @@ private:
      * The Lagrangian index of the anchored curvilinear mesh node.
      */
     int d_node_idx;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * The subdomain index of the force spec object.
-     */
-    int d_subdomain_idx;
-#endif
 
     /*!
      * \brief A factory class to rebuild IBAnchorPointSpec objects from

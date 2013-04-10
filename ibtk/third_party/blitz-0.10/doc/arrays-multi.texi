@@ -1,0 +1,193 @@
+
+@node Array multi, Array usertype, , Customized Arrays
+@section Multicomponent and complex arrays
+@cindex Array multicomponent
+@cindex multicomponent arrays
+
+Multicomponent arrays have elements which are vectors.  Examples of such
+arrays are vector fields, colour images (which contain, say, RGB tuples),
+and multispectral images.  Complex-valued arrays can also be regarded as
+multicomponent arrays, since each element is a 2-tuple of real values.
+
+Here are some examples of multicomponent arrays:
+
+@cindex RGB24 example
+
+@example
+// A 3-dimensional array; each element is a length 3 vector of float
+Array<TinyVector<float,3>,3> A;  
+
+// A complex 2-dimensional array
+Array<complex<double>,2> B;
+
+// A 2-dimensional image containing RGB tuples
+struct RGB24 @{
+  unsigned char r, g, b;
+@};
+
+Array<RGB24,2> C;
+@end example
+
+@subsection Extracting components
+
+@cindex extracting components
+@cindex Array extracting components
+
+Blitz++ provides some special support for such arrays.  The most important
+is the ability to extract a single component.  For example:
+
+@example
+Array<TinyVector<float,3>,2> A(128,128);
+Array<float,2> B = A.extractComponent(float(), 1, 3);
+B = 0;
+@end example
+
+The call to @code{extractComponent} returns an array of floats; this array
+is a view of the second component of each element of A.  The arguments of
+@code{extractComponent} are: (1) the type of the component (in this example,
+float); (2) the component number to extract (numbered 0, 1, ... N-1); and
+(3) the number of components in the array.
+
+This is a little bit messy, so Blitz++ provides a handy shortcut using
+@code{operator[]}:
+
+@example
+Array<TinyVector<float,3>,2> A(128,128);
+A[1] = 0;
+@end example
+
+The number inside the square brackets is the component number.  However, for
+this operation to work, Blitz++ has to already know how many components
+there are, and what type they are.  It knows this already for
+@code{TinyVector} and @code{complex<T>}.  If you use your own type, though,
+you will have to tell Blitz++ this information using the macro
+@code{BZ_DECLARE_MULTICOMPONENT_TYPE()}.  This macro has three arguments:
+
+@findex BZ_DECLARE_MULTICOMPONENT_TYPE
+
+@example
+BZ_DECLARE_MULTICOMPONENT_TYPE(T_element, T_componentType, numComponents)
+@end example
+
+@code{T_element} is the element type of the array.  @code{T_componentType}
+is the type of the components of that element.  @code{numComponents} is the
+number of components in each element.
+
+An example will clarify this.  Suppose we wanted to make a colour image,
+stored in 24-bit HSV (hue-saturation-value) format.  We can make a class
+@code{HSV24} which represents a single pixel:
+
+@cindex HSV24 example
+
+@example
+#include <blitz/array.h>
+
+using namespace blitz;
+
+class HSV24 @{
+public:
+    // These constants will makes the code below cleaner; we can
+    // refer to the components by name, rather than number.
+
+    static const int hue=0, saturation=1, value=2;
+
+    HSV24() @{ @}
+    HSV24(int hue, int saturation, int value)
+      : h_(hue), s_(saturation), v_(value)
+    @{ @}
+
+    // Some other stuff here, obviously
+
+private:
+    unsigned char h_, s_, v_;
+@};
+@end example
+
+Right after the class declaration, we will invoke the macro
+@code{BZ_DECLARE_MULTICOMPONENT_TYPE} to tell Blitz++ about HSV24:
+
+@example
+// HSV24 has 3 components of type unsigned char
+BZ_DECLARE_MULTICOMPONENT_TYPE(HSV24, unsigned char, 3);
+@end example
+
+Now we can create HSV images and modify the individual components:
+
+@example
+int main()
+@{
+    Array<HSV24,2> A(128,128);   // A 128x128 HSV image
+    ...
+
+    // Extract a greyscale version of the image
+    Array<unsigned char,2> A_greyscale = A[HSV24::value];
+
+    // Bump up the saturation component to get a
+    // pastel effect
+    A[HSV24::saturation] *= 1.3; 
+
+    // Brighten up the middle of the image
+    Range middle(32,96);
+    A[HSV24::value](middle,middle) *= 1.2;
+@}
+@end example
+
+@subsection Special support for complex arrays
+
+@cindex Array complex
+@cindex complex arrays
+
+Since complex arrays are used frequently, Blitz++ provides two special
+methods for getting the real and imaginary components:
+
+@example
+Array<complex<float>,2> A(32,32);
+
+real(A) = 1.0;
+imag(A) = 0.0;
+@end example
+
+The function @code{real(A)} returns an array view of the real component;
+@code{imag(A)} returns a view of the imaginary component.
+
+Note: Blitz++ provides numerous math functions defined over complex-valued
+arrays, such as @code{conj}, @code{polar}, @code{arg}, @code{abs},
+@code{cos}, @code{pow}, etc.  See the section on math functions
+(@ref{Math functions 1}) for details.
+
+@subsection Zipping together expressions
+@cindex zipping expressions
+@cindex Array zipping expressions
+
+Blitz++ provides a function @code{zip()} which lets you combine two or more
+expressions into a single component.  For example, you can combine two real
+expressions into a complex expression, or three integer expressions into an
+HSV24 expression.  The function has this syntax:
+
+@example
+resultexpr zip(expr1, expr2, T_element)
+resultexpr zip(expr1, expr2, expr3, T_element)         ** not available yet
+resultexpr zip(expr1, expr2, expr3, expr4, T_element)  ** not available yet
+@end example
+
+The types @code{resultexpr}, @code{expr1} and @code{expr2} are array
+expressions.  The third argument is the type you want to create.  For
+example:
+
+@example
+int N = 16;
+Array<complex<float>,1> A(N);
+Array<float,1> theta(N);
+
+ ...
+
+A = zip(cos(theta), sin(theta), complex<float>());
+@end example
+
+The above line is equivalent to:
+
+@example
+for (int i=0; i < N; ++i)
+   A[i] = complex<float>(cos(theta[i]), sin(theta[i]));
+@end example
+

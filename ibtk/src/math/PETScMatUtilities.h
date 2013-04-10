@@ -39,15 +39,12 @@
 #include <petscmat.h>
 
 // SAMRAI INCLUDES
-#include <CellData.h>
-#include <CellVariable.h>
-#include <Patch.h>
-#include <RefineSchedule.h>
-#include <SideData.h>
-#include <SideVariable.h>
+#include <PatchLevel.h>
+#include <PoissonSpecifications.h>
+#include <RobinBcCoefStrategy.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,47 +52,11 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScMatUtilities provides utility functions for <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Mat objects.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat objects.
  */
 class PETScMatUtilities
 {
 public:
-    /*!
-     * \name Methods acting on SAMRAI::hier::Patch and SAMRAI::hier::PatchData
-     * objects.
-     */
-    //\{
-
-    /*!
-     * \brief Construct a sequential PETSc Mat object corresponding to the
-     * cell-centered Laplacian of a cell-centered variable restricted to a
-     * single SAMRAI::hier::Patch.
-     */
-    static void
-    constructPatchLaplaceOp(
-        Mat& mat,
-        double C,
-        double D,
-        SAMRAI::pdat::CellData<NDIM,double>& src_data,
-        SAMRAI::pdat::CellData<NDIM,double>& dst_data,
-        SAMRAI::hier::Patch<NDIM>& patch);
-
-    /*!
-     * \brief Construct sequential PETSc Mat objects corresponding to the
-     * side-centered Laplacian of a side-centered variable restricted to a
-     * single SAMRAI::hier::Patch.
-     */
-    static void
-    constructPatchLaplaceOps(
-        blitz::TinyVector<Mat,NDIM>& mats,
-        double C,
-        double D,
-        SAMRAI::pdat::SideData<NDIM,double>& src_data,
-        SAMRAI::pdat::SideData<NDIM,double>& dst_data,
-        SAMRAI::hier::Patch<NDIM>& patch);
-
-    //\}
-
     /*!
      * \name Methods acting on SAMRAI::hier::PatchLevel and
      * SAMRAI::hier::Variable objects.
@@ -106,60 +67,111 @@ public:
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * cell-centered Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
-     *
-     * \note Rows of this operator corresponding to slaved ghost DOFs are
-     * constrained to equal their master value.
      */
     static void
-    constructPatchLevelLaplaceOp(
+    constructPatchLevelCCLaplaceOp(
         Mat& mat,
-        double C,
-        double D,
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
         int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > dof_index_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > dof_index_fill=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * cell-centered Laplacian of a cell-centered variable restricted to a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelCCLaplaceOp(
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+        /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * cell-centered complex Laplacian of a cell-centered variable restricted to a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelCCComplexLaplaceOp(
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+	const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * cell-centered complex Laplacian of a cell-centered variable restricted to a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelCCComplexLaplaceOp(
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+	const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered Laplacian of a side-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
-     *
-     * \note Rows of this operator corresponding to slaved ghost DOFs are
-     * constrained to equal their master value.
      */
     static void
-    constructPatchLevelLaplaceOp(
+    constructPatchLevelSCLaplaceOp(
         Mat& mat,
-        double C,
-        double D,
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
         int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > dof_index_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > dof_index_fill=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the IB
-     * interpolation operator for side-centered variable restricted to a single
-     * SAMRAI::hier::PatchLevel.
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered IB interpolation operator for the provided kernel function.
      *
-     * \note Rows of this operator corresponding to slaved ghost DOFs are left
-     * empty.
+     * \warning This routine does not properly handle delta functions for which
+     * interp_stencil is odd, nor does it properly handle physical boundary
+     * conditions.
      */
     static void
-    constructPatchLevelInterpOp(
+    constructPatchLevelSCInterpOp(
         Mat& mat,
+        void (*interp_fcn)(double r_lower,double* w),
+        int interp_stencil,
         Vec& X_vec,
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
+        const std::vector<int>& num_dofs_per_proc,
         int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > dof_index_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > dof_index_fill=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    static inline void
+    ib_4_interp_fcn(
+        const double r,
+        double* const w)
+        {
+            const double q = sqrt(1.0+4.0*r*(1.0-r));
+            w[0] = 0.125*(3.0-2.0*r-q);
+            w[1] = 0.125*(3.0-2.0*r+q);
+            w[2] = 0.125*(1.0+2.0*r+q);
+            w[3] = 0.125*(1.0+2.0*r-q);
+            return;
+        }// ib_4_interp_fcn
+
+    static const int ib_4_interp_stencil = 4;
 
     //\}
 
@@ -195,21 +207,6 @@ private:
     PETScMatUtilities&
     operator=(
         const PETScMatUtilities& that);
-
-    /*!
-     * \brief Construct a sequential PETSc Mat object corresponding to the
-     * Laplacian on a box.
-     */
-    static void
-    constructBoxLaplaceOp(
-        Mat& mat,
-        double C,
-        double D,
-        const SAMRAI::hier::Box<NDIM>& src_ghost_box,
-        const SAMRAI::hier::Box<NDIM>& dst_ghost_box,
-        const SAMRAI::hier::Box<NDIM>& interior_box,
-        int data_depth,
-        const double* dx);
 };
 }// namespace IBTK
 

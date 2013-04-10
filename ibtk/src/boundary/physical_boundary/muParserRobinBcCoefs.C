@@ -83,7 +83,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(input_db);
 #else
     NULL_USE(object_name);
 #endif
@@ -280,21 +280,16 @@ muParserRobinBcCoefs::setBcCoefs(
     const double* const dx = pgeom->getDx();
 
     // Loop over the boundary box and set the coefficients.
-    const bool fill_acoef_data = !acoef_data.isNull();
-    const bool fill_bcoef_data = !bcoef_data.isNull();
-    const bool fill_gcoef_data = !gcoef_data.isNull();
-
-    const unsigned int location_index = bdry_box.getLocationIndex();
+   const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis =  location_index / 2;
-    const Box<NDIM>& bc_coef_box =
-        (fill_acoef_data ? acoef_data->getBox() :
-         fill_bcoef_data ? bcoef_data->getBox() :
-         fill_gcoef_data ? gcoef_data->getBox() :
-         Box<NDIM>());
+    const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+                                    bcoef_data ? bcoef_data->getBox() :
+                                    gcoef_data ? gcoef_data->getBox() :
+                                    Box<NDIM>());
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!fill_acoef_data || bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(!fill_bcoef_data || bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(!fill_gcoef_data || bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
+    TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
+    TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
 #endif
 
     const mu::Parser& acoef_parser = d_acoef_parsers[location_index];
@@ -315,9 +310,9 @@ muParserRobinBcCoefs::setBcCoefs(
                 d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
             }
         }
-        if (fill_acoef_data) (*acoef_data)(i,0) = acoef_parser.Eval();
-        if (fill_bcoef_data) (*bcoef_data)(i,0) = bcoef_parser.Eval();
-        if (fill_gcoef_data) (*gcoef_data)(i,0) = gcoef_parser.Eval();
+        if (acoef_data) (*acoef_data)(i,0) = acoef_parser.Eval();
+        if (bcoef_data) (*bcoef_data)(i,0) = bcoef_parser.Eval();
+        if (gcoef_data) (*gcoef_data)(i,0) = gcoef_parser.Eval();
     }
     return;
 }// setBcCoefs

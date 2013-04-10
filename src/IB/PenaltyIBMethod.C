@@ -75,7 +75,7 @@ PenaltyIBMethod::PenaltyIBMethod(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
     return;
 }// PenaltyIBMethod
 
@@ -353,6 +353,41 @@ PenaltyIBMethod::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+PenaltyIBMethod::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/)
+{
+    TBOX_ERROR("PenaltyIBMethod::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+PenaltyIBMethod::computeLagrangianForceJacobian(
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    double /*X_coef*/,
+    double /*U_coef*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("PenaltyIBMethod::computeLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobian
+
+void
+PenaltyIBMethod::applyLagrangianForceJacobian(
+    int /*f_data_idx*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+    int /*u_data_idx*/,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    double /*data_time*/,
+    Mat& /*J_mat*/)
+{
+    TBOX_ERROR("PenaltyIBMethod::applyLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// applyLagrangianForceJacobian
+
+void
 PenaltyIBMethod::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
@@ -385,7 +420,7 @@ PenaltyIBMethod::initializePatchHierarchy(
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, ln, init_data_time, can_be_refined, initial_time, d_l_data_manager);
-            if (!d_silo_writer.isNull())
+            if (d_silo_writer)
             {
                 d_silo_writer->registerVariableData("M", M_data, ln);
                 d_silo_writer->registerVariableData("Y", Y_data, ln);

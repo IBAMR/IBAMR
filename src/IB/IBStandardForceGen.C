@@ -54,9 +54,6 @@
 // IBTK INCLUDES
 #include <ibtk/compiler_hints.h>
 
-// SAMRAI INCLUDES
-#include <tbox/TimerManager.h>
-
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
@@ -68,13 +65,6 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Timer* t_compute_lagrangian_force;
-static Timer* t_compute_lagrangian_force_jacobian;
-static Timer* t_compute_lagrangian_force_jacobian_nonzero_structure;
-static Timer* t_compute_lagrangian_energy;
-static Timer* t_initialize_level_data;
-
 void
 resetLocalPETScIndices(
     blitz::Array<int,1>& inds,
@@ -130,33 +120,10 @@ resetLocalOrNonlocalPETScIndices(
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardForceGen::IBStandardForceGen(
-    const bool constant_material_properties)
-    : d_constant_material_properties(constant_material_properties)
+IBStandardForceGen::IBStandardForceGen()
 {
-    if (d_constant_material_properties)
-    {
-        pout << "IBStandardForceGen:  Using constant material properites.\n"
-             << "NOTICE:  Material properties may only be updated at the regrid interval.\n\n";
-    }
-    else
-    {
-        pout << "IBStandardForceGen:  Using nonconstant material properites.\n"
-             << "NOTICE:  Material properties may be updated at any time.\n"
-             << "         Models with constant material properties may see increased performance by setting constant_material_properties = true.\n\n";
-    }
-
     // Setup the default force generation functions.
-    registerSpringForceFunction(0, &default_linear_spring_force);
-
-    // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBStandardForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBStandardForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBStandardForceGen::initializeLevelData()");
-        t_compute_lagrangian_energy                           = TimerManager::getManager()->getTimer("IBAMR::IBStandardForceGen::computeLagrangianEnergy()");
-                  );
+    registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
     return;
 }// IBStandardForceGen
 
@@ -169,9 +136,11 @@ IBStandardForceGen::~IBStandardForceGen()
 void
 IBStandardForceGen::registerSpringForceFunction(
     const int force_fcn_index,
-    const SpringForceFcnPtr spring_force_fcn_ptr)
+    const SpringForceFcnPtr spring_force_fcn_ptr,
+    const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr)
 {
-    d_spring_force_fcn_map[force_fcn_index] = spring_force_fcn_ptr;
+    d_spring_force_fcn_map      [force_fcn_index] = spring_force_fcn_ptr;
+    d_spring_force_deriv_fcn_map[force_fcn_index] = spring_force_deriv_fcn_ptr;
     return;
 }// registerSpringForceFunction
 
@@ -185,10 +154,8 @@ IBStandardForceGen::initializeLevelData(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    IBAMR_TIMER_START(t_initialize_level_data);
-
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
@@ -252,8 +219,6 @@ IBStandardForceGen::initializeLevelData(
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
-
-    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -268,8 +233,6 @@ IBStandardForceGen::computeLagrangianForce(
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
-
-    IBAMR_TIMER_START(t_compute_lagrangian_force);
 
     int ierr;
 
@@ -298,34 +261,179 @@ IBStandardForceGen::computeLagrangianForce(
     ierr = VecGhostUpdateBegin(F_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateEnd(  F_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPY(F_data->getVec(), 1.0, F_ghost_data->getVec());
-
-    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
     return;
 }// computeLagrangianForce
 
 void
 IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& /*d_nnz*/,
-    std::vector<int>& /*o_nnz*/,
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    // Compute the nonzero structure of the Jacobian matrix.
-    TBOX_ERROR("not currently implemented\n");
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    // Determine the global node offset and the number of local nodes.
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
+
+    // Determine the non-zero structure for the matrix used to store the
+    // Jacobian of the force.
+    //
+    // NOTE #1: Each spring and beam is *only* associated with a single node in
+    // the mesh.  We must take this into account when determining the non-zero
+    // structure of the matrix.
+    //
+    // NOTE #2: The following ensures only that sufficient space is allocated to
+    // store the Jacobian matrix.  In general, this routine will request MORE
+    // space than is ACTUALLY required.
+    Vec d_nnz_vec, o_nnz_vec;
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, num_local_nodes, PETSC_DETERMINE, &o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecSet(d_nnz_vec, 1.0);  IBTK_CHKERRQ(ierr);
+    ierr = VecSet(o_nnz_vec, 0.0);  IBTK_CHKERRQ(ierr);
+
+    {   // Spring forces.
+
+        const blitz::Array<int,1>& petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+        const blitz::Array<int,1>& petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+        for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
+        {
+            const int& mastr_idx = petsc_mastr_node_idxs(k);
+            const int& slave_idx = petsc_slave_node_idxs(k);
+
+            const bool slave_is_local = (slave_idx >= global_node_offset &&
+                                         slave_idx <  global_node_offset + num_local_nodes);
+
+            static const int N = 2;
+            const int idxs[N] = { mastr_idx/NDIM , slave_idx/NDIM };
+            const double vals[N] = { 1.0 , 1.0 };
+
+            if (slave_is_local)
+            {
+                ierr = VecSetValues(d_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                ierr = VecSetValues(o_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
+    }
+
+    {   // Beam forces.
+
+        const blitz::Array<int,1>& petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
+        const blitz::Array<int,1>& petsc_next_node_idxs  = d_beam_data[level_number].petsc_next_node_idxs;
+        const blitz::Array<int,1>& petsc_prev_node_idxs  = d_beam_data[level_number].petsc_prev_node_idxs;
+        for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
+        {
+            const int& mastr_idx = petsc_mastr_node_idxs(k);
+            const int& next_idx  = petsc_next_node_idxs (k);
+            const int& prev_idx  = petsc_prev_node_idxs (k);
+
+            const bool next_is_local = (next_idx >= global_node_offset &&
+                                        next_idx <  global_node_offset + num_local_nodes);
+            const bool prev_is_local = (prev_idx >= global_node_offset &&
+                                        prev_idx <  global_node_offset + num_local_nodes);
+
+            if (next_is_local && prev_is_local)
+            {
+                static const int d_N = 3;
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
+                const double d_vals[d_N] = { 2.0 , 2.0 , 2.0 };
+                ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+            else if (next_is_local && (!prev_is_local))
+            {
+                static const int d_N = 2;
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , next_idx/NDIM };
+                const double d_vals[d_N] = { 1.0 , 1.0 };
+                ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+                static const int o_N = 3;
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
+                const double o_vals[o_N] = { 1.0 , 1.0 , 2.0 };
+                ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+            else if ((!next_is_local) && prev_is_local)
+            {
+                static const int d_N = 2;
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , prev_idx/NDIM };
+                const double d_vals[d_N] = { 1.0 , 1.0 };
+                ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+                static const int o_N = 3;
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
+                const double o_vals[o_N] = { 1.0 , 2.0 , 1.0 };
+                ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                // NOTE: Rather than trying to find out if the previous and next
+                // nodes are assigned to the same processor, we instead allocate
+                // space both for the case that the previous and next nodes are
+                // on different processors, and for the case that the previous
+                // and next nodes are on the same processor.
+                static const int d_N = 2;
+                const int    d_idxs[d_N] = { next_idx/NDIM , prev_idx/NDIM };
+                const double d_vals[d_N] = { 2.0 , 2.0 };
+                ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+                static const int o_N = 3;
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
+                const double o_vals[o_N] = { 2.0 , 2.0 , 2.0 };
+                ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
+    }
+
+    ierr = VecAssemblyBegin(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecAssemblyEnd(d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(o_nnz_vec);  IBTK_CHKERRQ(ierr);
+
+    double* d_nnz_vec_arr;
+    ierr = VecGetArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    double* o_nnz_vec_arr;
+    ierr = VecGetArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_nnz[NDIM*k+d] += static_cast<int>(d_nnz_vec_arr[k]);
+            o_nnz[NDIM*k+d] += static_cast<int>(o_nnz_vec_arr[k]);
+        }
+    }
+
+    ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(o_nnz_vec, &o_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
+
+    ierr = VecDestroy(&d_nnz_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&o_nnz_vec);  IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobianNonzeroStructure
 
 void
 IBStandardForceGen::computeLagrangianForceJacobian(
-    Mat& /*J_mat*/,
-    MatAssemblyType /*assembly_type*/,
-    const double /*X_coef*/,
-    Pointer<LData> /*X_data*/,
-    const double /*U_coef*/,
+    Mat& J_mat,
+    MatAssemblyType assembly_type,
+    const double X_coef,
+    Pointer<LData> X_data,
+    const double U_coef,
     Pointer<LData> /*U_data*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
@@ -334,8 +442,161 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    // Compute the Jacobian matrix.
-    TBOX_ERROR("not currently implemented\n");
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+    TBOX_ASSERT(d_is_initialized[level_number]);
+#endif
+
+    int ierr;
+
+    {   // Spring forces.
+
+        const blitz::Array<int,1>&                 lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
+        const blitz::Array<int,1>&                 lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
+        const blitz::Array<int,1>&               petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+        const blitz::Array<int,1>&               petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+        const blitz::Array<SpringForceFcnPtr,1>&            force_fcns = d_spring_data[level_number].force_fcns;
+        const blitz::Array<SpringForceDerivFcnPtr,1>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
+        const blitz::Array<const double*,1>&                parameters = d_spring_data[level_number].parameters;
+        const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
+        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
+        blitz::TinyVector<double,NDIM> D;
+        double R, T, dT_dR, eps;
+        for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
+        {
+            // Compute the Jacobian of the force applied by the spring to the
+            // "master" node with respect to the position of the "slave" node.
+            const int& lag_mastr_idx = lag_mastr_node_idxs(k);
+            const int& lag_slave_idx = lag_slave_node_idxs(k);
+            int petsc_mastr_idx = petsc_mastr_node_idxs(k);
+            int petsc_slave_idx = petsc_slave_node_idxs(k);
+            const SpringForceFcnPtr force_fcn = force_fcns(k);
+            const SpringForceDerivFcnPtr force_deriv_fcn = force_deriv_fcns(k);
+            const double* const params = parameters(k);
+
+            D[0] = X_node[petsc_slave_idx+0] - X_node[petsc_mastr_idx+0];
+            D[1] = X_node[petsc_slave_idx+1] - X_node[petsc_mastr_idx+1];
+#if (NDIM == 3)
+            D[2] = X_node[petsc_slave_idx+2] - X_node[petsc_mastr_idx+2];
+#endif
+#if (NDIM == 2)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+            if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+            T = force_fcn(R,params,lag_mastr_idx,lag_slave_idx);
+            if (!force_deriv_fcn)
+            {
+                // Use finite differences to approximate dT/dR.
+                eps = std::max(R,1.0)*pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
+                dT_dR = (force_fcn(R+eps,params,lag_mastr_idx,lag_slave_idx) -
+                         force_fcn(R-eps,params,lag_mastr_idx,lag_slave_idx))/(2.0*eps);
+            }
+            else
+            {
+                dT_dR = force_deriv_fcn(R,params,lag_mastr_idx,lag_slave_idx);
+            }
+
+            for (unsigned int i = 0; i < NDIM; ++i)
+            {
+                for (unsigned int j = 0; j < NDIM; ++j)
+                {
+                    dF_dX(i,j) = X_coef*( (T/R)*((i == j ? 1.0 : 0.0)) + (dT_dR - T/R)*D[i]*D[j]/(R*R) );
+                }
+            }
+
+            // Change the indices to block indices.
+            petsc_mastr_idx /= NDIM;
+            petsc_slave_idx /= NDIM;
+
+            // Accumulate the off-diagonal parts of the matrix.
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            // Negate dF_dX to obtain the Jacobian of the force applied by the
+            // spring to the "master" node with respect to the position of the
+            // "master" node.
+            for (unsigned int i = 0; i < NDIM; ++i)
+            {
+                for (unsigned int j = 0; j < NDIM; ++j)
+                {
+                    dF_dX(i,j) *= -1.0;
+                }
+            }
+
+            // Accumulate the diagonal parts of the matrix.
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+
+    }
+
+    {   // Beam forces.
+
+        const blitz::Array<int,1>&petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
+        const blitz::Array<int,1>& petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
+        const blitz::Array<int,1>& petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
+        const blitz::Array<const double*,1>& rigidities = d_beam_data[level_number].rigidities;
+        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
+        for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
+        {
+            const int petsc_mastr_idx = petsc_mastr_node_idxs(k)/NDIM;  // block indices
+            const int petsc_next_idx  = petsc_next_node_idxs (k)/NDIM;
+            const int petsc_prev_idx  = petsc_prev_node_idxs (k)/NDIM;
+            const double& bend = *rigidities(k);
+
+            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+            {
+                dF_dX(alpha,alpha) = -1.0*bend*X_coef;
+            }
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+            {
+                dF_dX(alpha,alpha) = +2.0*bend*X_coef;
+            }
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_prev_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+
+            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+            {
+                dF_dX(alpha,alpha) = -4.0*bend*X_coef;
+            }
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+
+    }
+
+    {   // Target point forces.
+
+        const blitz::Array<int,1>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
+        const blitz::Array<const double*,1>& kappa = d_target_point_data[level_number].kappa;
+        const  blitz::Array<const double*,1>&  eta = d_target_point_data[level_number].eta;
+        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
+        for (int k = 0; k < petsc_node_idxs.extent(0); ++k)
+        {
+            const int petsc_node_idx = petsc_node_idxs(k)/NDIM;  // block index
+            const double& K = *kappa(k);
+            const double& E = *eta  (k);
+            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+            {
+                dF_dX(alpha,alpha) = -X_coef*K-U_coef*E;
+            }
+            ierr = MatSetValuesBlocked(J_mat,1,&petsc_node_idx,1,&petsc_node_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+
+    }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(J_mat, assembly_type); IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(  J_mat, assembly_type); IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobian
 
@@ -369,15 +630,13 @@ IBStandardForceGen::initializeSpringLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    blitz::Array<int,1>&            lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
-    blitz::Array<int,1>&            lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
-    blitz::Array<int,1>&          petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
-    blitz::Array<int,1>&          petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
-    blitz::Array<SpringForceFcnPtr,1>&       force_fcns = d_spring_data[level_number].force_fcns;
-    blitz::Array<double,1>&                 stiffnesses = d_spring_data[level_number].stiffnesses;
-    blitz::Array<double,1>&                rest_lengths = d_spring_data[level_number].rest_lengths;
-    blitz::Array<const double*,1>&  dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses;
-    blitz::Array<const double*,1>& dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths;
+    blitz::Array<int,1>&                 lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
+    blitz::Array<int,1>&                 lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
+    blitz::Array<int,1>&               petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+    blitz::Array<int,1>&               petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+    blitz::Array<SpringForceFcnPtr,1>&            force_fcns = d_spring_data[level_number].force_fcns;
+    blitz::Array<SpringForceDerivFcnPtr,1>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
+    blitz::Array<const double*,1>&                parameters = d_spring_data[level_number].parameters;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -393,20 +652,8 @@ IBStandardForceGen::initializeSpringLevelData(
         petsc_mastr_node_idxs.resize(num_springs);
         petsc_slave_node_idxs.resize(num_springs);
         force_fcns           .resize(num_springs);
-        if (d_constant_material_properties)
-        {
-            stiffnesses         .resize(num_springs);
-            rest_lengths        .resize(num_springs);
-            dynamic_stiffnesses .resize(0);
-            dynamic_rest_lengths.resize(0);
-        }
-        else
-        {
-            stiffnesses         .resize(0);
-            rest_lengths        .resize(0);
-            dynamic_stiffnesses .resize(num_springs);
-            dynamic_rest_lengths.resize(num_springs);
-        }
+        force_deriv_fcns     .resize(num_springs);
+        parameters           .resize(num_springs);
         return;
     }
 
@@ -416,7 +663,7 @@ IBStandardForceGen::initializeSpringLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
+        if (force_spec) num_springs += force_spec->getNumberOfSprings();
     }
 
     // Resize arrays for storing cached values used to compute spring forces.
@@ -425,95 +672,43 @@ IBStandardForceGen::initializeSpringLevelData(
     petsc_mastr_node_idxs.resize(num_springs);
     petsc_slave_node_idxs.resize(num_springs);
     force_fcns           .resize(num_springs);
-    if (d_constant_material_properties)
-    {
-        stiffnesses         .resize(num_springs);
-        rest_lengths        .resize(num_springs);
-        dynamic_stiffnesses .resize(0);
-        dynamic_rest_lengths.resize(0);
-    }
-    else
-    {
-        stiffnesses         .resize(0);
-        rest_lengths        .resize(0);
-        dynamic_stiffnesses .resize(num_springs);
-        dynamic_rest_lengths.resize(num_springs);
-    }
+    force_deriv_fcns     .resize(num_springs);
+    parameters           .resize(num_springs);
 
     // Return early if there are no local springs.
     if (num_springs == 0) return;
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
-    if (d_constant_material_properties)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-            if (force_spec == NULL) continue;
-            const int lag_idx = node_idx->getLagrangianIndex();
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
-#endif
-            const int petsc_idx = node_idx->getGlobalPETScIndex();
-            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
-            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-            const std::vector<double>& stf = force_spec->getStiffnesses();
-            const std::vector<double>& rst = force_spec->getRestingLengths();
-            const unsigned int num_springs = force_spec->getNumberOfSprings();
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(num_springs == slv.size());
-            TBOX_ASSERT(num_springs == fcn.size());
-            TBOX_ASSERT(num_springs == stf.size());
-            TBOX_ASSERT(num_springs == rst.size());
-#endif
-            for (unsigned int k = 0; k < num_springs; ++k)
-            {
-                lag_mastr_node_idxs  (current_spring) = lag_idx;
-                lag_slave_node_idxs  (current_spring) = slv[k];
-                petsc_mastr_node_idxs(current_spring) = petsc_idx;
-                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
-                stiffnesses          (current_spring) = stf[k];
-                rest_lengths         (current_spring) = rst[k];
-                ++current_spring;
-            }
-        }
-    }
-    else
-    {
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-            if (force_spec == NULL) continue;
+        const LNode* const node_idx = *cit;
+        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+        if (!force_spec) continue;
 
-            const int lag_idx = node_idx->getLagrangianIndex();
+        const int lag_idx = node_idx->getLagrangianIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
+        TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
-            const int petsc_idx = node_idx->getGlobalPETScIndex();
-            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
-            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-            const std::vector<double>& stf = force_spec->getStiffnesses();
-            const std::vector<double>& rst = force_spec->getRestingLengths();
-            const unsigned int num_springs = force_spec->getNumberOfSprings();
+        const int petsc_idx = node_idx->getGlobalPETScIndex();
+        const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+        const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+        const std::vector<std::vector<double> >& params = force_spec->getParameters();
+        const unsigned int num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(num_springs == slv.size());
-            TBOX_ASSERT(num_springs == fcn.size());
-            TBOX_ASSERT(num_springs == stf.size());
-            TBOX_ASSERT(num_springs == rst.size());
+        TBOX_ASSERT(num_springs == slv   .size());
+        TBOX_ASSERT(num_springs == fcn   .size());
+        TBOX_ASSERT(num_springs == params.size());
 #endif
-            for (unsigned int k = 0; k < num_springs; ++k)
-            {
-                lag_mastr_node_idxs  (current_spring) = lag_idx;
-                lag_slave_node_idxs  (current_spring) = slv[k];
-                petsc_mastr_node_idxs(current_spring) = petsc_idx;
-                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
-                dynamic_stiffnesses  (current_spring) = &stf[k];
-                dynamic_rest_lengths (current_spring) = &rst[k];
-                ++current_spring;
-            }
+        for (unsigned int k = 0; k < num_springs; ++k)
+        {
+            lag_mastr_node_idxs  (current_spring) = lag_idx;
+            lag_slave_node_idxs  (current_spring) = slv[k];
+            petsc_mastr_node_idxs(current_spring) = petsc_idx;
+            force_fcns           (current_spring) = d_spring_force_fcn_map      [fcn[k]];
+            force_deriv_fcns     (current_spring) = d_spring_force_deriv_fcn_map[fcn[k]];
+            parameters           (current_spring) = &params[k][0];
+            ++current_spring;
         }
     }
 
@@ -527,7 +722,7 @@ IBStandardForceGen::initializeSpringLevelData(
     // NOTE: Only slave nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
     const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
-    for (int k = 0; k < petsc_slave_node_idxs.size(); ++k)
+    for (unsigned int k = 0; k < petsc_slave_node_idxs.size(); ++k)
     {
         const int idx = petsc_slave_node_idxs(k);
         if (UNLIKELY(idx < global_node_offset || idx >= global_node_offset+num_local_nodes))
@@ -553,71 +748,53 @@ IBStandardForceGen::computeLagrangianSpringForce(
     const int*               const restrict petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs.data();
     const int*               const restrict petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs.data();
     const SpringForceFcnPtr* const restrict            force_fcns = d_spring_data[level_number].force_fcns           .data();
-    const double*            const restrict           stiffnesses = d_spring_data[level_number].stiffnesses          .data();
-    const double*            const restrict          rest_lengths = d_spring_data[level_number].rest_lengths         .data();
-    const double**           const restrict   dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses  .data();
-    const double**           const restrict  dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths .data();
+    const double**           const restrict            parameters = d_spring_data[level_number].parameters           .data();
     double*                  const restrict                F_node = F_data->getLocalFormVecArray()       ->data();
     const double*            const restrict                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
     int k, kblock, kunroll, mastr_idx, slave_idx;
-    double F[NDIM], D[NDIM];
+    double F[NDIM], D[NDIM], R, T_over_R;
     kblock = 0;
-    if (d_constant_material_properties)
+    for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
     {
-        for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
+        PREFETCH_READ_NTA_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(           parameters+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            PREFETCH_READ_NTA_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(          stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(         rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                mastr_idx = petsc_mastr_node_idxs[k];
-                slave_idx = petsc_slave_node_idxs[k];
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx != slave_idx);
-#endif
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1]);
-                D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
-                D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
-#if (NDIM == 3)
-                D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
-#endif
-                (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
-                F_node[mastr_idx+0] += F[0];
-                F_node[mastr_idx+1] += F[1];
-#if (NDIM == 3)
-                F_node[mastr_idx+2] += F[2];
-#endif
-                F_node[slave_idx+0] -= F[0];
-                F_node[slave_idx+1] -= F[1];
-#if (NDIM == 3)
-                F_node[slave_idx+2] -= F[2];
-#endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
-        {
+            k = kblock*BLOCKSIZE+kunroll;
             mastr_idx = petsc_mastr_node_idxs[k];
             slave_idx = petsc_slave_node_idxs[k];
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1]);
+            PREFETCH_READ_NTA(                             parameters[k+1]);
             D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
             D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
 #if (NDIM == 3)
             D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-            (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+#if (NDIM == 2)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+            if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+            T_over_R = (force_fcns[k])(R,parameters[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+            F[0] = T_over_R*D[0];
+            F[1] = T_over_R*D[1];
+#if (NDIM == 3)
+            F[2] = T_over_R*D[2];
+#endif
             F_node[mastr_idx+0] += F[0];
             F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
@@ -630,73 +807,41 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #endif
         }
     }
-    else
+    for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
     {
-        for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
-        {
-            PREFETCH_READ_NTA_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(  dynamic_stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK( dynamic_rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                mastr_idx = petsc_mastr_node_idxs[k];
-                slave_idx = petsc_slave_node_idxs[k];
+        mastr_idx = petsc_mastr_node_idxs[k];
+        slave_idx = petsc_slave_node_idxs[k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx != slave_idx);
+        TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1]);
-                PREFETCH_READ_NTA(                    dynamic_stiffnesses[k+1]);
-                PREFETCH_READ_NTA(                   dynamic_rest_lengths[k+1]);
-                D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
-                D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
+        D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
+        D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
 #if (NDIM == 3)
-                D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
+        D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-                (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
-                F_node[mastr_idx+0] += F[0];
-                F_node[mastr_idx+1] += F[1];
+#if (NDIM == 2)
+        R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
 #if (NDIM == 3)
-                F_node[mastr_idx+2] += F[2];
+        R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
-                F_node[slave_idx+0] -= F[0];
-                F_node[slave_idx+1] -= F[1];
+        if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+        T_over_R = (force_fcns[k])(R,parameters[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+        F[0] = T_over_R*D[0];
+        F[1] = T_over_R*D[1];
 #if (NDIM == 3)
-                F_node[slave_idx+2] -= F[2];
+        F[2] = T_over_R*D[2];
 #endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
-        {
-            mastr_idx = petsc_mastr_node_idxs[k];
-            slave_idx = petsc_slave_node_idxs[k];
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(mastr_idx != slave_idx);
-#endif
-            D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
-            D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
+        F_node[mastr_idx+0] += F[0];
+        F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
-            D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
+        F_node[mastr_idx+2] += F[2];
 #endif
-            (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
-            F_node[mastr_idx+0] += F[0];
-            F_node[mastr_idx+1] += F[1];
+        F_node[slave_idx+0] -= F[0];
+        F_node[slave_idx+1] -= F[1];
 #if (NDIM == 3)
-            F_node[mastr_idx+2] += F[2];
+        F_node[slave_idx+2] -= F[2];
 #endif
-            F_node[slave_idx+0] -= F[0];
-            F_node[slave_idx+1] -= F[1];
-#if (NDIM == 3)
-            F_node[slave_idx+2] -= F[2];
-#endif
-        }
     }
 
     F_data->restoreArrays();
@@ -713,13 +858,11 @@ IBStandardForceGen::initializeBeamLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    blitz::Array<int,1>&                                petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
-    blitz::Array<int,1>&                                 petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
-    blitz::Array<int,1>&                                 petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
-    blitz::Array<double,1>&                                        rigidities = d_beam_data[level_number].rigidities;
-    blitz::Array<blitz::TinyVector<double,NDIM>,1>&                curvatures = d_beam_data[level_number].curvatures;
-    blitz::Array<const double*,1>&                         dynamic_rigidities = d_beam_data[level_number].dynamic_rigidities;
-    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& dynamic_curvatures = d_beam_data[level_number].dynamic_curvatures;
+    blitz::Array<int,1>&                        petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
+    blitz::Array<int,1>&                         petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
+    blitz::Array<int,1>&                         petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
+    blitz::Array<const double*,1>&                         rigidities = d_beam_data[level_number].rigidities;
+    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -729,19 +872,11 @@ IBStandardForceGen::initializeBeamLevelData(
     if (local_nodes.empty())
     {
         static const int num_beams = 0;
-        petsc_mastr_node_idxs. resize(num_beams);
-        petsc_next_node_idxs  .resize(num_beams);
-        petsc_prev_node_idxs  .resize(num_beams);
-        if (d_constant_material_properties)
-        {
-            rigidities        .resize(num_beams);
-            curvatures        .resize(num_beams);
-        }
-        else
-        {
-            dynamic_rigidities.resize(num_beams);
-            dynamic_curvatures.resize(num_beams);
-        }
+        petsc_mastr_node_idxs.resize(num_beams);
+        petsc_next_node_idxs .resize(num_beams);
+        petsc_prev_node_idxs .resize(num_beams);
+        rigidities           .resize(num_beams);
+        curvatures           .resize(num_beams);
     }
 
     // Determine how many beams are associated with the present MPI process.
@@ -750,21 +885,13 @@ IBStandardForceGen::initializeBeamLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec != NULL) num_beams += force_spec->getNumberOfBeams();
+        if (force_spec) num_beams += force_spec->getNumberOfBeams();
     }
-    petsc_mastr_node_idxs. resize(num_beams);
-    petsc_next_node_idxs  .resize(num_beams);
-    petsc_prev_node_idxs  .resize(num_beams);
-    if (d_constant_material_properties)
-    {
-        rigidities        .resize(num_beams);
-        curvatures        .resize(num_beams);
-    }
-    else
-    {
-        dynamic_rigidities.resize(num_beams);
-        dynamic_curvatures.resize(num_beams);
-    }
+    petsc_mastr_node_idxs.resize(num_beams);
+    petsc_next_node_idxs .resize(num_beams);
+    petsc_prev_node_idxs .resize(num_beams);
+    rigidities           .resize(num_beams);
+    curvatures           .resize(num_beams);
 
     // Return early if there are no local beams.
     if (num_beams == 0) return;
@@ -775,7 +902,7 @@ IBStandardForceGen::initializeBeamLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec == NULL) continue;
+        if (!force_spec) continue;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         const int lag_idx = node_idx->getLagrangianIndex();
@@ -793,19 +920,11 @@ IBStandardForceGen::initializeBeamLevelData(
 #endif
         for (unsigned int k = 0; k < num_beams; ++k)
         {
-            petsc_mastr_node_idxs (current_beam) = petsc_idx;
-            petsc_next_node_idxs  (current_beam) = nghbrs[k].first;
-            petsc_prev_node_idxs  (current_beam) = nghbrs[k].second;
-            if (d_constant_material_properties)
-            {
-                rigidities        (current_beam) = bend[k];
-                curvatures        (current_beam) = curv[k];
-            }
-            else
-            {
-                dynamic_rigidities(current_beam) = &bend[k];
-                dynamic_curvatures(current_beam) = &curv[k];
-            }
+            petsc_mastr_node_idxs(current_beam) = petsc_idx;
+            petsc_next_node_idxs (current_beam) = nghbrs[k].first;
+            petsc_prev_node_idxs (current_beam) = nghbrs[k].second;
+            rigidities           (current_beam) = &bend[k];
+            curvatures           (current_beam) = &curv[k];
             ++current_beam;
         }
     }
@@ -823,8 +942,7 @@ IBStandardForceGen::initializeBeamLevelData(
     //
     // NOTE: Only neighbor nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
-    for (blitz::Array<int,1>::const_iterator cit = petsc_next_node_idxs.begin();
-         cit != petsc_next_node_idxs.end(); ++cit)
+    for (blitz::Array<int,1>::const_iterator cit = petsc_next_node_idxs.begin(); cit != petsc_next_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset+num_local_nodes)
@@ -832,8 +950,7 @@ IBStandardForceGen::initializeBeamLevelData(
             nonlocal_petsc_idx_set.insert(idx);
         }
     }
-    for (blitz::Array<int,1>::const_iterator cit = petsc_prev_node_idxs.begin();
-         cit != petsc_prev_node_idxs.end(); ++cit)
+    for (blitz::Array<int,1>::const_iterator cit = petsc_prev_node_idxs.begin(); cit != petsc_prev_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset+num_local_nodes)
@@ -857,10 +974,8 @@ IBStandardForceGen::computeLagrangianBeamForce(
     const int*                             const restrict petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs.data();
     const int*                             const restrict  petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs .data();
     const int*                             const restrict  petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs .data();
-    const double*                          const restrict            rigidities = d_beam_data[level_number].rigidities           .data();
-    const blitz::TinyVector<double,NDIM>*  const restrict            curvatures = d_beam_data[level_number].curvatures           .data();
-    const double**                         const restrict    dynamic_rigidities = d_beam_data[level_number].dynamic_rigidities   .data();
-    const blitz::TinyVector<double,NDIM>** const restrict    dynamic_curvatures = d_beam_data[level_number].dynamic_curvatures   .data();
+    const double**                         const restrict            rigidities = d_beam_data[level_number].rigidities           .data();
+    const blitz::TinyVector<double,NDIM>** const restrict            curvatures = d_beam_data[level_number].curvatures           .data();
     double*                                const restrict                F_node = F_data->getLocalFormVecArray()       ->data();
     const double*                          const restrict                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
@@ -870,57 +985,16 @@ IBStandardForceGen::computeLagrangianBeamForce(
     const double* restrict D2X0;
     double F[NDIM];
     kblock = 0;
-    if (d_constant_material_properties)
+    for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
     {
-        for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
+        PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(           rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(           curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(           rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(           curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                mastr_idx = petsc_mastr_node_idxs[k];
-                next_idx  = petsc_next_node_idxs [k];
-                prev_idx  = petsc_prev_node_idxs [k];
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx != next_idx);
-                TBOX_ASSERT(mastr_idx != prev_idx);
-#endif
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1]);
-                K = rigidities[k];
-                D2X0 = curvatures[k].data();
-                F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
-                F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
-#if (NDIM == 3)
-                F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
-#endif
-                F_node[mastr_idx+0] += 2.0*F[0];
-                F_node[mastr_idx+1] += 2.0*F[1];
-#if (NDIM == 3)
-                F_node[mastr_idx+2] += 2.0*F[2];
-#endif
-                F_node[next_idx +0] -=     F[0];
-                F_node[next_idx +1] -=     F[1];
-#if (NDIM == 3)
-                F_node[next_idx +2] -=     F[2];
-#endif
-                F_node[prev_idx +0] -=     F[0];
-                F_node[prev_idx +1] -=     F[1];
-#if (NDIM == 3)
-                F_node[prev_idx +2] -=     F[2];
-#endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_beams; ++k)
-        {
+            k = kblock*BLOCKSIZE+kunroll;
             mastr_idx = petsc_mastr_node_idxs[k];
             next_idx  = petsc_next_node_idxs [k];
             prev_idx  = petsc_prev_node_idxs [k];
@@ -928,8 +1002,16 @@ IBStandardForceGen::computeLagrangianBeamForce(
             TBOX_ASSERT(mastr_idx != next_idx);
             TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-            K = rigidities[k];
-            D2X0 = curvatures[k].data();
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1]);
+            PREFETCH_READ_NTA(                             rigidities[k+1]);
+            PREFETCH_READ_NTA(                             curvatures[k+1]);
+            K = *rigidities[k];
+            D2X0 = curvatures[k]->data();
             F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
             F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
 #if (NDIM == 3)
@@ -952,89 +1034,37 @@ IBStandardForceGen::computeLagrangianBeamForce(
 #endif
         }
     }
-    else
+    for (k = kblock*BLOCKSIZE; k < num_beams; ++k)
     {
-        for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
-        {
-            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(   dynamic_rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(   dynamic_curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                mastr_idx = petsc_mastr_node_idxs[k];
-                next_idx  = petsc_next_node_idxs [k];
-                prev_idx  = petsc_prev_node_idxs [k];
+        mastr_idx = petsc_mastr_node_idxs[k];
+        next_idx  = petsc_next_node_idxs [k];
+        prev_idx  = petsc_prev_node_idxs [k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx != next_idx);
-                TBOX_ASSERT(mastr_idx != prev_idx);
+        TBOX_ASSERT(mastr_idx != next_idx);
+        TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1]);
-                PREFETCH_READ_NTA(                     dynamic_rigidities[k+1]);
-                PREFETCH_READ_NTA(                     dynamic_curvatures[k+1]);
-                K = *dynamic_rigidities[k];
-                D2X0 = dynamic_curvatures[k]->data();
-                F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
-                F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
+        K = *rigidities[k];
+        D2X0 = curvatures[k]->data();
+        F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
+        F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
 #if (NDIM == 3)
-                F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
+        F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
 #endif
-                F_node[mastr_idx+0] += 2.0*F[0];
-                F_node[mastr_idx+1] += 2.0*F[1];
+        F_node[mastr_idx+0] += 2.0*F[0];
+        F_node[mastr_idx+1] += 2.0*F[1];
 #if (NDIM == 3)
-                F_node[mastr_idx+2] += 2.0*F[2];
+        F_node[mastr_idx+2] += 2.0*F[2];
 #endif
-                F_node[next_idx +0] -=     F[0];
-                F_node[next_idx +1] -=     F[1];
+        F_node[next_idx +0] -=     F[0];
+        F_node[next_idx +1] -=     F[1];
 #if (NDIM == 3)
-                F_node[next_idx +2] -=     F[2];
+        F_node[next_idx +2] -=     F[2];
 #endif
-                F_node[prev_idx +0] -=     F[0];
-                F_node[prev_idx +1] -=     F[1];
+        F_node[prev_idx +0] -=     F[0];
+        F_node[prev_idx +1] -=     F[1];
 #if (NDIM == 3)
-                F_node[prev_idx +2] -=     F[2];
+        F_node[prev_idx +2] -=     F[2];
 #endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_beams; ++k)
-        {
-            mastr_idx = petsc_mastr_node_idxs[k];
-            next_idx  = petsc_next_node_idxs [k];
-            prev_idx  = petsc_prev_node_idxs [k];
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(mastr_idx != next_idx);
-            TBOX_ASSERT(mastr_idx != prev_idx);
-#endif
-            K = *dynamic_rigidities[k];
-            D2X0 = dynamic_curvatures[k]->data();
-            F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
-            F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
-#if (NDIM == 3)
-            F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
-#endif
-            F_node[mastr_idx+0] += 2.0*F[0];
-            F_node[mastr_idx+1] += 2.0*F[1];
-#if (NDIM == 3)
-            F_node[mastr_idx+2] += 2.0*F[2];
-#endif
-            F_node[next_idx +0] -=     F[0];
-            F_node[next_idx +1] -=     F[1];
-#if (NDIM == 3)
-            F_node[next_idx +2] -=     F[2];
-#endif
-            F_node[prev_idx +0] -=     F[0];
-            F_node[prev_idx +1] -=     F[1];
-#if (NDIM == 3)
-            F_node[prev_idx +2] -=     F[2];
-#endif
-        }
     }
 
     F_data->restoreArrays();
@@ -1051,13 +1081,10 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    blitz::Array<int,1>&                              petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
-    blitz::Array<double,1>&                                     kappa = d_target_point_data[level_number].kappa;
-    blitz::Array<double,1>&                                       eta = d_target_point_data[level_number].eta;
-    blitz::Array<blitz::TinyVector<double,NDIM>,1>&                X0 = d_target_point_data[level_number].X0;
-    blitz::Array<const double*,1>&                      dynamic_kappa = d_target_point_data[level_number].dynamic_kappa;
-    blitz::Array<const double*,1>&                        dynamic_eta = d_target_point_data[level_number].dynamic_eta;
-    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& dynamic_X0 = d_target_point_data[level_number].dynamic_X0;
+    blitz::Array<int,1>&                      petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
+    blitz::Array<const double*,1>&                      kappa = d_target_point_data[level_number].kappa;
+    blitz::Array<const double*,1>&                        eta = d_target_point_data[level_number].eta;
+    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -1068,24 +1095,9 @@ IBStandardForceGen::initializeTargetPointLevelData(
     {
         static const int num_target_points = 0;
         petsc_node_idxs.resize(num_target_points);
-        if (d_constant_material_properties)
-        {
-            kappa        .resize(num_target_points);
-            eta          .resize(num_target_points);
-            X0           .resize(num_target_points);
-            dynamic_kappa.resize(0);
-            dynamic_eta  .resize(0);
-            dynamic_X0   .resize(0);
-        }
-        else
-        {
-            kappa        .resize(0);
-            eta          .resize(0);
-            X0           .resize(0);
-            dynamic_kappa.resize(num_target_points);
-            dynamic_eta  .resize(num_target_points);
-            dynamic_X0   .resize(num_target_points);
-        }
+        kappa          .resize(num_target_points);
+        eta            .resize(num_target_points);
+        X0             .resize(num_target_points);
         return;
     }
 
@@ -1096,63 +1108,31 @@ IBStandardForceGen::initializeTargetPointLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec != NULL) num_target_points += 1;
+        if (force_spec) num_target_points += 1;
     }
 
     // Resize arrays for storing cached values used to compute target point
     // forces.
     petsc_node_idxs.resize(num_target_points);
-    if (d_constant_material_properties)
-    {
-        kappa        .resize(num_target_points);
-        eta          .resize(num_target_points);
-        X0           .resize(num_target_points);
-        dynamic_kappa.resize(0);
-        dynamic_eta  .resize(0);
-        dynamic_X0   .resize(0);
-    }
-    else
-    {
-        kappa        .resize(0);
-        eta          .resize(0);
-        X0           .resize(0);
-        dynamic_kappa.resize(num_target_points);
-        dynamic_eta  .resize(num_target_points);
-        dynamic_X0   .resize(num_target_points);
-    }
+    kappa          .resize(num_target_points);
+    eta            .resize(num_target_points);
+    X0             .resize(num_target_points);
 
     // Return early if there are no local target points.
     if (num_target_points == 0) return;
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
-    if (d_constant_material_properties)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec == NULL) continue;
-            petsc_node_idxs(current_target_point) = node_idx->getGlobalPETScIndex();
-            kappa          (current_target_point) = force_spec->getStiffness();
-            eta            (current_target_point) = force_spec->getDamping();
-            X0             (current_target_point) = force_spec->getTargetPointPosition();
-            ++current_target_point;
-        }
-    }
-    else
-    {
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec == NULL) continue;
-            petsc_node_idxs(current_target_point) = node_idx->getGlobalPETScIndex();
-            dynamic_kappa  (current_target_point) = &force_spec->getStiffness();
-            dynamic_eta    (current_target_point) = &force_spec->getDamping();
-            dynamic_X0     (current_target_point) = &force_spec->getTargetPointPosition();
-            ++current_target_point;
-        }
+        const LNode* const node_idx = *cit;
+        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        if (!force_spec) continue;
+        petsc_node_idxs(current_target_point) = node_idx->getGlobalPETScIndex();
+        kappa          (current_target_point) = &force_spec->getStiffness();
+        eta            (current_target_point) = &force_spec->getDamping();
+        X0             (current_target_point) = &force_spec->getTargetPointPosition();
+        ++current_target_point;
     }
     return;
 }// initializeTargetPointLevelData
@@ -1169,12 +1149,9 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
 {
     const int num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
     const int*                             const restrict petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs.data();
-    const double*                          const restrict           kappa = d_target_point_data[level_number].kappa          .data();
-    const double*                          const restrict             eta = d_target_point_data[level_number].eta            .data();
-    const blitz::TinyVector<double,NDIM>*  const restrict              X0 = d_target_point_data[level_number].X0             .data();
-    const double**                         const restrict   dynamic_kappa = d_target_point_data[level_number].dynamic_kappa  .data();
-    const double**                         const restrict     dynamic_eta = d_target_point_data[level_number].dynamic_eta    .data();
-    const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0 = d_target_point_data[level_number].dynamic_X0     .data();
+    const double**                         const restrict           kappa = d_target_point_data[level_number].kappa          .data();
+    const double**                         const restrict             eta = d_target_point_data[level_number].eta            .data();
+    const blitz::TinyVector<double,NDIM>** const restrict              X0 = d_target_point_data[level_number].X0             .data();
     double*                                const restrict          F_node = F_data->getLocalFormVecArray()->data();
     const double*                          const restrict          X_node = X_data->getLocalFormVecArray()->data();
     const double*                          const restrict          U_node = U_data->getLocalFormVecArray()->data();
@@ -1184,36 +1161,24 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     double K, E;
     const double* restrict X_target;
     kblock = 0;
-    if (d_constant_material_properties)
+    for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
     {
-        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
+        PREFETCH_READ_NTA_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(          kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(            eta+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(             X0+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            PREFETCH_READ_NTA_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(          kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(            eta+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(             X0+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                idx = petsc_node_idxs[k];
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_node_idxs[k+1]);
-                K = kappa[k];
-                E = eta[k];
-                X_target = X0[k].data();
-                F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
-                F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
-#if (NDIM == 3)
-                F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
-#endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
-        {
+            k = kblock*BLOCKSIZE+kunroll;
             idx = petsc_node_idxs[k];
-            K = kappa[k];
-            E = eta[k];
-            X_target = X0[k].data();
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_node_idxs[k+1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_node_idxs[k+1]);
+            PREFETCH_READ_NTA(                            kappa[k+1]);
+            PREFETCH_READ_NTA(                              eta[k+1]);
+            PREFETCH_READ_NTA(                               X0[k+1]);
+            K = *kappa[k];
+            E = *eta  [k];
+            X_target = X0[k]->data();
             F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
             F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
 #if (NDIM == 3)
@@ -1221,45 +1186,17 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
 #endif
         }
     }
-    else
+    for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
     {
-        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
-        {
-            PREFETCH_READ_NTA_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(  dynamic_kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(    dynamic_eta+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            PREFETCH_READ_NTA_BLOCK(     dynamic_X0+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                idx = petsc_node_idxs[k];
-                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_node_idxs[k+1]);
-                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_node_idxs[k+1]);
-                PREFETCH_READ_NTA(                    dynamic_kappa[k+1]);
-                PREFETCH_READ_NTA(                      dynamic_eta[k+1]);
-                PREFETCH_READ_NTA(                       dynamic_X0[k+1]);
-                K = *dynamic_kappa[k];
-                E = *dynamic_eta[k];
-                X_target = dynamic_X0[k]->data();
-                F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
-                F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
+        idx = petsc_node_idxs[k];
+        K = *kappa[k];
+        E = *eta  [k];
+        X_target = X0[k]->data();
+        F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
+        F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
 #if (NDIM == 3)
-                F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
+        F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
 #endif
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
-        {
-            idx = petsc_node_idxs[k];
-            K = *dynamic_kappa[k];
-            E = *dynamic_eta[k];
-            X_target = dynamic_X0[k]->data();
-            F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
-            F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
-#if (NDIM == 3)
-            F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
-#endif
-        }
     }
 
     F_data->restoreArrays();

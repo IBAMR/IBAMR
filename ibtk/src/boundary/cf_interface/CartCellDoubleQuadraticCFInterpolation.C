@@ -53,7 +53,7 @@
 #include <CellData.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -150,8 +150,7 @@ bdry_boxes_contain_index(
     const Index<NDIM>& i,
     const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes)
 {
-    for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin();
-         cit != patch_cf_bdry_boxes.end(); ++cit)
+    for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin(); cit != patch_cf_bdry_boxes.end(); ++cit)
     {
         const BoundaryBox<NDIM>& bdry_box = *(*cit);
         if (bdry_box.getBox().contains(i)) return true;
@@ -262,15 +261,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     const IntVector<NDIM>& ratio)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
     // boundary box information.
     if (!fine.inHierarchy())
     {
-        for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-             cit != d_patch_data_indices.end(); ++cit)
+        for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
         {
             const int& patch_data_index = *cit;
             d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
@@ -350,9 +348,9 @@ CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
-    if (!d_hierarchy.isNull()) clearPatchHierarchy();
+    if (d_hierarchy) clearPatchHierarchy();
     d_hierarchy = hierarchy;
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
@@ -383,17 +381,15 @@ void
 CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
-    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin();
-         it != d_cf_boundary.end(); ++it)
+    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
-        if ((*it) != NULL) delete (*it);
+        delete (*it);
         (*it) = NULL;
     }
     d_cf_boundary.clear();
-    for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin();
-         it != d_domain_boxes.end(); ++it)
+    for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin(); it != d_domain_boxes.end(); ++it)
     {
-        if ((*it) != NULL) delete (*it);
+        delete (*it);
         (*it) = NULL;
     }
     d_domain_boxes.clear();
@@ -408,7 +404,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& ghost_width_to_fill)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
     // if not, we are not guaranteed to have appropriate coarse-fine interface
@@ -484,15 +480,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
     if (patch_cf_bdry_boxes.empty()) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!fdata.isNull());
-        TBOX_ASSERT(!cdata.isNull());
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int data_depth = fdata->getDepth();
@@ -520,8 +515,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
         // we perform coarse interpolation in all directions.
         const BoxArray<NDIM>& domain_boxes = *d_domain_boxes[fine_patch_level_num];
         const IntVector<NDIM>& periodic_shift = d_periodic_shift[fine_patch_level_num];
-        for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin();
-             cit != patch_cf_bdry_boxes.end(); ++cit)
+        for (std::vector<const BoundaryBox<NDIM>*>::const_iterator cit = patch_cf_bdry_boxes.begin(); cit != patch_cf_bdry_boxes.end(); ++cit)
         {
             const BoundaryBox<NDIM>& bdry_box = *(*cit);
             const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
@@ -562,8 +556,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                     const int& degree = interp_degree[axis];
                     const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);
                     std::vector<double> X_crse(degree+1,0.0);
-                    for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
-                         i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
+                    for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
                     {
                         X_crse[k] = XLower_crse[axis] + dx_crse[axis]*(static_cast<double>(i_crse-patch_lower_crse(axis))+0.5);
                     }
@@ -639,15 +632,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
     if (cf_bdry_codim1_boxes.size() == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!fdata.isNull());
-        TBOX_ASSERT(!cdata.isNull());
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
@@ -744,13 +736,12 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
 #endif
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int data_depth = data->getDepth();
 
@@ -829,13 +820,12 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
     if (n_cf_bdry_codim1_boxes == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
 #ifdef DEBUG_CHECK_ASSERTIONS

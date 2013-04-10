@@ -102,11 +102,7 @@ public:
     IBRodForceSpec(
         int master_idx,
         const std::vector<int>& next_idxs,
-        const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params
-#if ENABLE_SUBDOMAIN_INDICES
-        ,const std::vector<int>& subdomain_idxs
-#endif
-                   );
+        const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!
      * \brief Destructor.
@@ -158,22 +154,6 @@ public:
      */
     std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams();
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * \return A const reference to the subdomain indices associated with this
-     * force spec object.
-     */
-    const std::vector<int>&
-    getSubdomainIndices() const;
-
-    /*!
-     * \return A non-const reference to the subdomain indices associated with
-     * this force spec object.
-     */
-    std::vector<int>&
-    getSubdomainIndices();
-#endif
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -227,13 +207,6 @@ private:
     int d_master_idx;
     std::vector<int> d_next_idxs;
     std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> > d_material_params;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * The subdomain indices of the force spec object.
-     */
-    std::vector<int> d_subdomain_idxs;
-#endif
 
     /*!
      * \brief A factory class to rebuild IBRodForceSpec objects from

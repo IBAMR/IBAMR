@@ -135,15 +135,13 @@ ParallelEdgeMap::communicateData()
 
     static const int SIZE = 3;
     std::vector<int> transactions(SIZE*num_transactions, 0);
-    for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_pending_additions.begin();
-         cit != d_pending_additions.end(); ++cit, ++offset)
+    for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit, ++offset)
     {
         transactions[SIZE*offset  ] = cit->first;
         transactions[SIZE*offset+1] = cit->second.first;
         transactions[SIZE*offset+2] = cit->second.second;
     }
-    for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_pending_removals.begin();
-         cit != d_pending_removals.end(); ++cit, ++offset)
+    for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_pending_removals.begin(); cit != d_pending_removals.end(); ++cit, ++offset)
     {
         transactions[SIZE*offset  ] = cit->first;
         transactions[SIZE*offset+1] = cit->second.first;

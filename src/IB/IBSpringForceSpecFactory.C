@@ -93,11 +93,13 @@ IBSpringForceSpec::Factory::unpackStream(
     stream.unpack(&ret_val->d_master_idx,1);
     stream.unpack(&ret_val->d_slave_idxs[0],num_springs);
     stream.unpack(&ret_val->d_force_fcn_idxs[0],num_springs);
-    stream.unpack(&ret_val->d_stiffnesses[0],num_springs);
-    stream.unpack(&ret_val->d_rest_lengths[0],num_springs);
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idxs[0],num_springs);
-#endif
+    for (int k = 0; k < num_springs; ++k)
+    {
+        int num_parameters;
+        stream.unpack(&num_parameters);
+        ret_val->d_parameters[k].resize(num_parameters);
+        stream.unpack(&ret_val->d_parameters[k][0],num_parameters);
+    }
     return ret_val;
 }// unpackStream
 

@@ -1,0 +1,302 @@
+
+@node Array ctors, Array slicing, Array types, Arrays
+@section Constructors
+
+@subsection Default constructor
+@cindex Array default ctor
+
+@example
+Array();
+Array(GeneralArrayStorage<N_rank> storage)
+@end example
+
+The default constructor creates a C-style array of zero size.  Any attempt
+to access data in the array may result in a run-time error, because there
+isn't any data to access!
+
+An optional argument specifies a storage order for the array.
+
+Arrays created using the default constructor can subsequently be given data
+by the @code{resize()}, @code{resizeAndPreserve()}, or @code{reference()}
+member functions.
+
+@subsection Creating an array from an expression
+
+@example
+Array(expression...)
+@end example
+
+You may create an array from an array expression.  For example,
+
+@example
+Array<float,2> A(4,3), B(4,3);   // ...
+Array<float,2> C(A*2.0+B);
+@end example
+
+This is an explicit constructor (it will not be used to perform implicit
+type conversions).  The newly constructed array will have the same storage
+format as the arrays in the expression.  If arrays with different storage
+formats appear in the expression, an error will result.  (In this case, you
+must first construct the array, then assign the expression to it).
+
+@subsection Constructors which take extent parameters
+@cindex Array ctors with extent parameters
+
+@example
+Array(int extent1);
+Array(int extent1, int extent2);
+Array(int extent1, int extent2, int extent3);
+...
+Array(int extent1, int extent2, int extent3, ..., int extent11)
+@end example
+
+These constructors take arguments which specify the size of the array to be
+constructed.  You should provide as many arguments as there are dimensions
+in the array.@footnote{If you provide fewer than @code{N_rank} arguments,
+the missing arguments will be filled in using the last provided argument.
+However, for code clarity, it makes sense to provide all @code{N_rank}
+parameters.}
+
+An optional last parameter specifies a storage format:
+
+@example
+Array(int extent1, GeneralArrayStorage<N_rank> storage);
+Array(int extent1, int extent2, GeneralArrayStorage<N_rank> storage);
+...
+@end example
+
+For high-rank arrays, it may be convenient to use this constructor:
+@cindex Array high-rank
+
+@example
+Array(const TinyVector<int, N_rank>& extent);
+Array(const TinyVector<int, N_rank>& extent, 
+      GeneralArrayStorage<N_rank> storage);
+@end example
+
+The argument @code{extent} is a vector containing the extent (length) of the
+array in each dimension.  The optional second parameter indicates a storage
+format.  Note that you can construct @code{TinyVector<int,N>} objects on the
+fly with the @code{shape(i1,i2,...)} global function.  For example,
+@code{Array<int,2> A(shape(3,5))} will create a 3x5 array.
+
+A similar constructor lets you provide both a vector of base index values
+(lbounds) and extents:
+
+@example
+Array(const TinyVector<int, N_rank>& lbound, 
+      const TinyVector<int, N_rank>& extent);
+Array(const TinyVector<int, N_rank>& lbound,
+      const TinyVector<int, N_rank>& extent,
+      GeneralArrayStorage<N_rank> storage);
+@end example
+
+The argument @code{lbound} is a vector containing the base index value (or
+lbound) of the array in each dimension.  The argument @code{extent} is a
+vector containing the extent (length) of the array in each dimension.  The
+optional third parameter indicates a storage format.  As with the above
+constructor, you can use the @code{shape(i1,i2,...)} global function to
+create the @code{lbound} and @code{extent} parameters.
+
+@subsection Constructors with Range arguments
+@cindex Array ctor with Range args
+
+These constructors allow arbitrary bases (starting indices) to be set:
+
+@example
+Array(Range r1);
+Array(Range r1, Range r2);
+Array(Range r1, Range r2, Range r3);
+...
+Array(Range r1, Range r2, Range r3, ..., Range r11);
+@end example
+
+For example, this code:
+
+@example
+Array<int,2> A(Range(10,20), Range(20,30));
+@end example
+
+will create an 11x11 array whose indices are 10..20 and 20..30.  An optional
+last parameter provides a storage order:
+
+@example
+Array(Range r1, GeneralArrayStorage<N_rank> storage);
+Array(Range r1, Range r2, GeneralArrayStorage<N_rank> storage);
+...
+@end example
+
+@subsection Referencing another array
+@cindex Array referencing another array
+
+This constructor makes a shared view of another array's data:
+@cindex Array creating a reference of another array
+
+@example
+Array(Array<T_numtype, N_rank>& array);
+@end example
+
+After this constructor is used, both @code{Array} objects refer to the
+@emph{same data}.  Any changes made to one array will appear in the other
+array.  If you want to make a duplicate copy of an array, use the
+@code{copy()} member function.
+
+@subsection Constructing an array from an expression
+
+Arrays may be constructed from expressions, which are described in
+@ref{Array Expressions}.  The syntax is:
+
+@example
+Array(...array expression...);
+@end example
+
+For example, this code creates an array B which contains the square roots of
+the elements in A:
+
+@example
+Array<float,2> A(N,N);   // ...
+Array<float,2> B(sqrt(A));
+@end example
+
+@subsection Creating an array from pre-existing data
+@cindex Array creating from pre-existing data
+
+When creating an array using a pointer to already existing data, you have
+three choices for how Blitz++ will handle the data.  These choices are
+enumerated by the enum type @code{preexistingMemoryPolicy}:
+@cindex Array creating a reference of another array
+
+@example
+enum preexistingMemoryPolicy @{ 
+  duplicateData, 
+  deleteDataWhenDone, 
+  neverDeleteData 
+@};
+@end example
+@findex preexistingMemoryPolicy
+@findex duplicateData
+@findex deleteDataWhenDone
+@findex neverDeleteData
+
+If you choose @code{duplicateData}, Blitz++ will create an array object
+using a copy of the data you provide.  If you choose
+@code{deleteDataWhenDone}, Blitz++ will not create a copy of the data; and
+when no array objects refer to the data anymore, it will deallocate the data
+using @code{delete []}.  Note that to use @code{deleteDataWhenDone}, your
+array data must have been allocated using the C++ @code{new} operator -- for
+example, you cannot allocate array data using Fortran or @code{malloc}, then
+create a Blitz++ array from it using the @code{deleteDataWhenDone} flag.
+The third option is @code{neverDeleteData}, which means that Blitz++ will
+not never deallocate the array data.  This means it is your responsibility
+to determine when the array data is no longer needed, and deallocate it.
+You should use this option for memory which has not been allocated using the
+C++ @code{new} operator.
+
+These constructors create array objects from pre-existing data:
+
+@example
+Array(T_numtype* dataFirst, TinyVector<int, N_rank> shape,
+      preexistingMemoryPolicy deletePolicy);
+Array(T_numtype* dataFirst, TinyVector<int, N_rank> shape,
+      preexistingMemoryPolicy deletePolicy, 
+      GeneralArrayStorage<N_rank> storage);
+@end example
+
+The first argument is a pointer to the array data.  It should point to the
+element of the array which is stored first in memory.  The second argument
+indicates the shape of the array.  You can create this argument using the
+@code{shape()} function.  For example:
+
+@example
+double data[] = @{ 1, 2, 3, 4 @};
+Array<double,2> A(data, shape(2,2), neverDeleteData);   // Make a 2x2 array
+@end example
+
+@findex shape()
+
+The @code{shape()} function takes N integer arguments and returns a
+@code{TinyVector<int,N>}.
+
+By default, Blitz++ arrays are row-major.  If you want to work with data
+which is stored in column-major order (e.g. a Fortran array), use the second
+version of the constructor: 
+
+@cindex Array creating from Fortran arrays
+
+@example
+Array<double,2> B(data, shape(2,2), neverDeleteData,
+                  FortranArray<2>());
+@end example
+
+This is a tad awkward, so Blitz++ provides the global object
+@code{fortranArray} which will convert to an instance of
+@code{GeneralArrayStorage<N_rank>}:
+
+@example
+Array<double,2> B(data, shape(2,2), neverDeleteData, fortranArray);
+@end example
+
+Another version of this constructor allows you to pass an arbitrary
+vector of strides:
+
+@example
+Array(T_numtype* _bz_restrict dataFirst, TinyVector<int, N_rank> shape,
+      TinyVector<int, N_rank> stride, 
+      preexistingMemoryPolicy deletePolicy,
+      GeneralArrayStorage<N_rank> storage = GeneralArrayStorage<N_rank>())
+@end example
+
+@subsection Interlacing arrays
+@cindex Array interlacing
+@findex interlaceArrays()
+@findex allocateArrays()
+
+For some platforms, it can be advantageous to store a set of arrays
+interlaced together in memory.  Blitz++ provides support for this through
+the routines @code{interlaceArrays()} and @code{allocateArrays()}.  An
+example:
+
+@example
+Array<int,2> A, B;
+interlaceArrays(shape(10,10), A, B);
+@end example
+
+The first parameter of @code{interlaceArrays()} is the shape for the arrays
+(10x10).  The subsequent arguments are the set of arrays to be interlaced
+together.  Up to 11 arrays may be interlaced.  All arrays must store the
+same data type and be of the same rank.  In the above example, storage is
+allocated so that @code{A(0,0)} is followed immediately by @code{B(0,0)} in
+memory, which is folloed by @code{A(0,1)} and @code{B(0,1)}, and so on.
+
+A related routine is @code{allocateArrays()}, which has identical syntax:
+
+@example
+Array<int,2> A, B;
+allocateArrays(shape(10,10), A, B);
+@end example
+
+Unlike @code{interlaceArrays()}, which always interlaces the arrays, the
+routine @code{allocateArrays()} may or may not interlace them, depending on
+whether interlacing is considered advantageous for your platform.  If the
+tuning flag @code{BZ_INTERLACE_ARRAYS} is defined in
+@code{<blitz/tuning.h>}, then the arrays are interlaced.
+
+Note that the performance effects of interlacing are unpredictable: in some
+situations it can be a benefit, and in most others it can slow your code
+down substantially.  You should only use @code{interlaceArrays()} after
+running some benchmarks to determine whether interlacing is beneficial for
+your particular algorithm and architecture.
+
+@subsection A note about reference counting
+@cindex Array reference counting
+@cindex reference counting
+
+Blitz++ arrays use reference counting.  When you create a new array, a
+memory block is allocated.  The @code{Array} object acts like a handle for
+this memory block.  A memory block can be shared among multiple @code{Array}
+objects -- for example, when you take subarrays and slices.  The memory
+block keeps track of how many @code{Array} objects are referring to it.
+When a memory block is orphaned -- when no @code{Array} objects are
+referring to it -- it automatically deletes itself and frees the allocated
+memory.
+

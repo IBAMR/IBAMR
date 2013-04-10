@@ -38,11 +38,6 @@
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
 // C++ STDLIB INCLUDES
 #include <map>
 
@@ -78,12 +73,12 @@ class BJacobiPreconditioner
 {
 public:
     /*!
-     * \brief Default constructor.
-     *
-     * \param input_db optional SAMRAI::tbox::Database for input.
+     * \brief Constructor.
      */
     BJacobiPreconditioner(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -215,49 +210,11 @@ public:
         bool initial_guess_nonzero=true);
 
     /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
     void
     setMaxIterations(
         int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
 
     //\}
 
@@ -280,21 +237,14 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    BJacobiPreconditioner();
+
     /*!
      * \brief Copy constructor.
      *
@@ -319,29 +269,15 @@ private:
         const BJacobiPreconditioner& that);
 
     /*!
-     * Boolean value to indicate whether the preconditioner is presently
-     * initialized.
-     */
-    bool d_is_initialized;
-
-    /*!
      * The component preconditioners.
      */
     std::map<unsigned int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
-
-    /*!
-     * Solver configuration parameters.
-     */
-    bool d_initial_guess_nonzero;
-    double d_rel_residual_tol;
-    double d_abs_residual_tol;
-    int d_max_iterations;
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/BJacobiPreconditioner.I>
+//#include <ibtk/BJacobiPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

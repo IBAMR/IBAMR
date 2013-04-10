@@ -133,7 +133,7 @@ CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_fill_time));
 #endif
-    if (d_phys_bdry_op != NULL) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+    if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 }// setPhysicalBoundaryConditions
 
@@ -180,7 +180,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(d_u_dst_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!fdata.isNull());
+    TBOX_ASSERT(fdata);
 #endif
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -190,7 +190,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(d_u_dst_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!cdata.isNull());
+    TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
     const int cdata_depth = cdata->getDepth();
@@ -208,7 +208,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         // Ensure that we do not modify any of the data from the old level by
         // setting the value of the fine grid data to equal u_src wherever the
         // indicator data equals "1".
-        if (!u_src_data.isNull() && !indicator_data.isNull())
+        if (u_src_data && indicator_data)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -231,7 +231,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         // of the level wherever the indicator data does NOT equal "1".  Notice
         // that this loop actually modifies only data that is NOT covered by an
         // overlying coarse grid cell face.
-        if (!indicator_data.isNull())
+        if (indicator_data)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -375,10 +375,5 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CartSideDoubleDivPreservingRefine>;
 
 //////////////////////////////////////////////////////////////////////////////

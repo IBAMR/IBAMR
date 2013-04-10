@@ -42,14 +42,14 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <boundary_info.h>
-#include <exodusII_io.h>
-#include <mesh.h>
-#include <mesh_function.h>
-#include <mesh_generation.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_function.h>
+#include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -61,25 +61,9 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Stress tensor function for the solid block.
-void
-block_PK1_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& /*FF*/,
-    const Point& /*X*/,
-    const Point& /*s*/,
-    Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    PP.zero();
-    return;
-}// block_PK1_stress_function
+static double kappa_s = 1.0e6;
 
 // Tether (penalty) force function for the solid block.
-static double kappa_s = 1.0e6;
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -95,6 +79,31 @@ block_tether_force_function(
     F = kappa_s*(s-X);
     return;
 }// block_tether_force_function
+
+// Tether (penalty) force function for the thin beam.
+void
+beam_tether_force_function(
+    VectorValue<double>& F,
+    const TensorValue<double>& /*FF*/,
+    const Point& X,
+    const Point& s,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    const double r = sqrt((s(0) - 0.2)*(s(0) - 0.2) + (s(1) - 0.2)*(s(1) - 0.2));
+    if (r <= 0.05)
+    {
+        F = kappa_s*(s-X);
+    }
+    else
+    {
+        F.zero();
+    }
+    return;
+}// beam_tether_force_function
 
 // Stress tensor function for the thin beam.
 static double mu_s, lambda_s;
@@ -177,7 +186,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string block_exodus_filename = app_initializer->getExodusIIFilename("block");
         const string  beam_exodus_filename = app_initializer->getExodusIIFilename("beam" );
@@ -273,7 +282,7 @@ main(
         }
         Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
             "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -288,9 +297,9 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&block_PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerPK1StressTensorFunction(& beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);
+        ib_method_ops->registerLagBodyForceFunction( &beam_tether_force_function, std::vector<unsigned int>(), NULL, 1);
+        ib_method_ops->registerPK1StressTensorFunction(&beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems*  beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 
@@ -311,7 +320,7 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -406,7 +415,7 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
-            dt = time_integrator->getTimeStepSize();
+            dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

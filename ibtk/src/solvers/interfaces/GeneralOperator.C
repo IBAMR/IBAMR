@@ -47,6 +47,9 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -55,7 +58,18 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralOperator::GeneralOperator()
+GeneralOperator::GeneralOperator(
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : d_object_name(object_name),
+      d_is_initialized(false),
+      d_homogeneous_bc(homogeneous_bc),
+      d_solution_time(std::numeric_limits<double>::quiet_NaN()),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()),
+      d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_hier_math_ops(NULL),
+      d_hier_math_ops_external(false),
+      d_enable_logging(false)
 {
     // intentionally blank
     return;
@@ -63,9 +77,86 @@ GeneralOperator::GeneralOperator()
 
 GeneralOperator::~GeneralOperator()
 {
-    // intentionally blank
+    deallocateOperatorState();
     return;
 }// ~GeneralOperator()
+
+const std::string&
+GeneralOperator::getName() const
+{
+    return d_object_name;
+}// getName
+
+bool
+GeneralOperator::getIsInitialized() const
+{
+    return d_is_initialized;
+}// getIsInitialized
+
+void
+GeneralOperator::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    d_homogeneous_bc = homogeneous_bc;
+    return;
+}// setHomogeneousBc
+
+bool
+GeneralOperator::getHomogeneousBc() const
+{
+    return d_homogeneous_bc;
+}// getHomogeneousBc
+
+void
+GeneralOperator::setSolutionTime(
+    double solution_time)
+{
+    d_solution_time = solution_time;
+    return;
+}// setSolutionTime
+
+double
+GeneralOperator::getSolutionTime() const
+{
+    return d_solution_time;
+}// getSolutionTime
+
+void
+GeneralOperator::setTimeInterval(
+    double current_time,
+    double new_time)
+{
+    d_current_time = current_time;
+    d_new_time = new_time;
+    return;
+}// setTimeInterval
+
+std::pair<double,double>
+GeneralOperator::getTimeInterval() const
+{
+    return std::make_pair(d_current_time,d_new_time);
+}// getTimeInterval
+
+double
+GeneralOperator::getDt() const
+{
+    return d_new_time-d_current_time;
+}// getDt
+
+void
+GeneralOperator::setHierarchyMathOps(
+    Pointer<HierarchyMathOps> hier_math_ops)
+{
+    d_hier_math_ops = hier_math_ops;
+    d_hier_math_ops_external = d_hier_math_ops;
+    return;
+}// setHierarchyMathOps
+
+Pointer<HierarchyMathOps>
+GeneralOperator::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+}// getHierarchyMathOps
 
 void
 GeneralOperator::applyAdd(
@@ -89,16 +180,47 @@ GeneralOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& /*in*/,
     const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
-    // intentionally blank
+    d_is_initialized = true;
     return;
 }// initializeOperatorState
 
 void
 GeneralOperator::deallocateOperatorState()
 {
-    // intentionally blank
+    d_is_initialized = false;
     return;
 }// deallocateOperatorState
+
+void
+GeneralOperator::setLoggingEnabled(
+    bool enable_logging)
+{
+    d_enable_logging = enable_logging;
+    return;
+}// setLoggingEnabled
+
+bool
+GeneralOperator::getLoggingEnabled() const
+{
+    return d_enable_logging;
+}// getLoggingEnabled
+
+void
+GeneralOperator::printClassData(
+    std::ostream& stream)
+{
+    stream << "\n"
+           << "object_name = " << d_object_name << "\n"
+           << "is_initialized = " << d_is_initialized << "\n"
+           << "homogeneous_bc = " << d_homogeneous_bc << "\n"
+           << "solution_time = " << d_solution_time << "\n"
+           << "current_time = " << d_current_time << "\n"
+           << "new_time = " << d_new_time << "\n"
+           << "hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
+           << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
+           << "enable_logging = " << d_enable_logging << "\n";
+    return;
+}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

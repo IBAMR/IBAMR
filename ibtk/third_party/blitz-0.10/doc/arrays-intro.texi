@@ -1,0 +1,166 @@
+
+@node Array intro, Array types, , Arrays
+@section Getting started
+@cindex Array overview
+
+Currently, Blitz++ provides a single array class, called
+@code{Array<T_numtype,N_rank>}.  This array class provides a dynamically
+allocated N-dimensional array, with reference counting, arbitrary storage
+ordering, subarrays and slicing, flexible expression handling, and many
+other useful features.
+
+@subsection Template parameters
+@cindex Array template parameters
+
+The @code{Array} class takes two template parameters:
+
+@itemize @bullet
+@item    @code{T_numtype}
+is the numeric type to be stored in the array.  @code{T_numtype} can be an
+integral type (@code{bool}, @code{char}, @code{unsigned char}, @code{short
+int}, @code{short unsigned int}, @code{int}, @code{unsigned int},
+@code{long}, @code{unsigned long}), floating point type (@code{float},
+@code{double}, @code{long double}), complex type (@code{complex<float>},
+@code{complex<double>}, @code{complex<long double>}) or any user-defined
+type with appropriate numeric semantics.
+
+@item    @code{N_rank}
+@cindex Array rank parameter
+@cindex rank parameter of arrays
+is the @strong{rank} (or dimensionality) of the array.  This should be a
+positive integer. 
+
+@end itemize
+
+To use the @code{Array} class, include the header @code{<blitz/array.h>} and
+use the namespace @code{blitz}:
+
+@findex using namespace blitz
+@findex namespace blitz
+@cindex blitz namespace
+
+@example
+#include <blitz/array.h>
+
+using namespace blitz;
+
+Array<int,1>    x;    // A one-dimensional array of int
+Array<double,2> y;    // A two-dimensional array of double
+.
+.
+Array<complex<float>, 12> z; // A twelve-dimensional array of complex<float>
+@end example
+
+When no constructor arguments are provided, the array is empty, and no
+memory is allocated.  To create an array which contains some data, provide
+the size of the array as constructor arguments:
+
+@example
+Array<double,2> y(4,4);   // A 4x4 array of double
+@end example
+
+The contents of a newly-created array are garbage.  To initialize
+the array, you can write:
+
+@example
+y = 0;
+@end example
+
+and all the elements of the array will be set to zero.  If the contents of
+the array are known, you can initialize it using a comma-delimited list of
+values.  For example, this code excerpt sets @code{y} equal to a 4x4
+identity matrix:
+
+@example
+y = 1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1;
+@end example
+
+@subsection Array types
+@cindex Array types
+
+The @code{Array<T,N>} class supports a variety of arrays:
+
+@itemize @bullet
+
+@cindex Array scalar arrays
+@item  Arrays of scalar types, such as @code{Array<int,1>} and
+@code{Array<float,3>} 
+
+@cindex Array complex arrays
+@cindex complex arrays
+@item  Complex arrays, such as @code{Array<complex<float>,2>}
+
+@cindex Array of user-defined types
+@cindex Array of TinyVector
+@cindex vector field
+@cindex Array of TinyMatrix
+@cindex Array nested
+@cindex Array nested homogeneous
+@cindex nested arrays
+@cindex nested arrays homogeneous
+@item  Arrays of user-defined types.  If you have a class called
+@code{Polynomial}, then @code{Array<Polynomial,2>} is an array of
+@code{Polynomial} objects.  
+
+@cindex Array of Array
+@cindex Array nested heterogeneous
+@cindex nested arrays heterogeneous
+@item  Nested homogeneous arrays using @code{TinyVector} and
+@code{TinyMatrix}, in which each element is a fixed-size vector or array.
+For example, @code{Array<TinyVector<float,3>,3>} is a three-dimensional
+vector field.
+
+@item  Nested heterogeneous arrays, such as @code{Array<Array<int,1>,1>}, in
+which each element is a variable-length array.
+@end itemize
+
+@subsection A simple example
+
+Here's an example program which creates two 3x3 arrays, initializes
+them, and adds them:
+
+@smallexample
+@include examples/simple.texi
+@end smallexample
+
+and the output:
+
+@smallexample
+@include examples/simple.out
+@end smallexample
+
+@subsection Storage orders
+@cindex Array storage order
+@cindex storage orders for arrays
+@cindex row major
+@cindex column major
+@findex fortranArray
+@cindex Array row major
+@cindex Array column major
+@cindex Array fortran-style
+
+Blitz++ is very flexible about the way arrays are stored in memory.
+
+The default storage format is row-major, C-style arrays whose indices start
+at zero.
+
+Fortran-style arrays can also be created.  Fortran arrays are stored in
+column-major order, and have indices which start at one.  To create a
+Fortran-style array, use this syntax: @code{Array<int,2> A(3, 3,
+fortranArray);} The last parameter, @code{fortranArray}, tells the
+@code{Array} constructor to use a fortran-style array format.  
+
+@code{fortranArray} is a global object which has an automatic conversion to
+type @code{GeneralArrayStorage<N>}.  @code{GeneralArrayStorage<N>}
+encapsulates information about how an array is laid out in memory.  By
+altering the contents of a @code{GeneralArrayStorage<N>} object, you can lay
+out your arrays any way you want: the dimensions can be ordered arbitrarily
+and stored in ascending or descending order, and the starting indices can be
+arbitrary.
+
+Creating custom array storage formats is described in a later section
+(@ref{Array storage}).
+

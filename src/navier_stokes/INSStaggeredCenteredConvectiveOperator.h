@@ -37,10 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/ConvectiveOperator.h>
-
-// SAMRAI INCLUDES
-#include <RefineAlgorithm.h>
-#include <SideVariable.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -64,13 +61,29 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredCenteredConvectiveOperator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::string& bdry_extrap_type);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
      */
     ~INSStaggeredCenteredConvectiveOperator();
+
+    /*!
+     * \brief Static function to construct an
+     * INSStaggeredCenteredConvectiveOperator.
+     */
+    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    allocate_operator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+        {
+            return new INSStaggeredCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        }// allocate_operator
 
     /*!
      * \brief Compute the action of the convective operator.
@@ -134,22 +147,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -181,14 +178,14 @@ private:
     operator=(
         const INSStaggeredCenteredConvectiveOperator& that);
 
-    // Whether the operator is initialized.
-    bool d_is_initialized;
+    // Boundary condition helper object.
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
-    // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
-    const std::string d_bdry_extrap_type;
+    // Cached communications operators.
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::string d_bdry_extrap_type;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

@@ -1,0 +1,15 @@
+
+@node about, platforms, , Introduction
+@section About this document
+
+To use the Blitz++ library, you will need a compiler with near-ISO/ANSI C++
+syntax support (see the following section for possible compilers).
+Information on what platforms are supported is available from
+@uref{http://oonumerics.org/blitz/platforms/}.  To download Blitz++, please
+go to the download page at @uref{http://oonumerics.org/blitz/download/}.
+
+If you need to do something that Blitz++ doesn't support, see a possible
+improvement, or notice an error in the documentation, please send a note to
+one of the Blitz++ mailing lists (described later).
+
+

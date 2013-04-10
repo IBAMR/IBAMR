@@ -63,15 +63,12 @@ namespace IBAMR
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     const int comp_idx,
-    const INSProblemCoefs* /*problem_coefs*/,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
-      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_target_idx(-1),
-      d_homogeneous_bc(false)
+      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
-    setPhysicalBoundaryConditions(bc_coefs);
+    setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSIntermediateVelocityBcCoef
@@ -83,25 +80,28 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 }// ~INSIntermediateVelocityBcCoef
 
 void
-INSIntermediateVelocityBcCoef::setINSProblemCoefs(
-    const INSProblemCoefs* /*problem_coefs*/)
+INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_bc_coefs.size() == NDIM);
+#endif
+    d_bc_coefs = bc_coefs;
+    return;
+}// setPhysicalBcCoefs
+
+void
+INSIntermediateVelocityBcCoef::setSolutionTime(
+    double /*solution_time*/)
 {
     // intentionally blank
     return;
-}// setINSProblemCoefs
-
-void
-INSIntermediateVelocityBcCoef::setPhysicalBoundaryConditions(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    d_bc_coefs = bc_coefs;
-    return;
-}// setPhysicalBoundaryConditions
+}// setSolutionTime
 
 void
 INSIntermediateVelocityBcCoef::setTimeInterval(
-    const double /*current_time*/,
-    const double /*new_time*/)
+    double /*current_time*/,
+    double /*new_time*/)
 {
     // intentionally blank
     return;
@@ -109,17 +109,39 @@ INSIntermediateVelocityBcCoef::setTimeInterval(
 
 void
 INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
+    int target_idx)
 {
-    d_target_idx = target_idx;
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
     return;
 }// setTargetPatchDataIndex
 
 void
-INSIntermediateVelocityBcCoef::setHomogeneousBc(
-    const bool homogeneous_bc)
+INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
 {
-    d_homogeneous_bc = homogeneous_bc;
+    ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
+    }
+    return;
+}// clearTargetPatchDataIndex
+
+void
+INSIntermediateVelocityBcCoef::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
+    }
     return;
 }// setHomogeneousBc
 
@@ -136,12 +158,12 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     // Set the unmodified velocity bc coefs.
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-    if (d_homogeneous_bc) if (!gcoef_data.isNull()) gcoef_data->fillAll(0.0);
+    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
 }// setBcCoefs
 
@@ -151,7 +173,7 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());

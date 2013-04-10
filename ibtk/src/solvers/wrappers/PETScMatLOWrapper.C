@@ -57,6 +57,34 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+PETScMatLOWrapper::PETScMatLOWrapper(
+    const std::string& object_name,
+    const Mat& petsc_mat)
+    : LinearOperator(object_name),
+      d_petsc_mat(petsc_mat),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
+{
+    // intentionally blank
+    return;
+}// PETScMatLOWrapper()
+
+PETScMatLOWrapper::~PETScMatLOWrapper()
+{
+    if (d_is_initialized) deallocateOperatorState();
+    return;
+}// ~PETScMatLOWrapper()
+
+const Mat&
+PETScMatLOWrapper::getPETScMat() const
+{
+    return d_petsc_mat;
+}// getPETScMat
+
 void
 PETScMatLOWrapper::apply(
     SAMRAIVectorReal<NDIM,double>& x,
@@ -90,48 +118,6 @@ PETScMatLOWrapper::applyAdd(
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z); IBTK_CHKERRQ(ierr);
     return;
 }// applyAdd
-
-void
-PETScMatLOWrapper::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-
-    // Apply the operator.
-    int ierr = MatMultTranspose(d_petsc_mat, d_petsc_x, d_petsc_y); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjoint
-
-void
-PETScMatLOWrapper::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-
-    // Apply the operator.
-    int ierr = MatMultTransposeAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjointAdd
-
-void
-PETScMatLOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 void
 PETScMatLOWrapper::initializeOperatorState(

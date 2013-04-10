@@ -5,11 +5,9 @@ AR = @AR@
 PETSC_DIR  = @PETSC_DIR@
 PETSC_ARCH = @PETSC_ARCH@
 
-AM_CPPFLAGS  = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config -I${top_srcdir}/ibtk/third_party/qd-2.3.11/include -I${top_builddir}/ibtk/third_party/qd-2.3.11/include
-AM_FFLAGS    = -I${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
-AM_FCFLAGS   = -I${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
-AM_LDFLAGS   = -L${top_builddir}/ibtk/third_party/qd-2.3.11/src -L${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
-IBAMR_LIBS   = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a -lqdmod -lqd
+AM_CPPFLAGS  = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config -I${top_srcdir}/ibtk/third_party/blitz-0.10 -I${top_builddir}/ibtk/third_party/blitz-0.10
+AM_LDFLAGS   = -L${top_builddir}/ibtk/third_party/blitz-0.10/lib
+IBAMR_LIBS   = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a -lblitz
 IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 

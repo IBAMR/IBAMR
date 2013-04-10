@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -56,8 +57,9 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearOperator::LinearOperator(
-    bool is_symmetric)
-    : d_is_symmetric(is_symmetric)
+    const std::string& object_name,
+    bool homogeneous_bc)
+    : GeneralOperator(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;
@@ -65,57 +67,29 @@ LinearOperator::LinearOperator(
 
 LinearOperator::~LinearOperator()
 {
-    // intentionally blank
+    deallocateOperatorState();
     return;
 }// ~LinearOperator()
 
-bool
-LinearOperator::isSymmetric() const
-{
-    return d_is_symmetric;
-}// isSymmetric
-
 void
 LinearOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& /*y*/)
-{
-    TBOX_WARNING("LinearOperator::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
-    return;
-}// modifyRhsForInhomogeneousBc
-
-void
-LinearOperator::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    if (isSymmetric())
-    {
-        apply(x,y);
-    }
-    else
-    {
-        TBOX_ERROR("LinearOperator::applyAdjoint():\n"
-                   << "  no adjoint operation defined for this linear operator" << std::endl);
-    }
-    return;
-}// applyAdjoint
+    if (d_homogeneous_bc) return;
 
-void
-LinearOperator::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM,double> > zz = z.cloneVector(z.getName());
-    zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-    applyAdjoint(x,*zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false),zz);
-    zz->freeVectorComponents();
-    zz.setNull();
+    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
+    // inhomogeneous boundary conditions.
+    Pointer<SAMRAIVectorReal<NDIM,double> > x = y.cloneVector("");
+    Pointer<SAMRAIVectorReal<NDIM,double> > b = y.cloneVector("");
+    x->allocateVectorData();
+    b->allocateVectorData();
+    x->setToScalar(0.0);
+    apply(*x,*b);
+    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), b);
+    x->freeVectorComponents();
+    b->freeVectorComponents();
     return;
-}// applyAdjointAdd
+}// modifyRhsForInhomogeneousBc
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

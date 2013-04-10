@@ -109,7 +109,6 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*o_nnz*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int /*level_number*/,
-    const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"

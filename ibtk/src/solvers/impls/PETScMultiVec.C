@@ -51,7 +51,7 @@ struct Vec_MultiVec
 {
     PetscInt n;           // the number of component vector objects
     Vec* array;           // the array  of component vector objects
-    Vec* array_allocated; // if the array was allocated by PETSc (e.g., via VecDuplicate()), this is its pointer
+    Vec* array_allocated; // if the array was allocated by PetscMalloc, this is its pointer
 };
 
 #undef __FUNCT__
@@ -62,28 +62,27 @@ VecDuplicate_MultiVec(
     Vec* newv)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mv != NULL);
+    TBOX_ASSERT(mv);
 #endif
     PetscErrorCode ierr;
-    Vec* newarray = NULL;
-    ierr = PetscMalloc(mv->n*sizeof(Vec),&newarray); CHKERRQ(ierr);
+    Vec* newvarray;
+    ierr = PetscMalloc(mv->n*sizeof(Vec),&newvarray); CHKERRQ(ierr);
     for (PetscInt k = 0; k < mv->n; ++k)
     {
-        ierr = VecDuplicate(mv->array[k], &newarray[k]); CHKERRQ(ierr);
+        ierr = VecDuplicate(mv->array[k], &newvarray[k]); CHKERRQ(ierr);
     }
     MPI_Comm comm;
     ierr = PetscObjectGetComm((PetscObject)v,&comm); CHKERRQ(ierr);
-    ierr = VecCreateMultiVec(comm, mv->n, newarray, newv); CHKERRQ(ierr);
+    ierr = VecCreateMultiVec(comm, mv->n, newvarray, newv); CHKERRQ(ierr);
     Vec_MultiVec* mnewv = static_cast<Vec_MultiVec*>((*newv)->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mnewv != NULL);
-    TBOX_ASSERT(mnewv->array == newarray);
+    TBOX_ASSERT(mnewv);
 #endif
-    mnewv->array_allocated = mnewv->array;
+    mnewv->array_allocated = newvarray;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// VecDuplicate_MultiVec
@@ -97,14 +96,14 @@ VecDot_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -128,10 +127,10 @@ VecMDot_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     PetscErrorCode ierr;
@@ -151,11 +150,11 @@ VecNorm_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     if (type == NORM_1)
@@ -206,14 +205,14 @@ VecTDot_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -237,10 +236,10 @@ VecMTDot_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     PetscErrorCode ierr;
@@ -259,11 +258,11 @@ VecScale_MultiVec(
     PetscScalar alpha)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
@@ -282,14 +281,14 @@ VecCopy_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -309,11 +308,11 @@ VecSet_MultiVec(
     PetscScalar alpha)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
@@ -332,14 +331,14 @@ VecSwap_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -361,14 +360,14 @@ VecAXPY_MultiVec(
     Vec x)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(my != NULL);
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(my);
+    TBOX_ASSERT(mx);
     TBOX_ASSERT(my->n == mx->n);
 #endif
     PetscErrorCode ierr;
@@ -390,14 +389,14 @@ VecAXPBY_MultiVec(
     Vec x)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(my != NULL);
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(my);
+    TBOX_ASSERT(mx);
     TBOX_ASSERT(my->n == mx->n);
 #endif
     PetscErrorCode ierr;
@@ -419,10 +418,10 @@ VecMAXPY_MultiVec(
     Vec* x)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(y);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(x[i] != PETSC_NULL);
+        TBOX_ASSERT(x[i]);
     }
 #endif
     PetscErrorCode ierr;
@@ -443,14 +442,14 @@ VecAYPX_MultiVec(
     Vec x)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(my != NULL);
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(my);
+    TBOX_ASSERT(mx);
     TBOX_ASSERT(my->n == mx->n);
 #endif
     PetscErrorCode ierr;
@@ -472,17 +471,17 @@ VecWAXPY_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(w != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mw = static_cast<Vec_MultiVec*>(w->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mw != NULL);
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mw);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mw->n == mx->n);
     TBOX_ASSERT(mw->n == my->n);
 #endif
@@ -507,17 +506,17 @@ VecAXPBYPCZ_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(w != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mw = static_cast<Vec_MultiVec*>(w->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mw != NULL);
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mw);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mw->n == mx->n);
     TBOX_ASSERT(mw->n == my->n);
 #endif
@@ -539,17 +538,17 @@ VecPointwiseMult_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(w != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mw = static_cast<Vec_MultiVec*>(w->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mw != NULL);
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mw);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mw->n == mx->n);
     TBOX_ASSERT(mw->n == my->n);
 #endif
@@ -571,17 +570,17 @@ VecPointwiseDivide_MultiVec(
     Vec y)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(w != PETSC_NULL);
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mw = static_cast<Vec_MultiVec*>(w->data);
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mw != NULL);
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mw);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mw->n == mx->n);
     TBOX_ASSERT(mw->n == my->n);
 #endif
@@ -602,20 +601,9 @@ VecGetSize_MultiVec(
     PetscInt* size)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
-    Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-#endif
-    PetscErrorCode ierr;
-    *size = 0;
-    for (PetscInt k = 0; k < mx->n; ++k)
-    {
-        PetscInt component_size;
-        ierr = VecGetSize(mx->array[k], &component_size); CHKERRQ(ierr);
-        *size += component_size;
-    }
+    *size = x->map->N;
     PetscFunctionReturn(0);
 }// VecGetSize_MultiVec
 
@@ -627,20 +615,9 @@ VecGetLocalSize_MultiVec(
     PetscInt* size)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
-    Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-#endif
-    PetscErrorCode ierr;
-    *size = 0;
-    for (PetscInt k = 0; k < mx->n; ++k)
-    {
-        PetscInt component_size;
-        ierr = VecGetLocalSize(mx->array[k], &component_size); CHKERRQ(ierr);
-        *size += component_size;
-    }
+    *size = x->map->n;
     PetscFunctionReturn(0);
 }// VecGetLocalSize_MultiVec
 
@@ -653,11 +630,11 @@ VecMax_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     *p = -1;
@@ -681,11 +658,11 @@ VecMin_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     *p = -1;
@@ -708,11 +685,11 @@ VecSetRandom_MultiVec(
     PetscRandom rctx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
@@ -730,14 +707,14 @@ VecDestroy_MultiVec(
     Vec v)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mv != NULL);
+    TBOX_ASSERT(mv);
 #endif
     PetscErrorCode ierr;
-    if (mv->array_allocated != NULL)
+    if (mv->array_allocated)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(mv->array_allocated == mv->array);
@@ -761,14 +738,14 @@ VecDot_local_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -795,14 +772,14 @@ VecTDot_local_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -829,11 +806,11 @@ VecNorm_local_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
+    TBOX_ASSERT(mx);
 #endif
     PetscErrorCode ierr;
     if (type == NORM_1)
@@ -894,10 +871,10 @@ VecMDot_local_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     PetscErrorCode ierr;
@@ -918,10 +895,10 @@ VecMTDot_local_MultiVec(
     PetscScalar* val)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != PETSC_NULL);
+        TBOX_ASSERT(y[i]);
     }
 #endif
     PetscErrorCode ierr;
@@ -941,14 +918,14 @@ VecMaxPointwiseDivide_MultiVec(
     PetscScalar* max)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != PETSC_NULL);
-    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(x);
+    TBOX_ASSERT(y);
 #endif
     Vec_MultiVec* mx = static_cast<Vec_MultiVec*>(x->data);
     Vec_MultiVec* my = static_cast<Vec_MultiVec*>(y->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mx != NULL);
-    TBOX_ASSERT(my != NULL);
+    TBOX_ASSERT(mx);
+    TBOX_ASSERT(my);
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
@@ -972,8 +949,8 @@ VecDotNorm2_MultiVec(
     PetscScalar* nm)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(s != PETSC_NULL);
-    TBOX_ASSERT(t != PETSC_NULL);
+    TBOX_ASSERT(s);
+    TBOX_ASSERT(t);
 #endif
     PetscErrorCode ierr;
     ierr = VecDot_MultiVec(s, t, dp); CHKERRQ(ierr);
@@ -987,11 +964,11 @@ PetscErrorCode
 VecCreateMultiVec(
     MPI_Comm comm,
     PetscInt n,
-    Vec* v,
-    Vec* vv)
+    Vec vv[],
+    Vec* v)
 {
     PetscErrorCode ierr;
-    ierr = VecCreate(comm, vv); CHKERRQ(ierr);
+    ierr = VecCreate(comm, v); CHKERRQ(ierr);
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
@@ -1016,114 +993,104 @@ VecCreateMultiVec(
         DvOps.axpbypcz = VecAXPBYPCZ_MultiVec;
         DvOps.pointwisemult = VecPointwiseMult_MultiVec;
         DvOps.pointwisedivide = VecPointwiseDivide_MultiVec;
-        DvOps.setvalues = 0;
-        DvOps.assemblybegin = 0;
-        DvOps.assemblyend = 0;
-        DvOps.getarray = 0;
         DvOps.getsize = VecGetSize_MultiVec;
         DvOps.getlocalsize = VecGetLocalSize_MultiVec;
-        DvOps.restorearray = 0;
         DvOps.max = VecMax_MultiVec;
         DvOps.min = VecMin_MultiVec;
         DvOps.setrandom = VecSetRandom_MultiVec;
-        DvOps.setoption = 0;
-        DvOps.setvaluesblocked = 0;
         DvOps.destroy = VecDestroy_MultiVec;
-        DvOps.view = 0;
-        DvOps.placearray = 0;
-        DvOps.replacearray = 0;
         DvOps.dot_local = VecDot_local_MultiVec;
         DvOps.tdot_local = VecTDot_local_MultiVec;
         DvOps.norm_local = VecNorm_local_MultiVec;
         DvOps.mdot_local = VecMDot_local_MultiVec;
         DvOps.mtdot_local = VecMTDot_local_MultiVec;
-        DvOps.load = 0;
-        DvOps.reciprocal = 0;
-        DvOps.conjugate = 0;
-        DvOps.setlocaltoglobalmapping = 0;
-        DvOps.setvalueslocal = 0;
-        DvOps.resetarray = 0;
-        DvOps.setfromoptions = 0;
         DvOps.maxpointwisedivide = VecMaxPointwiseDivide_MultiVec;
-        DvOps.pointwisemax = 0;
-        DvOps.pointwisemaxabs = 0;
-        DvOps.pointwisemin = 0;
-        DvOps.getvalues = 0;
-        DvOps.sqrt = 0;
-        DvOps.abs = 0;
-        DvOps.exp = 0;
-        DvOps.log = 0;
-        DvOps.shift = 0;
-        DvOps.create = 0;
-        DvOps.stridegather = 0;
-        DvOps.stridescatter = 0;
         DvOps.dotnorm2 = VecDotNorm2_MultiVec;
-        DvOps.getsubvector = 0;
-        DvOps.restoresubvector = 0;
                  );
-    ierr = PetscMemcpy((*vv)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
+    ierr = PetscMemcpy((*v)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
 
-    // Initialize the data structures where the component vectors are stored.
+    // Set PETSc vector data.
     Vec_MultiVec* mv;
     ierr = PetscNew(Vec_MultiVec,&mv); CHKERRQ(ierr);
     mv->n = n;
-    mv->array = v;
+    mv->array = vv;
     mv->array_allocated = NULL;
-
-    (*vv)->data = mv;
-    (*vv)->petscnative = PETSC_FALSE;
-
-    (*vv)->map->n = 0;
-    (*vv)->map->N = 0;
-    for (PetscInt k = 0; k < n; ++k)
+    (*v)->data = mv;
+    (*v)->petscnative = PETSC_FALSE;
+    (*v)->map->n = 0;
+    (*v)->map->N = 0;
+    for (PetscInt k = 0; k < mv->n; ++k)
     {
-        (*vv)->map->n += v[k]->map->n;
-        (*vv)->map->N += v[k]->map->N;
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(mv->array[k]);
+#endif
+        (*v)->map->n += mv->array[k]->map->n;
+        (*v)->map->N += mv->array[k]->map->N;
     }
-    (*vv)->map->bs = 1;
+    (*v)->map->bs = 1;  // NOTE: Here we are giving a bogus block size.
 
     // Set the PETSc vector type name.
-    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*vv), "Vec_MultiVec"); CHKERRQ(ierr);
+    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*v), "Vec_MultiVec"); CHKERRQ(ierr);
 
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*vv)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*v)); CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// VecCreateMultiVec
 
 #undef __FUNCT__
-#define __FUNCT__ "VecMultiVecGetNumberOfVecs"
+#define __FUNCT__ "VecMultiVecGetNumberOfSubVecs"
 PetscErrorCode
-VecMultiVecGetNumberOfVecs(
+VecMultiVecGetNumberOfSubVecs(
     Vec v,
     PetscInt* n)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mv != NULL);
+    TBOX_ASSERT(mv);
 #endif
     *n = mv->n;
     PetscFunctionReturn(0);
-}// VecMultiVecGetNumberOfVecs
+}// VecMultiVecGetNumberOfSubVecs
 
 #undef __FUNCT__
-#define __FUNCT__ "VecMultiVecGetVecs"
+#define __FUNCT__ "VecMultiVecGetSubVecs"
 PetscErrorCode
-VecMultiVecGetVecs(
+VecMultiVecGetSubVecs(
     Vec v,
     Vec* vv[])
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != PETSC_NULL);
+    TBOX_ASSERT(v);
 #endif
     Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(mv != NULL);
+    TBOX_ASSERT(mv);
 #endif
     *vv = mv->array;
     PetscFunctionReturn(0);
-}// VecMultiVecGetVecs
+}// VecMultiVecGetSubVecs
+
+#undef __FUNCT__
+#define __FUNCT__ "VecMultiVecGetSubVec"
+PetscErrorCode
+VecMultiVecGetSubVec(
+    Vec v,
+    PetscInt idx,
+    Vec* subv)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(v);
+#endif
+    Vec_MultiVec* mv = static_cast<Vec_MultiVec*>(v->data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(mv);
+    TBOX_ASSERT(0 <= idx && idx < mv->n);
+#endif
+    *subv = mv->array[idx];
+    PetscFunctionReturn(0);
+}// VecMultiVecGetSubVec
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

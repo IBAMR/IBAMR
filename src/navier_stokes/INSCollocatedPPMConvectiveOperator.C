@@ -84,7 +84,6 @@ extern "C"
         const double* , const double* ,
         const double* , const double* ,
         const int& , const int& ,
-        double*
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
@@ -93,8 +92,8 @@ extern "C"
         const double* , const double* , const double* ,
         const double* , const double* , const double* ,
         const int& , const int& , const int& ,
-        double*
 #endif
+        double*
                          );
 
     void
@@ -207,13 +206,14 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::string& bdry_extrap_type)
-    : ConvectiveOperator(difference_form),
-      d_is_initialized(false),
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
+    : ConvectiveOperator(object_name, difference_form),
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
-      d_bdry_extrap_type(bdry_extrap_type),
+      d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -233,47 +233,52 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
+    if (input_db)
+    {
+        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+    }
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var.isNull())
+    if (d_U_var)
     {
-        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
     const std::string u_extrap_var_name = "INSCollocatedPPMConvectiveOperator::u_extrap";
     d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
-    if (d_u_extrap_var.isNull())
+    if (d_u_extrap_var)
     {
-        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
-        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
+        d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
     }
     else
     {
-        d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
+        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
+        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 #endif
     const std::string u_flux_var_name = "INSCollocatedPPMConvectiveOperator::u_flux";
     d_u_flux_var = var_db->getVariable(u_flux_var_name);
-    if (d_u_flux_var.isNull())
+    if (d_u_flux_var)
     {
-        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
-        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
+        d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
     }
     else
     {
-        d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
+        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
+        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_flux_idx >= 0);
@@ -319,7 +324,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        d_ghostfill_scheds[ln]->fillData(0.0);
+        d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -576,7 +581,7 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(
     Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     if (d_difference_form == ADVECTIVE    || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
-    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx  , d_u_flux_idx  , coarsen_op);
+    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx,   d_u_flux_idx,   coarsen_op);
     d_coarsen_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln+1; ln <= d_finest_ln; ++ln)
     {
@@ -653,14 +658,6 @@ INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-INSCollocatedPPMConvectiveOperator::enableLogging(
-    bool /*enabled*/)
-{
-    // intentionally blank
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -1,0 +1,10 @@
+#!/bin/bash
+if test -z $1; then
+ echo Use: includes [usual g++ command line]
+ echo e.g. includes foo.cpp -I /usr/src/Blitz++
+ echo This shows bytes included from all header files.
+ exit 1
+fi
+
+wc -c `g++ -E -c $* | grep "^#" | grep -v pragma | awk '{ print $3 }' | sort | uniq | tr -s "\"" " "` | sort -nr | more
+

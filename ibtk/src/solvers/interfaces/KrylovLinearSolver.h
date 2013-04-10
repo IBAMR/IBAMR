@@ -39,13 +39,6 @@
 #include <ibtk/LinearOperator.h>
 #include <ibtk/LinearSolver.h>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -60,7 +53,7 @@ class KrylovLinearSolver
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Default constructor.
      */
     KrylovLinearSolver();
 
@@ -68,6 +61,42 @@ public:
      * \brief Empty destructor.
      */
     ~KrylovLinearSolver();
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the solver.
+     */
+    void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \name General-purpose solver functionality.
+     */
+    //\{
+
+    /*!
+     * \brief Set whether the solver should use homogeneous boundary conditions.
+     */
+    void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    //\}
 
     /*!
      * \name Krylov solver functionality.
@@ -79,13 +108,13 @@ public:
      */
     virtual void
     setOperator(
-        SAMRAI::tbox::Pointer<LinearOperator> A) = 0;
+        SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
      */
     virtual SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const = 0;
+    getOperator() const;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -95,16 +124,22 @@ public:
      */
     virtual void
     setPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL) = 0;
+        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
      * when solving \f$Ax=b\f$.
      */
     virtual SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const = 0;
+    getPreconditioner() const;
 
     //\}
+
+protected:
+    // Solver components.
+    SAMRAI::tbox::Pointer<LinearOperator> d_A;
+    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
 
 private:
     /*!

@@ -92,7 +92,7 @@ LData::getArray()
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
-    if (d_array == NULL) getArrayCommon();
+    if (!d_array) getArrayCommon();
     return &d_blitz_array;
 }// getArray
 
@@ -102,7 +102,7 @@ LData::getLocalFormArray()
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
-    if (d_array == NULL) getArrayCommon();
+    if (!d_array) getArrayCommon();
     return &d_blitz_local_array;
 }// getLocalFormArray
 
@@ -112,35 +112,35 @@ LData::getGhostedLocalFormArray()
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
-    if (d_ghosted_local_array == NULL) getGhostedLocalFormArrayCommon();
+    if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return &d_blitz_ghosted_local_array;
 }// getGhostedLocalFormArray
 
 inline blitz::Array<double,2>*
 LData::getVecArray()
 {
-    if (d_array == NULL) getArrayCommon();
+    if (!d_array) getArrayCommon();
     return &d_blitz_vec_array;
 }// getVecArray
 
 inline blitz::Array<double,2>*
 LData::getLocalFormVecArray()
 {
-    if (d_array == NULL) getArrayCommon();
+    if (!d_array) getArrayCommon();
     return &d_blitz_local_vec_array;
 }// getLocalFormVecArray
 
 inline blitz::Array<double,2>*
 LData::getGhostedLocalFormVecArray()
 {
-    if (d_ghosted_local_array == NULL) getGhostedLocalFormArrayCommon();
+    if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return &d_blitz_vec_ghosted_local_array;
 }// getGhostedLocalFormVecArray
 
 inline void
 LData::restoreArrays()
 {
-    if (d_array != NULL)
+    if (d_array)
     {
         int ierr = VecRestoreArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
         d_array = NULL;
@@ -149,17 +149,17 @@ LData::restoreArrays()
         d_blitz_vec_array.free();
         d_blitz_local_vec_array.free();
     }
-    if (d_ghosted_local_array != NULL)
+    if (d_ghosted_local_array)
     {
         int ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
         d_ghosted_local_array = NULL;
         d_blitz_ghosted_local_array.free();
         d_blitz_vec_ghosted_local_array.free();
     }
-    if (d_ghosted_local_vec != PETSC_NULL)
+    if (d_ghosted_local_vec)
     {
         int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
-        d_ghosted_local_vec = PETSC_NULL;
+        d_ghosted_local_vec = NULL;
     }
     return;
 }// restoreArray
@@ -183,7 +183,7 @@ LData::endGhostUpdate()
 inline void
 LData::getArrayCommon()
 {
-    if (d_array == NULL)
+    if (!d_array)
     {
         int ierr = VecGetArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;
@@ -218,11 +218,11 @@ LData::getArrayCommon()
 inline void
 LData::getGhostedLocalFormArrayCommon()
 {
-    if (d_ghosted_local_vec == PETSC_NULL)
+    if (!d_ghosted_local_vec)
     {
         int ierr = VecGhostGetLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
     }
-    if (d_ghosted_local_array == NULL)
+    if (!d_ghosted_local_array)
     {
         int ierr = VecGetArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;

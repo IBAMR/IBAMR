@@ -43,7 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GeneralizedIBMethod.h>
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -116,7 +116,7 @@ main(
     char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+    PetscInitialize(&argc,&argv,NULL,NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -141,7 +141,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool is_from_restart = app_initializer->isFromRestart();
         const bool dump_restart_data = app_initializer->dumpRestartData();
@@ -181,7 +181,7 @@ main(
         }
         Pointer<GeneralizedIBMethod> ib_method_ops = new GeneralizedIBMethod(
             "GeneralizedIBMethod", app_initializer->getComponentDatabase("GeneralizedIBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -219,7 +219,7 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -307,7 +307,7 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
-            dt = time_integrator->getTimeStepSize();
+            dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

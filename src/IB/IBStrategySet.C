@@ -105,6 +105,18 @@ IBStrategySet::getMinimumGhostCellWidth() const
 }// getMinimumGhostCellWidth
 
 void
+IBStrategySet::setupTagBuffer(
+    Array<int>& tag_buffer,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->setupTagBuffer(tag_buffer, gridding_alg);
+    }
+    return;
+}// setupTagBuffer
+
+void
 IBStrategySet::preprocessIntegrateData(
     double current_time,
     double new_time,
@@ -129,6 +141,16 @@ IBStrategySet::postprocessIntegrateData(
     }
     return;
 }// postprocessIntegrateData
+
+void
+IBStrategySet::updateFixedLEOperators()
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->updateFixedLEOperators();
+    }
+    return;
+}// updateFixedLEOperators
 
 void
 IBStrategySet::interpolateVelocity(

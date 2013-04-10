@@ -1,0 +1,22 @@
+
+@node Array types, Array ctors, Array intro, Arrays
+@section Public types
+
+The @code{Array} class declares these public types:
+
+@itemize @bullet
+
+@item     @code{T_numtype} is the element type stored in the array.  For
+example, the type @code{Array<double,2>::T_numtype} would be @code{double}.
+
+@item     @code{T_index} is a vector index into the array.  The class
+@code{TinyVector} is used for this purpose.
+
+@item     @code{T_array} is the array type itself
+(@code{Array<T_numtype,N_rank>})
+
+@item     @code{T_iterator} is an iterator type.  NB: this iterator is not
+yet fully implemented, and is NOT STL compatible at the present time.
+
+@end itemize
+

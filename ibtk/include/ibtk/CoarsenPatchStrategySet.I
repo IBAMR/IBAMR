@@ -1,1 +1,0 @@
-../../src/utilities/CoarsenPatchStrategySet.I

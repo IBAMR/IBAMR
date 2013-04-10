@@ -60,7 +60,7 @@ main(
     char *argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+    PetscInitialize(&argc,&argv,NULL,NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -74,17 +74,12 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -108,7 +103,7 @@ main(
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(!visit_data_writer.isNull());
+        TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -185,14 +180,15 @@ main(
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-        SCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coefs);
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        SCLaplaceOperator laplace_op("laplace op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec,f_vec);
         laplace_op.apply(u_vec,f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
-                       Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";

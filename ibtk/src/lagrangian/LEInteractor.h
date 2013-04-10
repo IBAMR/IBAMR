@@ -79,14 +79,6 @@ public:
     static SortMode s_sort_mode;
 
     /*!
-     * \brief Floating point precision modes for spreading routines.
-     *
-     * \note Default is: DOUBLE.
-     */
-    enum PrecisionMode {DOUBLE=0, DOUBLE_DOUBLE=1};
-    static PrecisionMode s_precision_mode;
-
-    /*!
      * \brief Set configuration options from a user-supplied database.
      */
     static void

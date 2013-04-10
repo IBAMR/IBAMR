@@ -96,9 +96,6 @@ IBRodForceSpec::Factory::unpackStream(
     {
         stream.unpack(ret_val->d_material_params[k].data(),IBRodForceSpec::NUM_MATERIAL_PARAMS);
     }
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idxs[0],num_rods);
-#endif
     return ret_val;
 }// unpackStream
 

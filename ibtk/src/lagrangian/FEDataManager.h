@@ -40,12 +40,11 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <../base/variable.h>
-#include <enum_order.h>
-#include <enum_quadrature_type.h>
-#include <equation_systems.h>
-#include <linear_solver.h>
-#include <sparse_matrix.h>
+#include <libmesh/enum_order.h>
+#include <libmesh/enum_quadrature_type.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/linear_solver.h>
+#include <libmesh/sparse_matrix.h>
 
 // PETSC INCLUDES
 #include <petscsys.h>
@@ -86,9 +85,13 @@ public:
      * \brief The libMesh boundary IDs to use for specifying essential boundary
      * conditions.
      */
-//  static const short int     NORMAL_DIRICHLET_BDRY_ID = 256;
-//  static const short int TANGENTIAL_DIRICHLET_BDRY_ID = 512;
-    static const short int            DIRICHLET_BDRY_ID = 256 | 512;
+    static const short int ZERO_DISPLACEMENT_X_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_Y_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_Z_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XY_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XZ_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_YZ_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XYZ_BDRY_ID;
 
     /*!
      * Return a pointer to the instance of the Lagrangian data manager
@@ -109,8 +112,6 @@ public:
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
         bool interp_uses_consistent_mass_matrix,
-        libMesh::QBase* qrule,
-        libMesh::QBase* qrule_face,
         bool register_for_restart=true);
 
     /*!
@@ -275,33 +276,19 @@ public:
         bool close_X=true);
 
     /*!
-     * \brief Prolong a value from the FE mesh to the Cartesian grid.
-     *
-     * \note This method sets f(x) = F(X(s,t)) pointwise on the Eulerian grid.
+     * \brief Prolong a value or a density from the FE mesh to the Cartesian
+     * grid.
      */
     void
-    prolongValue(
+    prolongData(
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
         bool close_F=true,
-        bool close_X=true);
-
-    /*!
-     * \brief Prolong a density from the FE mesh to the Cartesian grid.
-     *
-     * \note This method sets f(x) = F(X(s,t))/det(dX/ds) pointwise on the
-     * Eulerian grid.
-     */
-    void
-    prolongDensity(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool close_F=true,
-        bool close_X=true);
+        bool close_X=true,
+        bool is_density=true,
+        bool accumulate_on_grid=true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh.
@@ -320,7 +307,7 @@ public:
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
      */
     void
-    restrictValue(
+    restrictData(
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
@@ -365,17 +352,6 @@ public:
     updateWorkloadEstimates(
         int coarsest_ln=-1,
         int finest_ln=-1);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      initializeLevelData(),
-    ///      resetHierarchyConfiguration(),
-    ///      applyGradientDetector()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
-    ///
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -460,15 +436,6 @@ public:
         bool initial_time,
         bool uses_richardson_extrapolation_too);
 
-    ///
-    ///  The following routines:
-    ///
-    ///      putToDatabase()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::tbox::Serializable abstract base class.
-    ///
-
     /*!
      * Write out object state to the given database.
      *
@@ -487,8 +454,6 @@ protected:
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
         bool interp_uses_consistent_mass_matrix,
-        libMesh::QBase* qrule,
-        libMesh::QBase* qrule_face,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
 
@@ -640,8 +605,6 @@ private:
     const std::string d_interp_weighting_fcn;
     const std::string d_spread_weighting_fcn;
     const bool d_interp_uses_consistent_mass_matrix;
-    libMesh::QBase* d_qrule;
-    libMesh::QBase* d_qrule_face;
 
     /*
      * SAMRAI::hier::IntVector object which determines the ghost cell width of

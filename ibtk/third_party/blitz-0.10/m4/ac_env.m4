@@ -1,0 +1,24 @@
+
+AC_DEFUN([AC_ENV],[
+AC_MSG_NOTICE([
+
+CXX                = $CXX
+CXXFLAGS           = $CXXFLAGS
+CXX_OPTIMIZE_FLAGS = $CXX_OPTIMIZE_FLAGS
+CXX_DEBUG_FLAGS    = $CXX_DEBUG_FLAGS
+CXXFFLAGS          = $CXXFFLAGS
+
+F77                = $F77
+FFLAGS             = $FFLAGS
+F77_OPTIMIZE_FLAGS = $F77_OPTIMIZE_FLAGS
+FLIBS              = $FLIBS
+
+FC                 = $FC
+FCFLAGS            = $FCFLAGS
+FC_OPTIMIZE_FLAGS  = $FC_OPTIMIZE_FLAGS
+FCLIBS             = $FCLIBS
+
+BLASLIB            = $BLASLIB
+
+])])
+

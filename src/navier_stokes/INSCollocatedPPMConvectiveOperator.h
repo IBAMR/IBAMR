@@ -70,13 +70,29 @@ public:
      * \brief Class constructor.
      */
     INSCollocatedPPMConvectiveOperator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::string& bdry_extrap_type);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
      */
     ~INSCollocatedPPMConvectiveOperator();
+
+    /*!
+     * \brief Static function to construct an
+     * INSCollocatedPPMConvectiveOperator.
+     */
+    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    allocate_operator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        ConvectiveDifferencingType difference_form,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+        {
+            return new INSCollocatedPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        }// allocate_operator
 
     /*!
      * \brief Compute the action of the convective operator.
@@ -140,22 +156,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -187,16 +187,13 @@ private:
     operator=(
         const INSCollocatedPPMConvectiveOperator& that);
 
-    // Whether the operator is initialized.
-    bool d_is_initialized;
-
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
-    const std::string d_bdry_extrap_type;
+    std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

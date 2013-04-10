@@ -185,12 +185,11 @@ IBStandardSourceGen::initializeLevelData(
     std::fill(d_num_perimeter_nodes[level_number].begin(),d_num_perimeter_nodes[level_number].end(),0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
-        if (spec == NULL) continue;
+        if (!spec) continue;
         const int source_idx = spec->getSourceIndex();
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
@@ -236,12 +235,11 @@ IBStandardSourceGen::getSourceLocations(
     const double* const restrict X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
-        if (spec == NULL) continue;
+        if (!spec) continue;
         const int& petsc_idx = node_idx->getLocalPETScIndex();
         const double* const X = &X_node[NDIM*petsc_idx];
         const int source_idx = spec->getSourceIndex();
@@ -300,7 +298,7 @@ IBStandardSourceGen::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("s_num_sources.size()",s_num_sources.size());
     db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());

@@ -1,0 +1,237 @@
+@node Numeric limits, Numeric functions, , Numeric properties
+@section Introduction
+@cindex numeric limits
+
+Blitz++ provides a set of functions to access numeric properties of
+intrinsic types.  They are provided as an alternative to the somewhat klunky
+@code{numeric_limits<T>::yadda_yadda} syntax provided by the ISO/ANSI C++
+standard.  Where a similar Fortran 90 function exists, the same name has
+been used.
+
+The argument in all cases is a dummy of the appropriate type.
+
+All functions described in this section assume that @code{numeric_limits<T>}
+has been specialized for the appropriate case.  If not, the results are not
+useful.  The standard requires that @code{numeric_limits<T>} be specialized
+for all the intrinsic numeric types (float, double, int, bool, unsigned int,
+etc.).
+
+@findex numinquire.h
+
+To use these functions, you must first include the header
+@code{<blitz/numinquire.h>}.  Also, note that these functions may be
+unavailable if your compiler is non-ANSI compliant.  If the preprocessor
+symbol @code{BZ_HAVE_NUMERIC_LIMITS} is false, then these functions are
+unavailable.
+
+@node Numeric functions, , Numeric limits, Numeric properties
+@section Function descriptions
+
+@table @code
+@item T     denorm_min(T) throw;
+@findex denorm_min()
+Minimum positive denormalized value.  Available for floating-point
+types only. 
+
+@item int   digits(T);
+@findex digits()
+The number of radix digits (read: bits) in the mantissa.  Also works for
+integer types.  The official definition is ``number of radix digits that can
+be represented without change''. 
+
+@item int   digits10(T);
+@findex digits10()
+The number of base-10 digits that can be represented without
+change. 
+
+@item T     epsilon(T);
+@findex epsilon()
+The smallest amount which can be added to 1 to produce a result which is not
+1.  Floating-point types only.
+
+@item bool  has_denorm(T);
+@cindex denormalized values
+@findex has_denorm()
+True if the representation allows denormalized values (floating-point
+only).
+
+@item bool  has_denorm_loss(T);
+@cindex denormalization loss 
+@findex has_denorm_loss() 
+True if a loss of precision is detected as a denormalization loss, rather
+than as an inexact result (floating-point only). 
+
+@item bool  has_infinity(T);
+@cindex infinity -- @code{has_infinity()}
+@findex has_infinity()
+True if there is a special representation for the value ``infinity''.  If
+true, the representation can be obtained by calling @code{infinity(T)}.
+
+@item bool  has_quiet_NaN(T);
+@findex has_quiet_NaN()
+@cindex NaN -- @code{has_quiet_NaN()}
+True if there is a special representation for a quiet (non-signalling) Not A
+Number (@code{NaN}).  If so, use the function @code{quiet_NaN(T)} to obtain it. 
+
+@item bool  has_signaling_NaN(T);
+@cindex NaN -- @code{has_signaling_NaN()}
+@findex has_signaling_NaN()
+True if there is a special representation for a signalling Not A Number
+(@code{NaN}).  If so, use the function @code{signalling_NaN(T)} to obtain it. 
+
+@item bool  has_signalling_NaN(T);  
+@findex has_signalling_NaN()
+Same as @code{has_signaling_NaN()}.
+
+@item T     huge(T) throw;
+@findex huge()
+@cindex maximum value of a type
+Returns the maximum finite representable value.  Equivalent to
+@code{CHAR_MAX}, @code{SHRT_MAX}, @code{FLT_MAX}, etc.  For floating types
+with denormalization, the maximum positive @strong{normalized} value is
+returned.  
+
+@item T     infinity(T) throw;
+@findex infinity()
+Returns the representation of positive infinity, if available.  Note that
+you should check availability with @code{has_infinity(T)} before calling
+this function. 
+
+@item bool  is_bounded(T);
+@findex is_bounded()
+True if the set of values represented by the type is finite.  All built-in
+types are bounded.  (This function was provided so that e.g. arbitrary
+precision types could be distinguished).
+
+@item bool  is_exact(T);
+@findex is_exact()
+True if the representation is exact.  All integer types are exact;
+floating-point types generally aren't.  A rational arithmetic type could be
+exact. 
+
+@item bool  is_iec559(T);
+@cindex IEC 559
+@findex is_iec559()
+True if the type conforms to the IEC 559 standard.  IEC is the International
+Electrotechnical Commission.  Note that IEC 559 is the same as IEEE 754.
+Only relevant for floating types.
+
+@item bool  is_integer(T);
+@findex is_integer()
+True if the type is integer.  
+
+@item bool  is_modulo(T);
+@findex is_modulo()
+True if the type is modulo.  Integer types are usually modulo: if you add
+two integers, they might wrap around and give you a small result.  (Some
+special kinds of integers don't wrap around, but stop at an upper or lower
+bound; this is called saturating arithmetic).  This is false for floating
+types.  
+
+@item bool  is_signed(T);
+@findex is_signed()
+@cindex signed -- @code{is_signed()}
+True if the type is signed (i.e.@: can handle both positive and negative
+values).  
+
+@item int   max_exponent(T);
+@findex max_exponent()
+The maximum exponent (@code{Max_exp}) is the maximum positive integer such
+that the radix (read: 2) raised to the power @code{Max_exp-1} is a
+representable, finite floating point number.  Floating types only. 
+
+@item int   max_exponent10(T);
+@findex max_exponent10()
+The maximum base-10 exponent (@code{Max_exp10}) is the maximum positive
+integer such that 10 raised to the power @code{Max_exp10} is a
+representable, finite floating point number.  Floating types only. 
+
+@item int   min_exponent(T);
+@findex min_exponent()
+The minimum exponent (@code{Min_exp}) is the minimum negative integer such
+that the radix (read: 2) raised to the power @code{Min_exp-1} is a
+@strong{normalized} floating point number.  Floating types only. 
+
+@item int   min_exponent10(T);
+@findex min_exponent10()
+The minimum base-10 exponent (@code{Min_exp10}) is the minimum negative integer
+such that 10 raised to the power @code{Min_exp10} is in the range of
+@strong{normalized} floating point numbers. 
+
+@item T     neghuge(T);
+@findex neghuge()
+@cindex maximally negative value -- @code{neghuge()}
+This returns the maximally negative value for a type.  For integers, this is
+the same as min().  For floating-point types, it is @code{-huge(T())}.
+
+@item T     one(T);
+@findex one()
+Returns a representation for ``1''  
+
+@item int   precision(T);
+@findex precision()
+Same as @code{digits10()}. 
+
+@item T     quiet_NaN(T) throw;
+@findex quiet_NaN()
+@cindex NaN -- @code{quiet_NaN()}
+Returns the representation for a quiet (non-signalling) Not A Number
+(@code{NaN}), if available.  You should check availability using the
+@code{has_quiet_NaN(T)} function first.  
+
+@item int   radix(T);
+@findex radix()
+For floating-point types, this returns the radix (base) of the exponent.
+For integers, it specifies the base of the representation.
+
+@item Range range(T);
+@findex range()
+Returns @code{Range(min_exponent10(T()), max_exponent10(T()))}, i.e.@:  the
+range of representable base-10 exponents.  
+
+@item T     round_error(T) throw;
+@findex round_error()
+Returns a measure of the maximum rounding error for floating-point types.
+This will typically be @code{0.5}. 
+
+@item std::float_round_style round_style(T);
+@findex round_style()
+Returns the current rounding style for floating-point arithmetic.  The
+possibilities are: @code{round_indeterminate} (i.e.@: don't have a clue),
+@code{round_toward_zero}, @code{round_to_nearest} (round to nearest
+representable value), @code{round_toward_infinity} (round toward positive
+infinity), and @code{round_neg_infinity} (round toward negative infinity).  
+
+@item T     signaling_NaN(T) throw;
+@findex signaling_NaN()
+Returns the representation for a signalling Not A Number (@code{NaN}), if
+available.  You should check availability by calling
+@code{has_signalling_NaN(T)} first.  
+
+@item T     signalling_NaN(T) throw;    
+@findex signalling_NaN()
+Same as @code{signaling_NaN()}.
+
+@item T     tiny(T);
+@findex tiny()
+@cindex minimum finite value -- @code{tiny()}
+For integer types, this returns the minimum finite value, which may be
+negative.  For floating types, it returns the minimum positive value.  For
+floating types with denormalization, the function returns the minimum
+positive @strong{normalized} value.  
+
+@item T     tinyness_before(T);
+@findex tinyness_before()
+True if tinyness is detected before rounding.  Other than this description,
+I don't have a clue what this means; anyone have a copy of IEC 559/IEEE 754
+floating around? 
+
+@item T     traps(T);
+@findex traps()
+True if trapping is implemented for this type. 
+
+@item T     zero(T);
+@findex zero()
+Returns a representation for zero. 
+@end table
+

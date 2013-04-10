@@ -104,9 +104,6 @@ IBBeamForceSpec::Factory::unpackStream(
     {
         stream.unpack(ret_val->d_mesh_dependent_curvatures[k].data(),NDIM);
     }
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idxs[0],num_beams);
-#endif
     return ret_val;
 }// unpackStream
 

@@ -106,12 +106,12 @@ NodeDataSynchronization::initializeOperatorState(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -142,7 +142,7 @@ NodeDataSynchronization::initializeOperatorState(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<NodeVariable<NDIM,double> > nc_var = var;
-            if (nc_var.isNull())
+            if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
@@ -214,12 +214,12 @@ NodeDataSynchronization::resetTransactionComponents(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -246,7 +246,7 @@ NodeDataSynchronization::resetTransactionComponents(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<NodeVariable<NDIM,double> > nc_var = var;
-            if (nc_var.isNull())
+            if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
@@ -307,7 +307,7 @@ NodeDataSynchronization::synchronizeData(
 
         // When appropriate, coarsen data from the current level to the next
         // coarser level.
-        if (ln > d_coarsest_ln && !d_coarsen_scheds[ln].isNull()) d_coarsen_scheds[ln]->coarsenData();
+        if (ln > d_coarsest_ln && d_coarsen_scheds[ln]) d_coarsen_scheds[ln]->coarsenData();
     }
     return;
 }// synchronizeData

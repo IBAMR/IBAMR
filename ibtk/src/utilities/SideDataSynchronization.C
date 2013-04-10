@@ -110,12 +110,12 @@ SideDataSynchronization::initializeOperatorState(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -144,7 +144,7 @@ SideDataSynchronization::initializeOperatorState(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
@@ -215,12 +215,12 @@ SideDataSynchronization::resetTransactionComponents(
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!var.isNull());
+            TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!coarsen_op.isNull());
+            TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
                                            data_idx,  // source
@@ -245,7 +245,7 @@ SideDataSynchronization::resetTransactionComponents(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
@@ -299,7 +299,7 @@ SideDataSynchronization::synchronizeData(
 
         // When appropriate, coarsen data from the current level to the next
         // coarser level.
-        if (ln > d_coarsest_ln && !d_coarsen_scheds[ln].isNull()) d_coarsen_scheds[ln]->coarsenData();
+        if (ln > d_coarsest_ln && d_coarsen_scheds[ln]) d_coarsen_scheds[ln]->coarsenData();
     }
     return;
 }// synchronizeData

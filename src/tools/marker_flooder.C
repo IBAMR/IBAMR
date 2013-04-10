@@ -34,7 +34,7 @@
 
 // BLITZ++ INCLUDES
 #include <blitz/array.h>
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <cassert>
@@ -263,8 +263,7 @@ main(
     while (!active_set.empty())
     {
         set<TinyVector<int,NDIM>,TinyComp<int> > new_active_set;
-        for (set<TinyVector<int,NDIM>,TinyComp<int> >::const_iterator cit = active_set.begin();
-             cit != active_set.end(); ++cit)
+        for (set<TinyVector<int,NDIM>,TinyComp<int> >::const_iterator cit = active_set.begin(); cit != active_set.end(); ++cit)
         {
             const TinyVector<int,NDIM>& i = (*cit);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -295,8 +294,7 @@ main(
     cout << "outputting markers\n";
     ofstream output_file_stream;
     output_file_stream.open(output_filename.c_str(),ios::out);
-    for (set<TinyVector<int,NDIM>,TinyComp<int> >::const_iterator cit = all_markers.begin();
-         cit != all_markers.end(); ++cit)
+    for (set<TinyVector<int,NDIM>,TinyComp<int> >::const_iterator cit = all_markers.begin(); cit != all_markers.end(); ++cit)
     {
         const TinyVector<int,NDIM>& i = (*cit);
         const TinyVector<double,NDIM> X = get_posn(i);

@@ -1,0 +1,181 @@
+
+@findex TinyVector
+@cindex TinyVector
+
+The @code{TinyVector} class provides a small, lightweight vector object
+whose size is known at compile time.  It is included via the header
+@code{<blitz/tinyvec.h>}.  
+
+Note that @code{TinyVector} lives in the @code{blitz} namespace, so you will
+need to refer to it as @code{blitz::TinyVector}, or use the directive
+@code{using namespace blitz;}.
+
+The Blitz++ @code{Array} object uses @code{TinyVector} internally, so if you
+include @code{<blitz/array.h>}, the @code{TinyVector} header is automatically
+included.  However, to use @code{TinyVector} expressions, you will
+need to include @code{<blitz/tinyvec-et.h>}.
+
+@node TinyVec params, TinyVec ctors, , TinyVector
+@section Template parameters and types
+
+The @code{TinyVector<T,N>} class has two template parameters:
+
+@table @code
+@item T
+is the numeric type of the vector (float, double, int,
+@code{complex<float>}, etc.;
+
+@item N 
+is the number of elements in the vector.
+@end table
+
+Inside the @code{TinyVector} class, these types are declared:
+
+@table @code
+@item T_numtype
+is the numeric type stored in the vector (the template parameter @code{T})
+
+@item T_vector
+is the vector type @code{TinyVector<T,N>}.
+
+@item iterator
+is an STL-style iterator.
+
+@item constIterator
+is an STL-style const iterator.
+@end table
+
+@node TinyVec ctors, TinyVec members, TinyVec params, TinyVector
+@section Constructors
+
+@example
+TinyVector();
+@end example
+The elements of the vector are left uninitialized.
+
+@example
+TinyVector(const TinyVector<T,N>& x);
+@end example
+The elements of vector @code{x} are copied.
+
+@example
+TinyVector(T value);
+@end example
+All elements are initialized to @code{value}.
+
+@example
+TinyVector(T value1, T value2, ...);
+@end example
+The vector is initialized with the list of values given.
+These constructors are provided for up to N=11.
+
+@node TinyVec members, TinyVec assignment, TinyVec ctors, TinyVector
+@section Member functions
+
+@example
+TinyVector<T,N>::iterator                   begin();
+TinyVector<T,N>::const_iterator             begin() const;
+@end example
+Returns an STL-style iterator for the vector, positioned
+at the beginning of the data.
+
+@example
+TinyVector<T,N>::iterator                   end();
+TinyVector<T,N>::const_iterator             end() const;
+@end example
+Returns an STL-style iterator for the vector, positioned
+at the end of the data.
+
+@example
+T_numtype* [restrict]                       data();
+const T_numtype* [restrict]                 data() const;
+@end example
+Returns a pointer to the first element in the vector.
+
+@example
+int                                         length() const;
+@end example
+Returns the length of the vector (the template parameter @code{N}).
+
+@example
+T_numtype                                   operator()(int i) const;
+T_numtype&                                  operator()(int i);
+T_numtype                                   operator[](int i) const;
+T_numtype&                                  operator[](int i);
+@end example
+Returns the @code{i}th element of the vector.  If the code is compiled with
+debugging enabled (@code{-DBZ_DEBUG}), bounds checking is performed.
+
+@node TinyVec assignment, TinyVec exprs, TinyVec members, TinyVector
+@section Assignment operators
+
+The assignment operators =, +=, -=, *=, /=, %=, ^=, &=, |=, >>= and <<= are
+all provided.  The right hand side of an assignment may be a scalar of type
+@code{T_numtype}, a @code{TinyVector} of any type but the same size, or a
+vector expression.
+
+@node TinyVec exprs, TinyVec globals, TinyVec assignment, TinyVector
+@section Expressions
+
+Expressions involving tiny vectors may contain any combination
+of the operators
+
+@example
++ - * / % ^ & | >> <<
+@end example
+
+with operands of type TinyVector, scalar, or vector expressions.
+The usual math functions (see the Array documentation) are supported
+on TinyVector.  Please note that to use @code{TinyVector} expressions, 
+you will need to include header @code{<blitz/tinyvec-et.h>} in your code.
+
+@node TinyVec globals, TinyVec arrays, TinyVec exprs, TinyVector
+@section Global functions
+
+@example
+dot(TinyVector, TinyVector);
+dot(vector-expr, TinyVector);
+dot(TinyVector, vector-expr);
+dot(vector-expr, vector-expr);
+@end example
+These functions calculate a dot product between @code{TinyVector}s
+(or vector expressions).  The result is a scalar; the type
+of the scalar follows the usual type promotion rules.
+
+@example
+product(TinyVector);
+@end example
+Returns the product of all the elements in the vector.
+
+@example
+sum(TinyVector);
+@end example
+Returns the sum of the elements in the vector.
+
+@example
+TinyVector<T,3> cross(TinyVector<T,3> x, TinyVector<T,3> y);
+@end example
+Returns the cross product of @code{x} and @code{y}.
+
+@node TinyVec arrays, TinyVec io, TinyVec globals, TinyVector
+@section Arrays of TinyVector
+
+TinyVectors may be used as an Array element type, just like any other concrete
+numerical data type such as the built-in type @code{double}.  Such an Array
+of TinyVector elements constitutes a multicomponent Array, with the number of
+Array components being equal to the length of the TinyVectors.  Please see
+@ref{Array multi} for further information.
+
+@node TinyVec io, , TinyVec arrays, TinyVector
+@section Input/output
+
+@example
+ostream& operator<<(ostream&, const TinyVector<T,N>& x);
+@end example
+This function outputs a @code{TinyVector} onto a stream.  Here's
+an illustration of the format for a length 3 vector:
+
+@example
+[        0.5       0.2       0.9 ]
+@end example
+

@@ -50,7 +50,6 @@
 #endif
 
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
 
 extern "C"
 {
@@ -285,7 +284,6 @@ main(
     vector<vector<int> > nelems, periodics;
     vector<Array<float,4> > X0;
 
-    herr_t status;
     hid_t fiber_file_id = H5Fopen(input_filenames[0], H5F_ACC_RDONLY, H5P_DEFAULT);
     if (fiber_file_id < 0)
     {
@@ -296,19 +294,19 @@ main(
     hid_t fiber_group_id = H5Gopen1(fiber_file_id, "/fibers");
 
     int num_local_fibers, fiber_offset, num_fibers;
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers);
 
     int num_local_groups, group_offset, num_groups;
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups);
 
     int num_local_layers, layer_offset, num_layers;
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset);
-    status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset);
+    H5LTget_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers);
 
     int local_fiber_counter = 0;
     int local_group_counter = 0;
@@ -319,34 +317,34 @@ main(
         const string dset_name = dset_name_stream.str();
 
         vector<int> nelem(NDIM);
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0]);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0]);
         vector<int> periodic(NDIM);
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0]);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0]);
         int fiber_number;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number);
         int group_number;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number);
         int layer_number;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number);
         int nfibers;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &nfibers);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &nfibers);
         int ngroups;
-        status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &ngroups);
+        H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &ngroups);
         char layer_name[256];
-        status = H5LTget_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", layer_name);
+        H5LTget_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", layer_name);
 
         layer_names.push_back(layer_name);
         nelems.push_back(nelem);
         periodics.push_back(periodic);
         X0.push_back(Array<float,4>(NDIM,nelem[0],nelem[1],nelem[2],ColumnMajorArray<4>()));
-        status = H5LTread_dataset_float(fiber_file_id, dset_name.c_str(), X0.back().data());
+        H5LTread_dataset_float(fiber_file_id, dset_name.c_str(), X0.back().data());
 
         // Advance the counters.
         local_fiber_counter += nfibers;
         local_group_counter += ngroups;
     }
-    status = H5Gclose(fiber_group_id);
-    status = H5Fclose(fiber_file_id);
+    H5Gclose(fiber_group_id);
+    H5Fclose(fiber_file_id);
 
     // Prepare to dump silo files.
     mkdir("silo",S_IRWXU|S_IRWXG|S_IRWXO);
@@ -359,8 +357,7 @@ main(
     {
         string silo_filename = "silo/" + string(input_filenames[n]) + ".silo";
         DBfile *dbfile;
-        if ((dbfile = DBCreate(silo_filename.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB))
-            == NULL)
+        if (!(dbfile = DBCreate(silo_filename.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             cerr << "main():\n"
                  << "  Could not create DBfile named " << silo_filename << endl;
@@ -369,7 +366,6 @@ main(
 
         of_visit << input_filenames[n] << ".silo" << "\n";
 
-        herr_t status;
         hid_t fiber_file_id = H5Fopen(input_filenames[n], H5F_ACC_RDONLY, H5P_DEFAULT);
         if (fiber_file_id < 0)
         {
@@ -380,19 +376,19 @@ main(
         hid_t fiber_group_id = H5Gopen1(fiber_file_id, "/fibers");
 
         int num_local_fibers, fiber_offset, num_fibers;
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers);
 
         int num_local_groups, group_offset, num_groups;
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups);
 
         int num_local_layers, layer_offset, num_layers;
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset);
-        status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset);
+        H5LTget_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers);
 
         int local_fiber_counter = 0;
         int local_group_counter = 0;
@@ -403,24 +399,24 @@ main(
             const string dset_name = dset_name_stream.str();
 
             vector<int> nelem(NDIM);
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0]);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0]);
             vector<int> periodic(NDIM);
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0]);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0]);
             int fiber_number;
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number);
             int group_number;
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number);
             int layer_number;
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number);
             int nfibers;
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &nfibers);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &nfibers);
             int ngroups;
-            status = H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &ngroups);
+            H5LTget_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &ngroups);
             char layer_name[256];
-            status = H5LTget_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", layer_name);
+            H5LTget_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", layer_name);
 
             Array<float,4> X(NDIM,nelem[0],nelem[1],nelem[2],ColumnMajorArray<4>());
-            status = H5LTread_dataset_float(fiber_file_id, dset_name.c_str(), X.data());
+            H5LTread_dataset_float(fiber_file_id, dset_name.c_str(), X.data());
 
             // Compute the strains.
             for (unsigned int direction = 0; direction < NDIM; ++direction)
@@ -448,8 +444,8 @@ main(
             local_fiber_counter += nfibers;
             local_group_counter += ngroups;
         }
-        status = H5Gclose(fiber_group_id);
-        status = H5Fclose(fiber_file_id);
+        H5Gclose(fiber_group_id);
+        H5Fclose(fiber_file_id);
 
         DBClose(dbfile);
     }

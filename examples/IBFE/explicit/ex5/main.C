@@ -42,40 +42,72 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <boundary_info.h>
-#include <exodusII_io.h>
-#include <mesh.h>
-#include <mesh_generation.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+
+inline double
+kernel(
+    double x)
+{
+    x += 4.;
+    const double x2 = x*x;
+    const double x3 = x*x2;
+    const double x4 = x*x3;
+    const double x5 = x*x4;
+    const double x6 = x*x5;
+    const double x7 = x*x6;
+    if (x <= 0.)
+        return 0.;
+    else if (x <= 1.)
+        return .1984126984126984e-3*x7;
+    else if (x <= 2.)
+        return .1111111111111111e-1*x6-.1388888888888889e-2*x7-.3333333333333333e-1*x5+.5555555555555556e-1*x4-.5555555555555556e-1*x3+.3333333333333333e-1*x2-.1111111111111111e-1*x+.1587301587301587e-2;
+    else if (x <= 3.)
+        return .4333333333333333*x5-.6666666666666667e-1*x6+.4166666666666667e-2*x7-1.500000000000000*x4+3.055555555555556*x3-3.700000000000000*x2+2.477777777777778*x-.7095238095238095;
+    else if (x <= 4.)
+        return 9.*x4-1.666666666666667*x5+.1666666666666667*x6-.6944444444444444e-2*x7-28.44444444444444*x3+53.*x2-54.22222222222222*x+23.59047619047619;
+    else if (x <= 5.)
+        return 96.*x3-22.11111111111111*x4+3.*x5-.2222222222222222*x6+.6944444444444444e-2*x7-245.6666666666667*x2+344.*x-203.9650793650794;
+    else if (x <= 6.)
+        return 483.5000000000000*x2-147.0555555555556*x3+26.50000000000000*x4-2.833333333333333*x5+.1666666666666667*x6-.4166666666666667e-2*x7-871.2777777777778*x+664.0904761904762;
+    else if (x <= 7.)
+        return 943.1222222222222*x-423.7000000000000*x2+104.9444444444444*x3-15.50000000000000*x4+1.366666666666667*x5-.6666666666666667e-1*x6+.1388888888888889e-2*x7-891.1095238095238;
+    else if (x <= 8.)
+        return 416.1015873015873-364.0888888888889*x+136.5333333333333*x2-28.44444444444444*x3+3.555555555555556*x4-.2666666666666667*x5+.1111111111111111e-1*x6-.1984126984126984e-3*x7;
+    else
+        return 0.;
+}// kernel
 
 // Elasticity model data.
 namespace ModelData
 {
-// Stress tensor function.
 void
-PK1_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& /*FF*/,
-    const Point& /*X*/,
-    const Point& /*s*/,
-    Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
+body_velocity_fcn(
+    NumericVector<double>& U_b,
+    NumericVector<double>& /*U*/,
+    NumericVector<double>& /*X*/,
+    MeshBase& /*mesh*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    PP.zero();
+    U_b = 1.0;
+    U_b.close();
     return;
-}// PK1_stress_function
+}// body_velocity_fcn
 
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
@@ -98,7 +130,7 @@ tether_force_function(
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_stream, lift_stream;
+static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
 void
 postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -139,10 +171,15 @@ main(
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        // Setup user-defined delta function.
+        LEInteractor::s_delta_fcn = &kernel;
+        LEInteractor::s_delta_fcn_stencil_size = 8;
+        LEInteractor::s_delta_fcn_C = -1.0;
+
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
 
@@ -191,7 +228,9 @@ main(
             const int r = log2(0.25*num_circum_segments);
             MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
-        kappa_s = input_db->getDouble("KAPPA_S");
+
+        bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
+        if (!use_constraint_method) kappa_s = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -215,7 +254,7 @@ main(
         }
         Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
             "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -230,8 +269,16 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
-        ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+        if (use_constraint_method)
+        {
+            ib_method_ops->setMassDensity(input_db->getDouble("RHO"));
+            ib_method_ops->registerConstrainedPart();
+            ib_method_ops->registerConstrainedPartVelocityFunction(body_velocity_fcn);
+        }
+        else
+        {
+            ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+        }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -251,7 +298,7 @@ main(
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -321,11 +368,21 @@ main(
             }
         }
 
-        // Open streams to save lift and drag coefficients.
+        // Open streams to save lift and drag coefficients and the norms of the
+        // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
+            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
+            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+
+            drag_stream.precision(10);
+            lift_stream.precision(10);
+            U_L1_norm_stream.precision(10);
+            U_L2_norm_stream.precision(10);
+            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -342,7 +399,7 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
-            dt = time_integrator->getTimeStepSize();
+            dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -393,6 +450,9 @@ main(
         {
             drag_stream.close();
             lift_stream.close();
+            U_L1_norm_stream.close();
+            U_L2_norm_stream.close();
+            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -415,53 +475,104 @@ postprocess_data(
     const double loop_time,
     const string& /*data_dump_dirname*/)
 {
-    double F_integral[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
-
-    System& F_system = equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
-    NumericVector<double>* F_vec = F_system.solution.get();
-    NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
-    F_vec->localize(*F_ghost_vec);
-    DofMap& F_dof_map = F_system.get_dof_map();
-    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
-    AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
-    fe->attach_quadrature_rule(qrule.get());
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
-    const std::vector<double>& JxW = fe->get_JxW();
-    blitz::Array<double,2> F_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
-        fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        double F_integral[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
+        System& F_system = equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
+        NumericVector<double>* F_vec = F_system.solution.get();
+        NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
+        F_vec->localize(*F_ghost_vec);
+        DofMap& F_dof_map = F_system.get_dof_map();
+        blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
+        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<double>& JxW = fe->get_JxW();
+        blitz::Array<double,2> F_node;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
-            F_dof_map.dof_indices(elem, F_dof_indices(d), d);
-        }
-        const int n_qp = qrule->n_points();
-        const int n_basis = F_dof_indices(0).size();
-        get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
-        for (int qp = 0; qp < n_qp; ++qp)
-        {
-            for (int k = 0; k < n_basis; ++k)
+            Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                for (int d = 0; d < NDIM; ++d)
+                F_dof_map.dof_indices(elem, F_dof_indices(d), d);
+            }
+            const int n_qp = qrule->n_points();
+            const int n_basis = F_dof_indices(0).size();
+            get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
+            for (int qp = 0; qp < n_qp; ++qp)
+            {
+                for (int k = 0; k < n_basis; ++k)
                 {
-                    F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                    }
                 }
             }
         }
+        SAMRAI_MPI::sumReduction(F_integral,NDIM);
+        static const double rho = 1.0;
+        static const double U_max = 1.0;
+        static const double D = 1.0;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
+            lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+        }
     }
-    SAMRAI_MPI::sumReduction(F_integral,NDIM);
-    static const double rho = 1.0;
-    static const double U_max = 1.0;
-    static const double D = 1.0;
-    if (SAMRAI_MPI::getRank() == 0)
+
     {
-        drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+        double U_L1_norm = 0.0, U_L2_norm = 0.0, U_max_norm = 0.0;
+        System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        NumericVector<double>* U_vec = U_system.solution.get();
+        NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
+        U_vec->localize(*U_ghost_vec);
+        DofMap& U_dof_map = U_system.get_dof_map();
+        blitz::Array<std::vector<unsigned int>,1> U_dof_indices(NDIM);
+        AutoPtr<FEBase> fe(FEBase::build(NDIM, U_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<double>& JxW = fe->get_JxW();
+        VectorValue<double> U_qp;
+        blitz::Array<double,2> U_node;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_dof_map.dof_indices(elem, U_dof_indices(d), d);
+            }
+            const int n_qp = qrule->n_points();
+            get_values_for_interpolation(U_node, *U_ghost_vec, U_dof_indices);
+            for (int qp = 0; qp < n_qp; ++qp)
+            {
+                interpolate(U_qp, qp, U_node, phi);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    U_L1_norm += std::abs(U_qp(d))*JxW[qp];
+                    U_L2_norm += U_qp(d)*U_qp(d)  *JxW[qp];
+                    U_max_norm = std::max(U_max_norm, std::abs(U_qp(d)));
+                }
+            }
+        }
+        SAMRAI_MPI::sumReduction(&U_L1_norm, 1);
+        SAMRAI_MPI::sumReduction(&U_L2_norm, 1);
+        SAMRAI_MPI::maxReduction(&U_max_norm, 1);
+        U_L2_norm = sqrt(U_L2_norm);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            U_L1_norm_stream << loop_time << " " << U_L1_norm << endl;
+            U_L2_norm_stream << loop_time << " " << U_L2_norm << endl;
+            U_max_norm_stream << loop_time << " " << U_max_norm << endl;
+        }
     }
     return;
 }// postprocess_data

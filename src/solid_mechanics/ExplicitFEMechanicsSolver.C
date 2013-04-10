@@ -44,6 +44,8 @@
 #define included_SAMRAI_config
 #endif
 
+#define NDIM LIBMESH_DIM
+
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
@@ -52,20 +54,21 @@
 #include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
-#include <boundary_info.h>
-#include <dense_matrix.h>
-#include <dense_vector.h>
-#include <dof_map.h>
-#include <fe_interface.h>
-#include <mesh.h>
-#include <petsc_linear_solver.h>
-#include <petsc_matrix.h>
-#include <petsc_vector.h>
-#include <string_to_enum.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/dense_matrix.h>
+#include <libmesh/dense_vector.h>
+#include <libmesh/dof_map.h>
+#include <libmesh/fe_interface.h>
+#include <libmesh/mesh.h>
+#include <libmesh/petsc_linear_solver.h>
+#include <libmesh/petsc_matrix.h>
+#include <libmesh/petsc_vector.h>
+#include <libmesh/string_to_enum.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES
 #include <tbox/RestartManager.h>
+#include <tbox/SAMRAI_MPI.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -117,20 +120,17 @@ ExplicitFEMechanicsSolver::~ExplicitFEMechanicsSolver()
     {
         delete d_equation_systems[part];
         std::map<std::string,libMesh::LinearSolver<double>*>& L2_proj_solver = d_L2_proj_solver[part];
-        for (std::map<std::string,LinearSolver<double>*>::iterator it = L2_proj_solver.begin();
-             it != L2_proj_solver.end(); ++it)
+        for (std::map<std::string,LinearSolver<double>*>::iterator it = L2_proj_solver.begin(); it != L2_proj_solver.end(); ++it)
         {
             delete it->second;
         }
         std::map<std::string,libMesh::SparseMatrix<double>*>& L2_proj_matrix = d_L2_proj_matrix[part];
-        for (std::map<std::string,SparseMatrix<double>*>::iterator it = L2_proj_matrix.begin();
-             it != L2_proj_matrix.end(); ++it)
+        for (std::map<std::string,SparseMatrix<double>*>::iterator it = L2_proj_matrix.begin(); it != L2_proj_matrix.end(); ++it)
         {
             delete it->second;
         }
         std::map<std::string,libMesh::NumericVector<double>*>& L2_proj_matrix_diag = d_L2_proj_matrix_diag[part];
-        for (std::map<std::string,NumericVector<double>*>::iterator it = L2_proj_matrix_diag.begin();
-             it != L2_proj_matrix_diag.end(); ++it)
+        for (std::map<std::string,NumericVector<double>*>::iterator it = L2_proj_matrix_diag.begin(); it != L2_proj_matrix_diag.end(); ++it)
         {
             delete it->second;
         }
@@ -413,7 +413,7 @@ ExplicitFEMechanicsSolver::initializeFEData()
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (!at_mesh_bdry) continue;
 
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
@@ -625,7 +625,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     F_dil_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> F_dil_bar_fe;
     const std::vector<std::vector<double> >* F_dil_bar_phi = NULL;
-    if (F_dil_bar_vec != NULL)
+    if (F_dil_bar_vec)
     {
         F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
@@ -636,8 +636,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
-         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -645,8 +644,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin();
-         cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin(); cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -654,8 +652,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
-         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -663,8 +660,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
-         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -705,7 +701,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
             }
         }
 
-        if (F_dil_bar_vec != NULL)
+        if (F_dil_bar_vec)
         {
             F_dil_bar_fe->reinit(elem);
             F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
@@ -715,13 +711,13 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
         const unsigned int n_basis = dof_indices(0).size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        if (F_dil_bar_vec != NULL) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
+        if (F_dil_bar_vec) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(FF,qp,X_node,dphi);
-            if (F_dil_bar_vec != NULL)
+            if (F_dil_bar_vec)
             {
                 jacobian(FF_bar,qp,X_node,dphi,F_dil_bar_node,*F_dil_bar_phi);
             }
@@ -730,7 +726,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
                 FF_bar = FF;
             }
 
-            if (d_PK1_stress_fcns[part] != NULL)
+            if (d_PK1_stress_fcns[part])
             {
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
@@ -746,7 +742,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
                 }
             }
 
-            if (d_lag_body_force_fcns[part] != NULL)
+            if (d_lag_body_force_fcns[part])
             {
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
@@ -768,7 +764,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
         {
             // Determine whether we are at a physical boundary and, if so,
             // whether it is a Dirichlet boundary.
-            bool at_physical_bdry = elem->neighbor(side) == NULL;
+            bool at_physical_bdry = !elem->neighbor(side);
             bool at_dirichlet_bdry = false;
             const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
             for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
@@ -784,8 +780,8 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
 
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
-            const bool compute_pressure      = d_lag_pressure_fcns     [part] != NULL;
-            const bool compute_surface_force = d_lag_surface_force_fcns[part] != NULL;
+            const bool compute_pressure      = d_lag_pressure_fcns     [part];
+            const bool compute_surface_force = d_lag_surface_force_fcns[part];
             if (!(compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
@@ -855,7 +851,7 @@ ExplicitFEMechanicsSolver::initializeCoordinates(
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    const bool identity_mapping = d_coordinate_mapping_fcns[part] == NULL;
+    const bool identity_mapping = !d_coordinate_mapping_fcns[part];
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
@@ -994,7 +990,7 @@ ExplicitFEMechanicsSolver::buildL2ProjectionSolver(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
+                if (elem->neighbor(side)) continue;
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
                 if (!at_dirichlet_bdry) continue;
@@ -1141,7 +1137,7 @@ ExplicitFEMechanicsSolver::buildDiagonalL2MassMatrix(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
+                if (elem->neighbor(side)) continue;
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
                 if (!at_dirichlet_bdry) continue;
@@ -1307,7 +1303,7 @@ ExplicitFEMechanicsSolver::commonConstructor(
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+    if (input_db) getFromInput(input_db, from_restart);
 
     // Setup EquationSystems objects for each part and setup Systems.
     d_meshes = meshes;

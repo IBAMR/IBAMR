@@ -69,7 +69,7 @@ template<class TYPE>
 inline SAMRAI::hier::MultiblockDataTranslator<NDIM>*
 VecCellDataFactory<TYPE>::getMultiblockDataTranslator()
 {
-    if (d_mb_trans == NULL)
+    if (!d_mb_trans)
     {
         d_mb_trans = new SAMRAI::pdat::MultiblockCellDataTranslator<NDIM,TYPE>();
     }

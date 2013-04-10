@@ -96,7 +96,7 @@ inline bool
 LSetDataIterator<T>::operator==(
     const LSetDataIterator<T>& that)
 {
-    return ((d_node_set == NULL && that.d_node_set == NULL) ||
+    return ((!d_node_set && !that.d_node_set) ||
             (d_box      == that.d_box &&
              d_index_it == that.d_index_it &&
              d_node_set == that.d_node_set &&
@@ -115,7 +115,7 @@ template<class T>
 inline LSetDataIterator<T>&
 LSetDataIterator<T>::operator++()
 {
-    if (d_node_set == NULL) return *this;
+    if (!d_node_set) return *this;
     ++d_node_it;
     if (d_node_it != d_node_set->end()) return *this;
     d_node_set = NULL;
@@ -157,7 +157,7 @@ inline typename LSet<T>::value_type&
 LSetDataIterator<T>::getDataItem() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_index_it && d_node_set != NULL);
+    TBOX_ASSERT(d_index_it && d_node_set);
 #endif
     return *d_node_it;
 }// getDataItem

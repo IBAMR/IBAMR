@@ -42,14 +42,13 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <boundary_info.h>
-#include <exodusII_io.h>
-#include <mesh.h>
-#include <mesh_generation.h>
-#include <mesh_triangle_interface.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -64,22 +63,6 @@ namespace ModelData
 {
 // Stress tensor function.
 static double mu_s, lambda_s;
-void
-lower_PK1_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& /*FF*/,
-    const Point& /*X*/,
-    const Point& /*s*/,
-    Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    PP.zero();
-    return;
-}// lower_PK1_stress_function
-
 void
 upper_PK1_stress_function(
     TensorValue<double>& PP,
@@ -145,7 +128,7 @@ upper_tether_force_function(
     }
     else
     {
-        F = kappa_s*(s-X);                                                                                                                         
+        F = kappa_s*(s-X);
     }
     return;
 }// upper_tether_force_function
@@ -196,7 +179,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string lower_exodus_filename = app_initializer->getExodusIIFilename("lower");
         const string upper_exodus_filename = app_initializer->getExodusIIFilename("upper");
@@ -239,13 +222,13 @@ main(
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
                     const short int boundary_id = lower_mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 1 || boundary_id == 3)
                     {
-                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -264,13 +247,13 @@ main(
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
                     const short int boundary_id = upper_mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 1 || boundary_id == 3)
                     {
-                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -306,7 +289,7 @@ main(
         }
         Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
             "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -321,10 +304,9 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&lower_PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
+        ib_method_ops->registerLagBodyForceFunction( &lower_tether_force_function, std::vector<unsigned int>(), NULL, 0);
+        ib_method_ops->registerLagBodyForceFunction( &upper_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerPK1StressTensorFunction(&upper_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
-        ib_method_ops->registerLagBodyForceFunction(&lower_tether_force_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerLagBodyForceFunction(&upper_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* upper_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 
@@ -344,39 +326,26 @@ main(
         }
 
         // Create Eulerian boundary condition specification objects.
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
-        if (periodic_shift.min() > 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                u_bc_coefs[d] = NULL;
-            }
-        }
-        else
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
+        if (!periodic_domain)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;
                 const string bc_coefs_name = bc_coefs_name_stream.str();
-
                 ostringstream bc_coefs_db_name_stream;
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         // Create Eulerian body force function specification objects.
-        Pointer<SpongeLayerForceFunction> f_fcn = new SpongeLayerForceFunction(
-            "SpongeLayerForceFunction", app_initializer->getComponentDatabase("SpongeLayerForceFunction"), grid_geometry);
-        f_fcn->setVelocityVariableAndContext(navier_stokes_integrator->getVelocityVariable(),
-                                             navier_stokes_integrator->getCurrentContext());
-        time_integrator->registerBodyForceFunction(f_fcn);
+        time_integrator->registerBodyForceFunction(new SpongeLayerForceFunction(
+            "SpongeLayerForceFunction", app_initializer->getComponentDatabase("SpongeLayerForceFunction"), navier_stokes_integrator, grid_geometry));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -430,7 +399,7 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
-            dt = time_integrator->getTimeStepSize();
+            dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 

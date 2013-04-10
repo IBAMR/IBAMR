@@ -148,10 +148,10 @@ public:
      *
      * Subclasses can control the method used to determined the time step size
      * by overriding the protected virtual member function
-     * getTimeStepSizeSpecialized().
+     * getMaximumTimeStepSizeSpecialized().
      */
     double
-    getTimeStepSize();
+    getMaximumTimeStepSize();
 
     /*!
      * Synchronize data defined on the grid hierarchy.
@@ -286,12 +286,32 @@ public:
      * time step.
      */
     virtual int
-    getNumberOfCycles();
+    getNumberOfCycles() const;
+
+    /*!
+     * Virtual method to return the current cycle number within the present time
+     * step.
+     *
+     * The default implementation returns a value of -1 when it is not advancing
+     * the hierarchy.
+     */
+    virtual int
+    getCurrentCycleNumber() const;
+
+    /*!
+     * Virtual method to return the current time step size.
+     *
+     * The default implementation returns the value
+     * numeric_limits<>::quiet_NaN() when it is not advancing the hierarchy.
+     */
+    virtual double
+    getCurrentTimeStepSize() const;
 
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.
      *
-     * An empty default implementation is provided.
+     * A default implementation is provided that sets the current values of
+     * num_cycles and the time step size.
      */
     virtual void
     preprocessIntegrateHierarchy(
@@ -317,7 +337,8 @@ public:
      * Virtual method to clean up data following call(s) to
      * integrateHierarchy().
      *
-     * An empty default implementation is provided.
+     * A default implementation is provided that resets the current values of
+     * num_cycles and the time step size.
      */
     virtual void
     postprocessIntegrateHierarchy(
@@ -325,6 +346,67 @@ public:
         double new_time,
         bool skip_synchronize_new_state_data,
         int num_cycles=1);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * preprocessIntegrateHierarchy().
+     */
+    typedef void
+    (*PreprocessIntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        int num_cycles,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * preprocessIntegrateHierarchy().
+     */
+    void
+    registerPreprocessIntegrateHierarchyCallback(
+        PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * IntegrateHierarchy().
+     */
+    typedef void
+    (*IntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        int cycle_num,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * IntegrateHierarchy().
+     */
+    void
+    registerIntegrateHierarchyCallback(
+        IntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * postprocessIntegrateHierarchy().
+     */
+    typedef void
+    (*PostprocessIntegrateHierarchyCallbackFcnPtr)(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * postprocessIntegrateHierarchy().
+     */
+    void
+    registerPostprocessIntegrateHierarchyCallback(
+        PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
 
     ///
     ///  Implementations of functions declared in the
@@ -424,6 +506,40 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getScratchContext() const;
 
+    /*!
+     * Check whether a patch data index corresponds to allocated data over the
+     * specified range of patch level numbers.
+     *
+     * NOTE: This method will return "false" without error for invalid (i.e.,
+     * negative) patch data indices.
+     */
+    bool
+    isAllocatedPatchData(
+        int data_idx,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * Allocate a patch data index over the specified range of patch level
+     * numbers.
+     */
+    void
+    allocatePatchData(
+        int data_idx,
+        double data_time,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
+    /*!
+     * Deallocate a patch data index over the specified range of patch level
+     * numbers.
+     */
+    void
+    deallocatePatchData(
+        int data_idx,
+        int coarsest_ln=-1,
+        int finest_ln=-1) const;
+
     ///
     ///  Routines to access utility classeses managed by the integrator.
     ///
@@ -457,7 +573,7 @@ protected:
      * excessive changes in the time step size as the computation progresses.
      */
     virtual double
-    getTimeStepSizeSpecialized();
+    getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Virtual method to perform implementation-specific data synchronization.
@@ -564,6 +680,36 @@ protected:
     virtual void
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Execute any user-specified preprocessIntegrateHierarchy callback
+     * functions.
+     */
+    virtual void
+    executePreprocessIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        int num_cycles);
+
+    /*!
+     * Execute any user-specified integrateHierarchy callback functions.
+     */
+    virtual void
+    executeIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        int cycle_num);
+
+    /*!
+     * Execute any user-specified postprocessIntegrateHierarchy callback
+     * functions.
+     */
+    virtual void
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles);
 
     /*!
      * Register a state variable with the integrator.  When a refine operator is
@@ -757,10 +903,11 @@ protected:
     int d_num_cycles;
 
     /*
-     * The number of cycles for the current time step and the current cycle
-     * number.
+     * The number of cycles for the current time step, the current cycle number,
+     * and the current time step size.
      */
     int d_current_num_cycles, d_current_cycle_num;
+    double d_current_dt;
 
     /*
      * The number of integration steps taken between invocations of the
@@ -782,7 +929,7 @@ protected:
     /*
      * Indicates whether the integrator should output logging messages.
      */
-    bool d_do_log;
+    bool d_enable_logging;
 
     /*
      * The type of extrapolation to use at physical boundaries when prolonging
@@ -834,6 +981,16 @@ protected:
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
+
+    /*!
+     * Callback functions and callback function contexts.
+     */
+    std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr> d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
+    std::vector<IntegrateHierarchyCallbackFcnPtr> d_integrate_hierarchy_callbacks;
+    std::vector<void*> d_integrate_hierarchy_callback_ctxs;
+    std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr> d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
 
 private:
     /*!

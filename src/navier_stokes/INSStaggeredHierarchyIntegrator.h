@@ -35,19 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsys.h>
-
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
+#include <ibamr/StaggeredStokesSolver.h>
 
 // IBTK INCLUDES
-#include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
-#include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonFACOperator.h>
 #include <ibtk/SideDataSynchronization.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -81,15 +73,14 @@ public:
     ~INSStaggeredHierarchyIntegrator();
 
     /*!
-     * Get a vector of pointers to the true velocity boundary condition
-     * specification objects.
+     * Get a vector of pointers to the velocity boundary condition specification
+     * objects.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
     getVelocityBoundaryConditions() const;
 
     /*!
-     * Get a pointer to the true pressure boundary condition specification
-     * object.
+     * Get a pointer to the pressure boundary condition specification object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
     getPressureBoundaryConditions() const;
@@ -100,8 +91,10 @@ public:
      * If the time integrator is configured to solve the time-dependent
      * (creeping) Stokes equations, then the returned pointer will be NULL.
      *
-     * If the convective operator has not already been constructed, then this
-     * function will initialize a INSStaggeredPPMConvectiveOperator.
+     * If the convective operator has not already been constructed, and if the
+     * time integrator is not configured to solve the time-dependent (creeping)
+     * Stokes equations, then this function will initialize the default type of
+     * convective operator, which may be set in the class input database.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
     getConvectiveOperator();
@@ -109,74 +102,30 @@ public:
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the velocity subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getVelocitySubdomainSolver();
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the pressure subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getPressureSubdomainSolver();
 
     /*!
      * Register a solver for the time-dependent incompressible Stokes equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
      */
     void
     setStokesSolver(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
-        bool needs_reinit_when_dt_changes);
+        SAMRAI::tbox::Pointer<StaggeredStokesSolver> stokes_solver);
 
     /*!
      * Get the solver for the time-dependent incompressible Stokes equations
      * used by this solver class.
-     *
-     * If the solver has not already been constructed, then this function will
-     * initialize a default solver, which is currently a PETScKrylovLinearSolver
-     * preconditioned by the default Stokes preconditioner provided by
-     * getStokesPreconditioner().  If a user-specified preconditioner has
-     * already been registered with the integrator, that preconditioner is used
-     * in place of the default preconditioner.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<StaggeredStokesSolver>
     getStokesSolver();
-
-    /*!
-     * Register a preconditioner for the time-dependent incompressible Stokes
-     * equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * preconditioner needs to be explicitly reinitialized when the time step
-     * size changes.
-     */
-    void
-    setStokesPreconditioner(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
-        bool needs_reinit_when_dt_changes);
-
-    /*!
-     * Get the preconditioner for the time-dependent incompressible Stokes
-     * equations used by this solver class.
-     *
-     * If the preconditioner has not already been constructed, then this
-     * function will initialize a default preconditioner, which is currently
-     * INSStaggeredProjectionPreconditioner.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
-    getStokesPreconditioner();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -209,12 +158,6 @@ public:
     initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Returns the number of cycles to perform for the present time step.
-     */
-    int
-    getNumberOfCycles();
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -357,22 +300,17 @@ private:
     regridProjection();
 
     /*!
-     * Value indicating the number of solver cycles to be used for the present
-     * time step.
-     */
-    int d_num_cycles_step;
-
-    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
      */
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
@@ -383,36 +321,20 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_scratch_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_half_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_adv_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_N_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_scratch_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
 
-    bool d_convective_op_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_velocity_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_velocity_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>      d_velocity_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
-    bool d_velocity_solver_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_pressure_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_pressure_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_pressure_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
-    bool d_pressure_solver_needs_init;
-
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator>      d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_solver;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_pc;
-    bool d_stokes_solver_needs_reinit_when_dt_changes, d_stokes_solver_needs_init;
+    std::string d_stokes_solver_type, d_stokes_precond_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db;
+    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
+    bool d_stokes_solver_needs_init;
 
     /*!
      * Fluid solver variables.
@@ -434,6 +356,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_div_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_rho_cc_var;
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -445,6 +370,7 @@ private:
     int     d_F_current_idx,     d_F_new_idx,     d_F_scratch_idx;
     int     d_Q_current_idx,     d_Q_new_idx,     d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
+    int   d_rho_current_idx,   d_rho_new_idx,   d_rho_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
@@ -452,7 +378,7 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx;
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_rho_cc_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

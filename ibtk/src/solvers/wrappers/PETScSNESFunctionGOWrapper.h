@@ -54,7 +54,7 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScSNESFunctionGOWrapper provides a GeneralOperator interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
  * function.
  */
 class PETScSNESFunctionGOWrapper
@@ -186,22 +186,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -233,9 +217,6 @@ private:
     operator=(
         const PETScSNESFunctionGOWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
-
     const SNES d_petsc_snes;
     PetscErrorCode (* const d_petsc_snes_form_func)(SNES,Vec,Vec,void*);
     void* const d_petsc_snes_func_ctx;
@@ -246,7 +227,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScSNESFunctionGOWrapper.I>
+//#include <ibtk/PETScSNESFunctionGOWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

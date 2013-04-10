@@ -1,0 +1,41 @@
+
+While Blitz++ can be used for parallel computing, it was not designed
+primarily for this purpose.  For this reason, you may want to investigate
+some other available libraries, such as POOMA, before choosing to implement
+a parallel code using Blitz++.
+
+@node Thread safety, , , Parallel Computing
+@section Blitz++ and thread safety
+@cindex parallel computing
+
+@cindex thread safety
+
+To enable thread-safety in Blitz++, you need to do one of these things:
+
+@findex BZ_THREADSAFE
+@findex BZ_MUTEX_...
+
+@itemize @bullet
+
+@findex REENTRANT
+@item  Compile with @code{gcc -pthread}, or @code{CC -mt} under Solaris.
+(These options define @code{_REENTRANT}, which tells Blitz++ to generate
+thread-safe code).
+
+@item  Compile with @code{-DBZ_THREADSAFE}, or @code{#define BZ_THREADSAFE}
+before including any Blitz++ headers.
+
+@end itemize
+
+In threadsafe mode, Blitz++ array reference counts are safeguarded by a
+mutex.  By default, pthread mutexes are used.  If you would prefer a
+different mutex implementation, add the appropriate @code{BZ_MUTEX} macros
+to @code{<blitz/blitz.h>} and send them to @code{blitz-dev@@oonumerics.org}
+for incorporation.
+
+@cindex locking (thread safety)
+
+Blitz++ does not do locking for every array element access; this would
+result in terrible performance.  It is the job of the library user to ensure
+that appropriate synchronization is used.
+

@@ -39,18 +39,8 @@
 #include <petscsnes.h>
 
 // IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-#include <ibtk/JacobianOperator.h>
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,8 +48,8 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScNewtonKrylovSolver provides a NewtonKrylovSolver interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> inexact
- * Newton-Krylov iterative nonlinear solver (SNES).
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> inexact Newton-Krylov
+ * iterative nonlinear solver (SNES).
  *
  * This solver class provides access to inexact Newton-Krylov methods, including
  * line search and trust region Newton methods, using the PETSc SNES nonlinear
@@ -80,10 +70,20 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied SNES object is properly
  *   destroyed via SNESDestroy().
  *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ options_prefix = ""           // see setOptionsPrefix()
+ rel_residual_tol = 1.0e-8     // see setRelativeTolerance()
+ abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
+ solution_tol = 1.0e-8         // see setSolutionTolerance()
+ max_iterations = 50           // see setMaxIterations()
+ enable_logging = FALSE        // see setLoggingEnabled()
+ \endverbatim
+ *
  * PETSc is developed in the Mathematics and Computer Science (MCS) Division at
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">
- * http://www-unix.mcs.anl.gov/petsc</A>.
+ * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
 class PETScNewtonKrylovSolver
     : public NewtonKrylovSolver
@@ -92,17 +92,11 @@ public:
     /*!
      * \brief Constructor for a concrete NewtonKrylovSolver that employs the
      * PETSc SNES solver framework.
-     *
-     * \param object_name     Name of the solver
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
-     * \param petsc_comm      MPI communicator
-     *
-     * \note The value of \a petsc_comm is used to specify the MPI communicator
-     * used when initializing any PETSc objects required by this class.
      */
     PETScNewtonKrylovSolver(
         const std::string& object_name,
-        const std::string& options_prefix="",
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
 
     /*!
@@ -111,7 +105,6 @@ public:
      *
      * \param object_name     Name of the solver
      * \param petsc_snes      PETSc SNES object
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
      *
      * \note This constructor initializes a PETScNewtonKrylovSolver object that
      * acts as a "wrapper" for the provided SNES object.  Note that memory
@@ -119,13 +112,31 @@ public:
      */
     PETScNewtonKrylovSolver(
         const std::string& object_name,
-        const SNES& petsc_snes,
-        const std::string& options_prefix="");
+        const SNES& petsc_snes);
 
     /*!
      * \brief Destructor.
      */
     ~PETScNewtonKrylovSolver();
+
+    /*!
+     * \brief Static function to construct a PETScNewtonKrylovSolver.
+     */
+    static SAMRAI::tbox::Pointer<NewtonKrylovSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
+        {
+            return new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix);
+        }// allocate_solver
+
+    /*!
+     * \brief Set the options prefix used by this PETSc solver object.
+     */
+    void
+    setOptionsPrefix(
+        const std::string& options_prefix);
 
     /*!
      * \name Functions to access the underlying PETSc objects.
@@ -153,12 +164,6 @@ public:
         SAMRAI::tbox::Pointer<GeneralOperator> op);
 
     /*!
-     * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
-     */
-    SAMRAI::tbox::Pointer<GeneralOperator>
-    getOperator() const;
-
-    /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
@@ -181,20 +186,6 @@ public:
     void
     setJacobian(
         SAMRAI::tbox::Pointer<JacobianOperator> J);
-
-    /*!
-     * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the
-     * solver.
-     */
-    SAMRAI::tbox::Pointer<JacobianOperator>
-    getJacobian() const;
-
-    /*!
-     * \brief Retrieve the Krylov linear solver used in computing Newton step
-     * directions.
-     */
-    SAMRAI::tbox::Pointer<KrylovLinearSolver>
-    getLinearSolver() const;
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.
@@ -303,120 +294,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set the maximum number of nonlinear iterations to use per solve.
-     */
-    void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of nonlinear iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the maximum number of function evaluations to use per solve.
-     */
-    void
-    setMaxEvaluations(
-        int max_evaluations);
-
-    /*!
-     * \brief Get the maximum number of function evaluations to use per solve.
-     */
-    int
-    getMaxEvaluations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    /*!
-     * \brief Set the tolerance in terms of the norm of the change in the
-     * solution between steps.
-     */
-    void
-    setSolutionTolerance(
-        double solution_tol);
-
-    /*!
-     * \brief Get the tolerance in terms of the norm of the change in the
-     * solution between steps.
-     */
-    double
-    getSolutionTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent nonlinear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the number of linear iterations from the most recent
-     * nonlinear solve.
-     */
-    int
-    getNumLinearIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -461,6 +338,13 @@ private:
     reportSNESConvergedReason(
         const SNESConvergedReason& reason,
         std::ostream& os) const;
+
+    /*!
+     * \brief Reset the SNES wrapped by this solver class.
+     */
+    void
+    resetWrappedSNES(
+        SNES& petsc_snes);
 
     /*!
      * \brief Reset the values of the convergence tolerances for the PETSc SNES
@@ -528,25 +412,6 @@ private:
         Vec z);
 
     /*!
-     * \brief Compute the matrix-transpose vector product y = A'x.
-     */
-    static PetscErrorCode
-    MatVecMultTranspose_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    /*!
-     * \brief Compute the matrix-transpose vector product y = A'x + z.
-     */
-    static PetscErrorCode
-    MatVecMultTransposeAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
-
-    /*!
      * \brief Get vector(s) compatible with the matrix, i.e., with the same
      * parallel layout.
      */
@@ -567,12 +432,8 @@ private:
 
     //\}
 
-    std::string d_object_name;
+    bool d_reinitializing_solver;
 
-    bool d_is_initialized, d_reinitializing_solver;
-    bool d_do_log;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b, d_solver_r;
     Vec d_petsc_x, d_petsc_b, d_petsc_r;
 
     std::string d_options_prefix;
@@ -583,25 +444,12 @@ private:
     bool d_managing_petsc_snes;
     bool d_user_provided_function;
     bool d_user_provided_jacobian;
-
-    SAMRAI::tbox::Pointer<GeneralOperator>         d_F;
-    SAMRAI::tbox::Pointer<JacobianOperator>        d_J;
-    SAMRAI::tbox::Pointer<PETScKrylovLinearSolver> d_krylov_solver;
-
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    double d_solution_tol;
-    int d_max_iterations;
-    int d_max_evaluations;
-
-    int d_current_its, d_current_lits;
-    double d_current_residual_norm;
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScNewtonKrylovSolver.I>
+//#include <ibtk/PETScNewtonKrylovSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

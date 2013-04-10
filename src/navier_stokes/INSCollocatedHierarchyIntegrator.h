@@ -41,12 +41,6 @@
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// IBTK INCLUDES
-#include <ibtk/CCDivGradOperator.h>
-#include <ibtk/CCDivGradHypreLevelSolver.h>
-#include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -84,8 +78,10 @@ public:
      * If the time integrator is configured to solve the time-dependent
      * (creeping) Stokes equations, then the returned pointer will be NULL.
      *
-     * If the convective operator has not already been constructed, then this
-     * function will initialize a INSCollocatedPPMConvectiveOperator.
+     * If the convective operator has not already been constructed, and if the
+     * time integrator is not configured to solve the time-dependent (creeping)
+     * Stokes equations, then this function will initialize the default type of
+     * convective operator, which may be set in the class input database.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
     getConvectiveOperator();
@@ -93,45 +89,16 @@ public:
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the velocity subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getVelocitySubdomainSolver();
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
-     *
-     * If the pressure subdomain solver has not already been constructed, then
-     * this function will initialize a multigrid preconditioned
-     * PETScKrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getPressureSubdomainSolver();
-
-    /*!
-     * Register a solver for the exact projection-Poisson problem.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
-     */
-    void
-    setExactProjectionSolver(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> exact_projection_solver,
-        bool needs_reinit_when_dt_changes);
-
-    /*!
-     * Get the solver for the exact projection-Poisson problem.
-     *
-     * If the solver has not already been constructed, then this function will
-     * initialize a multigrid preconditioned PETScKrylovLinearSolver.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
-    getExactProjectionSolver();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -164,12 +131,6 @@ public:
     initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Returns the number of cycles to perform for the present time step.
-     */
-    int
-    getNumberOfCycles();
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -312,12 +273,6 @@ private:
     regridProjection();
 
     /*!
-     * Value indicating the number of solver cycles to be used for the present
-     * time step.
-     */
-    int d_num_cycles_step;
-
-    /*!
      * Value determining the type of projection method to use.
      */
     ProjectionMethodType d_projection_method_type;
@@ -327,12 +282,6 @@ private:
      * pressure update.
      */
     bool d_using_2nd_order_pressure_update;
-
-    /*!
-     * Boolean indicating whether to use an exact projection for the
-     * cell-centered velocity.  Otherwise we use an approximate projection.
-     */
-    bool d_using_exact_projection;
 
     /*!
      * Hierarchy operations objects.
@@ -347,34 +296,12 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_scratch_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_half_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_adv_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_N_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_Phi_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_Phi_rhs_vec;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
-
-    bool d_convective_op_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_velocity_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_velocity_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
-    bool d_velocity_solver_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_pressure_op;
-    SAMRAI::solv::PoissonSpecifications*                   d_pressure_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_pressure_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
-    bool d_pressure_solver_needs_init;
-
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_exact_projection_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_exact_projection_hypre_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::CCDivGradOperator>         d_exact_projection_op;
-    SAMRAI::tbox::Pointer<IBTK::CCDivGradHypreLevelSolver> d_exact_projection_hypre_pc;
-    bool d_exact_projection_solver_needs_reinit_when_dt_changes, d_exact_projection_solver_needs_init;
-
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
 
     /*!

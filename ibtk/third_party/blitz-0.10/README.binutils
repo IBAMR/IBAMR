@@ -1,0 +1,70 @@
+If you are using blitz with egcs under Solaris, SunOS, or OSF/1
+you may need to use the gnu linker.
+
+You can download the binutils from ftp://prep.ai.mit.edu/gnu/binutils/
+
+From Peter Nordlund:
+
+My experience with blitz and sun is that you need the gnu linker.
+At least I had the same problem, and by using gnu-binutils-2.9.1 I got
+it to work.
+
+It can be somewhat tricky to get egcs to use the gnu-linker also.
+So how I do it migth not be the only way, but it worked for me.
+
+1. Install binutils-2.9.1 
+2. Create the bin directory where the egcs compiler will be installed.
+3. create links from the linker and assembler to the egcs-bin-dir.
+4. configure and install egcs.
+
+See the commands I used below.
+---------------------------
+mkdir BUILD; cd BUILD
+mkdir ../egcs-1.1a/bin
+pushd ../egcs-1.1a/bin
+ln -s /misc/cvap/gnu/binutils-2.9.1/bin/ld .
+ln -s /misc/cvap/gnu/binutils-2.9.1/bin/as .
+popd
+../src/egcs-1.1a/configure --prefix=/misc/cvap/egcs/egcs-1.1a
+--with-gnu-as --with-gnu-ld
+make bootstrap-lean ; make install
+
+
+> I am trying to get blitz++ going on a Sun Ultra-1 running Solaris 5.6.
+> 
+> The compiler is egcs 1.1b.
+> 
+> The make seems to go fine until we get to the examples:
+> 
+> > gmake[1]: Entering directory `/data/gaetz/blitz-19980903/examples'
+> > g++  matmult.o -o matmult -L../lib -lblitz -lm
+> > ld: warning: relocation error: R_SPARC_32: file matmult.o: symbol __Q25blitz
+t13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayExprOp3ZQ25blitzt13_bz_ArrayExpr1ZQ25blitz
+t20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayExprOp3ZQ
+25blitzt21_bz_ArrayExprConstant1ZfZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt20_bz_Arra
+yExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayExprOp3ZQ25blitzt13_
+bz_ArrayExpr1ZQ25blitzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blit
+zt15_bz_ArrayExprOp3ZQ25blitzt16IndexPlaceholder1i0ZQ25blitzt21_bz_ArrayExprCons
+tant1ZfZQ25blitzt8Subtract2ZiZfZQ25blitzt8_bz_pow21ZfZQ25blitzt13_bz_ArrayExpr1Z
+Q25blitzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayE
+xprOp3ZQ25blitzt16IndexPlaceholder1i1ZQ25blitzt21_bz_ArrayExpr:
+> >         external symbolic relocation against non-allocatable section .stab;
+> >         cannot be processed at runtime: relocation ignored
+> > Undefined                       first referenced
+> >  symbol                             in file
+> > __Q25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayExprOp3ZQ25blitzt13_bz_Array
+Expr1ZQ25blitzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_
+ArrayExprOp3ZQ25blitzt21_bz_ArrayExprConstant1ZfZQ25blitzt13_bz_ArrayExpr1ZQ25bl
+itzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt15_bz_ArrayExprOp
+3ZQ25blitzt13_bz_ArrayExpr1ZQ25blitzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_Arra
+yExpr1ZQ25blitzt15_bz_ArrayExprOp3ZQ25blitzt16IndexPlaceholder1i0ZQ25blitzt21_bz
+_ArrayExprConstant1ZfZQ25blitzt8Subtract2ZiZfZQ25blitzt8_bz_pow21ZfZQ25blitzt13_
+bz_ArrayExpr1ZQ25blitzt20_bz_ArrayExprUnaryOp2ZQ25blitzt13_bz_ArrayExpr1ZQ25blit
+zt15_bz_ArrayExprOp3ZQ25blitzt16IndexPlaceholder1i1ZQ25blitzt21_bz_ArrayExpr mat
+mult.o
+> > ld: fatal: Symbol referencing errors. No output written to matmult
+> > collect2: ld returned 1 exit status
+> > gmake[1]: *** [matmult] Error 1
+> 
+> What is happening here?  Are there workarounds?
+

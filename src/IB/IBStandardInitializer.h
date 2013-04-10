@@ -72,21 +72,21 @@ namespace IBAMR
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
  * following format for two-dimensional models:
  \verbatim
- N                   # number of vertices in the file
- x_0       y_0       # (x,y)-coordinates of vertex 0
- x_1       y_1       # (x,y)-coordinates of vertex 1
+ N           # number of vertices in the file
+ x_0   y_0   # (x,y)-coordinates of vertex 0
+ x_1   y_1   # (x,y)-coordinates of vertex 1
+ x_2   y_2   # (x,y)-coordinates of vertex 2
  ...
- x_{N-1}   y_{N-1}   # (x,y)-coordinates of vertex N-1
  \endverbatim
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
  * following format for three-dimensional models:
  \verbatim
- N                             # number of vertices in the file
- x_0       y_0       z_0       # (x,y,z)-coordinates of vertex 0
- x_1       y_1       z_1       # (x,y,z)-coordinates of vertex 1
+ N                 # number of vertices in the file
+ x_0   y_0   z_0   # (x,y,z)-coordinates of vertex 0
+ x_1   y_1   z_1   # (x,y,z)-coordinates of vertex 1
+ x_2   y_2   z_2   # (x,y,z)-coordinates of vertex 2
  ...
- x_{N-1}   y_{N-1}   z_{N-1}   # (x,y,z)-coordinates of vertex N-1
  \endverbatim
  *
  * <HR>
@@ -125,6 +125,51 @@ namespace IBAMR
  *
  * <HR>
  *
+ * <B>Crosslink spring file format</B>
+ *
+ * Crosslink spring ("x-spring") input files end with the extension
+ * <TT>".xspring"</TT> and have the following format:
+ \verbatim
+ M                                            # number of links in the file
+ i_0   j_0   kappa_0   length_0   fcn_idx_0   # first vertex index, second vertex index, spring constant, rest length, spring function index
+ i_1   j_1   kappa_1   length_1   fcn_idx_1
+ i_2   j_2   kappa_2   length_2   fcn_idx_2
+ ...
+ \endverbatim
+ *
+ * \note Unlike standard spring files, in which all indices are required to
+ * refer to points within a particular structure, x-spring files may connect
+ * points from different structures.  Consequently, the node indices in an
+ * x-spring file must be \em global indices.  Notice that global indices are
+ * determined by the order in which the structures are specified in the input
+ * file.  Changes in the order in which structures are specified necessarily
+ * change the global indexing scheme.
+ *
+ * \note Crosslink springs may connect only structures assigned to the \em same
+ * level of the locally refined grid.
+ *
+ * \note There is no restriction on the number of x-springs that may be
+ * associated with any particular node of the Lagrangian mesh.
+ *
+ * \note The rest length and force function index are \em optional values.  If
+ * they are not provided, then by default the rest length will be set to the
+ * value \a 0.0 and the force function index will be set to \a 0.  This
+ * corresponds to a linear spring with zero rest length.
+ *
+ * \note Crosslink spring specifications are used by class LSiloDataWriter to
+ * construct unstructured mesh representations of the Lagrangian structures.
+ * Consequently, even if your structure does not have any springs, it may be
+ * worthwhile to generate a spring input file with all spring constants set to
+ * \a 0.0.
+ *
+ * \note \a min(i,j) is always used as the "master" node index when constructing
+ * the corresponding IBSpringForceSpec object.
+ *
+ * \see IBSpringForceGen
+ * \see IBSpringForceSpec
+ *
+ * <HR>
+ *
  * <B> Beam file format</B>
  *
  * Beam input files end with the extension <TT>".beam"</TT> and have the
@@ -132,8 +177,8 @@ namespace IBAMR
  \verbatim
  M                           # number of beams in the file
  i_0   j_0   k_0   kappa_0   # first vertex index, second vertex index, third vertex index, bending rigidity
- i_1   j_1   k_1   kappa_1   # first vertex index, second vertex index, third vertex index, bending rigidity
- i_2   j_2   k_2   kappa_2   # first vertex index, second vertex index, third vertex index, bending rigidity
+ i_1   j_1   k_1   kappa_1
+ i_2   j_2   k_2   kappa_2
  ...
  \endverbatim
  *
@@ -158,9 +203,9 @@ namespace IBAMR
  * format:
  \verbatim
  M                                                                                          # number of rods in the file
- i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first  vertex index, second vertex index, material parameters
- i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1   # second vertex index, second vertex index, material parameters
- i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2   # third  vertex index, second vertex index, material parameters
+ i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first vertex index, second vertex index, material parameters
+ i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1
+ i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2
  ...
  \endverbatim
  *
@@ -531,61 +576,83 @@ private:
      * \brief Read the vertex data from one or more input files.
      */
     void
-    readVertexFiles();
+    readVertexFiles(
+        const std::string& extension);
 
     /*!
      * \brief Read the spring data from one or more input files.
      */
     void
-    readSpringFiles();
+    readSpringFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
+
+    /*!
+     * \brief Read the crosslink spring ("x-spring") data from one or more input
+     * files.
+     */
+    void
+    readXSpringFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the beam data from one or more input files.
      */
     void
-    readBeamFiles();
+    readBeamFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the rod data from one or more input files.
      */
     void
-    readRodFiles();
+    readRodFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the target point data from one or more input files.
      */
     void
-    readTargetPointFiles();
+    readTargetPointFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the anchor point data from one or more input files.
      */
     void
-    readAnchorPointFiles();
+    readAnchorPointFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the boundary mass data from one or more input files.
      */
     void
-    readBoundaryMassFiles();
+    readBoundaryMassFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the director data from one or more input files.
      */
     void
-    readDirectorFiles();
+    readDirectorFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the instrumentation data from one or more input files.
      */
     void
-    readInstrumentationFiles();
+    readInstrumentationFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the source/sink data from one or more input files.
      */
     void
-    readSourceFiles();
+    readSourceFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Determine the indices of any vertices initially located within the
@@ -767,11 +834,8 @@ private:
 
     struct SpringSpec
     {
-        double stiffness, rest_length;
+        std::vector<double> parameters;
         int force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-        int subdomain_idx;
-#endif
     };
     std::vector<std::vector<std::map<Edge,SpringSpec,EdgeComp> > > d_spring_spec_data;
 
@@ -784,10 +848,28 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
 
-#if ENABLE_SUBDOMAIN_INDICES
-    std::vector<std::vector<bool> > d_using_uniform_spring_subdomain_idx;
-    std::vector<std::vector<int> > d_uniform_spring_subdomain_idx;
-#endif
+    /*
+     * Crosslink spring ("x-spring") information.
+     */
+    std::vector<std::vector<bool> > d_enable_xsprings;
+
+    std::vector<std::vector<std::multimap<int,Edge> > > d_xspring_edge_map;
+
+    struct XSpringSpec
+    {
+        std::vector<double> parameters;
+        int force_fcn_idx;
+    };
+    std::vector<std::vector<std::map<Edge,XSpringSpec,EdgeComp> > > d_xspring_spec_data;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_stiffness;
+    std::vector<std::vector<double> > d_uniform_xspring_stiffness;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_rest_length;
+    std::vector<std::vector<double> > d_uniform_xspring_rest_length;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_force_fcn_idx;
+    std::vector<std::vector<int> > d_uniform_xspring_force_fcn_idx;
 
     /*
      * Beam information.
@@ -799,9 +881,6 @@ private:
         std::pair<int,int> neighbor_idxs;
         double bend_rigidity;
         blitz::TinyVector<double,NDIM> curvature;
-#if ENABLE_SUBDOMAIN_INDICES
-        int subdomain_idx;
-#endif
     };
     std::vector<std::vector<std::multimap<int,BeamSpec> > > d_beam_spec_data;
 
@@ -810,11 +889,6 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
     std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_uniform_beam_curvature;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    std::vector<std::vector<bool> > d_using_uniform_beam_subdomain_idx;
-    std::vector<std::vector<int> > d_uniform_beam_subdomain_idx;
-#endif
 
     /*
      * Rod information.
@@ -826,19 +900,11 @@ private:
     struct RodSpec
     {
         blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
-#if ENABLE_SUBDOMAIN_INDICES
-        int subdomain_idx;
-#endif
     };
     std::vector<std::vector<std::map<Edge,RodSpec,EdgeComp> > > d_rod_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_rod_properties;
     std::vector<std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    std::vector<std::vector<bool> > d_using_uniform_rod_subdomain_idx;
-    std::vector<std::vector<int> > d_uniform_rod_subdomain_idx;
-#endif
 
     /*
      * Target point information.
@@ -848,9 +914,6 @@ private:
     struct TargetSpec
     {
         double stiffness, damping;
-#if ENABLE_SUBDOMAIN_INDICES
-        int subdomain_idx;
-#endif
     };
     std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
 
@@ -860,11 +923,6 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_target_damping;
     std::vector<std::vector<double> > d_uniform_target_damping;
 
-#if ENABLE_SUBDOMAIN_INDICES
-    std::vector<std::vector<bool> > d_using_uniform_target_subdomain_idx;
-    std::vector<std::vector<int> > d_uniform_target_subdomain_idx;
-#endif
-
     /*
      * Anchor point information.
      */
@@ -873,16 +931,8 @@ private:
     struct AnchorSpec
     {
         bool is_anchor_point;
-#if ENABLE_SUBDOMAIN_INDICES
-        int subdomain_idx;
-#endif
     };
     std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    std::vector<std::vector<bool> > d_using_uniform_anchor_subdomain_idx;
-    std::vector<std::vector<int> > d_uniform_anchor_subdomain_idx;
-#endif
 
     /*
      * Mass information for the pIB method.

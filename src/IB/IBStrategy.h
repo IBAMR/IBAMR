@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petscsys.h>
+#include <petscmat.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
@@ -120,11 +120,20 @@ public:
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
-     *
-     * An empty default implementation is provided.
      */
     virtual const SAMRAI::hier::IntVector<NDIM>&
     getMinimumGhostCellWidth() const = 0;
+
+    /*!
+     * Setup the tag buffer.
+     *
+     * A default implementation is provided that sets the tag buffer to be at
+     * least the minimum ghost cell width.
+     */
+    virtual void
+    setupTagBuffer(
+        SAMRAI::tbox::Array<int>& tag_buffer,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -147,6 +156,37 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+
+    /*!
+     * Indicate whether "fixed" interpolation and spreading operators should be
+     * used during Lagrangian-Eulerian interaction.
+     */
+    void
+    setUseFixedLEOperators(
+        bool use_fixed_coupling_ops=true);
+
+    /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    updateFixedLEOperators();
+
+    /*!
+     * Get a pointer to a vector of coupling positions for the specified level
+     * of the patch hierarchy.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    getLEOperatorPositions(
+        Vec& X_vec,
+        int level_num,
+        double data_time);
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -195,6 +235,35 @@ public:
         double data_time) = 0;
 
     /*!
+     * \brief Compute the non-zero structure of the force Jacobian matrix.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    computeLagrangianForceJacobianNonzeroStructure(
+        std::vector<int>& d_nnz,
+        std::vector<int>& o_nnz);
+
+    /*!
+     * \brief Compute the Jacobian of the force with respect to the present
+     * structure configuration.
+     *
+     * \note The elements of the Jacobian should be accumulated in the provided
+     * matrix.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    computeLagrangianForceJacobian(
+        Mat& J_mat,
+        MatAssemblyType assembly_type,
+        double X_coef,
+        double U_coef,
+        double data_time);
+
+    /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
@@ -203,6 +272,23 @@ public:
         int f_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time) = 0;
+
+    /*!
+     * \brief Compute the application of the Jacobian of the force at the specified time
+     * within the current time interval.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    applyLagrangianForceJacobian(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time,
+        Mat& J_mat);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -532,6 +618,11 @@ protected:
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
     IBHierarchyIntegrator* d_ib_solver;
+
+    /*!
+     * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
+     */
+    bool d_use_fixed_coupling_ops;
 
 private:
     /*!

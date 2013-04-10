@@ -53,7 +53,7 @@
 #include <CellVariable.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -113,7 +113,7 @@ CartCellDoubleQuadraticRefine::findRefineOperator(
     const std::string& op_name) const
 {
     const Pointer<CellVariable<NDIM,double> > cc_var = var;
-    return (!cc_var.isNull() && op_name == s_op_name);
+    return (cc_var && op_name == s_op_name);
 }// findRefineOperator
 
 const std::string&
@@ -147,8 +147,8 @@ CartCellDoubleQuadraticRefine::refine(
     Pointer<CellData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(src_component);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!fdata.isNull());
-    TBOX_ASSERT(!cdata.isNull());
+    TBOX_ASSERT(fdata);
+    TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
 #endif
     const int data_depth = fdata->getDepth();
@@ -183,8 +183,7 @@ CartCellDoubleQuadraticRefine::refine(
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);
             std::vector<double> X_crse(degree+1,0.0);
-            for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
-                 i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
+            for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
             {
                 X_crse[k] = XLower_crse[axis] + dx_crse[axis]*(static_cast<double>(i_crse-patch_lower_crse(axis))+0.5);
             }

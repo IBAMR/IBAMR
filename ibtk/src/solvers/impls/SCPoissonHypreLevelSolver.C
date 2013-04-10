@@ -47,21 +47,14 @@
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <ArrayDataBasicOps.h>
-#include <Index.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
-#include <OutersideData.h>
-#include <SideDataFactory.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-
-// C++ STDLIB INCLUDES
-#include <iterator>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -82,52 +75,16 @@ static const int RELAX_TYPE_JACOBI                       = 0;
 static const int RELAX_TYPE_WEIGHTED_JACOBI              = 1;
 static const int RELAX_TYPE_RB_GAUSS_SEIDEL              = 2;
 static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
-
-struct IndexComp
-    : std::binary_function<Index<NDIM>,Index<NDIM>,bool>
-{
-    bool operator()(
-        const Index<NDIM>& lhs,
-        const Index<NDIM>& rhs) const
-        {
-            return (lhs(0) < rhs(0)
-#if (NDIM > 1)
-                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-                    );
-        }// operator()
-};
-
-inline Box<NDIM>
-compute_tangential_extension(
-    const Box<NDIM>& box,
-    const int data_axis)
-{
-    Box<NDIM> extended_box = box;
-    extended_box.upper()(data_axis) += 1;
-    return extended_box;
-}// compute_tangential_extension
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     const std::string& object_name,
-    Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_hierarchy(),
+    Pointer<Database> input_db,
+    const std::string& /*default_options_prefix*/)
+    : d_hierarchy(),
       d_level_num(-1),
-      d_poisson_spec(d_object_name+"::Poisson specs"),
-      d_constant_coefficients(true),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(true),
-      d_apply_time(0.0),
       d_grid(NULL),
       d_stencil(),
       d_graph(NULL),
@@ -139,19 +96,12 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
       d_solver_type("Split"),
       d_precond_type("none"),
       d_split_solver_type("PFMG"),
-      d_max_iterations(10),
-      d_abs_residual_tol(0.0),
-      d_rel_residual_tol(1.0e-6),
-      d_initial_guess_nonzero(false),
       d_rel_change(0),
       d_num_pre_relax_steps(1),
       d_num_post_relax_steps(1),
       d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI),
       d_skip_relax(1),
-      d_two_norm(1),
-      d_current_its(-1),
-      d_current_residual_norm(-1.0),
-      d_enable_logging(false)
+      d_two_norm(1)
 {
     if (NDIM == 1 || NDIM > 3)
     {
@@ -159,53 +109,43 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
                    << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
     }
 
+    // Setup default options.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
+    d_initial_guess_nonzero = false;
+    d_rel_residual_tol = 1.0e-5;
+    d_abs_residual_tol = 1.0e-50;
+    d_max_iterations = 25;
+
     // Get values from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
-        d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
-        d_solver_type = input_db->getStringWithDefault("solver_type", d_solver_type);
-        d_precond_type = input_db->getStringWithDefault("precond_type", d_precond_type);
-        d_max_iterations = input_db->getIntegerWithDefault("max_iterations", d_max_iterations);
-        d_abs_residual_tol = input_db->getDoubleWithDefault("absolute_residual_tol", d_abs_residual_tol);
-        d_rel_residual_tol = input_db->getDoubleWithDefault("relative_residual_tol", d_rel_residual_tol);
-        d_initial_guess_nonzero = input_db->getBoolWithDefault("initial_guess_nonzero", d_initial_guess_nonzero);
-        d_rel_change = input_db->getIntegerWithDefault("rel_change", d_rel_change);
+        if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+        if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
+        if (input_db->keyExists("precond_type")) d_precond_type = input_db->getString("precond_type");
+        if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
+        if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
+        if (input_db->keyExists("rel_residual_tol")) d_rel_residual_tol = input_db->getDouble("rel_residual_tol");
+        if (input_db->keyExists("initial_guess_nonzero")) d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
+        if (input_db->keyExists("rel_change")) d_rel_change = input_db->getInteger("rel_change");
 
         if (d_solver_type == "SysPFMG" || d_precond_type == "SysPFMG")
         {
-            d_num_pre_relax_steps = input_db->getIntegerWithDefault("num_pre_relax_steps", d_num_pre_relax_steps);
-            d_num_post_relax_steps = input_db->getIntegerWithDefault("num_post_relax_steps", d_num_post_relax_steps);
-            d_relax_type = input_db->getIntegerWithDefault("relax_type", d_relax_type);
-            d_skip_relax = input_db->getIntegerWithDefault("skip_relax", d_skip_relax);
+            if (input_db->keyExists("num_pre_relax_steps")) d_num_pre_relax_steps = input_db->getInteger("num_pre_relax_steps");
+            if (input_db->keyExists("num_post_relax_steps")) d_num_post_relax_steps = input_db->getInteger("num_post_relax_steps");
+            if (input_db->keyExists("relax_type")) d_relax_type = input_db->getInteger("relax_type");
+            if (input_db->keyExists("skip_relax")) d_skip_relax = input_db->getInteger("skip_relax");
         }
 
         if (d_solver_type == "Split" || d_precond_type == "Split")
         {
-            d_split_solver_type = input_db->getStringWithDefault("split_solver_type", d_split_solver_type);
+            if (input_db->keyExists("split_solver_type")) d_split_solver_type = input_db->getString("split_solver_type");
         }
 
         if (d_solver_type == "PCG")
         {
-            d_two_norm = input_db->getIntegerWithDefault("two_norm", d_two_norm);
+            if (input_db->keyExists("two_norm")) d_two_norm = input_db->getInteger("two_norm");
         }
     }
-
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-    d_constant_coefficients = true;
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(d_homogeneous_bc);
-    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -220,59 +160,8 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
 SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
-    delete d_default_bc_coef;
     return;
 }// ~SCPoissonHypreLevelSolver
-
-void
-SCPoissonHypreLevelSolver::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    if (d_poisson_spec.cIsVariable() || d_poisson_spec.dIsVariable())
-    {
-        d_constant_coefficients = false;
-    }
-    else
-    {
-        d_constant_coefficients = true;
-    }
-    return;
-}// setPoissonSpecifications
-
-void
-SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-SCPoissonHypreLevelSolver::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-void
-SCPoissonHypreLevelSolver::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
 
 bool
 SCPoissonHypreLevelSolver::solveSystem(
@@ -287,6 +176,10 @@ SCPoissonHypreLevelSolver::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
 
+    // Ensure the initial guess is zero when appropriate.  (hypre does not
+    // reliably honor the SetZeroGuess settings.)
+    if (!d_initial_guess_nonzero) x.setToScalar(0.0, /*interior_only*/ false);
+
     // Solve the system using the hypre solver.
     static const int comp = 0;
     const int x_idx = x.getComponentDescriptorIndex(comp);
@@ -297,7 +190,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     if (d_enable_logging)
     {
         plog << d_object_name << "::solveSystem(): solver " << (converged ? "converged" : "diverged") << "\n"
-             << "iterations = " << d_current_its << "\n"
+             << "iterations = " << d_current_iterations << "\n"
              << "residual norm = " << d_current_residual_norm << std::endl;
     }
 
@@ -356,7 +249,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (patch_hierarchy->getPatchLevel(ln).isNull())
+        if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                        << "  hierarchy level " << ln << " does not exist" << std::endl);
@@ -380,15 +273,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
 
     // Allocate and initialize the hypre data structures.
     allocateHypreData();
-    if (d_constant_coefficients)
-    {
-        setMatrixCoefficients_constant_coefficients();
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                   << "  only constant-coefficient problems are currently supported" << std::endl);
-    }
+    setMatrixCoefficients();
     setupHypreSolver();
 
     // Indicate that the solver is initialized.
@@ -415,14 +300,6 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
-
-void
-SCPoissonHypreLevelSolver::enableLogging(
-    bool enabled)
-{
-    d_enable_logging = enabled;
-    return;
-}// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -475,28 +352,23 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     HYPRE_SStructGridAssemble(d_grid);
 
     // Allocate stencil data and set stencil offsets.
-    if (d_constant_coefficients)
+    static const int stencil_sz = 2*NDIM+1;
+    d_stencil_offsets.resize(stencil_sz);
+    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+    for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
-        static const int stencil_sz = 2*NDIM+1;
-#if (NDIM == 2)
-        int stencil_offsets[stencil_sz][2] = { { -1, 0 }, { 0, -1}, { +1, 0 }, { 0, +1}, { 0, 0 } };
-#endif
-#if (NDIM == 3)
-        int stencil_offsets[stencil_sz][3] = { { -1, 0, 0 }, { 0, -1, 0 }, { 0, 0, -1 }, { +1, 0, 0 }, { 0, +1, 0 }, { 0, 0, +1 }, { 0, 0, 0 } };
-#endif
-        for (int var = 0; var < NVARS; ++var)
+        for (int side = 0; side <= 1; ++side, ++stencil_index)
         {
-            HYPRE_SStructStencilCreate(NDIM, stencil_sz, &d_stencil[var]);
-            for (int s = 0; s < stencil_sz; ++s)
-            {
-                HYPRE_SStructStencilSetEntry(d_stencil[var], s, stencil_offsets[s], var);
-            }
+            d_stencil_offsets[stencil_index](axis) = (side == 0 ? -1 : +1);
         }
     }
-    else
+    for (int var = 0; var < NVARS; ++var)
     {
-        TBOX_ERROR(d_object_name << "::allocateHypreData()\n"
-                   << "  only constant-coefficient problems are currently supported" << std::endl);
+        HYPRE_SStructStencilCreate(NDIM, stencil_sz, &d_stencil[var]);
+        for (int s = 0; s < stencil_sz; ++s)
+        {
+            HYPRE_SStructStencilSetEntry(d_stencil[var], s, d_stencil_offsets[s], var);
+        }
     }
 
     // Allocate the hypre graph.
@@ -521,290 +393,40 @@ SCPoissonHypreLevelSolver::allocateHypreData()
 }// allocateHypreData
 
 void
-SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
+SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
-    ArrayDataBasicOps<NDIM,double> array_ops;
-    static const IntVector<NDIM> no_ghosts = 0;
-    static const IntVector<NDIM> gcw_to_fill = 1;
-
-    // The constant problem coefficients.
-    const double C = (d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant());
-    const double D = d_poisson_spec.getDConstant();
-
-    // Setup the stencil information.
-    static const int stencil_sz = 2*NDIM+1;
-    std::vector<int> stencil_indices(stencil_sz);
-    for (int k = 0; k < stencil_sz; ++k)
-    {
-        stencil_indices[k] = k;
-    }
-
-    // Set the matrix coefficients.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        const double* const dx = pgeom->getDx();
-        const double* const patch_x_lower = pgeom->getXLower();
-        const double* const patch_x_upper = pgeom->getXUpper();
-        const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-        Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        const int stencil_sz = d_stencil_offsets.size();
+        SideData<NDIM,double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
+        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
+
+        // Copy matrix entries to the hypre matrix structure.
+        std::vector<int> stencil_indices(stencil_sz);
+        for (int i = 0; i < stencil_sz; ++i)
+        {
+            stencil_indices[i] = i;
+        }
+        std::vector<double> mat_vals(stencil_sz,0.0);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            touches_regular_bdry [axis].resizeArray(2);
-            touches_periodic_bdry[axis].resizeArray(2);
-            for (int upperlower = 0; upperlower < 2; ++upperlower)
-            {
-                touches_regular_bdry [axis][upperlower] = pgeom->getTouchesRegularBoundary( axis,upperlower);
-                touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis,upperlower);
-            }
-        }
-        for (int var = 0; var < NVARS; ++var)
-        {
-            const unsigned int axis = var;
             Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-
-            // Compute all matrix coefficients, including those that touch the
-            // physical boundary, but temporarily ignoring physical boundary
-            // conditions.
-            IntVector<NDIM> directions = 0;
-            directions(axis) = 1;
-            SideData<NDIM,double> mat_vals_data(patch_box, stencil_sz, no_ghosts, directions);
-
-            std::vector<double> mat_vals(stencil_sz,0.0);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const double dx_sq = dx[d]*dx[d];
-                mat_vals[     d] += D/dx_sq;          // lower off-diagonal
-                mat_vals[NDIM+d] += D/dx_sq;          // upper off-diagonal
-                mat_vals[2*NDIM] -= mat_vals[     d]; // diagonal
-                mat_vals[2*NDIM] -= mat_vals[NDIM+d]; // diagonal
-            }
-            mat_vals[2*NDIM] += C; // diagonal
-
-            for (int k = 0; k < stencil_sz; ++k)
-            {
-                mat_vals_data.fill(mat_vals[k],k);
-            }
-
-            // Set physical boundary conditions along boundaries which are NOT
-            // aligned with the data axis.
-            //
-            // NOTE: It important to set these values first to avoid
-            // problems at corners in the physical domain.  In particular,
-            // since Dirichlet boundary conditions for values located on the
-            // physical boundary override all other boundary conditions, we
-            // set those values last.
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
-            {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const unsigned int location_index   = bdry_box.getLocationIndex();
-                const unsigned int bdry_normal_axis = location_index/2;
-                const bool is_lower        = location_index%2 == 0;
-                if (bdry_normal_axis != axis)
-                {
-                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-                    const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                    const Box<NDIM> bc_coef_box = compute_tangential_extension(PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
-
-                    ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                    ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                    Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                    Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
-
-                    // Temporarily reset the patch geometry object associated
-                    // with the patch so that boundary conditions are set at the
-                    // correct spatial locations.
-                    blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        shifted_patch_x_lower[d] = patch_x_lower[d];
-                        shifted_patch_x_upper[d] = patch_x_upper[d];
-                    }
-                    shifted_patch_x_lower[axis] -= 0.5*dx[axis];
-                    shifted_patch_x_upper[axis] -= 0.5*dx[axis];
-                    patch->setPatchGeometry(
-                        new CartesianPatchGeometry<NDIM>(
-                            ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry,
-                            dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
-
-                    // Set the boundary condition coefficients.
-                    ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
-                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
-                    d_bc_coefs[axis]->setBcCoefs(
-                        acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-                        *patch, trimmed_bdry_box, d_apply_time);
-                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
-
-                    // Restore the original patch geometry object.
-                    patch->setPatchGeometry(pgeom);
-
-                    for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-                    {
-                        // Modify the diagonal and off-diagonal entries to
-                        // account for homogeneous boundary conditions.
-                        //
-                        // Here, we follow the same linear extrapolation
-                        // approach implemented in class
-                        // CartesianRobinBcHelper.  Namely, with
-                        // u_i denoting the interior cell, u_o denoting the
-                        // ghost cell, and u_b and u_n denoting the value and
-                        // normal derivative of u at the boundary,
-                        //
-                        //     u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
-                        //
-                        // Now, if
-                        //
-                        //     a*u_b + b*u_n = 0
-                        //
-                        // then
-                        //
-                        //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-                        const Index<NDIM>& i = b();
-                        const double& a = acoef_data(i,0);
-                        const double& b = bcoef_data(i,0);
-                        const double& h = dx[bdry_normal_axis];
-
-                        Index<NDIM> i_intr = i;
-                        if (is_lower)
-                        {
-                            i_intr(bdry_normal_axis) += 0;
-                        }
-                        else
-                        {
-                            i_intr(bdry_normal_axis) -= 1;
-                        }
-                        const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
-
-                        if (is_lower)
-                        {
-                            mat_vals_data(i_s,2*NDIM) += mat_vals_data(i_s,     bdry_normal_axis)*(-(a*h-2.0*b)/(a*h+2.0*b));
-                            mat_vals_data(i_s,     bdry_normal_axis) = 0.0;
-                        }
-                        else
-                        {
-                            mat_vals_data(i_s,2*NDIM) += mat_vals_data(i_s,NDIM+bdry_normal_axis)*(-(a*h-2.0*b)/(a*h+2.0*b));
-                            mat_vals_data(i_s,NDIM+bdry_normal_axis) = 0.0;
-                        }
-                    }
-                }
-            }
-
-            // Set physical boundary conditions along boundaries which ARE
-            // aligned with the data axis.
-            //
-            // NOTE: It important to set these values last to avoid problems at
-            // corners in the physical domain.  In particular, since Dirichlet
-            // boundary conditions for values located on the physical boundary
-            // override all other boundary conditions, we set those values last.
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
-            {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const unsigned int location_index   = bdry_box.getLocationIndex();
-                const unsigned int bdry_normal_axis = location_index/2;
-                const bool is_lower        = location_index%2 == 0;
-                if (bdry_normal_axis == axis)
-                {
-                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-                    const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                    const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-                    ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                    ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                    Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                    Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
-
-                    // Set the boundary condition coefficients.
-                    ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
-                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
-                    d_bc_coefs[axis]->setBcCoefs(
-                        acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-                        *patch, trimmed_bdry_box, d_apply_time);
-                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
-
-                    for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-                    {
-                        const Index<NDIM>& i = b();
-                        const double& a = acoef_data(i,0);
-                        const double& b = bcoef_data(i,0);
-                        const bool dirichlet_bc = MathUtilities<double>::equalEps(a,1.0);
-                        const bool neumann_bc = MathUtilities<double>::equalEps(b,1.0);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT((dirichlet_bc || neumann_bc) && !(dirichlet_bc && neumann_bc));
-#endif
-                        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                        if (dirichlet_bc)
-                        {
-                            // Along the physical boundary, Dirichlet boundary
-                            // conditions are imposed exactly and set in the
-                            // right-hand-side.
-                            for (int k = 0; k < stencil_sz; ++k)
-                            {
-                                mat_vals_data(i_s,k) = 0.0;
-                            }
-                            mat_vals_data(i_s,2*NDIM) = 1.0;
-                        }
-                        else if (neumann_bc)
-                        {
-                            // Along Neumann boundaries, we can either use a
-                            // symmetric (linear) or non-symmetric (quadratic)
-                            // extrapolation.
-                            //
-                            // With u_i denoting the interior value, u_b
-                            // denoting the boundary value, and u_o denoting the
-                            // ghost value, the symmetric (linear) extrapolation
-                            // is:
-                            //
-                            //     u_n = (u_o - u_b)/h
-                            //
-                            // so that:
-                            //
-                            //     b*u_n = 0 ===> u_o = u_b.
-                            //
-                            // The non-symmetric (quadratic) extrapolation is:
-                            //
-                            //     u_n = (u_o - u_i)/(2*h)
-                            //
-                            // so that:
-                            //
-                            //     b*u_n = 0 ===> u_o = u_i.
-                            //
-                            // \todo Add options to choose the boundary
-                            // treatment.
-                            if (is_lower)
-                            {
-                                mat_vals_data(i_s,NDIM+bdry_normal_axis) += mat_vals_data(i_s,     bdry_normal_axis);
-                                mat_vals_data(i_s,     bdry_normal_axis)  = 0.0;
-                            }
-                            else
-                            {
-                                mat_vals_data(i_s,     bdry_normal_axis) += mat_vals_data(i_s,NDIM+bdry_normal_axis);
-                                mat_vals_data(i_s,NDIM+bdry_normal_axis)  = 0.0;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Set the matrix coefficients in the hypre matrix.
             for (Box<NDIM>::Iterator b(side_box); b; b++)
             {
-                // NOTE: In hypre, face-centered values are associated with the
-                // cell index located on the "lower" side of the face.
-                Index<NDIM> i = b();
-                static const int lower = 0;
-                const SideIndex<NDIM> i_s(i,axis,lower);
-                i(axis) -= 1;
+                SideIndex<NDIM> i(b(),axis,SideIndex<NDIM>::Lower);
                 for (int k = 0; k < stencil_sz; ++k)
                 {
-                    HYPRE_SStructMatrixSetValues(d_matrix, PART, i, var, 1, &stencil_indices[k], &mat_vals_data(i_s,k));
+                    mat_vals[k] = matrix_coefs(i,k);
                 }
+                // NOTE: In SAMRAI, face-centered values are associated with the
+                // cell index located on the "upper" side of the face, but in
+                // hypre, face-centered values are associated with the cell
+                // index located on the "lower" side of the face.
+                i(axis) -= 1;
+                HYPRE_SStructMatrixSetValues(d_matrix, PART, i, axis, stencil_sz, &stencil_indices[0], &mat_vals[0]);
             }
         }
     }
@@ -812,7 +434,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
     // Assemble the hypre matrix.
     HYPRE_SStructMatrixAssemble(d_matrix);
     return;
-}// setMatrixCoefficients_constant_coefficients
+}// setMatrixCoefficients
 
 void
 SCPoissonHypreLevelSolver::setupHypreSolver()
@@ -1100,25 +722,15 @@ SCPoissonHypreLevelSolver::solveSystem(
         Pointer<SideData<NDIM,double> > b_data = patch->getPatchData(b_idx);
         if (pgeom->intersectsPhysicalBoundary())
         {
-            b_data = new SideData<NDIM,double>(
-                b_data->getBox(), b_data->getDepth(),
-                b_data->getGhostCellWidth());
-            b_data->copy(*(patch->getPatchData(b_idx)));
-
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-
-            if (d_constant_coefficients)
-            {
-                adjustBoundaryRhsEntries_constant_coefficients(b_data, patch, physical_codim1_boxes);
-            }
-            else
-            {
-                TBOX_ERROR(d_object_name << "::solveSystem()\n"
-                           << "  only constant-coefficient problems are currently supported" << std::endl);
-            }
+            SideData<NDIM,double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            b_adj_data.copy(*b_data);
+            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+            copyToHypre(d_rhs_vec, Pointer<SideData<NDIM,double> >(&b_adj_data,false), patch_box);
         }
-        copyToHypre(d_rhs_vec, b_data, patch_box);
+        else
+        {
+            copyToHypre(d_rhs_vec, b_data, patch_box);
+        }
     }
 
     // Assemble the hypre vectors.
@@ -1141,7 +753,7 @@ SCPoissonHypreLevelSolver::solveSystem(
             HYPRE_SStructSysPFMGSetZeroGuess(d_solver);
         }
         HYPRE_SStructSysPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructSysPFMGGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructSysPFMGGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "Split")
@@ -1157,7 +769,7 @@ SCPoissonHypreLevelSolver::solveSystem(
             HYPRE_SStructSplitSetZeroGuess(d_solver);
         }
         HYPRE_SStructSplitSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructSplitGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructSplitGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructSplitGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "PCG")
@@ -1166,7 +778,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructPCGSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructPCGSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructPCGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructPCGGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructPCGGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructPCGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "GMRES")
@@ -1175,7 +787,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "FlexGMRES")
@@ -1184,7 +796,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructFlexGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructFlexGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructFlexGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructFlexGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructFlexGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructFlexGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "LGMRES")
@@ -1193,7 +805,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructLGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructLGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructLGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructLGMRESGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructLGMRESGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "BiCGSTAB")
@@ -1202,7 +814,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructBiCGSTABSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructBiCGSTABSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructBiCGSTABSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructBiCGSTABGetNumIterations(d_solver, &d_current_its);
+        HYPRE_SStructBiCGSTABGetNumIterations(d_solver, &d_current_iterations);
         HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
 
@@ -1339,84 +951,6 @@ SCPoissonHypreLevelSolver::deallocateHypreData()
     d_rhs_vec = NULL;
     return;
 }// deallocateHypreData
-
-void
-SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
-    Pointer<SideData<NDIM,double> > rhs_data,
-    const Pointer<Patch<NDIM> > patch,
-    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes)
-{
-    static const IntVector<NDIM> gcw_to_fill = 1;
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const Box<NDIM>& patch_box = patch->getBox();
-
-    // Modify the rhs entries to account for homogeneous boundary conditions.
-    //
-    // NOTE: For values located on Dirichlet boundaries, we set the boundary
-    // value explicitly in the right-hand-side.  Consequently, we must modify
-    // the boundary values even for homogeneous boundary conditions.
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const unsigned int location_index   = bdry_box.getLocationIndex();
-        const unsigned int bdry_normal_axis = location_index/2;
-//      const bool is_lower        = location_index%2 == 0;
-        for (int var = 0; var < NVARS; ++var)
-        {
-            const unsigned int axis = var;
-            if (bdry_normal_axis == axis)
-            {
-                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-                const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
-                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
-                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
-                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
-
-                // Set the boundary condition coefficients.
-                ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
-                if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
-                d_bc_coefs[axis]->setBcCoefs(
-                    acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
-                    *patch, trimmed_bdry_box, d_apply_time);
-
-                for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
-                {
-                    const Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const double& a = acoef_data(i,0);
-                    const double& b = bcoef_data(i,0);
-                    const bool dirichlet_bc = MathUtilities<double>::equalEps(a,1.0);
-                    const bool neumann_bc = MathUtilities<double>::equalEps(b,1.0);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT((dirichlet_bc || neumann_bc) && !(dirichlet_bc && neumann_bc));
-#endif
-                    if (dirichlet_bc)
-                    {
-                        (*rhs_data)(i_s_bdry) = 0.0;
-                    }
-                    else if (neumann_bc)
-                    {
-                        // intentionally blank.
-                    }
-                }
-            }
-        }
-    }
-
-    // The remaining modifications are made only in the case of inhomogeneous
-    // boundary conditions.
-    if (d_homogeneous_bc) return;
-
-    // Modify the rhs entries to account for inhomogeneous boundary conditions.
-    TBOX_ERROR(d_object_name << "::adjustBoundaryRhsEntries_constant_coefficients()\n"
-               << "  only homogeneous boundary conditions are currently supported" << std::endl);
-    return;
-}// adjustBoundaryRhsEntries_constant_coefficients
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

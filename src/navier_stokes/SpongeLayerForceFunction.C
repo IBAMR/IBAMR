@@ -47,70 +47,55 @@
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <SideData.h>
-
-// C++ STDLIB INCLUDES
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+inline double
+smooth_kernel(
+    const double r)
+{
+    return std::abs(r) < 1.0 ? 0.5*(cos(M_PI*r)+1.0) : 0.0;
+}// smooth_kernel
+}
+
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpongeLayerForceFunction::SpongeLayerForceFunction(
     const std::string& object_name,
     const Pointer<Database> input_db,
+    const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_grid_geometry(grid_geometry),
-      d_u_var(NULL),
-      d_u_ctx(NULL)
+      d_forcing_enabled(SAMRAI::tbox::Array<bool>(NDIM)),
+      d_width(0.0),
+      d_fluid_solver(fluid_solver),
+      d_grid_geometry(grid_geometry)
 {
-    if (input_db.isNull()) return;
-    d_kappa = input_db->getDoubleWithDefault("kappa",0.0);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (input_db)
     {
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
         {
-            d_forcing_enabled[0][axis][d] = false;
-            d_forcing_enabled[1][axis][d] = false;
-        }
-
-        std::ostringstream lower_forcing_stream;
-        lower_forcing_stream << "lower_forcing_" << axis;
-        const std::string lower_forcing_key = lower_forcing_stream.str();
-        if (input_db->keyExists(lower_forcing_key))
-        {
-            tbox::Array<int> lower_forcing_comps = input_db->getIntegerArray(lower_forcing_key);
-            for (int k = 0; k < lower_forcing_comps.size(); ++k)
+            for (unsigned int d = 0; d < NDIM; ++d) d_forcing_enabled[location_index][d] = false;
+            std::ostringstream forcing_enabled_stream;
+            forcing_enabled_stream << "forcing_enabled_" << location_index;
+            const std::string forcing_enabled_key = forcing_enabled_stream.str();
+            if (input_db->keyExists(forcing_enabled_key))
             {
-                d_forcing_enabled[0][axis][lower_forcing_comps[k]] = true;
+                d_forcing_enabled[location_index] = input_db->getBoolArray(forcing_enabled_key);
+            }
+            std::ostringstream width_stream;
+            width_stream << "width_" << location_index;
+            const std::string width_key = width_stream.str();
+            if (input_db->keyExists(width_key))
+            {
+                d_width[location_index] = input_db->getDouble(width_key);
             }
         }
-        std::ostringstream lower_width_stream;
-        lower_width_stream << "lower_width_" << axis;
-        const std::string lower_width_key = lower_width_stream.str();
-        d_width[0][axis] = input_db->getDoubleWithDefault(lower_width_key, 0.0);
-
-        std::ostringstream upper_forcing_stream;
-        upper_forcing_stream << "upper_forcing_" << axis;
-        const std::string upper_forcing_key = upper_forcing_stream.str();
-        if (input_db->keyExists(upper_forcing_key))
-        {
-            tbox::Array<int> upper_forcing_comps = input_db->getIntegerArray(upper_forcing_key);
-            for (int k = 0; k < upper_forcing_comps.size(); ++k)
-            {
-                d_forcing_enabled[1][axis][upper_forcing_comps[k]] = true;
-            }
-        }
-        std::ostringstream upper_width_stream;
-        upper_width_stream << "upper_width_" << axis;
-        const std::string upper_width_key = upper_width_stream.str();
-        d_width[1][axis] = input_db->getDoubleWithDefault(upper_width_key, 0.0);
     }
     return;
 }// SpongeLayerForceFunction
@@ -120,16 +105,6 @@ SpongeLayerForceFunction::~SpongeLayerForceFunction()
     // intentionally blank
     return;
 }// ~SpongeLayerForceFunction
-
-void
-SpongeLayerForceFunction::setVelocityVariableAndContext(
-    Pointer<Variable<NDIM> > u_var,
-    Pointer<VariableContext> u_ctx)
-{
-    d_u_var = u_var;
-    d_u_ctx = u_ctx;
-    return;
-}// setVelocityVariableAndContext
 
 bool
 SpongeLayerForceFunction::isTimeDependent() const
@@ -148,18 +123,27 @@ SpongeLayerForceFunction::setDataOnPatch(
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_data.isNull());
+    TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!f_cc_data.isNull() || !f_sc_data.isNull());
+    TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
-    if (!f_cc_data.isNull()) f_cc_data->fillAll(0.0);
-    if (!f_sc_data.isNull()) f_sc_data->fillAll(0.0);
+    if (f_cc_data) f_cc_data->fillAll(0.0);
+    if (f_sc_data) f_sc_data->fillAll(0.0);
     if (initial_time) return;
-    if (!f_cc_data.isNull()) setDataOnPatchCell(data_idx, patch);
-    if (!f_sc_data.isNull()) setDataOnPatchSide(data_idx, patch);
+    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
+    const double dt     = d_fluid_solver->getCurrentTimeStepSize();
+    const double rho    = d_fluid_solver->getStokesSpecifications()->getRho();
+    const double kappa  = cycle_num >= 0 ? 0.5*rho/dt : 0.0;
+    Pointer<PatchData<NDIM> > u_current_data = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+    Pointer<PatchData<NDIM> > u_new_data     = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    );
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(u_current_data);
+#endif
+    if (f_cc_data) setDataOnPatchCell(f_data, u_current_data, u_new_data, kappa, patch);
+    if (f_sc_data) setDataOnPatchSide(f_data, u_current_data, u_new_data, kappa, patch);
     return;
 }// setDataOnPatch
 
@@ -169,47 +153,51 @@ SpongeLayerForceFunction::setDataOnPatch(
 
 void
 SpongeLayerForceFunction::setDataOnPatchCell(
-    const int data_idx,
+    Pointer<CellData<NDIM,double> > F_data,
+    Pointer<CellData<NDIM,double> > U_current_data,
+    Pointer<CellData<NDIM,double> > U_new_data,
+    const double kappa,
     Pointer<Patch<NDIM> > patch)
 {
-    Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_u_var, d_u_ctx);
-    Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(data_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(F_data && U_current_data);
+#endif
+    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> offset[2];
-    for (unsigned int side = 0; side <= 1; ++side)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            offset[side][d] = static_cast<int>(d_width[side][d]/dx[d])-1;
-        }
-    }
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
     const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
-    const Index<NDIM>& domain_lower = domain_box.lower();
-    const Index<NDIM>& domain_upper = domain_box.upper();
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
     {
-        for (unsigned int side = 0; side <= 1; ++side)
+        const unsigned int axis = location_index / 2;
+        const unsigned int side = location_index % 2;
+        const bool is_lower     = side == 0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if (!pgeom->getTouchesRegularBoundary(axis,side)) continue;
-            Box<NDIM> bdry_box = domain_box;
-            if (side == 0)
+            if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis,side))
             {
-                bdry_box.upper()(axis) = domain_lower(axis)+offset[side][axis];
-            }
-            else
-            {
-                bdry_box.lower()(axis) = domain_upper(axis)-offset[side][axis];
-            }
-            for (unsigned int component = 0; component < NDIM; ++component)
-            {
-                if (!d_forcing_enabled[side][axis][component]) continue;
+                Box<NDIM> bdry_box = domain_box;
+                const int offset = static_cast<int>(d_width[location_index]/dx[axis]);
+                if (is_lower)
+                {
+                    bdry_box.upper(axis) = domain_box.lower(axis)+offset;
+                }
+                else
+                {
+                    bdry_box.lower(axis) = domain_box.upper(axis)-offset;
+                }
                 for (Box<NDIM>::Iterator b(bdry_box*patch_box); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    (*F_data)(i,component) = d_kappa*(0.0 - (*U_data)(i,component));
+                    const double U_current = U_current_data ? (*U_current_data)(i,d) : 0.0;
+                    const double U_new     = U_new_data     ? (*U_new_data    )(i,d) : 0.0;
+                    const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
+                    const double x = x_lower[axis] + dx[axis]*(static_cast<double>(i(axis)-patch_box.lower(axis))+0.5);
+                    const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                    (*F_data)(i,d) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }
@@ -219,48 +207,52 @@ SpongeLayerForceFunction::setDataOnPatchCell(
 
 void
 SpongeLayerForceFunction::setDataOnPatchSide(
-    const int data_idx,
+    Pointer<SideData<NDIM,double> > F_data,
+    Pointer<SideData<NDIM,double> > U_current_data,
+    Pointer<SideData<NDIM,double> > U_new_data,
+    const double kappa,
     Pointer<Patch<NDIM> > patch)
 {
-    Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_u_var, d_u_ctx);
-    Pointer<SideData<NDIM,double> > F_data = patch->getPatchData(data_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(F_data && U_current_data);
+#endif
+    const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> offset[2];
-    for (unsigned int side = 0; side <= 1; ++side)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            offset[side][d] = static_cast<int>(d_width[side][d]/dx[d])-1;
-        }
-    }
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
     const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);
-    const Index<NDIM>& domain_lower = domain_box.lower();
-    const Index<NDIM>& domain_upper = domain_box.upper();
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
     {
-        for (unsigned int side = 0; side <= 1; ++side)
+        const unsigned int axis = location_index / 2;
+        const unsigned int side = location_index % 2;
+        const bool is_lower     = side == 0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if (!pgeom->getTouchesRegularBoundary(axis,side)) continue;
-            for (unsigned int component = 0; component < NDIM; ++component)
+            if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis,side))
             {
-                if (!d_forcing_enabled[side][axis][component]) continue;
                 Box<NDIM> bdry_box = domain_box;
-                if (side == 0)
+                const int offset = static_cast<int>(d_width[location_index]/dx[axis]);
+                if (is_lower)
                 {
-                    bdry_box.upper()(axis) = domain_lower(axis)+(offset[side][axis] + (axis==component ? 1 : 0));
+                    bdry_box.upper(axis) = domain_box.lower(axis)+offset;
                 }
                 else
                 {
-                    bdry_box.lower()(axis) = domain_upper(axis)-(offset[side][axis] + (axis==component ? 1 : 0));
+                    bdry_box.lower(axis) = domain_box.upper(axis)-offset;
                 }
-                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,component)); b; b++)
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box*patch_box,d)); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
-                    (*F_data)(i_s) = d_kappa*(0.0 - (*U_data)(i_s));
+                    const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
+                    const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
+                    const double U_new     = U_new_data     ? (*U_new_data    )(i_s) : 0.0;
+                    const double U = (cycle_num > 0) ? 0.5*(U_new+U_current) : U_current;
+                    const double x = x_lower[axis] + dx[axis]*static_cast<double>(i(axis)-patch_box.lower(axis));
+                    const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                    (*F_data)(i_s) = smooth_kernel((x-x_bdry)/d_width[location_index])*kappa*(0.0 - U);
                 }
             }
         }

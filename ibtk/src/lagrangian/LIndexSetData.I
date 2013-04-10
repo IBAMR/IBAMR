@@ -40,6 +40,13 @@ namespace IBTK
 
 template<class T>
 inline const std::vector<int>&
+LIndexSetData<T>::getLagrangianIndices() const
+{
+    return d_lag_indices;
+}// getLagrangianIndices
+
+template<class T>
+inline const std::vector<int>&
 LIndexSetData<T>::getInteriorLagrangianIndices() const
 {
     return d_interior_lag_indices;
@@ -54,6 +61,13 @@ LIndexSetData<T>::getGhostLagrangianIndices() const
 
 template<class T>
 inline const std::vector<int>&
+LIndexSetData<T>::getGlobalPETScIndices() const
+{
+    return d_global_petsc_indices;
+}// getGlobalPETScIndices
+
+template<class T>
+inline const std::vector<int>&
 LIndexSetData<T>::getInteriorGlobalPETScIndices() const
 {
     return d_interior_global_petsc_indices;
@@ -65,6 +79,13 @@ LIndexSetData<T>::getGhostGlobalPETScIndices() const
 {
     return d_ghost_global_petsc_indices;
 }// getGhostGlobalPETScIndices
+
+template<class T>
+inline const std::vector<int>&
+LIndexSetData<T>::getLocalPETScIndices() const
+{
+    return d_local_petsc_indices;
+}// getLocalPETScIndices
 
 template<class T>
 inline const std::vector<int>&

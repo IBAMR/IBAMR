@@ -1,0 +1,253 @@
+
+@section Questions about installation
+@cindex FAQ
+
+@cindex CRC error in .tar.gz
+@cindex invalid compressed data
+
+@faq{I downloaded Blitz++, but when I try to gunzip it, I get
+``invalid compressed data--crc error''}
+
+You forgot to set binary download mode in ftp.  Do so with
+the ``binary'' command.
+
+@cindex Configuration/Install errors under Mac OS X
+
+@faq{After accessing blitz from the cvs repository, the ``autoreconf -fiv''
+command seems to fail mysteriously.}
+
+The current blitz autoconf build system uses libtool to manage building
+either static or shared versions of the library.  Mac OS X systems have 
+their own version of libtool and libtoolize that conflict with the GNU 
+versions, so these have been renamed glibtool and glibtoolize.  You must
+set environment variables to indicate the right tools to use.  Try this:
+
+@example
+export LIBTOOL=/usr/bin/glibtool
+export LIBTOOLIZE=/usr/bin/glibtoolize
+@end example
+
+@cindex Fortran compiler requirement
+
+@faq{The blitz configure script fails to find a valid Fortran compiler.  
+Why the heck do I need a Fortran compiler for Blitz++ anyway?}
+
+A Fortran compiler is only needed to compile the Fortran portions of the 
+blitz benchmark codes in the banchmarks subdirectory, which compare the
+speed of blitz code to that of raw Fortran 77 or Fortran 90 arrays.  Many
+Darwin systems do not come with a Fortran compiler installed by default,
+and it can be difficult to obtain a GNU Fortran compiler for Mac OS X that
+is completely compatible with the default C/C++ compiler.  Therefore, the
+blitz configure script now provides the option --disable-fortran, which 
+will skip over Fortran configuration.  This will render the benchmark codes
+unusable, but will allow you to build and install the blitz library.
+
+@cindex Undefined references
+
+@faq{The linker complains about undefined references when compiling my 
+blitz application code.}
+
+Although almost all of blitz consists of inlined templated code provided
+in header files via @code{<blitz/array.h>}, there are a few static global
+objects whose definitions are provided in a compiled blitz library.  So
+always remember to include the appropriate -L flag and -lblitz on your 
+linker command line in order to link your code against the blitz library.
+
+@cindex No match for TinyVector operators
+
+@faq{The compiler complains that there is no match for the TinyVector
+unary or binary math operator I have invoked, even though I've included
+@code{<blitz/tinyvec.h>}.}
+
+In versions prior to blitz 0.8, the @code{tinyvec.h} header automatically 
+included all of the blitz support for expressions involving TinyVectors.
+Because this code is intimately linked with the expression template support 
+for Vector, VectorPick and other Vector-like classes, this turns out to be a
+large amount of code.  The blitz Array class uses TinyVector to represent 
+Array shapes, and thus @code{array.h} must include @code{tinyvec.h}.  This 
+was creating a large amount of compile-time overhead, so it was decided 
+to separate the TinyVector expression template support and put this in a new
+header file @code{tinyvec-et.h}.  Therefore, your code must include 
+@code{<blitz/tinyvec-et.h>} explicitly if it uses expressions with TinyVectors.
+
+@cindex `Array' undeclared
+
+@faq{The compiler complains that there is no Array class, even though I've
+included @code{<blitz.h>}.}
+
+You need to have the line:
+
+@example
+using namespace blitz;
+@end example
+
+after including @code{<blitz.h>}.
+
+@cindex gcc memory hog
+@cindex memory hog, gcc
+@cindex out of virtual memory, gcc
+@cindex virtual memory problems, gcc
+
+@faq{I can't use gcc on my elderly PC because it requires @w{45--150@dmn{Mb}}
+to compile with Blitz++}
+
+Unfortunately this is true.  If this problem is ever fixed, it
+will be by the gcc developers, so my best suggestion is to post
+a bug report to the gcc-bugs list.  
+
+@cindex external symbol relocation, Solaris
+
+@faq{I am using gcc under Solaris, and I get errors about 
+``relocation against external symbol''}
+
+This problem can be fixed by installing the gnu linker and
+binutils.  Peter Nordlund found that by using  @code{gnu-binutils-2.9.1},
+this problem disappeared.  You can read a detailed 
+discussion at
+@uref{http://oonumerics.org/blitz/support/blitz-support/archive/0029.html}.
+
+@cindex symbol too long, Solaris as
+
+@faq{I am using gcc under Solaris, and the assembler gives
+me an error that a symbol is too long.}
+
+This problem can also be fixed by installing the gnu linker and
+binutils.  See the above question.
+
+@cindex templates with C linkage, DECcxx
+
+@faq{DECcxx reports problems about ``templates with C linkage''}
+
+This problem was caused by a problem in some versions of DECcxx's
+@file{math.h} header: XOPEN_SOURCE_EXTENDED was causing an
+@code{extern "C" @{ ... @}} section to have no closing brace.
+There is a kludge which is included in recent versions of
+Blitz++.
+
+@cindex template instantiation resulted in an unexpected...
+
+@faq{On some platforms (especially SGI) the testsuite program
+@code{minsumpow} fails with the error: @code{Template instantiation resulted
+in an unexpected function type of...}}
+
+This is a known bug in the older versions of the EDG front end,
+which many C++ compilers use.  There is no known fix.
+Most of Blitz++ will work, but you won't be able to use
+some array reductions.
+
+@section Questions about Blitz++ functionality
+
+@cindex eigenvector decomposition
+@cindex solving linear systems
+@cindex matrix inversion
+@cindex linear algebra
+
+@faq{For my problem, I need SVD, FFTs, QMRES, PLU, QR, ....}
+
+Blitz++ does not currently provide any of these.  However, there are
+numerous C++ and C packages out there which do, and it is easy to move data
+back and forth between Blitz++ and other libraries.  See these terms in the
+index: creating an array from pre-existing data, @code{data()},
+@code{stride()}, @code{extent()}, @code{fortranArray}.  For a list of other
+numerical C++ libraries, see the Object Oriented Numerics Page at
+@uref{http://oonumerics.org/oon/}.
+
+@cindex Python
+
+@faq{Can Blitz++ be interfaced with Python?}
+
+Phil Austin has done so successfully.  See a description of his setup in 
+@uref{http://oonumerics.org/blitz/support/blitz-support/archive/0053.html}.
+
+@cindex image processing
+Also see Harry Zuzan's Python/Blitz image processing example code
+at @uref{http://www.stat.duke.edu/~hz/blitz_py/index.html}.
+
+@cindex out of memory
+@cindex handling out of memory
+@cindex new handler
+@findex set_new_handler()
+@findex bad_alloc
+
+@faq{If I try to allocate an array which is too big, my program just crashes
+or goes into an infinite loop.  Is there some way I can handle this more
+elegantly?}
+
+Blitz++ uses @code{new} to allocate memory for arrays.  In theory, your
+compiler should be throwing a @code{bad_alloc} exception when you run out of
+memory.  If it does, you can use a @code{try/catch} block to handle the out of
+memory exception.  If your compiler does not throw @code{bad_alloc}, you can
+install your own new handler to handle out of memory.
+
+Here is an excerpt from the ISO/ANSI C++ standard which describes the
+behaviour of @code{new}:
+
+@itemize @bullet
+
+@item  Executes a loop: Within the loop, the function first attempts to
+allocate the requested storage. Whether the attempt involves a call to the
+Standard C library function malloc is unspecified. 
+
+@item  Returns a pointer to the allocated storage if the attempt is
+successful. Otherwise, if the last argument to @code{set_new_handler()} was
+a null pointer, throw @code{bad_alloc}. 
+
+@item  Otherwise, the function calls the current @code{new_handler}
+(lib.new.handler). If the called function returns, the loop repeats. 
+
+@item  The loop terminates when an attempt to allocate the requested storage
+is successful or when a called new_handler function does not return. 
+
+@end itemize
+
+You can use @code{set_new_handler} to create a new handler which
+will issue an error message or throw an exception.  For
+example:
+
+@example 
+void my_new_handler()
+@{
+cerr << "Out of memory" << endl;
+cerr.flush();
+abort();
+@}
+
+...
+
+// First line in main():
+set_new_handler(my_new_handler);
+@end example 
+
+
+@cindex passing arrays by value
+@cindex constness problems
+
+@faq{When I pass arrays by value, the function which receives
+them can modify the array data.  Why?}
+
+It's a result of reference-counting. You have to think of array objects as
+being ``handles'' to underlying arrays. The function doesn't receive a copy of
+the array data, but rather a copy of the handle.  The alternative would be
+to copy the array data when passing by value, which would be grossly
+inefficient.
+
+@cindex @code{<<} operator, bitshift
+@cindex operator @code{<<}, bitshift
+@cindex operator @code{>>}, bitshift
+@cindex @code{>>} operator, bitshift
+@cindex bitshift operators
+
+@faq{Why can't I use e.g.@: @code{A >> 3} to do bitshifting on arrays?}
+
+The operators @code{<<} and @code{>>} are used for input/ouput of arrays.
+It would cause problems with the expression templates implementation to also
+use them for bitshifting.  However, it is easy enough to define your own
+bitshifting function -- see @ref{User et}.
+
+@cindex matrix multiply
+
+@faq{When I write @code{TinyMatrix * TinyVector} I get an error.}
+
+Try @code{product(d2,d1)}.  This works for matrix-matrix and matrix-vector
+products.
+

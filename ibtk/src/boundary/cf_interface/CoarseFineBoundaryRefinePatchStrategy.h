@@ -38,7 +38,6 @@
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
 #include <RefinePatchStrategy.h>
-#include <tbox/DescribedClass.h>
 
 // C++ STDLIB INCLUDES
 #include <set>
@@ -54,8 +53,7 @@ namespace IBTK
  * implementation of coarse-fine interface discretizations.
  */
 class CoarseFineBoundaryRefinePatchStrategy
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>,
-      public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!

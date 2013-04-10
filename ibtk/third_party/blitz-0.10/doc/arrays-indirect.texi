@@ -1,0 +1,258 @@
+
+@cindex indirection
+@cindex Array indirection
+
+@strong{Indirection} is the ability to modify or access an array at a set of
+selected index values.  Blitz++ provides several forms of indirection: 
+
+@itemize @bullet
+
+@item  @strong{Using a list of array positions}: this approach is useful
+if you need to modify an array at a set of scattered points.
+
+@item  @strong{Cartesian-product indirection}: as an example, for a
+two-dimensional array you might have a list @code{I} of rows and a list
+@code{J} of columns, and you want to modify the array at all (i,j) positions
+where i is in @code{I} and j is in @code{J}.  This is a @strong{cartesian
+product} of the index sets @code{I} and @code{J}.
+
+@item  @strong{Over a set of strips}: for efficiency, you can represent an
+arbitrarily-shaped subset of an array as a list of one-dimensional strips.
+This is a useful way of handling @strong{Regions Of Interest} (ROIs).
+
+@end itemize
+
+@center @image{indirect}
+@center Three styles of indirection. @footnote{From top to bottom: (1) using a list of array positions; (2) Cartesian-product indirection; (3) using a set of strips to represent an arbitrarily-shaped subset of an array.}
+
+@cindex STL, for indirection
+
+In all cases, Blitz++ expects a Standard Template Library container.  Some
+useful STL containers are @code{list<>}, @code{vector<>}, @code{deque<>} and
+@code{set<>}.  Documentation of these classes is often provided with your
+compiler, or see also the good documentation at
+@uref{http://www.sgi.com/Technology/STL/}.  STL containers are used because
+they are widely available and provide easier manipulation of ``sets'' than
+Blitz++ arrays.  For example, you can easily expand and merge sets which are
+stored in STL containers; doing this is not so easy with Blitz++ arrays,
+which are designed for numerical work.
+
+STL containers are generally included by writing
+
+@example
+#include <list>   // for list<>
+#include <vector> // for vector<>
+#include <deque>  // for deque<>
+#include <set>    // for set<>
+@end example
+
+@cindex [] operator, for indirection
+
+The @code{[]} operator is overloaded on arrays so that the syntax
+@code{array[container]} provides an indirect view of the array.  So far,
+this indirect view may only be used as an lvalue (i.e.@: on the left-hand side
+of an assignment statement).
+
+The examples in the next sections are available in the Blitz++ distribution
+in @file{<examples/indirect.cpp>}.
+
+@node Indirection position list, Indirection Cartesian product, , Indirection
+@section Indirection using lists of array positions
+
+@cindex Array indirection list of positions
+@cindex indirection list of positions
+
+The simplest kind of indirection uses a list of points.  For one-dimensional
+arrays, you can just use an STL container of integers.  Example:
+
+@example
+  Array<int,1> A(5), B(5);
+  A = 0;
+  B = 1, 2, 3, 4, 5;
+
+  vector<int> I;
+  I.push_back(2);
+  I.push_back(4);
+  I.push_back(1);
+
+  A[I] = B;
+@end example
+
+After this code, the array A contains @code{[ 0 2 3 0 5 ]}.
+
+Note that arrays on the right-hand-side of the assignment must have the same
+shape as the array on the left-hand-side (before indirection).  In the
+statement @code{A[I] = B}, A and B must have the same shape, not I and B.
+
+For multidimensional arrays, you can use an STL container of
+@code{TinyVector<int,N_rank>} objects.  Example:
+
+@example
+  Array<int,2> A(4,4), B(4,4);
+  A = 0;
+  B = 10*tensor::i + tensor::j;
+
+  typedef TinyVector<int,2> coord;
+
+  list<coord> I;
+  I.push_back(coord(1,1));
+  I.push_back(coord(2,2));
+
+  A[I] = B;
+@end example
+
+After this code, the array A contains:
+
+@example
+  0   0   0   0
+  0  11   0   0
+  0   0  22   0
+  0   0   0   0
+@end example
+
+(The @code{tensor::i} notation is explained in the section on index
+placeholders @ref{Index placeholders}).
+
+@node Indirection Cartesian product, Indirection strip list, Indirection position list, Indirection
+@section Cartesian-product indirection
+
+@cindex Array indirection Cartesian-product
+@cindex indirection Cartesian-product
+
+The Cartesian product of the sets I, J and K is the set of (i,j,k) tuples
+for which i is in I, j is in J, and k is in K.  
+
+Blitz++ implements cartesian-product indirection using an @strong{adaptor}
+which takes a set of STL containers and iterates through their Cartesian
+product.  Note that the cartesian product is never explicitly created.  You
+create the Cartesian-product adaptor by calling the function:
+
+@example
+template<class T_container>
+indexSet(T_container& c1, T_container& c2, ...)
+@end example
+
+The returned adaptor can then be used in the @code{[]} operator of an array
+object.
+
+Here is a two-dimensional example:
+
+@cindex rank-1 update
+
+@example
+  Array<int,2> A(6,6), B(6,6);
+  A = 0;
+  B = 10*tensor::i + tensor::j;
+
+  vector<int> I, J;
+  I.push_back(1);
+  I.push_back(2);
+  I.push_back(4);
+
+  J.push_back(0);
+  J.push_back(2);
+  J.push_back(5);
+
+  A[indexSet(I,J)] = B;
+@end example
+
+After this code, the A array contains:
+
+@example
+ 0   0   0   0   0   0
+10   0  12   0   0  15
+20   0  22   0   0  25
+ 0   0   0   0   0   0
+40   0  42   0   0  45
+ 0   0   0   0   0   0
+@end example
+
+All the containers used in a cartesian product must be the same type (e.g.
+all @code{vector<int>} or all @code{set<TinyVector<int,2> >}), but they may
+be different sizes.  Singleton containers (containers containing a single
+value) are fine.
+
+@node Indirection strip list, , Indirection Cartesian product, Indirection
+@section Indirection with lists of strips
+
+@cindex Array indirection list of strips
+@cindex indirection list of strips
+
+You can also do indirection with a container of one-dimensional
+@strong{strips}.  This is useful when you want to manipulate some
+arbitrarily-shaped, well-connected subdomain of an array.  By representing
+the subdomain as a list of strips, you allow Blitz++ to operate on vectors,
+rather than scattered points; this is much more efficient.
+
+@findex RectDomain<N>
+
+Strips are represented by objects of type @code{RectDomain<N>}, where
+@code{N} is the dimensionality of the array.  The @code{RectDomain<N>} class
+can be used to represent any rectangular subdomain, but for indirection it
+is only used to represent strips.
+
+You create a strip by using this function:
+
+@findex strip()
+
+@example
+RectDomain<N> strip(TinyVector<int,N> start,
+                    int stripDimension, int ubound);
+@end example
+
+The @code{start} parameter is where the strip starts; @code{stripDimension}
+is the dimension in which the strip runs; @code{ubound} is the last index
+value for the strip.  For example, to create a 2-dimensional strip from
+(2,5) to (2,9), one would write:
+
+@example
+TinyVector<int,2> start(2,5);
+RectDomain<2> myStrip = strip(start,secondDim,9);
+@end example
+
+Here is a more substantial example which creates a list of strips
+representing a circle subset of an array:
+
+@example
+  const int N = 7;
+  Array<int,2> A(N,N), B(N,N);
+  typedef TinyVector<int,2> coord;
+
+  A = 0;
+  B = 1;
+
+  double centre_i = (N-1)/2.0;
+  double centre_j = (N-1)/2.0;
+  double radius = 0.8 * N/2.0;
+
+  // circle will contain a list of strips which represent a circular
+  // subdomain.
+
+  list<RectDomain<2> > circle;
+  for (int i=0; i < N; ++i)
+  @{
+    double jdist2 = pow2(radius) - pow2(i-centre_i);
+    if (jdist2 < 0.0)
+      continue;
+
+    int jdist = int(sqrt(jdist2));
+    coord startPos(i, int(centre_j - jdist));
+    circle.push_back(strip(startPos, secondDim, int(centre_j + jdist)));
+  @}
+
+  // Set only those points in the circle subdomain to 1
+  A[circle] = B;
+@end example
+
+After this code, the A array contains:
+
+@example
+  0  0  0  0  0  0  0
+  0  0  1  1  1  0  0
+  0  1  1  1  1  1  0
+  0  1  1  1  1  1  0
+  0  1  1  1  1  1  0
+  0  0  1  1  1  0  0
+  0  0  0  0  0  0  0
+@end example
+

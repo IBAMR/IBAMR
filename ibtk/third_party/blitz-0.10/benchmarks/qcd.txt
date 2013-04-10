@@ -1,0 +1,19 @@
+
+The most expensive routines in terms of CPU time were a family of routines
+that multiplied a 2-spinors by SU(3) gauge elements: The core of these
+routines is basically the same as the following code:
+
+COMPLEX M(V,3,3) res(V,3,2), src(V,3,2)
+    DO spin=1,2
+        DO col=1,3
+            DO site=1,V
+                res(site,col,spin)=
+                         M(site,col,1) * src(site,1,spin)
+                       + M(site,col,2) * src(site,2,spin)
+                       + M(site,col,3) * src(site,3,spin)
+            END DO
+        END DO
+    END DO
+
+http://www.epcc.ed.ac.uk/t3d/documents/techreports/EPCC-TR96-03/EPCC-TR96-03.book_1.html
+

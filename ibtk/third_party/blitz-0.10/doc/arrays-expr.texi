@@ -1,0 +1,1506 @@
+
+@cindex expression templates
+@cindex Array expressions
+@cindex Array no temporaries
+@cindex temporaries
+@cindex Array temporaries
+
+Array expressions in Blitz++ are implemented using the @emph{expression
+templates} technique.  Unless otherwise noted, expression evaluation will
+never generate temporaries or multiple loops; an expression such as
+
+@example
+Array<int,1> A, B, C, D;    // ...
+
+A = B + C + D;
+@end example
+
+will result in code similar to
+
+@example
+for (int i=A.lbound(firstDim); i <= A.ubound(firstDim); ++i)
+    A[i] = B[i] + C[i] + D[i];
+@end example
+
+@node Expression evaluation, Index placeholders, , Array Expressions
+@section Expression evaluation order
+@cindex Array expression evaluation order
+@cindex expression evaluation order
+@cindex order of expression evaluation
+@cindex traversal order
+
+A commonly asked question about Blitz++ is what order it uses to evaluate
+array expressions.  For example, in code such as
+
+@example
+A(Range(2,10)) = A(Range(1,9))
+@end example
+
+does the expression get evaluated at indices 1, 2, ..., 9 or at 9, 8, ...,
+1?  This makes a big difference to the result: in one case, the array will
+be shifted to the right by one element; in the other case, most of the array
+elements will be set to the value in @code{A(1)}.
+
+Blitz always selects the traversal order it thinks will be fastest.  For 1D
+arrays, this means it will go from beginning to the end of the array in
+memory (see notes below).  For multidimensional arrays, it will do one of
+two things:
+
+@itemize @bullet
+
+@item  try to go through the destination array in the order it is laid out
+in memory (i.e.@:  row-major for row-major arrays, column-major for
+column-major arrays).
+
+@item  if the expression is a stencil, Blitz will do tiling to improve cache
+use.  Under some circumstances blitz will even use a traversal based on a
+hilbert curve (a fractal) for 3D arrays.  
+
+@end itemize
+
+Because the traversal order is not always predictable, it is safest to put
+the result in a new array if you are doing a stencil-style expression.
+Blitz guarantees this will always work correctly.  If you try to put the
+result in one of the operands, you have to guess correctly which traversal
+order blitz will choose.  This is easy for the 1D case, but hard for the
+multidimensional case.
+
+Some special notes about 1D array traversals:
+
+@itemize @bullet
+
+@item  if your array is stored in reverse order, i.e.@: because of a
+A.reverse(firstDim) or funny storage order, blitz will go through the array
+from end to beginning in array coordinates, but from beginning to end in
+memory locations.
+
+@item  many compilers/architecture combinations are equally fast at reverse
+order.  But blitz has a specialized version for stride = +1, and it would be
+wasteful to also specialize for the case stride = -1.  So 1D arrays are
+traversed from beginning to end (in memory storage order).
+
+@end itemize
+
+@section Expression operands
+@cindex Array expression operands
+
+An expression can contain any mix of these operands:
+
+@itemize @bullet
+@item     An array of any type, so long as it is of the same rank.
+Expressions which contain a mixture of array types are handled through the
+type promotion mechanism described below.
+
+@item     Scalars of type @code{int}, @code{float}, @code{double},
+@code{long double}, or @code{complex<T>}
+
+@item     Index placeholders, described below
+
+@item     Other expressions (e.g. @code{A+(B+C)})
+@end itemize
+
+@section Array operands
+
+@unnumberedsubsec Using subarrays in an expression
+
+@cindex Array using subarrays in expressions
+
+Subarrays may be used in an expression.  For example, this code example
+performs a 5-point average on a two-dimensional array:
+
+@example
+Array<float,2> A(64,64), B(64,64);   // ...
+Range I(1,62), J(1,62);
+
+A(I,J) = (B(I,J) + B(I+1,J) + B(I-1,J) 
+                 + B(I,J+1) + B(I,J-1)) / 5;
+@end example
+
+@unnumberedsubsec Mixing arrays with different storage formats
+
+@cindex Array expressions which mix arrays of different storage formats
+
+Arrays with different storage formats (for example, C-style and
+Fortran-style) can be mixed in the same expression.  Blitz++ will handle the
+different storage formats automatically.  However:
+
+@itemize @bullet
+
+@item     Evaluation may be slower, since a different traversal order may be
+used.
+
+@item     If you are using index placeholders (see below) or reductions in
+the expression, you may @strong{not} mix array objects with different
+starting bases.  
+
+@end itemize
+
+@section Expression operators
+@cindex operators, array expressions
+@cindex Array operators
+@cindex Array expression operators
+
+These binary operators are supported:
+
+@example
++ - * / % > < >= <= == != && || ^ & | 
+@end example
+
+@strong{Caution:} operator @code{<<} and @code{>>} are reserved for use in input/output.
+If you need a bit-shift operation on arrays, you may define one yourself;
+see @ref{User et}.
+
+These unary operators are supported:
+
+@example
+- ~ !
+@end example
+
+The operators @code{> < >= <= == != && || !} result in a bool-valued
+expression.
+
+@cindex Array operators applied elementwise
+All operators are applied @emph{elementwise}.
+
+@cindex Array requirements for using operators
+You can only use operators which are well-defined for the number type stored
+in the arrays.  For example, bitwise XOR (@code{^}) is meaningful for
+integers, so this code is all right:
+
+@example
+Array<int,3> A, B, C;   // ...
+A = B ^ C;
+@end example
+
+Bitwise XOR is @emph{not} meaningful on floating point types, so this code
+will generate a compiler error:
+
+@example
+Array<float,1> A, B, C;   // ...
+C = B ^ C;
+@end example
+
+Here's the compiler error generated by KAI C++ for the above code:
+
+@example
+"../../blitz/ops.h", line 85: error: expression must have integral or enum type
+  BZ_DEFINE_OP(BitwiseXor,^);
+  ^
+          detected during:
+            instantiation of "blitz::BitwiseXor<float, float>::T_numtype
+                      blitz::BitwiseXor<float, float>::apply(float, float)" at
+                      line 210 of "../../blitz/arrayexpr.h"
+            instantiation of ...
+                     .
+                     .
+@end example
+
+@cindex Array arrays of user type
+If you are creating arrays using a type you have created yourself, you will
+need to overload whatever operators you want to use on arrays.  For example,
+if I create a class @code{Polynomial}, and want to write code such as:
+
+@example
+Array<Polynomial,2> A, B, C;   // ...
+C = A * B;
+@end example
+
+I would have to provide @code{operator*} for @code{Polynomial} by
+implementing
+
+@example
+Polynomial Polynomial::operator*(Polynomial);)
+@end example
+
+or
+
+@example
+Polynomial operator*(Polynomial, Polynomial);)
+@end example
+
+@section Assignment operators
+
+@cindex Array assignment operators
+These assignment operators are supported:
+
+@example
+= += -= *= /= %= ^= &= |= >>= <<=
+@end example
+
+An array object should appear on the left side of the operator.  The right
+side can be:
+
+@itemize @bullet
+
+@item    A constant (or literal) of type @code{T_numtype}
+
+@item    An array of appropriate rank, possibly of a different numeric type
+
+@item    An array expression, with appropriate rank and shape
+
+@end itemize
+
+@node Index placeholders, Math functions 1, Expression evaluation, Array Expressions
+@section Index placeholders
+@cindex Array index placeholders
+@cindex index placeholders
+
+Blitz++ provides objects called @emph{index placeholders} which represent
+array indices.  They can be used directly in expressions.
+
+There is a distinct index placeholder type associated with each dimension of
+an array.  The types are called @code{firstIndex}, @code{secondIndex},
+@code{thirdIndex}, ..., @code{tenthIndex}, @code{eleventhIndex}.
+@findex firstIndex 
+@findex secondIndex 
+@findex thirdIndex
+@findex fourthIndex
+Here's an example of using an index placeholder:
+
+@example
+Array<float,1> A(10);
+firstIndex i;
+A = i;
+@end example
+
+This generates code which is similar to:
+
+@example
+for (int i=0; i < A.length(); ++i)
+    A(i) = i;
+@end example
+
+Here's an example which fills an array with a sampled sine wave:
+
+@example
+Array<float,1> A(16);
+firstIndex i;
+
+A = sin(2 * M_PI * i / 16.);
+@end example
+
+If your destination array has rank greater than 1, you may use
+multiple index placeholders:
+
+@cindex index placeholders multiple
+
+@example
+// Fill a two-dimensional array with a radially
+// symmetric, decaying sinusoid
+
+// Create the array
+int N = 64;           
+Array<float,2> F(N,N);
+
+// Some parameters
+float midpoint = (N-1)/2.;
+int cycles = 3;
+float omega = 2.0 * M_PI * cycles / double(N);
+float tau = - 10.0 / N;
+
+// Index placeholders
+firstIndex i;
+secondIndex j;
+
+// Fill the array
+F = cos(omega * sqrt(pow2(i-midpoint) + pow2(j-midpoint)))
+    * exp(tau * sqrt(pow2(i-midpoint) + pow2(j-midpoint)));
+@end example
+
+Here's a plot of the resulting array:
+
+@center @image{sinsoid}
+@center Array filled using an index placeholder expression.
+
+You can use index placeholder expressions in up to 11 dimensions.
+Here's a three dimensional example:
+
+@example
+// Fill a three-dimensional array with a Gaussian function
+Array<float,3> A(16,16,16);
+firstIndex i;
+secondIndex j;
+thirdIndex k;
+float midpoint = 15/2.;
+float c = - 1/3.0;
+A = exp(c * (sqr(i-midpoint) + sqr(j-midpoint) 
+    + sqr(k-midpoint)));
+@end example
+
+You can mix array operands and index placeholders:
+
+@example
+Array<int,1> A(5), B(5);
+firstIndex i;
+
+A = 0, 1, 1, 0, 2;
+B = i * A;          // Results in [ 0, 1, 2, 0, 8 ]
+@end example
+
+For your convenience, there is a namespace within blitz
+called @code{tensor} which declares all the index placeholders:
+
+@cindex tensor namespace
+@cindex @code{i} (index placeholder)
+@cindex @code{j} (index placeholder)
+@cindex @code{k} (index placeholder)
+@cindex @code{l} (index placeholder)
+@cindex @code{m} (index placeholder)
+@cindex @code{n} (index placeholder)
+
+@example
+namespace blitz @{
+  namespace tensor @{
+    firstIndex i;
+    secondIndex j;
+    thirdIndex k;
+     ...
+    eleventhIndex t;
+  @}
+@}
+@end example
+
+So instead of declaring your own index placeholder objects,
+you can just say 
+
+@findex blitz::tensor namespace
+
+@example
+namespace blitz::tensor;
+@end example
+  
+when you would like to use them.  Alternately, you can just preface all the
+index placeholders with @code{tensor::}, for example:
+
+@example
+A = sin(2 * M_PI * tensor::i / 16.);
+@end example
+
+This will make your code more readable, since it is immediately clear that
+@code{i} is an index placeholder, rather than a scalar value.
+
+@section Type promotion
+@cindex type promotion
+@cindex Array type promotion
+
+When operands of different numeric types are used in an expression, the
+result gets promoted according to the usual C-style type promotion.  For
+example, the result of adding an @code{Array<int>} to an
+@code{Arrray<float>} will be promoted to @code{float}.  Generally, the
+result is promoted to whichever type has greater precision.
+
+@unnumberedsubsec Type promotion for user-defined types
+
+@cindex type promotion for user-defined types
+@cindex Array type promotion for user-defined types
+
+The rules for type promotion of user-defined types (or types from another
+library) are a bit complicated.  Here's how a pair of operand types are
+promoted:
+
+@itemize @bullet
+
+@item     If both types are intrinsic (e.g. bool, int, float) then type
+promotion follows the standard C rules.  This generally means that the
+result will be promoted to whichever type has greater precision.  In
+Blitz++, these rules have been extended to incorporate
+@code{complex<float>}, @code{complex<double>}, and @code{complex<long
+double>}.
+
+@item     If one of the types is intrinsic (or complex), and the other is a
+user-defined type, then the result is promoted to the user-defined type.
+
+@item     If both types are user-defined, then the result is promoted to
+whichever type requires more storage space (as determined by
+@code{sizeof()}).  The rationale is that more storage space probably
+indicates more precision.
+
+@end itemize
+
+If you wish to alter the default type promotion rules above, you have two
+choices:
+
+@itemize @bullet
+
+@findex promote_trait 
+
+@item     If the type promotion behaviour isn't dependent on the type of
+operation performed, then you can provide appropriate specializations for
+the class @code{promote_trait<A,B>} which is declared in
+@code{<blitz/promote.h>}.
+
+@item     If type promotion does depend on the type of operation, then you
+will need to specialize the appropriate function objects in
+@code{<blitz/ops.h>}.
+
+@end itemize
+
+Note that you can do these specializations in your own header files (you
+don't have to edit @file{promote.h} or @file{ops.h}).
+
+@unnumberedsubsec Manual casts
+
+@cindex casts
+@cindex Array casts
+
+There are some inconvenient aspects of C-style type promotion.  For example,
+when you divide two integers in C, the result gets truncated.  The same
+problem occurs when dividing two integer arrays in Blitz++:
+
+@example
+Array<int,1> A(4), B(4);
+Array<float,1> C(4);
+
+A = 1, 2, 3, 5;
+B = 2, 2, 2, 7;
+
+C = A / B;      // Result:  [ 0  1  1  0 ]
+@end example
+
+The usual solution to this problem is to cast one of the operands to a
+floating type.  For this purpose, Blitz++ provides a function
+@code{cast(expr,type)} which will cast the result of @emph{expr} as
+@emph{type}:
+
+@findex cast()
+
+@example
+C = A / cast(B, float());   // Result: [ 0.5  1  1.5  0.714 ]
+@end example
+
+The first argument to @code{cast()} is an array or expression.  The second
+argument is a dummy object of the type to which you want to cast.  Once
+compilers support templates more thoroughly, it will be possible to use this
+cast syntax:
+
+@example
+C = A / cast<float>(B);
+@end example
+
+But this is not yet supported.
+
+@node Math functions 1, Math functions 2, Index placeholders, Array Expressions
+@section Single-argument math functions
+
+All of the functions described in this section are @emph{element-wise}.  For
+example, this code--
+
+@example
+Array<float,2> A, B;   //
+A = sin(B);
+@end example
+
+results in @code{A(i,j) = sin(B(i,j))} for all (i,j).
+
+@unnumberedsubsec ANSI C++ math functions
+
+These math functions are available on all platforms:
+
+@cindex math functions
+@cindex complex math functions
+
+@table @code
+@item abs()
+@findex abs()
+Absolute value 
+
+@item acos()
+@findex acos()
+Inverse cosine. For real arguments, the return value is in the range 
+@math{[0, \pi]}.  
+
+@item arg()
+@findex arg()
+Argument of a complex number (@code{atan2(Im,Re)}). 
+
+@item asin()
+@findex asin()
+Inverse sine. For real arguments, the return value is in the range 
+@math{[-\pi/2, \pi/2]}.  
+
+@item atan()
+@findex atan()
+Inverse tangent.  For real arguments, the return value is in the range
+@math{[-\pi/2, \pi/2]}.  See also @code{atan2()} in section
+@ref{Math functions 2}.  
+
+@item ceil()
+@findex ceil()
+Ceiling function: smallest floating-point integer value not less than the
+argument. 
+
+@item cexp()
+@findex cexp()
+Complex exponential; same as @code{exp()}. 
+
+@item conj()
+@findex conj()
+Conjugate of a complex number. 
+
+@item cos()
+@findex cos()
+Cosine.  Works for @code{complex<T>}.  
+
+@item cosh()
+@findex cosh()
+Hyperbolic cosine.  Works for @code{complex<T>}. 
+
+@item csqrt()
+@findex csqrt()
+Complex square root; same as @code{sqrt()}. 
+
+@item exp()
+@findex exp()
+Exponential.  Works for @code{complex<T>}. 
+
+@item fabs()
+@findex fabs()
+Same as @code{abs()}.  
+
+@item floor()
+@findex floor()
+Floor function: largest floating-point integer value not greater than the
+argument. 
+
+@item log()
+@findex log()
+Natural logarithm.  Works for @code{complex<T>}. 
+
+@item log10()
+@findex log10()
+Base 10 logarithm.  Works for @code{complex<T>}. 
+
+@item pow2(), pow3(), pow4(), pow5(), pow6(), pow7(), pow8()
+@findex pow2()
+@findex pow3() 
+@findex pow?()
+These functions compute an integer power.  They expand to a series of
+multiplications, so they can be used on any type for which multiplication is
+well-defined.
+
+@item sin()
+@findex sin()
+Sine.  Works for @code{complex<T>}. 
+
+@item sinh()
+@findex sinh()
+Hyperbolic sine.  Works for @code{complex<T>}. 
+
+@item sqr()
+@findex sqr()
+Same as @code{pow2()}.  Computes @code{x*x}. Works for @code{complex<T>}. 
+
+@item sqrt()
+@findex sqrt()
+Square root.  Works for @code{complex<T>}. 
+
+@item tan()
+@findex tan()
+Tangent.  Works for @code{complex<T>}. 
+
+@item tanh()
+@findex tanh()
+Hyperbolic tangent.  Works for @code{complex<T>}. 
+@end table
+
+@unnumberedsubsec IEEE/System V math functions
+
+@cindex IEEE math functions
+@cindex System V math functions
+@findex libm.a
+@findex libmsaa.a
+
+These functions are only available on platforms which provide the IEEE Math
+library (libm.a) and/or System V Math Library (libmsaa.a).  Apparently not
+all platforms provide all of these functions, so what you can use on your
+platform may be a subset of these.  If you choose to use one of these
+functions, be aware that you may be limiting the portability of your code.
+
+@findex XOPEN_SOURCE
+@findex XOPEN_SOURCE_EXTENDED
+
+On some platforms, the preprocessor symbols @code{_XOPEN_SOURCE} and/or
+@code{_XOPEN_SOURCE_EXTENDED} need to be defined to use these functions.
+These symbols can be enabled by compiling with
+@code{-DBZ_ENABLE_XOPEN_SOURCE}.  (In previous version of Blitz++,
+@code{_XOPEN_SOURCE} and @code{_XOPEN_SOURCE_EXTENDED} were declared by
+default.  This was found to cause too many problems, so users must manually
+enable them with @code{-DBZ_ENABLE_XOPEN_SOURCE}.).
+
+In the current version, Blitz++ divides these functions into two groups:
+IEEE and System V.  This distinction is probably artificial.  If one of the
+functions in a group is missing, Blitz++ won't allow you to use any of them.
+You can see the division of these functions in the files
+@file{Blitz++/compiler/ieeemath.cpp} and
+@file{Blitz++/compiler/sysvmath.cpp}.  This arrangement is unsatisfactory
+and will probably change in a future version.
+
+You may have to link with @code{-lm} and/or @code{-lmsaa} to use these
+functions.
+
+None of these functions are available for @code{complex<T>}.
+
+@table @code
+@item acosh()   
+@findex acosh()
+Inverse hyperbolic cosine 
+
+@item asinh()
+@findex asinh()
+Inverse hyperbolic sine 
+
+@item atanh()   
+@findex atanh()
+Inverse hyperbolic tangent 
+
+@item _class()
+@findex _class()
+Classification of floating point values.  The return type is integer and
+will be one of: 
+
+   @table @code
+      @item FP_PLUS_NORM 
+@findex FP_PLUS_NORM
+			Positive normalized, nonzero 
+
+      @item FP_MINUS_NORM 
+@findex FP_MINUS_NORM
+			Negative normalized, nonzero 
+
+      @item FP_PLUS_DENORM 
+@findex FP_PLUS_DENORM
+			Positive denormalized, nonzero 
+
+      @item FP_MINUS_DENORM 
+@findex FP_MINUS_DENORM
+			Negative denormalized, nonzero 
+
+      @item FP_PLUS_ZERO 
+@findex FP_PLUS_ZERO
+			+0.0 
+
+      @item FP_MINUS_ZERO 
+@findex FP_MINUS_ZERO
+			-0.0 
+
+      @item FP_PLUS_INF  
+@findex FP_PLUS_INF
+			Positive infinity  
+
+      @item FP_MINUS_INF  
+@findex FP_MINUS_INF
+			Negative infinity 
+
+      @item FP_NANS      
+@findex FP_NANS
+			Signalling Not a Number (NaNS) 
+
+      @item FP_NANQ      
+@findex FP_NANQ
+			Quiet Not a Number (NaNQ) 
+   @end table
+
+@item cbrt()   
+@findex cbrt()
+Cubic root 
+
+@item expm1()  
+@findex expm1()
+Computes exp(x)-1 
+
+@item erf()    
+@findex erf()
+Computes the error function:  
+@tex
+$$ {\rm erf}(x) = {2\over\sqrt\pi}\int_{0}^{x} e^{-t^2} dt $$
+@end tex
+@html
+erf(x) = 2/sqrt(Pi) * integral(exp(-t^2), t=0..x)
+@end html
+@ifnottex
+@ifnothtml
+@math{@r{erf}(x) = 2/@r{sqrt}(Pi) * @r{integral}(@r{exp}(-t^2), t=0..x)}
+@end ifnothtml
+@end ifnottex
+
+Note that for large values of the parameter, calculating can result in
+extreme loss of accuracy.  Instead, use @code{erfc()}.
+
+@item erfc()   
+@findex erfc()
+Computes the complementary error function @math{@r{erfc}(x) = 1 - @r{erf}(x)}.
+
+@item finite()
+@findex finite()
+Returns a nonzero integer if the parameter is a finite number (i.e.@: not
++INF, -INF, NaNQ or NaNS).
+
+@item ilogb()  
+@findex ilogb()
+Returns an integer which is equal to the unbiased exponent of
+the parameter.               
+
+@item blitz_isnan()  
+@findex blitz_isnan()
+@findex isnan()
+Returns a nonzero integer if the parameter is NaNQ or
+NaNS (quiet or signalling Not a Number). 
+
+@item itrunc()
+@findex itrunc()
+Round a floating-point number to a signed integer.  Returns
+the nearest signed integer to the parameter in the direction of 0.
+
+@item j0()     
+@findex j0()
+@cindex Bessel functions
+Bessel function of the first kind, order 0. 
+
+@item j1()     
+@findex j1()
+Bessel function of the first kind, order 1. 
+
+@item lgamma() 
+@findex lgamma() 
+@cindex Gamma function
+Natural logarithm of the gamma function.  The gamma function
+is defined as:
+@tex
+$$ {\rm Gamma}(x) = \int_0^\infty e^{-t}t^{x-1} dt $$
+@end tex
+@html
+Gamma(x) = integral(e^(-t) * t^(x-1), t=0..infinity))
+@end html
+@ifnottex
+@ifnothtml
+@math{@r{Gamma}(x) = @r{integral}(e^(-t) * t^(x-1), t=0..@r{infinity}))}
+@end ifnothtml
+@end ifnottex
+              
+@item logb()   
+@findex logb()
+Returns a floating-point double that is equal to the unbiased
+exponent of the parameter. 
+
+@item log1p()  
+@findex log1p()
+Calculates log(1+x), where x is the parameter. 
+
+@item nearest() 
+@findex nearest()
+Returns the nearest floating-point integer value to the
+parameter.  If the parameter is exactly halfway between two integer values,
+an even value is returned. 
+
+@item rint()   
+@findex rint()
+@cindex rounding
+Rounds the parameter and returns a floating-point integer value.  Whether
+@code{rint()} rounds up or down or to the nearest integer depends on the
+current floating-point rounding mode.  If you haven't altered the rounding
+mode, @code{rint()} should be equivalent to @code{nearest()}.  If rounding
+mode is set to round towards +INF, @code{rint()} is equivalent to
+@code{ceil()}.  If the mode is round toward -INF, @code{rint()} is
+equivalent to @code{floor()}.  If the mode is round toward zero,
+@code{rint()} is equivalent to @code{trunc()}. 
+
+@item rsqrt()  
+@findex rsqrt()
+Reciprocal square root. 
+
+@item uitrunc() 
+@findex uitrunc()
+Returns the nearest unsigned integer to the parameter in the
+direction of zero. 
+
+@item y0()     
+@findex y0()
+Bessel function of the second kind, order 0. 
+
+@item y1()     
+@findex y1()
+Bessel function of the second kind, order 1. 
+@end table
+
+There may be better descriptions of these functions in your
+system man pages.
+
+@node Math functions 2, User et, Math functions 1, Array Expressions
+@section Two-argument math functions
+
+The math functions described in this section take two arguments.
+Most combinations of these types may be used as arguments:
+
+@itemize @bullet
+@item     An Array object
+@item     An Array expression
+@item     An index placeholder
+@item     A scalar of type @code{float}, @code{double}, @code{long double},
+or @code{complex<T>}
+@end itemize
+
+@unnumberedsubsec ANSI C++ math functions
+
+These math functions are available on all platforms, and work for
+complex numbers.
+
+@cindex math functions
+@cindex complex math functions
+
+@table @code
+@item atan2(x,y)
+@findex atan2()
+Inverse tangent of (y/x).  The signs of both parameters
+are used to determine the quadrant of the return value, which is in the
+range @math{[-\pi, \pi]}.  Works for @code{complex<T>}. 
+
+@item blitz::polar(r,t)
+@findex polar()
+Computes ; i.e.@: converts polar-form to
+Cartesian form complex numbers.  The @code{blitz::} scope qualifier is
+needed to disambiguate the ANSI C++ function template @code{polar(T,T)}.
+This qualifier will hopefully disappear in a future version.
+
+@item pow(x,y)
+@findex pow()
+Computes x to the exponent y.  Works for @code{complex<T>}. 
+@end table
+
+@unnumberedsubsec IEEE/System V math functions
+
+See the notes about IEEE/System V math functions in the previous section.
+None of these functions work for complex numbers.  They will all cast their
+arguments to double precision.
+
+@table @code
+@item copysign(x,y)
+@findex copysign()
+Returns the x parameter with the same sign as the y parameter. 
+
+@item drem(x,y)
+@findex drem() 
+@cindex remainder, floating point @code{drem()}
+Computes a floating point remainder.  The return value r is equal to r = x -
+n * y, where n is equal to @code{nearest(x/y)} (the nearest integer to x/y).
+The return value will lie in the range [ -y/2, +y/2 ].  If y is zero or x is
++INF or -INF, NaNQ is returned.
+
+@item fmod(x,y)
+@findex fmod() 
+@cindex modulo, floating point @code{fmod()}
+Computes a floating point modulo remainder.  The return value r is equal to
+r = x - n * y, where n is selected so that r has the same sign as x and
+magnitude less than abs(y).  In order words, if x > 0, r is in the range [0,
+|y|], and if x < 0, r is in the range [-|y|, 0].
+
+@item hypot(x,y)
+@findex hypot()
+Computes so that underflow does not occur and overflow occurs only if the
+final result warrants it. 
+
+@item nextafter(x,y)
+@findex nextafter()
+Returns the next representable number after x in the direction of y. 
+
+@item remainder(x,y)
+@findex remainder()
+Equivalent to drem(x,y). 
+
+@item scalb(x,y)
+@findex scalb()
+Calculates. 
+
+@item unordered(x,y)
+@findex unordered()
+Returns a nonzero value if a floating-point comparison between x and y would
+be unordered.  Otherwise, it returns zero.
+@end table
+
+@node User et, Where expr, Math functions 2, Array Expressions
+@section Declaring your own math functions on arrays
+
+@cindex math functions declaring your own
+@cindex Array declaring your own math functions on
+
+There are four macros which make it easy to turn your own scalar functions
+into functions defined on arrays.  They are:
+
+@findex BZ_DECLARE_FUNCTION
+
+@example
+BZ_DECLARE_FUNCTION(f)                   // 1
+BZ_DECLARE_FUNCTION_RET(f,return_type)   // 2
+BZ_DECLARE_FUNCTION2(f)                  // 3
+BZ_DECLARE_FUNCTION2_RET(f,return_type)  // 4
+@end example
+
+Use version 1 when you have a function which takes one argument and returns
+a result of the same type.  For example:
+
+@example
+#include <blitz/array.h>
+
+using namespace blitz;
+
+double myFunction(double x)
+@{ 
+    return 1.0 / (1 + x); 
+@}
+
+BZ_DECLARE_FUNCTION(myFunction)
+
+int main()
+@{
+    Array<double,2> A(4,4), B(4,4);  // ...
+    B = myFunction(A);
+@}
+@end example
+
+Use version 2 when you have a one argument function whose return type is
+different than the argument type, such as
+
+@example
+int g(double x);
+@end example
+
+Use version 3 for a function which takes two arguments and returns a result
+of the same type, such as:
+
+@example
+double g(double x, double y);
+@end example
+
+Use version 4 for a function of two arguments which returns a different
+type, such as:
+
+@example
+int g(double x, double y);
+@end example
+
+@section Tensor notation
+
+@cindex tensor notation
+@cindex Array tensor notation
+
+Blitz++ arrays support a tensor-like notation.  Here's an example of
+real-world tensor notation:
+@tex
+$$ A^{ijk} = B^{ij} C^k $$
+@end tex
+@html
+<pre>
+ ijk    ij k
+A    = B  C
+</pre>
+@end html
+@ifnottex
+@ifnothtml
+@example
+ ijk    ij k
+A    = B  C
+@end example
+@end ifnothtml
+@end ifnottex
+
+@math{A} is a rank 3 tensor (a three dimensional array), @math{B} is a rank
+2 tensor (a two dimensional array), and @math{C} is a rank 1 tensor (a one
+dimensional array).  The above expression sets 
+@code{A(i,j,k) = B(i,j) * C(k)}.
+
+To implement this product using Blitz++, we'll need the arrays and some
+index placeholders:
+
+@cindex index placeholders used for tensor notation
+
+@example
+Array<float,3> A(4,4,4);
+Array<float,2> B(4,4);
+Array<float,1> C(4);
+
+firstIndex i;    // Alternately, could just say
+secondIndex j;   // using namespace blitz::tensor;
+thirdIndex k;
+@end example
+
+Here's the Blitz++ code which is equivalent to the tensor expression:
+
+@example
+A = B(i,j) * C(k);
+@end example
+
+The index placeholder arguments tell an array how to map its dimensions onto
+the dimensions of the destination array.  For example, here's some
+real-world tensor notation:
+@tex
+$$ C^{ijk} = A^{ij} x^{k} - A^{jk} y^{i} $$
+@end tex
+@html
+<pre>
+ ijk    ij k    jk i
+C    = A  x  - A  y
+</pre>
+@end html
+@ifnottex
+@ifnothtml
+@example
+ ijk    ij k    jk i
+C    = A  x  - A  y
+@end example
+@end ifnothtml
+@end ifnottex
+
+In Blitz++, this would be coded as:
+
+@example
+using namespace blitz::tensor;
+
+C = A(i,j) * x(k) - A(j,k) * y(i);
+@end example
+
+This tensor expression can be visualized in the following way:
+
+@center @image{tensor1}
+@center Examples of array indexing, subarrays, and slicing.
+
+Here's an example which computes an outer product of two one-dimensional
+arrays:
+@cindex outer product
+@cindex kronecker product
+@cindex tensor product
+
+@smallexample
+@include examples/outer.texi
+@end smallexample
+
+And the output:
+
+@smallexample
+@include examples/outer.out
+@end smallexample
+
+Index placeholders can @emph{not} be used on the left-hand side of an
+expression.  If you need to reorder the indices, you must do this on the
+right-hand side.
+
+In real-world tensor notation, repeated indices imply a contraction (or
+summation).  For example, this tensor expression computes a matrix-matrix
+product:
+@tex
+$$ C^{ij} = A^{ik} B^{kj} $$
+@end tex
+@html
+<pre>
+ ij    ik  kj
+C   = A   B
+</pre>
+@end html
+@ifnottex
+@ifnothtml
+@example
+ ij    ik  kj
+C   = A   B
+@end example
+@end ifnothtml
+@end ifnottex
+
+The repeated k index is interpreted as meaning
+@tex
+$$ c_{ij} = \sum_{k} a_{ik} b_{kj} $$
+@end tex
+@html
+<pre>
+c    = sum of (a   * b  ) over k
+ ij             ik    kj
+</pre>
+@end html
+@ifnottex
+@ifnothtml
+@example
+c    = sum of @{a   * b  @} over k
+ ij              ik    kj
+@end example
+@end ifnothtml
+@end ifnottex
+
+@cindex contraction
+@cindex tensor contraction
+
+In Blitz++, repeated indices do @emph{not} imply contraction.  If you want
+to contract (sum along) an index, you must use the @code{sum()} function:
+
+@example
+Array<float,2> A, B, C;   // ...
+firstIndex i;
+secondIndex j;
+thirdIndex k;
+
+C = sum(A(i,k) * B(k,j), k);
+@end example
+
+The @code{sum()} function is an example of an @emph{array reduction},
+described in the next section.
+
+Index placeholders can be used in any order in an expression.  This example
+computes a kronecker product of a pair of two-dimensional arrays, and
+permutes the indices along the way:
+
+@example
+Array<float,2> A, B;   // ...
+Array<float,4> C;      // ...
+fourthIndex l;
+
+C = A(l,j) * B(k,i);
+@end example
+
+This is equivalent to the tensor notation
+@tex
+$$ C^{ijkl} = A^{lj} B^{ki} $$
+@end tex
+@html
+<pre>
+ ijkl    lj ki
+C     = A  B
+ </pre>
+@end html
+@ifnottex
+@ifnothtml
+@example
+ ijkl    lj ki
+C     = A  B
+@end example
+@end ifnothtml
+@end ifnottex
+
+Tensor-like notation can be mixed with other array notations:
+
+@example
+Array<float,2> A, B;  // ...
+Array<double,4> C;    // ...
+
+C = cos(A(l,j)) * sin(B(k,i)) + 1./(i+j+k+l);
+@end example
+
+@cindex tensor notation efficiency issues
+An important efficiency note about tensor-like notation: the right-hand side
+of an expression is @emph{completely evaluated} for @emph{every} element in
+the destination array.  For example, in this code:
+
+@example
+Array<float,1> x(4), y(4);
+Array<float,2> A(4,4):
+
+A = cos(x(i)) * sin(y(j));
+@end example
+
+The resulting implementation will look something like this:
+
+@example
+for (int n=0; n < 4; ++n)
+  for (int m=0; m < 4; ++m)
+    A(n,m) = cos(x(n)) * sin(y(m));
+@end example
+
+The functions @code{cos} and @code{sin} will be invoked sixteen times each.
+It's possible that a good optimizing compiler could hoist the @code{cos}
+evaluation out of the inner loop, but don't hold your breath -- there's a
+lot of complicated machinery behind the scenes to handle tensor notation,
+and most optimizing compilers are easily confused.  In a situation like the
+above, you are probably best off manually creating temporaries for
+@code{cos(x)} and @code{sin(y)} first.
+
+@section Array reductions
+@cindex Array reductions
+@cindex reductions
+
+Currently, Blitz++ arrays support two forms of reduction:
+
+@itemize @bullet
+
+@item      Reductions which transform an array into a scalar (for example,
+summing the elements).  These are referred to as @strong{complete
+reductions}.
+
+@item      Reducing an N dimensional array (or array expression) to an N-1
+dimensional array expression.  These are called @strong{partial reductions}.
+
+@end itemize
+
+@cindex Array reductions complete
+@cindex complete reductions
+@cindex reductions complete
+
+@section Complete reductions
+
+Complete reductions transform an array (or array expression) into 
+a scalar.  Here are some examples:
+
+@example 
+Array<float,2> A(3,3);
+A = 0, 1, 2,
+    3, 4, 5,
+    6, 7, 8;
+cout << sum(A) << endl          // 36
+     << min(A) << endl          // 0
+     << count(A >= 4) << endl;  // 5
+@end example
+
+Here are the available complete reductions:
+
+@table @code
+@item sum()
+@cindex @code{sum()} reduction
+Summation (may be promoted to a higher-precision type)
+
+@item product()
+@cindex @code{product()} reduction
+Product 
+
+@item mean()
+@cindex @code{mean()} reduction
+Arithmetic mean (promoted to floating-point type if necessary) 
+
+@item min()
+@cindex @code{min()} reduction
+Minimum value 
+
+@item max()
+@cindex @code{max()} reduction
+Maximum value 
+
+@item minmax()
+@cindex @code{minmax()} reduction
+Simultaneous minimum and maximum value (returns a value of type MinMaxValue<T>)
+
+@item minIndex()
+@cindex @code{minIndex()} reduction
+Index of the minimum value (@code{TinyVector<int,N_rank>})
+
+@item maxIndex()
+@cindex @code{maxIndex()} reduction
+Index of the maximum value (@code{TinyVector<int,N_rank>})
+
+@item count()
+@cindex @code{count()} reduction
+Counts the number of times the expression is logical true (@code{int})
+
+@item any()
+@cindex @code{any()} reduction
+True if the expression is true anywhere (@code{bool})
+
+@item all()
+@cindex @code{all()} reduction
+True if the expression is true everywhere (@code{bool})
+@end table
+
+@strong{Caution:} @code{minIndex()} and @code{maxIndex()} return TinyVectors, 
+even when the rank of the array (or array expression) is 1.
+
+Reductions can be combined with @code{where} expressions (@ref{Where expr})
+to reduce over some part of an array.  For example, @code{sum(where(A > 0,
+A, 0))} sums only the positive elements in an array.
+
+@section Partial Reductions
+
+@cindex Array reductions partial
+@cindex partial reductions
+@cindex reductions partial
+
+Here's an example which computes the sum of each row of a two-dimensional
+array:
+
+@example
+Array<float,2> A;    // ...
+Array<float,1> rs;   // ...
+firstIndex i;
+secondIndex j;
+
+rs = sum(A, j);
+@end example
+
+The reduction @code{sum()} takes two arguments:
+
+@itemize @bullet
+
+@item     The first argument is an array or array expression.
+
+@item     The second argument is an index placeholder indicating the
+dimension over which the reduction is to occur.  
+
+@end itemize
+
+Reductions have an @strong{important restriction}: It is currently only
+possible to reduce over the @emph{last} dimension of an array or array
+expression.  Reducing a dimension other than the last would require Blitz++
+to reorder the dimensions to fill the hole left behind.  For example, in
+order for this reduction to work:
+
+@example
+Array<float,3> A;   // ...
+Array<float,2> B;   // ...
+secondIndex j;
+
+// Reduce over dimension 2 of a 3-D array?
+B = sum(A, j);
+@end example
+
+Blitz++ would have to remap the dimensions so that the third dimension
+became the second.  It's not currently smart enough to do this.
+
+However, there is a simple workaround which solves some of the problems
+created by this limitation: you can do the reordering manually, prior to the
+reduction:
+
+@example
+B = sum(A(i,k,j), k);
+@end example
+
+Writing @code{A(i,k,j)} interchanges the second and third dimensions,
+permitting you to reduce over the second dimension.  Here's a list of the
+reduction operations currently supported:
+
+@table @code
+@item sum()    
+Summation
+
+@item product() 
+Product 
+
+@item mean()   
+Arithmetic mean (promoted to floating-point type if necessary)
+
+@item min()    
+Minimum value
+
+@item max()    
+Maximum value
+
+@item minIndex() 
+Index of the minimum value (int)
+
+@item maxIndex() 
+Index of the maximum value (int)
+
+@item count()    
+Counts the number of times the expression is logical true (int)
+
+@item any()      
+True if the expression is true anywhere (bool)
+
+@item all()      
+True if the expression is true everywhere (bool)
+
+@item first()   
+First index at which the expression is logical true (int); if the expression
+is logical true nowhere, then @code{tiny(int())} (INT_MIN) is returned.
+
+@item last()     
+Last index at which the expression is logical true (int); if the expression
+is logical true nowhere, then @code{huge(int())} (INT_MAX) is returned.  
+@end table
+
+The reductions @code{any()}, @code{all()}, and @code{first()} have
+short-circuit semantics: the reduction will halt as soon as the answer is
+known.  For example, if you use @code{any()}, scanning of the expression
+will stop as soon as the first true value is encountered.
+
+To illustrate, here's an example:
+
+@example
+Array<int, 2> A(4,4);
+
+A =  3,   8,   0,   1,
+     1,  -1,   9,   3,
+     2,  -5,  -1,   1,
+     4,   3,   4,   2;
+
+Array<float, 1> z(4);
+firstIndex i;
+secondIndex j;
+
+z = sum(A(j,i), j);
+@end example
+
+The array @code{z} now contains the sum of @code{A} along each column:
+
+@example
+[ 10    5     12    7 ]
+@end example
+
+This table shows what the result stored in @code{z} would be if
+@code{sum()} were replaced with other reductions:
+
+@example
+sum                     [         10         5        12         7 ]
+mean                    [        2.5      1.25         3      1.75 ]
+min                     [          1        -5        -1         1 ]
+minIndex                [          1         2         2         0 ]
+max                     [          4         8         9         3 ]
+maxIndex                [          3         0         1         1 ]
+first((A < 0), j)       [ -2147483648        1         2 -2147483648 ]
+product                 [         24       120         0         6 ]
+count((A(j,i) > 0), j)  [          4         2         2         4 ]
+any(abs(A(j,i)) > 4, j) [          0         1         1         0 ]
+all(A(j,i) > 0, j)      [          1         0         0         1 ]
+@end example
+
+Note: the odd numbers for first() are @code{tiny(int())} i.e.@: the smallest
+number representable by an int.  The exact value is machine-dependent.
+
+@cindex Array reductions chaining
+@cindex partial reductions chaining
+@cindex reductions chaining
+
+The result of a reduction is an array expression, so reductions
+can be used as operands in an array expression:
+
+@example
+Array<int,3> A;
+Array<int,2> B;
+Array<int,1> C;   // ...
+
+secondIndex j;
+thirdIndex k;
+
+B = sqrt(sum(sqr(A), k));
+
+// Do two reductions in a row
+C = sum(sum(A, k), j);
+@end example
+
+Note that this is not allowed:
+
+@example
+Array<int,2> A;
+firstIndex i;
+secondIndex j;
+
+// Completely sum the array?
+int result = sum(sum(A, j), i);
+@end example
+
+You cannot reduce an array to zero dimensions!  Instead, use one of the
+global functions described in the previous section.
+
+
+@node Where expr, , User et, Array Expressions
+@section where statements
+@cindex @code{where} statements
+@cindex functional if (@code{where})
+@cindex @code{if} (@code{where})
+
+Blitz++ provides the @code{where} function as an array expression version of the
+@code{( ? : )} operator.  The syntax is:
+
+@example
+where(array-expr1, array-expr2, array-expr3)
+@end example
+
+Wherever @code{array-expr1} is true, @code{array-expr2} is returned.  Where
+@code{array-expr1} is false, @code{array-expr3} is returned.  For example,
+suppose we wanted to sum the squares of only the positive elements of an
+array.  This can be implemented using a where function:
+
+@example
+double posSquareSum = sum(where(A > 0, pow2(A), 0));
+@end example
+

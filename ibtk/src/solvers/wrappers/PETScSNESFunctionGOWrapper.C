@@ -57,6 +57,48 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
+    const std::string& object_name,
+    const SNES& petsc_snes,
+    PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
+    void* const petsc_snes_func_ctx)
+    : GeneralOperator(object_name),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_form_func(petsc_snes_form_func),
+      d_petsc_snes_func_ctx(petsc_snes_func_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL)
+{
+    // intentionally blank
+    return;
+}// PETScSNESFunctionGOWrapper()
+
+PETScSNESFunctionGOWrapper::~PETScSNESFunctionGOWrapper()
+{
+    if (d_is_initialized) deallocateOperatorState();
+    return;
+}// ~PETScSNESFunctionGOWrapper()
+
+const SNES&
+PETScSNESFunctionGOWrapper::getPETScSNES() const
+{
+    return d_petsc_snes;
+}// getPETScSNES
+
+PetscErrorCode
+(*PETScSNESFunctionGOWrapper::getPETScSNESFormFunction())(SNES,Vec,Vec,void*)
+{
+    return d_petsc_snes_form_func;
+}// getPETScSNESFormFunction
+
+void*
+PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
+{
+    return d_petsc_snes_func_ctx;
+}// getPETScSNESFunctionContext
+
 void
 PETScSNESFunctionGOWrapper::apply(
     SAMRAIVectorReal<NDIM,double>& x,
@@ -102,14 +144,6 @@ PETScSNESFunctionGOWrapper::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
-
-void
-PETScSNESFunctionGOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 //////////////////////////////////////////////////////////////////////////////
 

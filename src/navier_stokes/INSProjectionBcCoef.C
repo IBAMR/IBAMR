@@ -65,14 +65,12 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(
-    const INSProblemCoefs* /*problem_coefs*/,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_target_idx(-1),
-      d_homogeneous_bc(false)
+    : d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
-    setPhysicalBoundaryConditions(bc_coefs);
+    setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSProjectionBcCoef
@@ -84,25 +82,28 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
 }// ~INSProjectionBcCoef
 
 void
-INSProjectionBcCoef::setINSProblemCoefs(
-    const INSProblemCoefs* /*problem_coefs*/)
+INSProjectionBcCoef::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    // intentionally blank
-    return;
-}// setINSProblemCoefs
-
-void
-INSProjectionBcCoef::setPhysicalBoundaryConditions(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBoundaryConditions
+}// setPhysicalBcCoefs
+
+void
+INSProjectionBcCoef::setSolutionTime(
+    double solution_time)
+{
+    d_solution_time = solution_time;
+    return;
+}// setSolutionTime
 
 void
 INSProjectionBcCoef::setTimeInterval(
-    const double /*current_time*/,
-    const double /*new_time*/)
+    double /*current_time*/,
+    double /*new_time*/)
 {
     // intentionally blank
     return;
@@ -110,17 +111,39 @@ INSProjectionBcCoef::setTimeInterval(
 
 void
 INSProjectionBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
+    int target_idx)
 {
-    d_target_idx = target_idx;
+    ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
     return;
 }// setTargetPatchDataIndex
 
 void
-INSProjectionBcCoef::setHomogeneousBc(
-    const bool homogeneous_bc)
+INSProjectionBcCoef::clearTargetPatchDataIndex()
 {
-    d_homogeneous_bc = homogeneous_bc;
+    ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
+    }
+    return;
+}// clearTargetPatchDataIndex
+
+void
+INSProjectionBcCoef::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
+    }
     return;
 }// setHomogeneousBc
 
@@ -132,42 +155,41 @@ INSProjectionBcCoef::setBcCoefs(
     const Pointer<Variable<NDIM> >& variable,
     const Patch<NDIM>& patch,
     const BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
+    double /*fill_time*/) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
-    TBOX_ASSERT(!acoef_data.isNull());
-    TBOX_ASSERT(!bcoef_data.isNull());
+    TBOX_ASSERT(acoef_data);
+    TBOX_ASSERT(bcoef_data);
 #endif
-    const unsigned int location_index   = bdry_box.getLocationIndex();
-    const unsigned int bdry_normal_axis = location_index/2;
-//  const bool is_lower        = location_index%2 == 0;
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    if (!gcoef_data.isNull()) TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
 #endif
-
     // Set the unmodified velocity bc coefs.
-    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, d_solution_time);
 
-    // Modify the velocity boundary conditions to correspond to pressure
-    // boundary conditions.
-    const bool set_acoef_vals = !acoef_data.isNull();
-    const bool set_bcoef_vals = !bcoef_data.isNull();
-    const bool set_gcoef_vals = !gcoef_data.isNull();
+    // Ensure homogeneous boundary conditions are enforced.
+    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
+
+    // Update the boundary condition coefficients.  Specifically, normal
+    // velocity boundary conditions are converted into Neumann conditions for
+    // the pressure, and normal traction boundary conditions are converted into
+    // Dirichlet conditions for the pressure.
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
         double dummy_val;
-        double& alpha = set_acoef_vals ? (*acoef_data)(i,0) : dummy_val;
-        double& beta  = set_bcoef_vals ? (*bcoef_data)(i,0) : dummy_val;
-        double& gamma = set_gcoef_vals ? (*gcoef_data)(i,0) : dummy_val;
-
+        double& alpha = acoef_data ? (*acoef_data)(i,0) : dummy_val;
+        double& beta  = bcoef_data ? (*bcoef_data)(i,0) : dummy_val;
+        double& gamma = gcoef_data ? (*gcoef_data)(i,0) : dummy_val;
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -175,19 +197,15 @@ INSProjectionBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // Set the boundary condition coefficients to correspond to
-            // homogeneous Neumann boundary conditions on the pressure.
             alpha = 0.0;
             beta  = 1.0;
             gamma = 0.0;
         }
         else if (traction_bc)
         {
-            // Set the boundary condition coefficients to correspond to
-            // homogeneous Dirichlet boundary conditions on the pressure.
             alpha = 1.0;
             beta  = 0.0;
-            gamma = (d_homogeneous_bc ? 0.0 : -gamma);
+            gamma = -gamma;
         }
         else
         {
@@ -203,7 +221,7 @@ INSProjectionBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());

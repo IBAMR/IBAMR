@@ -48,7 +48,7 @@
 #include <tbox/AbstractStream.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <utility>
@@ -115,11 +115,7 @@ public:
         int master_idx,
         const std::vector<NeighborIdxs>& neighbor_idxs,
         const std::vector<double>& bend_rigidities,
-        const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures
-#if ENABLE_SUBDOMAIN_INDICES
-        ,const std::vector<int>& subdomain_idxs
-#endif
-                    );
+        const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures);
 
     /*!
      * \brief Destructor.
@@ -186,22 +182,6 @@ public:
     std::vector<blitz::TinyVector<double,NDIM> >&
     getMeshDependentCurvatures();
 
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * \return A const reference to the subdomain indices associated with this
-     * force spec object.
-     */
-    const std::vector<int>&
-    getSubdomainIndices() const;
-
-    /*!
-     * \return A non-const reference to the subdomain indices associated with
-     * this force spec object.
-     */
-    std::vector<int>&
-    getSubdomainIndices();
-#endif
-
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
@@ -255,13 +235,6 @@ private:
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<blitz::TinyVector<double,NDIM> > d_mesh_dependent_curvatures;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * The subdomain indices of the force spec object.
-     */
-    std::vector<int> d_subdomain_idxs;
-#endif
 
     /*!
      * \brief A factory class to rebuild IBBeamForceSpec objects from

@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/HierarchyMathOps.h>
+
 // SAMRAI INCLUDES
 #include <SAMRAIVectorReal.h>
 #include <tbox/DescribedClass.h>
@@ -49,13 +52,15 @@ namespace IBTK
  * \f$.
  */
 class GeneralOperator
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Constructor.
      */
-    GeneralOperator();
+    GeneralOperator(
+        const std::string& object_name,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty virtual destructor.
@@ -67,6 +72,79 @@ public:
      * \name General operator functionality.
      */
     //\{
+
+    /*!
+     * \brief Return the object name.
+     */
+    const std::string&
+    getName() const;
+
+    /*!
+     * \brief Return whether the operator is initialized.
+     */
+    virtual bool
+    getIsInitialized() const;
+
+    /*!
+     * \brief Set whether the operator should use homogeneous boundary
+     * conditions.
+     */
+    virtual void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Return whether the operator is using homogeneous boundary
+     * conditions.
+     */
+    virtual bool
+    getHomogeneousBc() const;
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    virtual void
+    setSolutionTime(
+        double solution_time);
+
+    /*!
+     * \brief Get the time at which the solution is being evaluated.
+     */
+    virtual double
+    getSolutionTime() const;
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    virtual void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
+     * \brief Get the current time interval.
+     */
+    virtual std::pair<double,double>
+    getTimeInterval() const;
+
+    /*!
+     * \brief Get the current time step size.
+     */
+    virtual double
+    getDt() const;
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the operator.
+     */
+    virtual void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \brief Get the HierarchyMathOps object used by the operator.
+     */
+    virtual SAMRAI::tbox::Pointer<HierarchyMathOps>
+    getHierarchyMathOps() const;
 
     /*!
      * \brief Compute \f$y=F[x]\f$.
@@ -135,9 +213,9 @@ public:
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
      * z=F[x]+y.
      *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
+     * The vector arguments for apply(), applyAdd(), etc, need not match those
+     * for initializeOperatorState().  However, there must be a certain degree
+     * of similarity, including
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
@@ -160,8 +238,6 @@ public:
      *
      * \param in input vector
      * \param out output vector
-     *
-     * \note The default implementation is empty.
      */
     virtual void
     initializeOperatorState(
@@ -177,8 +253,6 @@ public:
      * deallocated.
      *
      * \see initializeOperatorState
-     *
-     * \note A default implementation is provided which does nothing.
      */
     virtual void
     deallocateOperatorState();
@@ -192,16 +266,53 @@ public:
 
     /*!
      * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
      */
     virtual void
-    enableLogging(
-        bool enabled=true) = 0;
+    setLoggingEnabled(
+        bool enable_logging=true);
+
+    /*!
+     * \brief Determine whether logging is enabled or disabled.
+     */
+    virtual bool
+    getLoggingEnabled() const;
+
+    /*!
+     * \brief Print class data to stream.
+     */
+    virtual void
+    printClassData(
+        std::ostream& stream);
 
     //\}
 
+protected:
+    // Object name.
+    const std::string d_object_name;
+
+    // Boolean value to indicate whether the preconditioner is presently
+    // initialized.
+    bool d_is_initialized;
+
+    // Operator configuration.
+    bool d_homogeneous_bc;
+    double d_solution_time, d_current_time, d_new_time;
+
+    // Mathematical operators.
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    bool d_hier_math_ops_external;
+
+    // Logging configuration.
+    bool d_enable_logging;
+
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    GeneralOperator();
+
     /*!
      * \brief Copy constructor.
      *

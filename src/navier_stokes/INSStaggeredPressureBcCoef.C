@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Created on 23 Jul 2008 by Boyce Griffith
+// Created on 06 Sep 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -68,19 +68,14 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
-    const INSProblemCoefs* problem_coefs,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const INSStaggeredHierarchyIntegrator* fluid_solver,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_problem_coefs(problem_coefs),
-      d_u_current_idx(-1),
-      d_u_new_idx(-1),
-      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_target_idx(-1),
-      d_homogeneous_bc(false)
+    : d_fluid_solver(fluid_solver),
+      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
-    setPhysicalBoundaryConditions(bc_coefs);
+    setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
+    setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSStaggeredPressureBcCoef
@@ -92,60 +87,131 @@ INSStaggeredPressureBcCoef::~INSStaggeredPressureBcCoef()
 }// ~INSStaggeredPressureBcCoef
 
 void
-INSStaggeredPressureBcCoef::setVelocityCurrentPatchDataIndex(
-    const int u_current_idx)
+INSStaggeredPressureBcCoef::setStokesSpecifications(
+    const StokesSpecifications* problem_coefs)
 {
-    d_u_current_idx = u_current_idx;
+    StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        StokesBcCoefStrategy* p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setStokesSpecifications(problem_coefs);
+    }
     return;
-}// setVelocityCurrentPatchDataIndex
+}// setStokesSpecifications
 
 void
-INSStaggeredPressureBcCoef::setVelocityNewPatchDataIndex(
-    const int u_new_idx)
+INSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(
+    int u_target_data_idx)
 {
-    d_u_new_idx = u_new_idx;
+    StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(u_target_data_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        StokesBcCoefStrategy* p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
+    }
     return;
-}// setVelocityNewPatchDataIndex
+}// setTargetVelocityPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setINSProblemCoefs(
-    const INSProblemCoefs* problem_coefs)
+INSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
 {
-    d_problem_coefs = problem_coefs;
+    StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        StokesBcCoefStrategy* p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetVelocityPatchDataIndex();
+    }
     return;
-}// setINSProblemCoefs
+}// clearTargetVelocityPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setPhysicalBoundaryConditions(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+INSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(
+    int p_target_data_idx)
 {
+    StokesBcCoefStrategy::setTargetPressurePatchDataIndex(p_target_data_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        StokesBcCoefStrategy* p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
+    }
+    return;
+}// setTargetPressurePatchDataIndex
+
+void
+INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
+{
+    StokesBcCoefStrategy::clearTargetPressurePatchDataIndex();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        StokesBcCoefStrategy* p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPressurePatchDataIndex();
+    }
+    return;
+}// clearTargetPressurePatchDataIndex
+
+void
+INSStaggeredPressureBcCoef::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBoundaryConditions
+}// setPhysicalBcCoefs
+
+void
+INSStaggeredPressureBcCoef::setSolutionTime(
+    const double /*solution_time*/)
+{
+    // intentionally blank
+    return;
+}// setSolutionTime
 
 void
 INSStaggeredPressureBcCoef::setTimeInterval(
-    const double current_time,
-    const double new_time)
+    const double /*current_time*/,
+    const double /*new_time*/)
 {
-    d_current_time = current_time;
-    d_new_time = new_time;
+    // intentionally blank
     return;
 }// setTimeInterval
 
 void
 INSStaggeredPressureBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
+    int target_idx)
 {
-    d_target_idx = target_idx;
+    StokesBcCoefStrategy::setTargetPatchDataIndex(target_idx);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
+    }
     return;
 }// setTargetPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setHomogeneousBc(
-    const bool homogeneous_bc)
+INSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
 {
-    d_homogeneous_bc = homogeneous_bc;
+    StokesBcCoefStrategy::clearTargetPatchDataIndex();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
+    }
+    return;
+}// clearTargetPatchDataIndex
+
+void
+INSStaggeredPressureBcCoef::setHomogeneousBc(
+    bool homogeneous_bc)
+{
+    ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
+    }
     return;
 }// setHomogeneousBc
 
@@ -157,64 +223,67 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     const Pointer<Variable<NDIM> >& variable,
     const Patch<NDIM>& patch,
     const BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
+    double /*fill_time*/) const
 {
-    const double half_time = 0.5*(d_current_time+d_new_time);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
-    TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_new_time) ||
-                MathUtilities<double>::equalEps(fill_time,half_time));
-    TBOX_ASSERT(!acoef_data.isNull());
-    TBOX_ASSERT(!bcoef_data.isNull());
-    TBOX_ASSERT(!gcoef_data.isNull());
-#else
-    NULL_USE(fill_time);
+    TBOX_ASSERT(acoef_data);
+    TBOX_ASSERT(bcoef_data);
 #endif
-    const unsigned int location_index   = bdry_box.getLocationIndex();
-    const unsigned int bdry_normal_axis = location_index/2;
-    const bool is_lower        = location_index%2 == 0;
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    Box<NDIM> bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
 #endif
-
     // Set the unmodified velocity bc coefs.
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
+    const bool is_lower                 = location_index%2 == 0;
+    const double half_time = d_fluid_solver->getIntegratorTime() + 0.5*d_fluid_solver->getCurrentTimeStepSize();
     d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, half_time);
 
-    // Modify the velocity boundary conditions to correspond to pressure
-    // boundary conditions.
-    Pointer<SideData<NDIM,double> > u_current_data =
-        patch.checkAllocated(d_u_current_idx)
-        ? patch.getPatchData(d_u_current_idx)
-        : Pointer<PatchData<NDIM> >(NULL);
+    // Ensure homogeneous boundary conditions are enforced.
+    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
+
+    // Get the target velocity data.
+    Pointer<SideData<NDIM,double> > u_target_data;
+    if      (d_u_target_data_idx >= 0) u_target_data = patch.getPatchData(d_u_target_data_idx);
+    else if (d_target_data_idx   >= 0) u_target_data = patch.getPatchData(d_target_data_idx  );
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_current_data.isNull());
-    TBOX_ASSERT(u_current_data->getGhostCellWidth().max() == u_current_data->getGhostCellWidth().min());
+    TBOX_ASSERT(u_target_data);
 #endif
-    Pointer<SideData<NDIM,double> > u_new_data =
-        patch.checkAllocated(d_u_new_idx)
-        ? patch.getPatchData(d_u_new_idx)
-        : Pointer<PatchData<NDIM> >(NULL);
+    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_new_data.isNull());
-    TBOX_ASSERT(u_new_data->getGhostCellWidth().max() == u_new_data->getGhostCellWidth().min());
+    TBOX_ASSERT(u_current_data);
 #endif
-    const Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
+    const Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if (d != bdry_normal_axis)
+        {
+            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
+            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
+        }
+    }
+
+    // Update the boundary condition coefficients.  Normal velocity boundary
+    // conditions are converted into Neumann conditions for the pressure, and
+    // normal traction boundary conditions are converted into Dirichlet
+    // conditions for the pressure.
+    const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
-        double& alpha = (*acoef_data)(i,0);
-        double& beta  = (*bcoef_data)(i,0);
-        double& gamma = (*gcoef_data)(i,0);
-
+        double dummy_val;
+        double& alpha = acoef_data ? (*acoef_data)(i,0) : dummy_val;
+        double& beta  = bcoef_data ? (*bcoef_data)(i,0) : dummy_val;
+        double& gamma = gcoef_data ? (*gcoef_data)(i,0) : dummy_val;
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -222,69 +291,43 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // Set the boundary condition coefficients to correspond to
-            // homogeneous Neumann boundary conditions on the pressure.
             alpha = 0.0;
             beta  = 1.0;
             gamma = 0.0;
         }
         else if (traction_bc)
         {
-            // Compute (d/dn)u_norm at the boundary by extrapolating the
-            // divergence free condition to the boundary.
-            Index<NDIM> i_intr0 = i;
-            Index<NDIM> i_intr1 = i;
-
+            // Place i_i in the interior cell abutting the boundary, and place
+            // i_g in the ghost cell abutting the boundary.
+            Index<NDIM> i_i(i), i_g(i);
             if (is_lower)
             {
-                i_intr0(bdry_normal_axis) += 0;
-                i_intr1(bdry_normal_axis) += 1;
+                i_g(bdry_normal_axis) -= 1;
             }
             else
             {
-                i_intr0(bdry_normal_axis) -= 1;
-                i_intr1(bdry_normal_axis) -= 2;
+                i_i(bdry_normal_axis) -= 1;
             }
 
-            for (unsigned int d = 0; d < NDIM; ++d)
+            // The boundary condition is -p + 2*mu*du_n/dx_n = g.
+            //
+            // Because p is centered about t^{n+1/2}, we compute this as:
+            //
+            // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
+            static const int NVALS = 3;
+            double u_current[NVALS], u_new[NVALS];
+            SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+            for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
             {
-                if (d != bdry_normal_axis)
-                {
-                    i_intr0(d) = std::max(i_intr0(d),ghost_box.lower()(d));
-                    i_intr0(d) = std::min(i_intr0(d),ghost_box.upper()(d));
-
-                    i_intr1(d) = std::max(i_intr1(d),ghost_box.lower()(d));
-                    i_intr1(d) = std::min(i_intr1(d),ghost_box.upper()(d));
-                }
+                u_current[k] = (*u_current_data)(i_s);
+                u_new    [k] = (*u_target_data )(i_s);
             }
-
-            double du_norm_current_dx_norm = 0.0;
-            double du_norm_new_dx_norm     = 0.0;
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                if (axis != bdry_normal_axis)
-                {
-                    const SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SideIndex<NDIM>::Upper);
-                    const SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SideIndex<NDIM>::Upper);
-                    const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
-                    const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
-
-                    const SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SideIndex<NDIM>::Lower);
-                    const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
-                    const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
-
-                    du_norm_current_dx_norm -= (u_tan_current_upper-u_tan_current_lower)/dx[axis];
-                    du_norm_new_dx_norm     -= (u_tan_new_upper    -u_tan_new_lower    )/dx[axis];
-                }
-            }
-
-            // Set the boundary condition coefficients to correspond to either
-            // homogeneous or inhomogeneous Dirichlet boundary conditions on the
-            // pressure.
+            const double h = dx[bdry_normal_axis];
+            const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
+            const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
             alpha = 1.0;
             beta  = 0.0;
-            gamma = (d_homogeneous_bc ? 0.0 : -gamma + mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm;
+            gamma = (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm - gamma;
         }
         else
         {
@@ -300,7 +343,7 @@ INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());

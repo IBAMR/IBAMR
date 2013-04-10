@@ -36,22 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/CartExtrapPhysBdryOp.h>
-
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <ComponentSelector.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <RefinePatchStrategy.h>
-#include <RobinBcCoefStrategy.h>
-#include <tbox/DescribedClass.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
-// C++ STDLIB INCLUDES
-#include <set>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -70,8 +55,7 @@ namespace IBTK
  * (Robin) boundary conditions are \em not supported in the normal direction.
  */
 class CartSideRobinPhysBdryOp
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>,
-      public virtual SAMRAI::tbox::DescribedClass
+    : public RobinPhysBdryPatchStrategy
 {
 public:
     /*!
@@ -101,7 +85,7 @@ public:
      */
     CartSideRobinPhysBdryOp(
         int patch_data_index,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
@@ -115,7 +99,7 @@ public:
      */
     CartSideRobinPhysBdryOp(
         const std::set<int>& patch_data_indices,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
@@ -129,55 +113,13 @@ public:
      */
     CartSideRobinPhysBdryOp(
         const SAMRAI::hier::ComponentSelector& patch_data_indices,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
     ~CartSideRobinPhysBdryOp();
-
-    /*!
-     * \brief Reset the patch data index operated upon by this class.
-     */
-    void
-    setPatchDataIndex(
-        int patch_data_index);
-
-    /*!
-     * \brief Reset the patch data indices operated upon by this class.
-     */
-    void
-    setPatchDataIndices(
-        const std::set<int>& patch_data_indices);
-
-    /*!
-     * \brief Reset the patch data indices operated upon by this class.
-     */
-    void
-    setPatchDataIndices(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices);
-
-    /*!
-     * \brief Reset the Robin boundary condition specification object employed
-     * by this class to set physical boundary conditions.  Distinct boundary
-     * condition objects are provided for each vector component.
-     *
-     * \note None of the elements of \a bc_coefs can be NULL.
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    /*!
-     * \brief Set whether boundary filling should employ homogeneous boundary
-     * conditions.
-     *
-     * \note By default, inhomogeneous boundary conditions are assumed.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy interface.
@@ -205,59 +147,9 @@ public:
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
-     *
-     * Presently, the refine operator stencil width is zero.
      */
     SAMRAI::hier::IntVector<NDIM>
     getRefineOpStencilWidth() const;
-
-    /*!
-     * Function to perform user-defined preprocess data refine operations.  This
-     * member function is called before standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
-     * class).  The preprocess function must refine data from the scratch
-     * components of the coarse patch into the scratch components of the fine
-     * patch on the specified fine box region.  Recall that the scratch
-     * components are specified in calls to the registerRefine() function in the
-     * SAMRAI::xfer::RefineAlgorithm class.
-     *
-     * Presently, the implementation does nothing.
-     *
-     * \param fine      Fine patch containing destination data.
-     * \param coarse    Coarse patch containing source data.
-     * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
-     */
-    void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
-
-    /*!
-     * Function to perform user-defined postprocess data refine operations.
-     * This member function is called after standard refine operations
-     * (expressed using concrete subclasses of the SAMRAI::xfer::RefineOperator
-     * base class).  The postprocess function must refine data from the scratch
-     * components of the coarse patch into the scratch components of the fine
-     * patch on the specified fine box region.  Recall that the scratch
-     * components are specified in calls to the registerRefine() function in the
-     * SAMRAI::xfer::RefineAlgorithm class.
-     *
-     * Presently, the implementation does nothing.
-     *
-     * \param fine      Fine patch containing destination data.
-     * \param coarse    Coarse patch containing source data.
-     * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
-     */
-    void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //\}
 
@@ -320,21 +212,6 @@ private:
         const SAMRAI::hier::Patch<NDIM>& patch);
 #endif
 #endif
-    /*
-     * The patch data indices corresponding to the "scratch" patch data that
-     * requires extrapolation of ghost cell values at physical boundaries.
-     */
-    std::set<int> d_patch_data_indices;
-
-    /*
-     * The RobinBcCoefStrategy objects used to specify Robin boundary conditions
-     * for each data depth.
-     *
-     * The boolean value indicates whether homogeneous boundary conditions
-     * should be used.
-     */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
-    bool d_homogeneous_bc;
 };
 }// namespace IBTK
 

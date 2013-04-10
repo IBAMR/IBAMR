@@ -60,6 +60,51 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
+    const std::string& object_name,
+    const SNES& petsc_snes,
+    PetscErrorCode (* const petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
+    void* const petsc_snes_jac_ctx)
+    : JacobianOperator(object_name),
+      d_petsc_snes(petsc_snes),
+      d_petsc_snes_jac(NULL),
+      d_petsc_snes_form_jac(petsc_snes_form_jac),
+      d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
+      d_x(NULL),
+      d_y(NULL),
+      d_z(NULL),
+      d_petsc_x(NULL),
+      d_petsc_y(NULL),
+      d_petsc_z(NULL)
+{
+    // intentionally blank
+    return;
+}// PETScSNESJacobianJOWrapper()
+
+PETScSNESJacobianJOWrapper::~PETScSNESJacobianJOWrapper()
+{
+    if (d_is_initialized) deallocateOperatorState();
+    return;
+}// ~PETScSNESJacobianJOWrapper()
+
+const SNES&
+PETScSNESJacobianJOWrapper::getPETScSNES() const
+{
+    return d_petsc_snes;
+}// getPETScSNES
+
+PetscErrorCode
+(*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES,Vec,Mat*,Mat*,MatStructure*,void*)
+{
+    return d_petsc_snes_form_jac;
+}// getPETScSNESFormJacobian
+
+void*
+PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
+{
+    return d_petsc_snes_jac_ctx;
+}// getPETScSNESJacobianContext
+
 void
 PETScSNESJacobianJOWrapper::formJacobian(
     SAMRAIVectorReal<NDIM,double>& x)
@@ -68,11 +113,11 @@ PETScSNESJacobianJOWrapper::formJacobian(
     Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
 
     // Setup the Jacobian matrix.
-    int ierr = d_petsc_snes_form_jac(d_petsc_snes,petsc_x,&d_petsc_snes_jac,PETSC_NULL,PETSC_NULL,d_petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
+    int ierr = d_petsc_snes_form_jac(d_petsc_snes,petsc_x,&d_petsc_snes_jac,NULL,NULL,d_petsc_snes_jac_ctx); IBTK_CHKERRQ(ierr);
 
     // Destroy the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::destroyPETScVector(petsc_x);
-    petsc_x = PETSC_NULL;
+    petsc_x = NULL;
     return;
 }// formJacobian
 
@@ -119,40 +164,6 @@ PETScSNESJacobianJOWrapper::applyAdd(
 }// applyAdd
 
 void
-PETScSNESJacobianJOWrapper::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-
-    // Apply the operator.
-    int ierr = MatMultTranspose(d_petsc_snes_jac, d_petsc_x, d_petsc_y); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjoint
-
-void
-PETScSNESJacobianJOWrapper::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-
-    // Apply the operator.
-    int ierr = MatMultTransposeAdd(d_petsc_snes_jac, d_petsc_x, d_petsc_y, d_petsc_z); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjointAdd
-
-void
 PETScSNESJacobianJOWrapper::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
@@ -186,14 +197,6 @@ PETScSNESJacobianJOWrapper::deallocateOperatorState()
     d_is_initialized = false;
     return;
 }// deallocateOperatorState
-
-void
-PETScSNESJacobianJOWrapper::enableLogging(
-    bool enabled)
-{
-    d_do_log = enabled;
-    return;
-}// enableLogging
 
 //////////////////////////////////////////////////////////////////////////////
 

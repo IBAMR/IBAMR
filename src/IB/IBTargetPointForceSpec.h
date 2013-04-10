@@ -48,7 +48,7 @@
 #include <tbox/AbstractStream.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -96,11 +96,7 @@ public:
         int master_idx=-1,
         double kappa_target=0.0,
         double eta_target=0.0,
-        const blitz::TinyVector<double,NDIM>& X_target=0.0
-#if ENABLE_SUBDOMAIN_INDICES
-        ,int subdomain_idx=-1
-#endif
-                           );
+        const blitz::TinyVector<double,NDIM>& X_target=0.0);
 
     /*!
      * \brief Destructor.
@@ -161,22 +157,6 @@ public:
     blitz::TinyVector<double,NDIM>&
     getTargetPointPosition();
 
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * \return A const reference to the subdomain index associated with this
-     * force spec object.
-     */
-    const int&
-    getSubdomainIndex() const;
-
-    /*!
-     * \return A non-const reference to the subdomain index associated with this
-     * force spec object.
-     */
-    int&
-    getSubdomainIndex();
-#endif
-
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
@@ -229,13 +209,6 @@ private:
     int d_master_idx;
     double d_kappa_target, d_eta_target;
     blitz::TinyVector<double,NDIM> d_X_target;
-
-#if ENABLE_SUBDOMAIN_INDICES
-    /*!
-     * The subdomain index of the force spec object.
-     */
-    int d_subdomain_idx;
-#endif
 
     /*!
      * \brief A factory class to rebuild IBTargetPointForceSpec objects from

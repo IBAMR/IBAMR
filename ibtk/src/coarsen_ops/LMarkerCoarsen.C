@@ -109,7 +109,7 @@ LMarkerCoarsen::findCoarsenOperator(
     const std::string &op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
-    return (!mark_var.isNull() && op_name == s_op_name);
+    return (mark_var && op_name == s_op_name);
 }// findCoarsenOperator
 
 const std::string&

@@ -126,8 +126,7 @@ main(
     status = H5LTget_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds);
 
     int local_marker_node_counter = 0;
-    for (int local_marker_cloud_counter = 0; local_marker_cloud_counter < num_local_marker_clouds;
-         ++local_marker_cloud_counter)
+    for (int local_marker_cloud_counter = 0; local_marker_cloud_counter < num_local_marker_clouds; ++local_marker_cloud_counter)
     {
         ostringstream dset_name_stream;
         dset_name_stream << "/markers/cloud_" << std::setw(4) << std::setfill('0') << marker_cloud_offset+local_marker_cloud_counter;

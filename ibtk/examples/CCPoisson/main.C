@@ -44,8 +44,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -62,7 +61,7 @@ main(
     char *argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+    PetscInitialize(&argc,&argv,NULL,NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -76,17 +75,12 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -95,18 +89,21 @@ main(
         Pointer<CellVariable<NDIM,double> > u_cc_var = new CellVariable<NDIM,double>("u_cc");
         Pointer<CellVariable<NDIM,double> > f_cc_var = new CellVariable<NDIM,double>("f_cc");
         Pointer<CellVariable<NDIM,double> > e_cc_var = new CellVariable<NDIM,double>("e_cc");
+        Pointer<CellVariable<NDIM,double> > r_cc_var = new CellVariable<NDIM,double>("r_cc");
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
+        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(!visit_data_writer.isNull());
+        TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
+        visit_data_writer->registerPlotQuantity(r_cc_var->getName(), "SCALAR", r_cc_idx);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -127,6 +124,7 @@ main(
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
+            level->allocatePatchData(r_cc_idx, 0.0);
         }
 
         // Setup vector objects.
@@ -136,14 +134,17 @@ main(
         SAMRAIVectorReal<NDIM,double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM,double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM,double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM,double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
         e_vec.addComponent(e_cc_var, e_cc_idx, h_cc_idx);
+        r_vec.addComponent(r_cc_var, r_cc_idx, h_cc_idx);
 
         u_vec.setToScalar(0.0);
         f_vec.setToScalar(0.0);
         e_vec.setToScalar(0.0);
+        r_vec.setToScalar(1.0);
 
         // Setup exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
@@ -152,43 +153,47 @@ main(
         u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
 
+        // Ensure that the right-hand-side vector has no components in the
+        // nullspace of the operator.
+        f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false), -f_vec.dot(Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false))/r_vec.dot(Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false)));
+
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant( 0.0);
+        poisson_spec.setCZero();
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace op", poisson_spec, bc_coef);
-        PETScKrylovLinearSolver poisson_solver("poisson solver");
-        poisson_solver.setOperator(laplace_op);
-        poisson_solver.setNullspace(true, NULL);
-        if (gridding_algorithm->getMaxLevels() == 1)
-        {
-            Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver(
-                "CCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
-            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_hypre_pc);
-        }
-        else
-        {
-            Pointer<CCPoissonFACOperator> poisson_fac_op = new CCPoissonFACOperator(
-                "CCPoissonFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_fac_op->setPoissonSpecifications(poisson_spec);
-            Pointer<FACPreconditioner> poisson_fac_pc = new FACPreconditioner(
-                "FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
-            poisson_solver.setPreconditioner(poisson_fac_pc);
-        }
-        poisson_solver.initializeSolverState(u_vec,f_vec);
+        CCLaplaceOperator laplace_op("laplace_op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoef(bc_coef);
+        laplace_op.initializeOperatorState(u_vec,f_vec);
+
+        string solver_type = input_db->getString("solver_type");
+        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        string precond_type = input_db->getString("precond_type");
+        Pointer<Database> precond_db = input_db->getDatabase("precond_db");
+        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+            solver_type , "poisson_solver" , solver_db , "",
+            precond_type, "poisson_precond", precond_db, "");
+        poisson_solver->setPoissonSpecifications(poisson_spec);
+        poisson_solver->setPhysicalBcCoef(bc_coef);
+        poisson_solver->initializeSolverState(u_vec,f_vec);
 
         // Solve -L*u = f.
         u_vec.setToScalar(0.0);
-        poisson_solver.solveSystem(u_vec,f_vec);
+        poisson_solver->solveSystem(u_vec,f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
-                       Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
+
+        // Compute the residual and print residual norms.
+        laplace_op.apply(u_vec,r_vec);
+        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false));
+        pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
+        pout << "|r|_2  = " << r_vec. L2Norm() << "\n";
+        pout << "|r|_1  = " << r_vec. L1Norm() << "\n";
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
@@ -204,6 +209,7 @@ main(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM,double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                Pointer<CellData<NDIM,double> > r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM> refined_box = refined_region_boxes[i];
@@ -211,6 +217,7 @@ main(
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
+                        r_cc_data->fillAll(0.0, intersection);
                     }
                 }
             }

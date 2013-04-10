@@ -56,8 +56,13 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearSolver::LinearSolver()
+    : d_initial_guess_nonzero(true),
+      d_nullspace_contains_constant_vec(false),
+      d_nullspace_basis_vecs()
 {
-    // intentionally blank
+    d_max_iterations = 10000;
+    d_rel_residual_tol = 1.0e-5;
+    d_abs_residual_tol = 1.0e-50;
     return;
 }// LinearSolver()
 
@@ -68,54 +73,51 @@ LinearSolver::~LinearSolver()
 }// ~LinearSolver()
 
 void
-LinearSolver::setTimeInterval(
-    const double /*current_time*/,
-    const double /*new_time*/)
-{
-    // intentionally blank
-    return;
-}// setTimeInterval
-
-void
 LinearSolver::setNullspace(
-    const bool contains_constant_vector,
-    Pointer<SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec)
+    const bool nullspace_containsconstant_vec,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
-    if (!nullspace_basis_vec.isNull())
-    {
-        setNullspace(contains_constant_vector, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >(1, nullspace_basis_vec));
-    }
-    else
-    {
-        setNullspace(contains_constant_vector, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >());
-    }
+    d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
+    d_nullspace_basis_vecs = nullspace_basis_vecs;
     return;
 }// setNullspace
 
 void
-LinearSolver::setNullspace(
-    const bool /*contains_constant_vector*/,
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& /*nullspace_basis_vecs*/)
+LinearSolver::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
 {
-    // intentionally blank
+    d_initial_guess_nonzero = initial_guess_nonzero;
     return;
-}// setNullspace
+}// setInitialGuessNonzero
+
+bool
+LinearSolver::getNullspaceContainsConstantVector() const
+{
+    return d_nullspace_contains_constant_vec;
+}// getNullspaceContainsConstantVector
+
+const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >&
+LinearSolver::getNullspaceBasisVectors() const
+{
+    return d_nullspace_basis_vecs;
+}// getNullspaceBasisVectors
+
+bool
+LinearSolver::getInitialGuessNonzero() const
+{
+    return d_initial_guess_nonzero;
+}// getInitialGuessNonzero
 
 void
-LinearSolver::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& /*x*/,
-    const SAMRAIVectorReal<NDIM,double>& /*b*/)
+LinearSolver::printClassData(
+    std::ostream& stream)
 {
-    // intentionally blank
+    GeneralSolver::printClassData(stream);
+    stream << "initial_guess_nonzero = " << d_initial_guess_nonzero << "\n"
+           << "nullspace_contains_constant_vec = " << d_nullspace_contains_constant_vec << "\n"
+           << "nullspace_basis_vecs.size() = " << d_nullspace_basis_vecs.size() << "\n";
     return;
-}// initializeSolverState
-
-void
-LinearSolver::deallocateSolverState()
-{
-    // intentionally blank
-    return;
-}// deallocateSolverState
+}// printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

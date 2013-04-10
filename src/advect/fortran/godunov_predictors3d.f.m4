@@ -49,7 +49,7 @@ c
       REAL function minmod(a,b)
       implicit none
       REAL a,b
-      minmod = (sign(0.5d0,a)+sign(0.5d0,b))*(abs(a+b)-abs(a-b))
+      minmod = 0.5d0*(sign(0.5d0,a)+sign(0.5d0,b))*(abs(a+b)-abs(a-b))
       return
       end
 c

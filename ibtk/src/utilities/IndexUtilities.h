@@ -46,7 +46,7 @@
 #include <vector>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

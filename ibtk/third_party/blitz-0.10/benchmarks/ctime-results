@@ -1,0 +1,94 @@
+On olympus.extreme.indiana.edu (sparc-sun-solaris2.6):
+egcs 1.1b
+
+Initial version, with -O2 -ftemplate-depth-30 -O2 -funroll-loops 
+  -fstrict-aliasing 
+
+ctime1    17.7 0.9
+ctime2    25.7 1.2
+ctime3    52.0 2.1
+ctime4   sleep
+
+With -fno-gcse:
+ctime1	17.3 1.0
+ctime2  26.3 1.3
+ctime3  1:02.0 2.1
+ctime4  sleep
+
+With -O:
+ctime1	17.3 0.8
+ctime2	24.4 1.2
+ctime3  51.5 2.1
+ctime4	sleep
+
+With -O -fno-inline:
+ctime1	16.9 0.8
+ctime2	20.0 1.0
+ctime3	24.7 1.2
+ctime4	31.2 1.6
+
+Woohoo.  Okay, obviously inlining is the key.
+
+Now try new expression templates:
+
+With -O -funroll-loops -DBZ_NEW_EXPRESSION_TEMPLATES
+ctime1	14.1 0.9
+ctime2	22.3 1.2
+ctime3	58.8 2.2
+
+With -O -funroll-loops -DBZ_NEW_EXPRESSION_TEMPLATES -DBZ_NO_INLINE_ET
+ctime1  14.1 0.9
+ctime2	21.1 1.0
+ctime3	45.4 1.9
+
+With -O -funroll-loops -DBZ_NEW_EXPRESSION_TEMPLATES -DBZ_NO_INLINE_ET -DBZ_ETPARMS_CONSTREF
+ctime1	14.6 0.8
+ctime2	20.7 1.1
+ctime3	41.6 2.1
+ctime4 1:27.7 3.0
+
+Things to try:
+-fno-inline
+
+Just -O (this will turn off -funroll-all-loops)
+-fno-expensive-optimizations
+-fno-unroll-all-loops
+-fno-strength-reduce
+-fno-rerun-cse-after-loop
+
+
+
+
+
+
+On hgar1.cwru.edu (alpha), with KCC:
+
+With +K3 -O3 -DBZ_NEW_EXPRESSION_TEMPLATES -DBZ_NO_INLINE_ET -DBZ_ETPARMS_CONSTREF:
+ctime1  13.1 0.8
+ctime2  20.9 1.0
+ctime3  27.3 1.0
+ctime4  36.2 1.1
+ctime5	48.7 1.2
+
+With just +K3 -O3:
+ctime1	15.8 0.9
+ctime2	25.3 1.0
+ctime3	46.2 1.2
+ctime4	79.9 1.5
+
+So a speed up of about X 2 with KCC, not counting the overhead.
+
+
+Here are the results for <valarray>:
+ctime1  0.9 0.2
+ctime2	2.1 0.2
+ctime3	9.4 0.3
+ctime4  33.2 0.4
+ctime5	1:13 0.6
+
+
+For C code:
+ctime5  0.35 0.08
+
+Pretty terrible.
+

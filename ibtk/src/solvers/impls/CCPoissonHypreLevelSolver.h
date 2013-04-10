@@ -43,26 +43,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <CellData.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <OutersideData.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-#include <string>
+#include <ibtk/PoissonSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -72,7 +53,7 @@ namespace IBTK
  * \brief Class CCPoissonHypreLevelSolver is a concrete LinearSolver for solving
  * elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot
  * D \nabla) u$} = f \f$ on a \em single SAMRAI::hier::PatchLevel using <A
- * HREF="http://www.llnl.gov/CASC/linear_solvers">hypre</A>.
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">hypre</A>.
  *
  * This solver class uses the \em hypre library to solve linear equations of the
  * form \f$ (C I + \nabla \cdot D \nabla ) u = f \f$, where \f$C\f$ is a
@@ -98,12 +79,13 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- enable_logging = FALSE         // see enableLogging()
+ enable_logging = FALSE         // see setLoggingEnabled()
  solver_type = "PFMG"           // choices are: "PFMG", "SMG", "PCG", "GMRES", "FlexGMRES" , "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "PFMG", "SMG", "Jacobi", "none"
- max_iterations = 10            // see setMaxIterations()
- absolute_residual_tol = 0.0    // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
- relative_residual_tol = 1.0e-6 // see setRelativeTolerance()
+ max_iterations = 25            // see setMaxIterations()
+ abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
+ rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
+ initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
  rel_change = 0                 // see hypre User's Manual
  num_pre_relax_steps = 1        // number of pre-sweeps (only used by SMG or PFMG solver or preconditioner)
  num_post_relax_steps = 1       // number of post-sweeps (only used by SMG or PFMG solver or preconditioner)
@@ -116,22 +98,21 @@ namespace IBTK
  *
  * \em hypre is developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  For more information about
- * \em hypre, see <A HREF="http://www.llnl.gov/CASC/linear_solvers">
- * http://www.llnl.gov/CASC/linear_solvers</A>.
+ * \em hypre, see <A
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
 class CCPoissonHypreLevelSolver
-    : public LinearSolver
+    : public LinearSolver,
+      public PoissonSolver
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name  Name of object.
-     * \param input_db     Optional SAMRAI::tbox::Database for input.
      */
     CCPoissonHypreLevelSolver(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -139,53 +120,16 @@ public:
     ~CCPoissonHypreLevelSolver();
 
     /*!
-     * \name Functions for specifying the Poisson problem.
+     * \brief Static function to construct a CCPoissonHypreLevelSolver.
      */
-    //\{
-
-    /*!
-     * \brief Set the scalar Poisson equation specifications.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        double time);
-
-    /*!
-     * \brief Set the data depth used for the solution and rhs data.
-     */
-    void
-    setDataDepth(
-        int depth);
-
-    //\}
+    static SAMRAI::tbox::Pointer<PoissonSolver>
+    allocate_solver(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& default_options_prefix)
+        {
+            return new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
+        }// allocate_solver
 
     /*!
      * \name Linear solver functionality.
@@ -290,98 +234,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -431,52 +283,32 @@ private:
         int b_idx);
     void
     copyToHypre(
-        HYPRE_StructVector vector,
+        const std::vector<HYPRE_StructVector>& vectors,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > src_data,
         const SAMRAI::hier::Box<NDIM>& box);
     void
     copyFromHypre(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > dst_data,
-        HYPRE_StructVector vector,
+        const std::vector<HYPRE_StructVector>& vectors,
         const SAMRAI::hier::Box<NDIM>& box);
     void
     destroyHypreSolver();
     void
     deallocateHypreData();
 
-    /*!
-     * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
-     * the case of isotropic or grid-aligned anisotropic problems.
-     */
-    void
-    adjustBoundaryRhsEntries_aligned(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > rhs_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> > D_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
-        const double* dx);
-
+#if 0
     /*!
      * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
      * the case of non-grid-aligned anisotropic problems.
      */
     void
     adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > rhs_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
-        const double* dx);
-
-    /*!
-     * \brief Object name.
-     */
-    std::string d_object_name;
-
-    /*!
-     * \brief Solver initialization status.
-     */
-    bool d_is_initialized;
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        double data_time);
+#endif
 
     /*!
      * \brief Associated hierarchy.
@@ -491,39 +323,23 @@ private:
     int d_level_num;
 
     /*!
-     * \name Problem specification and boundary condition handling.
+     * \name Problem specification.
      */
-    //\{
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     bool d_grid_aligned_anisotropy;
-
-    /*!
-     * \brief Robin boundary coefficient object for physical boundaries and
-     * related data.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
-    bool d_homogeneous_bc;
-    double d_apply_time;
-    int d_depth;
-
-    //\}
 
     /*!
      * \name hypre objects.
      */
     //\{
+    unsigned int d_depth;
     HYPRE_StructGrid    d_grid;
     HYPRE_StructStencil d_stencil;
-    HYPRE_StructMatrix  d_matrix;
-    HYPRE_StructVector  d_rhs_vec, d_sol_vec;
-    HYPRE_StructSolver  d_solver, d_precond;
+    std::vector<HYPRE_StructMatrix> d_matrices;
+    std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
+    std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
+    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;
-    int d_max_iterations;
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    bool d_initial_guess_nonzero;
     int d_rel_change;
     int d_num_pre_relax_steps, d_num_post_relax_steps;
     int d_memory_use;
@@ -531,28 +347,13 @@ private:
     int d_relax_type;
     int d_skip_relax;
     int d_two_norm;
-
-    int d_current_its;
-    double d_current_residual_norm;
-    //\}
-
-    /*!
-     * \name Variables for debugging and analysis.
-     */
-    //\{
-
-    /*!
-     * \brief Flag to print solver info.
-     */
-    bool d_enable_logging;
-
     //\}
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/CCPoissonHypreLevelSolver.I>
+//#include <ibtk/CCPoissonHypreLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

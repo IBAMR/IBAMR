@@ -1,0 +1,5 @@
+
+@node legal, help, compiling, Introduction
+@section Licensing terms
+
+@include copyright.texi

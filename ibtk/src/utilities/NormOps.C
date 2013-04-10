@@ -132,8 +132,7 @@ NormOps::L1Norm_local(
         const bool has_cvol = cvol_idx >= 0;
 
         Pointer<CellVariable<NDIM,double> > comp_cc_var = comp_var;
-        const bool cell_centered = !comp_cc_var.isNull();
-        if (cell_centered)
+        if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<NDIM,double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -151,8 +150,7 @@ NormOps::L1Norm_local(
         }
 
         Pointer<SideVariable<NDIM,double> > comp_sc_var = comp_var;
-        const bool side_centered = !comp_sc_var.isNull();
-        if (side_centered)
+        if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<NDIM,double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -189,8 +187,7 @@ NormOps::L2Norm_local(
         const bool has_cvol = cvol_idx >= 0;
 
         Pointer<CellVariable<NDIM,double> > comp_cc_var = comp_var;
-        const bool cell_centered = !comp_cc_var.isNull();
-        if (cell_centered)
+        if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<NDIM,double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -208,8 +205,7 @@ NormOps::L2Norm_local(
         }
 
         Pointer<SideVariable<NDIM,double> > comp_sc_var = comp_var;
-        const bool side_centered = !comp_sc_var.isNull();
-        if (side_centered)
+        if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<NDIM,double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

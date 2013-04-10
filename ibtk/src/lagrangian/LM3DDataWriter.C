@@ -58,7 +58,6 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
-#include <limits>
 #include <numeric>
 
 // HDF5 INCLUDES
@@ -148,8 +147,7 @@ LM3DDataWriter::~LM3DDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -158,8 +156,7 @@ LM3DDataWriter::~LM3DDataWriter()
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -177,7 +174,7 @@ LM3DDataWriter::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
     // Reset the hierarchy.
@@ -192,7 +189,7 @@ LM3DDataWriter::resetLevels(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
-    if (!d_hierarchy.isNull())
+    if (d_hierarchy)
     {
         TBOX_ASSERT(finest_ln <= d_hierarchy->getFinestLevelNumber());
     }
@@ -201,20 +198,18 @@ LM3DDataWriter::resetLevels(
     int ierr;
     for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != PETSC_NULL)
+            if (v)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != PETSC_NULL)
+            if (vs)
             {
                 ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
@@ -223,20 +218,18 @@ LM3DDataWriter::resetLevels(
 
     for (int ln = finest_ln+1; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != PETSC_NULL)
+            if (v)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != PETSC_NULL)
+            if (vs)
             {
                 ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
@@ -380,7 +373,7 @@ LM3DDataWriter::registerCoordsData(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!coords_data.isNull());
+    TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -501,8 +494,7 @@ LM3DDataWriter::writePlotData(
     int local_marker_node_counter, local_marker_cloud_counter;
 
     int num_local_fibers = 0;
-    for (std::vector<std::vector<int> >::const_iterator cit = d_block_nfibers.begin();
-         cit != d_block_nfibers.end(); ++cit)
+    for (std::vector<std::vector<int> >::const_iterator cit = d_block_nfibers.begin(); cit != d_block_nfibers.end(); ++cit)
     {
         num_local_fibers += std::accumulate(cit->begin(), cit->end(), 0);
     }
@@ -514,8 +506,7 @@ LM3DDataWriter::writePlotData(
         num_fibers_proc.begin()+mpi_rank, num_fibers_proc.end(), fiber_offset);
 
     int num_local_groups = 0;
-    for (std::vector<std::vector<int> >::const_iterator cit = d_block_ngroups.begin();
-         cit != d_block_ngroups.end(); ++cit)
+    for (std::vector<std::vector<int> >::const_iterator cit = d_block_ngroups.begin(); cit != d_block_ngroups.end(); ++cit)
     {
         num_local_groups += std::accumulate(cit->begin(), cit->end(), 0);
     }
@@ -900,8 +891,7 @@ LM3DDataWriter::writePlotData(
                     if (patch_box.contains(i))
                     {
                         const LMarkerSet& mark_set = it();
-                        for (LMarkerSet::const_iterator cit = mark_set.begin();
-                             cit != mark_set.end(); ++cit)
+                        for (LMarkerSet::const_iterator cit = mark_set.begin(); cit != mark_set.end(); ++cit)
                         {
                             const blitz::TinyVector<double,NDIM>& X = (*cit)->getPosition();
                             const int idx = (*cit)->getIndex();
@@ -941,18 +931,17 @@ LM3DDataWriter::writePlotData(
     }
 
     // Store information about the data layout in the local HDF5 files.
-    herr_t status;
 
     // Add the local clouds to the local marker file.
     hid_t marker_group_id = H5Gcreate1(marker_file_id, "/markers", 0);
 
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_node_offset", &marker_node_offset, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_nodes", &num_marker_nodes, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "marker_node_offset", &marker_node_offset, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_nodes", &num_marker_nodes, 1);
 
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_clouds", &num_local_marker_clouds, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_cloud_offset", &marker_cloud_offset, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_clouds", &num_local_marker_clouds, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "marker_cloud_offset", &marker_cloud_offset, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds, 1);
 
     local_marker_node_counter = 0;
     local_marker_cloud_counter = 0;
@@ -971,56 +960,56 @@ LM3DDataWriter::writePlotData(
 
         // Create the dataspace for the dataset.
         static const int rank = 2;
-        hsize_t dims[rank] = { NDIM , nmarks };
+        hsize_t dims[rank] = { NDIM , static_cast<hsize_t>(nmarks) };
         hid_t dataspace_id = H5Screate_simple(rank, dims, NULL);
 
         // Create the dataset with data compression enabled.
         hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
-        hsize_t cdims[rank] = { NDIM , nmarks };
-        status = H5Pset_chunk(plist_id, rank, cdims);
-        status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+        hsize_t cdims[rank] = { NDIM , static_cast<hsize_t>(nmarks) };
+        H5Pset_chunk(plist_id, rank, cdims);
+        H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
         hid_t dataset_id = H5Dcreate1(marker_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, H5P_DEFAULT);
 
         // Write the data and related attributes to the dataset.
-        status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "nmarks", &nmarks, 1);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "node_offset", &node_offset, 1);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "cloud_number", &cloud_number, 1);
-        status = H5LTset_attribute_string(marker_file_id, dset_name.c_str(), "cloud_name", d_cloud_names[cloud].c_str());
+        H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "nmarks", &nmarks, 1);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "node_offset", &node_offset, 1);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "cloud_number", &cloud_number, 1);
+        H5LTset_attribute_string(marker_file_id, dset_name.c_str(), "cloud_name", d_cloud_names[cloud].c_str());
 
         // Cleanup HDF5 data.
-        status = H5Dclose(dataset_id);
-        status = H5Pclose(plist_id);
-        status = H5Sclose(dataspace_id);
+        H5Dclose(dataset_id);
+        H5Pclose(plist_id);
+        H5Sclose(dataspace_id);
 
         // Advance the counters.
         local_marker_node_counter += nmarks;
         local_marker_cloud_counter += 1;
     }
-    status = H5Gclose(marker_group_id);
-    status = H5Fclose(marker_file_id);
+    H5Gclose(marker_group_id);
+    H5Fclose(marker_file_id);
 
     // Add the local fibers to the local fiber file.
     hid_t fiber_group_id = H5Gcreate1(fiber_file_id, "/fibers", 0);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers, 1);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups, 1);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers, 1);
 
     local_fiber_counter = 0;
     local_group_counter = 0;
     local_layer_counter = 0;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        if (!d_coords_data[ln].isNull())
+        if (d_coords_data[ln])
         {
             // Scatter the data from "global" to "local" form.
             Vec local_X_vec;
@@ -1053,7 +1042,7 @@ LM3DDataWriter::writePlotData(
                 const IntVector<NDIM>& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
                 static const int rank = 4;
-                hsize_t dims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
+                hsize_t dims[rank] = { NDIM , static_cast<hsize_t>(nelem[0]) , static_cast<hsize_t>(nelem[1]) , static_cast<hsize_t>(nelem[2]) };
 
                 const double* const X = local_X_arr + NDIM*offset;
                 const std::vector<float> buffer(X,X+NDIM*ntot);
@@ -1066,26 +1055,26 @@ LM3DDataWriter::writePlotData(
 
                 // Create the dataset with data compression enabled.
                 hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
-                hsize_t cdims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
-                status = H5Pset_chunk(plist_id, rank, cdims);
-                status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+                hsize_t cdims[rank] = { NDIM , static_cast<hsize_t>(nelem[0]) , static_cast<hsize_t>(nelem[1]) , static_cast<hsize_t>(nelem[2]) };
+                H5Pset_chunk(plist_id, rank, cdims);
+                H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
                 hid_t dataset_id = H5Dcreate1(fiber_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, plist_id);
 
                 // Write the data and related attributes to the dataset.
-                status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
-                status = H5LTset_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", d_block_names[ln][block].c_str());
+                H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
+                H5LTset_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", d_block_names[ln][block].c_str());
 
                 // Cleanup HDF5 data.
-                status = H5Dclose(dataset_id);
-                status = H5Pclose(plist_id);
-                status = H5Sclose(dataspace_id);
+                H5Dclose(dataset_id);
+                H5Pclose(plist_id);
+                H5Sclose(dataspace_id);
 
                 // Advance the counters.
                 offset += ntot;
@@ -1099,8 +1088,8 @@ LM3DDataWriter::writePlotData(
             ierr = VecDestroy(&local_X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
-    status = H5Gclose(fiber_group_id);
-    status = H5Fclose(fiber_file_id);
+    H5Gclose(fiber_group_id);
+    H5Fclose(fiber_file_id);
     return;
 }// writePlotData
 
@@ -1113,7 +1102,7 @@ LM3DDataWriter::buildVecScatters(
     AO& ao,
     const int level_number)
 {
-    if (d_coords_data[level_number].isNull()) return;
+    if (!d_coords_data[level_number]) return;
 
     int ierr;
 
@@ -1150,14 +1139,13 @@ LM3DDataWriter::buildVecScatters(
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
-         it != src_is_idxs.end(); ++it)
+    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
     {
         const int depth = it->first;
         const std::vector<int>& idxs = it->second;
 
         IS src_is;
-        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), PETSC_COPY_VALUES, &src_is);
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : NULL), PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
@@ -1170,16 +1158,13 @@ LM3DDataWriter::buildVecScatters(
         ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(), PETSC_DETERMINE, &dst_vec);
         IBTK_CHKERRQ(ierr);
 
-        ierr = VecSetBlockSize(dst_vec, depth);
-        IBTK_CHKERRQ(ierr);
-
         VecScatter& vec_scatter = d_vec_scatter[level_number][depth];
         if (vec_scatter)
         {
             ierr = VecScatterDestroy(&vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL, &vec_scatter);
+        ierr = VecScatterCreate(src_vec, src_is, dst_vec, NULL, &vec_scatter);
         IBTK_CHKERRQ(ierr);
 
         ierr = ISDestroy(&src_is);  IBTK_CHKERRQ(ierr);

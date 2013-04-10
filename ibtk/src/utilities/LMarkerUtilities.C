@@ -44,9 +44,6 @@
 #define included_SAMRAI_config
 #endif
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
@@ -227,8 +224,8 @@ LMarkerUtilities::eulerStep(
             Pointer<PatchData<NDIM> > u_current_data = patch->getPatchData(u_current_idx);
             Pointer<CellData<NDIM,double> > u_cc_current_data = u_current_data;
             Pointer<SideData<NDIM,double> > u_sc_current_data = u_current_data;
-            const bool is_cc_data = !u_cc_current_data.isNull();
-            const bool is_sc_data = !u_sc_current_data.isNull();
+            const bool is_cc_data = u_cc_current_data;
+            const bool is_sc_data = u_sc_current_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
@@ -288,8 +285,8 @@ LMarkerUtilities::midpointStep(
             Pointer<PatchData<NDIM> > u_half_data = patch->getPatchData(u_half_idx);
             Pointer<CellData<NDIM,double> > u_cc_half_data = u_half_data;
             Pointer<SideData<NDIM,double> > u_sc_half_data = u_half_data;
-            const bool is_cc_data = !u_cc_half_data.isNull();
-            const bool is_sc_data = !u_sc_half_data.isNull();
+            const bool is_cc_data = u_cc_half_data;
+            const bool is_sc_data = u_sc_half_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
@@ -356,8 +353,8 @@ LMarkerUtilities::trapezoidalStep(
             Pointer<PatchData<NDIM> > u_new_data = patch->getPatchData(u_new_idx);
             Pointer<CellData<NDIM,double> > u_cc_new_data = u_new_data;
             Pointer<SideData<NDIM,double> > u_sc_new_data = u_new_data;
-            const bool is_cc_data = !u_cc_new_data.isNull();
-            const bool is_sc_data = !u_sc_new_data.isNull();
+            const bool is_cc_data = u_cc_new_data;
+            const bool is_sc_data = u_sc_new_data;
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
@@ -507,8 +504,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
 
         Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
         Pointer<LMarkerSetData> mark_data_new = new LMarkerSetData(mark_data->getBox(), mark_data->getGhostCellWidth());
-        for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
-             it != mark_data->data_end(); ++it)
+        for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox()); it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -613,7 +609,7 @@ LMarkerUtilities::initializeMarkersOnLevel(
     }
     else
     {
-        if (!old_level.isNull() && level_number == 0)
+        if (old_level && level_number == 0)
         {
             Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
             copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
@@ -723,8 +719,7 @@ LMarkerUtilities::collectMarkerPositionsOnPatch(
 {
     X_mark.resize(NDIM*countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -742,8 +737,7 @@ LMarkerUtilities::resetMarkerPositionsOnPatch(
     Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -762,8 +756,7 @@ LMarkerUtilities::collectMarkerVelocitiesOnPatch(
 {
     U_mark.resize(NDIM*countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const blitz::TinyVector<double,NDIM>& U = mark->getVelocity();
@@ -781,8 +774,7 @@ LMarkerUtilities::resetMarkerVelocitiesOnPatch(
     Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         blitz::TinyVector<double,NDIM>& U = mark->getVelocity();

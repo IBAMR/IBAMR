@@ -125,7 +125,7 @@ CartSideDoubleCubicCoarsen::findCoarsenOperator(
     const std::string &op_name) const
 {
     Pointer<SideVariable<NDIM,double> > sc_var = var;
-    return (!sc_var.isNull() && op_name == s_op_name);
+    return (sc_var && op_name == s_op_name);
 }// findCoarsenOperator
 
 const std::string&

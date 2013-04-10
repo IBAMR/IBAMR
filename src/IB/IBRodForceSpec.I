@@ -59,9 +59,6 @@ IBRodForceSpec::IBRodForceSpec(
     : d_master_idx(-1),
       d_next_idxs(num_rods),
       d_material_params(num_rods)
-#if ENABLE_SUBDOMAIN_INDICES
-    , d_subdomain_idxs(num_rods)
-#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     if (!getIsRegisteredWithStreamableManager())
@@ -78,24 +75,14 @@ inline
 IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
     const std::vector<int>& next_idxs,
-    const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params
-#if ENABLE_SUBDOMAIN_INDICES
-    ,const std::vector<int>& subdomain_idxs
-#endif
-                               )
+    const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params)
     : d_master_idx(master_idx),
       d_next_idxs(next_idxs),
       d_material_params(material_params)
-#if ENABLE_SUBDOMAIN_INDICES
-    , d_subdomain_idxs(subdomain_idxs)
-#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const unsigned int num_rods = d_next_idxs.size();
     TBOX_ASSERT(num_rods == d_material_params.size());
-#if ENABLE_SUBDOMAIN_INDICES
-    TBOX_ASSERT(num_rods == d_subdomain_idxs.size());
-#endif
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBRodForceSpec::IBRodForceSpec():\n"
@@ -159,20 +146,6 @@ IBRodForceSpec::getMaterialParams()
     return d_material_params;
 }// getMaterialParams
 
-#if ENABLE_SUBDOMAIN_INDICES
-inline const std::vector<int>&
-IBRodForceSpec::getSubdomainIndices() const
-{
-    return d_subdomain_idxs;
-}// getSubdomainIndices
-
-inline std::vector<int>&
-IBRodForceSpec::getSubdomainIndices()
-{
-    return d_subdomain_idxs;
-}// getSubdomainIndices
-#endif
-
 inline int
 IBRodForceSpec::getStreamableClassID() const
 {
@@ -187,11 +160,7 @@ IBRodForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
     return ((                  2+num_rods)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (NUM_MATERIAL_PARAMS*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble())
-#if ENABLE_SUBDOMAIN_INDICES
-        + num_rods*SAMRAI::tbox::AbstractStream::sizeofInt()
-#endif
-        ;
+            (NUM_MATERIAL_PARAMS*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble());
 }// getDataStreamSize
 
 inline void
@@ -209,9 +178,6 @@ IBRodForceSpec::packStream(
     {
         stream.pack(d_material_params[n].data(),NUM_MATERIAL_PARAMS);
     }
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.pack(&d_subdomain_idxs[0],num_rods);
-#endif
     return;
 }// packStream
 

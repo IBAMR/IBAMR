@@ -61,7 +61,7 @@
 #include <tbox/Utilities.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -252,9 +252,7 @@ compute_tangential_extension(
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp()
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
@@ -262,12 +260,13 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp()
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const int patch_data_index,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -276,12 +275,13 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -290,12 +290,13 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -307,64 +308,6 @@ CartSideRobinPhysBdryOp::~CartSideRobinPhysBdryOp()
     // intentionally blank
     return;
 }// ~CartSideRobinPhysBdryOp
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndex(
-    const int patch_data_index)
-{
-    std::set<int> patch_data_indices;
-    patch_data_indices.insert(patch_data_index);
-    setPatchDataIndices(patch_data_indices);
-    return;
-}// setPatchDataIndex
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndices(
-    const std::set<int>& patch_data_indices)
-{
-    d_patch_data_indices.clear();
-    d_patch_data_indices = patch_data_indices;
-    return;
-}// setPatchDataIndices
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndices(
-    const ComponentSelector& patch_data_indices)
-{
-    std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
-    {
-        if (patch_data_indices.isSet(l))
-        {
-            const int patch_data_index = l;
-            patch_data_index_set.insert(patch_data_index);
-        }
-    }
-    setPatchDataIndices(patch_data_index_set);
-    return;
-}// setPatchDataIndices
-
-void
-CartSideRobinPhysBdryOp::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(bc_coefs[d] != NULL);
-    }
-#endif
-    d_bc_coefs = bc_coefs;
-    return;
-}// setPhysicalBcCoefs
-
-void
-CartSideRobinPhysBdryOp::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
@@ -383,23 +326,17 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
         const int patch_data_idx = (*cit);
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        if (!sc_var)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  patch data index " << patch_data_idx << " does not correspond to a side-centered double precision variable." << std::endl);
         }
     }
-
-    // Indicate whether we are employing homogeneous or inhomogeneous boundary
-    // conditions for all extended Robin BC coef strategy objects employed by
-    // this object.
-    for (unsigned int d = 0; d < NDIM; ++d)
+    if (d_bc_coefs.size() != NDIM)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
-        if (extended_bc_coef != NULL)
-        {
-            extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
-        }
+        TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
+                   << "  requires NDIM==" << NDIM << " bc_coef objects (one for each data axis);\n"
+                   << "  provided " << d_bc_coefs.size() << " bc_coef" << std::endl);
     }
 
     // Compute the boundary boxes.
@@ -440,8 +377,8 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     physical_codim1_reset_boxes.resizeArray(reset_box_counter);
 #endif
     // To set the boundary condition values:
-    // (1) Compute the boundary condition coefficients along the co-dimension one
-    //     boundary,
+    // (1) Compute the boundary condition coefficients along the co-dimension
+    //     one boundary,
     // (2) Set the boundary conditions along the co-dimension one boundary boxes
     //     (thereby ensuring that Dirichlet boundary conditions set during step
     //     (1) are used properly in setting tangential boundary conditions),
@@ -449,14 +386,12 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     //     co-dimension two or co-dimension three boundary box,
     // (4) Reset the boundary conditions along the co-dimension one boundary
     //     where it abuts the co-dimension two boundary,
-    // (5) Extrapolate boundary values to the co-dimension two and three boundary
-    //     boxes.
+    // (5) Extrapolate boundary values to the co-dimension two and three
+    //     boundary boxes.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        setCodimension1BdryValues(
-            patch_data_idx,
-            physical_codim1_boxes, fill_time, ghost_width_to_fill, patch);
+        setCodimension1BdryValues(patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch);
     }
 #if (NDIM > 1)
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
@@ -485,28 +420,6 @@ CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 }// getRefineOpStencilWidth
-
-void
-CartSideRobinPhysBdryOp::preprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// preprocessRefine
-
-void
-CartSideRobinPhysBdryOp::postprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// postprocessRefine
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -562,6 +475,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     // Set the normal components.
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
+        // Set the boundary condition coefficients.
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const unsigned int location_index   = bdry_box.getLocationIndex();
@@ -572,17 +486,16 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
         Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
         Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
         Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-
-        // Set the boundary condition coefficients.
         RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[axis];
         ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-        const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-        if (using_extended_robin_bc_coef)
+        if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
+            extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
         }
         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-        if (d_homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data->fillAll(0.0);
+        if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+        if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
 
         // Set the boundary values.
         if (location_index == 0 || location_index == 1)
@@ -681,13 +594,14 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
                 // Set the boundary condition coefficients.
                 RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[axis];
                 ExtendedRobinBcCoefStrategy* const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-                const bool using_extended_robin_bc_coef = extended_bc_coef != NULL;
-                if (using_extended_robin_bc_coef)
+                if (extended_bc_coef)
                 {
                     extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
+                    extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
                 }
                 bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-                if (d_homogeneous_bc && !using_extended_robin_bc_coef) gcoef_data->fillAll(0.0);
+                if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+                if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
 
                 // Restore the original patch geometry object.
                 patch.setPatchGeometry(pgeom);

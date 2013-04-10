@@ -48,8 +48,8 @@ namespace IBTK
  *
  * \param comm MPI communicator to associate with the MultiVec object
  * \param n number of component Vec objects
- * \param v array of component of Vec objects
- * \param vv output vector
+ * \param vv array of component vectors
+ * \param v pointer to created vector
  *
  * \note Memory associated with the component vectors is \em not freed when the
  * vector is destroyed via VecDestroy().  Users must \em not free the array
@@ -59,15 +59,15 @@ PetscErrorCode
 VecCreateMultiVec(
     MPI_Comm comm,
     PetscInt n,
-    Vec* v,
-    Vec* vv);
+    Vec vv[],
+    Vec* v);
 
 /*!
  * \brief Return the number of component Vec objects stored in a MultiVec
  * vector.
  */
 PetscErrorCode
-VecMultiVecGetNumberOfVecs(
+VecMultiVecGetNumberOfSubVecs(
     Vec v,
     PetscInt* n);
 
@@ -79,9 +79,23 @@ VecMultiVecGetNumberOfVecs(
  * \param vv pointer to array of component vectors
  */
 PetscErrorCode
-VecMultiVecGetVecs(
+VecMultiVecGetSubVecs(
     Vec v,
     Vec* vv[]);
+
+/*!
+ * \brief Return a pointer to a particular component Vec object stored in a
+ * MultiVec vector.
+ *
+ * \param v input vector
+ * \param idx component index
+ * \param subv pointer to component vector
+ */
+PetscErrorCode
+VecMultiVecGetSubVec(
+    Vec v,
+    PetscInt idx,
+    Vec* subv);
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////

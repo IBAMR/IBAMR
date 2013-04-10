@@ -42,7 +42,7 @@
 #include <CartesianGridGeometry.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>

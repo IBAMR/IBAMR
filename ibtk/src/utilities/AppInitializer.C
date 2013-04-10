@@ -63,6 +63,19 @@ AppInitializer::AppInitializer(
     int argc,
     char* argv[],
     const std::string& default_log_file_name)
+    : d_input_db(NULL),
+      d_is_from_restart(false),
+      d_viz_dump_interval(0),
+      d_viz_dump_dirname(""),
+      d_viz_writers(),
+      d_visit_data_writer(NULL),
+      d_silo_data_writer(NULL),
+      d_exodus_filename("output.ex2"),
+      d_restart_dump_interval(0),
+      d_restart_dump_dirname(""),
+      d_data_dump_interval(0),
+      d_data_dump_dirname(""),
+      d_timer_dump_interval(0)
 {
     if (argc == 1)
     {
@@ -79,13 +92,13 @@ AppInitializer::AppInitializer(
     {
         // Check whether this appears to be a restarted run.
         FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
-        if (SAMRAI_MPI::bcast(fstream != NULL ? 1 : 0, 0) == 1)
+        if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
             restart_read_dirname = argv[2];
             restore_num = atoi(argv[3]);
             d_is_from_restart = true;
         }
-        if (fstream != NULL)
+        if (fstream)
         {
             fclose(fstream);
         }
@@ -109,8 +122,10 @@ AppInitializer::AppInitializer(
     }
 
     // Configure logging options.
-    const std::string log_file_name = main_db->getStringWithDefault("log_file_name", default_log_file_name);
-    const bool log_all_nodes = main_db->getBoolWithDefault("log_all_nodes", false);
+    std::string log_file_name = default_log_file_name;
+    bool log_all_nodes = false;
+    if (main_db->keyExists("log_file_name")) log_file_name = main_db->getString("log_file_name");
+    if (main_db->keyExists("log_all_nodes")) log_all_nodes = main_db->getBool("log_all_nodes");
     if (!log_file_name.empty())
     {
         if (log_all_nodes)
@@ -164,7 +179,7 @@ AppInitializer::AppInitializer(
     }
     else
     {
-        d_viz_dump_interval = main_db->getIntegerWithDefault("viz_dump_interval", 0);
+        if (main_db->keyExists("viz_dump_interval")) d_viz_dump_interval = main_db->getInteger("viz_dump_interval");
         if (d_viz_dump_interval > 0)
         {
             if (main_db->keyExists("viz_dump_dirname"))
@@ -223,13 +238,14 @@ AppInitializer::AppInitializer(
     {
         if (d_viz_writers[i] == "VisIt")
         {
-            const int visit_number_procs_per_file = main_db->getIntegerWithDefault("visit_number_procs_per_file", 1);
+            int visit_number_procs_per_file = 1;
+            if (main_db->keyExists("visit_number_procs_per_file")) visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer = new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")
         {
-            d_exodus_filename = main_db->getStringWithDefault("exodus_filename", "output.ex2");
+            if (main_db->keyExists("exodus_filename")) d_exodus_filename = main_db->getString("exodus_filename");
         }
     }
 
@@ -272,9 +288,9 @@ AppInitializer::AppInitializer(
             }
         }
     }
-    else
+    else if (main_db->keyExists("restart_dump_interval"))
     {
-        d_restart_dump_interval = main_db->getIntegerWithDefault("restart_dump_interval", 0);
+        d_restart_dump_interval = main_db->getInteger("restart_dump_interval");
         if (d_restart_dump_interval > 0)
         {
             if (main_db->keyExists("restart_dump_dirname"))
@@ -331,9 +347,9 @@ AppInitializer::AppInitializer(
             }
         }
     }
-    else
+    else if (main_db->keyExists("data_dump_interval"))
     {
-        d_data_dump_interval = main_db->getIntegerWithDefault("data_dump_interval", 0);
+        d_data_dump_interval = main_db->getInteger("data_dump_interval");
         if (d_data_dump_interval > 0)
         {
             if (main_db->keyExists("data_dump_dirname"))
@@ -360,9 +376,9 @@ AppInitializer::AppInitializer(
     {
         d_timer_dump_interval = main_db->getInteger("timer_write_interval");
     }
-    else
+    else if (main_db->keyExists("timer_dump_interval"))
     {
-        d_timer_dump_interval = main_db->getIntegerWithDefault("timer_dump_interval", 0);
+        d_timer_dump_interval = main_db->getInteger("timer_dump_interval");
     }
 
     if (d_timer_dump_interval > 0)

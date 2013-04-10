@@ -54,7 +54,7 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScSNESJacobianJOWrapper provides a JacobianOperator interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> SNES Jacobian.
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES Jacobian.
  */
 class PETScSNESJacobianJOWrapper
     : public JacobianOperator
@@ -188,68 +188,12 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
 
     /*!
-     * \brief Compute y=A'x.
-     *
-     * Before calling this function, the form of the vectors x and y should be
-     * set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and y \em cannot be the same.
-     *
-     * \note The operator NEED NOT be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y output: y=A'x
-     */
-    void
-    applyAdjoint(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-    /*!
-     * \brief Compute z=A'x+y.
-     *
-     * Before calling this function, the form of the vectors x, y, and z should
-     * be set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and z \em cannot be the same.
-     *
-     * \note The operator NEED NOT be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y input
-     * \param z output: z=A'x+y
-     */
-    void
-    applyAdjointAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
-
-    /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
      * z=Ax+y.
      *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
+     * The vector arguments for apply(), applyAdd(), etc, need not match those
+     * for initializeOperatorState().  However, there must be a certain degree
+     * of similarity, including
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
@@ -293,22 +237,6 @@ public:
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
-
 private:
     /*!
      * \brief Default constructor.
@@ -340,9 +268,6 @@ private:
     operator=(
         const PETScSNESJacobianJOWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
-
     const SNES d_petsc_snes;
     Mat d_petsc_snes_jac;
     PetscErrorCode (* const d_petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*);
@@ -354,7 +279,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScSNESJacobianJOWrapper.I>
+//#include <ibtk/PETScSNESJacobianJOWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,0 +1,32 @@
+# Path where Blitz++ is installed
+BZDIR = /usr/local/blitz
+
+CXX = g++
+
+# Flags for optimized executables
+# CXXFLAGS = -O2 -I$(BZDIR) -ftemplate-depth-30
+
+# Flags for debugging
+CXXFLAGS = -ftemplate-depth-30 -g -DBZ_DEBUG -I$(BZDIR)
+
+LDFLAGS =
+LIBS = -L$(BZDIR)/lib -lblitz -lm
+
+TARGETS = myprogram1 myprogram2
+
+.SUFFIXES: .o .cpp
+
+.cpp.o:
+    $(CXX) $(CXXFLAGS) -c $*.cpp
+
+$(TARGETS):
+    $(CXX) $(LDFLAGS) $@@.o -o $@@ $(LIBS)
+
+all:
+    $(TARGETS)
+
+myprogram1:      myprogram1.o
+myprogram2:      myprogram2.o
+
+clean:
+    -rm -f *.o $(TARGETS)

@@ -51,9 +51,6 @@
 #include <CellData.h>
 #include <tbox/MathUtilities.h>
 
-// C++ STDLIB INCLUDES
-#include <limits>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -94,12 +91,10 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
 {
     Pointer<CellData<NDIM,double> > q_cc_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_cc_data.isNull());
+    TBOX_ASSERT(q_cc_data);
 #endif
     q_cc_data->fillAll(0.0);
-
     if (initial_time) return;
-
     Pointer<CellData<NDIM,double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
     PatchCellDataBasicOps<NDIM,double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());

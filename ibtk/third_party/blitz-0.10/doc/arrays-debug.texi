@@ -1,0 +1,34 @@
+
+@node Array debug, Array members, Array slicing, Arrays
+@section Debug mode
+@cindex debugging mode
+@cindex bounds checking
+@cindex Array bounds checking
+
+The Blitz++ library has a debugging mode which is enabled by defining the
+preprocessor symbol @code{BZ_DEBUG}.  For most compilers, the command line
+argument @code{-DBZ_DEBUG} should work.
+
+In debugging mode, your programs will run @emph{very slowly}.  This is
+because Blitz++ is doing lots of precondition checking and bounds checking.
+When it detects something fishy, it will likely halt your program and
+display an error message.
+
+For example, this program attempts to access an element of a 4x4 array which
+doesn't exist:
+
+@smallexample
+@include examples/debug.texi
+@end smallexample
+
+When compiled with @code{-DBZ_DEBUG}, the out of bounds indices are detected
+and an error message results:
+
+@smallexample
+@include examples/debug.out
+@end smallexample
+
+Precondition failures send their error messages to the standard error stream
+(@code{cerr}).  After displaying the error message, @code{assert(0)} is
+invoked.  
+

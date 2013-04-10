@@ -1,0 +1,129 @@
+Installation procedure for Blitz++
+
+
+1.  Installation
+
+1.1 From tarfile
+
+Unpack blitz-VERSION.tar.gz in the directory of your choice.  The file 
+blitz-VERSION.tar.gz file will unpack into a subdirectory blitz-VERSION.  
+
+Now cd into blitz-VERSION, and run the configure script.  Blitz++ now
+uses a standard configure script generated using GNU autoconf/automake.
+For a typical system, simply running ./configure with no options is
+sufficient.  The configure script will explore your system to discover 
+the available compilers and appropriate options to use.  To select a
+different C++ compiler than the one discovered automatically, give the 
+option CXX=<compiler-name>.  The standard configure option --prefix=<dir>
+may be used to select the installation directory for Blitz++.  Type
+"./configure --help" to see a summary of all the available options.
+
+Once you have run the configure script, do:
+        make lib
+
+This is a minimal build of just the Blitz++ library.  You can also do:
+
+        make check-testsuite  Build and check the testsuite
+        make check-examples   Build and check the examples
+        make check-benchmarks Build and check the benchmarks (long)
+        make install          Install Blitz++
+        make info             Build Blitz++ texinfo documentation
+        make ps               Build Blitz++ ps documentation
+        make pdf              Build Blitz++ pdf documentation
+        make html             Build Blitz++ html documentation
+        make install-info     Install Blitz++ texinfo documentation
+        make install-ps       Install Blitz++ ps documentation
+        make install-pdf      Install Blitz++ pdf documentation
+        make install-html     Install Blitz++ html documentation
+
+1.2 From cvs repository 
+
+After you have checked out the latest version of Blitz from the cvs
+repository, you will need to create the configure script.  Do:
+
+	autoreconf -fiv
+
+This will run autoconf, aclocal and automake for you to generate the
+configure and libtool scripts and all of the Makefile.in files.  You 
+may need to update your system's installed versions of autoconf, automake
+and libtool in order for the autoreconf process to work properly.  Once 
+you have successfully generated a configure script, the installation 
+procedure for Blitz++ is identical as with a tarfile. 
+
+Note however that you might get into trouble when running the command
+"make". If the command aborts with the following type of messages:
+
+WARNING: `aclocal-1.6' is missing on your system.  You should only need it if
+          you modified `acinclude.m4' or `configure.in'.  You might want
+          to install the `Automake' and `Perl' packages.  Grab them from
+          any GNU archive site.
+
+WARNING: `automake-1.6' is missing on your system.  You should only need it if
+          you modified `Makefile.am', `acinclude.m4' or `configure.in'.
+          You might want to install the `Automake' and `Perl' packages.
+          Grab them from any GNU archive site.
+
+You should just need to update the date of the file "configure". You can do
+that by running the following command:
+
+touch configure
+
+You can then proceed with make.
+
+
+2.  Setting up symbolic links
+
+If you have root privileges, you can install some symbolic links
+to the headers and library.  Suppose you unpacked blitz in
+/software/Blitz++; then do these commands:
+
+# ln -s /software/Blitz++/blitz /usr/include/blitz
+# ln -s /software/Blitz++/lib/libblitz.a
+
+If you prefer, you can use "make install" to copy the header files, 
+library, examples and documentation into the installation directory.
+
+3.  Getting started
+
+There are example programs in the "examples" directory.
+The original Blitz++ documentation is found in the "manual" directory.
+Point your browser at manual/index.html, or do "gv manual/blitz.ps".
+However, this form of the documentation is no longer being actively
+maintained.  More up-to-date documentation is kept in the "doc" directory.
+
+4.  OTHER COMPILERS
+
+If you want to try Blitz++ with a compiler that does not seem to work
+with the configure autoconf script, I suggest the following approach:
+
+  1. Check the "supported platforms" list at:
+     http://oonumerics.org/blitz/platforms
+
+     and the development mailing list at:
+     http://oonumerics.org/blitz/contribute/blitz-dev/archive/index.html
+
+     to see what progress has been made on your compiler.
+     
+  2. Go into the compiler subdirectory and run the bzconfig
+     script.  This will exercise your compiler to see what
+     language features it supports.  If it doesn't have
+     member templates and enum computations, just give up.
+
+  3. Install autoconf (from e.g., ftp://prep.ai.mit.edu/pub/gnu)
+     if you don't have it already.
+
+  4. Edit the m4/ac_cxx_flags_preset.m4 file to add an appropriate case 
+     and options for your compiler.  Then invoke autoconf to generate 
+     the configure script.  Then try configure with the CXX=<compiler> 
+     option.  Repeat until it works...
+
+  5. Try building the testsuite ('make check-testsuite').
+
+  6. Holy schmoly!  It works!  Please drop a note to
+     blitz-dev@oonumerics.org and include:
+
+        - name and info about your compiler
+        - diffs for configure.in or ac_cxx_flags_preset.m4, if any
+        - the file <blitz/config.h>
+
+

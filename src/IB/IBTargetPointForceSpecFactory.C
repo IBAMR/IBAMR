@@ -92,9 +92,6 @@ IBTargetPointForceSpec::Factory::unpackStream(
     stream.unpack(&ret_val->d_kappa_target,1);
     stream.unpack(&ret_val->d_eta_target,1);
     stream.unpack(ret_val->d_X_target.data(),NDIM);
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idx,1);
-#endif
     return ret_val;
 }// unpackStream
 

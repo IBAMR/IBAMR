@@ -66,7 +66,7 @@
 #include <tbox/Utilities.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec-et.h>
+#include <blitz/tinyvec2.h>
 
 // SILO INCLUDES
 #if HAVE_LIBSILO
@@ -471,10 +471,7 @@ IBInstrumentPanel::IBInstrumentPanel(
 #endif
 
     // Initialize object with data read from the input database.
-    if (!input_db.isNull())
-    {
-        getFromInput(input_db);
-    }
+    if (input_db) getFromInput(input_db);
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -558,12 +555,11 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         {
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int m = spec->getMeterIndex();
                     max_meter_index = std::max(m, max_meter_index);
@@ -706,12 +702,11 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             // Store the local positions of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_arr[NDIM*petsc_idx];
@@ -946,7 +941,7 @@ IBInstrumentPanel::readInstrumentData(
                                                                 xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
                                                                 );
-                    if (!U_cc_data.isNull())
+                    if (U_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -957,7 +952,7 @@ IBInstrumentPanel::readInstrumentData(
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
                     }
-                    if (!U_sc_data.isNull())
+                    if (U_sc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -968,7 +963,7 @@ IBInstrumentPanel::readInstrumentData(
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
                     }
-                    if (!P_cc_data.isNull())
+                    if (P_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
@@ -976,8 +971,8 @@ IBInstrumentPanel::readInstrumentData(
                             const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
                             const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
                             const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_mean_pres_values[meter_num] += P(0)*norm(dA);
-                            A                 [meter_num] += norm(dA);
+                            d_mean_pres_values[meter_num] += P(0)*norm2(dA);
+                            A                 [meter_num] += norm2(dA);
                         }
                     }
                 }
@@ -992,7 +987,7 @@ IBInstrumentPanel::readInstrumentData(
                                                                 xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
                                                                 );
-                    if (!P_cc_data.isNull())
+                    if (P_cc_data)
                     {
                         for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
                         {
@@ -1043,12 +1038,11 @@ IBInstrumentPanel::readInstrumentData(
             // Store the local velocities of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (spec != NULL)
+                if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const U = &U_arr[NDIM*petsc_idx];
@@ -1128,6 +1122,14 @@ IBInstrumentPanel::readInstrumentData(
 }// readInstrumentData
 
 void
+IBInstrumentPanel::setPlotDirectory(
+    const std::string& plot_directory_name)
+{
+    d_plot_directory_name = plot_directory_name;
+    return;
+}// setPlotDirectory
+
+void
 IBInstrumentPanel::writePlotData(
     const int timestep_num,
     const double simulation_time)
@@ -1174,7 +1176,7 @@ IBInstrumentPanel::writePlotData(
     current_file_name += temp_buf;
     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
-    if ((dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)) == NULL)
+    if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
                    << "  Could not create DBfile named " << current_file_name << std::endl);
@@ -1204,7 +1206,7 @@ IBInstrumentPanel::writePlotData(
         // process.
         sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
         std::string summary_file_name = dump_dirname + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
-        if ((dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)) == NULL)
+        if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
                        << "  Could not create DBfile named " << summary_file_name << std::endl);
@@ -1289,18 +1291,18 @@ IBInstrumentPanel::getFromInput(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
-    d_plot_directory_name = db->getStringWithDefault("plot_directory_name", d_plot_directory_name);
-    d_output_log_file = db->getBoolWithDefault("output_log_file", d_output_log_file);
+    if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
+    if (db->keyExists("output_log_file")) d_output_log_file = db->getBool("output_log_file");
     if (d_output_log_file)
     {
-        d_log_file_name = db->getStringWithDefault("log_file_name", d_log_file_name);
+        if (db->keyExists("log_file_name")) d_log_file_name = db->getString("log_file_name");
     }
-    d_flow_conv = db->getDoubleWithDefault("flow_conv", d_flow_conv);
-    d_pres_conv = db->getDoubleWithDefault("pres_conv", d_pres_conv);
-    d_flow_units = db->getStringWithDefault("flow_units", d_flow_units);
-    d_pres_units = db->getStringWithDefault("pres_units", d_pres_units);
+    if (db->keyExists("flow_conv")) d_flow_conv = db->getDouble("flow_conv");
+    if (db->keyExists("pres_conv")) d_pres_conv = db->getDouble("pres_conv");
+    if (db->keyExists("flow_units")) d_flow_units = db->getString("flow_units");
+    if (db->keyExists("pres_units")) d_pres_units = db->getString("pres_units");
     return;
 }// getFromInput
 

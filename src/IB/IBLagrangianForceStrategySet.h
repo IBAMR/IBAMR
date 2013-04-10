@@ -117,7 +117,6 @@ public:
         std::vector<int>& o_nnz,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
-        double data_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!

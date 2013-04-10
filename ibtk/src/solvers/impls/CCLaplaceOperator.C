@@ -50,14 +50,7 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <CellDataFactory.h>
-#include <CellVariable.h>
-#include <HierarchyDataOpsManager.h>
-#include <Variable.h>
-#include <tbox/Database.h>
-#include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -70,9 +63,11 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -91,153 +86,21 @@ static Timer* t_deallocate_operator_state;
 
 CCLaplaceOperator::CCLaplaceOperator(
     const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
-    : LinearOperator(true),
-      d_object_name(object_name),
-      d_is_initialized(false),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_ncomp(0),
-      d_apply_time(0.0),
       d_fill_pattern(NULL),
       d_transaction_comps(),
       d_hier_bdry_fill(NULL),
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
-      d_hier_cc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Initialize the Poisson specifications.
-    setPoissonSpecifications(poisson_spec);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(homogeneous_bc);
-    setPhysicalBcCoef(bc_coef);
-
-    // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-                 );
-    return;
-}// CCLaplaceOperator()
-
-CCLaplaceOperator::CCLaplaceOperator(
-    const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const bool homogeneous_bc)
-    : LinearOperator(true),
-      d_object_name(object_name),
-      d_is_initialized(false),
-      d_ncomp(0),
-      d_apply_time(0.0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
-      d_hier_cc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
-{
-    // Initialize the Poisson specifications.
-    setPoissonSpecifications(poisson_spec);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(homogeneous_bc);
-    setPhysicalBcCoefs(bc_coefs);
-
-    // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-                 );
-    return;
-}// CCLaplaceOperator()
-
-CCLaplaceOperator::CCLaplaceOperator(
-    const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-    const bool homogeneous_bc)
-    : LinearOperator(true),
-      d_object_name(object_name),
-      d_is_initialized(false),
-      d_ncomp(0),
-      d_apply_time(0.0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
-      d_hier_cc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
-{
-    // Initialize the Poisson specifications.
-    setPoissonSpecifications(poisson_spec);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(homogeneous_bc);
-    setPhysicalBcCoefs(bc_coefs);
+    // Setup the operator to use default scalar-valued boundary conditions.
+    setPhysicalBcCoef(NULL);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -251,93 +114,8 @@ CCLaplaceOperator::CCLaplaceOperator(
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_bc_coef;
     return;
 }// ~CCLaplaceOperator()
-
-void
-CCLaplaceOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-CCLaplaceOperator::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* const bc_coef)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
-    return;
-}// setPhysicalBcCoef
-
-void
-CCLaplaceOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
-    {
-        if (bc_coefs[l] != NULL)
-        {
-            d_bc_coefs[l] = bc_coefs[l];
-        }
-        else
-        {
-            d_bc_coefs[l] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-CCLaplaceOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
-    return;
-}// setPhysicalBcCoefs
-
-void
-CCLaplaceOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-void
-CCLaplaceOperator::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
-
-void
-CCLaplaceOperator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
-{
-    d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = !d_hier_math_ops.isNull();
-    return;
-}// setHierarchyMathOps
-
-void
-CCLaplaceOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
-    // inhomogeneous boundary conditions.
-    if (!d_homogeneous_bc)
-    {
-        d_correcting_rhs = true;
-        apply(*d_x,*d_b);
-        y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-        d_correcting_rhs = false;
-    }
-    return;
-}// modifyRhsForInhomogeneousBc
 
 void
 CCLaplaceOperator::apply(
@@ -351,17 +129,16 @@ CCLaplaceOperator::apply(
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
-        TBOX_ASSERT(!x_cc_var.isNull());
-
         Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
-        TBOX_ASSERT(!y_cc_var.isNull());
-
+        if (!x_cc_var || !y_cc_var)
+        {
+            TBOX_ERROR(d_object_name << "::apply()\n"
+                       << "  encountered non-cell centered vector components" << std::endl);
+        }
         Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(!x_factory.isNull());
-
         Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(!y_factory.isNull());
-
+        TBOX_ASSERT(x_factory);
+        TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -376,16 +153,15 @@ CCLaplaceOperator::apply(
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> x_transaction_comps;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
-        x_transaction_comps.push_back(x_component);
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        transaction_comps.push_back(x_component);
     }
-    d_hier_bdry_fill->resetTransactionComponents(x_transaction_comps);
-    const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
-    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->fillData(d_apply_time);
+    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
+    d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
+    d_hier_bdry_fill->fillData(d_solution_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator.
@@ -393,18 +169,11 @@ CCLaplaceOperator::apply(
     {
         Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
         Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
-
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
-
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
-            d_hier_math_ops->laplace(
-                y_idx, y_cc_var,
-                d_poisson_spec, x_idx, x_cc_var,
-                d_no_fill, 0.0,
-                0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL),
-                l, l);
+            d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var, d_no_fill, 0.0, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), l, l);
         }
     }
 
@@ -426,10 +195,6 @@ CCLaplaceOperator::initializeOperatorState(
     d_x = in .cloneVector(in .getName());
     d_b = out.cloneVector(out.getName());
 
-    d_x->allocateVectorData();
-    d_x->setToScalar(0.0);
-    d_b->allocateVectorData();
-
     // Setup operator state.
     d_hierarchy   = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -444,20 +209,14 @@ CCLaplaceOperator::initializeOperatorState(
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
 #endif
 
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_hier_math_ops.isNull());
+        TBOX_ASSERT(d_hier_math_ops);
 #endif
     }
 
@@ -471,7 +230,7 @@ CCLaplaceOperator::initializeOperatorState(
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 
@@ -518,14 +277,6 @@ CCLaplaceOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-CCLaplaceOperator::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("CCLaplaceOperator::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

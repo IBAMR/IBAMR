@@ -46,7 +46,7 @@
 namespace IBTK
 {
 /*!
- * \brief Class JacobianOperator provides an abstract Interface for the
+ * \brief Class JacobianOperator provides an abstract interface for the
  * specification of general operators to compute Jacobian-vector products, i.e.,
  * \f$ F'[x]v \f$.
  */
@@ -55,10 +55,10 @@ class JacobianOperator
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     JacobianOperator(
-        bool is_symmetric=false);
+        const std::string& object_name);
 
     /*!
      * \brief Empty destructor.
@@ -92,6 +92,13 @@ public:
     //\}
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    JacobianOperator();
+
     /*!
      * \brief Copy constructor.
      *

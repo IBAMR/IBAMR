@@ -52,9 +52,6 @@
 #include <CellData.h>
 #include <CellDoubleConstantRefine.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -150,8 +147,7 @@ CartCellDoubleLinearCFInterpolation::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
@@ -208,9 +204,9 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
-    if (!d_hierarchy.isNull()) clearPatchHierarchy();
+    if (d_hierarchy) clearPatchHierarchy();
     d_hierarchy = hierarchy;
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
@@ -241,17 +237,15 @@ void
 CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
-    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin();
-         it != d_cf_boundary.end(); ++it)
+    for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
-        if ((*it) != NULL) delete (*it);
+        delete (*it);
         (*it) = NULL;
     }
     d_cf_boundary.clear();
-    for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin();
-         it != d_domain_boxes.end(); ++it)
+    for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin(); it != d_domain_boxes.end(); ++it)
     {
-        if ((*it) != NULL) delete (*it);
+        delete (*it);
         (*it) = NULL;
     }
     d_domain_boxes.clear();
@@ -266,7 +260,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(!d_consistent_type_2_bdry);
     TBOX_ASSERT(ratio.min() == ratio.max());
 #endif
@@ -290,13 +284,12 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     if (n_cf_bdry_codim1_boxes == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!data.isNull());
+        TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
 #ifdef DEBUG_CHECK_ASSERTIONS

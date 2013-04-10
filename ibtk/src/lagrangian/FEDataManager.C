@@ -52,16 +52,16 @@
 #include <ibtk/namespaces.h>
 
 // LIBMESH INCLUDES
-#include <boundary_info.h>
-#include <fe_interface.h>
-#include <dense_matrix.h>
-#include <dense_vector.h>
-#include <explicit_system.h>
-#include <numeric_vector.h>
-#include <parallel.h>
-#include <petsc_linear_solver.h>
-#include <petsc_matrix.h>
-#include <petsc_vector.h>
+#include <libmesh/boundary_info.h>
+#include <libmesh/fe_interface.h>
+#include <libmesh/dense_matrix.h>
+#include <libmesh/dense_vector.h>
+#include <libmesh/explicit_system.h>
+#include <libmesh/numeric_vector.h>
+#include <libmesh/parallel.h>
+#include <libmesh/petsc_linear_solver.h>
+#include <libmesh/petsc_matrix.h>
+#include <libmesh/petsc_vector.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES
@@ -83,10 +83,9 @@ namespace
 static Timer* t_reinit_element_mappings;
 static Timer* t_build_ghosted_solution_vector;
 static Timer* t_spread;
-static Timer* t_prolong_value;
-static Timer* t_prolong_density;
+static Timer* t_prolong_data;
 static Timer* t_interp;
-static Timer* t_restrict_value;
+static Timer* t_restrict_data;
 static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
 static Timer* t_compute_l2_projection;
@@ -107,7 +106,7 @@ flatten(
     const T& elem_patch_map)
 {
     std::set<Elem*> elem_set;
-    for (int k = 0; k < elem_patch_map.size(); ++k)
+    for (unsigned int k = 0; k < elem_patch_map.size(); ++k)
     {
         elem_set.insert(elem_patch_map(k).begin(),elem_patch_map(k).end());
     }
@@ -120,12 +119,68 @@ flatten(
     }
     return;
 }// flatten
+
+inline
+short int
+get_dirichlet_bdry_ids(
+    const std::vector<short int>& bdry_ids)
+{
+    short int dirichlet_bdry_ids = 0;
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        const short int bdry_id = *cit;
+        if      (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
+    }
+    return dirichlet_bdry_ids;
+}// get_dirichlet_bdry_ids
+
+static const double POINT_FACTOR = 2.0;
+
+inline double
+get_elem_hmax(
+    Elem* elem,
+    const blitz::Array<double,2>& X_node)
+{
+    static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES];
+    const int n_node = elem->n_nodes();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+    for (int k = 0; k < n_node; ++k)
+    {
+        s_node_cache[k] = elem->point(k);
+        Point& X = elem->point(k);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X(d) = X_node(k,d);
+        }
+    }
+    const double hmax = elem->hmax();
+    for (int k = 0; k < n_node; ++k)
+    {
+        elem->point(k) = s_node_cache[k];
+    }
+    return hmax;
+}// get_elem_hmax
 }
 
-const short int FEDataManager::DIRICHLET_BDRY_ID;
+const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID   = 0x100;
+const short int FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID   = 0x200;
+const short int FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID   = 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID  = 0x100 | 0x200;
+const short int FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID  = 0x100 | 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID  = 0x200 | 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
 std::map<std::string,FEDataManager*> FEDataManager::s_data_manager_instances;
-bool FEDataManager::s_registered_callback;
-unsigned char FEDataManager::s_shutdown_priority;
+bool FEDataManager::s_registered_callback = false;
+unsigned char FEDataManager::s_shutdown_priority = 200;
 
 FEDataManager*
 FEDataManager::getManager(
@@ -133,15 +188,13 @@ FEDataManager::getManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
-    QBase* qrule,
-    QBase* qrule_face,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
         const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
-        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, qrule, qrule_face, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -154,8 +207,7 @@ FEDataManager::getManager(
 void
 FEDataManager::freeAllManagers()
 {
-    for (std::map<std::string,FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end(); ++it)
+    for (std::map<std::string,FEDataManager*>::iterator it = s_data_manager_instances.begin(); it != s_data_manager_instances.end(); ++it)
     {
         if (it->second)
         {
@@ -164,7 +216,7 @@ FEDataManager::freeAllManagers()
         it->second = NULL;
     }
     return;
-}// freeManager
+}// freeAllManagers
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -174,7 +226,7 @@ FEDataManager::registerLoadBalancer(
     int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
@@ -186,7 +238,7 @@ FEDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
 #endif
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -199,7 +251,7 @@ FEDataManager::resetLevels(
     const int finest_ln)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
+    TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
                 (finest_ln <= d_hierarchy->getFinestLevelNumber()));
@@ -250,18 +302,6 @@ FEDataManager::getSpreadWeightingFunction() const
     return d_spread_weighting_fcn;
 }// getSpreadWeightingFunction
 
-QBase*
-FEDataManager::getQuadratureRule() const
-{
-    return d_qrule;
-}// getQuadratureRule
-
-QBase*
-FEDataManager::getQuadratureRuleFace() const
-{
-    return d_qrule_face;
-}// getQuadratureRuleFace
-
 bool
 FEDataManager::getInterpUsesConsistentMassMatrix() const
 {
@@ -282,8 +322,7 @@ FEDataManager::reinitElementMappings()
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map  .free();
     d_active_patch_ghost_dofs.clear();
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
@@ -358,10 +397,7 @@ FEDataManager::spread(
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
-
-    // Determine whether we are using adaptive quadrature.
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -373,7 +409,7 @@ FEDataManager::spread(
     blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
     for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(d_qrule);
+    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -385,7 +421,7 @@ FEDataManager::spread(
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and enforce any constraints.
@@ -412,21 +448,31 @@ FEDataManager::spread(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
+        const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-            n_qp_patch += d_qrule->n_points();
+            n_qp_patch += qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
         std::vector<double> F_JxW_qp(n_vars*n_qp_patch);
@@ -437,26 +483,30 @@ FEDataManager::spread(
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             F_fe->reinit(elem);
             X_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
-
+            const unsigned int n_qp = qrule->n_points();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
@@ -466,7 +516,6 @@ FEDataManager::spread(
                     F_JxW_qp[idx+i] *= JxW_F[qp];
                 }
             }
-
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
@@ -484,8 +533,8 @@ FEDataManager::spread(
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = !f_cc_data.isNull();
-        const bool is_sc_data = !f_sc_data.isNull();
+        const bool is_cc_data = f_cc_data;
+        const bool is_sc_data = f_sc_data;
         if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
         if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
     }
@@ -495,223 +544,17 @@ FEDataManager::spread(
 }// spread
 
 void
-FEDataManager::prolongValue(
+FEDataManager::prolongData(
     const int f_data_idx,
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
     const bool close_F,
-    const bool close_X)
+    const bool close_X,
+    const bool is_density,
+    const bool accumulate_on_grid)
 {
-    IBTK_TIMER_START(t_prolong_value);
-
-    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
-    // discretization.  It should be straightforward to generalize it to work
-    // with other data centerings.
-    //
-    // NOTE #2: This code is specialized for isoparametric elements.  It is less
-    // clear how to relax this assumption.
-
-    // Extract the mesh.
-    const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& F_system = d_es->get_system(system_name);
-    const unsigned int n_vars = F_system.n_vars();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
-#endif
-    const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
-    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-
-    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
-#endif
-    FEType X_fe_type = X_dof_map.variable_type(0);
-    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
-
-    // Communicate any unsynchronized ghost data and enforce any constraints.
-    if (close_F) F_vec.close();
-    F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
-
-    if (close_X) X_vec.close();
-    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
-
-    // Loop over the patches to interpolate nodal values on the FE mesh to the
-    // the points of the Eulerian grid.
-    blitz::Array<double,2> F_node;
-    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-    {
-        // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
-        const unsigned int num_active_patch_elems = patch_elems.size();
-        if (num_active_patch_elems == 0) continue;
-
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_dx = patch_geom->getDx();
-
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
-        }
-
-        SideData<NDIM,int> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(0);
-
-        // Loop over the elements and compute the values to be prolonged.
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems(e_idx);
-            const unsigned int n_node = elem->n_nodes();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
-            }
-
-            // Cache the nodal and physical coordinates of the element,
-            // determine the bounding box of the current configuration of the
-            // element, and set the nodal coordinates of the element to
-            // correspond to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(n_node <= MAX_NODES);
-#endif
-            X_min =  0.5*std::numeric_limits<double>::max();
-            X_max = -0.5*std::numeric_limits<double>::max();
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                s_node_cache[k] = elem->point(k);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X_node_cache[k](d) = X_vec(X_dof_indices(d)[k]);
-                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
-                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
-                }
-                elem->point(k) = X_node_cache[k];
-            }
-
-            // Loop over coordinate directions and look for Eulerian grid points
-            // that are covered by the element.
-            std::vector<Point>            intersection_master_coords;
-            std::vector<SideIndex<NDIM> > intersection_indices;
-            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
-            intersection_master_coords.reserve(estimated_max_size);
-            intersection_indices      .reserve(estimated_max_size);
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                // Loop over the relevant range of indices.
-                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    if (d == axis)
-                    {
-                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
-                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
-                    }
-                    else
-                    {
-                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
-                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
-                    }
-                }
-#if (NDIM == 3)
-                for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
-                {
-#endif
-                    for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
-                    {
-                        for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
-                        {
-                            Point p;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
-                            }
-                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
-                            if (FEInterface::on_reference_element(master_coords,elem->type()))
-                            {
-                                intersection_master_coords.push_back(master_coords);
-#if (NDIM == 2)
-                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1]),axis,0);
-#endif
-#if (NDIM == 3)
-                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1],ic[2]),axis,0);
-#endif
-                                intersection_indices.push_back(s_i);
-                            }
-                        }
-                    }
-#if (NDIM == 3)
-                }
-#endif
-            }
-
-            // Restore the nodal coordinates.
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                elem->point(k) = s_node_cache[k];
-            }
-
-            // If there are no intersection points, then continue on to the next
-            // element.
-            if (intersection_master_coords.empty()) continue;
-
-            // Evaluate the Lagrangian value at the Eulerian grid point, and
-            // set the value on the Eulerian grid to be F/det(dX/ds).
-            F_fe->reinit(elem, &intersection_master_coords);
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
-            }
-
-            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
-            {
-                const SideIndex<NDIM>& s_i = intersection_indices[qp];
-                const int axis = s_i.getAxis();
-                if (!side_boxes[axis].contains(s_i)) continue;
-                if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
-                spread_value_at_loc(s_i) = 1;
-                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
-                (*f_data)(s_i) += F_qp;
-            }
-        }
-    }
-
-    IBTK_TIMER_STOP(t_prolong_value);
-    return;
-}// prolongValue
-
-void
-FEDataManager::prolongDensity(
-    const int f_data_idx,
-    NumericVector<double>& F_vec,
-    NumericVector<double>& X_vec,
-    const std::string& system_name,
-    const bool close_F,
-    const bool close_X)
-{
-    IBTK_TIMER_START(t_prolong_density);
+    IBTK_TIMER_START(t_prolong_data);
 
     // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
@@ -720,11 +563,8 @@ FEDataManager::prolongDensity(
     // NOTE #2: This code is specialized for isoparametric elements.  It is less
     // clear how to relax this assumption.
     //
-    // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
-    // to convert a Lagrangian density into an Eulerian density.  We should
-    // investigate whether there is any advantage to using a projection of J
-    // onto a (possibly discontinuous) FE basis instead of evaluating J directly
-    // from the discrete deformation.
+    // NOTE #3: This implementation optionally uses the pointwise value of J =
+    // det(dX/ds) to convert a Lagrangian density into an Eulerian density.
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -893,17 +733,16 @@ FEDataManager::prolongDensity(
             // element.
             if (intersection_master_coords.empty()) continue;
 
-            // Evaluate the Lagrangian density at the Eulerian grid point, and
-            // set the value on the Eulerian grid to be F/det(dX/ds).
-            F_fe->reinit(elem, &intersection_master_coords);
-            X_fe->reinit(elem, &intersection_master_coords);
+            // Evaluate the Lagrangian quantity at the Eulerian grid point and
+            // update the data on the grid.
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
-
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            if (is_density) get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            F_fe->reinit(elem, &intersection_master_coords);
+            if (is_density) X_fe->reinit(elem, &intersection_master_coords);
             for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
             {
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
@@ -911,17 +750,20 @@ FEDataManager::prolongDensity(
                 if (!side_boxes[axis].contains(s_i)) continue;
                 if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
                 spread_value_at_loc(s_i) = 1;
-                jacobian(dX_ds,qp,X_node,dphi_X);
-                const double J = std::abs(dX_ds.det());
-                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F)/J;
-                (*f_data)(s_i) += F_qp;
+                double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
+                if (is_density)
+                {
+                    jacobian(dX_ds,qp,X_node,dphi_X);
+                    F_qp /= std::abs(dX_ds.det());
+                }
+                (*f_data)(s_i) = (accumulate_on_grid ? (*f_data)(s_i) : 0.0) + F_qp;
             }
         }
     }
 
-    IBTK_TIMER_STOP(t_prolong_density);
+    IBTK_TIMER_STOP(t_prolong_data);
     return;
-}// prolongDensity
+}// prolongData
 
 void
 FEDataManager::interp(
@@ -938,10 +780,7 @@ FEDataManager::interp(
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
-
-    // Determine whether we are using adaptive quadrature.
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -953,7 +792,7 @@ FEDataManager::interp(
     blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
     for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(d_qrule);
+    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -965,13 +804,13 @@ FEDataManager::interp(
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
     // Communicate any unsynchronized ghost data and enforce any constraints.
     for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
     {
-        if (!f_refine_scheds[k].isNull()) f_refine_scheds[k]->fillData(fill_data_time);
+        if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
     if (close_X) X_vec.close();
@@ -996,21 +835,31 @@ FEDataManager::interp(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
+        const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
         // Setup vectors to store the values of F and X at the quadrature
         // points.
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-            n_qp_patch += d_qrule->n_points();
+            n_qp_patch += qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
         std::vector<double> F_qp(n_vars*n_qp_patch,0.0);
@@ -1020,25 +869,29 @@ FEDataManager::interp(
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             X_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
-
+            const unsigned int n_qp = qrule->n_points();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
                 interpolate(&X_qp[idx],qp,X_node,phi_X);
             }
-
             qp_offset += n_qp;
         }
 
@@ -1051,8 +904,8 @@ FEDataManager::interp(
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = !f_cc_data.isNull();
-        const bool is_sc_data = !f_sc_data.isNull();
+        const bool is_cc_data = f_cc_data;
+        const bool is_sc_data = f_sc_data;
         if (is_cc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, d_interp_weighting_fcn);
         if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, d_interp_weighting_fcn);
 
@@ -1060,8 +913,7 @@ FEDataManager::interp(
         qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const Elem* const elem = patch_elems(e_idx);
-
+            Elem* const elem = patch_elems(e_idx);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
@@ -1074,19 +926,24 @@ FEDataManager::interp(
                     F_rhs_e[i].zero();
                 }
             }
-
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            const double hmax = get_elem_hmax(elem, X_node);
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+            if (order != qrule->get_order())
+            {
+                qrule = QBase::build(QGAUSS, dim, order);
+                F_fe->attach_quadrature_rule(qrule.get());
+                X_fe->attach_quadrature_rule(qrule.get());
+            }
             F_fe->reinit(elem);
-
-            const unsigned int n_qp = d_qrule->n_points();
+            const unsigned int n_qp = qrule->n_points();
             const unsigned int n_basis = F_dof_indices(0).size();
-
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
@@ -1118,14 +975,14 @@ FEDataManager::interp(
 }// interp
 
 void
-FEDataManager::restrictValue(
+FEDataManager::restrictData(
     const int f_data_idx,
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
     const bool close_X)
 {
-    IBTK_TIMER_START(t_restrict_value);
+    IBTK_TIMER_START(t_restrict_data);
 
     // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
@@ -1355,9 +1212,9 @@ FEDataManager::restrictValue(
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
 
-    IBTK_TIMER_STOP(t_restrict_value);
+    IBTK_TIMER_STOP(t_restrict_data);
     return;
-}// restrictValue
+}// restrictData
 
 std::pair<LinearSolver<double>*,SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(
@@ -1377,13 +1234,11 @@ FEDataManager::buildL2ProjectionSolver(
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
+
         // Sparsity patterns are not automatically computed for all system
         // types.  If one has not been computed for this system, we compute it
         // now.
-        if (dof_map.get_n_nz().size() != dof_map.n_local_dofs())
-        {
-            dof_map.compute_sparsity(mesh);
-        }
+        dof_map.compute_sparsity(mesh);
         std::vector<unsigned int> dof_indices;
         AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
         fe->attach_quadrature_rule(qrule.get());
@@ -1436,10 +1291,10 @@ FEDataManager::buildL2ProjectionSolver(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (!at_dirichlet_bdry) continue;
+                if (elem->neighbor(side)) continue;
+                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
@@ -1452,15 +1307,14 @@ FEDataManager::buildL2ProjectionSolver(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (dof_map.is_constrained_dof(node_dof_index))
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
                                 {
-                                    for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
-                                    {
-                                        const unsigned int k = *cit;
-                                        M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
-                                        M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
-                                    }
+                                    const unsigned int k = *cit;
+                                    M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
+                                    M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
                                 }
                             }
                         }
@@ -1584,10 +1438,10 @@ FEDataManager::buildDiagonalL2MassMatrix(
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                if (elem->neighbor(side) != NULL) continue;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (!at_dirichlet_bdry) continue;
+                if (elem->neighbor(side)) continue;
+                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (elem->is_node_on_side(n, side))
@@ -1598,8 +1452,10 @@ FEDataManager::buildDiagonalL2MassMatrix(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (dof_map.is_constrained_dof(node_dof_index)) M_vec->set(node_dof_index, 1.0);
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                M_vec->set(node_dof_index, 1.0);
                             }
                         }
                     }
@@ -1675,7 +1531,7 @@ FEDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    if (d_load_balancer.isNull()) return;
+    if (!d_load_balancer) return;
 
     IBTK_TIMER_START(t_update_workload_estimates);
 
@@ -1701,17 +1557,6 @@ FEDataManager::updateWorkloadEstimates(
     return;
 }// updateWorkloadEstimates
 
-///
-///  The following routines:
-///
-///      initializeLevelData(),
-///      resetHierarchyConfiguration(),
-///      applyGradientDetector()
-///
-///  are concrete implementations of functions declared in the
-///  StandardTagAndInitStrategy<NDIM> abstract base class.
-///
-
 void
 FEDataManager::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
@@ -1725,14 +1570,14 @@ FEDataManager::initializeLevelData(
     IBTK_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #else
     NULL_USE(hierarchy);
     NULL_USE(level_number);
@@ -1752,13 +1597,13 @@ FEDataManager::resetHierarchyConfiguration(
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
                 && (finest_ln <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #else
     NULL_USE(coarsest_ln);
@@ -1789,10 +1634,10 @@ FEDataManager::applyGradientDetector(
     IBTK_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #else
     NULL_USE(hierarchy);
 #endif
@@ -1811,9 +1656,7 @@ FEDataManager::applyGradientDetector(
 
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-
-        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -1822,7 +1665,7 @@ FEDataManager::applyGradientDetector(
 #endif
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-        X_fe->attach_quadrature_rule(d_qrule);
+        X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
@@ -1852,20 +1695,29 @@ FEDataManager::applyGradientDetector(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const Elem* const elem = patch_elems(e_idx);
+                Elem* const elem = patch_elems(e_idx);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-                for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
@@ -1916,7 +1768,7 @@ FEDataManager::putToDatabase(
     IBTK_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
+    TBOX_ASSERT(db);
 #endif
     db->putInteger("FE_DATA_MANAGER_VERSION", FE_DATA_MANAGER_VERSION);
 
@@ -1934,8 +1786,6 @@ FEDataManager::FEDataManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
-    QBase* qrule,
-    QBase* qrule_face,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
     : COORDINATES_SYSTEM_NAME("coordinates system"),
@@ -1948,8 +1798,6 @@ FEDataManager::FEDataManager(
       d_interp_weighting_fcn(interp_weighting_fcn),
       d_spread_weighting_fcn(spread_weighting_fcn),
       d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
-      d_qrule(qrule),
-      d_qrule_face(qrule_face),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
@@ -1988,10 +1836,9 @@ FEDataManager::FEDataManager(
         t_reinit_element_mappings = TimerManager::getManager()->getTimer("IBTK::FEDataManager::reinitElementMappings()");
         t_build_ghosted_solution_vector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
         t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
-        t_prolong_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongValue()");
-        t_prolong_density = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongDensity()");
+        t_prolong_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
-        t_restrict_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictValue()");
+        t_restrict_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictData()");
         t_build_l2_projection_solver = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
         t_build_diagonal_l2_mass_matrix = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
         t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");
@@ -2006,23 +1853,19 @@ FEDataManager::FEDataManager(
 
 FEDataManager::~FEDataManager()
 {
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end(); ++it)
+    for (std::map<std::string,LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin(); it != d_L2_proj_solver.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end(); ++it)
+    for (std::map<std::string,SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin(); it != d_L2_proj_matrix.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin(); it != d_L2_proj_matrix_diag.end(); ++it)
     {
         delete it->second;
     }
@@ -2048,9 +1891,7 @@ FEDataManager::updateQuadPointCountData(
 
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-
-        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
@@ -2059,7 +1900,7 @@ FEDataManager::updateQuadPointCountData(
 #endif
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-        X_fe->attach_quadrature_rule(d_qrule);
+        X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2083,19 +1924,28 @@ FEDataManager::updateQuadPointCountData(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const Elem* const elem = patch_elems(e_idx);
+                Elem* const elem = patch_elems(e_idx);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-                for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
@@ -2202,8 +2052,7 @@ FEDataManager::collectActivePatchElements(
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
-    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2211,7 +2060,7 @@ FEDataManager::collectActivePatchElements(
 #endif
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
+    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
     AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
@@ -2304,24 +2153,30 @@ FEDataManager::collectActivePatchElements(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
             std::set<Elem*>::const_iterator       el_it  = frontier_elems.begin();
             const std::set<Elem*>::const_iterator el_end = frontier_elems.end();
             for ( ; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
-
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+                const double hmax = get_elem_hmax(elem, X_node);
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
+                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                if (order != qrule->get_order())
+                {
+                    qrule = QBase::build(QGAUSS, dim, order);
+                    X_fe->attach_quadrature_rule(qrule.get());
+                }
                 X_fe->reinit(elem);
-
                 bool found_qp = false;
-                for (unsigned int qp = 0; qp < d_qrule->n_points() && !found_qp; ++qp)
+                for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
@@ -2348,20 +2203,21 @@ FEDataManager::collectActivePatchElements(
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (std::set<Elem*>::const_iterator cit = local_elems.begin();
-                 cit != local_elems.end(); ++cit)
+            for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit)
             {
                 const Elem* const elem = *cit;
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
                     Elem* const nghbr_elem = elem->neighbor(n);
-                    if (nghbr_elem == NULL) continue;
-                    const bool    is_local_elem =    local_elems.find(nghbr_elem) !=    local_elems.end();
-                    const bool is_nonlocal_elem = nonlocal_elems.find(nghbr_elem) != nonlocal_elems.end();
-                    if (!(is_local_elem || is_nonlocal_elem))
+                    if (nghbr_elem)
                     {
-                        frontier_elems.insert(nghbr_elem);
-                        new_frontier = true;
+                        const bool    is_local_elem =    local_elems.find(nghbr_elem) !=    local_elems.end();
+                        const bool is_nonlocal_elem = nonlocal_elems.find(nghbr_elem) != nonlocal_elems.end();
+                        if (!(is_local_elem || is_nonlocal_elem))
+                        {
+                            frontier_elems.insert(nghbr_elem);
+                            new_frontier = true;
+                        }
                     }
                 }
             }
@@ -2380,8 +2236,7 @@ FEDataManager::collectActivePatchElements(
         const std::set<Elem*>&  local_elems =  local_patch_elems(local_patch_num);
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem*>::const_iterator cit = local_elems.begin();
-             cit != local_elems.end(); ++cit, ++k)
+        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems(k) = *cit;
         }
@@ -2404,15 +2259,13 @@ FEDataManager::collectGhostDOFIndices(
     // Include non-local DOF constraint dependencies for local DOFs in the list
     // of ghost DOFs.
     std::vector<unsigned int> constraint_dependency_dof_list;
-    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin();
-         i != dof_map.constraint_rows_end(); ++i)
+    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
     {
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
             const DofConstraintRow& constraint_row = i->second.first;
-            for (DofConstraintRow::const_iterator j = constraint_row.begin();
-                 j != constraint_row.end(); ++j)
+            for (DofConstraintRow::const_iterator j = constraint_row.begin(); j != constraint_row.end(); ++j)
             {
                 const unsigned int constraint_dependency = j->first;
                 if (constraint_dependency < first_local_dof || constraint_dependency >= end_local_dof)
@@ -2425,7 +2278,7 @@ FEDataManager::collectGhostDOFIndices(
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    for (int e = 0; e < active_elems.size(); ++e)
+    for (unsigned int e = 0; e < active_elems.size(); ++e)
     {
         const Elem* const elem = active_elems(e);
 

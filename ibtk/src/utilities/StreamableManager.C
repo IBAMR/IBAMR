@@ -72,7 +72,7 @@ unsigned char StreamableManager::s_shutdown_priority = 200;
 StreamableManager*
 StreamableManager::getManager()
 {
-    if (s_data_manager_instance == NULL)
+    if (!s_data_manager_instance)
     {
         s_data_manager_instance = new StreamableManager();
     }
@@ -106,7 +106,7 @@ StreamableManager::checkFactoryRegistration(
     Pointer<StreamableFactory> factory)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!factory.isNull());
+    TBOX_ASSERT(factory);
 #endif
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
 }// checkFactoryRegistration
@@ -116,7 +116,7 @@ StreamableManager::registerFactory(
     Pointer<StreamableFactory> factory)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!factory.isNull());
+    TBOX_ASSERT(factory);
     TBOX_ASSERT(factory->getStreamableClassID() == getUnregisteredID());
 #endif
     // These barriers ensure that each factory is assigned the same class ID

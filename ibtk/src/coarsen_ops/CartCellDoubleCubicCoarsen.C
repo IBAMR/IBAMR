@@ -117,7 +117,7 @@ CartCellDoubleCubicCoarsen::findCoarsenOperator(
     const std::string &op_name) const
 {
     Pointer<CellVariable<NDIM,double> > cc_var = var;
-    return (!cc_var.isNull() && op_name == s_op_name);
+    return (cc_var && op_name == s_op_name);
 }// findCoarsenOperator
 
 const std::string&

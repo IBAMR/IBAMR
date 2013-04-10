@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.h
-// Created on 23 Jul 2008 by Boyce Griffith
+// Created on 06 Sep 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -36,46 +36,37 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSProblemCoefs.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/StokesBcCoefStrategy.h>
 
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPressureBcCoef is a concrete
- * SAMRAI::solv::RobinBcCoefStrategy that is used to specify pressure boundary
- * conditions for the staggered grid incompressible Navier-Stokes solver.
+ * \brief Class INSStaggeredPressureBcCoef is a concrete StokesBcCoefStrategy
+ * that is used to specify pressure boundary conditions for the staggered grid
+ * incompressible Navier-Stokes solver.
  *
- * This class interprets pure Dirichlet boundary conditions as prescribed
- * velocity boundary conditions, whereas pure Neumann boundary conditions are
- * interpreted as prescribed traction (stress) boundary conditions.  These are
- * translated into generalized Neumann and Dirichlet boundary conditions,
- * respectively, for the pressure.
+ * This class interprets pure Dirichlet boundary conditions on the velocity as
+ * prescribed velocity boundary conditions, whereas pure Neumann boundary
+ * conditions are interpreted as prescribed traction (stress) boundary
+ * conditions.  These are translated into Neumann and generalized Dirichlet
+ * boundary conditions, respectively, for the pressure.
  */
 class INSStaggeredPressureBcCoef
-    : public IBTK::ExtendedRobinBcCoefStrategy
+    : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param problem_coefs   Problem coefficients
-     * \param bc_coefs        Vector of boundary condition specification objects
-     * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
-     *
-     * \note Precisely NDIM boundary condition objects must be provided to the
-     * class constructor.
      */
     INSStaggeredPressureBcCoef(
-        const INSProblemCoefs* problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        const INSStaggeredHierarchyIntegrator* fluid_solver,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
@@ -84,39 +75,21 @@ public:
     ~INSStaggeredPressureBcCoef();
 
     /*!
-     * \brief Set the patch data index corresponding to the current velocity.
-     */
-    void
-    setVelocityCurrentPatchDataIndex(
-        int u_current_idx);
-
-    /*!
-     * \brief Set the patch data index corresponding to the updated (new)
-     * velocity.
-     */
-    void
-    setVelocityNewPatchDataIndex(
-        int u_new_idx);
-
-    /*!
-     * \brief Set the INSProblemCoefs object used by this boundary condition
-     * specification object.
-     *
-     * \param problem_coefs   Problem coefficients
-     */
-    void
-    setINSProblemCoefs(
-        const INSProblemCoefs* problem_coefs);
-
-    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
      * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setPhysicalBoundaryConditions(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+    setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void
+    setSolutionTime(
+        double solution_time);
 
     /*!
      * \brief Set the current time interval.
@@ -127,7 +100,54 @@ public:
         double new_time);
 
     /*!
-     * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
+     * \name StokesBcCoefStrategy interface.
+     */
+    //\{
+
+    /*!
+     * \brief Set the StokesSpecifications object used by this boundary condition
+     * specification object.
+     *
+     * \param problem_coefs   Problem coefficients
+     */
+    void
+    setStokesSpecifications(
+        const StokesSpecifications* problem_coefs);
+
+    /*!
+     * \brief Set the target velocity data index to use when setting physical
+     * boundary conditions and the time at which it is defined.
+     */
+    void
+    setTargetVelocityPatchDataIndex(
+        int u_target_data_idx);
+
+    /*!
+     * \brief Clear the target velocity data index used when setting physical
+     * boundary conditions.
+     */
+    void
+    clearTargetVelocityPatchDataIndex();
+
+    /*!
+     * \brief Set the target pressure data index to use when setting physical
+     * boundary conditions and the time at which it is defined.
+     */
+    void
+    setTargetPressurePatchDataIndex(
+        int p_target_data_idx);
+
+    /*!
+     * \brief Clear the target pressure data index used when setting physical
+     * boundary conditions.
+     */
+    void
+    clearTargetPressurePatchDataIndex();
+
+    //\}
+
+    /*!
+     * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{
 
@@ -137,6 +157,12 @@ public:
     void
     setTargetPatchDataIndex(
         int target_idx);
+
+    /*!
+     * \brief Clear the target data index.
+     */
+    void
+    clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -246,34 +272,14 @@ private:
         const INSStaggeredPressureBcCoef& that);
 
     /*
-     * Problem coefficients.
+     * The fluid solver.
      */
-    const INSProblemCoefs* d_problem_coefs;
+    const INSStaggeredHierarchyIntegrator* d_fluid_solver;
 
     /*
-     * The current and new velocities.
+     * The boundary condition specification objects for the velocity.
      */
-    int d_u_current_idx, d_u_new_idx;
-
-    /*
-     * The boundary condition specification objects for the updated velocity.
-     */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
-
-    /*
-     * The current time interval.
-     */
-    double d_current_time, d_new_time;
-
-    /*
-     * The patch data index corresponding to the current value of P.
-     */
-    int d_target_idx;
-
-    /*
-     * Whether to use homogeneous boundary conditions.
-     */
-    bool d_homogeneous_bc;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 };
 }// namespace IBAMR
 

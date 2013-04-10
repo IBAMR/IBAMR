@@ -42,8 +42,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvectHypPatchOps.h>
-#include <ibamr/GodunovAdvector.h>
+#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
+#include <ibamr/AdvectorExplicitPredictorStrategy.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -85,7 +85,7 @@ main(
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -120,12 +120,12 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<GodunovAdvector> advector = new GodunovAdvector(
-            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+        Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor = new AdvectorExplicitPredictorStrategy(
+            "AdvectorExplicitPredictorStrategy", app_initializer->getComponentDatabase("AdvectorExplicitPredictorStrategy"));
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<AdvectHypPatchOps> hyp_patch_ops = new AdvectHypPatchOps(
-            "AdvectHypPatchOps", app_initializer->getComponentDatabase("AdvectHypPatchOps"), advector, grid_geometry);
+        Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops = new AdvectorPredictorCorrectorHyperbolicPatchOps(
+            "AdvectorPredictorCorrectorHyperbolicPatchOps", app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"), explicit_predictor, grid_geometry);
         Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(

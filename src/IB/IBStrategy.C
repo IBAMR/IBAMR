@@ -57,6 +57,8 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStrategy::IBStrategy()
+    : d_ib_solver(NULL),
+      d_use_fixed_coupling_ops(false)
 {
     // intentionally blank
     return;
@@ -91,6 +93,23 @@ IBStrategy::registerEulerianCommunicationAlgorithms()
 }// registerEulerianCommunicationAlgorithms
 
 void
+IBStrategy::setupTagBuffer(
+    Array<int>& tag_buffer,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+{
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int tsize = tag_buffer.size();
+    tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    const int gcw = getMinimumGhostCellWidth().max();
+    for (int i = 0; i < tag_buffer.size(); ++i)
+    {
+        tag_buffer[i] = std::max(tag_buffer[i], gcw);
+    }
+    return;
+}// setupTagBuffer
+
+void
 IBStrategy::preprocessIntegrateData(
     double /*current_time*/,
     double /*new_time*/,
@@ -109,6 +128,66 @@ IBStrategy::postprocessIntegrateData(
     // intentionally blank
     return;
 }// postprocessIntegrateData
+
+void
+IBStrategy::setUseFixedLEOperators(
+    bool use_fixed_coupling_ops)
+{
+    d_use_fixed_coupling_ops = use_fixed_coupling_ops;
+    return;
+}// setUseFixedLEOperators
+
+void
+IBStrategy::updateFixedLEOperators()
+{
+    TBOX_ERROR("IBStrategy::updateFixedLEOperators(): unimplemented\n");
+    return;
+}// updateFixedLEOperators
+
+void
+IBStrategy::getLEOperatorPositions(
+    Vec& /*X_vec*/,
+    int /*level_num*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("IBStrategy::getLEOperatorPositions(): unimplemented\n");
+    return;
+}// getLEOperatorPositions
+
+void
+IBStrategy::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/)
+{
+    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+IBStrategy::computeLagrangianForceJacobian(
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    double /*X_coef*/,
+    double /*U_coef*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobian
+
+void
+IBStrategy::applyLagrangianForceJacobian(
+    int /*f_data_idx*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+    int /*u_data_idx*/,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    double /*data_time*/,
+    Mat& /*J_mat*/)
+{
+    TBOX_ERROR("IBStrategy::applyLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// applyLagrangianForceJacobian
 
 bool
 IBStrategy::hasFluidSources() const
@@ -274,7 +353,7 @@ Pointer<HierarchyDataOpsReal<NDIM,double> >
 IBStrategy::getVelocityHierarchyDataOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_velocity_data_ops;
 }// getVelocityHierarchyDataOps
@@ -283,7 +362,7 @@ Pointer<HierarchyDataOpsReal<NDIM,double> >
 IBStrategy::getPressureHierarchyDataOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_pressure_data_ops;
 }// getPressureHierarchyDataOps
@@ -292,7 +371,7 @@ Pointer<HierarchyMathOps>
 IBStrategy::getHierarchyMathOps() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_math_ops;
 }// getHierarchyMathOps
@@ -309,7 +388,7 @@ IBStrategy::registerVariable(
     Pointer<CartGridFunction> init_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
     return;
@@ -323,7 +402,7 @@ IBStrategy::registerVariable(
     Pointer<VariableContext> ctx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ib_solver != NULL);
+    TBOX_ASSERT(d_ib_solver);
 #endif
     d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
     return;

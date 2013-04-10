@@ -66,36 +66,6 @@ enum_to_string(
 }// enum_to_string
 
 /*!
- * \brief Enumerated type for different convective operator types.
- */
-enum ConvectiveOperatorType
-{
-    CENTERED,
-    PPM,
-    UNKNOWN_CONVECTIVE_OPERATOR_TYPE=-1
-};
-
-template<>
-inline ConvectiveOperatorType
-string_to_enum<ConvectiveOperatorType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "CENTERED") == 0) return CENTERED;
-    if (strcasecmp(val.c_str(), "PPM"     ) == 0) return PPM;
-    return UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<ConvectiveOperatorType>(
-    ConvectiveOperatorType val)
-{
-    if (val == CENTERED) return "CENTERED";
-    if (val == PPM      ) return "PPM";
-    return "UNKNOWN_CONVECTIVE_OPERATOR_TYPE";
-}// enum_to_string
-
-/*!
  * \brief Enumerated type for different convective differencing schemes.
  */
 enum ConvectiveDifferencingType
@@ -132,34 +102,118 @@ enum_to_string<ConvectiveDifferencingType>(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different limiter types
+ */
+enum LimiterType
+{
+    CTU_ONLY=1, // the assigned integer values are used in src/advect/fortran/limitertypes.i
+    MINMOD_LIMITED=2,
+    MC_LIMITED=3,
+    SUPERBEE_LIMITED=4,
+    MUSCL_LIMITED=5,
+    SECOND_ORDER=6,
+    FOURTH_ORDER=7,
+    PPM=8,
+    XSPPM7=9,
+    UNKNOWN_LIMITER_TYPE=-1
+};
+
+template<>
+inline LimiterType
+string_to_enum<LimiterType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CTU_ONLY"      ) == 0) return CTU_ONLY;
+    if (strcasecmp(val.c_str(), "MINMOD_LIMITED") == 0) return MINMOD_LIMITED;
+    if (strcasecmp(val.c_str(), "MINMOD"        ) == 0) return MINMOD_LIMITED;
+    if (strcasecmp(val.c_str(), "MC_LIMITED"    ) == 0) return MC_LIMITED;
+    if (strcasecmp(val.c_str(), "MC"            ) == 0) return MC_LIMITED;
+    if (strcasecmp(val.c_str(), "SUPERBEE_LIMITED") == 0) return SUPERBEE_LIMITED;
+    if (strcasecmp(val.c_str(), "SUPERBEE"      ) == 0) return SUPERBEE_LIMITED;
+    if (strcasecmp(val.c_str(), "MUSCL_LIMITED" ) == 0) return MUSCL_LIMITED;
+    if (strcasecmp(val.c_str(), "MUSCL"         ) == 0) return MUSCL_LIMITED;
+    if (strcasecmp(val.c_str(), "SECOND_ORDER"  ) == 0) return SECOND_ORDER;
+    if (strcasecmp(val.c_str(), "FOURTH_ORDER"  ) == 0) return FOURTH_ORDER;
+    if (strcasecmp(val.c_str(), "PPM"           ) == 0) return PPM;
+    if (strcasecmp(val.c_str(), "XSPPM7"        ) == 0) return XSPPM7;
+    return UNKNOWN_LIMITER_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<LimiterType>(
+    LimiterType val)
+{
+    if (val == CTU_ONLY      ) return "CTU_ONLY";
+    if (val == MINMOD_LIMITED) return "MINMOD_LIMITED";
+    if (val == MC_LIMITED    ) return "MC_LIMITED";
+    if (val == SUPERBEE_LIMITED) return "SUPERBEE_LIMITED";
+    if (val == MUSCL_LIMITED ) return "MUSCL_LIMITED";
+    if (val == SECOND_ORDER  ) return "SECOND_ORDER";
+    if (val == FOURTH_ORDER  ) return "FOURTH_ORDER";
+    if (val == PPM           ) return "PPM";
+    if (val == XSPPM7        ) return "XSPPM7";
+    return "UNKNOWN_LIMITER_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
-enum TimesteppingType
+enum TimeSteppingType
 {
+    ADAMS_BASHFORTH,
+    BACKWARD_EULER,
+    FORWARD_EULER,
     MIDPOINT_RULE,
     TRAPEZOIDAL_RULE,
     UNKNOWN_TIME_STEPPING_TYPE=-1
 };
 
 template<>
-inline TimesteppingType
-string_to_enum<TimesteppingType>(
+inline TimeSteppingType
+string_to_enum<TimeSteppingType>(
     const std::string& val)
 {
+    if (strcasecmp(val.c_str(), "ADAMS_BASHFORTH" ) == 0) return ADAMS_BASHFORTH;
+    if (strcasecmp(val.c_str(), "BACKWARD_EULER"  ) == 0) return BACKWARD_EULER;
+    if (strcasecmp(val.c_str(), "FORWARD_EULER"   ) == 0) return FORWARD_EULER;
     if (strcasecmp(val.c_str(), "MIDPOINT_RULE"   ) == 0) return MIDPOINT_RULE;
     if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
+    if (strcasecmp(val.c_str(), "CRANK_NICOLSON"  ) == 0) return TRAPEZOIDAL_RULE;
     return UNKNOWN_TIME_STEPPING_TYPE;
 }// string_to_enum
 
 template<>
 inline std::string
-enum_to_string<TimesteppingType>(
-    TimesteppingType val)
+enum_to_string<TimeSteppingType>(
+    TimeSteppingType val)
 {
+    if (val == ADAMS_BASHFORTH ) return "ADAMS_BASHFORTH";
+    if (val == BACKWARD_EULER  ) return "BACKWARD_EULER";
+    if (val == FORWARD_EULER   ) return "FORWARD_EULER";
     if (val == MIDPOINT_RULE   ) return "MIDPOINT_RULE";
     if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
     return "UNKNOWN_TIME_STEPPING_TYPE";
 }// enum_to_string
+
+inline bool
+is_multistep_time_stepping_type(
+    TimeSteppingType val)
+{
+    switch (val)
+    {
+        case ADAMS_BASHFORTH:
+            return true;
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case MIDPOINT_RULE:
+        case TRAPEZOIDAL_RULE:
+            return false;
+        default:
+            TBOX_ERROR("is_multistep_time_stepping_type(): unknown time stepping type\n");
+            return false;
+    }
+}// is_multistep_time_stepping_type
 
 /*!
  * \brief Enumerated type for different pressure update schemes for the
@@ -196,69 +250,36 @@ enum_to_string<ProjectionMethodType>(
 }// enum_to_string
 
 /*!
- * \brief Enumerated type for different Stokes preconditioners.
+ * \brief Enumerated type for different forms of the stochastic stress tensor.
  */
-enum StokesPreconditionerType
+enum StochasticStressTensorType
 {
-    NONE,
-    PROJECTION_METHOD,
-    VANKA,
-    BLOCK_FACTORIZATION,
-    UNKNOWN_STOKES_PRECONDITIONER_TYPE=-1
+    UNCORRELATED,
+    SYMMETRIC,
+    SYMMETRIC_TRACELESS,
+    UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE=-1
 };
 
 template<>
-inline StokesPreconditionerType
-string_to_enum<StokesPreconditionerType>(
+inline StochasticStressTensorType
+string_to_enum<StochasticStressTensorType>(
     const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "NONE"               ) == 0) return NONE;
-    if (strcasecmp(val.c_str(), "PROJECTION_METHOD"  ) == 0) return PROJECTION_METHOD;
-    if (strcasecmp(val.c_str(), "VANKA"              ) == 0) return VANKA;
-    if (strcasecmp(val.c_str(), "BLOCK_FACTORIZATION") == 0) return BLOCK_FACTORIZATION;
-    return UNKNOWN_STOKES_PRECONDITIONER_TYPE;
+    if (strcasecmp(val.c_str(), "UNCORRELATED"       ) == 0) return UNCORRELATED;
+    if (strcasecmp(val.c_str(), "SYMMETRIC"          ) == 0) return SYMMETRIC;
+    if (strcasecmp(val.c_str(), "SYMMETRIC_TRACELESS") == 0) return SYMMETRIC_TRACELESS;
+    return UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE;
 }// string_to_enum
 
 template<>
 inline std::string
-enum_to_string<StokesPreconditionerType>(
-    StokesPreconditionerType val)
+enum_to_string<StochasticStressTensorType>(
+    StochasticStressTensorType val)
 {
-    if (val == NONE               ) return "NONE";
-    if (val == PROJECTION_METHOD  ) return "PROJECTION_METHOD";
-    if (val == VANKA              ) return "VANKA";
-    if (val == BLOCK_FACTORIZATION) return "BLOCK_FACTORIZATION";
-    return "UNKNOWN_STOKES_PRECONDITIONER_TYPE";
-}// enum_to_string
-
-/*!
- * \brief Enumerated type for different viscous timestepping methods.
- */
-enum ViscousTimesteppingType
-{
-    BACKWARD_EULER,
-    CRANK_NICOLSON,
-    UNKNOWN_VISCOUS_TIMESTEPPING_METHOD=-1
-};
-
-template<>
-inline ViscousTimesteppingType
-string_to_enum<ViscousTimesteppingType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "BACKWARD_EULER") == 0) return BACKWARD_EULER;
-    if (strcasecmp(val.c_str(), "CRANK_NICOLSON") == 0) return CRANK_NICOLSON;
-    return UNKNOWN_VISCOUS_TIMESTEPPING_METHOD;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<ViscousTimesteppingType>(
-    ViscousTimesteppingType val)
-{
-    if (val == BACKWARD_EULER) return "BACKWARD_EULER";
-    if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";
-    return "UNKNOWN_VISCOUS_TIMESTEPPING_METHOD";
+    if (val == UNCORRELATED       ) return "UNCORRELATED";
+    if (val == SYMMETRIC          ) return "SYMMETRIC";
+    if (val == SYMMETRIC_TRACELESS) return "SYMMETRIC_TRACELESS";
+    return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
 }// enum_to_string
 
 }// namespace IBAMR

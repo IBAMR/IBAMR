@@ -42,7 +42,7 @@
 #include <SideOverlap.h>
 
 // BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
+#include <blitz/tinyvec2.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -90,11 +90,11 @@ SideNoCornersFillPattern::calculateOverlap(
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!box_geom_overlap.isNull());
+    TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
@@ -163,11 +163,11 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!box_geom_overlap.isNull());
+    TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(t_dst_geometry != NULL);
+    TBOX_ASSERT(t_dst_geometry);
 #endif
     blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())

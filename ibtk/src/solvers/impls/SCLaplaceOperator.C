@@ -50,10 +50,6 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
-#include <SideDataFactory.h>
-#include <SideVariable.h>
-#include <tbox/Database.h>
 #include <tbox/TimerManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -67,9 +63,11 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -88,47 +86,21 @@ static Timer* t_deallocate_operator_state;
 
 SCLaplaceOperator::SCLaplaceOperator(
     const std::string& object_name,
-    const PoissonSpecifications& poisson_spec,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : LinearOperator(true),
-      d_object_name(object_name),
-      d_is_initialized(false),
+    : LaplaceOperator(object_name, homogeneous_bc),
       d_ncomp(0),
-      d_apply_time(0.0),
       d_fill_pattern(NULL),
       d_transaction_comps(),
       d_hier_bdry_fill(NULL),
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
-      d_hier_sc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Initialize the Poisson specifications.
-    setPoissonSpecifications(poisson_spec);
-
-    // Setup a default boundary condition object that specifies homogeneous
-    // Dirichlet boundary conditions.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
-    }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(homogeneous_bc);
-    setPhysicalBcCoefs(bc_coefs);
+    // Setup the operator to use default vector-valued boundary conditions.
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -142,76 +114,8 @@ SCLaplaceOperator::SCLaplaceOperator(
 SCLaplaceOperator::~SCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_bc_coef;
     return;
 }// ~SCLaplaceOperator()
-
-void
-SCLaplaceOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-SCLaplaceOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-SCLaplaceOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-void
-SCLaplaceOperator::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
-
-void
-SCLaplaceOperator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
-{
-    d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = !d_hier_math_ops.isNull();
-    return;
-}// setHierarchyMathOps
-
-void
-SCLaplaceOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
-    // inhomogeneous boundary conditions.
-    if (!d_homogeneous_bc)
-    {
-        d_correcting_rhs = true;
-        apply(*d_x,*d_b);
-        y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-        d_correcting_rhs = false;
-    }
-    return;
-}// modifyRhsForInhomogeneousBc
 
 void
 SCLaplaceOperator::apply(
@@ -222,24 +126,20 @@ SCLaplaceOperator::apply(
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
+    TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
-        if (x_sc_var.isNull() || y_sc_var.isNull())
+        if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                        << "  encountered non-side centered vector components" << std::endl);
         }
-
-        Pointer<SideDataFactory<NDIM,double> > x_factory =
-            x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM,double> > y_factory =
-            y_sc_var->getPatchDataFactory();
-
-        TBOX_ASSERT(!x_factory.isNull());
-        TBOX_ASSERT(!y_factory.isNull());
-
+        Pointer<SideDataFactory<NDIM,double> > x_factory = x_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM,double> > y_factory = y_sc_var->getPatchDataFactory();
+        TBOX_ASSERT(x_factory);
+        TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
@@ -253,16 +153,15 @@ SCLaplaceOperator::apply(
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> x_transaction_comps;
+    std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
-        x_transaction_comps.push_back(x_component);
+        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp), x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        transaction_comps.push_back(x_component);
     }
-    d_hier_bdry_fill->resetTransactionComponents(x_transaction_comps);
-    const bool homogeneous_bc = d_correcting_rhs ? d_homogeneous_bc : true;
-    d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_bdry_fill->fillData(d_apply_time);
+    d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
+    d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
+    d_hier_bdry_fill->fillData(d_solution_time);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator.
@@ -270,14 +169,11 @@ SCLaplaceOperator::apply(
     {
         Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
-
-        const int x_idx = x.getComponentDescriptorIndex(comp);
+        const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
-
-        d_hier_math_ops->laplace(
-            y_idx, y_sc_var,
-            d_poisson_spec, x_idx, x_sc_var,
-            d_no_fill, 0.0);
+        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
+        const int x_idx = x.getComponentDescriptorIndex(comp);
+        d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
     IBTK_TIMER_STOP(t_apply);
@@ -297,10 +193,7 @@ SCLaplaceOperator::initializeOperatorState(
     // Setup solution and rhs vectors.
     d_x = in .cloneVector(in .getName());
     d_b = out.cloneVector(out.getName());
-
     d_x->allocateVectorData();
-    d_x->setToScalar(0.0);
-    d_b->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy   = in.getPatchHierarchy();
@@ -316,21 +209,23 @@ SCLaplaceOperator::initializeOperatorState(
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
 #endif
 
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
-    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!d_hier_math_ops.isNull());
+        TBOX_ASSERT(d_hier_math_ops);
 #endif
+    }
+
+    // Setup cached BC data.
+    d_bc_helpers.resize(d_ncomp);
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp] = new StaggeredPhysicalBoundaryHelper();
+        d_bc_helpers[comp]->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     }
 
     // Setup the interpolation transaction information.
@@ -343,7 +238,7 @@ SCLaplaceOperator::initializeOperatorState(
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), in.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 
@@ -390,14 +285,6 @@ SCLaplaceOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
-
-void
-SCLaplaceOperator::enableLogging(
-    bool /*enabled*/)
-{
-    TBOX_WARNING("SCLaplaceOperator::enableLogging() not supported" << std::endl);
-    return;
-}// enableLogging
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

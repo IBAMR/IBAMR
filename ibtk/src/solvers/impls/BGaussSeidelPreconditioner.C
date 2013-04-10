@@ -45,10 +45,8 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -59,35 +57,31 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
-    Pointer<Database> input_db)
-    : d_is_initialized(false),
-      d_pc_map(),
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& /*default_options_prefix*/)
+    : d_pc_map(),
       d_linear_ops_map(),
       d_symmetric_preconditioner(false),
-      d_reverse_order(false),
-      d_initial_guess_nonzero(false),
-      d_rel_residual_tol(1.0e-6),
-      d_abs_residual_tol(1.0e-30),
-      d_max_iterations(1)
+      d_reverse_order(false)
 {
+    // Setup default options.
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+    d_initial_guess_nonzero = false;
+    d_max_iterations = 1;
+
     // Get configuration data from the input database.
-    if (!input_db.isNull())
+    if (input_db)
     {
         // Block Gauss-Seidel options.
-        d_symmetric_preconditioner = input_db->getBoolWithDefault(
-            "symmetric_preconditioner", d_symmetric_preconditioner);
-        d_reverse_order = input_db->getBoolWithDefault(
-            "reverse_order", d_reverse_order);
+        if (input_db->keyExists("symmetric_preconditioner")) d_symmetric_preconditioner = input_db->getBool("symmetric_preconditioner");
+        if (input_db->keyExists("reverse_order")) d_reverse_order = input_db->getBool("reverse_order");
 
         // LinearSolver options.
-        d_initial_guess_nonzero = input_db->getBoolWithDefault(
-            "initial_guess_nonzero", d_initial_guess_nonzero);
-        d_rel_residual_tol = input_db->getDoubleWithDefault(
-            "rel_residual_tol", d_rel_residual_tol);
-        d_abs_residual_tol = input_db->getDoubleWithDefault(
-            "abs_residual_tol", d_abs_residual_tol);
-        d_max_iterations = input_db->getIntegerWithDefault(
-            "max_iterations", d_max_iterations);
+        if (input_db->keyExists("initial_guess_nonzero")) setInitialGuessNonzero(input_db->getBool("initial_guess_nonzero"));
+        if (input_db->keyExists("rel_residual_tol")) setRelativeTolerance(input_db->getDouble("rel_residual_tol"));
+        if (input_db->keyExists("abs_residual_tol")) setAbsoluteTolerance(input_db->getDouble("abs_residual_tol"));
+        if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
 }// BGaussSeidelPreconditioner()
@@ -104,7 +98,7 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(
     const unsigned int component)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!preconditioner.isNull());
+    TBOX_ASSERT(preconditioner);
 #endif
     d_pc_map[component] = preconditioner;
     return;
@@ -118,7 +112,7 @@ BGaussSeidelPreconditioner::setComponentOperators(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
-        if (k != component) TBOX_ASSERT(!linear_ops[k].isNull());
+        if (k != component) TBOX_ASSERT(linear_ops[k]);
     }
 #endif
     d_linear_ops_map[component] = linear_ops;
@@ -146,12 +140,6 @@ BGaussSeidelPreconditioner::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
-    /*!
-     * \todo Setup the solver so that it works correctly for multiple
-     * iterations.
-     */
-    TBOX_ASSERT(d_max_iterations == 1);
-
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
@@ -168,25 +156,22 @@ BGaussSeidelPreconditioner::solveSystem(
     bool ret_val = true;
 
     // Zero out the initial guess.
-    if (!d_initial_guess_nonzero) x.setToScalar(0.0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_initial_guess_nonzero == false);
+#endif
+    x.setToScalar(0.0, /*interior_only*/ false);
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > x_comps =
-        getComponentVectors(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > b_comps =
-        getComponentVectors(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > x_comps = getComponentVectors(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
+    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > b_comps = getComponentVectors(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
-    Pointer<SAMRAIVectorReal<NDIM,double> > f =
-        b.cloneVector(b.getName());
+    Pointer<SAMRAIVectorReal<NDIM,double> > f = b.cloneVector(b.getName());
     f->allocateVectorData();
-    f->copyVector(
-        Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false),
-        false);
-    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > f_comps =
-        getComponentVectors(f);
+    f->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false), false);
+    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > f_comps = getComponentVectors(f);
 
     // Setup the order in which the component preconditioner are to be applied.
     const int ncomps = x.getNumberOfComponents();
@@ -224,8 +209,8 @@ BGaussSeidelPreconditioner::solveSystem(
     }
 
     // Apply the component preconditioners.
-    for (std::vector<int>::const_iterator it = comps.begin();
-         it != comps.end(); ++it)
+    int count = 0;
+    for (std::vector<int>::const_iterator it = comps.begin(); it != comps.end(); ++it, ++count)
     {
         const int comp = (*it);
 
@@ -237,18 +222,14 @@ BGaussSeidelPreconditioner::solveSystem(
         f_comp->setToScalar(0.0);
         for (int c = 0; c < ncomps; ++c)
         {
-            // Skip the diagonal operators.
-            if (c != comp)
-            {
-                d_linear_ops_map[comp][c]->applyAdd(
-                    *x_comps[c], *f_comp, *f_comp);
-            }
+            if (c == comp) continue;
+            d_linear_ops_map[comp][c]->applyAdd(*x_comps[c], *f_comp, *f_comp);
         }
         f_comp->subtract(b_comp, f_comp);
 
         // Configure the component preconditioner.
         Pointer<LinearSolver> pc_comp = d_pc_map[comp];
-        pc_comp->setInitialGuessNonzero(true);
+        pc_comp->setInitialGuessNonzero(count >= ncomps);
         pc_comp->setMaxIterations(d_max_iterations);
         pc_comp->setAbsoluteTolerance(d_abs_residual_tol);
         pc_comp->setRelativeTolerance(d_rel_residual_tol);
@@ -263,7 +244,6 @@ BGaussSeidelPreconditioner::solveSystem(
 
     // Deallocate the preconditioner, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
-
     return ret_val;
 }// solveSystem
 
@@ -283,10 +263,8 @@ BGaussSeidelPreconditioner::initializeSolverState(
 #endif
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > x_comps =
-        getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > b_comps =
-        getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > x_comps = getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
+    std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > > b_comps = getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
 
     // Initialize the component operators and preconditioners.
     const int ncomps = x.getNumberOfComponents();
@@ -295,18 +273,14 @@ BGaussSeidelPreconditioner::initializeSolverState(
         for (int c = 0; c < ncomps; ++c)
         {
             // Skip the diagonal operators.
-            if (c != comp)
-            {
-                d_linear_ops_map[comp][c]->initializeOperatorState(
-                    *x_comps[comp], *b_comps[comp]);
-            }
+            if (c == comp) continue;
+            d_linear_ops_map[comp][c]->initializeOperatorState(*x_comps[comp], *b_comps[comp]);
         }
         d_pc_map[comp]->initializeSolverState(*x_comps[comp], *b_comps[comp]);
     }
 
     // Indicate that the preconditioner is initialized.
     d_is_initialized = true;
-
     return;
 }// initializeSolverState
 
@@ -316,29 +290,69 @@ BGaussSeidelPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (std::map<unsigned int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
-         it != d_pc_map.end(); ++it)
+    for (std::map<unsigned int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end(); ++it)
     {
         it->second->deallocateSolverState();
     }
 
     // Deallocate the component operators.
-    for (std::map<unsigned int,std::vector<Pointer<LinearOperator> > >::iterator it = d_linear_ops_map.begin();
-         it != d_linear_ops_map.end(); ++it)
+    for (std::map<unsigned int,std::vector<Pointer<LinearOperator> > >::iterator it = d_linear_ops_map.begin(); it != d_linear_ops_map.end(); ++it)
     {
         std::vector<Pointer<LinearOperator> >& comp_linear_ops = it->second;
-        for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin();
-             comp_it != comp_linear_ops.end(); ++comp_it)
+        for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin(); comp_it != comp_linear_ops.end(); ++comp_it)
         {
-            if (!comp_it->isNull()) (*comp_it)->deallocateOperatorState();
+            if (*comp_it) (*comp_it)->deallocateOperatorState();
         }
     }
 
     // Indicate that the preconditioner is NOT initialized.
     d_is_initialized = false;
-
     return;
 }// deallocateSolverState
+
+void
+BGaussSeidelPreconditioner::setInitialGuessNonzero(
+    bool initial_guess_nonzero)
+{
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess" << std::endl);
+    }
+    d_initial_guess_nonzero = initial_guess_nonzero;
+    return;
+}// setInitialGuessNonzero
+
+void
+BGaussSeidelPreconditioner::setMaxIterations(
+    int max_iterations)
+{
+    if (max_iterations > 1)
+    {
+        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1" << std::endl);
+    }
+    d_max_iterations = max_iterations;
+    return;
+}// setMaxIterations
+
+int
+BGaussSeidelPreconditioner::getNumIterations() const
+{
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl);
+                 );
+    return 0;
+}// getNumIterations
+
+double
+BGaussSeidelPreconditioner::getResidualNorm() const
+{
+    IBTK_DO_ONCE(
+        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl);
+                 );
+    return 0.0;
+}// getResidualNorm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -359,12 +373,8 @@ BGaussSeidelPreconditioner::getComponentVectors(
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] = new SAMRAIVectorReal<NDIM,double>(
-            x_name+"_component_"+str.str(),
-            hierarchy, coarsest_ln, finest_ln);
-        x_comps[comp]->addComponent(x->getComponentVariable(comp),
-                                    x->getComponentDescriptorIndex(comp),
-                                    x->getControlVolumeIndex(comp));
+        x_comps[comp] = new SAMRAIVectorReal<NDIM,double>(x_name+"_component_"+str.str(), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp]->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }
     return x_comps;
 }// getComponentVectors

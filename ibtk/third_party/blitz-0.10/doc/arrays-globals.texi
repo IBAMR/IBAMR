@@ -1,0 +1,166 @@
+
+@node Array globals, Array I/O, Array members, Arrays
+@section Global functions
+
+@example
+void                              allocateArrays(TinyVector<int,N>& shape,
+                                                 Array<T,N>& A, 
+                                                 Array<T,N>& B, ...);
+@end example
+@findex allocateArrays()
+
+This function will allocate interlaced arrays, but only if interlacing is
+desirable for your architecture.  This is controlled by the
+@code{BZ_INTERLACE_ARRAYS} flag in @file{blitz/tuning.h}.  You can provide up to
+11 arrays as parameters.  Any views currently associated with the array
+objects are lost.  Here is a typical use:
+
+@example
+Array<int,2> A, B, C;
+allocateArrays(shape(64,64),A,B,C);
+@end example
+
+@cindex interlacing
+@cindex Array interlacing
+
+If array interlacing is enabled, then the arrays are stored in memory like
+this:  @code{A(0,0)}, @code{B(0,0)}, @code{C(0,0)}, @code{A(0,1)},
+@code{B(0,1)}, ...  If interlacing is disabled, then the arrays are
+allocated in the normal fashion: each array has its own block of memory.
+Once interlaced arrays are allocated, they can be used just like regular
+arrays.
+
+@cindex convolution, 1-D
+@cindex Array convolution
+@findex convolve()
+
+@example
+#include <blitz/array/convolve.h>
+Array<T,1>                        convolve(const Array<T,1>& B, 
+                                           const Array<T,1>& C);
+@end example
+
+This function computes the 1-D convolution of the arrays B and C:
+@tex
+$$ A[i] = \sum_j B[j] C[i-j] $$
+@end tex
+@html
+A[i] = sum(B[j] * C[i-j], j)
+@end html
+@ifnottex
+@ifnothtml
+@example
+A[i] = sum(B[j] * C[i-j], j)
+@end example
+@end ifnothtml
+@end ifnottex
+If the array @math{B} has domain @math{b_l \ldots b_h}, and array @math{C}
+has domain @math{c_l \ldots c_h}, then the resulting array has domain
+@math{a_l \ldots a_h}, with @math{l = b_l + c_l} and @math{a_h = b_h + c_h}.
+
+A new array is allocated to contain the result.  To avoid copying the result
+array, you should use it as a constructor argument.  For example:
+@code{Array<float,1> A = convolve(B,C);} The convolution is computed in the
+spatial domain.  Frequency-domain transforms are not used.  If you are
+convolving two large arrays, then this will be slower than using a Fourier
+transform.
+
+@cindex correlation
+@cindex Array correlation
+
+Note that if you need a cross-correlation, you can use the convolve function
+with one of the arrays reversed.  For example:
+
+@example
+Array<float,1> A = convolve(B,C.reverse());
+@end example
+
+Autocorrelation can be performed using the same approach.
+
+@example
+void                              cycleArrays(Array<T,N>& A, Array<T,N>& B);
+void                              cycleArrays(Array<T,N>& A, Array<T,N>& B, 
+                                              Array<T,N>& C);
+void                              cycleArrays(Array<T,N>& A, Array<T,N>& B, 
+                                              Array<T,N>& C, Array<T,N>& D);
+void                              cycleArrays(Array<T,N>& A, Array<T,N>& B, 
+                                              Array<T,N>& C, Array<T,N>& D, 
+                                              Array<T,N>& E);
+@end example 
+
+@findex cycleArrays() 
+@cindex time-stepping
+
+These routines are useful for time-stepping PDEs.  They take a set of arrays
+such as [@code{A,B,C,D}] and cyclically rotate them to [@code{B,C,D,A}];
+i.e.@:  the @code{A} array then refers to what was @code{B}'s data, the
+@code{B} array refers to what was @code{C}'s data, and the @code{D} array
+refers to what was @code{A}'s data.  These functions operate in constant
+time, since only the handles change (i.e.@: no data is copied; only pointers
+change).
+
+@example
+void                         find(Array<TinyVector<int,Expr::rank>,1>& indices,
+                                  const _bz_ArrayExpr<Expr>& expr);
+void                         find(Array<TinyVector<int,N>,1>& indices,
+                                  const Array<bool,N>& exprVals);
+@end example
+
+This is an analogue to the Matlab @code{find()} method, which takes a
+boolean array expression or an array of bools and returns a 1d array
+of indices for all locations where the array or expression is true.
+
+@findex find()
+
+@example
+Array<T,N>                        imag(Array<complex<T>,N>&);
+@end example
+
+This method returns a view of the imaginary portion of the array.
+
+@findex imag()
+
+@example
+void                              interlaceArrays(TinyVector<int,N>& shape,
+                                                  Array<T,N>& A, 
+                                                  Array<T,N>& B, ...);
+@end example
+
+This function is similar to @code{allocateArrays()} above, except that the
+arrays are @strong{always} interlaced, regardless of the setting of the
+@code{BZ_INTERLACE_ARRAYS} flag.
+
+@findex interlaceArrays() 
+
+@example
+Array<T,N>                        real(Array<complex<T>,N>&);
+@end example
+
+This method returns a view of the real portion of the array.
+
+@findex real()
+
+@example
+TinyVector<int,1>                 shape(int L);
+TinyVector<int,2>                 shape(int L, int M);
+TinyVector<int,3>                 shape(int L, int M, int N);
+TinyVector<int,4>                 shape(int L, int M, int N, int O);
+... [up to 11 dimensions]
+@end example
+
+@findex shape()
+
+These functions may be used to create shape parameters.  They package the
+set of integer arguments as a @code{TinyVector} of appropriate length.  For
+an example use, see @code{allocateArrays()} above.
+
+@example
+void                              swap(Array<T,N>& A, Array<T,N>& B);
+@end example
+
+This function swaps the storage of two arrays, just like the @code{std::swap()}
+function does for STL container types.  This is a synonym for the 
+two-argument version of @code{cycleArrays()} above.
+
+@findex swap()
+

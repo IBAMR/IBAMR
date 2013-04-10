@@ -39,6 +39,7 @@
 #include <Index.h>
 #include <tbox/AbstractStream.h>
 #include <tbox/DescribedClass.h>
+#include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
 
 // BLITZ++ INCLUDES
@@ -50,7 +51,7 @@ namespace IBTK
 {
 /*!
  * \brief Class LNodeIndex provides Lagrangian and <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> indexing information for a
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information for a
  * single node of a Lagrangian mesh.
  */
 class LNodeIndex
@@ -353,6 +354,143 @@ struct LNodeIndexLocalPETScIndexComp
             TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif
             return lhs.getLocalPETScIndex()<rhs.getLocalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+
+/*!
+ * \brief Comparison functor to check for equality between LNodeIndex objects
+ * based on their positions.
+ */
+class LNodeIndexPosnEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+public:
+    LNodeIndexPosnEqual(
+        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
+        {
+            // intentionally blank
+            return;
+        }
+
+    ~LNodeIndexPosnEqual()
+        {
+            // intentionally blank
+            return;
+        }
+
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d],X_rhs[d])) return false;
+            }
+            return true;
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+
+private:
+    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+};
+
+/*!
+ * \brief Comparison functor to check for equality between LNodeIndex objects
+ * based on their Lagrangian indices.
+ */
+struct LNodeIndexLagrangianIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
+            TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
+#endif
+            return lhs.getLagrangianIndex()==rhs.getLagrangianIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to check for equality between between LNodeIndex
+ * objects based on their global PETSc indices.
+ */
+struct LNodeIndexGlobalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
+#endif
+            return lhs.getGlobalPETScIndex()==rhs.getGlobalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to check for equality between LNodeIndex objects
+ * based on their local PETSc indices.
+ */
+struct LNodeIndexLocalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
+#endif
+            return lhs.getLocalPETScIndex()==rhs.getLocalPETScIndex();
         }// operator()
 
     inline bool

@@ -1,0 +1,13 @@
+
+** Blitz-0.10
+
+Released June 27, 2012
+
+This is an AS-IS snapshot release of the current state of the blitz mercurial 
+source code development repository. Besides numerous bug fixes since the 
+Blitz-0.9 release back in 2005, development work has been done in an effort
+to improve performance, 64-bit compatibility, and thread safety, and to take
+advantage of SIMD instructions by utilizing careful data alignment. Most of 
+these upgrades are not well documented as of yet, and are only apparent via
+some new configure script options.
+

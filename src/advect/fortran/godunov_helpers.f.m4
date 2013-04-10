@@ -116,9 +116,9 @@ c
 c
 c     minmod(a,b)
 c
-      if     ( (a.ge.0.0d0).and.(b.ge.0.0d0) ) then
+      if     ( (a.ge.0.d0).and.(b.ge.0.d0) ) then
          minmod2 = dmin1(a,b)
-      elseif ( (a.le.0.0d0).and.(b.le.0.0d0) ) then
+      elseif ( (a.le.0.d0).and.(b.le.0.d0) ) then
          minmod2 = dmax1(a,b)
       else
          minmod2 = 0.d0
@@ -147,9 +147,9 @@ c
 c
 c     minmod(a,b,c)
 c
-      if     ( (a.ge.0.0d0).and.(b.ge.0.0d0).and.(c.ge.0.d0) ) then
+      if     ( (a.ge.0.d0).and.(b.ge.0.d0).and.(c.ge.0.d0) ) then
          minmod3 = dmin1(a,b,c)
-      elseif ( (a.le.0.0d0).and.(b.le.0.0d0).and.(c.le.0.d0) ) then
+      elseif ( (a.le.0.d0).and.(b.le.0.d0).and.(c.le.0.d0) ) then
          minmod3 = dmax1(a,b,c)
       else
          minmod3 = 0.d0

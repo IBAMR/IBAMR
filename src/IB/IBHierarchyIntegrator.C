@@ -49,6 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/LMarkerUtilities.h>
 
 // SAMRAI INCLUDES
@@ -68,48 +69,9 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHierarchyIntegrator::IBHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBStrategy> ib_method_ops,
-    Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-    bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart)
-{
-    // Set the IB method operations objects.
-    d_ib_method_ops = ib_method_ops;
-    d_ib_method_ops->registerIBHierarchyIntegrator(this);
-
-    // Register the fluid solver as a child integrator of this integrator
-    // object.
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ins_hier_integrator.isNull());
-#endif
-    d_ins_hier_integrator = ins_hier_integrator;
-    registerChildHierarchyIntegrator(d_ins_hier_integrator);
-
-    // Set some default values.
-    d_integrator_is_initialized = false;
-    d_timestepping_type = MIDPOINT_RULE;
-    d_regrid_cfl_interval = 0.0;
-    d_regrid_cfl_estimate = 0.0;
-    d_error_on_dt_change = true;
-    d_warn_on_dt_change = false;
-
-    // Do not allocate a workload variable by default.
-    d_workload_var.setNull();
-    d_workload_idx = -1;
-
-    // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
-    return;
-}// IBHierarchyIntegrator
-
 IBHierarchyIntegrator::~IBHierarchyIntegrator()
 {
-    // intentionally blank.
+    // intentionally blank
     return;
 }// ~IBHierarchyIntegrator
 
@@ -119,17 +81,31 @@ IBHierarchyIntegrator::getIBStrategy() const
     return d_ib_method_ops;
 }// getIBStrategy
 
-Pointer<INSHierarchyIntegrator>
-IBHierarchyIntegrator::getINSHierarchyIntegrator() const
-{
-    return d_ins_hier_integrator;
-}// getINSHierarchyIntegrator
-
 void
 IBHierarchyIntegrator::registerBodyForceFunction(
     Pointer<CartGridFunction> f_fcn)
 {
-    d_body_force_fcn = f_fcn;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (d_body_force_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
+        if (!p_body_force_fcn)
+        {
+            pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
+                 << "  body force function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  when evaluating the body force term value.\n";
+            p_body_force_fcn = new CartGridFunctionSet(d_object_name+"::body_force_function_set");
+            p_body_force_fcn->addFunction(d_body_force_fcn);
+        }
+        p_body_force_fcn->addFunction(f_fcn);
+    }
+    else
+    {
+        d_body_force_fcn = f_fcn;
+    }
     return;
 }// registerBodyForceFunction
 
@@ -138,7 +114,7 @@ IBHierarchyIntegrator::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!load_balancer.isNull());
+    TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     if (d_workload_idx == -1)
@@ -149,6 +125,30 @@ IBHierarchyIntegrator::registerLoadBalancer(
     d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
     return;
 }// registerLoadBalancer
+
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getVelocityVariable() const
+{
+    return d_u_var;
+}// getVelocityVariable
+
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getPressureVariable() const
+{
+    return d_p_var;
+}// getPressureVariable
+
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getBodyForceVariable() const
+{
+    return d_f_var;
+}// getBodyForceVariable
+
+Pointer<Variable<NDIM> >
+IBHierarchyIntegrator::getFluidSourceVariable() const
+{
+    return d_q_var;
+}// getFluidSourceVariable
 
 void
 IBHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -162,8 +162,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
-    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
+    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(getVelocityVariable(), hierarchy, true);
+    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(getPressureVariable(), hierarchy, true);
     d_hier_cc_data_ops       = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
 
     // Initialize all variables.
@@ -172,26 +172,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
     const IntVector<NDIM>    ghosts = 1;
 
-    Pointer<CellVariable<NDIM,double> > u_cc_var = d_ins_hier_integrator->getVelocityVariable();
-    Pointer<SideVariable<NDIM,double> > u_sc_var = d_ins_hier_integrator->getVelocityVariable();
-    if (!u_cc_var.isNull())
-    {
-        d_u_var = new CellVariable<NDIM,double>(d_object_name+"::u", NDIM);
-        d_f_var = new CellVariable<NDIM,double>(d_object_name+"::f", NDIM);
-    }
-    else if (!u_sc_var.isNull())
-    {
-        d_u_var = new SideVariable<NDIM,double>(d_object_name+"::u");
-        d_f_var = new SideVariable<NDIM,double>(d_object_name+"::f");
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                   << "  unsupported velocity data centering" << std::endl);
-    }
-    d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(), ib_ghosts);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(),    ghosts);
-    if (d_timestepping_type == TRAPEZOIDAL_RULE)
+    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context,    ghosts);
+    if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
     }
@@ -202,19 +185,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        Pointer<CellVariable<NDIM,double> > p_cc_var = d_ins_hier_integrator->getPressureVariable();
-        if (!p_cc_var.isNull())
-        {
-            d_p_var = new CellVariable<NDIM,double>(d_object_name+"::p");
-            d_q_var = new CellVariable<NDIM,double>(d_object_name+"::q");
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                       << "  unsupported pressure data centering" << std::endl);
-        }
-        d_p_idx = var_db->registerVariableAndContext(d_p_var, getScratchContext(), ib_ghosts);
-        d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(),    ghosts);
+        d_p_idx = var_db->registerVariableAndContext(d_p_var, d_ib_context, ib_ghosts);
+        d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context,    ghosts);
     }
     else
     {
@@ -225,23 +197,14 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_mark_file_name.empty())
     {
         d_mark_var = new LMarkerSetVariable(d_object_name+"::markers");
-        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx,
-                         d_mark_var, /* ghosts */ IntVector<NDIM>(1));
+        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
     }
 
-    // Initialize the objects used to manage Lagrangian-Eulerian interaction.
-    d_eulerian_force_fcn = new IBEulerianForceFunction(this);
-    d_ins_hier_integrator->registerBodyForceFunction(d_eulerian_force_fcn);
+    // Initialize the fluid solver.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_eulerian_source_fcn = new IBEulerianSourceFunction(this);
-        d_ins_hier_integrator->registerFluidSourceFunction(d_eulerian_source_fcn);
+        d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
     }
-
-    // Initialize the fluid solver.  It is necessary to do this after
-    // registering a body force function or fluid source distribution function,
-    // but before setting up communications schedules (because we need class
-    // INSHierarchyIntegrator to register its variables).
     d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Have the IB method ops object register any additional Eulerian variables
@@ -258,10 +221,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg;
     Pointer<CoarsenOperator<NDIM> > coarsen_op;
 
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getScratchContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext());
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getScratchContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getNewContext());
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getScratchContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(getPressureVariable(), getNewContext());
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(getPressureVariable(), getScratchContext());
 
     refine_alg = new RefineAlgorithm<NDIM>();
     refine_op = NULL;
@@ -279,9 +242,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     registerProlongRefineAlgorithm(d_object_name+"::f", refine_alg);
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
+    refine_op = grid_geom->lookupRefineOperator(getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
-    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVariable(), "LINEAR_REFINE");
+    refine_op = grid_geom->lookupRefineOperator(getPressureVariable(), "LINEAR_REFINE");
     refine_alg->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_op);
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
@@ -313,12 +276,16 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
     }
 
-    // Set the current integration time.
-    if (!RestartManager::getManager()->isFromRestart())
+    // Setup the tag buffer.
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int tsize = d_tag_buffer.size();
+    d_tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
+    for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
     {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
+        d_tag_buffer[i] = d_tag_buffer[i-1];
     }
+    d_ib_method_ops->setupTagBuffer(d_tag_buffer, d_gridding_alg);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -327,8 +294,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
 void
 IBHierarchyIntegrator::initializePatchHierarchy(
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg)
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -351,8 +318,8 @@ IBHierarchyIntegrator::initializePatchHierarchy(
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getCurrentContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(),
+                                                                   getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
@@ -368,317 +335,38 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     return;
 }// initializePatchHierarchy
 
-int
-IBHierarchyIntegrator::getNumberOfCycles()
-{
-    return std::max(d_num_cycles,d_ins_hier_integrator->getNumberOfCycles());
-}// getNumberOfCycles
-
-void
-IBHierarchyIntegrator::preprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
-
-    // Determine whether there has been a time step size change.
-    static bool skip_check_for_dt_change =
-        MathUtilities<double>::equalEps(d_integrator_time,d_start_time) ||
-        RestartManager::getManager()->isFromRestart();
-    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
-        !MathUtilities<double>::equalEps(dt, d_dt_previous[0]))
-    {
-        if (d_error_on_dt_change)
-        {
-            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                       << "Aborting." << std::endl);
-        }
-        if (d_warn_on_dt_change)
-        {
-            pout << d_object_name << "::preprocessIntegrateHierarchy():  WARNING: Time step size change encountered.\n"
-                 << "Suggest reducing maximum time step size in input file." << std::endl;
-        }
-    }
-    skip_check_for_dt_change = false;
-
-    // Allocate Eulerian scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->allocatePatchData(d_p_idx, current_time);
-            level->allocatePatchData(d_q_idx, current_time);
-        }
-        level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data    ,     new_time);
-    }
-
-    // Initialize the fluid solver.
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-
-    // Initialize IB data.
-    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
-
-    if (num_cycles == 1)
-    {
-        // Compute an initial prediction of the updated positions of the
-        // Lagrangian structure.
-        //
-        // NOTE: The velocity should already have been interpolated to the
-        // curvilinear mesh and should not need to be re-interpolated.
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-        d_ib_method_ops->eulerStep(current_time, new_time);
-    }
-
-    if (d_timestepping_type == TRAPEZOIDAL_RULE)
-    {
-        // Compute the Lagrangian force at the beginning of the time interval
-        // and spread it to the Eulerian grid.
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
-        d_ib_method_ops->computeLagrangianForce(current_time);
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-        d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
-        d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
-    }
-    return;
-}// preprocessIntegrateHierarchy
-
-void
-IBHierarchyIntegrator::integrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int cycle_num)
-{
-    const double half_time = current_time+0.5*(new_time-current_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getCurrentContext());
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
-
-    // Compute the Lagrangian forces and spread them to the Eulerian grid.
-    switch (d_timestepping_type)
-    {
-        case MIDPOINT_RULE:
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-            d_ib_method_ops->computeLagrangianForce(half_time);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-            d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-            d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
-            break;
-        case TRAPEZOIDAL_RULE:
-            if (d_current_num_cycles == 1 || cycle_num > 0)
-            {
-                // NOTE: If (current_num_cycles > 1 && cycle_num == 0), the
-                // force computed here would be the same as that computed above
-                // in preprocessIntegrateHierarchy(), so we don't bother to
-                // compute it.
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-                d_ib_method_ops->computeLagrangianForce(new_time);
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-                d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-                d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), new_time);
-                d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
-            }
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
-                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-    }
-
-    // Compute the Lagrangian source/sink strengths and spread them to the
-    // Eulerian grid.
-    if (d_ib_method_ops->hasFluidSources())
-    {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
-        d_ib_method_ops->computeLagrangianFluidSource(half_time);
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
-        d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
-        d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
-    }
-
-    // Solve the incompressible Navier-Stokes equations.
-    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
-    d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
-    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
-
-    // Interpolate the Eulerian velocity to the curvilinear mesh.
-    switch (d_timestepping_type)
-    {
-        case MIDPOINT_RULE:
-            d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-            d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
-            break;
-        case TRAPEZOIDAL_RULE:
-            d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-            d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
-                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-    }
-
-    // Compute an updated prediction of the updated positions of the Lagrangian
-    // structure.
-    if (d_current_num_cycles > 1 && d_current_cycle_num == 0)
-    {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
-        d_ib_method_ops->eulerStep(current_time, new_time);
-    }
-    else
-    {
-        switch (d_timestepping_type)
-        {
-            case MIDPOINT_RULE:
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
-                d_ib_method_ops->midpointStep(current_time, new_time);
-                break;
-            case TRAPEZOIDAL_RULE:
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian trapezoidal-rule step\n";
-                d_ib_method_ops->trapezoidalStep(current_time, new_time);
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
-                           << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-        }
-    }
-
-    // Compute the pressure at the updated locations of any distributed internal
-    // fluid sources or sinks.
-    if (d_ib_method_ops->hasFluidSources())
-    {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
-        d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
-        d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
-    }
-    return;
-}// integrateHierarchy
-
-void
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const bool skip_synchronize_new_state_data,
-    const int num_cycles)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                               d_ins_hier_integrator->getNewContext());
-
-    // Interpolate the Eulerian velocity to the curvilinear mesh.
-    d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
-
-    // Synchronize new state data.
-    if (!skip_synchronize_new_state_data)
-    {
-        if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
-        synchronizeHierarchyData(NEW_DATA);
-    }
-
-    // Determine the CFL number.
-    double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM,double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM,double> patch_sc_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-            const double dx_min = *(std::min_element(dx,dx+NDIM));
-            Pointer<CellData<NDIM,double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<NDIM,double> > u_sc_new_data = patch->getPatchData(u_new_idx);
-            double u_max = 0.0;
-            if (!u_cc_new_data.isNull()) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-            if (!u_sc_new_data.isNull()) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
-            cfl_max = std::max(cfl_max, u_max*dt/dx_min);
-        }
-    }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
-    d_regrid_cfl_estimate += cfl_max;
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
-    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
-
-    // Deallocate the fluid solver.
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    // Deallocate IB data.
-    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
-
-    // Deallocate Eulerian scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
-        if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->deallocatePatchData(d_p_idx);
-            level->deallocatePatchData(d_q_idx);
-        }
-        level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data    );
-    }
-    return;
-}// postprocessIntegrateHierarchy
-
 void
 IBHierarchyIntegrator::regridHierarchy()
 {
     // Update the workload pre-regridding.
-    if (!d_load_balancer.isNull())
+    if (d_load_balancer)
     {
-        if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
+        if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
         d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
         d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
     }
 
     // Collect the marker particles to level 0 of the patch hierarchy.
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
     }
 
     // Before regridding, begin Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Use the INSHierarchyIntegrator to handle Eulerian data management.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
     HierarchyIntegrator::regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
+    if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Prune any duplicated markers located in the "invalid" regions of coarser
     // levels of the patch hierarchy.
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
     }
@@ -689,6 +377,56 @@ IBHierarchyIntegrator::regridHierarchy()
 }// regridHierarchy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+IBHierarchyIntegrator::IBHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    Pointer<IBStrategy> ib_method_ops,
+    Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+    bool register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(ib_method_ops);
+    TBOX_ASSERT(ins_hier_integrator);
+#endif
+
+    // Set the IB method operations objects.
+    d_ib_method_ops = ib_method_ops;
+    d_ib_method_ops->registerIBHierarchyIntegrator(this);
+
+    // Register the fluid solver as a child integrator of this integrator object
+    // and reuse the variables and variable contexts of the INS solver.
+    d_ins_hier_integrator = ins_hier_integrator;
+    registerChildHierarchyIntegrator(d_ins_hier_integrator);
+    d_u_var = d_ins_hier_integrator->getVelocityVariable();
+    d_p_var = d_ins_hier_integrator->getPressureVariable();
+    d_f_var = d_ins_hier_integrator->getBodyForceVariable();
+    d_q_var = d_ins_hier_integrator->getFluidSourceVariable();
+    d_current_context = d_ins_hier_integrator->getCurrentContext();
+    d_scratch_context = d_ins_hier_integrator->getScratchContext();
+    d_new_context = d_ins_hier_integrator->getNewContext();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_ib_context = var_db->getContext(d_object_name+"::IB");
+
+    // Set some default values.
+    d_integrator_is_initialized = false;
+    d_time_stepping_type = MIDPOINT_RULE;
+    d_regrid_cfl_interval = 0.0;
+    d_regrid_cfl_estimate = 0.0;
+    d_error_on_dt_change = true;
+    d_warn_on_dt_change = false;
+
+    // Do not allocate a workload variable by default.
+    d_workload_var.setNull();
+    d_workload_idx = -1;
+
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
+    if (input_db) getFromInput(input_db, from_restart);
+    return;
+}// IBHierarchyIntegrator
 
 bool
 IBHierarchyIntegrator::atRegridPointSpecialized() const
@@ -719,13 +457,13 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
+    if (old_level)
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
     // Initialize workload data.
@@ -737,7 +475,7 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     }
 
     // Initialize marker data
-    if (!d_mark_var.isNull())
+    if (d_mark_var)
     {
         LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
     }
@@ -755,11 +493,11 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
     {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -796,7 +534,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION",IB_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_timestepping_type", enum_to_string<TimesteppingType>(d_timestepping_type));
+    db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
     db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
@@ -809,15 +547,15 @@ IBHierarchyIntegrator::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
-    if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if      (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
     if      (db->keyExists("error_on_dt_change")       ) d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change") ) d_error_on_dt_change = db->getBool("error_on_timestep_change");
     else if (db->keyExists("error_on_time_step_change")) d_error_on_dt_change = db->getBool("error_on_time_step_change");
     if      (db->keyExists("warn_on_dt_change")       ) d_warn_on_dt_change = db->getBool("warn_on_dt_change");
-    else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
     else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
-    if      (db->keyExists("timestepping_type") ) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
-    else if (db->keyExists("time_stepping_type")) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("time_stepping_type"));
+    else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
+    if      (db->keyExists("time_stepping_type")) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
+    else if (db->keyExists("timestepping_type") ) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type" ));
     if      (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 }// getFromInput
@@ -841,7 +579,7 @@ IBHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("d_timestepping_type"));
+    d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_time_stepping_type"));
     d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
     d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
     return;

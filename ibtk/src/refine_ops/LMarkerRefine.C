@@ -89,7 +89,7 @@ LMarkerRefine::findRefineOperator(
     const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
-    return (!mark_var.isNull() && op_name == s_op_name);
+    return (mark_var && op_name == s_op_name);
 }// findRefineOperator
 
 const std::string&
@@ -140,8 +140,7 @@ LMarkerRefine::refine(
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
-            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin();
-                 cit != coarse_mark_set.end(); ++cit)
+            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
                 const blitz::TinyVector<double,NDIM>& X = coarse_mark->getPosition();
