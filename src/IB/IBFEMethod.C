@@ -1046,7 +1046,7 @@ IBFEMethod::computeConstraintForceDensity(
     const unsigned int /*part*/)
 {
     const double dt = d_new_time-d_current_time;
-    const double rho = d_ib_solver->getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
+    const double rho = d_ib_solver->getINSHierarchyIntegrator()->d_ins_hier_integrator->getRho();
     int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega*rho/dt, -d_constraint_omega*rho/dt, 0.0, U_b_vec.vec(), U_vec.vec()); IBTK_CHKERRQ(ierr);
     F_vec.close();
     return;
