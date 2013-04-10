@@ -3,7 +3,7 @@ c     Routines to set CF boundary values via quadratic interpolation.
 c
 c     Created on 12 Dec 2007 by Boyce Griffith
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2013, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without

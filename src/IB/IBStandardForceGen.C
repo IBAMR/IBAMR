@@ -1,7 +1,7 @@
 // Filename: IBStandardForceGen.C
 // Created on 03 May 2005 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2013, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
