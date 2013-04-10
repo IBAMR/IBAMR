@@ -181,14 +181,6 @@ IBFEMethod::getFEDataManager(
 }// getFEDataManager
 
 void
-IBFEMethod::setMassDensity(
-    double rho)
-{
-    d_rho = rho;
-    return;
-}// setMassDensity
-
-void
 IBFEMethod::registerConstrainedPart(
     unsigned int part)
 {
@@ -1054,7 +1046,8 @@ IBFEMethod::computeConstraintForceDensity(
     const unsigned int /*part*/)
 {
     const double dt = d_new_time-d_current_time;
-    int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega*d_rho/dt, -d_constraint_omega*d_rho/dt, 0.0, U_b_vec.vec(), U_vec.vec()); IBTK_CHKERRQ(ierr);
+    const double rho = d_ib_solver->getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
+    int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega*rho/dt, -d_constraint_omega*rho/dt, 0.0, U_b_vec.vec(), U_vec.vec()); IBTK_CHKERRQ(ierr);
     F_vec.close();
     return;
 }// computeConstraintForceDensity
@@ -2104,9 +2097,6 @@ IBFEMethod::commonConstructor(
     d_quad_type = QGAUSS;
     d_quad_order = FIFTH;
     d_do_log = false;
-
-    // Initialize the mass density to cause an error if it is used unitialized.
-    d_rho = std::numeric_limits<double>::quiet_NaN();
 
     // Initialize dt_previous to equal zero.
     d_dt_previous = 0.0;
