@@ -349,6 +349,15 @@ IBStrategy::putToDatabase(
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+INSHierarchyIntegrator*
+IBStrategy::getINSHierarchyIntegrator() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver);
+#endif
+    return d_ib_solver->d_ins_hier_integrator;
+}// getINSHierarchyIntegrator
+
 Pointer<HierarchyDataOpsReal<NDIM,double> >
 IBStrategy::getVelocityHierarchyDataOps() const
 {
