@@ -59,6 +59,7 @@
 namespace IBAMR
 {
 class IBHierarchyIntegrator;
+class INSHierarchyIntegrator;
 }
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -486,6 +487,13 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
+    /*!
+     * Return a pointer to the INSHierarchyIntegrator object being used with the
+     * IBHierarchyIntegrator class registered with this IBStrategy object.
+     */
+    INSHierarchyIntegrator*
+    getINSHierarchyIntegrator() const;
+
     /*!
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * velocity-like variables.

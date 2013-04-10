@@ -271,7 +271,6 @@ main(
         // Configure the IBFE solver.
         if (use_constraint_method)
         {
-            ib_method_ops->setMassDensity(input_db->getDouble("RHO"));
             ib_method_ops->registerConstrainedPart();
             ib_method_ops->registerConstrainedPartVelocityFunction(body_velocity_fcn);
         }

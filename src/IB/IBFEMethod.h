@@ -98,13 +98,6 @@ public:
         unsigned int part=0) const;
 
     /*!
-     * Set the mass density (needed only for constrained bodies).
-     */
-    void
-    setMassDensity(
-        double rho);
-
-    /*!
      * Indicate that a part is constrained.
      */
     void
@@ -564,11 +557,6 @@ protected:
      * The current time step interval.
      */
     double d_current_time, d_new_time, d_half_time;
-
-    /*
-     * The structure mass density.
-     */
-    double d_rho;
 
     /*
      * FE data associated with this object.
