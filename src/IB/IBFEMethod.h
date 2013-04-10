@@ -595,7 +595,6 @@ protected:
     /*
      * Data related to handling constrained body constraints.
      */
-    double d_dt_previous;
     bool d_has_constrained_parts;
     std::vector<bool> d_constrained_part;
     std::vector<ConstrainedPartVelocityFcnPtr> d_constrained_part_velocity_fcns;

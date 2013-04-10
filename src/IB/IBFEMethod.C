@@ -429,9 +429,6 @@ IBFEMethod::postprocessIntegrateData(
     d_F_dil_bar_half_vecs    .clear();
     d_F_dil_bar_IB_ghost_vecs.clear();
 
-    // Keep track of the time step size.
-    d_dt_previous = d_new_time-d_current_time;
-
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time     = std::numeric_limits<double>::quiet_NaN();
@@ -2097,9 +2094,6 @@ IBFEMethod::commonConstructor(
     d_quad_type = QGAUSS;
     d_quad_order = FIFTH;
     d_do_log = false;
-
-    // Initialize dt_previous to equal zero.
-    d_dt_previous = 0.0;
 
     // Indicate that all of the parts are unconstrained by default and set some
     // default values.
