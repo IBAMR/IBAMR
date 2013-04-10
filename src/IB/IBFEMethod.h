@@ -62,7 +62,6 @@ public:
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
     static const std::string BODY_VELOCITY_SYSTEM_NAME;
-    static const std::string     F_DIL_BAR_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -466,15 +465,6 @@ public:
 
 protected:
     /*
-     * \brief Compute the projected dilatational strain F_dil_bar.
-     */
-    void
-    computeProjectedDilatationalStrain(
-        libMesh::PetscVector<double>& F_dil_bar_vec,
-        libMesh::PetscVector<double>& X_vec,
-        unsigned int part);
-
-    /*
      * \brief Compute the constraint force density.
      */
     void
@@ -494,7 +484,6 @@ protected:
     computeInteriorForceDensity(
         libMesh::PetscVector<double>& G_vec,
         libMesh::PetscVector<double>& X_vec,
-        libMesh::PetscVector<double>* F_dil_bar_vec,
         double time,
         unsigned int part);
 
@@ -506,7 +495,6 @@ protected:
     spreadTransmissionForceDensity(
         int f_data_idx,
         libMesh::PetscVector<double>& X_ghost_vec,
-        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
         double time,
         unsigned int part);
 
@@ -520,7 +508,6 @@ protected:
         int f_data_idx,
         libMesh::PetscVector<double>& F_ghost_vec,
         libMesh::PetscVector<double>& X_ghost_vec,
-        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
         double time,
         unsigned int part);
 
@@ -567,12 +554,11 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_b_systems, d_F_systems, d_F_dil_bar_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_b_systems, d_F_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_dil_bar_half_vecs, d_F_dil_bar_IB_ghost_vecs;
 
     /*
      * Method paramters.
@@ -584,11 +570,8 @@ protected:
     bool d_split_forces;
     bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
-    bool d_use_Fbar_projection;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
-    libMeshEnums::FEFamily d_F_dil_bar_fe_family;
-    libMeshEnums::Order d_F_dil_bar_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
 

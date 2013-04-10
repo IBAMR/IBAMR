@@ -128,7 +128,6 @@ const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping
 const std::string IBFEMethod::        FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::     VELOCITY_SYSTEM_NAME = "IB velocity system";
 const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "body velocity system";
-const std::string IBFEMethod::    F_DIL_BAR_SYSTEM_NAME = "IB F_dil_bar system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -326,32 +325,20 @@ IBFEMethod::preprocessIntegrateData(
     d_F_systems       .resize(d_num_parts);
     d_F_half_vecs     .resize(d_num_parts);
     d_F_IB_ghost_vecs .resize(d_num_parts);
-    d_F_dil_bar_systems      .resize(d_num_parts);
-    d_F_dil_bar_half_vecs    .resize(d_num_parts);
-    d_F_dil_bar_IB_ghost_vecs.resize(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_X_systems          [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
-        d_X_current_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->solution.get());
-        d_X_new_vecs         [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
-        d_X_half_vecs        [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->current_local_solution.get());
-        d_X_IB_ghost_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector());
-        d_U_systems          [part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
-        d_U_current_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->solution.get());
-        d_U_new_vecs         [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
-        d_U_half_vecs        [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
-        d_F_systems          [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
-        d_F_half_vecs        [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->solution.get());
-        d_F_IB_ghost_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME));
-        d_F_dil_bar_systems      [part] = NULL;
-        d_F_dil_bar_half_vecs    [part] = NULL;
-        d_F_dil_bar_IB_ghost_vecs[part] = NULL;
-        if (d_use_Fbar_projection)
-        {
-            d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(F_DIL_BAR_SYSTEM_NAME);
-            d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems[part]->current_local_solution.get());
-            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers [part]->buildGhostedSolutionVector(F_DIL_BAR_SYSTEM_NAME));
-        }
+        d_X_systems      [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
+        d_X_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->solution.get());
+        d_X_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_X_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->current_local_solution.get());
+        d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector());
+        d_U_systems      [part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
+        d_U_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->solution.get());
+        d_U_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_U_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
+        d_F_systems      [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
+        d_F_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->solution.get());
+        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME));
         if (d_constrained_part[part])
         {
             d_U_b_systems     [part] = &d_equation_systems[part]->get_system(BODY_VELOCITY_SYSTEM_NAME);
@@ -391,18 +378,10 @@ IBFEMethod::postprocessIntegrateData(
         // Reset time-dependent Lagrangian data.
         (*d_X_current_vecs[part]) = (*d_X_new_vecs[part]);
         (*d_U_current_vecs[part]) = (*d_U_new_vecs[part]);
-        if (d_use_Fbar_projection)
-        {
-            (*d_F_dil_bar_systems[part]->solution) = (*d_F_dil_bar_systems[part]->current_local_solution);
-        }
 
         d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
         d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
-        if (d_use_Fbar_projection)
-        {
-            d_F_dil_bar_systems[part]->solution->localize(*d_F_dil_bar_systems[part]->current_local_solution);
-        }
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
@@ -425,9 +404,6 @@ IBFEMethod::postprocessIntegrateData(
     d_F_systems       .clear();
     d_F_half_vecs     .clear();
     d_F_IB_ghost_vecs .clear();
-    d_F_dil_bar_systems      .clear();
-    d_F_dil_bar_half_vecs    .clear();
-    d_F_dil_bar_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -574,11 +550,7 @@ IBFEMethod::computeLagrangianForce(
         }
         else
         {
-            if (d_use_Fbar_projection)
-            {
-                computeProjectedDilatationalStrain(*d_F_dil_bar_half_vecs[part], *d_X_half_vecs[part], part);
-            }
-            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_F_dil_bar_half_vecs[part], data_time, part);
+            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
     }
     return;
@@ -599,22 +571,10 @@ IBFEMethod::spreadForce(
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        PetscVector<double>* F_dil_bar_vec = NULL;
-        PetscVector<double>* F_dil_bar_ghost_vec = NULL;
-        if (d_use_Fbar_projection)
-        {
-            F_dil_bar_vec = d_F_dil_bar_half_vecs[part];
-            F_dil_bar_ghost_vec = d_F_dil_bar_IB_ghost_vecs[part];
-        }
         X_vec->localize(*X_ghost_vec);
         X_ghost_vec->close();
         F_vec->localize(*F_ghost_vec);
         F_ghost_vec->close();
-        if (d_use_Fbar_projection)
-        {
-            F_dil_bar_vec->localize(*F_dil_bar_ghost_vec);
-            F_dil_bar_ghost_vec->close();
-        }
         if (d_use_IB_spread_operator)
         {
             d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false);
@@ -627,11 +587,11 @@ IBFEMethod::spreadForce(
         {
             if (d_use_jump_conditions)
             {
-                imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, F_dil_bar_ghost_vec, data_time, part);
+                imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
             }
             else
             {
-                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, F_dil_bar_ghost_vec, data_time, part);
+                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, data_time, part);
             }
         }
     }
@@ -688,12 +648,6 @@ IBFEMethod::initializeFEData()
                 os << "U_b_" << d;
                 U_b_system.add_variable(os.str(), d_fe_order, d_fe_family);
             }
-        }
-
-        if (d_use_Fbar_projection)
-        {
-            System& F_dil_bar_system = equation_systems->add_system<System>(F_DIL_BAR_SYSTEM_NAME);
-            F_dil_bar_system.add_variable("F_dil_bar", d_F_dil_bar_fe_order, d_F_dil_bar_fe_family);
         }
 
         // Initialize FE equation systems.
@@ -931,108 +885,14 @@ IBFEMethod::putToDatabase(
     db->putBool("d_split_forces", d_split_forces);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
-    db->putBool("d_use_Fbar_projection", d_use_Fbar_projection);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
-    db->putString("d_F_dil_bar_fe_family", Utility::enum_to_string<FEFamily>(d_F_dil_bar_fe_family));
-    db->putString("d_F_dil_bar_fe_order", Utility::enum_to_string<Order>(d_F_dil_bar_fe_order));
     db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
     db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     return;
 }// putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
-void
-IBFEMethod::computeProjectedDilatationalStrain(
-    PetscVector<double>& F_dil_bar_vec,
-    PetscVector<double>& X_vec,
-    const unsigned int part)
-{
-    // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    fe->attach_quadrature_rule(qrule.get());
-    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
-
-    System& F_dil_bar_system = equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
-    const DofMap& F_dil_bar_dof_map = F_dil_bar_system.get_dof_map();
-    std::vector<unsigned int> F_dil_bar_dof_indices;
-    F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe(FEBase::build(dim, F_dil_bar_dof_map.variable_type(0)));
-    F_dil_bar_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<double>& F_dil_bar_JxW = F_dil_bar_fe->get_JxW();
-    const std::vector<std::vector<double> >& F_dil_bar_phi = F_dil_bar_fe->get_phi();
-
-    // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > F_dil_bar_rhs_vec = F_dil_bar_vec.zero_clone();
-    DenseVector<double> F_dil_bar_rhs_e;
-
-    // F_dil_bar is the projection of F_dil = J^(1/d) II onto a (lower-order) FE
-    // space.
-    TensorValue<double> FF;
-    blitz::Array<double,2> X_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-    {
-        Elem* const elem = *el_it;
-
-        fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            dof_map.dof_indices(elem, dof_indices(d), d);
-        }
-
-        F_dil_bar_fe->reinit(elem);
-        F_dil_bar_dof_map.dof_indices(elem, F_dil_bar_dof_indices);
-        if (F_dil_bar_rhs_e.size() != F_dil_bar_dof_indices.size())
-        {
-            F_dil_bar_rhs_e.resize(F_dil_bar_dof_indices.size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
-        }
-        else
-        {
-            F_dil_bar_rhs_e.zero();
-        }
-
-        const unsigned int n_qp = qrule->n_points();
-        const unsigned int n_basis = F_dil_bar_dof_indices.size();
-
-        get_values_for_interpolation(X_node, X_vec, dof_indices);
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            jacobian(FF,qp,X_node,dphi);
-            const double J = FF.det();
-            for (unsigned int k = 0; k < n_basis; ++k)
-            {
-                F_dil_bar_rhs_e(k) += F_dil_bar_phi[k][qp]*F_dil_bar_JxW[qp]*pow(J,1.0/static_cast<double>(dim));
-            }
-        }
-
-        // Apply constraints (e.g., enforce periodic boundary conditions) and
-        // add the elemental contributions to the global vector.
-        F_dil_bar_dof_map.constrain_element_vector(F_dil_bar_rhs_e, F_dil_bar_dof_indices);
-        F_dil_bar_rhs_vec->add_vector(F_dil_bar_rhs_e, F_dil_bar_dof_indices);
-    }
-
-    // Solve for F_dil_bar.
-    F_dil_bar_rhs_vec->close();
-    static const bool use_consistent_mass_matrix = true;
-    d_fe_data_managers[part]->computeL2Projection(F_dil_bar_vec, *F_dil_bar_rhs_vec, F_DIL_BAR_SYSTEM_NAME, use_consistent_mass_matrix);
-    return;
-}// computeProjectedDilatationalStrain
 
 void
 IBFEMethod::computeConstraintForceDensity(
@@ -1053,7 +913,6 @@ void
 IBFEMethod::computeInteriorForceDensity(
     PetscVector<double>& G_vec,
     PetscVector<double>& X_vec,
-    PetscVector<double>* F_dil_bar_vec,
     const double time,
     const unsigned int part)
 {
@@ -1091,26 +950,6 @@ IBFEMethod::computeInteriorForceDensity(
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
-
-    System* F_dil_bar_system = NULL;
-    const DofMap* F_dil_bar_dof_map = NULL;
-    std::vector<unsigned int> F_dil_bar_dof_indices;
-    F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe;
-    const std::vector<std::vector<double> >* F_dil_bar_phi = NULL;
-    AutoPtr<FEBase> F_dil_bar_fe_face;
-    const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_vec)
-    {
-        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
-        F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
-        F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe->attach_quadrature_rule(qrule.get());
-        F_dil_bar_phi = &F_dil_bar_fe->get_phi();
-        F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
-        F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
-    }
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
@@ -1156,12 +995,11 @@ IBFEMethod::computeInteriorForceDensity(
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    TensorValue<double> PP, FF, FF_inv_trans, FF_bar;
+    TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_b, F_s, F_qp, n;
     Point X_qp;
     double P;
     blitz::Array<double,2> X_node;
-    blitz::Array<double,1> F_dil_bar_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1182,37 +1020,22 @@ IBFEMethod::computeInteriorForceDensity(
             }
         }
 
-        if (F_dil_bar_vec)
-        {
-            F_dil_bar_fe->reinit(elem);
-            F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
-        }
-
         const unsigned int n_qp = qrule->n_points();
         const unsigned int n_basis = dof_indices(0).size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        if (F_dil_bar_vec) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(FF,qp,X_node,dphi);
-            if (F_dil_bar_vec)
-            {
-                jacobian(FF_bar,qp,X_node,dphi,F_dil_bar_node,*F_dil_bar_phi);
-            }
-            else
-            {
-                FF_bar = FF;
-            }
 
             if (d_PK1_stress_fcns[part])
             {
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -PP*dphi[k][qp]*JxW[qp];
@@ -1265,13 +1088,11 @@ IBFEMethod::computeInteriorForceDensity(
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
-            if (F_dil_bar_vec) F_dil_bar_fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
             const unsigned int n_basis = dof_indices(0).size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
-            if (F_dil_bar_vec) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
@@ -1279,21 +1100,13 @@ IBFEMethod::computeInteriorForceDensity(
                 jacobian(FF,qp,X_node,dphi_face);
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                if (F_dil_bar_vec)
-                {
-                    jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
-                }
-                else
-                {
-                    FF_bar = FF;
-                }
                 F.zero();
                 if (compute_transmission_force)
                 {
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
-                    d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                    d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                     F += PP*normal_face[qp];
                 }
                 if (compute_pressure && d_lag_pressure_fcns[part])
@@ -1354,7 +1167,6 @@ void
 IBFEMethod::spreadTransmissionForceDensity(
     const int f_data_idx,
     PetscVector<double>& X_ghost_vec,
-    PetscVector<double>* F_dil_bar_ghost_vec,
     const double time,
     const unsigned int part)
 {
@@ -1390,21 +1202,6 @@ IBFEMethod::spreadTransmissionForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* F_dil_bar_system = NULL;
-    const DofMap* F_dil_bar_dof_map = NULL;
-    std::vector<unsigned int> F_dil_bar_dof_indices;
-    F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe_face;
-    const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_ghost_vec)
-    {
-        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
-        F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
-        F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
-        F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
-    }
-
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
     for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
@@ -1431,13 +1228,12 @@ IBFEMethod::spreadTransmissionForceDensity(
     // onto the grid.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans, FF_bar;
+    TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s;
     Point X_qp;
     double P;
     std::vector<Point> elem_X;
     blitz::Array<double,2> X_node, X_node_side;
-    blitz::Array<double,1> F_dil_bar_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1486,11 +1282,6 @@ IBFEMethod::spreadTransmissionForceDensity(
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
-            if (F_dil_bar_ghost_vec)
-            {
-                F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
-                get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_ghost_vec, F_dil_bar_dof_indices);
-            }
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1530,13 +1321,8 @@ IBFEMethod::spreadTransmissionForceDensity(
                 {
                     qrule_face = QBase::build(QGAUSS, dim-1, order);
                     fe_face->attach_quadrature_rule(qrule_face.get());
-                    if (F_dil_bar_ghost_vec) F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
                 }
                 fe_face->reinit(elem, side);
-                if (F_dil_bar_ghost_vec)
-                {
-                    F_dil_bar_fe_face->reinit(elem, side);
-                }
 
                 const unsigned int n_qp = qrule_face->n_points();
 
@@ -1550,21 +1336,13 @@ IBFEMethod::spreadTransmissionForceDensity(
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    if (F_dil_bar_ghost_vec)
-                    {
-                        jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
-                    }
-                    else
-                    {
-                        FF_bar = FF;
-                    }
                     F.zero();
                     if (compute_transmission_force)
                     {
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_pressure)
@@ -1611,7 +1389,6 @@ IBFEMethod::imposeJumpConditions(
     const int f_data_idx,
     PetscVector<double>& F_ghost_vec,
     PetscVector<double>& X_ghost_vec,
-    PetscVector<double>* F_dil_bar_ghost_vec,
     const double time,
     const unsigned int part)
 {
@@ -1644,20 +1421,6 @@ IBFEMethod::imposeJumpConditions(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* F_dil_bar_system = NULL;
-    const DofMap* F_dil_bar_dof_map = NULL;
-    std::vector<unsigned int> F_dil_bar_dof_indices;
-    F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe_face;
-    const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
-    if (F_dil_bar_ghost_vec)
-    {
-        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
-        F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
-        F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
-    }
-
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
     for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
@@ -1685,12 +1448,11 @@ IBFEMethod::imposeJumpConditions(
     // densities.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    TensorValue<double> PP, FF, FF_inv_trans, FF_bar;
+    TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n;
     Point X_qp;
     double P;
     blitz::Array<double,2> F_node, X_node;
-    blitz::Array<double,1> F_dil_bar_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
     blitz::TinyVector<double,NDIM> X_min, X_max;
@@ -1876,13 +1638,6 @@ IBFEMethod::imposeJumpConditions(
                 }
                 get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
-                if (F_dil_bar_ghost_vec)
-                {
-                    F_dil_bar_fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
-                    F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
-                    get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_ghost_vec, F_dil_bar_dof_indices);
-                }
-
                 for (unsigned int qp = 0; qp < intersection_ref_points.size(); ++qp)
                 {
                     const unsigned int axis = intersection_axes[qp];
@@ -1918,21 +1673,13 @@ IBFEMethod::imposeJumpConditions(
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-                    if (F_dil_bar_ghost_vec)
-                    {
-                        jacobian(FF_bar,qp,X_node,dphi_face,F_dil_bar_node,*F_dil_bar_phi_face);
-                    }
-                    else
-                    {
-                        FF_bar = FF;
-                    }
                     F.zero();
                     if (compute_transmission_force)
                     {
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp];
                     }
                     if (compute_pressure)
@@ -2086,11 +1833,8 @@ IBFEMethod::commonConstructor(
     d_split_forces = false;
     d_use_jump_conditions = false;
     d_use_consistent_mass_matrix = true;
-    d_use_Fbar_projection = false;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
-    d_F_dil_bar_fe_family = L2_LAGRANGE;
-    d_F_dil_bar_fe_order = CONSTANT;
     d_quad_type = QGAUSS;
     d_quad_order = FIFTH;
     d_do_log = false;
@@ -2162,11 +1906,6 @@ IBFEMethod::commonConstructor(
     // Report configuration.
     pout << "\n";
     pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
-    if (d_use_Fbar_projection)
-    {
-        if (d_F_dil_bar_fe_family == L2_LAGRANGE && d_F_dil_bar_fe_order == CONSTANT) d_F_dil_bar_fe_family = MONOMIAL;
-        pout << d_object_name << ": using FF-bar projection method with " << Utility::enum_to_string<Order>(d_F_dil_bar_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_F_dil_bar_fe_family) << " finite elements for the dilataional strain.\n";
-    }
     pout << "\n";
 
     // Check the choices for the delta function.
@@ -2227,9 +1966,6 @@ IBFEMethod::getFromInput(
         if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
         if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
         if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
-        if (db->isBool("use_Fbar_projection")) d_use_Fbar_projection = db->getBool("use_Fbar_projection");
-        if (db->isString("F_dil_bar_fe_family")) d_F_dil_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getString("F_dil_bar_fe_family"));
-        if (db->isString("F_dil_bar_fe_order")) d_F_dil_bar_fe_order = Utility::string_to_enum<Order>(db->getString("F_dil_bar_fe_order"));
         if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
         if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
 
@@ -2276,11 +2012,8 @@ IBFEMethod::getFromRestart()
     d_split_forces = db->getBool("d_split_forces");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
-    d_use_Fbar_projection = db->getBool("d_use_Fbar_projection");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
-    d_F_dil_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_F_dil_bar_fe_family"));
-    d_F_dil_bar_fe_order = Utility::string_to_enum<Order>(db->getString("d_F_dil_bar_fe_order"));
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
     d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     return;
