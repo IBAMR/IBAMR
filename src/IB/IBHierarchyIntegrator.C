@@ -318,8 +318,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(),
-                                                                   getCurrentContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
