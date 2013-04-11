@@ -108,6 +108,17 @@ public:
     getLDataManager() const;
 
     /*!
+     * Indicate that a structure is constrained.
+     *
+     * \note This method may be called only after the patch hierarchy is
+     * initialized.
+     */
+    void
+    registerConstrainedStruct(
+        int structure_id,
+        int level_number);
+
+    /*!
      * Return a pointer to the instrumentation manager object.
      */
     SAMRAI::tbox::Pointer<IBInstrumentPanel>
@@ -482,6 +493,24 @@ protected:
         int coarsest_ln,
         int finest_ln);
 
+    /*!
+     * Compute the Lagrangian constraint force.
+     */
+    void
+    computeLagrangianConstraintForce(
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
+        int coarsest_ln,
+        int finest_ln);
+
+    /*!
+     * Update the velocity of the constrained structures.
+     */
+    void
+    computeLagrangianConstrainedVelocity(
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
+        int coarsest_ln,
+        int finest_ln);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -559,6 +588,14 @@ protected:
     std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
     bool d_normalize_source_strength;
+
+    /*
+     * Data related to handling constrained body constraints.
+     */
+    bool d_has_constrained_structs;
+    std::vector<std::map<int,bool> > d_constrained_struct_ids;
+    std::vector<std::map<int,std::vector<int> > > d_constrained_struct_local_petsc_idxs;
+    double d_constraint_omega;
 
     /*
      * Post-processor object.
