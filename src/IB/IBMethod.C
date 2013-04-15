@@ -227,23 +227,6 @@ IBMethod::getLDataManager() const
     return d_l_data_manager;
 }// getLDataManager
 
-void
-IBMethod::registerConstrainedStruct(
-    int structure_id,
-    int level_number)
-{
-    d_has_constrained_structs = true;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < static_cast<int>(d_constrained_struct_ids.size()));
-#endif
-    std::map<int,bool>::iterator it = d_constrained_struct_ids[level_number].find(structure_id);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(it != d_constrained_struct_ids[level_number].end());
-#endif
-    it->second = true;
-    return;
-}// registerConstrainedStruct
-
 Pointer<IBInstrumentPanel>
 IBMethod::getIBInstrumentPanel() const
 {
@@ -604,7 +587,6 @@ IBMethod::computeLagrangianForce(
             d_ib_force_fcn->computeLagrangianForce((*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
-    if (d_has_constrained_structs) computeLagrangianConstraintForce(*F_data, coarsest_ln, finest_ln);
     *F_needs_ghost_fill = true;
     return;
 }// computeLagrangianForce
@@ -1100,17 +1082,6 @@ IBMethod::initializePatchHierarchy(
         }
     }
 
-    // Initialize the constraint data.
-    d_constrained_struct_ids.resize(finest_ln+1);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        std::vector<int> struct_ids = d_l_data_manager->getLagrangianStructureIDs(ln);
-        for (std::vector<int>::const_iterator cit = struct_ids.begin(); cit != struct_ids.end(); ++cit)
-        {
-            d_constrained_struct_ids[ln][*cit] = false;
-        }
-    }
-
     // Initialize the instrumentation data.
     d_instrument_panel->initializeHierarchyIndependentData(d_hierarchy, d_l_data_manager);
     if (d_instrument_panel->isInstrumented())
@@ -1167,9 +1138,6 @@ IBMethod::endDataRedistribution(
 {
     d_l_data_manager->endDataRedistribution();
 
-    const int coarsest_ln = 0;
-    const int finest_ln = hierarchy->getFinestLevelNumber();
-
     // Look up the re-distributed Lagrangian position data.
     std::vector<Pointer<LData> > X_data(hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -1184,7 +1152,7 @@ IBMethod::endDataRedistribution(
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         d_anchor_point_local_idxs[ln].clear();
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1215,42 +1183,6 @@ IBMethod::endDataRedistribution(
             }
         }
         X_data[ln]->restoreArrays();
-    }
-
-    // Determine local indices of any constrained structure IDs.
-    d_constrained_struct_local_petsc_idxs.resize(finest_ln+1);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        // Determine local node range.
-        const int petsc_idx_begin = d_l_data_manager->getGlobalNodeOffset(ln);
-        const int petsc_idx_end = petsc_idx_begin + d_l_data_manager->getNumberOfLocalNodes(ln);
-
-        // Get local constrained node idxs.
-        const std::map<int,bool>& constrained_struct_ids = d_constrained_struct_ids[ln];
-        std::map<int,std::vector<int> >& constrained_struct_local_petsc_idxs = d_constrained_struct_local_petsc_idxs[ln];
-        for (std::map<int,bool>::const_iterator cit = constrained_struct_ids.begin(); cit != constrained_struct_ids.end(); ++cit)
-        {
-            const int struct_id = cit->first;
-            const bool is_constrained = cit->second;
-            std::vector<int>& local_petsc_idxs = constrained_struct_local_petsc_idxs[struct_id];
-            local_petsc_idxs.clear();
-            if (is_constrained)
-            {
-                std::vector<int> idxs;
-                const std::pair<int,int>& lag_index_range = d_l_data_manager->getLagrangianStructureIndexRange(struct_id, ln);
-                for (int l = lag_index_range.first; l < lag_index_range.second; ++l)
-                {
-                    idxs.push_back(l);
-                }
-                d_l_data_manager->mapLagrangianToPETSc(idxs, ln);
-                for (std::vector<int>::const_iterator cit = idxs.begin(); cit != idxs.end(); ++cit)
-                {
-                    const int l = *cit;
-                    if (petsc_idx_begin <= l && l < petsc_idx_end) local_petsc_idxs.push_back(l);
-                }
-                std::sort(local_petsc_idxs.begin(), local_petsc_idxs.end());
-            }
-        }
     }
 
     // Indicate that the force and source strategies need to be re-initialized.
@@ -1624,28 +1556,6 @@ IBMethod::resetAnchorPointValues(
     }
     return;
 }// resetAnchorPointValues
-
-void
-IBMethod::computeLagrangianConstraintForce(
-    const std::vector<Pointer<LData> >& F_data,
-    const int coarsest_ln,
-    const int finest_ln)
-{
-    if (!d_has_constrained_structs) return;
-    TBOX_ASSERT(false);
-    return;
-}// computeLagrangianConstraintForce
-
-void
-IBMethod::computeLagrangianConstrainedVelocity(
-    const std::vector<Pointer<LData> >& U_data,
-    int coarsest_ln,
-    int finest_ln)
-{
-    if (!d_has_constrained_structs) return;
-    TBOX_ASSERT(false);
-    return;
-}// computeLagrangianConstrainedVelocity
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
