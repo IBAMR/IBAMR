@@ -311,20 +311,24 @@ IBFEMethod::preprocessIntegrateData(
     d_half_time = current_time+0.5*(new_time-current_time);
 
     // Extract the FE data.
-    d_X_systems       .resize(d_num_parts);
-    d_X_current_vecs  .resize(d_num_parts);
-    d_X_new_vecs      .resize(d_num_parts);
-    d_X_half_vecs     .resize(d_num_parts);
-    d_X_IB_ghost_vecs .resize(d_num_parts);
-    d_U_systems       .resize(d_num_parts);
-    d_U_current_vecs  .resize(d_num_parts);
-    d_U_new_vecs      .resize(d_num_parts);
-    d_U_half_vecs     .resize(d_num_parts);
-    d_U_b_systems     .resize(d_num_parts);
-    d_U_b_current_vecs.resize(d_num_parts);
-    d_F_systems       .resize(d_num_parts);
-    d_F_half_vecs     .resize(d_num_parts);
-    d_F_IB_ghost_vecs .resize(d_num_parts);
+    d_X_systems      .resize(d_num_parts);
+    d_X_current_vecs .resize(d_num_parts);
+    d_X_new_vecs     .resize(d_num_parts);
+    d_X_half_vecs    .resize(d_num_parts);
+    d_X_IB_ghost_vecs.resize(d_num_parts);
+
+    d_U_systems      .resize(d_num_parts);
+    d_U_current_vecs .resize(d_num_parts);
+    d_U_new_vecs     .resize(d_num_parts);
+    d_U_half_vecs    .resize(d_num_parts);
+
+    d_F_systems      .resize(d_num_parts);
+    d_F_half_vecs    .resize(d_num_parts);
+    d_F_IB_ghost_vecs.resize(d_num_parts);
+
+    d_U_b_systems    .resize(d_num_parts);
+    d_U_b_vecs       .resize(d_num_parts);
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems      [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
@@ -332,17 +336,20 @@ IBFEMethod::preprocessIntegrateData(
         d_X_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
         d_X_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->current_local_solution.get());
         d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector());
+
         d_U_systems      [part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->solution.get());
         d_U_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
         d_U_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
+
         d_F_systems      [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
         d_F_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->solution.get());
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME));
+
         if (d_constrained_part[part])
         {
-            d_U_b_systems     [part] = &d_equation_systems[part]->get_system(BODY_VELOCITY_SYSTEM_NAME);
-            d_U_b_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_b_systems[part]->solution.get());
+            d_U_b_systems[part] = &d_equation_systems[part]->get_system(BODY_VELOCITY_SYSTEM_NAME);
+            d_U_b_vecs   [part] = dynamic_cast<PetscVector<double>*>(d_U_b_systems[part]->solution.get());
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -356,12 +363,12 @@ IBFEMethod::preprocessIntegrateData(
         d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
         d_U_new_vecs[part]->close();
 
-        // Solve for the constrained velocity.
+        // Compute the constraint velocity.
         if (d_constrained_part[part] && d_constrained_part_velocity_fcns[part])
         {
             EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
             MeshBase& mesh = equation_systems->get_mesh();
-            d_constrained_part_velocity_fcns[part](*d_U_b_current_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], mesh, current_time, d_constrained_part_velocity_fcn_ctxs[part]);
+            d_constrained_part_velocity_fcns[part](*d_U_b_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], mesh, d_current_time, d_constrained_part_velocity_fcn_ctxs[part]);
         }
     }
     return;
@@ -390,20 +397,23 @@ IBFEMethod::postprocessIntegrateData(
         delete d_X_new_vecs[part];
         delete d_U_new_vecs[part];
     }
-    d_X_systems       .clear();
-    d_X_current_vecs  .clear();
-    d_X_new_vecs      .clear();
-    d_X_half_vecs     .clear();
-    d_X_IB_ghost_vecs .clear();
-    d_U_systems       .clear();
-    d_U_current_vecs  .clear();
-    d_U_new_vecs      .clear();
-    d_U_half_vecs     .clear();
-    d_U_b_systems     .clear();
-    d_U_b_current_vecs.clear();
-    d_F_systems       .clear();
-    d_F_half_vecs     .clear();
-    d_F_IB_ghost_vecs .clear();
+    d_X_systems      .clear();
+    d_X_current_vecs .clear();
+    d_X_new_vecs     .clear();
+    d_X_half_vecs    .clear();
+    d_X_IB_ghost_vecs.clear();
+
+    d_U_systems      .clear();
+    d_U_current_vecs .clear();
+    d_U_new_vecs     .clear();
+    d_U_half_vecs    .clear();
+
+    d_F_systems      .clear();
+    d_F_half_vecs    .clear();
+    d_F_IB_ghost_vecs.clear();
+
+    d_U_b_systems    .clear();
+    d_U_b_vecs       .clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -465,7 +475,7 @@ IBFEMethod::eulerStep(
         PetscVector<double>* U_current_vec = NULL;
         if (d_constrained_part[part])
         {
-            U_current_vec = d_U_b_current_vecs[part];
+            U_current_vec = d_U_b_vecs[part];
         }
         else
         {
@@ -491,7 +501,7 @@ IBFEMethod::midpointStep(
         PetscVector<double>* U_half_vec = NULL;
         if (d_constrained_part[part])
         {
-            U_half_vec = d_U_b_current_vecs[part];
+            U_half_vec = d_U_b_vecs[part];
         }
         else
         {
@@ -518,8 +528,8 @@ IBFEMethod::trapezoidalStep(
         PetscVector<double>* U_new_vec     = NULL;
         if (d_constrained_part[part])
         {
-            U_current_vec = d_U_b_current_vecs[part];
-            U_new_vec     = d_U_b_current_vecs[part];
+            U_current_vec = d_U_b_vecs[part];
+            U_new_vec     = d_U_b_vecs[part];
         }
         else
         {
@@ -546,7 +556,7 @@ IBFEMethod::computeLagrangianForce(
     {
         if (d_constrained_part[part])
         {
-            computeConstraintForceDensity(*d_F_half_vecs[part], *d_U_b_current_vecs[part], *d_U_half_vecs[part], data_time, part);
+           computeConstraintForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], *d_U_b_vecs[part], data_time, part);
         }
         else
         {
@@ -623,14 +633,6 @@ IBFEMethod::initializeFEData()
             X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "F_" << d;
-            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
-
         System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -639,14 +641,23 @@ IBFEMethod::initializeFEData()
             U_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
+        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "F_" << d;
+            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+
+        System* U_b_system;
         if (d_constrained_part[part])
         {
-            System& U_b_system = equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
+            U_b_system = &equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
                 os << "U_b_" << d;
-                U_b_system.add_variable(os.str(), d_fe_order, d_fe_family);
+                U_b_system->add_variable(os.str(), d_fe_order, d_fe_family);
             }
         }
 
@@ -659,21 +670,20 @@ IBFEMethod::initializeFEData()
         X_system.assemble_before_solve = false;
         X_system.assemble();
 
+        X_mapping_system.assemble_before_solve = false;
+        X_mapping_system.assemble();
+
         U_system.assemble_before_solve = false;
         U_system.assemble();
-
-        if (d_constrained_part[part])
-        {
-            System& U_b_system = equation_systems->get_system<System>(BODY_VELOCITY_SYSTEM_NAME);
-            U_b_system.assemble_before_solve = false;
-            U_b_system.assemble();
-        }
 
         F_system.assemble_before_solve = false;
         F_system.assemble();
 
-        X_mapping_system.assemble_before_solve = false;
-        X_mapping_system.assemble();
+        if (d_constrained_part[part])
+        {
+            U_b_system->assemble_before_solve = false;
+            U_b_system->assemble();
+        }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
@@ -897,15 +907,30 @@ IBFEMethod::putToDatabase(
 void
 IBFEMethod::computeConstraintForceDensity(
     PetscVector<double>& F_vec,
-    PetscVector<double>& U_b_vec,
+    PetscVector<double>& X_vec,
     PetscVector<double>& U_vec,
-    const double /*time*/,
-    const unsigned int /*part*/)
+    PetscVector<double>& U_b_vec,
+    const double data_time,
+    const unsigned int part)
 {
-    const double dt = d_new_time-d_current_time;
-    const double rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
-    int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega*rho/dt, -d_constraint_omega*rho/dt, 0.0, U_b_vec.vec(), U_vec.vec()); IBTK_CHKERRQ(ierr);
-    F_vec.close();
+    if (d_constrained_part[part])
+    {
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        MeshBase& mesh = equation_systems->get_mesh();
+        if (d_constrained_part_velocity_fcns[part])
+        {
+            d_constrained_part_velocity_fcns[part](U_b_vec, U_vec, X_vec, mesh, data_time, d_constrained_part_velocity_fcn_ctxs[part]);
+        }
+        const double dt = d_new_time-d_current_time;
+        const double rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
+        int ierr = VecAXPBYPCZ(F_vec.vec(), d_constraint_omega*rho/dt, -d_constraint_omega*rho/dt, 0.0, U_b_vec.vec(), U_vec.vec()); IBTK_CHKERRQ(ierr);
+        F_vec.close();
+    }
+    else
+    {
+        F_vec.zero();
+        F_vec.close();
+    }
     return;
 }// computeConstraintForceDensity
 
@@ -913,7 +938,7 @@ void
 IBFEMethod::computeInteriorForceDensity(
     PetscVector<double>& G_vec,
     PetscVector<double>& X_vec,
-    const double time,
+    const double data_time,
     const unsigned int part)
 {
     // Extract the mesh.
@@ -1035,7 +1060,7 @@ IBFEMethod::computeInteriorForceDensity(
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
-                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,data_time,d_PK1_stress_fcn_ctxs[part]);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = -PP*dphi[k][qp]*JxW[qp];
@@ -1051,7 +1076,7 @@ IBFEMethod::computeInteriorForceDensity(
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
                 // vector.
-                d_lag_body_force_fcns[part](F_b,FF,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctxs[part]);
+                d_lag_body_force_fcns[part](F_b,FF,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,data_time,d_lag_body_force_fcn_ctxs[part]);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = phi[k][qp]*JxW[qp]*F_b;
@@ -1106,7 +1131,7 @@ IBFEMethod::computeInteriorForceDensity(
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
-                    d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                    d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,data_time,d_PK1_stress_fcn_ctxs[part]);
                     F += PP*normal_face[qp];
                 }
                 if (compute_pressure && d_lag_pressure_fcns[part])
@@ -1114,7 +1139,7 @@ IBFEMethod::computeInteriorForceDensity(
                     // Compute the value of the pressure at the quadrature point
                     // and add the corresponding force to the right-hand-side
                     // vector.
-                    d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
+                    d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_vec,lag_pressure_fcn_data,data_time,d_lag_pressure_fcn_ctxs[part]);
                     F -= P*J*FF_inv_trans*normal_face[qp];
                 }
                 if (compute_surface_force)
@@ -1122,7 +1147,7 @@ IBFEMethod::computeInteriorForceDensity(
                     // Compute the value of the surface force at the quadrature
                     // point and add the corresponding force to the
                     // right-hand-side vector.
-                    d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
+                    d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,data_time,d_lag_surface_force_fcn_ctxs[part]);
                     F += F_s;
                 }
 
@@ -1167,7 +1192,7 @@ void
 IBFEMethod::spreadTransmissionForceDensity(
     const int f_data_idx,
     PetscVector<double>& X_ghost_vec,
-    const double time,
+    const double data_time,
     const unsigned int part)
 {
     if (!d_split_forces) return;
@@ -1342,21 +1367,21 @@ IBFEMethod::spreadTransmissionForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,data_time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
+                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,data_time,d_lag_pressure_fcn_ctxs[part]);
                         F -= P*J*FF_inv_trans*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_surface_force)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
+                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,data_time,d_lag_surface_force_fcn_ctxs[part]);
                         F += F_s*JxW_face[qp];
                     }
                     const int idx = NDIM*qp_offset;
@@ -1389,7 +1414,7 @@ IBFEMethod::imposeJumpConditions(
     const int f_data_idx,
     PetscVector<double>& F_ghost_vec,
     PetscVector<double>& X_ghost_vec,
-    const double time,
+    const double data_time,
     const unsigned int part)
 {
     if (!d_split_forces) return;
@@ -1679,21 +1704,21 @@ IBFEMethod::imposeJumpConditions(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                        d_PK1_stress_fcns[part](PP,FF,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,data_time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp];
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
+                        d_lag_pressure_fcns[part](P,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,data_time,d_lag_pressure_fcn_ctxs[part]);
                         F -= P*J*FF_inv_trans*normal_face[qp];
                     }
                     if (compute_surface_force)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
+                        d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,data_time,d_lag_surface_force_fcn_ctxs[part]);
                         F += F_s;
                     }
 
