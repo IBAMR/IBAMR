@@ -375,6 +375,7 @@ _bz_forceinline void
 _bz_evaluateWithUnitStride(T_dest& dest, typename T_dest::T_iterator& iter,
 			   T_expr expr, diffType ubound, T_update)
 {
+  (void)dest;
   typedef typename T_dest::T_numtype T_numtype;
   T_numtype* restrict data = const_cast<T_numtype*>(iter.data());
   diffType i=0;
@@ -520,6 +521,7 @@ _bz_evaluateWithCommonStride(T_dest& dest, typename T_dest::T_iterator& iter,
 			     diffType commonStride,
 			     T_update)
 {
+  (void)dest;
 #ifdef BZ_DEBUG_TRAVERSE
      BZ_DEBUG_MESSAGE("\tcommon stride = " << commonStride);
 #endif
@@ -1449,4 +1451,3 @@ _bz_evaluateWithTiled2DTraversal(T_dest& dest, T_expr expr, T_update)
 BZ_NAMESPACE_END
 
 #endif // BZ_ARRAYEVAL_CC
-

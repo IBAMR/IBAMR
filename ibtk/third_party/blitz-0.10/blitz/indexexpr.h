@@ -165,6 +165,7 @@ public:
 
   /** There are no alignment issues here, so just return true. */
   bool isVectorAligned(diffType offset) const {
+    (void)offset;
     return true; }
 
     diffType suggestStride(int) const {
@@ -271,4 +272,3 @@ BZ_NAMESPACE_END // tensor
 BZ_NAMESPACE_END
 
 #endif // BZ_INDEXEXPR_H
-

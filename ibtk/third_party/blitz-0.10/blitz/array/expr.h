@@ -2071,10 +2071,10 @@ public:
 
   template<int N>
   typename tvresult<N>::Type fastRead_tv(diffType i) const
-  { return value_; }
+  { (void)i; return value_; }
 
   bool isVectorAligned(diffType offset) const
-  { return true; }
+  { (void)offset; return true; }
 
   // this is needed for the stencil expression fastRead to work
   void _bz_offsetData(sizeType i) const{};
