@@ -208,6 +208,8 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     // (1) Solve the velocity sub-problem for an initial approximation to U.
     //
     // U^* := inv(rho/dt - K*mu*L) F_U
+    //
+    // An approximate Helmholtz solver is used.
     d_velocity_solver->setHomogeneousBc(true);
     LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
@@ -241,7 +243,11 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     // so that
     //
     //    Phi := inv(-L_rho) * F_phi = inv(-L_rho) * (-F_P - D U^*)
-    //    P   := (1/dt - K*mu*L_rho)*Phi
+    //    P   := (1/dt - K*mu*L_rho)*Phi = (1/dt) Phi - K*mu*F_phi
+    //
+    // in which L_rho = D*(1/rho)*G.
+    //
+    // Approximate Poisson solvers are used in both cases.
     d_hier_math_ops->div(d_F_Phi_idx, d_F_Phi_var, -1.0, U_idx, U_sc_var, d_no_fill_op, d_new_time, /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
     LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
