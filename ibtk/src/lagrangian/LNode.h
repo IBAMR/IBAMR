@@ -35,9 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LNodeIndex.h>
-#include <ibtk/Streamable.h>
+#include <unistd.h>
+#include <vector>
+
+#include "IntVector.h"
+#include "blitz/tinyvec2.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/Streamable.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -210,7 +224,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LNode.I>
+#include "ibtk/LNode-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

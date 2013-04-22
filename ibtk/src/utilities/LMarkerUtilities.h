@@ -35,20 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/LMarkerSetData.h>
+#include "ibtk/LMarkerSetData.h"
+#include "tbox/Pointer.h"
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+namespace SAMRAI {
+namespace geom {
+template <int DIM> class CartesianGridGeometry;
+}  // namespace geom
+namespace hier {
+template <int DIM> class BasePatchLevel;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -252,10 +256,6 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LMarkerUtilities.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

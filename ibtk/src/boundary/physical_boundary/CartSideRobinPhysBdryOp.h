@@ -35,8 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <set>
+#include <vector>
+
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "tbox/Array.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+template <int DIM> class Patch;
+}  // namespace hier
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -214,10 +229,6 @@ private:
 #endif
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideRobinPhysBdryOp.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,19 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LIndexSetData.h>
-#include <ibtk/LData.h>
+#include <iosfwd>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <CellData.h>
-#include <IntVector.h>
-#include <NodeData.h>
-#include <Patch.h>
-#include <SideData.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
+#include "Box.h"
+#include "IntVector.h"
+#include "blitz/tinyvec2.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+template <class T> class LIndexSetData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class NodeData;
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -955,10 +968,6 @@ private:
         int num_local_indices);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LEInteractor.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,14 +35,47 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <ibtk/FACPreconditionerStrategy.h>
-#include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <RefineAlgorithm.h>
+#include "CoarsenAlgorithm.h"
+#include "CoarsenOperator.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableContext.h"
+#include "VariableFillPattern.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class HierarchyGhostCellInterpolation;
+class HierarchyMathOps;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Variable;
+}  // namespace hier
+namespace math {
+template <int DIM, class TYPE> class HierarchyDataOpsReal;
+}  // namespace math
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -545,10 +578,6 @@ private:
     //\}
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PoissonFACPreconditionerStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

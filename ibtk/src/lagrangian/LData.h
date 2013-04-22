@@ -35,19 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-// PETSc INCLUDES
-#include <petscvec.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
 
-// BLITZ++ INCLUDES
-#include <blitz/array.h>
+#include "blitz/array.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace SAMRAI {
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -390,7 +390,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LData.I>
+#include "ibtk/LData-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,18 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LNodeIndex.h>
-
-// SAMRAI INCLUDES
-#include <CellIndex.h>
-
-// C++ STDLIB INCLUDES
 #include <functional>
 #include <vector>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "CellIndex.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "blitz/tinyvec2.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -184,7 +179,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/IndexUtilities.I>
+#include "ibtk/IndexUtilities-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

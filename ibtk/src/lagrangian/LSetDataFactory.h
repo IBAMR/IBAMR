@@ -35,12 +35,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSet.h>
+#include <stddef.h>
 
-// SAMRAI INCLUDES
-#include <CellGeometry.h>
-#include <IndexDataFactory.h>
+#include "Box.h"
+#include "IndexDataFactory.h"
+#include "IntVector.h"
+#include "ibtk/FixedSizedStream-inl.h"
+#include "ibtk/LMarker.h"
+#include "ibtk/LMarker-inl.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeIndex-inl.h"
+#include "ibtk/LNode-inl.h"
+#include "ibtk/LSet-inl.h"
+#include "tbox/Arena.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+template <class T> class LSet;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchData;
+template <int DIM> class PatchDataFactory;
+}  // namespace hier
+namespace pdat {
+template <int DIM> class CellGeometry;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -150,10 +173,6 @@ private:
         const LSetDataFactory<T>& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LSetDataFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

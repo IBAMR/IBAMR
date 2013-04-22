@@ -35,9 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LaplaceOperator.h>
-#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <string>
+#include <vector>
+
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/LaplaceOperator.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class StaggeredPhysicalBoundaryHelper;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -182,10 +192,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/SCLaplaceOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

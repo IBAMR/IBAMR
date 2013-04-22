@@ -1,3 +1,5 @@
+// IWYU pragma: private, include "blitz/array.h"
+
 // -*- C++ -*-
 /***************************************************************************
  * blitz/array-impl.h    Definition of the Array<P_numtype, N_rank> class

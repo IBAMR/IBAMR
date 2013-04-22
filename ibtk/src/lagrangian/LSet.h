@@ -35,15 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <Index.h>
-#include <IntVector.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/Database.h>
-#include <tbox/DescribedClass.h>
-
-// C++ STDLIB INCLUDES
+#include <unistd.h>
 #include <vector>
+
+#include "IntVector.h"
+#include "ibtk/LMarker.h"
+#include "ibtk/LMarker-inl.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeIndex-inl.h"
+#include "ibtk/LNode-inl.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -316,7 +329,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LSet.I>
+#include "ibtk/LSet-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

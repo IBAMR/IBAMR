@@ -490,7 +490,7 @@ public:
     }
 
 protected:
-    _bz_ArrayExpr() { }
+    _bz_ArrayExpr();
 
     T_expr iter_;
 };
@@ -1087,7 +1087,7 @@ public:
     }
 
 protected:
-    _bz_ArrayExprBinaryOp() { }
+    _bz_ArrayExprBinaryOp();
 
     T_expr1 iter1_;
     T_expr2 iter2_;

@@ -35,17 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <Variable.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
+#include <stddef.h>
 #include <string>
+
+#include "PatchLevel.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -160,10 +163,6 @@ private:
         const CartGridFunction& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartGridFunction.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

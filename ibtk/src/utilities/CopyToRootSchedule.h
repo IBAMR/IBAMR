@@ -35,12 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <PatchLevel.h>
-#include <tbox/Schedule.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "PatchLevel.h"
+#include "tbox/Pointer.h"
+#include "tbox/Schedule.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchData;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -131,10 +136,6 @@ private:
     SAMRAI::tbox::Schedule d_schedule;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "CopyToRootSchedule.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

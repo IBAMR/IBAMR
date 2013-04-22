@@ -35,8 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefineOperator.h>
+#include <string>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "RefineOperator.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -150,10 +161,6 @@ private:
     static const std::string s_op_name;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideDoubleSpecializedLinearRefine.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

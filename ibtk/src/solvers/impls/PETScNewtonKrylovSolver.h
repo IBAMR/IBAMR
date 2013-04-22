@@ -35,12 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsnes.h>
+#include <iosfwd>
+#include <string>
 
-// IBTK INCLUDES
-#include <ibtk/NewtonKrylovSolver.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include "ibtk/NewtonKrylovSolver.h"
+#include "mpi.h"
+#include "petscmat.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class GeneralOperator;
+class JacobianOperator;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -446,10 +461,6 @@ private:
     bool d_user_provided_jacobian;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScNewtonKrylovSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

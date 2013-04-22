@@ -35,8 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianCellDoubleWeightedAverage.h>
+#include <string>
+
+#include "Box.h"
+#include "CartesianCellDoubleWeightedAverage.h"
+#include "CoarsenOperator.h"
+#include "IntVector.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -162,10 +174,6 @@ private:
     SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartCellDoubleCubicCoarsen.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

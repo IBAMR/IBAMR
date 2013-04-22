@@ -35,14 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <IntVector.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+namespace IBTK {
+class Streamable;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -130,10 +136,6 @@ private:
         const StreamableFactory& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StreamableFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -33,10 +33,17 @@
 #ifndef included_PatchVecCellDataBasicOps
 #define included_PatchVecCellDataBasicOps
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
+#include "Box.h"
 
-// IBTK INCLUDES
-#include <ibtk/VecCellData.h>
+namespace IBTK {
+template <class TYPE> class VecCellData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace tbox {
+template <class TYPE> class Pointer;
+}  // namespace tbox
+}  // namespace SAMRAI
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -199,10 +206,6 @@ private:
     void operator=(const PatchVecCellDataBasicOps<TYPE>&);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PatchVecCellDataBasicOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

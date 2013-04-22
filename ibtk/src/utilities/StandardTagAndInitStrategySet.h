@@ -35,11 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <StandardTagAndInitStrategy.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <vector>
+
+#include "BasePatchLevel.h"
+#include "StandardTagAndInitStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class PatchLevel;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -361,10 +370,6 @@ private:
     const bool d_managed;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StandardTagAndInitStrategySet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PoissonSolver.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -190,10 +191,6 @@ private:
     std::map<std::string,SolverMaker> d_solver_maker_map;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CCPoissonSolverManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

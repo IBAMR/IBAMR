@@ -35,18 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
+
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearOperator.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -238,10 +233,6 @@ private:
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScMatLOWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

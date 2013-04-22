@@ -35,22 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <tbox/Database.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <map>
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "PatchLevel.h"
+#include "blitz/tinyvec2.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/muParser.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -166,10 +171,6 @@ private:
     blitz::TinyVector<double,NDIM> d_parser_posn;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/muParserCartGridFunction.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

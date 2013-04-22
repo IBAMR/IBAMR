@@ -35,11 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LData.h>
+#include <string>
 
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -179,10 +186,6 @@ private:
         const DebuggingUtilities& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "DebuggingUtilities.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

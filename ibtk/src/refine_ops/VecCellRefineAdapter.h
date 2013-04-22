@@ -35,8 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefineOperator.h>
+#include <string>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "RefineOperator.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -144,10 +155,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_cell_refine_op;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/VecCellRefineAdapter.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

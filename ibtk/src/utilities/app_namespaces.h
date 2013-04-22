@@ -38,7 +38,7 @@
 /*!
  * Defines "using" declarations for all namespaces used in IBTK.  This header
  * file may be included in application codes, but it MUST NOT be included in any
- * other header (.h) or inline (.I) file in the library.
+ * other header (.h) or inline (-inl.h) file in the library.
  */
 namespace IBTK
 {

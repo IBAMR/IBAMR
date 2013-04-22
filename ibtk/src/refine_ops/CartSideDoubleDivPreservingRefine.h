@@ -35,10 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CoarsenOperator.h>
-#include <RefineOperator.h>
-#include <RefinePatchStrategy.h>
+#include "Box.h"
+#include "CoarsenOperator.h"
+#include "IntVector.h"
+#include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -214,10 +222,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_coarsen_op;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideDoubleDivPreservingRefine.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

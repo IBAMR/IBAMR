@@ -35,12 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <RefinePatchStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <set>
+
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "RefinePatchStrategy.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace tbox {
+template <class TYPE> class Pointer;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -234,10 +244,6 @@ private:
         const CoarseFineBoundaryRefinePatchStrategy& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,16 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <RobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "IntVector.h"
+#include "RobinBcCoefStrategy.h"
+#include "ibtk/muParser.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class ArrayData;
+}  // namespace pdat
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -202,10 +215,6 @@ private:
     double* d_parser_posn;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/muParserRobinBcCoefs.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

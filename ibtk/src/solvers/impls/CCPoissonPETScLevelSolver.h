@@ -35,12 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PETScLevelSolver.h>
-#include <ibtk/PoissonSolver.h>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <RefineSchedule.h>
+#include "CellVariable.h"
+#include "RefineSchedule.h"
+#include "VariableContext.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -207,10 +221,6 @@ private:
     //\}
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CCPoissonPETScLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

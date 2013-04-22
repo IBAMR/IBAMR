@@ -35,18 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSet.h>
-
-// SAMRAI INCLUDES
-#include <tbox/Pointer.h>
-#include <tbox/Transaction.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
+#include <iosfwd>
 #include <vector>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "blitz/tinyvec2.h"
+#include "ibtk/LMarker.h"
+#include "ibtk/LMarker-inl.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeIndex-inl.h"
+#include "ibtk/LNode-inl.h"
+#include "ibtk/LSet.h"
+#include "tbox/Transaction.h"
+
+namespace SAMRAI {
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -278,10 +285,6 @@ private:
     int d_dst_proc;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LTransaction.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

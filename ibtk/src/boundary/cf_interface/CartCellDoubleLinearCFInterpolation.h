@@ -35,15 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-
-// SAMRAI INCLUDES
-#include <CoarseFineBoundary.h>
-#include <RefineOperator.h>
-
-// C++ STDLIB INCLUDES
+#include <set>
 #include <vector>
+
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "RefineOperator.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoxArray;
+template <int DIM> class CoarseFineBoundary;
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -262,10 +271,6 @@ private:
     std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartCellDoubleLinearCFInterpolation.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

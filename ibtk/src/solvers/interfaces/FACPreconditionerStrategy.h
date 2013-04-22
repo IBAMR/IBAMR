@@ -35,11 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/FACPreconditioner.h>
+#include <iosfwd>
+#include <string>
+#include <utility>
 
-// SAMRAI INCLUDES
-#include <tbox/ConstPointer.h>
+#include "ibtk/FACPreconditioner.h"
+#include "tbox/ConstPointer.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -306,10 +315,6 @@ private:
         const FACPreconditionerStrategy& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/FACPreconditionerStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

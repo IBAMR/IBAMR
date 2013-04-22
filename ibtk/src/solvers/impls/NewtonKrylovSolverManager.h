@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/NewtonKrylovSolver.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+
+#include "ibtk/NewtonKrylovSolver.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -159,10 +160,6 @@ private:
     std::map<std::string,SolverMaker> d_solver_maker_map;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/NewtonKrylovSolverManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

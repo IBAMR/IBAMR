@@ -35,17 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-#include <ibtk/StreamableFactory.h>
-
-// SAMRAI INCLUDES
-#include <tbox/Pointer.h>
-#include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <map>
 #include <vector>
+
+#include "ibtk/StreamableFactory.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class Streamable;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace IBTK {
+class Streamable;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -241,7 +251,16 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/StreamableManager.I>
+#include "ibtk/StreamableManager-inl.h"  // IWYU pragma: keep
+
+namespace IBTK {
+class Streamable;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

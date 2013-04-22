@@ -35,15 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// HYPRE INCLUDES
-#ifndef included_HYPRE_struct_ls
-#define included_HYPRE_struct_ls
-#include <HYPRE_struct_ls.h>
-#endif
+#include <string>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-#include <ibtk/PoissonSolver.h>
+#include "Box.h"
+#include "HYPRE_struct_ls.h"
+#include "HYPRE_struct_mv.h"
+#include "Index.h"
+#include "PatchHierarchy.h"
+#include "_hypre_struct_mv.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+}  // namespace pdat
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -350,10 +363,6 @@ private:
     //\}
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CCPoissonHypreLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

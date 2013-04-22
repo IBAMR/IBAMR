@@ -35,17 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <FaceData.h>
-#include <NodeData.h>
-#include <Patch.h>
-#include <SideData.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
-// C++ STDLIB INCLUDES
-#include <vector>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class FaceData;
+template <int DIM, class TYPE> class NodeData;
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -672,10 +675,6 @@ private:
         const PatchMathOps& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PatchMathOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

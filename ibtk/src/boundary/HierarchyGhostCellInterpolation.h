@@ -35,20 +35,36 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CartCellRobinPhysBdryOp.h>
-#include <ibtk/CartExtrapPhysBdryOp.h>
-#include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
+#include <string>
 #include <vector>
+
+#include "BoxGeometryFillPattern.h"
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "VariableFillPattern.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class CartCellRobinPhysBdryOp;
+class CartExtrapPhysBdryOp;
+class CartSideRobinPhysBdryOp;
+class CoarseFineBoundaryRefinePatchStrategy;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace xfer {
+template <int DIM> class CoarsenPatchStrategy;
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefinePatchStrategy;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -391,10 +407,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp> > d_sc_robin_bc_ops;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "HierarchyGhostCellInterpolation.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

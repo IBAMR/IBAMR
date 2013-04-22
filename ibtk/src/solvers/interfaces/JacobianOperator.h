@@ -35,11 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
+#include <string>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
+#include "ibtk/LinearOperator.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -123,10 +128,6 @@ private:
         const JacobianOperator& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/JacobianOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

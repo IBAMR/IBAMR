@@ -35,9 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-#include <ibtk/LinearSolver.h>
+#include <stddef.h>
+
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class HierarchyMathOps;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -166,10 +173,6 @@ private:
         const KrylovLinearSolver& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/KrylovLinearSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

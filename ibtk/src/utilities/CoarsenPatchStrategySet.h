@@ -35,11 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CoarsenPatchStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "CoarsenPatchStrategy.h"
+#include "IntVector.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Box;
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -171,10 +177,6 @@ private:
     const bool d_managed;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CoarsenPatchStrategySet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,12 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/GeneralSolver.h>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
+#include "PoissonSpecifications.h"
+#include "ibtk/GeneralSolver.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -129,10 +133,6 @@ private:
         const PoissonSolver& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PoissonSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

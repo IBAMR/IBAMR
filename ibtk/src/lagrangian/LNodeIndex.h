@@ -35,15 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <Index.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/Pointer.h>
+#include <unistd.h>
+#include <functional>
+#include <ostream>
 
-// BLITZ++ INCLUDES
-#include <blitz/array.h>
+#include "IntVector.h"
+#include "SAMRAI_config.h"
+#include "blitz/array.h"
+#include "blitz/tinyvec2.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -506,7 +517,7 @@ struct LNodeIndexLocalPETScIndexEqual
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LNodeIndex.I>
+#include "ibtk/LNodeIndex-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

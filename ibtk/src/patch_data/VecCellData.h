@@ -35,14 +35,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// BLITZ++ INCLUDES
-#include <blitz/array.h>
+#include <unistd.h>
+#include <iosfwd>
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <CellIndex.h>
-#include <CellIterator.h>
-#include <PatchData.h>
+#include "Box.h"
+#include "CellIndex.h"
+#include "CellIterator.h"
+#include "IntVector.h"
+#include "PatchData.h"
+#include "blitz/array.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoxOverlap;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+}  // namespace pdat
+namespace tbox {
+class AbstractStream;
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -474,7 +490,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/VecCellData.I>
+#include "ibtk/VecCellData-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,49 +35,57 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/LInitStrategy.h>
-#include <ibtk/LMesh.h>
-#include <ibtk/LNodeSet.h>
-#include <ibtk/LNodeSetVariable.h>
-#include <ibtk/ParallelSet.h>
+#include "BasePatchLevel.h"
+#include "CartesianGridGeometry.h"
+#include "CellVariable.h"
+#include "CoarsenAlgorithm.h"
+#include "CoarsenSchedule.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "RefineSchedule.h"
+#include "StandardTagAndInitStrategy.h"
+#include "VariableContext.h"
+#include "VisItDataWriter.h"
+#include "blitz/tinyvec2.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ParallelSet.h"
+#include "petscao.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
 
-// PETSc INCLUDES
-#include <petscvec.h>
-#include <petscao.h>
-
-// SAMRAI INCLUDES
-#include <BoxArray.h>
-#include <CartesianGridGeometry.h>
-#include <CellIndex.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <ComponentSelector.h>
-#include <Index.h>
-#include <IntVector.h>
-#include <LoadBalancer.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
-#include <StandardTagAndInitStrategy.h>
-#include <VariableContext.h>
-#include <VisItDataWriter.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
+namespace IBTK {
+class LMesh;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_rank> class Array;
+}  // namespace blitz
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
 class LData;
-class LSiloDataWriter;
 #if (NDIM == 3)
 class LM3DDataWriter;
 #endif
@@ -1238,7 +1246,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LDataManager.I>
+#include "ibtk/LDataManager-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

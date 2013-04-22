@@ -35,14 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/compiler_hints.h>
-
-// SAMRAI INCLUDES
-#include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
 #include <ostream>
+
+#include "ibtk/compiler_hints.h"
+#include "tbox/Utilities.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 

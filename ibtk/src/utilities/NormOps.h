@@ -33,10 +33,12 @@
 #ifndef included_NormOps
 #define included_NormOps
 
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -122,10 +124,6 @@ private:
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>* samrai_vector);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "NormOps.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

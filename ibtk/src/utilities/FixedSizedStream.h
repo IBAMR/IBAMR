@@ -35,16 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
-
-// SAMRAI INCLUDES
-#include <tbox/AbstractStream.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "tbox/AbstractStream.h"
+#include "tbox/Complex.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -442,7 +436,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/FixedSizedStream.I>
+#include "ibtk/FixedSizedStream-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

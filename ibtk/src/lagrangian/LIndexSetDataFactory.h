@@ -35,8 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSetDataFactory.h>
+#include <stddef.h>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "ibtk/LSetDataFactory.h"
+#include "tbox/Arena.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchData;
+template <int DIM> class PatchDataFactory;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -147,10 +160,6 @@ private:
         const LIndexSetDataFactory<T>& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LIndexSetDataFactory.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -33,25 +33,24 @@
 #ifndef included_LM3DDataWriter
 #define included_LM3DDataWriter
 
+#if (NDIM == 3)
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LData.h>
-
-// SAMRAI INCLUDES
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// PETSc INCLUDES
-#include <petscvec.h>
-#include <petscao.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
-#include <set>
+#include <string>
 #include <vector>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "petscao.h"
+#include "petscvec.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -327,10 +326,8 @@ private:
 };
 }// namespace IBTK
 
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LM3DDataWriter.I>
-
 //////////////////////////////////////////////////////////////////////////////
+
+#endif //#if (NDIM == 3)
 
 #endif //#ifndef included_LM3DDataWriter

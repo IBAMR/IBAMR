@@ -35,17 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+#include <utility>
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -220,10 +224,6 @@ private:
         const LInitStrategy& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LInitStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
