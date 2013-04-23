@@ -520,12 +520,12 @@ ib4_delta_fcn(
 }// ib4_delta_fcn
 
 struct SortModeComp
-    : std::binary_function<std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >,std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >,bool>
+    : std::binary_function<std::pair<const LNodeIndex*,Vector<double,NDIM> >,std::pair<const LNodeIndex*,Vector<double,NDIM> >,bool>
 {
     inline bool
     operator()(
-        const std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >& lhs,
-        const std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >& rhs) const
+        const std::pair<const LNodeIndex*,Vector<double,NDIM> >& lhs,
+        const std::pair<const LNodeIndex*,Vector<double,NDIM> >& rhs) const
         {
             if (LEInteractor::s_sort_mode == LEInteractor::SORT_INCREASING_LAG_IDX) return lhs.first->getLagrangianIndex() < rhs.first->getLagrangianIndex();
             if (LEInteractor::s_sort_mode == LEInteractor::SORT_DECREASING_LAG_IDX) return lhs.first->getLagrangianIndex() > rhs.first->getLagrangianIndex();
@@ -780,8 +780,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -836,8 +836,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -854,7 +854,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        Vector<double,NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d]-0.5*dx[d];
@@ -905,8 +905,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -923,7 +923,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        Vector<double,NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1028,8 +1028,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1084,8 +1084,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1103,7 +1103,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        Vector<double,NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d]-0.5*dx[d];
@@ -1153,8 +1153,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1172,7 +1172,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        Vector<double,NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1326,8 +1326,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1382,8 +1382,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1400,7 +1400,7 @@ LEInteractor::spread(
     // Spread.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        Vector<double,NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d]-0.5*dx[d];
@@ -1451,8 +1451,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1469,7 +1469,7 @@ LEInteractor::spread(
     // Spread.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        Vector<double,NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1577,8 +1577,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1633,8 +1633,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1652,7 +1652,7 @@ LEInteractor::spread(
     // Spread.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        Vector<double,NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_node[d] = x_lower[d]-0.5*dx[d];
@@ -1697,8 +1697,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    Vector<int,NDIM> patch_touches_upper_physical_bdry(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1716,7 +1716,7 @@ LEInteractor::spread(
     // Spread.
     if (!local_indices.empty())
     {
-        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        Vector<double,NDIM> x_lower_axis, x_upper_axis;
         const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1759,8 +1759,8 @@ LEInteractor::interpolate(
     const double* const x_lower,
     const double* const x_upper,
     const double* const dx,
-    const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
-    const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
+    const Vector<int,NDIM>& patch_touches_lower_physical_bdry,
+    const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
     const std::string& interp_fcn)
@@ -2007,8 +2007,8 @@ LEInteractor::spread(
     const double* const x_lower,
     const double* const x_upper,
     const double* const dx,
-    const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
-    const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
+    const Vector<int,NDIM>& patch_touches_lower_physical_bdry,
+    const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
     const std::string& spread_fcn)
@@ -2267,15 +2267,15 @@ LEInteractor::buildLocalIndices(
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    Vector<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,0);
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
     }
 
-    blitz::TinyVector<int   ,NDIM>      offset;
-    blitz::TinyVector<double,NDIM> node_offset;
+    Vector<int   ,NDIM>      offset;
+    Vector<double,NDIM> node_offset;
     if (s_sort_mode == NO_SORT)
     {
         if (box == patch_box)
@@ -2337,7 +2337,7 @@ LEInteractor::buildLocalIndices(
                        << "  invalid debug sort mode; s_sort_mode = " << s_sort_mode << ".\n");
         }
 
-        std::vector<std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> > > box_idxs_and_offsets;
+        std::vector<std::pair<const LNodeIndex*,Vector<double,NDIM> > > box_idxs_and_offsets;
         box_idxs_and_offsets.reserve(upper_bound);
         for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
         {
@@ -2442,8 +2442,8 @@ LEInteractor::userDefinedInterpolate(
     }
     const blitz::Array<double,NDIM+1> q_data(const_cast<double*>(q), shape, blitz::neverDeleteData, storage_order);
 
-    blitz::TinyVector<double,NDIM> X_cell;
-    blitz::TinyVector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
+    Vector<double,NDIM> X_cell;
+    Vector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];
@@ -2566,8 +2566,8 @@ LEInteractor::userDefinedSpread(
     }
     blitz::Array<double,NDIM+1> q_data(q, shape, blitz::neverDeleteData, storage_order);
 
-    blitz::TinyVector<double,NDIM> X_cell;
-    blitz::TinyVector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
+    Vector<double,NDIM> X_cell;
+    Vector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];

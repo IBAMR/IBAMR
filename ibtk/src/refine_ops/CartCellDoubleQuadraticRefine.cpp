@@ -44,7 +44,7 @@
 #include "Index.h"
 #include "Patch.h"
 #include "SAMRAI_config.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -174,7 +174,7 @@ CartCellDoubleQuadraticRefine::refine(
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        blitz::TinyVector<std::vector<double>,NDIM> wgts(std::vector<double>(degree+1,0.0));
+        Vector<std::vector<double>,NDIM> wgts(std::vector<double>(degree+1,0.0));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);

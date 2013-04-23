@@ -51,7 +51,7 @@
 #include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -2967,14 +2967,14 @@ PatchMathOps::laplace(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    blitz::TinyVector<double*,NDIM> F;
+    Vector<double*,NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d,l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    blitz::TinyVector<const double*,NDIM> U;
+    Vector<const double*,NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d,m);
@@ -3033,7 +3033,7 @@ PatchMathOps::laplace(
 
     if (!src2 || (gamma == 0.0))
     {
-        blitz::TinyVector<int,NDIM> ilower, iupper;
+        Vector<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3073,7 +3073,7 @@ PatchMathOps::laplace(
     }
     else
     {
-        blitz::TinyVector<const double*,NDIM> V;
+        Vector<const double*,NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d,n);
@@ -3093,7 +3093,7 @@ PatchMathOps::laplace(
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
-        blitz::TinyVector<int,NDIM> ilower, iupper;
+        Vector<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)

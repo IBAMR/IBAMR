@@ -66,7 +66,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
@@ -944,7 +944,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    blitz::TinyVector<int,NDIM> num_cells;
+    Vector<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1065,7 +1065,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
 #endif
 
     // Setup the finite difference stencil.
-    blitz::TinyVector<int,NDIM> num_cells;
+    Vector<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

@@ -37,7 +37,7 @@
 
 #include <unistd.h>
 
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
@@ -88,7 +88,7 @@ public:
         int master_idx=-1,
         double kappa_target=0.0,
         double eta_target=0.0,
-        const blitz::TinyVector<double,NDIM>& X_target=0.0);
+        const IBTK::Vector<double,NDIM>& X_target=0.0);
 
     /*!
      * \brief Destructor.
@@ -139,14 +139,14 @@ public:
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const blitz::TinyVector<double,NDIM>&
+    const IBTK::Vector<double,NDIM>&
     getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    blitz::TinyVector<double,NDIM>&
+    IBTK::Vector<double,NDIM>&
     getTargetPointPosition();
 
     /*!
@@ -200,7 +200,7 @@ private:
      */
     int d_master_idx;
     double d_kappa_target, d_eta_target;
-    blitz::TinyVector<double,NDIM> d_X_target;
+    IBTK::Vector<double,NDIM> d_X_target;
 
     /*!
      * \brief A factory class to rebuild IBTargetPointForceSpec objects from

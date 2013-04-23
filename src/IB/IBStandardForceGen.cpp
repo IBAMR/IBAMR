@@ -51,7 +51,7 @@
 #include "blitz/array/iter.h"
 #include "blitz/compiler.h"
 #include "blitz/tinymat2.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBBeamForceSpec-inl.h"
 #include "ibamr/IBSpringForceSpec.h"
@@ -478,7 +478,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const blitz::Array<const double*,1>&                parameters = d_spring_data[level_number].parameters;
         const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
         blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
-        blitz::TinyVector<double,NDIM> D;
+        Vector<double,NDIM> D;
         double R, T, dT_dR, eps;
         for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
         {
@@ -880,7 +880,7 @@ IBStandardForceGen::initializeBeamLevelData(
     blitz::Array<int,1>&                         petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
     blitz::Array<int,1>&                         petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
     blitz::Array<const double*,1>&                         rigidities = d_beam_data[level_number].rigidities;
-    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& curvatures = d_beam_data[level_number].curvatures;
+    blitz::Array<const Vector<double,NDIM>*,1>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -929,7 +929,7 @@ IBStandardForceGen::initializeBeamLevelData(
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
-        const std::vector<blitz::TinyVector<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
+        const std::vector<Vector<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(num_beams == nghbrs.size());
@@ -993,7 +993,7 @@ IBStandardForceGen::computeLagrangianBeamForce(
     const int*                             const restrict  petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs .data();
     const int*                             const restrict  petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs .data();
     const double**                         const restrict            rigidities = d_beam_data[level_number].rigidities           .data();
-    const blitz::TinyVector<double,NDIM>** const restrict            curvatures = d_beam_data[level_number].curvatures           .data();
+    const Vector<double,NDIM>** const restrict            curvatures = d_beam_data[level_number].curvatures           .data();
     double*                                const restrict                F_node = F_data->getLocalFormVecArray()       ->data();
     const double*                          const restrict                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
@@ -1102,7 +1102,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     blitz::Array<int,1>&                      petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
     blitz::Array<const double*,1>&                      kappa = d_target_point_data[level_number].kappa;
     blitz::Array<const double*,1>&                        eta = d_target_point_data[level_number].eta;
-    blitz::Array<const blitz::TinyVector<double,NDIM>*,1>& X0 = d_target_point_data[level_number].X0;
+    blitz::Array<const Vector<double,NDIM>*,1>& X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -1169,7 +1169,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     const int*                             const restrict petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs.data();
     const double**                         const restrict           kappa = d_target_point_data[level_number].kappa          .data();
     const double**                         const restrict             eta = d_target_point_data[level_number].eta            .data();
-    const blitz::TinyVector<double,NDIM>** const restrict              X0 = d_target_point_data[level_number].X0             .data();
+    const Vector<double,NDIM>** const restrict              X0 = d_target_point_data[level_number].X0             .data();
     double*                                const restrict          F_node = F_data->getLocalFormVecArray()->data();
     const double*                          const restrict          X_node = X_data->getLocalFormVecArray()->data();
     const double*                          const restrict          U_node = U_data->getLocalFormVecArray()->data();

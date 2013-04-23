@@ -43,6 +43,7 @@
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include "ibtk/Vector.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -272,8 +273,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<Vector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<Vector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

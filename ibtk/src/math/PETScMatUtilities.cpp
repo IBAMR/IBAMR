@@ -41,6 +41,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -41,7 +41,8 @@
 
 #include "Box.h"
 #include "IntVector.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
+#include "ibtk/Vector.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {
@@ -874,8 +875,8 @@ private:
         const double* x_lower,
         const double* x_upper,
         const double* dx,
-        const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
-        const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
+        const Vector<int,NDIM>& patch_touches_lower_physical_bdry,
+        const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
         const std::string& interp_fcn);
@@ -895,8 +896,8 @@ private:
         const double* x_lower,
         const double* x_upper,
         const double* dx,
-        const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
-        const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
+        const Vector<int,NDIM>& patch_touches_lower_physical_bdry,
+        const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
         const std::string& spread_fcn);

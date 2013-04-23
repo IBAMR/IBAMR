@@ -96,6 +96,7 @@
 #include "ibtk/LSet-inl.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/LTransaction.h"
+#include "ibtk/Vector.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -698,7 +699,7 @@ LDataManager::createLData(
     return ret_val;
 }// createLData
 
-blitz::TinyVector<double,NDIM>
+Vector<double,NDIM>
 LDataManager::computeLagrangianStructureCenterOfMass(
     const int structure_id,
     const int level_number)
@@ -708,7 +709,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
                 d_finest_ln   >= level_number);
 #endif
     int node_counter = 0;
-    blitz::TinyVector<double,NDIM> X_com(0.0);
+    Vector<double,NDIM> X_com(0.0);
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -740,7 +741,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     return X_com;
 }// computeLagrangianStructureCenterOfMass
 
-std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >
+std::pair<Vector<double,NDIM>,Vector<double,NDIM> >
 LDataManager::computeLagrangianStructureBoundingBox(
     const int structure_id,
     const int level_number)
@@ -749,8 +750,8 @@ LDataManager::computeLagrangianStructureBoundingBox(
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    blitz::TinyVector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
-    blitz::TinyVector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    Vector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    Vector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -780,7 +781,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
 
 void
 LDataManager::reinitLagrangianStructure(
-    const blitz::TinyVector<double,NDIM>& X_center,
+    const Vector<double,NDIM>& X_center,
     const int structure_id,
     const int level_number)
 {
@@ -792,8 +793,8 @@ LDataManager::reinitLagrangianStructure(
 
     // Compute the bounding box of the structure in its reference configuration.
     const blitz::Array<double,2>& X0_data = *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
-    blitz::TinyVector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
-    blitz::TinyVector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    Vector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    Vector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
@@ -815,17 +816,17 @@ LDataManager::reinitLagrangianStructure(
     }
     SAMRAI_MPI::minReduction(&X_lower[0],NDIM);
     SAMRAI_MPI::maxReduction(&X_upper[0],NDIM);
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > bounding_box = std::make_pair(X_lower,X_upper);
+    std::pair<Vector<double,NDIM>,Vector<double,NDIM> > bounding_box = std::make_pair(X_lower,X_upper);
 
     // Compute the displacement.
-    blitz::TinyVector<double,NDIM> dX(0.0);
+    Vector<double,NDIM> dX(0.0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dX[d] = X_center[d] - 0.5*(X_upper[d]+X_lower[d]);
     }
 
     // Compute the shifted bounding box.
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Vector<double,NDIM>,Vector<double,NDIM> > shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
@@ -874,7 +875,7 @@ LDataManager::reinitLagrangianStructure(
                             X[d] = X0[d] + dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        blitz::TinyVector<double,NDIM> X_displaced;
+                        Vector<double,NDIM> X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -895,7 +896,7 @@ LDataManager::reinitLagrangianStructure(
 
 void
 LDataManager::displaceLagrangianStructure(
-    const blitz::TinyVector<double,NDIM>& dX,
+    const Vector<double,NDIM>& dX,
     const int structure_id,
     const int level_number)
 {
@@ -906,8 +907,8 @@ LDataManager::displaceLagrangianStructure(
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the shifted bounding box.
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Vector<double,NDIM>,Vector<double,NDIM> > bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
+    std::pair<Vector<double,NDIM>,Vector<double,NDIM> > shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
@@ -956,7 +957,7 @@ LDataManager::displaceLagrangianStructure(
                             X[d] += dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        blitz::TinyVector<double,NDIM> X_displaced;
+                        Vector<double,NDIM> X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -1242,13 +1243,13 @@ LDataManager::beginDataRedistribution(
     // Ensure that no IB points manage to escape the computational domain.
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
-    blitz::TinyVector<double,NDIM> grid_length;
+    Vector<double,NDIM> grid_length;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
     }
     std::vector<blitz::Array<IntVector<NDIM>,1> > periodic_offset_data(finest_ln+1);
-    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > displacement_data(finest_ln+1);
+    std::vector<blitz::Array<Vector<double,NDIM>,1> > displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1269,7 +1270,7 @@ LDataManager::beginDataRedistribution(
         {
             double* const X = &X_data(local_idx,0);
             IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
-            blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+            Vector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = 0;
@@ -1335,7 +1336,7 @@ LDataManager::beginDataRedistribution(
                         if (patch_box.contains(new_cell_idx))
                         {
                             const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
-                            const blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+                            const Vector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
                             if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, displacement);
                             if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
                             LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
@@ -1403,7 +1404,7 @@ LDataManager::endDataRedistribution(
         const CellIndex<NDIM>& domain_lower = domain_box.lower();
         const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
-        blitz::TinyVector<double,NDIM> dx;
+        Vector<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx0[d]/static_cast<double>(ratio(d));
@@ -1419,7 +1420,7 @@ LDataManager::endDataRedistribution(
         for (size_t k = 0; k < num_nodes; ++k)
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Vector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
@@ -1488,7 +1489,7 @@ LDataManager::endDataRedistribution(
         for (size_t k = 0; k < num_nodes; ++k)
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Vector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
@@ -2274,9 +2275,9 @@ LDataManager::applyGradientDetector(
 
             for (int ln = level_number+1; ln <= d_finest_ln; ++ln)
             {
-                for (std::vector<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
+                for (std::vector<std::pair<Vector<double,NDIM>,Vector<double,NDIM> > >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
                 {
-                    const std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >& bounding_box = *cit;
+                    const std::pair<Vector<double,NDIM>,Vector<double,NDIM> >& bounding_box = *cit;
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.

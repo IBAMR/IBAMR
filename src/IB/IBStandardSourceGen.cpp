@@ -42,7 +42,7 @@
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
 #include "blitz/compiler.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSourceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -227,7 +227,7 @@ IBStandardSourceGen::getNumSources(
 
 void
 IBStandardSourceGen::getSourceLocations(
-    std::vector<blitz::TinyVector<double,NDIM> >& X_src,
+    std::vector<Vector<double,NDIM> >& X_src,
     std::vector<double>& r_src,
     Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
@@ -246,7 +246,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(), X_src.end(), blitz::TinyVector<double,NDIM>(0.0));
+    std::fill(X_src.begin(), X_src.end(), Vector<double,NDIM>(0.0));
     const double* const restrict X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();

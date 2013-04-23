@@ -50,7 +50,7 @@ LNodeIndex::LNodeIndex(
     const int global_petsc_nidx,
     const int local_petsc_nidx,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-    const blitz::TinyVector<double,NDIM>& periodic_displacement)
+    const Vector<double,NDIM>& periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx),
       d_global_petsc_nidx(global_petsc_nidx),
       d_local_petsc_nidx(local_petsc_nidx),
@@ -151,7 +151,7 @@ LNodeIndex::setLocalPETScIndex(
 inline void
 LNodeIndex::registerPeriodicShift(
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    const blitz::TinyVector<double,NDIM>& displacement)
+    const Vector<double,NDIM>& displacement)
 {
     d_offset += offset;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -167,7 +167,7 @@ LNodeIndex::getPeriodicOffset() const
     return d_offset;
 }// getPeriodicOffset
 
-inline const blitz::TinyVector<double,NDIM>&
+inline const Vector<double,NDIM>&
 LNodeIndex::getPeriodicDisplacement() const
 {
     return d_displacement;

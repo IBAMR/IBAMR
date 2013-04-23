@@ -40,12 +40,10 @@
 #include <vector>
 
 #include "blitz/array.h"
-#include "hdf5.h"
-#include "hdf5_hl.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace std;
+#include "hdf5.h"                 // IWYU pragma: export
+#include "hdf5_hl.h"              // IWYU pragma: export
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/Vector.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -107,7 +105,7 @@ build_local_cart_block(
                                     end_of_fiber = true;
                                 }
 
-                                blitz::TinyVector<int,NDIM> idx(0 , 0 , 0);
+                                Vector<int,NDIM> idx(0 , 0 , 0);
                                 idx[d0] = j;
                                 idx[d1] = k;
                                 const int offset = idx[0] + idx[1]*nelem[0] + idx[2]*nelem[0]*nelem[1];
@@ -162,7 +160,7 @@ build_local_cart_block(
                             end_of_fiber = true;
                         }
 
-                        blitz::TinyVector<int,NDIM> idx(0 , 0 , 0);
+                        Vector<int,NDIM> idx(0 , 0 , 0);
                         idx[d0] = i;
                         idx[d1] = j;
                         idx[d2] = k;

@@ -38,7 +38,8 @@
 #include <unistd.h>
 
 #include "IntVector.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
+#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI {
@@ -67,8 +68,8 @@ public:
      */
     LMarker(
         int idx=-1,
-        const blitz::TinyVector<double,NDIM>& X=0.0,
-        const blitz::TinyVector<double,NDIM>& U=0.0,
+        const Vector<double,NDIM>& X=0.0,
+        const Vector<double,NDIM>& U=0.0,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -125,13 +126,13 @@ public:
     /*!
      * \return A const reference to the marker position.
      */
-    const blitz::TinyVector<double,NDIM>&
+    const Vector<double,NDIM>&
     getPosition() const;
 
     /*!
      * \return A non-const reference to the marker position.
      */
-    blitz::TinyVector<double,NDIM>&
+    Vector<double,NDIM>&
     getPosition();
 
     /*!
@@ -139,18 +140,18 @@ public:
      */
     void
     setPosition(
-        const blitz::TinyVector<double,NDIM>& X);
+        const Vector<double,NDIM>& X);
 
     /*!
      * \return A const reference to the marker velocity.
      */
-    const blitz::TinyVector<double,NDIM>&
+    const Vector<double,NDIM>&
     getVelocity() const;
 
     /*!
      * \return A non-const reference to the marker velocity.
      */
-    blitz::TinyVector<double,NDIM>&
+    Vector<double,NDIM>&
     getVelocity();
 
     /*!
@@ -158,7 +159,7 @@ public:
      */
     void
     setVelocity(
-        const blitz::TinyVector<double,NDIM>& U);
+        const Vector<double,NDIM>& U);
 
     /*!
      * \return A const reference to the periodic offset.
@@ -221,7 +222,7 @@ private:
     /*!
      * \brief The marker position and velocity.
      */
-    blitz::TinyVector<double,NDIM> d_X, d_U;
+    Vector<double,NDIM> d_X, d_U;
 
     /*!
      * \brief The periodic offset.

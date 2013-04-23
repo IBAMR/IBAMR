@@ -1473,7 +1473,7 @@ IBFEMethod::imposeJumpConditions(
     blitz::Array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Vector<double,NDIM> X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1493,7 +1493,7 @@ IBFEMethod::imposeJumpConditions(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        Vector<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1591,7 +1591,7 @@ IBFEMethod::imposeJumpConditions(
                     q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
-                    blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                    Vector<int,NDIM> i_begin, i_end, ic;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

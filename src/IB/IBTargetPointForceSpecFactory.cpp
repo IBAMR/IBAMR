@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBTargetPointForceSpec.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/IBTargetPointForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"

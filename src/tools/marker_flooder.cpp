@@ -41,12 +41,9 @@
 #include <vector>
 
 #include "blitz/array.h"
-#include "blitz/tinyvec2.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace blitz;
-using namespace std;
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/Vector.h"
+#include "silo.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -77,13 +74,13 @@ discard_comments(
 }// discard_comments
 
 // number of Cartesian grid points in each coordinate direction
-static const blitz::TinyVector<int,NDIM> N(64 , 64 , 96);
+static const Vector<int,NDIM> N(64 , 64 , 96);
 
 // length of computational domain
-static const blitz::TinyVector<double,NDIM> L(10.0 , 10.0 , 15.0);
+static const Vector<double,NDIM> L(10.0 , 10.0 , 15.0);
 
 // Cartesian grid spacing
-static const blitz::TinyVector<double,NDIM> dx(L[0]/static_cast<double>(N[0]) , L[1]/static_cast<double>(N[1]) , L[2]/double(N[2]));
+static const Vector<double,NDIM> dx(L[0]/static_cast<double>(N[0]) , L[1]/static_cast<double>(N[1]) , L[2]/double(N[2]));
 
 inline TinyVector<int,NDIM>
 get_index(

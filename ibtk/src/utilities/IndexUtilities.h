@@ -41,7 +41,7 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -131,7 +131,7 @@ public:
      */
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(
-        const blitz::TinyVector<double,NDIM>& X,
+        const Vector<double,NDIM>& X,
         const double* XLower,
         const double* XUpper,
         const double* dx,

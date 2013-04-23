@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "IBBeamForceSpec.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/IBBeamForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"

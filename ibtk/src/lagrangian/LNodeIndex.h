@@ -42,7 +42,8 @@
 #include "IntVector.h"
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
+#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
@@ -77,7 +78,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const blitz::TinyVector<double,NDIM>& periodic_displacement=0.0);
+        const Vector<double,NDIM>& periodic_displacement=0.0);
 
     /*!
      * \brief Copy constructor.
@@ -157,7 +158,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const blitz::TinyVector<double,NDIM>& displacement);
+        const Vector<double,NDIM>& displacement);
 
     /*!
      * \brief Get the periodic offset.
@@ -168,7 +169,7 @@ public:
     /*!
      * \brief Get the periodic displacement.
      */
-    virtual const blitz::TinyVector<double,NDIM>&
+    virtual const Vector<double,NDIM>&
     getPeriodicDisplacement() const;
 
     /*!
@@ -218,7 +219,7 @@ private:
 
     // the periodic offset and displacement
     SAMRAI::hier::IntVector<NDIM> d_offset;
-    blitz::TinyVector<double,NDIM> d_displacement;
+    Vector<double,NDIM> d_displacement;
 };
 
 /*!

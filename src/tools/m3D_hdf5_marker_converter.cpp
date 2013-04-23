@@ -39,12 +39,11 @@
 #include <string>
 #include <vector>
 
-#include "hdf5.h"
-#include "hdf5_hl.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace std;
+#include "blitz/array.h"
+#include "hdf5.h"                 // IWYU pragma: export
+#include "hdf5_hl.h"              // IWYU pragma: export
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/Vector.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

@@ -40,7 +40,7 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
@@ -166,8 +166,8 @@ private:
         double kappa,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
-    blitz::TinyVector<SAMRAI::tbox::Array<bool>,2*NDIM> d_forcing_enabled;
-    blitz::TinyVector<double,2*NDIM> d_width;
+    IBTK::Vector<SAMRAI::tbox::Array<bool>,2*NDIM> d_forcing_enabled;
+    IBTK::Vector<double,2*NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };

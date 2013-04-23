@@ -61,7 +61,7 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -405,10 +405,10 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> >        U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-            blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM>         U_adv_data;
-            blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM>        U_half_data;
-            blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_upwind_data;
+            Vector<Box<NDIM>,NDIM> side_boxes;
+            Vector<Pointer<FaceData<NDIM,double> >,NDIM>         U_adv_data;
+            Vector<Pointer<FaceData<NDIM,double> >,NDIM>        U_half_data;
+            Vector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_upwind_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes        [axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);

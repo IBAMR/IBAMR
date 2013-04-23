@@ -43,6 +43,7 @@
 #include "blitz/array.h"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
+#include "ibtk/Vector.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
@@ -227,7 +228,7 @@ private:
     {
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
         blitz::Array<const double*,1> rigidities;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> curvatures;
+        blitz::Array<const IBTK::Vector<double,NDIM>*,1> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
@@ -235,7 +236,7 @@ private:
     {
         blitz::Array<int,1> petsc_node_idxs;
         blitz::Array<const double*,1> kappa, eta;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> X0;
+        blitz::Array<const IBTK::Vector<double,NDIM>*,1> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 

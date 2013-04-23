@@ -59,7 +59,7 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "StaggeredStokesBoxRelaxationFACOperator.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -116,7 +116,7 @@ buildBoxOperator(
     const PoissonSpecifications& U_problem_coefs,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
-    const blitz::TinyVector<double,NDIM>& dx)
+    const Vector<double,NDIM>& dx)
 {
     int ierr;
 
@@ -124,8 +124,8 @@ buildBoxOperator(
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-    blitz::TinyVector<BoxList<NDIM>,NDIM> side_ghost_boxes;
+    Vector<Box<NDIM>,NDIM> side_boxes;
+    Vector<BoxList<NDIM>,NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -632,7 +632,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     const Box<NDIM> box(Index<NDIM>(0),Index<NDIM>(0));
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
-    blitz::TinyVector<double,NDIM> dx;
+    Vector<double,NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();

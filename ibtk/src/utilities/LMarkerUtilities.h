@@ -71,7 +71,7 @@ public:
      */
     static unsigned int
     readMarkerPositions(
-        std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
+        std::vector<Vector<double,NDIM> >& mark_init_posns,
         const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
@@ -143,7 +143,7 @@ public:
     static void
     initializeMarkersOnLevel(
         int mark_idx,
-        const std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
+        const std::vector<Vector<double,NDIM> >& mark_init_posns,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         bool initial_time,

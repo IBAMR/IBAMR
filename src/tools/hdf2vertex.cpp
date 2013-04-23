@@ -38,11 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "H5LT.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace std;
+#include "H5LT.h"                 // IWYU pragma: export
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

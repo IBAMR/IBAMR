@@ -152,7 +152,7 @@ private:
     //\{
     std::vector<Mat> d_D_next_mats, d_X_next_mats;
     std::vector<std::vector<int> > d_petsc_curr_node_idxs, d_petsc_next_node_idxs;
-    std::vector<std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
+    std::vector<std::vector<IBTK::Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
     std::vector<bool> d_is_initialized;
     //\}
 };

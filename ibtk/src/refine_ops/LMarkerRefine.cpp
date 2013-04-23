@@ -38,7 +38,7 @@
 #include "Index.h"
 #include "LMarkerRefine.h"
 #include "Patch.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LMarker.h"
@@ -145,9 +145,9 @@ LMarkerRefine::refine(
             for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
-                const blitz::TinyVector<double,NDIM>& X = coarse_mark->getPosition();
+                const Vector<double,NDIM>& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
-                blitz::TinyVector<double,NDIM> X_shifted;
+                Vector<double,NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];

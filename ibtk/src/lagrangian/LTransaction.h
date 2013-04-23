@@ -39,7 +39,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
@@ -85,7 +85,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            const blitz::TinyVector<double,NDIM>& posn=0.0)
+            const Vector<double,NDIM>& posn=0.0)
             : item(item),
               posn(posn)
             {
@@ -139,7 +139,7 @@ public:
 
         // Data.
         typename LSet<T>::value_type item;
-        blitz::TinyVector<double,NDIM> posn;
+        Vector<double,NDIM> posn;
     };
 
     /*!

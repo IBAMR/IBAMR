@@ -47,8 +47,8 @@ namespace IBTK
 inline
 LMarker::LMarker(
     const int idx,
-    const blitz::TinyVector<double,NDIM>& X,
-    const blitz::TinyVector<double,NDIM>& U,
+    const Vector<double,NDIM>& X,
+    const Vector<double,NDIM>& U,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
     : d_idx(idx),
       d_X(X),
@@ -123,13 +123,13 @@ LMarker::setIndex(
     return;
 }// setIndex
 
-inline const blitz::TinyVector<double,NDIM>&
+inline const Vector<double,NDIM>&
 LMarker::getPosition() const
 {
     return d_X;
 }// getPosition
 
-inline blitz::TinyVector<double,NDIM>&
+inline Vector<double,NDIM>&
 LMarker::getPosition()
 {
     return d_X;
@@ -137,19 +137,19 @@ LMarker::getPosition()
 
 inline void
 LMarker::setPosition(
-    const blitz::TinyVector<double,NDIM>& X)
+    const Vector<double,NDIM>& X)
 {
     d_X = X;
     return;
 }// setPosition
 
-inline const blitz::TinyVector<double,NDIM>&
+inline const Vector<double,NDIM>&
 LMarker::getVelocity() const
 {
     return d_U;
 }// getVelocity
 
-inline blitz::TinyVector<double,NDIM>&
+inline Vector<double,NDIM>&
 LMarker::getVelocity()
 {
     return d_U;
@@ -157,7 +157,7 @@ LMarker::getVelocity()
 
 inline void
 LMarker::setVelocity(
-    const blitz::TinyVector<double,NDIM>& U)
+    const Vector<double,NDIM>& U)
 {
     d_U = U;
     return;

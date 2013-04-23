@@ -42,14 +42,11 @@
 #include <vector>
 
 #include "blitz/array.h"
-#include "hdf5.h"
-#include "hdf5_hl.h"
+#include "hdf5.h"                 // IWYU pragma: export
+#include "hdf5_hl.h"              // IWYU pragma: export
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/Vector.h"
 #include "silo.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace blitz;
-using namespace std;
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

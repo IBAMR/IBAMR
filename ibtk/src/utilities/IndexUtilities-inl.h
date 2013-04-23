@@ -35,6 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <cmath>
+
 #include "ibtk/IndexUtilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -99,7 +101,7 @@ IndexUtilities::getCellIndex(
 
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(
-    const blitz::TinyVector<double,NDIM>& X,
+    const Vector<double,NDIM>& X,
     const double* const XLower,
     const double* const XUpper,
     const double* const dx,

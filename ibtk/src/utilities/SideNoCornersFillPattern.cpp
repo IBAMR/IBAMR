@@ -42,7 +42,7 @@
 #include "SideGeometry.h"
 #include "SideNoCornersFillPattern.h"
 #include "SideOverlap.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -98,7 +98,7 @@ SideNoCornersFillPattern::calculateOverlap(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
+    Vector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -171,7 +171,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
+    Vector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();

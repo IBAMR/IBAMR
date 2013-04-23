@@ -62,7 +62,7 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LData-inl.h"
@@ -909,7 +909,7 @@ LM3DDataWriter::writePlotData(
                         const LMarkerSet& mark_set = it();
                         for (LMarkerSet::const_iterator cit = mark_set.begin(); cit != mark_set.end(); ++cit)
                         {
-                            const blitz::TinyVector<double,NDIM>& X = (*cit)->getPosition();
+                            const Vector<double,NDIM>& X = (*cit)->getPosition();
                             const int idx = (*cit)->getIndex();
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {

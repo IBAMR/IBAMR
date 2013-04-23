@@ -59,7 +59,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
@@ -556,7 +556,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
         Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
+        Vector<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

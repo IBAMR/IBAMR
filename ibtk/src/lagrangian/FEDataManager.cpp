@@ -69,7 +69,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "blitz/range.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
@@ -657,7 +657,7 @@ FEDataManager::prolongData(
     blitz::Array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Vector<double,NDIM> X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -675,7 +675,7 @@ FEDataManager::prolongData(
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_dx = patch_geom->getDx();
 
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        Vector<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -725,7 +725,7 @@ FEDataManager::prolongData(
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
-                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                Vector<int,NDIM> i_begin, i_end, ic;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if (d == axis)
@@ -1087,7 +1087,7 @@ FEDataManager::restrictData(
     blitz::Array<double,2> X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Vector<double,NDIM> X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1107,7 +1107,7 @@ FEDataManager::restrictData(
         double dx = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dx *= patch_dx[d];
 
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        Vector<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1158,7 +1158,7 @@ FEDataManager::restrictData(
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
-                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                Vector<int,NDIM> i_begin, i_end, ic;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if (d == axis)
@@ -1725,7 +1725,7 @@ FEDataManager::applyGradientDetector(
         // quadrature points.
         std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
-        blitz::TinyVector<double,NDIM> X_qp;
+        Vector<double,NDIM> X_qp;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1956,7 +1956,7 @@ FEDataManager::updateQuadPointCountData(
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
         std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
-        blitz::TinyVector<double,NDIM> X_qp;
+        Vector<double,NDIM> X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2005,7 +2005,7 @@ FEDataManager::updateQuadPointCountData(
     return;
 }// updateQuadPointCountData
 
-blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
+blitz::Array<std::pair<Vector<double,NDIM>,Vector<double,NDIM> >,1>*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
     const MeshBase& mesh = d_es->get_mesh();
@@ -2021,15 +2021,15 @@ FEDataManager::computeActiveElementBoundingBoxes()
     // Compute the lower and upper bounds of all active local elements in the
     // mesh.  Assumes nodal basis functions.
     d_active_elem_bboxes.resize(n_elem);
-    d_active_elem_bboxes = std::make_pair(blitz::TinyVector<double,NDIM>(0.0),blitz::TinyVector<double,NDIM>(0.0));
+    d_active_elem_bboxes = std::make_pair(Vector<double,NDIM>(0.0),Vector<double,NDIM>(0.0));
     MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for ( ; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const unsigned int elem_id = elem->id();
-        blitz::TinyVector<double,NDIM>& elem_lower_bound = d_active_elem_bboxes(elem_id).first;
-        blitz::TinyVector<double,NDIM>& elem_upper_bound = d_active_elem_bboxes(elem_id).second;
+        Vector<double,NDIM>& elem_lower_bound = d_active_elem_bboxes(elem_id).first;
+        Vector<double,NDIM>& elem_upper_bound = d_active_elem_bboxes(elem_id).second;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             elem_lower_bound[d] =  0.5*std::numeric_limits<double>::max();
@@ -2135,8 +2135,8 @@ FEDataManager::collectActivePatchElements(
         std::set<Elem*>& frontier_elems = frontier_patch_elems(local_patch_num);
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        blitz::TinyVector<double,NDIM> x_lower;  for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
-        blitz::TinyVector<double,NDIM> x_upper;  for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
+        Vector<double,NDIM> x_lower;  for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
+        Vector<double,NDIM> x_upper;  for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
         const double* const dx = pgeom->getDx();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -2150,8 +2150,8 @@ FEDataManager::collectActivePatchElements(
         {
             Elem* const elem = *el_it;
             const unsigned int elem_id = elem->id();
-            const blitz::TinyVector<double,NDIM>& elem_lower_bound = d_active_elem_bboxes(elem_id).first;
-            const blitz::TinyVector<double,NDIM>& elem_upper_bound = d_active_elem_bboxes(elem_id).second;
+            const Vector<double,NDIM>& elem_lower_bound = d_active_elem_bboxes(elem_id).first;
+            const Vector<double,NDIM>& elem_upper_bound = d_active_elem_bboxes(elem_id).second;
             bool in_patch = true;
             for (unsigned int d = 0; d < NDIM && in_patch; ++d)
             {
@@ -2183,7 +2183,7 @@ FEDataManager::collectActivePatchElements(
         // patch.
         std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
-        blitz::TinyVector<double,NDIM> X_qp;
+        Vector<double,NDIM> X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2411,7 +2411,7 @@ FEDataManager::do_partition(
     // Compute the lower and upper bounds of all local elements in the mesh.
     //
     // NOTE: Assuming nodal basis functions.
-    std::vector<blitz::TinyVector<double,NDIM> > elem_centroids(n_elem, blitz::TinyVector<double,NDIM>(0.0));
+    std::vector<Vector<double,NDIM> > elem_centroids(n_elem, Vector<double,NDIM>(0.0));
     MeshBase::element_iterator       el_it  = mesh.local_elements_begin();
     const MeshBase::element_iterator el_end = mesh.local_elements_end();
     for ( ; el_it != el_end; ++el_it)

@@ -52,7 +52,8 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Utilities.h"
@@ -544,12 +545,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                 }
 
                 // Determine the interpolation degrees and weights.
-                blitz::TinyVector<int,NDIM> interp_degree;
+                Vector<int,NDIM> interp_degree;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
                 }
-                blitz::TinyVector<std::vector<double>,NDIM> wgts;
+                Vector<std::vector<double>,NDIM> wgts;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];

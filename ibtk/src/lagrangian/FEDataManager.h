@@ -56,6 +56,7 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/partitioner.h"
+#include "ibtk/Vector.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -531,7 +532,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
+    blitz::Array<std::pair<Vector<double,NDIM>,Vector<double,NDIM> >,1>*
     computeActiveElementBoundingBoxes();
 
     /*!
@@ -645,7 +646,7 @@ private:
      */
     blitz::Array<blitz::Array<libMesh::Elem*,1>,1> d_active_patch_elem_map;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1> d_active_elem_bboxes;
+    blitz::Array<std::pair<Vector<double,NDIM>,Vector<double,NDIM> >,1> d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.

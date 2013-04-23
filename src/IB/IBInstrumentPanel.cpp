@@ -62,7 +62,7 @@
 #include "blitz/array/funcs.h"
 #include "blitz/array/ops.h"
 #include "blitz/etbase.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "blitz/tvecglobs.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/IBInstrumentationSpec-inl.h"
@@ -124,10 +124,10 @@ static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
 void
 init_meter_elements(
-    blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
-    blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
-    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& X_perimeter,
-    const blitz::TinyVector<double,NDIM>& X_centroid)
+    blitz::Array<Vector<double,NDIM>,2>& X_web,
+    blitz::Array<Vector<double,NDIM>,2>& dA_web,
+    const blitz::Array<Vector<double,NDIM>,1>& X_perimeter,
+    const Vector<double,NDIM>& X_centroid)
 {
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");
@@ -145,11 +145,11 @@ init_meter_elements(
     const int num_web_nodes = X_web.extent(1);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
-        const blitz::TinyVector<double,NDIM>& X_perimeter0(X_perimeter(m));
-        const blitz::TinyVector<double,NDIM> dX0((X_centroid-X_perimeter0)/static_cast<double>(num_web_nodes));
+        const Vector<double,NDIM>& X_perimeter0(X_perimeter(m));
+        const Vector<double,NDIM> dX0((X_centroid-X_perimeter0)/static_cast<double>(num_web_nodes));
 
-        const blitz::TinyVector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
-        const blitz::TinyVector<double,NDIM> dX1((X_centroid-X_perimeter1)/static_cast<double>(num_web_nodes));
+        const Vector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+        const Vector<double,NDIM> dX1((X_centroid-X_perimeter1)/static_cast<double>(num_web_nodes));
 
         // Away from the center of the web, each web patch is a planar
         // quadrilateral.  At the web centroid, the quadrilateral is degenerate,
@@ -160,24 +160,24 @@ init_meter_elements(
             //
             // Note that here the vertices are placed in "standard" (i.e.,
             // "counter-clockwise") orientation.
-            const blitz::TinyVector<double,NDIM> X0(X_perimeter0+static_cast<double>(n  )*dX0);
-            const blitz::TinyVector<double,NDIM> X1(X_perimeter1+static_cast<double>(n  )*dX1);
-            const blitz::TinyVector<double,NDIM> X2(X_perimeter1+static_cast<double>(n+1)*dX1);
-            const blitz::TinyVector<double,NDIM> X3(X_perimeter0+static_cast<double>(n+1)*dX0);
+            const Vector<double,NDIM> X0(X_perimeter0+static_cast<double>(n  )*dX0);
+            const Vector<double,NDIM> X1(X_perimeter1+static_cast<double>(n  )*dX1);
+            const Vector<double,NDIM> X2(X_perimeter1+static_cast<double>(n+1)*dX1);
+            const Vector<double,NDIM> X3(X_perimeter0+static_cast<double>(n+1)*dX0);
 
             // Compute the midpoints of the edges of the quadrilateral.
-            const blitz::TinyVector<double,NDIM> X01(0.5*(X0+X1));
-            const blitz::TinyVector<double,NDIM> X12(0.5*(X1+X2));
-            const blitz::TinyVector<double,NDIM> X23(0.5*(X2+X3));
-            const blitz::TinyVector<double,NDIM> X30(0.5*(X3+X0));
+            const Vector<double,NDIM> X01(0.5*(X0+X1));
+            const Vector<double,NDIM> X12(0.5*(X1+X2));
+            const Vector<double,NDIM> X23(0.5*(X2+X3));
+            const Vector<double,NDIM> X30(0.5*(X3+X0));
 
             // Construct a parametric representation of the lines connecting the
             // midpoints of the edges.
-            const blitz::TinyVector<double,NDIM>& l0 = X01;
-            const blitz::TinyVector<double,NDIM>  d0 = X23-X01;
+            const Vector<double,NDIM>& l0 = X01;
+            const Vector<double,NDIM>  d0 = X23-X01;
 
-            const blitz::TinyVector<double,NDIM>& l1 = X12;
-            const blitz::TinyVector<double,NDIM>  d1 = X30-X12;
+            const Vector<double,NDIM>& l1 = X12;
+            const Vector<double,NDIM>  d1 = X30-X12;
 
             // Compute the centroid as the intersection of the lines connecting
             // the midpoints of the edges.
@@ -200,7 +200,7 @@ init_meter_elements(
             // Note that by construction, the quadrilateral is guaranteed to lie
             // within a plane.  Also, note that if X2 == X3, the following is
             // simply the formula for the area-weighted normal to a triangle.
-            dA_web(m,n) = 0.5*blitz::cross(blitz::TinyVector<double,NDIM>(X2-X0),blitz::TinyVector<double,NDIM>(X3-X1));
+            dA_web(m,n) = 0.5*cross(Vector<double,NDIM>(X2-X0),Vector<double,NDIM>(X3-X1));
         }
     }
 #endif
@@ -209,10 +209,10 @@ init_meter_elements(
 
 double
 compute_flow_correction(
-    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& U_perimeter,
-    const blitz::TinyVector<double,NDIM>& U_centroid,
-    const blitz::Array<blitz::TinyVector<double,NDIM>,1>& X_perimeter,
-    const blitz::TinyVector<double,NDIM>& X_centroid)
+    const blitz::Array<Vector<double,NDIM>,1>& U_perimeter,
+    const Vector<double,NDIM>& U_centroid,
+    const blitz::Array<Vector<double,NDIM>,1>& X_perimeter,
+    const Vector<double,NDIM>& X_centroid)
 {
     double U_dot_dA = 0.0;
 #if (NDIM == 2)
@@ -226,21 +226,21 @@ compute_flow_correction(
     const int num_perimeter_nodes = X_perimeter.extent(0);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
-        const blitz::TinyVector<double,NDIM>& U_perimeter0(U_perimeter(m));
-        const blitz::TinyVector<double,NDIM>& X_perimeter0(X_perimeter(m));
+        const Vector<double,NDIM>& U_perimeter0(U_perimeter(m));
+        const Vector<double,NDIM>& X_perimeter0(X_perimeter(m));
 
-        const blitz::TinyVector<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
-        const blitz::TinyVector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+        const Vector<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
+        const Vector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
 
         // Compute the linear interpolation of the velocity at the center of the
         // triangle.
-        const blitz::TinyVector<double,NDIM> U = blitz::TinyVector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
+        const Vector<double,NDIM> U = Vector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
 
         // Compute the area weighted normal to the triangle.
-        const blitz::TinyVector<double,NDIM> dA = 0.5*blitz::cross(blitz::TinyVector<double,NDIM>(X_centroid-X_perimeter0),blitz::TinyVector<double,NDIM>(X_centroid-X_perimeter1));
+        const Vector<double,NDIM> dA = 0.5*cross(Vector<double,NDIM>(X_centroid-X_perimeter0),Vector<double,NDIM>(X_centroid-X_perimeter1));
 
         // Compute the contribution to U_dot_dA.
-        U_dot_dA += blitz::dot(U,dA);
+        U_dot_dA += dot(U,dA);
     }
 #endif
     return U_dot_dA;
@@ -254,8 +254,8 @@ void
 build_meter_web(
     DBfile* dbfile,
     std::string& dirname,
-    const blitz::Array<blitz::TinyVector<double,NDIM>,2>& X_web,
-    const blitz::Array<blitz::TinyVector<double,NDIM>,2>& dA_web,
+    const blitz::Array<Vector<double,NDIM>,2>& X_web,
+    const blitz::Array<Vector<double,NDIM>,2>& dA_web,
     const int timestep,
     const double simulation_time)
 {
@@ -271,8 +271,8 @@ build_meter_web(
             // Get the coordinate and normal vector data.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                block_X [d*npoints+i] = float( X_web(m,n)(d));
-                block_dA[d*npoints+i] = float(dA_web(m,n)(d));
+                block_X [d*npoints+i] = float( X_web(m,n)[d]);
+                block_dA[d*npoints+i] = float(dA_web(m,n)[d]);
             }
         }
     }
@@ -328,43 +328,47 @@ build_meter_web(
 #endif
 
 template <int DEPTH>
-inline blitz::TinyVector<double,DEPTH>
+inline Vector<double,DEPTH>
 linear_interp(
-    const blitz::TinyVector<double,NDIM>& X,
+    const Vector<double,NDIM>& X,
     const Index<NDIM>& i_cell,
-    const blitz::TinyVector<double,NDIM>& X_cell,
+    const Vector<double,NDIM>& X_cell,
     const CellData<NDIM,double>& v,
     const Index<NDIM>& /*patch_lower*/,
     const Index<NDIM>& /*patch_upper*/,
-    const double* const /*xLower*/,
-    const double* const /*xUpper*/,
+    const double* const /*x_lower*/,
+    const double* const /*x_upper*/,
     const double* const dx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v.getDepth() == DEPTH);
 #endif
-    const blitz::TinyVector<bool,NDIM> is_lower(X < X_cell);
-    blitz::TinyVector<double,DEPTH> U(0.0);
+    Vector<bool,NDIM> is_lower;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        is_lower[d] = X[d] < X_cell[d];
+    }
+    Vector<double,DEPTH> U(0.0);
 #if (NDIM == 3)
-    for (int i_shift2 = (is_lower(2) ? -1 : 0); i_shift2 <= (is_lower(2) ? 0 : 1); ++i_shift2)
+    for (int i_shift2 = (is_lower[2] ? -1 : 0); i_shift2 <= (is_lower[2] ? 0 : 1); ++i_shift2)
     {
 #endif
-        for (int i_shift1 = (is_lower(1) ? -1 : 0); i_shift1 <= (is_lower(1) ? 0 : 1); ++i_shift1)
+        for (int i_shift1 = (is_lower[1] ? -1 : 0); i_shift1 <= (is_lower[1] ? 0 : 1); ++i_shift1)
         {
-            for (int i_shift0 = (is_lower(0) ? -1 : 0); i_shift0 <= (is_lower(0) ? 0 : 1); ++i_shift0)
+            for (int i_shift0 = (is_lower[0] ? -1 : 0); i_shift0 <= (is_lower[0] ? 0 : 1); ++i_shift0)
             {
-                const blitz::TinyVector<double,NDIM> X_center(X_cell(0)+static_cast<double>(i_shift0)*dx[0],
-                                                              X_cell(1)+static_cast<double>(i_shift1)*dx[1]
+                const Vector<double,NDIM> X_center(X_cell[0]+static_cast<double>(i_shift0)*dx[0],
+                                                   X_cell[1]+static_cast<double>(i_shift1)*dx[1]
 #if (NDIM == 3)
-                                                              ,
-                                                              X_cell(2)+static_cast<double>(i_shift2)*dx[2]
+                                                   ,
+                                                   X_cell[2]+static_cast<double>(i_shift2)*dx[2]
 #endif
-                                                              );
-                const double wgt = (((X(0) < X_center(0) ? X(0) - (X_center(0)-dx[0]) : (X_center(0)+dx[0]) - X(0))/dx[0])*
-                                    ((X(1) < X_center(1) ? X(1) - (X_center(1)-dx[1]) : (X_center(1)+dx[1]) - X(1))/dx[1])
+                                                   );
+                const double wgt = (((X[0] < X_center[0] ? X[0] - (X_center[0]-dx[0]) : (X_center[0]+dx[0]) - X[0])/dx[0])*
+                                    ((X[1] < X_center[1] ? X[1] - (X_center[1]-dx[1]) : (X_center[1]+dx[1]) - X[1])/dx[1])
 #if (NDIM == 3)
                                     *
-                                    ((X(2) < X_center(2) ? X(2) - (X_center(2)-dx[2]) : (X_center(2)+dx[2]) - X(2))/dx[2])
+                                    ((X[2] < X_center[2] ? X[2] - (X_center[2]-dx[2]) : (X_center[2]+dx[2]) - X[2])/dx[2])
 #endif
                                     );
                 const Index<NDIM> i(i_shift0+i_cell(0),
@@ -377,7 +381,7 @@ linear_interp(
                 const CellIndex<NDIM> i_c(i);
                 for (int d = 0; d < DEPTH; ++d)
                 {
-                    U(d) += v(i_c,d)*wgt;
+                    U[d] += v(i_c,d)*wgt;
                 }
             }
         }
@@ -387,46 +391,56 @@ linear_interp(
     return U;
 }// linear_interp
 
-inline blitz::TinyVector<double,NDIM>
+inline Vector<double,NDIM>
 linear_interp(
-    const blitz::TinyVector<double,NDIM>& X,
+    const Vector<double,NDIM>& X,
     const Index<NDIM>& i_cell,
-    const blitz::TinyVector<double,NDIM>& X_cell,
+    const Vector<double,NDIM>& X_cell,
     const SideData<NDIM,double>& v,
     const Index<NDIM>& /*patch_lower*/,
     const Index<NDIM>& /*patch_upper*/,
-    const double* const /*xLower*/,
-    const double* const /*xUpper*/,
+    const double* const /*x_lower*/,
+    const double* const /*x_upper*/,
     const double* const dx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v.getDepth() == 1);
 #endif
-    blitz::TinyVector<double,NDIM> U(0.0);
+    Vector<double,NDIM> U(0.0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        blitz::TinyVector<bool,NDIM> is_lower(X < X_cell);
-        is_lower(axis) = false;
+        Vector<bool,NDIM> is_lower;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == axis)
+            {
+                is_lower[d] = false;
+            }
+            else
+            {
+                is_lower[d] = X[d] < X_cell[d];
+            }
+        }
 #if (NDIM == 3)
-        for (int i_shift2 = (is_lower(2) ? -1 : 0); i_shift2 <= (is_lower(2) ? 0 : 1); ++i_shift2)
+        for (int i_shift2 = (is_lower[2] ? -1 : 0); i_shift2 <= (is_lower[2] ? 0 : 1); ++i_shift2)
         {
 #endif
-            for (int i_shift1 = (is_lower(1) ? -1 : 0); i_shift1 <= (is_lower(1) ? 0 : 1); ++i_shift1)
+            for (int i_shift1 = (is_lower[1] ? -1 : 0); i_shift1 <= (is_lower[1] ? 0 : 1); ++i_shift1)
             {
-                for (int i_shift0 = (is_lower(0) ? -1 : 0); i_shift0 <= (is_lower(0) ? 0 : 1); ++i_shift0)
+                for (int i_shift0 = (is_lower[0] ? -1 : 0); i_shift0 <= (is_lower[0] ? 0 : 1); ++i_shift0)
                 {
-                    const blitz::TinyVector<double,NDIM> X_side(X_cell(0)+(static_cast<double>(i_shift0) + (axis == 0 ? -0.5 : 0.0))*dx[0],
-                                                                X_cell(1)+(static_cast<double>(i_shift1) + (axis == 1 ? -0.5 : 0.0))*dx[1]
+                    const Vector<double,NDIM> X_side(X_cell[0]+(static_cast<double>(i_shift0) + (axis == 0 ? -0.5 : 0.0))*dx[0],
+                                                     X_cell[1]+(static_cast<double>(i_shift1) + (axis == 1 ? -0.5 : 0.0))*dx[1]
 #if (NDIM == 3)
-                                                                ,
-                                                                X_cell(2)+(static_cast<double>(i_shift2) + (axis == 2 ? -0.5 : 0.0))*dx[2]
+                                                     ,
+                                                     X_cell[2]+(static_cast<double>(i_shift2) + (axis == 2 ? -0.5 : 0.0))*dx[2]
 #endif
-                                                                );
-                    const double wgt = (((X(0) < X_side(0) ? X(0) - (X_side(0)-dx[0]) : (X_side(0)+dx[0]) - X(0))/dx[0])*
-                                        ((X(1) < X_side(1) ? X(1) - (X_side(1)-dx[1]) : (X_side(1)+dx[1]) - X(1))/dx[1])
+                                                     );
+                    const double wgt = (((X[0] < X_side[0] ? X[0] - (X_side[0]-dx[0]) : (X_side[0]+dx[0]) - X[0])/dx[0])*
+                                        ((X[1] < X_side[1] ? X[1] - (X_side[1]-dx[1]) : (X_side[1]+dx[1]) - X[1])/dx[1])
 #if (NDIM == 3)
                                         *
-                                        ((X(2) < X_side(2) ? X(2) - (X_side(2)-dx[2]) : (X_side(2)+dx[2]) - X(2))/dx[2])
+                                        ((X[2] < X_side[2] ? X[2] - (X_side[2]-dx[2]) : (X_side[2]+dx[2]) - X[2])/dx[2])
 #endif
                                         );
                     const Index<NDIM> i(i_shift0+i_cell(0),
@@ -437,7 +451,7 @@ linear_interp(
 #endif
                                         );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                    U(axis) += v(i_s)*wgt;
+                    U[axis] += v(i_s)*wgt;
                 }
             }
 #if (NDIM == 3)
@@ -755,7 +769,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     }
 
     // Determine the centroid of each perimeter.
-    std::fill(d_X_centroid.begin(), d_X_centroid.end(), blitz::TinyVector<double,NDIM>(0.0));
+    std::fill(d_X_centroid.begin(), d_X_centroid.end(), Vector<double,NDIM>(0.0));
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
@@ -771,8 +785,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            const blitz::TinyVector<double,NDIM> r(d_X_perimeter[m](n)-d_X_centroid[m]);
-            r_max[m] = std::max(r_max[m],sqrt(blitz::dot(r,r)));
+            const Vector<double,NDIM> r(d_X_perimeter[m](n)-d_X_centroid[m]);
+            r_max[m] = std::max(r_max[m],norm(r));
         }
     }
 
@@ -785,7 +799,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
-    blitz::TinyVector<double,NDIM> dx_finest(0.0);
+    Vector<double,NDIM> dx_finest(0.0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d]/static_cast<double>(ratio_to_level_zero(d));
@@ -826,7 +840,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
-        blitz::TinyVector<double,NDIM> dx;
+        Vector<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
@@ -837,7 +851,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        blitz::TinyVector<double,NDIM> finer_dx;
+        Vector<double,NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d]/static_cast<double>(finer_ratio(d));
@@ -850,7 +864,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 for (int n = 0; n < d_X_web[l].extent(1); ++n)
                 {
-                    const blitz::TinyVector<double,NDIM>& X = d_X_web[l](m,n);
+                    const Vector<double,NDIM>& X = d_X_web[l](m,n);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
                     const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -865,7 +879,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             }
 
             // Setup the web centroid mapping.
-            const blitz::TinyVector<double,NDIM>& X = d_X_centroid[l];
+            const Vector<double,NDIM>& X = d_X_centroid[l];
             const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
             const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -935,8 +949,8 @@ IBInstrumentPanel::readInstrumentData(
             const Index<NDIM>& patch_upper = patch_box.upper();
 
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const xLower = pgeom->getXLower();
-            const double* const xUpper = pgeom->getXUpper();
+            const double* const x_lower = pgeom->getXLower();
+            const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
             Pointer<CellData<NDIM,double> > U_cc_data = patch->getPatchData(U_data_idx);
@@ -949,22 +963,22 @@ IBInstrumentPanel::readInstrumentData(
                 std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> patch_range = d_web_patch_map[ln].equal_range(i);
                 if (patch_range.first != patch_range.second)
                 {
-                    const blitz::TinyVector<double,NDIM> X_cell(xLower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
-                                                                xLower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
+                    const Vector<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
+                                                     x_lower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
 #if (NDIM == 3)
-                                                                ,
-                                                                xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
+                                                     ,
+                                                     x_lower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
-                                                                );
+                                                     );
                     if (U_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
-                            const blitz::TinyVector<double,NDIM> U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_flow_values[meter_num] += blitz::dot(U,dA);
+                            const Vector<double,NDIM>& X = *(it->second.X);
+                            const Vector<double,NDIM>& dA = *(it->second.dA);
+                            const Vector<double,NDIM> U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            d_flow_values[meter_num] += dot(U,dA);
                         }
                     }
                     if (U_sc_data)
@@ -972,10 +986,10 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
-                            const blitz::TinyVector<double,NDIM> U = linear_interp(X, i, X_cell, *U_sc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_flow_values[meter_num] += blitz::dot(U,dA);
+                            const Vector<double,NDIM>& X = *(it->second.X);
+                            const Vector<double,NDIM>& dA = *(it->second.dA);
+                            const Vector<double,NDIM> U = linear_interp(X, i, X_cell, *U_sc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            d_flow_values[meter_num] += dot(U,dA);
                         }
                     }
                     if (P_cc_data)
@@ -983,11 +997,11 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
-                            const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_mean_pres_values[meter_num] += P(0)*norm2(dA);
-                            A                 [meter_num] += norm2(dA);
+                            const Vector<double,NDIM>& X = *(it->second.X);
+                            const Vector<double,NDIM>& dA = *(it->second.dA);
+                            const Vector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            d_mean_pres_values[meter_num] += P[0]*norm(dA);
+                            A                 [meter_num] += norm(dA);
                         }
                     }
                 }
@@ -995,21 +1009,21 @@ IBInstrumentPanel::readInstrumentData(
                 std::pair<WebCentroidMap::const_iterator,WebCentroidMap::const_iterator> centroid_range = d_web_centroid_map[ln].equal_range(i);
                 if (centroid_range.first != centroid_range.second)
                 {
-                    const blitz::TinyVector<double,NDIM> X_cell(xLower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
-                                                                xLower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
+                    const Vector<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
+                                                     x_lower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
 #if (NDIM == 3)
-                                                                ,
-                                                                xLower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
+                                                     ,
+                                                     x_lower[2] + dx[2]*(static_cast<double>(i(2)-patch_lower(2))+0.5)
 #endif
-                                                                );
+                                                     );
                     if (P_cc_data)
                     {
                         for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
-                            const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
-                            d_point_pres_values[meter_num] = P(0);
+                            const Vector<double,NDIM>& X = *(it->second.X);
+                            const Vector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            d_point_pres_values[meter_num] = P[0];
                         }
                     }
                 }
@@ -1031,7 +1045,7 @@ IBInstrumentPanel::readInstrumentData(
 
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
-    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > U_perimeter(d_num_meters);
+    std::vector<blitz::Array<Vector<double,NDIM>,1> > U_perimeter(d_num_meters);
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         U_perimeter[m].resize(d_num_perimeter_nodes[m]);
@@ -1091,7 +1105,7 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Determine the velocity of the centroid of each perimeter.
-    std::vector<blitz::TinyVector<double,NDIM> > U_centroid(d_num_meters,blitz::TinyVector<double,NDIM>(0.0));
+    std::vector<Vector<double,NDIM> > U_centroid(d_num_meters,Vector<double,NDIM>(0.0));
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
@@ -1335,12 +1349,12 @@ IBInstrumentPanel::outputLogData(
         os  << "  " << d_instrument_read_time;
 
         os.setf(std::ios_base::scientific); os.precision(5);
-        os << "  " << d_X_centroid[m](0);
+        os << "  " << d_X_centroid[m][0];
         os.setf(std::ios_base::scientific); os.precision(5);
-        os << "  " << d_X_centroid[m](1);
+        os << "  " << d_X_centroid[m][1];
 #if (NDIM == 3)
         os.setf(std::ios_base::scientific); os.precision(5);
-        os << "  " << d_X_centroid[m](2);
+        os << "  " << d_X_centroid[m][2];
 #endif
 
         os.setf(std::ios_base::scientific); os.setf(std::ios_base::showpos); os.precision(5);

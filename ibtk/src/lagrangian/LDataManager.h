@@ -55,7 +55,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
@@ -543,10 +543,10 @@ public:
      *
      * in which N is the number of nodes associated with that structure.
      *
-     * \note Returns blitz::TinyVector<double,NDIM>(0.0) in the case that the
+     * \note Returns Vector<double,NDIM>(0.0) in the case that the
      * Lagrangian structure ID is not associated with any Lagrangian structure.
      */
-    blitz::TinyVector<double,NDIM>
+    Vector<double,NDIM>
     computeLagrangianStructureCenterOfMass(
         int structure_id,
         int level_number);
@@ -559,7 +559,7 @@ public:
      * that the Lagrangian structure ID is not associated with any Lagrangian
      * structure.
      */
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >
+    std::pair<Vector<double,NDIM>,Vector<double,NDIM> >
     computeLagrangianStructureBoundingBox(
         int structure_id,
         int level_number);
@@ -574,7 +574,7 @@ public:
      */
     void
     reinitLagrangianStructure(
-        const blitz::TinyVector<double,NDIM>& X_center,
+        const Vector<double,NDIM>& X_center,
         int structure_id,
         int level_number);
 
@@ -590,7 +590,7 @@ public:
      */
     void
     displaceLagrangianStructure(
-        const blitz::TinyVector<double,NDIM>& dX,
+        const Vector<double,NDIM>& dX,
         int structure_id,
         int level_number);
 
@@ -1166,9 +1166,9 @@ private:
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > > > d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<std::pair<Vector<double,NDIM>,Vector<double,NDIM> > > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_displaced_strct_lnode_posns;
+    std::vector<std::vector<Vector<double,NDIM> > > d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.

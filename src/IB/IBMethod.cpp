@@ -66,7 +66,7 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -807,7 +807,7 @@ IBMethod::spreadFluidSource(
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                blitz::TinyVector<double,NDIM> r;
+                Vector<double,NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
@@ -1008,7 +1008,7 @@ IBMethod::interpolatePressure(
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                blitz::TinyVector<double,NDIM> r;
+                Vector<double,NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
@@ -1118,7 +1118,7 @@ IBMethod::initializePatchHierarchy(
             {
                 d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
                 d_n_src[ln] = d_ib_source_fcn->getNumSources(d_hierarchy, ln, init_data_time, d_l_data_manager);
-                d_X_src[ln].resize(d_n_src[ln], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+                d_X_src[ln].resize(d_n_src[ln], Vector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
                 d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
@@ -1322,7 +1322,7 @@ IBMethod::applyGradientDetector(
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
-            blitz::TinyVector<double,NDIM> dx_finer;
+            Vector<double,NDIM> dx_finer;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
@@ -1330,7 +1330,7 @@ IBMethod::applyGradientDetector(
 
             // The source radius must be an integer multiple of the grid
             // spacing.
-            blitz::TinyVector<double,NDIM> r;
+            Vector<double,NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 r[d] = std::max(std::floor(d_r_src[finer_level_number][n]/dx_finer[d]+0.5),2.0)*dx_finer[d];
@@ -1757,7 +1757,7 @@ IBMethod::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln],Vector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());

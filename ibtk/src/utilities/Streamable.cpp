@@ -67,7 +67,7 @@ Streamable::~Streamable()
 void
 Streamable::registerPeriodicShift(
     const IntVector<NDIM>& /*offset*/,
-    const blitz::TinyVector<double,NDIM>& /*displacement*/)
+    const Vector<double,NDIM>& /*displacement*/)
 {
     // intentionally blank
     return;

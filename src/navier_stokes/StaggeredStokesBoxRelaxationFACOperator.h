@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibtk/Vector.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
@@ -170,7 +171,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<IBTK::Vector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 }// namespace IBTK

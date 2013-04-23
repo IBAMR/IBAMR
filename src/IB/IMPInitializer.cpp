@@ -51,7 +51,7 @@
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -384,7 +384,7 @@ IMPInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
+            static const Vector<double,NDIM> periodic_displacement(0.0);
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second], d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));

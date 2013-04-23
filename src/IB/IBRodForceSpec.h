@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <vector>
 
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
@@ -95,7 +95,7 @@ public:
     IBRodForceSpec(
         int master_idx,
         const std::vector<int>& next_idxs,
-        const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params);
+        const std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!
      * \brief Destructor.
@@ -138,14 +138,14 @@ public:
      * \return A const reference to the material parameters of the rods attached
      * to the master node.
      */
-    const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
+    const std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams() const;
 
     /*!
      * \return A non-const reference to the material parameters of the rods
      * attached to the master node.
      */
-    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
+    std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams();
 
     /*!
@@ -199,7 +199,7 @@ private:
      */
     int d_master_idx;
     std::vector<int> d_next_idxs;
-    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> > d_material_params;
+    std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> > d_material_params;
 
     /*!
      * \brief A factory class to rebuild IBRodForceSpec objects from

@@ -37,6 +37,7 @@
 
 #include <vector>
 
+#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -125,7 +126,7 @@ public:
      */
     virtual void
     getSourceLocations(
-        std::vector<blitz::TinyVector<double,NDIM> >& X_src,
+        std::vector<IBTK::Vector<double,NDIM> >& X_src,
         std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

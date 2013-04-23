@@ -42,12 +42,10 @@
 #include <vector>
 
 #include "blitz/array.h"
-#include "hdf5.h"
-#include "hdf5_hl.h"
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
-using namespace std;
+#include "hdf5.h"                 // IWYU pragma: export
+#include "hdf5_hl.h"              // IWYU pragma: export
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibtk/Vector.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -610,7 +608,7 @@ initializeBeamData(
 
         int node1_idx, node2_idx, node3_idx;
         double bend_rigidity;
-        blitz::TinyVector<double,NDIM> rest_curvature;
+        Vector<double,NDIM> rest_curvature;
         if (!getline(file_stream, line_string))
         {
             cerr << "error: premature end to input file encountered before line " << k+2 << " of file " << beam_filename << "\n";

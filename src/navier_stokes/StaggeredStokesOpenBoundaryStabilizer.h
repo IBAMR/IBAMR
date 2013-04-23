@@ -40,7 +40,7 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
@@ -139,8 +139,8 @@ private:
     operator=(
         const StaggeredStokesOpenBoundaryStabilizer& that);
 
-    blitz::TinyVector<bool,2*NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
-    blitz::TinyVector<double,2*NDIM> d_width;
+    IBTK::Vector<bool,2*NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
+    IBTK::Vector<double,2*NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };

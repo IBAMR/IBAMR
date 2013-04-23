@@ -59,7 +59,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
@@ -431,7 +431,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(
         Pointer<SideData<NDIM,bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         Pointer<CellData<NDIM,int > > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
-        blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
+        Vector<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

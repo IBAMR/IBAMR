@@ -56,7 +56,7 @@
 #include "SideIndex.h"
 #include "StaggeredStokesPETScMatUtilities.h"
 #include "Variable.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -117,7 +117,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    blitz::TinyVector<std::vector<Index<NDIM> >,NDIM> up_stencil(std::vector<Index<NDIM> >(up_stencil_sz,Index<NDIM>(0)));
+    Vector<std::vector<Index<NDIM> >,NDIM> up_stencil(std::vector<Index<NDIM> >(up_stencil_sz,Index<NDIM>(0)));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -332,7 +332,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                Vector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];

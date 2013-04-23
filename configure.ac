@@ -118,6 +118,12 @@ have_builtin_prefetch=0
 AC_MSG_RESULT(no)])
 AC_DEFINE_UNQUOTED(HAVE_BUILTIN_PREFETCH,$have_builtin_prefetch,[Boolean value indicating whether the C++ compiler supports the __builtin_prefetch keyword])
 
+# Checks for Boost.
+BOOST_REQUIRE
+BOOST_ARRAY
+BOOST_MULTIARRAY
+CPPFLAGS="${BOOST_CPPFLAGS} $CPPFLAGS"
+
 # Checks for other programs.
 AC_PROG_RANLIB
 

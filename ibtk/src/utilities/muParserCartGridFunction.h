@@ -42,7 +42,7 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/Vector.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/muParser.h"
 #include "tbox/Pointer.h"
@@ -168,7 +168,7 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    blitz::TinyVector<double,NDIM> d_parser_posn;
+    Vector<double,NDIM> d_parser_posn;
 };
 }// namespace IBTK
 
