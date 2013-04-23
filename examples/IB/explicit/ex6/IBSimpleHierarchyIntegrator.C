@@ -47,6 +47,9 @@
 // IBAMR INCLUDES
 #include <ibamr/ibamr_utilities.h>
 
+// IBTK INCLUDES
+#include <ibtk/LDataManager.h>
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(

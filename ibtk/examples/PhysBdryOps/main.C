@@ -42,11 +42,11 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <LocationIndexRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/app_namespaces.h>
-#include <LocationIndexRobinBcCoefs.h>
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -178,7 +178,7 @@ main(
                 for (Box<NDIM>::Iterator b(patch_box); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    TinyVector<double,NDIM> X;
+                    double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
@@ -209,7 +209,7 @@ main(
                 for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    TinyVector<double,NDIM> X;
+                    double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
@@ -252,7 +252,7 @@ main(
                 for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
                     const Index<NDIM>& i = b();
-                    TinyVector<double,NDIM> X;
+                    double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);

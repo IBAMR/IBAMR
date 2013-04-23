@@ -38,6 +38,7 @@
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <HyperbolicLevelIntegrator.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 

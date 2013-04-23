@@ -43,6 +43,7 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
+#include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_function.h>
@@ -55,6 +56,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 

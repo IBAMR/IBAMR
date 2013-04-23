@@ -44,6 +44,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>

@@ -51,6 +51,7 @@
 #include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
