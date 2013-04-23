@@ -449,26 +449,26 @@ SUFFIXES = .f.m4
 # Dimension-dependent executables
 ascii2hdf2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ascii2hdf2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-ascii2hdf2d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.C
+ascii2hdf2d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.cpp
 ascii2hdf3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 ascii2hdf3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-ascii2hdf3d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.C
+ascii2hdf3d_SOURCES = $(top_srcdir)/src/tools/ascii2hdf.cpp
 m3D_hdf5_fiber_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_fiber_converter_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-m3D_hdf5_fiber_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
+m3D_hdf5_fiber_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp
 m3D_hdf5_marker_converter_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_marker_converter_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-m3D_hdf5_marker_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
+m3D_hdf5_marker_converter_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp
 m3D_hdf5_strain_analyzer_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 m3D_hdf5_strain_analyzer_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-m3D_hdf5_strain_analyzer_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
+m3D_hdf5_strain_analyzer_SOURCES = $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp
 marker_flooder3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 marker_flooder3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR_LIBS)
-marker_flooder3d_SOURCES = $(top_srcdir)/src/tools/marker_flooder.C
+marker_flooder3d_SOURCES = $(top_srcdir)/src/tools/marker_flooder.cpp
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .C .f .o .obj
+.SUFFIXES: .f.m4 .cpp .f .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/config/Make-rules $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -572,103 +572,103 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marker_flooder3d-marker_flooder.Po@am__quote@
 
-.C.o:
+.cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
-.C.obj:
+.cpp.obj:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-ascii2hdf2d-ascii2hdf.o: $(top_srcdir)/src/tools/ascii2hdf.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf2d-ascii2hdf.o -MD -MP -MF $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo -c -o ascii2hdf2d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.C
+ascii2hdf2d-ascii2hdf.o: $(top_srcdir)/src/tools/ascii2hdf.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf2d-ascii2hdf.o -MD -MP -MF $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo -c -o ascii2hdf2d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo $(DEPDIR)/ascii2hdf2d-ascii2hdf.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.C' object='ascii2hdf2d-ascii2hdf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.cpp' object='ascii2hdf2d-ascii2hdf.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf2d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf2d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.cpp
 
-ascii2hdf2d-ascii2hdf.obj: $(top_srcdir)/src/tools/ascii2hdf.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf2d-ascii2hdf.obj -MD -MP -MF $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo -c -o ascii2hdf2d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.C'; fi`
+ascii2hdf2d-ascii2hdf.obj: $(top_srcdir)/src/tools/ascii2hdf.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf2d-ascii2hdf.obj -MD -MP -MF $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo -c -o ascii2hdf2d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ascii2hdf2d-ascii2hdf.Tpo $(DEPDIR)/ascii2hdf2d-ascii2hdf.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.C' object='ascii2hdf2d-ascii2hdf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.cpp' object='ascii2hdf2d-ascii2hdf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf2d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf2d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf2d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.cpp'; fi`
 
-ascii2hdf3d-ascii2hdf.o: $(top_srcdir)/src/tools/ascii2hdf.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf3d-ascii2hdf.o -MD -MP -MF $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo -c -o ascii2hdf3d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.C
+ascii2hdf3d-ascii2hdf.o: $(top_srcdir)/src/tools/ascii2hdf.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf3d-ascii2hdf.o -MD -MP -MF $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo -c -o ascii2hdf3d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo $(DEPDIR)/ascii2hdf3d-ascii2hdf.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.C' object='ascii2hdf3d-ascii2hdf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.cpp' object='ascii2hdf3d-ascii2hdf.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf3d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf3d-ascii2hdf.o `test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/ascii2hdf.cpp
 
-ascii2hdf3d-ascii2hdf.obj: $(top_srcdir)/src/tools/ascii2hdf.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf3d-ascii2hdf.obj -MD -MP -MF $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo -c -o ascii2hdf3d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.C'; fi`
+ascii2hdf3d-ascii2hdf.obj: $(top_srcdir)/src/tools/ascii2hdf.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -MT ascii2hdf3d-ascii2hdf.obj -MD -MP -MF $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo -c -o ascii2hdf3d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ascii2hdf3d-ascii2hdf.Tpo $(DEPDIR)/ascii2hdf3d-ascii2hdf.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.C' object='ascii2hdf3d-ascii2hdf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/ascii2hdf.cpp' object='ascii2hdf3d-ascii2hdf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf3d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ascii2hdf3d_CXXFLAGS) $(CXXFLAGS) -c -o ascii2hdf3d-ascii2hdf.obj `if test -f '$(top_srcdir)/src/tools/ascii2hdf.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/ascii2hdf.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/ascii2hdf.cpp'; fi`
 
-m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o: $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
+m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o: $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C' object='m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp' object='m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp
 
-m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj: $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; fi`
+m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj: $(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Tpo $(DEPDIR)/m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C' object='m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp' object='m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_fiber_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_fiber_converter-m3D_hdf5_fiber_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_fiber_converter.cpp'; fi`
 
-m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o: $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
+m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o: $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C' object='m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp' object='m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp
 
-m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj: $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; fi`
+m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj: $(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Tpo $(DEPDIR)/m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C' object='m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp' object='m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_marker_converter_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_marker_converter-m3D_hdf5_marker_converter.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_marker_converter.cpp'; fi`
 
-m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o: $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
+m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o: $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.o `test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp
 
-m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj: $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; fi`
+m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj: $(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -MT m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj -MD -MP -MF $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Tpo $(DEPDIR)/m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp' object='m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(m3D_hdf5_strain_analyzer_CXXFLAGS) $(CXXFLAGS) -c -o m3D_hdf5_strain_analyzer-m3D_hdf5_strain_analyzer.obj `if test -f '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/m3D_hdf5_strain_analyzer.cpp'; fi`
 
-marker_flooder3d-marker_flooder.o: $(top_srcdir)/src/tools/marker_flooder.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -MT marker_flooder3d-marker_flooder.o -MD -MP -MF $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo -c -o marker_flooder3d-marker_flooder.o `test -f '$(top_srcdir)/src/tools/marker_flooder.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/marker_flooder.C
+marker_flooder3d-marker_flooder.o: $(top_srcdir)/src/tools/marker_flooder.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -MT marker_flooder3d-marker_flooder.o -MD -MP -MF $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo -c -o marker_flooder3d-marker_flooder.o `test -f '$(top_srcdir)/src/tools/marker_flooder.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/marker_flooder.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo $(DEPDIR)/marker_flooder3d-marker_flooder.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/marker_flooder.C' object='marker_flooder3d-marker_flooder.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/marker_flooder.cpp' object='marker_flooder3d-marker_flooder.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -c -o marker_flooder3d-marker_flooder.o `test -f '$(top_srcdir)/src/tools/marker_flooder.C' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/marker_flooder.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -c -o marker_flooder3d-marker_flooder.o `test -f '$(top_srcdir)/src/tools/marker_flooder.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/tools/marker_flooder.cpp
 
-marker_flooder3d-marker_flooder.obj: $(top_srcdir)/src/tools/marker_flooder.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -MT marker_flooder3d-marker_flooder.obj -MD -MP -MF $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo -c -o marker_flooder3d-marker_flooder.obj `if test -f '$(top_srcdir)/src/tools/marker_flooder.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/marker_flooder.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/marker_flooder.C'; fi`
+marker_flooder3d-marker_flooder.obj: $(top_srcdir)/src/tools/marker_flooder.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -MT marker_flooder3d-marker_flooder.obj -MD -MP -MF $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo -c -o marker_flooder3d-marker_flooder.obj `if test -f '$(top_srcdir)/src/tools/marker_flooder.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/marker_flooder.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/marker_flooder.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/marker_flooder3d-marker_flooder.Tpo $(DEPDIR)/marker_flooder3d-marker_flooder.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/marker_flooder.C' object='marker_flooder3d-marker_flooder.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/tools/marker_flooder.cpp' object='marker_flooder3d-marker_flooder.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -c -o marker_flooder3d-marker_flooder.obj `if test -f '$(top_srcdir)/src/tools/marker_flooder.C'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/marker_flooder.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/marker_flooder.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_flooder3d_CXXFLAGS) $(CXXFLAGS) -c -o marker_flooder3d-marker_flooder.obj `if test -f '$(top_srcdir)/src/tools/marker_flooder.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/tools/marker_flooder.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/tools/marker_flooder.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

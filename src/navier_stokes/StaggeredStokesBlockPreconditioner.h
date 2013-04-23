@@ -35,12 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/PoissonSolver.h>
-#include <ibtk/LinearSolver.h>
+#include "HierarchyDataOpsReal.h"
+#include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -220,10 +231,6 @@ private:
         const StaggeredStokesBlockPreconditioner& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesBlockPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

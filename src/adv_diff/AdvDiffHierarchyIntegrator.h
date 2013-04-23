@@ -35,17 +35,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <map>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
-#include <ibamr/ibamr_utilities.h>  // needed for less<SAMRAI::tbox::Pointer<T> >
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
-// IBTK INCLUDES
-#include <ibtk/HierarchyIntegrator.h>
-#include <ibtk/LaplaceOperator.h>
-#include <ibtk/PoissonSolver.h>
+namespace IBTK {
+class CartGridFunction;
+class LaplaceOperator;
+class PoissonSolver;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace pdat {
+template <int DIM, class TYPE> class CellVariable;
+template <int DIM, class TYPE> class FaceVariable;
+template <int DIM, class TYPE> class SideVariable;
+}  // namespace pdat
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -601,10 +626,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvDiffHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

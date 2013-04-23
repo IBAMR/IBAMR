@@ -35,8 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBLagrangianSourceStrategy.h>
+#include <string>
+#include <vector>
+
+#include "ibamr/IBLagrangianSourceStrategy.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -280,10 +300,6 @@ private:
     std::vector<std::vector<double> > d_Q_src, d_P_src;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBStandardSourceGen.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

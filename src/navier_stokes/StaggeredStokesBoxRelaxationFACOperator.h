@@ -35,20 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoxList;
+}  // namespace hier
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -165,10 +174,6 @@ private:
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StaggeredStokesBoxRelaxationFACOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

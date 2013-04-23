@@ -35,15 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-#include <ibtk/StreamableFactory.h>
+#include <unistd.h>
 
-// SAMRAI INCLUDES
-#include <tbox/AbstractStream.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
+#include "ibtk/Streamable.h"
+#include "ibtk/StreamableFactory.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -247,7 +243,16 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "IBSourceSpec.I"
+#include "ibamr/IBSourceSpec-inl.h" // IWYU pragma: keep
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

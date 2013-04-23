@@ -35,15 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h>
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include "HyperbolicLevelIntegrator.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <HyperbolicLevelIntegrator.h>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -261,10 +271,6 @@ private:
     SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> d_explicit_predictor;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

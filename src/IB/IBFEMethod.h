@@ -35,14 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 
-// IBAMR INCLUDES
-#include <ibamr/IBStrategy.h>
-
-// IBTK INCLUDES
-#include <ibtk/FEDataManager.h>
+#include "ibamr/IBStrategy.h"
+#include "ibtk/FEDataManager.h"
+#include "libmesh/mesh.h"
+#include "libmesh/petsc_vector.h"
+#include "libmesh/point.h"
+#include "libmesh/system.h"
+#include "libmesh/vector_value.h"
+#include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -690,10 +692,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBFEMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

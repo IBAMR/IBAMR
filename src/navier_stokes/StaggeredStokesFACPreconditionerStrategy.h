@@ -35,20 +35,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
+#include <string>
+#include <utility>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/CartCellRobinPhysBdryOp.h>
-#include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <ibtk/FACPreconditionerStrategy.h>
-#include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/HierarchyMathOps.h>
+#include "CoarsenAlgorithm.h"
+#include "CoarsenOperator.h"
+#include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableContext.h"
+#include "VariableFillPattern.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <RefineAlgorithm.h>
+namespace IBTK {
+class HierarchyGhostCellInterpolation;
+class HierarchyMathOps;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -583,10 +605,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StaggeredStokesFACPreconditionerStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

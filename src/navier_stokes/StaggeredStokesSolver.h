@@ -35,15 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/GeneralSolver.h>
+#include "PoissonSpecifications.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibtk/GeneralSolver.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -137,10 +140,6 @@ private:
         const StaggeredStokesSolver& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

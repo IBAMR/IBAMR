@@ -35,12 +35,50 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBInstrumentPanel.h>
-#include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/IBLagrangianSourceStrategy.h>
-#include <ibamr/IBMethodPostProcessStrategy.h>
-#include <ibamr/IBStrategy.h>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
+#include "ibamr/IBInstrumentPanel.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBLagrangianSourceStrategy.h"
+#include "ibamr/IBMethodPostProcessStrategy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+}  // namespace hier
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
+
+#if (NDIM == 3)
+#include "ibtk/LM3DDataWriter.h"
+#endif
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -663,10 +701,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

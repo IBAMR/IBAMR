@@ -35,22 +35,36 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_prefix_config
-#include <IBAMR_prefix_config.h>
-#define included_IBAMR_prefix_config
-#endif
-
-// LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <libmesh/mesh_base.h>
-#include <libmesh/point.h>
 
-// IBTK INCLUDES
-#include <ibtk/LInitStrategy.h>
-#include <ibtk/LSiloDataWriter.h>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <GriddingAlgorithm.h>
+#include "GriddingAlgorithm.h"
+#include "PatchHierarchy.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "libmesh/id_types.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace libMesh {
+class MeshBase;
+class Point;
+}  // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -279,10 +293,6 @@ private:
     SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "IMPInitializer.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

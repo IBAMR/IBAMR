@@ -35,11 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
+#include <string>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/FACPreconditioner.h>
+#include "PoissonSpecifications.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/FACPreconditioner.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class StaggeredStokesPhysicalBoundaryHelper;
+}  // namespace IBAMR
+namespace IBTK {
+class FACPreconditionerStrategy;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -134,10 +151,6 @@ private:
         const StaggeredStokesFACPreconditioner& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StaggeredStokesFACPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

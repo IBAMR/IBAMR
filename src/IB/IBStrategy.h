@@ -35,26 +35,49 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscmat.h>
-
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-#include <ibtk/HierarchyMathOps.h>
-
-// SAMRAI INCLUDES
-#include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyDataOpsReal.h>
-#include <LoadBalancer.h>
-#include <RefineSchedule.h>
-#include <StandardTagAndInitStrategy.h>
-#include <tbox/Serializable.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
+#include <string>
 #include <vector>
 
-/////////////////////////////// FORWARD DECLARATION //////////////////////////
+#include "IntVector.h"
+#include "StandardTagAndInitStrategy.h"
+#include "VariableContext.h"
+#include "ibtk/CartGridFunction.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace IBTK {
+class HierarchyMathOps;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace math {
+template <int DIM, class TYPE> class HierarchyDataOpsReal;
+}  // namespace math
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+template <int DIM> class LoadBalancer;
+}  // namespace mesh
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenAlgorithm;
+template <int DIM> class CoarsenPatchStrategy;
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineAlgorithm;
+template <int DIM> class RefinePatchStrategy;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 namespace IBAMR
 {
@@ -657,10 +680,6 @@ private:
         const IBStrategy& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

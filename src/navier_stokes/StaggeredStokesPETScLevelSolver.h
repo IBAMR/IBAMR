@@ -35,17 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDE
-#include <petscsys.h>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
+#include "CellVariable.h"
+#include "RefineSchedule.h"
+#include "SideVariable.h"
+#include "VariableContext.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
-// IBTK INCLUDES
-#include <ibtk/PETScLevelSolver.h>
-
-// SAMRAI INCLUDES
-#include <RefineSchedule.h>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -181,10 +191,6 @@ private:
     //\}
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesPETScLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

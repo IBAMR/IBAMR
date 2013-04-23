@@ -33,15 +33,22 @@
 #ifndef included_IBMethodPostProcessStrategy
 #define included_IBMethodPostProcessStrategy
 
+#include <vector>
+
+#include "tbox/DescribedClass.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace tbox {
+template <class TYPE> class Pointer;
+}  // namespace tbox
+}  // namespace SAMRAI
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBTK INCLUDES
-#include <ibtk/LData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-
-/////////////////////////////// FORWARD DECLARATION //////////////////////////
 
 namespace IBAMR
 {
@@ -113,10 +120,6 @@ private:
         const IBMethodPostProcessStrategy& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBMethodPostProcessStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

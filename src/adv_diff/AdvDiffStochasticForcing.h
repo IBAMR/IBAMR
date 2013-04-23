@@ -35,11 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <stddef.h>
+#include <string>
+#include <vector>
 
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
+#include "CellVariable.h"
+#include "PatchLevel.h"
+#include "SideVariable.h"
+#include "VariableContext.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/muParser.h"
+#include "tbox/Array.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class AdvDiffSemiImplicitHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -186,10 +207,6 @@ private:
     std::vector<int> d_F_sc_idxs;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/AdvDiffStochasticForcing.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

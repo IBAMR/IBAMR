@@ -35,15 +35,40 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <stddef.h>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/IBStrategy.h>
-#include <ibamr/INSHierarchyIntegrator.h>
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchyDataOpsReal.h"
+#include "LoadBalancer.h"
+#include "PatchLevel.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "blitz/tinyvec2.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/LMarkerSetVariable.h"
+#include "tbox/Pointer.h"
 
-// IBTK INCLUDES
-#include <ibtk/LMarkerSetVariable.h>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -504,10 +529,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

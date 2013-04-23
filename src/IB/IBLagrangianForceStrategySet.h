@@ -35,8 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBLagrangianForceStrategy.h>
+#include <vector>
+
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "petscmat.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -189,10 +202,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> > d_strategy_set;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBLagrangianForceStrategySet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

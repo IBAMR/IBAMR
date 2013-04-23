@@ -35,8 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
+#include <vector>
+
+#include "PoissonSpecifications.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class StaggeredStokesPhysicalBoundaryHelper;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -126,10 +138,6 @@ private:
         const KrylovLinearSolverStaggeredStokesSolverInterface& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

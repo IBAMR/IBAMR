@@ -35,12 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/StokesBcCoefStrategy.h>
+#include <stddef.h>
+#include <string>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "CartesianGridGeometry.h"
+#include "PatchLevel.h"
+#include "blitz/tinyvec2.h"
+#include "ibtk/CartGridFunction.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class INSHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -130,10 +145,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesOpenBoundaryStabilizer.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

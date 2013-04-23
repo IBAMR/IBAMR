@@ -35,11 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
+#include <string>
 
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/GeneralOperator.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -177,10 +182,6 @@ private:
         const ConvectiveOperator& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/ConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

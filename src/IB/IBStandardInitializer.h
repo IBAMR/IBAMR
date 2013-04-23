@@ -35,22 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_prefix_config
-#include <IBAMR_prefix_config.h>
-#define included_IBAMR_prefix_config
-#endif
-
-// IBAMR INCLUDES
-#include <ibamr/IBRodForceSpec.h>
-
-// IBTK INCLUDES
-#include <ibtk/LInitStrategy.h>
-#include <ibtk/LSiloDataWriter.h>
-#include <ibtk/Streamable.h>
-
-// C++ STDLIB INCLUDES
+#include <functional>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
+
+#include "blitz/tinyvec2.h"
+#include "ibamr/IBRodForceSpec.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+class Streamable;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -686,6 +696,7 @@ private:
      * node.
      */
     struct TargetSpec;
+
     const TargetSpec&
     getVertexTargetSpec(
         const std::pair<int,int>& point_index,
@@ -696,6 +707,7 @@ private:
      * node.
      */
     struct AnchorSpec;
+
     const AnchorSpec&
     getVertexAnchorSpec(
         const std::pair<int,int>& point_index,
@@ -706,6 +718,7 @@ private:
      * particular node.
      */
     struct BdryMassSpec;
+
     const BdryMassSpec&
     getVertexBdryMassSpec(
         const std::pair<int,int>& point_index,
@@ -975,10 +988,6 @@ private:
     std::vector<unsigned int> d_global_index_offset;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "IBStandardInitializer.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

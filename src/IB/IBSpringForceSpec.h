@@ -35,20 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_prefix_config
-#include <IBAMR_prefix_config.h>
-#define included_IBAMR_prefix_config
-#endif
-
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-#include <ibtk/StreamableFactory.h>
-
-// SAMRAI INCLUDES
-#include <tbox/AbstractStream.h>
-
-// C++ STDLIB INCLUDES
+#include <unistd.h>
 #include <vector>
+
+#include "ibtk/Streamable.h"
+#include "ibtk/StreamableFactory.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -322,7 +314,16 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibamr/IBSpringForceSpec.I>
+#include "ibamr/IBSpringForceSpec-inl.h" // IWYU pragma: keep
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

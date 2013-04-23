@@ -35,21 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <libmesh/enum_order.h>
-#include <libmesh/enum_quadrature_type.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/linear_solver.h>
-#include <libmesh/mesh.h>
-#include <libmesh/petsc_vector.h>
-#include <libmesh/sparse_matrix.h>
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// SAMRAI INCLUDES
-#include <tbox/Serializable.h>
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
+#include "libmesh/equation_systems.h"
+#include "libmesh/linear_solver.h"
+#include "libmesh/mesh.h"
+#include "libmesh/petsc_vector.h"
+#include "libmesh/sparse_matrix.h"
+#include "petscsys.h"
+#include "tbox/Serializable.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -512,10 +508,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/ExplicitFEMechanicsSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

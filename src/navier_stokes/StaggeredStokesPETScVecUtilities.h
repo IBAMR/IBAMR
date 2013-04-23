@@ -35,15 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscvec.h>
-
-// SAMRAI INCLUDES
-#include <PatchLevel.h>
-#include <RefineSchedule.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace xfer {
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -203,10 +207,6 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "StaggeredStokesPETScVecUtilities.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
