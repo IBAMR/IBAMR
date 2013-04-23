@@ -1,4 +1,4 @@
-// Filename: IndexUtilities.C
+// Filename: IndexUtilities.cpp
 // Created on 12 Jul 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: LTransaction.C
+// Filename: LTransaction.cpp
 // Created on 03 Mar 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

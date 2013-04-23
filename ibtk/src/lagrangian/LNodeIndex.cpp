@@ -1,4 +1,4 @@
-// Filename: LNodeIndex.C
+// Filename: LNodeIndex.cpp
 // Created on 28 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

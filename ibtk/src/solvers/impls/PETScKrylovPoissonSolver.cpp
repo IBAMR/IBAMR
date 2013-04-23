@@ -1,4 +1,4 @@
-// Filename: PETScKrylovPoissonSolver.C
+// Filename: PETScKrylovPoissonSolver.cpp
 // Created on 20 Nov 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

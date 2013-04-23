@@ -1,4 +1,4 @@
-// Filename: CCPoissonPointRelaxationFACOperator.C
+// Filename: CCPoissonPointRelaxationFACOperator.cpp
 // Created on 10 Feb 2005 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

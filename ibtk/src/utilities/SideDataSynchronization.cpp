@@ -1,4 +1,4 @@
-// Filename: SideDataSynchronization.C
+// Filename: SideDataSynchronization.cpp
 // Created on 01 Mar 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

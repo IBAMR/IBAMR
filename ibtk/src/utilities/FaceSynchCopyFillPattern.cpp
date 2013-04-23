@@ -1,4 +1,4 @@
-// Filename: FaceSynchCopyFillPattern.C
+// Filename: FaceSynchCopyFillPattern.cpp
 // Created on 03 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

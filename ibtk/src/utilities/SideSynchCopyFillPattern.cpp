@@ -1,4 +1,4 @@
-// Filename: SideSynchCopyFillPattern.C
+// Filename: SideSynchCopyFillPattern.cpp
 // Created on 10 Mar 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

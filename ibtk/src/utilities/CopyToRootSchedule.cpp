@@ -1,4 +1,4 @@
-// Filename: CopyToRootSchedule.C
+// Filename: CopyToRootSchedule.cpp
 // Created on 04 May 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

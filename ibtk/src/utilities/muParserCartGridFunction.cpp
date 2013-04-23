@@ -1,4 +1,4 @@
-// Filename: muParserCartGridFunction.C
+// Filename: muParserCartGridFunction.cpp
 // Created on 24 Aug 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

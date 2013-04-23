@@ -1,4 +1,4 @@
-// Filename: CartCellDoubleLinearCFInterpolation.C
+// Filename: CartCellDoubleLinearCFInterpolation.cpp
 // Created on 17 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

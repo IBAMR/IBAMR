@@ -1,4 +1,4 @@
-// Filename: CartGridFunction.C
+// Filename: CartGridFunction.cpp
 // Created on 15 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

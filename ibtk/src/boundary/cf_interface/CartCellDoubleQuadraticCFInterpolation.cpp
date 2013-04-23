@@ -1,4 +1,4 @@
-// Filename: CartCellDoubleQuadraticCFInterpolation.C
+// Filename: CartCellDoubleQuadraticCFInterpolation.cpp
 // Created on 29 Oct 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

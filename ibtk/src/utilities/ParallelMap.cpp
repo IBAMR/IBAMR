@@ -1,4 +1,4 @@
-// Filename: ParallelMap.C
+// Filename: ParallelMap.cpp
 // Created on 28 Jun 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

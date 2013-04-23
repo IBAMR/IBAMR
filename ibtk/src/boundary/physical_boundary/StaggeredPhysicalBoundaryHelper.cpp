@@ -1,4 +1,4 @@
-// Filename: StaggeredPhysicalBoundaryHelper.C
+// Filename: StaggeredPhysicalBoundaryHelper.cpp
 // Created on 22 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: PoissonUtilities.C
+// Filename: PoissonUtilities.cpp
 // Created on 31 Mar 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

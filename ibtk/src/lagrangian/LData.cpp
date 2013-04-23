@@ -1,4 +1,4 @@
-// Filename: LData.C
+// Filename: LData.cpp
 // Created on 17 Apr 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: HierarchyIntegrator.C
+// Filename: HierarchyIntegrator.cpp
 // Created on 10 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

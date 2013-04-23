@@ -1,4 +1,4 @@
-// Filename: EdgeDataSynchronization.C
+// Filename: EdgeDataSynchronization.cpp
 // Created on 02 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: LEInteractor.C
+// Filename: LEInteractor.cpp
 // Created on 14 Jul 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

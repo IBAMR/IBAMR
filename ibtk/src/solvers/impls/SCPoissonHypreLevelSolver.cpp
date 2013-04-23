@@ -1,4 +1,4 @@
-// Filename: SCPoissonHypreLevelSolver.C
+// Filename: SCPoissonHypreLevelSolver.cpp
 // Created on 17 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

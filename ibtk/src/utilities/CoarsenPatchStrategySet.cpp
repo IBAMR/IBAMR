@@ -1,4 +1,4 @@
-// Filename: CoarsenPatchStrategySet.C
+// Filename: CoarsenPatchStrategySet.cpp
 // Created on 11 Sep 2006 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

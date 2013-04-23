@@ -1,4 +1,4 @@
-// Filename: PETScNewtonKrylovSolver.C
+// Filename: PETScNewtonKrylovSolver.cpp
 // Created on 26 Nov 2003 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

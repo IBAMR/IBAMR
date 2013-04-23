@@ -1,4 +1,4 @@
-// Filename: PETScVecUtilities.C
+// Filename: PETScVecUtilities.cpp
 // Created on 23 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

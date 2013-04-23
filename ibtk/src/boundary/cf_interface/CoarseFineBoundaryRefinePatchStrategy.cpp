@@ -1,4 +1,4 @@
-// Filename: CoarseFineBoundaryRefinePatchStrategy.C
+// Filename: CoarseFineBoundaryRefinePatchStrategy.cpp
 // Created on 06 Nov 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: StreamableManager.C
+// Filename: StreamableManager.cpp
 // Created on 14 Jun 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

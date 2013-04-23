@@ -1,4 +1,4 @@
-// Filename: LM3DDataWriter.C
+// Filename: LM3DDataWriter.cpp
 // Created on 26 Apr 2005 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

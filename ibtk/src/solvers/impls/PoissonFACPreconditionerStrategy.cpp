@@ -1,4 +1,4 @@
-// Filename: PoissonFACPreconditionerStrategy.C
+// Filename: PoissonFACPreconditionerStrategy.cpp
 // Created on 27 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

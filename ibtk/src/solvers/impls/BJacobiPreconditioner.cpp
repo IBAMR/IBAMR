@@ -1,4 +1,4 @@
-// Filename: BJacobiPreconditioner.C
+// Filename: BJacobiPreconditioner.cpp
 // Created on 11 Apr 2005 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -89,7 +89,7 @@ public:
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
-        /*!
+    /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * cell-centered complex Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
@@ -98,7 +98,7 @@ public:
     constructPatchLevelCCComplexLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-	const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
         double data_time,
         const std::vector<int>& num_dofs_per_proc,
@@ -114,7 +114,7 @@ public:
     constructPatchLevelCCComplexLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
-	const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
         const std::vector<int>& num_dofs_per_proc,

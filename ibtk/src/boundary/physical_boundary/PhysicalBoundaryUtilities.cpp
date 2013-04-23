@@ -1,4 +1,4 @@
-// Filename: PhysicalBoundaryUtilities.C
+// Filename: PhysicalBoundaryUtilities.cpp
 // Created on 30 Sep 2006 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

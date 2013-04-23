@@ -1,4 +1,4 @@
-// Filename: LinearSolver.C
+// Filename: LinearSolver.cpp
 // Created on 09 Sep 2003 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

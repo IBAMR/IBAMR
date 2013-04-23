@@ -1,4 +1,4 @@
-// Filename: StandardTagAndInitStrategySet.C
+// Filename: StandardTagAndInitStrategySet.cpp
 // Created on 26 Jun 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

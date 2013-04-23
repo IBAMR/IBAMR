@@ -1,4 +1,4 @@
-// Filename: SCLaplaceOperator.C
+// Filename: SCLaplaceOperator.cpp
 // Created on 11 Apr 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: PETScSNESFunctionGOWrapper.C
+// Filename: PETScSNESFunctionGOWrapper.cpp
 // Created on 27 Dec 2003 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

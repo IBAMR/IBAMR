@@ -1,4 +1,4 @@
-// Filename: CartCellDoubleCubicCoarsen.C
+// Filename: CartCellDoubleCubicCoarsen.cpp
 // Created on 14 Aug 2009 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

@@ -1,4 +1,4 @@
-// Filename: NormOps.C
+// Filename: NormOps.cpp
 // Created on 08 Dec 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
