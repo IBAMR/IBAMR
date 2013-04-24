@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C BoussinesqForcing.C BoussinesqForcing.h
+SOURCES = main.cpp BoussinesqForcing.cpp BoussinesqForcing.h
 EXTRA_DIST = input2d
 
 EXTRA_PROGRAMS =

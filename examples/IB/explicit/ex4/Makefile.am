@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.cpp
 EXTRA_DIST  = input3d
 EXTRA_DIST += generate_mesh3d.m
 EXTRA_DIST += curve3d_64.vertex curve3d_64.rod curve3d_64.director

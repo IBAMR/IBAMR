@@ -1,4 +1,4 @@
-// Filename: IBSimpleHierarchyIntegrator.C
+// Filename: IBSimpleHierarchyIntegrator.cpp
 // Created on 04 Apr 2013 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith

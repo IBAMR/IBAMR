@@ -1,4 +1,4 @@
-// Filename: BoussinesqForcing.C
+// Filename: BoussinesqForcing.cpp
 // Created on 24 Aug 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
