@@ -390,7 +390,7 @@ public:
 
     /*!
      * Callback function specification to enable further specialization of
-     * IntegrateHierarchy().
+     * integrateHierarchy().
      */
     typedef void
     (*IntegrateHierarchyCallbackFcnPtr)(
@@ -401,7 +401,7 @@ public:
 
     /*!
      * Register a callback function to enable further specialization of
-     * IntegrateHierarchy().
+     * integrateHierarchy().
      */
     void
     registerIntegrateHierarchyCallback(
@@ -427,6 +427,29 @@ public:
     void
     registerPostprocessIntegrateHierarchyCallback(
         PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+        void* ctx=NULL);
+
+    /*!
+     * Callback function specification to enable further specialization of
+     * applyGradientDetector().
+     */
+    typedef void
+    (*ApplyGradientDetectorCallbackFcnPtr)(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too,
+        void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of
+     * applyGradientDetector().
+     */
+    void
+    registerApplyGradientDetectorCallback(
+        ApplyGradientDetectorCallbackFcnPtr callback,
         void* ctx=NULL);
 
     ///
@@ -733,6 +756,18 @@ protected:
         int num_cycles);
 
     /*!
+     * Execute any user-specified applyGradientDetector callback functions.
+     */
+    virtual void
+    executeApplyGradientDetectorCallbackFcns(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
+
+    /*!
      * Register a state variable with the integrator.  When a refine operator is
      * specified, the data for the variable are automatically maintained as the
      * patch hierarchy evolves.
@@ -1012,6 +1047,8 @@ protected:
     std::vector<void*> d_integrate_hierarchy_callback_ctxs;
     std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr> d_postprocess_integrate_hierarchy_callbacks;
     std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
+    std::vector<ApplyGradientDetectorCallbackFcnPtr> d_apply_gradient_detector_callbacks;
+    std::vector<void*> d_apply_gradient_detector_callback_ctxs;
 
 private:
     /*!

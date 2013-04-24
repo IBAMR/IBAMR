@@ -604,6 +604,16 @@ HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
 }// registerPostprocessIntegrateHierarchyCallback
 
 void
+HierarchyIntegrator::registerApplyGradientDetectorCallback(
+    ApplyGradientDetectorCallbackFcnPtr callback,
+    void* ctx)
+{
+    d_apply_gradient_detector_callbacks.push_back(callback);
+    d_apply_gradient_detector_callback_ctxs.push_back(ctx);
+    return;
+}// registerApplyGradientDetectorCallback
+
+void
 HierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
@@ -815,6 +825,9 @@ HierarchyIntegrator::applyGradientDetector(
 
     // Tag cells.
     applyGradientDetectorSpecialized(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    executeApplyGradientDetectorCallbackFcns(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+
+    // ALlow child integrators to tag cells for refinement.
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
@@ -1139,6 +1152,24 @@ HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(
     }
     return;
 }// executePostprocessIntegrateHierarchyCallbackFcns
+
+void
+HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double error_data_time,
+    const int tag_index,
+    const bool initial_time,
+    const bool uses_richardson_extrapolation_too)
+{
+    std::vector<ApplyGradientDetectorCallbackFcnPtr>& callbacks = d_apply_gradient_detector_callbacks;
+    std::vector<void*>& ctxs = d_apply_gradient_detector_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too, ctxs[k]);
+    }
+    return;
+}// executeApplyGradientDetectorCallbackFcns
 
 void
 HierarchyIntegrator::registerVariable(
