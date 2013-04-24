@@ -72,7 +72,7 @@ coordinate_mapping_function(
     X(0) = s(0) + 0.6;
     X(1) = s(1) + 0.5;
 #if (NDIM == 3)
-    X(2) = s(1) + 0.5;
+    X(2) = s(2) + 0.5;
 #endif
     return;
 }// coordinate_mapping_function
