@@ -1,5 +1,5 @@
-// Filename: UFunction.C
-// Created on 23 June 2004 by Boyce Griffith
+// Filename: QInit.cpp
+// Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "UFunction.h"
+#include "QInit.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -48,7 +48,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-UFunction::UFunction(
+QInit::QInit(
     const string& object_name,
     Pointer<GridGeometry<NDIM> > grid_geom,
     Pointer<Database> input_db)
@@ -56,10 +56,11 @@ UFunction::UFunction(
       d_object_name(object_name),
       d_grid_geom(grid_geom),
       d_X(),
-      d_init_type("UNIFORM"),
-      d_kappa(),
-      d_omega(),
-      d_uniform_u()
+      d_init_type("GAUSSIAN"),
+      d_gaussian_kappa(0.01),
+      d_zalesak_r(0.15),
+      d_zalesak_slot_w(0.025),
+      d_zalesak_slot_l(0.1)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -72,103 +73,121 @@ UFunction::UFunction(
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
-        d_omega[d] = 2.0*M_PI;
-        d_kappa[d] = 0.25;
-        d_uniform_u[d] = 1.0;
     }
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
 
     return;
-}// UFunction
+}// QInit
 
-UFunction::~UFunction()
+QInit::~QInit()
 {
     // intentionally blank
     return;
-}// ~UFunction
+}// ~QInit
 
 void
-UFunction::setDataOnPatch(
+QInit::setDataOnPatch(
     const int data_idx,
     Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
-    const double data_time,
+    const double /*data_time*/,
     const bool /*initial_time*/,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(u_data);
+    TBOX_ASSERT(Q_data);
 #endif
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Index<NDIM>& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
-    if (d_init_type == "UNIFORM")
+    const double* const XLower = pgeom->getXLower();
+    const double* const dx = pgeom->getDx();
+
+    double r_squared;
+    TinyVector<double,NDIM> X;
+
+    Q_data->fillAll(0.0);
+
+    if (d_init_type == "GAUSSIAN")
     {
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            u_data->getArrayData(axis).
-                fillAll(d_uniform_u[axis]*
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0));
-        }
-    }
-    else if (d_init_type == "VORTEX")
-    {
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_lower = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-
-        const double* const XLower = pgeom->getXLower();
-        const double* const dx = pgeom->getDx();
-
-        TinyVector<double,NDIM> X;
-
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            for (FaceIterator<NDIM> it(patch_box,axis); it; it++)
+            const Index<NDIM>& i = ic();
+            // NOTE: This assumes the lattice of Gaussians is being advected in
+            // the unit square.
+            TinyVector<int,NDIM> offset;
+            for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
-                const FaceIndex<NDIM>& i = it();
-                const Index<NDIM>& cell_idx = i.toCell(1);
-
-                for (unsigned int d = 0; d < NDIM; ++d)
+                for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))
                 {
-                    if (d != axis)
+#if (NDIM > 2)
+                    for (offset[2] = -2; offset[2] <= 2; ++(offset[2]))
                     {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
-                    }
-                    else
-                    {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
-                    }
-                }
+#endif
+                        r_squared = 0.0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            X[d] = XLower[d] +
+                                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                            r_squared += pow(
+                                X[d]-(d_X[d]+static_cast<double>(offset[d])),2.0);
+                        }
 
-                // 2D vortex
-                if (axis == 0)
-                {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (X[1] - d_X[axis]);
-                }
-                else if (axis == 1)
-                {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (d_X[axis] - X[0]);
-                }
-                else
-                {
-                    (*u_data)(i) = 0.0;
+                        (*Q_data)(i) +=
+                            exp(-r_squared/(4.0*d_gaussian_kappa))/
+                            pow(4.0*M_PI*d_gaussian_kappa,
+                                0.5*static_cast<double>(NDIM));
+#if (NDIM > 2)
+                    }
+#endif
                 }
             }
         }
     }
+    else if (d_init_type == "ZALESAK")
+    {
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            const Index<NDIM>& i = ic();
+            r_squared = 0.0;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X[d] = XLower[d] +
+                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                r_squared += pow((X[d]-d_X[d]),2.0);
+            }
+            if ((sqrt(r_squared) > d_zalesak_r) ||
+                ((abs(X[0] - d_X[0]) < d_zalesak_slot_w) &&
+                 (X[1] - d_X[1]) < d_zalesak_slot_l))
+            {
+                (*Q_data)(i) = 0.0;
+            }
+            else
+            {
+                (*Q_data)(i) = 1.0;
+            }
+        }
+    }
+    else if (d_init_type == "SINUSOIDAL")
+    {
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            const Index<NDIM>& i = ic();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X[d] = XLower[d] +
+                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+            }
+            (*Q_data)(i) = sin(X[0]);
+        }
+    }
     else
     {
-        TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
+        TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
                    << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
@@ -179,21 +198,11 @@ UFunction::setDataOnPatch(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-UFunction::getFromInput(
+QInit::getFromInput(
     Pointer<Database> db)
 {
     if (db)
     {
-        if (db->keyExists("omega"))
-        {
-            db->getDoubleArray("omega", d_omega.data(), NDIM);
-        }
-
-        if (db->keyExists("kappa"))
-        {
-            db->getDoubleArray("kappa", d_kappa.data(), NDIM);
-        }
-
         if (db->keyExists("X"))
         {
             db->getDoubleArray("X", d_X.data(), NDIM);
@@ -201,14 +210,17 @@ UFunction::getFromInput(
 
         d_init_type = db->getStringWithDefault("init_type",d_init_type);
 
-        if (d_init_type == "UNIFORM")
+        if (d_init_type == "GAUSSIAN")
         {
-            if (db->keyExists("uniform_u"))
-            {
-                db->getDoubleArray("uniform_u", d_uniform_u.data(), NDIM);
-            }
+            d_gaussian_kappa = db->getDoubleWithDefault("kappa",d_gaussian_kappa);
         }
-        else if (d_init_type == "VORTEX")
+        else if (d_init_type == "ZALESAK")
+        {
+            d_zalesak_r = db->getDoubleWithDefault("zalesak_r",d_zalesak_r);
+            d_zalesak_slot_w = db->getDoubleWithDefault("zalesak_slot_w",d_zalesak_slot_w);
+            d_zalesak_slot_l = db->getDoubleWithDefault("zalesak_slot_l",d_zalesak_slot_l);
+        }
+        else if (d_init_type == "SINUSOIDAL")
         {
             // intentionally blank
         }

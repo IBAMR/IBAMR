@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.cpp
 EXTRA_DIST  = input2d input2d.shell input2d.shell_circum_fibers
 EXTRA_DIST += generate_curve2d.m generate_shell2d.m
 
@@ -20,7 +20,7 @@ endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = main.C
+main2d_SOURCES = main.cpp
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

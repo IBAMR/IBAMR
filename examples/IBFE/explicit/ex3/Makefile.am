@@ -13,11 +13,11 @@ endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = main.C
+main2d_SOURCES = main.cpp
 
 convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 convergence_tester2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-convergence_tester2d_SOURCES = convergence_tester.C
+convergence_tester2d_SOURCES = convergence_tester.cpp
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

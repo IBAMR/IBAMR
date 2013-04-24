@@ -1,4 +1,4 @@
-// Filename: QInit.C
+// Filename: QInit.cpp
 // Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
@@ -66,14 +66,28 @@ QInit::QInit(
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
 #endif
+    d_object_name = object_name;
+    d_grid_geom = grid_geom;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_grid_geom);
+#endif
 
     // Default initial values.
     const double* const XUpper = d_grid_geom->getXUpper();
     const double* const XLower = d_grid_geom->getXLower();
+
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
     }
+
+    d_init_type = "GAUSSIAN";
+
+    d_gaussian_kappa = 0.01;
+
+    d_zalesak_r = 0.15;
+    d_zalesak_slot_w = 0.025;
+    d_zalesak_slot_l = 0.1;
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -92,7 +106,7 @@ QInit::setDataOnPatch(
     const int data_idx,
     Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
-    const double /*data_time*/,
+    const double data_time,
     const bool /*initial_time*/,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
@@ -109,6 +123,7 @@ QInit::setDataOnPatch(
 
     double r_squared;
     TinyVector<double,NDIM> X;
+    const double t = data_time;
 
     Q_data->fillAll(0.0);
 
@@ -117,8 +132,8 @@ QInit::setDataOnPatch(
         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
             const Index<NDIM>& i = ic();
-            // NOTE: This assumes the lattice of Gaussians is being advected in
-            // the unit square.
+            // NOTE: This assumes the lattice of Gaussians are being advected
+            // and diffused in the unit square.
             TinyVector<int,NDIM> offset;
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
@@ -138,8 +153,8 @@ QInit::setDataOnPatch(
                         }
 
                         (*Q_data)(i) +=
-                            exp(-r_squared/(4.0*d_gaussian_kappa))/
-                            pow(4.0*M_PI*d_gaussian_kappa,
+                            exp(-r_squared/(4.0*d_gaussian_kappa*(1.0+t)))/
+                            pow(4.0*M_PI*d_gaussian_kappa*(1.0+t),
                                 0.5*static_cast<double>(NDIM));
 #if (NDIM > 2)
                     }
@@ -170,19 +185,6 @@ QInit::setDataOnPatch(
             {
                 (*Q_data)(i) = 1.0;
             }
-        }
-    }
-    else if (d_init_type == "SINUSOIDAL")
-    {
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
-        {
-            const Index<NDIM>& i = ic();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X[d] = XLower[d] +
-                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-            }
-            (*Q_data)(i) = sin(X[0]);
         }
     }
     else
@@ -219,10 +221,6 @@ QInit::getFromInput(
             d_zalesak_r = db->getDoubleWithDefault("zalesak_r",d_zalesak_r);
             d_zalesak_slot_w = db->getDoubleWithDefault("zalesak_slot_w",d_zalesak_slot_w);
             d_zalesak_slot_l = db->getDoubleWithDefault("zalesak_slot_l",d_zalesak_slot_l);
-        }
-        else if (d_init_type == "SINUSOIDAL")
-        {
-            // intentionally blank
         }
         else
         {

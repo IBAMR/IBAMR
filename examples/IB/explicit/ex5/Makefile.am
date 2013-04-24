@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.cpp
 EXTRA_DIST  = input2d
 EXTRA_DIST += input3d
 EXTRA_DIST += points2d.vertex
