@@ -261,14 +261,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -280,9 +280,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -389,14 +389,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -407,9 +407,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(2)
+CDEC$ LOOP COUNT(2)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -516,14 +516,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide4_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -535,9 +535,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -645,14 +645,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide4_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -663,9 +663,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -771,14 +771,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -790,9 +790,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -899,14 +899,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -917,9 +917,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(4)
+CDEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1026,14 +1026,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide8_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1045,9 +1045,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1154,14 +1154,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide8_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1172,9 +1172,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1275,14 +1275,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1294,9 +1294,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1398,14 +1398,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1416,9 +1416,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(3)
+CDEC$ LOOP COUNT(3)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1525,14 +1525,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide6_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1544,9 +1544,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1654,14 +1654,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide6_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1672,9 +1672,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -2166,14 +2166,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide8_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2185,9 +2185,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2295,14 +2295,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide8_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2313,9 +2313,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
+CDEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -2422,14 +2422,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide16_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2441,9 +2441,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2551,14 +2551,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide16_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2569,9 +2569,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(16)
+CDEC$ LOOP COUNT(16)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -2681,14 +2681,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2751,10 +2751,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(6)
-C     DEC$ NOVECTOR
+CDEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2865,14 +2864,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2933,10 +2932,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-C     DEC$ LOOP COUNT(6)
+CDEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(6)
-C     DEC$ NOVECTOR
+CDEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
