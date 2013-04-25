@@ -107,7 +107,11 @@ get_elem_hmax(
             X(d) = X_node(k,d);
         }
     }
-    const double hmax = elem->hmax();
+    double hmax = 0.0;
+    for (unsigned int e = 0; e < elem->n_edges(); ++e)
+    {
+        hmax = std::max(hmax, elem->build_edge(e)->hmax());
+    }
     for (int k = 0; k < n_node; ++k)
     {
         elem->point(k) = s_node_cache[k];
