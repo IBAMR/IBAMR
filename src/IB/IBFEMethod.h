@@ -114,7 +114,7 @@ public:
         libMesh::NumericVector<double>& U_b,
         libMesh::NumericVector<double>& U,
         libMesh::NumericVector<double>& X,
-        libMesh::MeshBase& mesh,
+        libMesh::EquationSystems* equation_systems,
         double data_time,
         void* ctx);
 

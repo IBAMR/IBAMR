@@ -364,8 +364,7 @@ IBFEMethod::preprocessIntegrateData(
         if (d_constrained_part[part] && d_constrained_part_velocity_fcns[part])
         {
             EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-            MeshBase& mesh = equation_systems->get_mesh();
-            d_constrained_part_velocity_fcns[part](*d_U_b_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], mesh, d_current_time, d_constrained_part_velocity_fcn_ctxs[part]);
+            d_constrained_part_velocity_fcns[part](*d_U_b_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], equation_systems, d_current_time, d_constrained_part_velocity_fcn_ctxs[part]);
         }
     }
     return;
@@ -713,14 +712,14 @@ IBFEMethod::initializeFEData()
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
-                        if (node->n_dofs(F_sys_num) > 0)
+                        if (node->n_dofs(F_sys_num))
                         {
                             const int F_dof_index = node->dof_number(F_sys_num,d,0);
                             DofConstraintRow F_constraint_row;
                             F_constraint_row[F_dof_index] = 1.0;
                             F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
                         }
-                        if (node->n_dofs(U_sys_num) > 0)
+                        if (node->n_dofs(U_sys_num))
                         {
                             const int U_dof_index = node->dof_number(U_sys_num,d,0);
                             DofConstraintRow U_constraint_row;
@@ -912,11 +911,10 @@ IBFEMethod::computeConstraintForceDensity(
 {
     if (d_constrained_part[part])
     {
-        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        MeshBase& mesh = equation_systems->get_mesh();
         if (d_constrained_part_velocity_fcns[part])
         {
-            d_constrained_part_velocity_fcns[part](U_b_vec, U_vec, X_vec, mesh, data_time, d_constrained_part_velocity_fcn_ctxs[part]);
+            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+            d_constrained_part_velocity_fcns[part](U_b_vec, U_vec, X_vec, equation_systems, data_time, d_constrained_part_velocity_fcn_ctxs[part]);
         }
         const double dt = d_new_time-d_current_time;
         const double rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
@@ -1774,7 +1772,7 @@ IBFEMethod::initializeCoordinates(
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(X_sys_num) > 0)
+        if (n->n_vars(X_sys_num))
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
             const Point& s = *n;
@@ -1810,7 +1808,7 @@ IBFEMethod::updateCoordinateMapping(
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(X_sys_num) > 0)
+        if (n->n_vars(X_sys_num))
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
             libmesh_assert(n->n_vars(X_mapping_sys_num) == NDIM);
