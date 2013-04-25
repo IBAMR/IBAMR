@@ -359,13 +359,6 @@ IBFEMethod::preprocessIntegrateData(
         d_U_half_vecs[part]->close();
         d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
         d_U_new_vecs[part]->close();
-
-        // Compute the constraint velocity.
-        if (d_constrained_part[part] && d_constrained_part_velocity_fcns[part])
-        {
-            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-            d_constrained_part_velocity_fcns[part](*d_U_b_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], equation_systems, d_current_time, d_constrained_part_velocity_fcn_ctxs[part]);
-        }
     }
     return;
 }// preprocessIntegrateData
