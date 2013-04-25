@@ -879,7 +879,8 @@ private:
         const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
-        const std::string& interp_fcn);
+        const std::string& interp_fcn,
+        int axis=0);
 
     /*!
      * Implementation of the IB spreading operation.
@@ -900,7 +901,8 @@ private:
         const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
-        const std::string& spread_fcn);
+        const std::string& spread_fcn,
+        int axis=0);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box

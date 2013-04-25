@@ -175,6 +175,330 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Interpolate u onto V at the positions specified by X using the
+c     discontinuous linear delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_discontinuous_linear_interp3d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
+     &     patch_touches_lower_physical_bdry,
+     &     patch_touches_upper_physical_bdry,
+     &     nugc0,nugc1,nugc2,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nindices
+
+      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
+      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic0,ic1,ic2
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
+
+      LOGICAL account_for_phys_bdry
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+      ilower(2) = ilower2
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+      iupper(2) = iupper2
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+      nugc(2) = nugc2
+c
+c     Determine if we need to account for physical boundaries.
+c
+      account_for_phys_bdry = .false.
+      do d = 0,NDIM-1
+         account_for_phys_bdry = account_for_phys_bdry    .or.
+     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
+     &        (patch_touches_upper_physical_bdry(d).eq.1)
+      enddo
+c
+c     Use the discontinuous linear delta function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Shift the point by X_shift.
+c
+         do d = 0,NDIM-1
+            X_shifted(d) = X(d,s)+Xshift(d,l)
+         enddo
+c
+c     Determine the interpolation stencils and weights.
+c
+         do d = 0,NDIM-1
+            ic_center(d) = ilower(d) +
+     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            X_cell(d) = x_lower(d) +
+     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+
+            if ( d.eq.axis ) then
+               if ( X_shifted(d).lt.X_cell(d) ) then
+                  ic_lower(d) = ic_center(d)-1
+                  ic_upper(d) = ic_center(d)
+                  w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,1) = 1.d0 - w(d,0)
+               else
+                  ic_lower(d) = ic_center(d)
+                  ic_upper(d) = ic_center(d)+1
+                  w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,1) = 1.d0 - w(d,0)
+               endif
+
+               if ( account_for_phys_bdry ) then
+                  if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
+     &                 (ic_lower(d) .lt. ilower(d)) ) then
+                     w(d,0) = 1.d0
+                     w(d,1) = 0.d0
+                     ic_lower(d) = ilower(d)
+                     ic_upper(d) = ilower(d)
+                  endif
+                  if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
+     &                 (ic_upper(d) .gt. iupper(d)) ) then
+                     w(d,0) = 1.d0
+                     w(d,1) = 0.d0
+                     ic_lower(d) = iupper(d)
+                     ic_upper(d) = iupper(d)
+                  endif
+               endif
+            else
+               w(d,0) = 1.d0
+               ic_lower(d) = ic_center(d)
+               ic_upper(d) = ic_center(d)
+            endif
+
+            ic_trimmed_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_trimmed_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+         enddo
+c
+c     Interpolate u onto V.
+c
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+CDEC$ LOOP COUNT(2)
+            do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
+CDEC$ LOOP COUNT(2)
+               do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
+CDEC$ LOOP COUNT(2)
+                  do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
+                     V(d,s) = V(d,s)
+     &                    +w(0,ic0-ic_lower(0))
+     &                    *w(1,ic1-ic_lower(1))
+     &                    *w(2,ic2-ic_lower(2))
+     &                    *u(ic0,ic1,ic2,d)
+                  enddo
+               enddo
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the
+c     discontinuous linear delta function using standard (double) precision
+c     accumulation on the Cartesian grid.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_discontinuous_linear_spread3d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
+     &     patch_touches_lower_physical_bdry,
+     &     patch_touches_upper_physical_bdry,
+     &     nugc0,nugc1,nugc2,
+     &     u)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
+      INTEGER nugc0,nugc1,nugc2
+
+      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
+      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic0,ic1,ic2
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
+
+      LOGICAL account_for_phys_bdry
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+      ilower(2) = ilower2
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+      iupper(2) = iupper2
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+      nugc(2) = nugc2
+c
+c     Determine if we need to account for physical boundaries.
+c
+      account_for_phys_bdry = .false.
+      do d = 0,NDIM-1
+         account_for_phys_bdry = account_for_phys_bdry    .or.
+     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
+     &        (patch_touches_upper_physical_bdry(d).eq.1)
+      enddo
+c
+c     Use the discontinuous linear delta function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Shift the point by X_shift.
+c
+         do d = 0,NDIM-1
+            X_shifted(d) = X(d,s)+Xshift(d,l)
+         enddo
+c
+c     Determine the interpolation stencils and weights.
+c
+         do d = 0,NDIM-1
+            if ( d.eq.axis ) then
+               ic_center(d) = ilower(d) +
+     &              NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+               X_cell(d) = x_lower(d) +
+     &              (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+
+               if ( X_shifted(d).lt.X_cell(d) ) then
+                  ic_lower(d) = ic_center(d)-1
+                  ic_upper(d) = ic_center(d)
+                  w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,1) = 1.d0 - w(d,0)
+               else
+                  ic_lower(d) = ic_center(d)
+                  ic_upper(d) = ic_center(d)+1
+                  w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,1) = 1.d0 - w(d,0)
+               endif
+
+               if ( account_for_phys_bdry ) then
+                  if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
+     &                 (ic_lower(d) .lt. ilower(d)) ) then
+                     w(d,0) = 1.d0
+                     w(d,1) = 0.d0
+                     ic_lower(d) = ilower(d)
+                     ic_upper(d) = ilower(d)
+                  endif
+                  if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
+     &                 (ic_upper(d) .gt. iupper(d)) ) then
+                     w(d,0) = 1.d0
+                     w(d,1) = 0.d0
+                     ic_lower(d) = iupper(d)
+                     ic_upper(d) = iupper(d)
+                  endif
+               endif
+            else
+               w(d,0) = 1.d0
+               ic_lower(d) = ic_center(d)
+               ic_upper(d) = ic_center(d)
+            endif
+
+            ic_trimmed_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_trimmed_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+         enddo
+c
+c     Spread V onto u.
+c
+         do d = 0,depth-1
+CDEC$ LOOP COUNT(2)
+            do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
+CDEC$ LOOP COUNT(2)
+               do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
+CDEC$ LOOP COUNT(2)
+                  do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
+     &                    w(0,ic0-ic_lower(0))*
+     &                    w(1,ic1-ic_lower(1))*
+     &                    w(2,ic2-ic_lower(2))*
+     &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
+                  enddo
+               enddo
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the
 c     piecewise linear delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -221,7 +545,7 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),del,w(0:NDIM-1,0:1)
+      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
 
       LOGICAL account_for_phys_bdry
 c
@@ -266,9 +590,8 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            del = (X_shifted(d)-x_lower(d))/dx(d)
-            ic_center(d) = int(del) + ilower(d)
-            if ( del.lt.0.d0 ) ic_center(d) = ic_center(d) - 1
+            ic_center(d) = ilower(d) +
+     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
@@ -379,7 +702,7 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),del,w(0:NDIM-1,0:1)
+      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
 
       LOGICAL account_for_phys_bdry
 c
@@ -424,9 +747,8 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            del = (X_shifted(d)-x_lower(d))/dx(d)
-            ic_center(d) = int(del) + ilower(d)
-            if ( del.lt.0.d0 ) ic_center(d) = ic_center(d) - 1
+            ic_center(d) = ilower(d) +
+     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
@@ -476,6 +798,296 @@ CDEC$ LOOP COUNT(2)
      &                    w(0,ic0-ic_lower(0))*
      &                    w(1,ic1-ic_lower(1))*
      &                    w(2,ic2-ic_lower(2))*
+     &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
+                  enddo
+               enddo
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the
+c     piecewise cubic delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_piecewise_cubic_interp3d(
+     &     dx,x_lower,x_upper,depth,
+     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
+     &     nugc0,nugc1,nugc2,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Functions.
+c
+      EXTERNAL lagrangian_floor
+      INTEGER lagrangian_floor
+      REAL lagrangian_piecewise_cubic_delta
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s
+
+      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Use the piecewise cubic delta function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic_center(0) =
+     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        + ilower0
+         ic_center(1) =
+     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        + ilower1
+         ic_center(2) =
+     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
+     &        + ilower2
+
+         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
+         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
+c
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell.
+c
+         do d = 0,NDIM-1
+            if ( X(d,s).lt.X_cell(d) ) then
+               ic_lower(d) = ic_center(d)-2
+               ic_upper(d) = ic_center(d)+1
+            else
+               ic_lower(d) = ic_center(d)-1
+               ic_upper(d) = ic_center(d)+2
+            endif
+         enddo
+
+         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+
+         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+
+         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
+         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
+c
+c     Compute the standard interpolation weights.
+c
+CDEC$ LOOP COUNT(4)
+         do ic0 = ic_lower(0),ic_upper(0)
+            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
+            w0(ic0-ic_lower(0)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
+         enddo
+CDEC$ LOOP COUNT(4)
+         do ic1 = ic_lower(1),ic_upper(1)
+            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
+            w1(ic1-ic_lower(1)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+         enddo
+CDEC$ LOOP COUNT(4)
+         do ic2 = ic_lower(2),ic_upper(2)
+            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
+            w2(ic2-ic_lower(2)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
+         enddo
+c
+c     Interpolate u onto V.
+c
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+CDEC$ LOOP COUNT(4)
+            do ic2 = ic_lower(2),ic_upper(2)
+CDEC$ LOOP COUNT(4)
+               do ic1 = ic_lower(1),ic_upper(1)
+CDEC$ LOOP COUNT(4)
+                  do ic0 = ic_lower(0),ic_upper(0)
+                     V(d,s) = V(d,s)
+     &                    +w0(ic0-ic_lower(0))
+     &                    *w1(ic1-ic_lower(1))
+     &                    *w2(ic2-ic_lower(2))
+     &                    *u(ic0,ic1,ic2,d)
+                  enddo
+               enddo
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the
+c     piecewise cubic delta function using standard (double) precision
+c     accumulation on the Cartesian grid.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_piecewise_cubic_spread3d(
+     &     dx,x_lower,x_upper,depth,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
+     &     nugc0,nugc1,nugc2,
+     &     u)
+c
+      implicit none
+c
+c     Functions.
+c
+      EXTERNAL lagrangian_floor
+      INTEGER lagrangian_floor
+      REAL lagrangian_piecewise_cubic_delta
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
+      INTEGER nugc0,nugc1,nugc2
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s
+
+      REAL X_cell(0:NDIM-1),w0(0:3),w1(0:3),w2(0:3)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Use the piecewise cubic delta function to spread V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic_center(0) =
+     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
+     &        + ilower0
+         ic_center(1) =
+     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
+     &        + ilower1
+         ic_center(2) =
+     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
+     &        + ilower2
+
+         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
+         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
+c
+c     Determine the standard spreading stencil corresponding to the
+c     position of X(s) within the cell.
+c
+         do d = 0,NDIM-1
+            if ( X(d,s).lt.X_cell(d) ) then
+               ic_lower(d) = ic_center(d)-2
+               ic_upper(d) = ic_center(d)+1
+            else
+               ic_lower(d) = ic_center(d)-1
+               ic_upper(d) = ic_center(d)+2
+            endif
+         enddo
+
+         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+
+         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+
+         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
+         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
+c
+c     Compute the standard spreading weights.
+c
+CDEC$ LOOP COUNT(4)
+         do ic0 = ic_lower(0),ic_upper(0)
+            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
+            w0(ic0-ic_lower(0)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
+         enddo
+CDEC$ LOOP COUNT(4)
+         do ic1 = ic_lower(1),ic_upper(1)
+            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
+            w1(ic1-ic_lower(1)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+         enddo
+CDEC$ LOOP COUNT(4)
+         do ic2 = ic_lower(2),ic_upper(2)
+            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
+            w2(ic2-ic_lower(2)) =
+     &           lagrangian_piecewise_cubic_delta(
+     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
+         enddo
+c
+c     Spread V onto u.
+c
+         do d = 0,depth-1
+CDEC$ LOOP COUNT(4)
+            do ic2 = ic_lower(2),ic_upper(2)
+CDEC$ LOOP COUNT(4)
+               do ic1 = ic_lower(1),ic_upper(1)
+CDEC$ LOOP COUNT(4)
+                  do ic0 = ic_lower(0),ic_upper(0)
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
+     &                    w0(ic0-ic_lower(0))*
+     &                    w1(ic1-ic_lower(1))*
+     &                    w2(ic2-ic_lower(2))*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo
@@ -1228,590 +1840,6 @@ c
                enddo
             enddo
          endif
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Interpolate u onto V at the positions specified by X using the
-c     broadened 8-point version of the IB 4-point delta function.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine lagrangian_wide8_ib_4_interp3d(
-     &     dx,x_lower,x_upper,depth,
-     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     nugc0,nugc1,nugc2,
-     &     u,
-     &     indices,Xshift,nindices,
-     &     X,V)
-c
-      implicit none
-c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_wide8_ib_4_delta
-c
-c     Input.
-c
-      INTEGER depth
-      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
-      INTEGER nugc0,nugc1,nugc2
-      INTEGER nindices
-
-      INTEGER indices(0:nindices-1)
-
-      REAL Xshift(0:NDIM-1,0:nindices-1)
-
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
-      REAL V(0:depth-1,0:*)
-c
-c     Local variables.
-c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
-
-      REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-c
-c     Use the broadened (8-point) version of the IB 4-point delta
-c     function to interpolate u onto V.
-c
-      do l = 0,nindices-1
-         s = indices(l)
-c
-c     Determine the Cartesian cell in which X(s) is located.
-c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell.
-c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-4
-               ic_upper(d) = ic_center(d)+3
-            else
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+4
-            endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
-c
-c     Compute the standard interpolation weights.
-c
-C     DEC$ LOOP COUNT(8)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Interpolate u onto V.
-c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(8)
-            do ic2 = ic_lower(2),ic_upper(2)
-C     DEC$ LOOP COUNT(8)
-               do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Spread V onto u at the positions specified by X using the
-c     broadened 8-point version of the IB 4-point delta function using
-c     standard (double) precision accumulation on the Cartesian grid.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine lagrangian_wide8_ib_4_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
-     &     X,V,
-     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     nugc0,nugc1,nugc2,
-     &     u)
-c
-      implicit none
-c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_wide8_ib_4_delta
-c
-c     Input.
-c
-      INTEGER depth
-      INTEGER nindices
-      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
-      INTEGER nugc0,nugc1,nugc2
-
-      INTEGER indices(0:nindices-1)
-
-      REAL Xshift(0:NDIM-1,0:nindices-1)
-
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
-      REAL V(0:depth-1,0:*)
-c
-c     Local variables.
-c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
-
-      REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-c
-c     Use the broadened (8-point) version of the IB 4-point delta
-c     function to spread V onto u.
-c
-      do l = 0,nindices-1
-         s = indices(l)
-c
-c     Determine the Cartesian cell in which X(s) is located.
-c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
-c     Determine the standard spreading stencil corresponding to the
-c     position of X(s) within the cell.
-c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-4
-               ic_upper(d) = ic_center(d)+3
-            else
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+4
-            endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
-c
-c     Compute the standard spreading weights.
-c
-C     DEC$ LOOP COUNT(8)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_wide8_ib_4_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Spread V onto u.
-c
-         do d = 0,depth-1
-C     DEC$ LOOP COUNT(8)
-            do ic2 = ic_lower(2),ic_upper(2)
-C     DEC$ LOOP COUNT(8)
-               do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
-     &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
-                  enddo
-               enddo
-            enddo
-         enddo
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Interpolate u onto V at the positions specified by X using the
-c     broadened 16-point version of the IB 4-point delta function.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine lagrangian_wide16_ib_4_interp3d(
-     &     dx,x_lower,x_upper,depth,
-     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     nugc0,nugc1,nugc2,
-     &     u,
-     &     indices,Xshift,nindices,
-     &     X,V)
-c
-      implicit none
-c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_wide16_ib_4_delta
-c
-c     Input.
-c
-      INTEGER depth
-      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
-      INTEGER nugc0,nugc1,nugc2
-      INTEGER nindices
-
-      INTEGER indices(0:nindices-1)
-
-      REAL Xshift(0:NDIM-1,0:nindices-1)
-
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
-      REAL V(0:depth-1,0:*)
-c
-c     Local variables.
-c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
-
-      REAL X_cell(0:NDIM-1),w0(0:15),w1(0:15),w2(0:15)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-c
-c     Use the broadened (16-point) version of the IB 4-point delta
-c     function to interpolate u onto V.
-c
-      do l = 0,nindices-1
-         s = indices(l)
-c
-c     Determine the Cartesian cell in which X(s) is located.
-c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell.
-c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-8
-               ic_upper(d) = ic_center(d)+7
-            else
-               ic_lower(d) = ic_center(d)-7
-               ic_upper(d) = ic_center(d)+8
-            endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
-c
-c     Compute the standard interpolation weights.
-c
-C     DEC$ LOOP COUNT(16)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-C     DEC$ LOOP COUNT(16)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-C     DEC$ LOOP COUNT(16)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Interpolate u onto V.
-c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-C     DEC$ LOOP COUNT(16)
-            do ic2 = ic_lower(2),ic_upper(2)
-C     DEC$ LOOP COUNT(16)
-               do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(16)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
-               enddo
-            enddo
-         enddo
-      enddo
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Spread V onto u at the positions specified by X using the
-c     broadened 16-point version of the IB 4-point delta function using
-c     standard (double) precision accumulation on the Cartesian grid.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine lagrangian_wide16_ib_4_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
-     &     X,V,
-     &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     nugc0,nugc1,nugc2,
-     &     u)
-c
-      implicit none
-c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_wide16_ib_4_delta
-c
-c     Input.
-c
-      INTEGER depth
-      INTEGER nindices
-      INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
-      INTEGER nugc0,nugc1,nugc2
-
-      INTEGER indices(0:nindices-1)
-
-      REAL Xshift(0:NDIM-1,0:nindices-1)
-
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
-      REAL V(0:depth-1,0:*)
-c
-c     Local variables.
-c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
-
-      REAL X_cell(0:NDIM-1),w0(0:7),w1(0:7),w2(0:7)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-c
-c     Use the broadened (8-point) version of the IB 4-point delta
-c     function to spread V onto u.
-c
-      do l = 0,nindices-1
-         s = indices(l)
-c
-c     Determine the Cartesian cell in which X(s) is located.
-c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
-c     Determine the standard spreading stencil corresponding to the
-c     position of X(s) within the cell.
-c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-4
-               ic_upper(d) = ic_center(d)+3
-            else
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+4
-            endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2 +nugc2)
-c
-c     Compute the standard spreading weights.
-c
-C     DEC$ LOOP COUNT(8)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-C     DEC$ LOOP COUNT(8)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_wide16_ib_4_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Spread V onto u.
-c
-         do d = 0,depth-1
-C     DEC$ LOOP COUNT(8)
-            do ic2 = ic_lower(2),ic_upper(2)
-C     DEC$ LOOP COUNT(8)
-               do ic1 = ic_lower(1),ic_upper(1)
-C     DEC$ LOOP COUNT(8)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
-     &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
-                  enddo
-               enddo
-            enddo
-         enddo
       enddo
 c
       return

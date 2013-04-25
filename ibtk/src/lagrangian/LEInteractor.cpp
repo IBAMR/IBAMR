@@ -74,6 +74,9 @@
 #define LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC FC_FUNC_(lagrangian_piecewise_constant_interp2d, LAGRANGIAN_PIECEWISE_CONSTANT_INTERP2D)
 #define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC FC_FUNC_(lagrangian_piecewise_constant_spread2d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD2D)
 
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC FC_FUNC_(lagrangian_discontinuous_linear_interp2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP2D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_discontinuous_linear_spread2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD2D)
+
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D)
 #define LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_piecewise_linear_spread2d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD2D)
 
@@ -93,6 +96,9 @@
 #if (NDIM == 3)
 #define LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC FC_FUNC_(lagrangian_piecewise_constant_interp3d, LAGRANGIAN_PIECEWISE_CONSTANT_INTERP3D)
 #define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC FC_FUNC_(lagrangian_piecewise_constant_spread3d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD3D)
+
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC FC_FUNC_(lagrangian_discontinuous_linear_interp3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP3D)
+#define LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_discontinuous_linear_spread3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD3D)
 
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_piecewise_linear_interp3d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP3D)
 #define LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_piecewise_linear_spread3d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD3D)
@@ -142,6 +148,42 @@ extern "C"
                                             );
 
     void
+    LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
+        const double* , const double* , const double* , const int& , const int& ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int* , const int* ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int* , const int* ,
+        const int& , const int& , const int& ,
+#endif
+        const double* ,
+        const int* , const double* , const int& ,
+        const double* , double*
+                                          );
+
+    void
+    LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(
+        const double* , const double* , const double* , const int& , const int& ,
+        const int* , const double* , const int& ,
+        const double* , const double* ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int* , const int* ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int* , const int* ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                                          );
+
+    void
     LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
@@ -177,7 +219,6 @@ extern "C"
         double*
                                           );
 
-#if (NDIM == 2)
     void
     LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
         const double* , const double* , const double* , const int& ,
@@ -209,7 +250,6 @@ extern "C"
 #endif
         double*
                                          );
-#endif
 
     void
     LAGRANGIAN_IB_3_INTERP_FC(
@@ -429,10 +469,9 @@ LEInteractor::getStencilSize(
     const std::string& weighting_fcn)
 {
     if (weighting_fcn == "PIECEWISE_CONSTANT") return 1;
+    if (weighting_fcn == "DISCONTINUOUS_LINEAR") return 2;
     if (weighting_fcn == "PIECEWISE_LINEAR") return 2;
-#if (NDIM == 2)
     if (weighting_fcn == "PIECEWISE_CUBIC") return 4;
-#endif
     if (weighting_fcn == "IB_3") return 4;
     if (weighting_fcn == "IB_4") return 4;
     if (weighting_fcn == "IB_6") return 6;
@@ -448,7 +487,7 @@ LEInteractor::getC(
     const std::string& weighting_fcn)
 {
     if (weighting_fcn == "PIECEWISE_CONSTANT") return 1.0;
-    if (weighting_fcn == "PIECEWISE_LINEAR" || weighting_fcn == "PIECEWISE_CUBIC")
+    if (weighting_fcn == "DISCONTINUOUS_LINEAR" || weighting_fcn == "PIECEWISE_LINEAR" || weighting_fcn == "PIECEWISE_CUBIC")
     {
         TBOX_ERROR("LEInteractor::getC()\n"
                    << "  Weighting function " << weighting_fcn << " does not satisfy the quadratic (sum-of-squares) condition.\n"
@@ -751,7 +790,7 @@ LEInteractor::interpolate(
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                         local_indices, periodic_offsets,
-                        interp_fcn);
+                        interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
@@ -1000,7 +1039,7 @@ LEInteractor::interpolate(
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                         local_indices, periodic_offsets,
-                        interp_fcn);
+                        interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
@@ -1301,7 +1340,7 @@ LEInteractor::spread(
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                    local_indices, periodic_offsets,
-                   spread_fcn);
+                   spread_fcn, axis);
         }
     }
     return;
@@ -1548,7 +1587,7 @@ LEInteractor::spread(
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                    local_indices, periodic_offsets,
-                   spread_fcn);
+                   spread_fcn, axis);
         }
     }
     return;
@@ -1574,7 +1613,8 @@ LEInteractor::interpolate(
     const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
-    const std::string& interp_fcn)
+    const std::string& interp_fcn,
+    const int axis)
 {
     if (local_indices.empty()) return;
     const int local_indices_size = local_indices.size();
@@ -1595,6 +1635,26 @@ LEInteractor::interpolate(
             q_data,
             &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data, Q_data);
+    }
+    else if (interp_fcn == "DISCONTINUOUS_LINEAR")
+    {
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
+            dx,x_lower,x_upper,q_depth,axis,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            &patch_touches_lower_physical_bdry[0],
+            &patch_touches_upper_physical_bdry[0],
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            &patch_touches_lower_physical_bdry[0],
+            &patch_touches_upper_physical_bdry[0],
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            X_data,Q_data);
     }
     else if (interp_fcn == "PIECEWISE_LINEAR")
     {
@@ -1618,7 +1678,6 @@ LEInteractor::interpolate(
     }
     else if (interp_fcn == "PIECEWISE_CUBIC")
     {
-#if (NDIM == 2)
         LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
@@ -1632,10 +1691,6 @@ LEInteractor::interpolate(
             q_data,
             &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
-#else
-        TBOX_ERROR("LEInteractor::interpolate()\n" <<
-                   "  Weighting function " << interp_fcn << " is only supported in 2D" << std::endl);
-#endif
     }
     else if (interp_fcn == "IB_3")
     {
@@ -1726,7 +1781,8 @@ LEInteractor::spread(
     const Vector<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
-    const std::string& spread_fcn)
+    const std::string& spread_fcn,
+    const int axis)
 {
     if (local_indices.empty()) return;
     const int local_indices_size = local_indices.size();
@@ -1744,6 +1800,26 @@ LEInteractor::spread(
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data);
+    }
+    else if (spread_fcn == "DISCONTINUOUS_LINEAR")
+    {
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(
+            dx,x_lower,x_upper,q_depth,axis,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            X_data, Q_data,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            &patch_touches_lower_physical_bdry[0],
+            &patch_touches_upper_physical_bdry[0],
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            &patch_touches_lower_physical_bdry[0],
+            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
@@ -1770,7 +1846,6 @@ LEInteractor::spread(
     }
     else if (spread_fcn == "PIECEWISE_CUBIC")
     {
-#if (NDIM == 2)
         LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
             &local_indices[0], &periodic_offsets[0], local_indices_size,
@@ -1784,10 +1859,6 @@ LEInteractor::spread(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
-#else
-        TBOX_ERROR("LEInteractor::spread()\n" <<
-                   "  Weighting function " << spread_fcn << " is only supported in 2D" << std::endl);
-#endif
     }
     else if (spread_fcn == "IB_3")
     {
