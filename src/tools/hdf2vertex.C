@@ -38,7 +38,8 @@
 #include <string>
 #include <vector>
 
-#include <H5LT.h>
+#include <hdf5.h>
+#include <hdf5_lt.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
