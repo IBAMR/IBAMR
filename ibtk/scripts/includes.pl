@@ -145,6 +145,16 @@ for $path ( @headers, @includes, @fincludes, @templates ) {
 }
 print "Done copying/linking files\n";
 
+print "Creating convenience header\n";
+open FILE, ">$includedir/ibtk.h" ||
+    die "Cannot open file $includedir/ibtk.h\n";
+for $path ( @headers, @includes ) {
+    print "Checking $path\n";
+    ( $file = $path ) =~ s:.*/::;  # File is the base name.
+    print FILE "#include \"ibtk/$file\"\n";
+}
+close FILE ||
+    die "Cannot close file $includedir/ibtk.h\n";
 
 #
 # Subroutine to check if two files are the same.
