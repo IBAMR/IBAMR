@@ -38,7 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "H5LT.h"                 // IWYU pragma: export
+#include "hdf5.h"                 // IWYU pragma: export
+#include "hdf5_hl.h"              // IWYU pragma: export
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// STATIC ///////////////////////////////////////
