@@ -28,7 +28,7 @@ chop $pwd;
 if ( $pwd =~ m'/src' ) {
     # We are in the source directory.
     ( $fromsource = $pwd ) =~ s|(.*/src)/?||g;
-    
+
     $sourcepath = $1;
     ( $tosource = $fromsource ) =~ s/[^\/]+/../g;
     ( $filterdir = $fromsource ) =~ s/^$/./;
@@ -105,7 +105,7 @@ print "Copying/linking files...\n";
 for $path ( @headers, @includes, @fincludes, @templates ) {
     print "Checking $path\n";
     ( $file = $path ) =~ s:.*/::;  # File is the base name.
-    
+
     if ( -l "$includedir/$file" ) {
 	# The version in include is a link.  See if it is a correct link.
 	$ltarget = readlink "$includedir/$file";
@@ -114,7 +114,7 @@ for $path ( @headers, @includes, @fincludes, @templates ) {
 	unlink  "$includedir/$file"
 	    || die "Cannot remove $includedir/$file before creating";
     }
-    
+
     if ( ! -e "$includedir/$file" ) {
 	# The version in include does not exist.  Create it.
 	print "$includedir/$file -> ../$path\n";
@@ -145,6 +145,17 @@ for $path ( @headers, @includes, @fincludes, @templates ) {
 }
 print "Done copying/linking files\n";
 
+print "Creating convenience header\n";
+open FILE, ">$includedir/ibamr.h" ||
+    die "Cannot open file $includedir/ibamr.h\n";
+for $path ( @headers, @includes ) {
+    print "Checking $path\n";
+    ( $file = $path ) =~ s:.*/::;  # File is the base name.
+    print FILE "#include \"ibamr/$file\"\n";
+}
+print FILE "#include \"ibtk/ibtk.h\"\n";
+close FILE ||
+    die "Cannot close file $includedir/ibamr.h\n";
 
 #
 # Subroutine to check if two files are the same.
@@ -159,7 +170,7 @@ while (!eof(AFILE) && !eof(BFILE)) {
     $ALINE = <AFILE>;
     $BLINE = <BFILE>;
     $_ = $ALINE;
-    
+
     if (!/^(\/\/|c|C|#|##| \*)[ ]*(Release:[\t ]*\$Name|Revision:[\t ]*\$Revision|Modified:[\t ]*\$Date):[^\$]*\$/o) {
 	    if ($ALINE ne $BLINE) {
 		close AFILE;
@@ -168,13 +179,13 @@ while (!eof(AFILE) && !eof(BFILE)) {
 	    }
 	}
     }
-    
+
     if (eof(AFILE) && eof(BFILE)) {
 	$rvalue = 0;
     } else {
 	$rvalue = 1;
     }
-    
+
     close AFILE;
     close BFILE;
     return $rvalue;
