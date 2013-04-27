@@ -155,7 +155,7 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
 }// ~PETScNewtonKrylovSolver()
 
 void
-PETScKrylovLinearSolver::setOptionsPrefix(
+PETScNewtonKrylovSolver::setOptionsPrefix(
     const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
