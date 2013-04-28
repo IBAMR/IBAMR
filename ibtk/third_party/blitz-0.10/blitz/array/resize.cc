@@ -949,7 +949,7 @@ void Array<T_numtype, N_rank>::resizeAndPreserve(int length0, int length1,
         T_array B(base(), BZ_BLITZ_SCOPE(shape)(length0, length1, length2,
             length3, length4, length5, length6, length7, length8, length9,
             length10), storage_);
-
+#if 0
         if (numElements())
         {
             Range overlap0 = Range(fromStart, (extrema::min)(B.ubound(0),
@@ -975,6 +975,7 @@ void Array<T_numtype, N_rank>::resizeAndPreserve(int length0, int length1,
             Range overlap10 = Range(fromStart, (extrema::min)(B.ubound(10),
                ubound(10)));
         }
+#endif
         reference(B);
     }
 }

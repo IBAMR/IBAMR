@@ -831,7 +831,7 @@ IBStandardInitializer::readSpringFiles(
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
-                int num_edges;
+                int num_edges = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << std::endl);
@@ -1022,7 +1022,7 @@ IBStandardInitializer::readXSpringFiles(
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
-                int num_edges;
+                int num_edges = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << xspring_filename << std::endl);
@@ -1211,7 +1211,7 @@ IBStandardInitializer::readBeamFiles(
 
                 // The first line in the file indicates the number of beams in
                 // the input file.
-                int num_beams;
+                int num_beams = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << beam_filename << std::endl);
@@ -1235,8 +1235,8 @@ IBStandardInitializer::readBeamFiles(
                 // parameter information for each beam in the structure.
                 for (int k = 0; k < num_beams; ++k)
                 {
-                    int prev_idx, curr_idx, next_idx;
-                    double bend;
+                    int prev_idx = std::numeric_limits<int>::max(), curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
+                    double bend = 0.0;
                     Vector<double,NDIM> curv(0.0);
                     if (!std::getline(file_stream, line_string))
                     {
@@ -1400,7 +1400,7 @@ IBStandardInitializer::readRodFiles(
 
                 // The first line in the file indicates the number of rods in
                 // the input file.
-                int num_rods;
+                int num_rods = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << rod_filename << std::endl);
@@ -1424,7 +1424,7 @@ IBStandardInitializer::readRodFiles(
                 // parameter information for each rod in the structure.
                 for (int k = 0; k < num_rods; ++k)
                 {
-                    int curr_idx, next_idx;
+                    int curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
                     Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
                     double& ds = properties[0];
                     double& a1 = properties[1];
@@ -1663,7 +1663,7 @@ IBStandardInitializer::readTargetPointFiles(
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
-                int num_target_points;
+                int num_target_points = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << target_point_stiffness_filename << std::endl);
@@ -1687,7 +1687,7 @@ IBStandardInitializer::readTargetPointFiles(
                 // constant associated with any target points.
                 for (int k = 0; k < num_target_points; ++k)
                 {
-                    int n;
+                    int n = std::numeric_limits<int>::max();
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << target_point_stiffness_filename << std::endl);
@@ -1822,7 +1822,7 @@ IBStandardInitializer::readAnchorPointFiles(
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
-                int num_anchor_pts;
+                int num_anchor_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << anchor_point_filename << std::endl);
@@ -1923,7 +1923,7 @@ IBStandardInitializer::readBoundaryMassFiles(
 
                 // The first line in the file indicates the number of massive IB
                 // points in the input file.
-                int num_bdry_mass_pts;
+                int num_bdry_mass_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << bdry_mass_filename << std::endl);
@@ -2065,7 +2065,7 @@ IBStandardInitializer::readDirectorFiles(
 
                 // The first line in the file indicates the number of sets of
                 // directors in the input file.
-                int num_directors_pts;
+                int num_directors_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << directors_filename << std::endl);
@@ -2172,7 +2172,7 @@ IBStandardInitializer::readInstrumentationFiles(
 
                 // The first line in the file indicates the number of
                 // instruments in the input file.
-                int num_inst;
+                int num_inst = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << inst_filename << std::endl);
@@ -2218,7 +2218,7 @@ IBStandardInitializer::readInstrumentationFiles(
 
                 // The next line in the file indicates the number of
                 // instrumented IB points in the input file.
-                int num_inst_pts;
+                int num_inst_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << num_inst+2 << " of file " << inst_filename << std::endl);
@@ -2390,7 +2390,7 @@ IBStandardInitializer::readSourceFiles(
 
                 // The first line in the file indicates the number of sources in
                 // the input file.
-                int num_source;
+                int num_source = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << source_filename << std::endl);
@@ -2457,7 +2457,7 @@ IBStandardInitializer::readSourceFiles(
 
                 // The next line in the file indicates the number of source
                 // points in the input file.
-                int num_source_pts;
+                int num_source_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 2*num_source+2 << " of file " << source_filename << std::endl);
@@ -2924,10 +2924,10 @@ IBStandardInitializer::getFromInput(
     // level-by-level ``base_filenames'' keys if necessary.
     if (db->keyExists("structure_names"))
     {
-        const int n_strcts = db->getArraySize("structure_names");
-        std::vector<std::string> structure_names(n_strcts);
-        db->getStringArray("structure_names", &structure_names[0], n_strcts);
-        for (int n = 0; n < n_strcts; ++n)
+        const int num_strcts = db->getArraySize("structure_names");
+        std::vector<std::string> structure_names(num_strcts);
+        db->getStringArray("structure_names", &structure_names[0], num_strcts);
+        for (int n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
@@ -2970,9 +2970,9 @@ IBStandardInitializer::getFromInput(
             const std::string db_key_name = db_key_name_stream.str();
             if (db->keyExists(db_key_name))
             {
-                const int n_files = db->getArraySize(db_key_name);
-                d_base_filename[ln].resize(n_files);
-                db->getStringArray(db_key_name, &d_base_filename[ln][0], n_files);
+                const int num_files = db->getArraySize(db_key_name);
+                d_base_filename[ln].resize(num_files);
+                db->getStringArray(db_key_name, &d_base_filename[ln][0], num_files);
             }
             else
             {

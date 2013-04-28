@@ -145,28 +145,6 @@ static const int CFL_WIDTH = 2;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
-
-inline CellIndex<NDIM>
-get_canonical_cell_index(
-    const CellIndex<NDIM>& cell_idx,
-    const Box<NDIM>& domain_box,
-    const IntVector<NDIM>& periodic_shift)
-{
-    if (periodic_shift == IntVector<NDIM>(0)) return cell_idx;
-
-    if (domain_box.contains(cell_idx)) return cell_idx;
-
-    CellIndex<NDIM> shifted_idx = cell_idx;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if      (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
-        else if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
-    }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(domain_box.contains(shifted_idx));
-#endif
-    return shifted_idx;
-}// get_canonical_cell_index
 }
 
 const std::string LDataManager::     POSN_DATA_NAME = "X";

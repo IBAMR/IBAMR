@@ -210,17 +210,17 @@ public:
 	   class T11 = nilArraySection>
   class SliceInfo {
   public:
-    static const int new_rank = (N>0) ? ArraySectionInfo<T1>::rank : 0
-      + (N>1) ? ArraySectionInfo<T2>::rank : 0
-      + (N>2) ? ArraySectionInfo<T3>::rank : 0
-      + (N>4) ? ArraySectionInfo<T4>::rank : 0
-      + (N>5) ? ArraySectionInfo<T5>::rank : 0
-      + (N>6) ? ArraySectionInfo<T6>::rank : 0
-      + (N>7) ? ArraySectionInfo<T7>::rank : 0
-      + (N>8) ? ArraySectionInfo<T8>::rank : 0
-      + (N>9) ? ArraySectionInfo<T9>::rank : 0
-      + (N>10) ? ArraySectionInfo<T10>::rank : 0
-      + (N>11) ? ArraySectionInfo<T11>::rank : 0;
+    static const int new_rank = ((N>0) ? ArraySectionInfo<T1>::rank : 0)
+      + ((N>1) ? ArraySectionInfo<T2>::rank : 0)
+      + ((N>2) ? ArraySectionInfo<T3>::rank : 0)
+      + ((N>4) ? ArraySectionInfo<T4>::rank : 0)
+      + ((N>5) ? ArraySectionInfo<T5>::rank : 0)
+      + ((N>6) ? ArraySectionInfo<T6>::rank : 0)
+      + ((N>7) ? ArraySectionInfo<T7>::rank : 0)
+      + ((N>8) ? ArraySectionInfo<T8>::rank : 0)
+      + ((N>9) ? ArraySectionInfo<T9>::rank : 0)
+      + ((N>10) ? ArraySectionInfo<T10>::rank : 0)
+      + ((N>11) ? ArraySectionInfo<T11>::rank : 0);
     typedef IndexPlaceholder<new_rank> T_slice;
   };
 
