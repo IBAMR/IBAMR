@@ -54,48 +54,100 @@ class Vector
     , boost::addable< Vector<T,N> , boost::subtractable< Vector<T,N> , boost::dividable< Vector<T,N>, boost::multipliable< Vector<T,N> > > > >
 {
 public:
-    inline Vector() { }
-
-    inline Vector(const T& v) {
-        this->assign(v);
+    inline
+    Vector()
+    {
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1) {
+    inline
+    Vector(
+        const T& v)
+    {
+        this->assign(v);
+        return;
+    }
+
+    inline
+    Vector(
+        const T& v0,
+        const T& v1)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
         (*this)[3] = v3;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
         (*this)[3] = v3;
         (*this)[4] = v4;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4,const T& v5) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4,
+        const T& v5)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
         (*this)[3] = v3;
         (*this)[4] = v4;
         (*this)[5] = v5;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4,const T& v5,const T& v6) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4,
+        const T& v5,
+        const T& v6)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
@@ -103,9 +155,20 @@ public:
         (*this)[4] = v4;
         (*this)[5] = v5;
         (*this)[6] = v6;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4,const T& v5,const T& v6,const T& v7) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4,
+        const T& v5,
+        const T& v6,
+        const T& v7)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
@@ -114,9 +177,21 @@ public:
         (*this)[5] = v5;
         (*this)[6] = v6;
         (*this)[7] = v7;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4,const T& v5,const T& v6,const T& v7,const T& v8) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4,
+        const T& v5,
+        const T& v6,
+        const T& v7,
+        const T& v8)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
@@ -126,9 +201,22 @@ public:
         (*this)[6] = v6;
         (*this)[7] = v7;
         (*this)[8] = v8;
+        return;
     }
 
-    inline Vector(const T& v0,const T& v1,const T& v2,const T& v3,const T& v4,const T& v5,const T& v6,const T& v7,const T& v8,const T& v9) {
+    inline
+    Vector(
+        const T& v0,
+        const T& v1,
+        const T& v2,
+        const T& v3,
+        const T& v4,
+        const T& v5,
+        const T& v6,
+        const T& v7,
+        const T& v8,
+        const T& v9)
+    {
         (*this)[0] = v0;
         (*this)[1] = v1;
         (*this)[2] = v2;
@@ -139,9 +227,13 @@ public:
         (*this)[7] = v7;
         (*this)[8] = v8;
         (*this)[9] = v9;
+        return;
     }
 
-    inline Vector<T,N>& operator+=(const Vector<T,N>& v) {
+    inline Vector<T,N>&
+    operator+=(
+        const Vector<T,N>& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] += v[k];
@@ -149,7 +241,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator+=(const T& v) {
+    inline Vector<T,N>&
+    operator+=(
+        const T& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] += v;
@@ -157,7 +252,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator-=(const Vector<T,N>& v) {
+    inline Vector<T,N>&
+    operator-=(
+        const Vector<T,N>& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] -= v[k];
@@ -165,7 +263,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator-=(const T& v) {
+    inline Vector<T,N>&
+    operator-=(
+        const T& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] -= v;
@@ -173,7 +274,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator*=(const Vector<T,N>& v) {
+    inline Vector<T,N>&
+    operator*=(
+        const Vector<T,N>& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] *= v[k];
@@ -181,7 +285,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator*=(const T& v) {
+    inline Vector<T,N>&
+    operator*=(
+        const T& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] *= v;
@@ -189,7 +296,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator/=(const Vector<T,N>& v) {
+    inline Vector<T,N>&
+    operator/=(
+        const Vector<T,N>& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] /= v[k];
@@ -197,7 +307,10 @@ public:
         return *this;
     }
 
-    inline Vector<T,N>& operator/=(const T& v) {
+    inline Vector<T,N>&
+    operator/=(
+        const T& v)
+    {
         for (size_t k = 0; k < N; ++k)
         {
             (*this)[k] /= v;
@@ -211,18 +324,20 @@ public:
 
 template <class T>
 inline Vector<T,3>
-cross(const Vector<T,3>& x, const Vector<T,3>& y)
+cross(
+    const Vector<T,3>& x,
+    const Vector<T,3>& y)
 {
-    Vector<T,3> x_cross_y;
-    x_cross_y[0] = x[1]*y[2] - x[2]*y[1];
-    x_cross_y[1] = x[2]*y[0] - x[0]*y[2];
-    x_cross_y[2] = x[0]*y[1] - x[1]*y[0];
-    return x_cross_y;
+    return Vector<T,3>(x[1]*y[2] - x[2]*y[1],
+                       x[2]*y[0] - x[0]*y[2],
+                       x[0]*y[1] - x[1]*y[0]);
 }// cross
 
 template <class T,size_t N>
 inline T
-dot(const Vector<T,N>& x, const Vector<T,N>& y)
+dot(
+    const Vector<T,N>& x,
+    const Vector<T,N>& y)
 {
     T x_dot_y = 0;
     for (size_t k = 0; k < N; ++k)
@@ -230,18 +345,20 @@ dot(const Vector<T,N>& x, const Vector<T,N>& y)
         x_dot_y += x[k] * y[k];
     }
     return x_dot_y;
-}// norm
+}// dot
 
 template <size_t N>
 inline double
-norm(const Vector<double,N> x)
+norm(
+    const Vector<double,N> x)
 {
     return sqrt(dot(x,x));
 }// norm
 
 template <size_t N>
 inline float
-norm(const Vector<float,N> x)
+norm(
+    const Vector<float,N> x)
 {
     return sqrt(dot(x,x));
 }// norm
