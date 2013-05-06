@@ -51,11 +51,7 @@ namespace IBTK
 template <class T,size_t N>
 class Vector
     : public boost::array<T,N>
-    , boost::addable< Vector<T,N>         // Vector + Vector
-                      , boost::subtractable< Vector<T,N>    // Vector - Vector
-                                             , boost::dividable< Vector<T,N>, T    // Vector / T
-                                                                 , boost::multipliable< Vector<T,N>, T // Vector * T, T * Vector
-                                                                                        > > > >
+    , boost::addable< Vector<T,N> , boost::subtractable< Vector<T,N> , boost::dividable< Vector<T,N>, boost::multipliable< Vector<T,N> > > > >
 {
 public:
     inline Vector() { }
