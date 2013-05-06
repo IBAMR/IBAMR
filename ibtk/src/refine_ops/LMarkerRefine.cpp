@@ -38,7 +38,7 @@
 #include "Index.h"
 #include "LMarkerRefine.h"
 #include "Patch.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LMarker.h"
@@ -49,6 +49,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSet-inl.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI {

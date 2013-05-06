@@ -43,6 +43,7 @@
 #include <string>
 #include <vector>
 
+#include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenSchedule.h"
@@ -64,7 +65,6 @@
 
 namespace SAMRAI {
 namespace hier {
-template <int DIM> class BasePatchHierarchy;
 template <int DIM> class Variable;
 }  // namespace hier
 namespace tbox {

@@ -58,6 +58,7 @@
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBAnchorPointSpec-inl.h"
 #include "ibamr/IBBeamForceSpec.h"

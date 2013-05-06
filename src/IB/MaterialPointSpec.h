@@ -45,6 +45,15 @@
 #include "libmesh/id_types.h"
 #include "tbox/Pointer.h"
 
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -281,15 +290,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibamr/MaterialPointSpec-inl.h" // IWYU pragma: keep
-
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

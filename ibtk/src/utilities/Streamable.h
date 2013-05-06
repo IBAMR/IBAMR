@@ -37,8 +37,11 @@
 
 #include <unistd.h>
 
-#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
+
+namespace IBTK {
+template <class T, size_t N> class Vector;
+}  // namespace IBTK
 
 namespace SAMRAI {
 namespace hier {
@@ -48,9 +51,6 @@ namespace tbox {
 class AbstractStream;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

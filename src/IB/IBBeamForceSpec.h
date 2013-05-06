@@ -39,10 +39,19 @@
 #include <utility>
 #include <vector>
 
-#include "ibtk/Vector.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "ibtk/Vector.h"
 #include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -303,15 +312,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibamr/IBBeamForceSpec-inl.h" // IWYU pragma: keep
-
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -59,10 +59,11 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/Vector.h"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "tbox/SAMRAI_MPI.h"

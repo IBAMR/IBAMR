@@ -32,20 +32,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <assert.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
-#include <cstring>
+#include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <ios>
+#include <iosfwd>
 #include <iostream>
+#include <limits>
+#include <memory>
+#include <new>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "H5Fpublic.h"
+#include "H5Gpublic.h"
+#include "H5Ipublic.h"
+#include "H5LTpublic.h"
+#include "H5public.h"
 #include "blitz/array.h"
+#include "blitz/array/expr.h"
+#include "blitz/array/ops.h"
+#include "blitz/array/reduce.h"
+#include "blitz/array/storage.h"
+#include "blitz/etbase.h"
+#include "blitz/tinyvec2.h"
+#include "blitz/tvecglobs.h"
 #include "hdf5.h"                 // IWYU pragma: export
 #include "hdf5_hl.h"              // IWYU pragma: export
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
-#include "ibtk/Vector.h"
 #include "silo.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////

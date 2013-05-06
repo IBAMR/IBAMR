@@ -39,7 +39,6 @@
 
 #include "IntVector.h"
 #include "ibtk/Vector.h"
-#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI {

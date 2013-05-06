@@ -58,7 +58,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "Index.h"
 #include "LDataManager.h"
 #include "NodeData.h"
 #include "Patch.h"
@@ -71,6 +70,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
@@ -113,6 +113,12 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

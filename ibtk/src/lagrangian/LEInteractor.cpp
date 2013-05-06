@@ -57,6 +57,8 @@
 #include "blitz/array/storage.h"
 #include "blitz/memblock.h"
 #include "blitz/range.h"
+#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"

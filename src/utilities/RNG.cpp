@@ -1,14 +1,19 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <cstdlib>
+#include <math.h>
+#include <stdlib.h>
+#include <time.h>
+#include <iosfwd>
+#include <iostream>
+#include <map>
+#include <ostream>
 #include <set>
 #include <vector>
 
 #include "RNG.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "mpi.h"
 #include "tbox/PIO.h"
-#include "tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

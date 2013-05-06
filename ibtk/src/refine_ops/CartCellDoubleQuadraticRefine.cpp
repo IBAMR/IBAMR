@@ -44,6 +44,7 @@
 #include "Index.h"
 #include "Patch.h"
 #include "SAMRAI_config.h"
+#include "boost/array.hpp"
 #include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

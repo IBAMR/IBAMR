@@ -51,6 +51,7 @@
 #include "StaggeredStokesOpenBoundaryStabilizer.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

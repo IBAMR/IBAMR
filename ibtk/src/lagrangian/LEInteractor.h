@@ -42,7 +42,6 @@
 #include "Box.h"
 #include "IntVector.h"
 #include "ibtk/Vector.h"
-#include "ibtk/Vector.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {

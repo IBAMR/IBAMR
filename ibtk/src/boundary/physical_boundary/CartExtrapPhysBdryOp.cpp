@@ -60,11 +60,12 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/VecCellData.h"
 #include "ibtk/VecCellData-inl.h"
 #include "ibtk/VecCellVariable.h"
+#include "ibtk/Vector.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"

@@ -34,16 +34,22 @@
 
 #include <fstream>
 #include <iomanip>
+#include <ios>
+#include <iosfwd>
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "blitz/array.h"
+#include "H5Fpublic.h"
+#include "H5Gpublic.h"
+#include "H5Ipublic.h"
+#include "H5LTpublic.h"
+#include "H5public.h"
 #include "hdf5.h"                 // IWYU pragma: export
 #include "hdf5_hl.h"              // IWYU pragma: export
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
-#include "ibtk/Vector.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

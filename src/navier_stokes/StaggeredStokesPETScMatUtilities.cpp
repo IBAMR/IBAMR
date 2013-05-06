@@ -56,11 +56,12 @@
 #include "SideIndex.h"
 #include "StaggeredStokesPETScMatUtilities.h"
 #include "Variable.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/Vector.h"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "tbox/Array.h"

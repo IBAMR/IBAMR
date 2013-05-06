@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <unistd.h>
 #include <string>
 #include <vector>
 
@@ -45,6 +46,7 @@
 namespace IBTK {
 class LData;
 class LDataManager;
+template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
@@ -54,9 +56,6 @@ namespace tbox {
 class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

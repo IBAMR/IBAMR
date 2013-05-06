@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "EdgeVariable.h"
 #include "NodeVariable.h"
 #include "PatchLevel.h"
 #include "VariableContext.h"

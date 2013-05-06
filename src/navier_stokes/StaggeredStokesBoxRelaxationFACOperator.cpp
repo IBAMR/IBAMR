@@ -59,10 +59,11 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "StaggeredStokesBoxRelaxationFACOperator.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/Vector.h"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "tbox/Array.h"

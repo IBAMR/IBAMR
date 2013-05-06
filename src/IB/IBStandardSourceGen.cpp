@@ -42,7 +42,7 @@
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
 #include "blitz/compiler.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSourceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -55,6 +55,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
+#include "ibtk/Vector.h"
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"

@@ -56,6 +56,7 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "SideIterator.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "muParserCartGridFunction.h"
 #include "tbox/Array.h"

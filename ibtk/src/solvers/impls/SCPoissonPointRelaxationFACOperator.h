@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -43,9 +44,12 @@
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
-#include "ibtk/Vector.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+namespace IBTK {
+template <class T, size_t N> class Vector;
+}  // namespace IBTK
 
 namespace SAMRAI {
 namespace hier {
@@ -56,9 +60,6 @@ namespace solv {
 template <int DIM, class TYPE> class SAMRAIVectorReal;
 }  // namespace solv
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

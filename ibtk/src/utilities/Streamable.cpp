@@ -35,14 +35,15 @@
 #include "Streamable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+namespace IBTK {
+template <class T, size_t N> class Vector;
+}  // namespace IBTK
+
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class IntVector;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

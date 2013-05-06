@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <unistd.h>
 #include <vector>
 
 #include "ibamr/IBRodForceSpec.h"
@@ -47,15 +48,13 @@
 namespace IBTK {
 class LData;
 class LDataManager;
+template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class PatchHierarchy;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

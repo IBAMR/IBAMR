@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -57,6 +58,7 @@
 namespace IBTK {
 class LData;
 class LDataManager;
+template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
@@ -72,9 +74,6 @@ template <int DIM> class CoarsenSchedule;
 template <int DIM> class RefineSchedule;
 }  // namespace xfer
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 #if (NDIM == 3)
 #include "ibtk/LM3DDataWriter.h"

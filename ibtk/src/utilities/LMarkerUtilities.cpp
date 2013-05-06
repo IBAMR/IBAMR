@@ -67,7 +67,7 @@
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LEInteractor.h"
@@ -83,6 +83,7 @@
 #include "ibtk/LSetDataIterator-inl.h"
 #include "ibtk/LSetData-inl.h"
 #include "ibtk/LSet-inl.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"

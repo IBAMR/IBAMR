@@ -39,6 +39,7 @@
 #include "PenaltyIBMethod.h"
 #include "blitz/array.h"
 #include "blitz/compiler.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"

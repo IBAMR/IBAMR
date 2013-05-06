@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <unistd.h>
 #include <map>
 #include <set>
 #include <vector>
@@ -43,22 +44,19 @@
 #include "blitz/array.h"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
-#include "ibtk/Vector.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {
 class LData;
 class LDataManager;
+template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class PatchHierarchy;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

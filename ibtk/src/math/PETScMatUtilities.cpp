@@ -32,15 +32,41 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
 #include <numeric>
+#include <ostream>
 
+#include "Box.h"
+#include "BoxArray.h"
+#include "BoxTree.h"
 #include "CartesianGridGeometry.h"
+#include "CellData.h"
+#include "CellGeometry.h"
+#include "CellIndex.h"
+#include "Index.h"
+#include "IntVector.h"
 #include "PETScMatUtilities.h"
-#include "blitz/array.h"
+#include "Patch.h"
+#include "PatchLevel.h"
+#include "SAMRAI_config.h"
+#include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscsys.h"
+#include "tbox/Array.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

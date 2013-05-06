@@ -47,6 +47,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
+#include "boost/array.hpp"
 #include "ibtk/NodeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

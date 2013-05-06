@@ -37,8 +37,9 @@
 #include "Index.h"
 #include "LIndexSetData.h"
 #include "Patch.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/LSet.h"
+#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK {

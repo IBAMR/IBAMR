@@ -43,11 +43,6 @@
 namespace IBTK {
 template <class T> class LSet;
 }  // namespace IBTK
-namespace SAMRAI {
-namespace pdat {
-template <int DIM> class CellGeometry;
-}  // namespace pdat
-}  // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

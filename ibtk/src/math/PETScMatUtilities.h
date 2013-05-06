@@ -35,12 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <math.h>
 #include <vector>
 
-#include "PatchLevel.h"
 #include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
 #include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

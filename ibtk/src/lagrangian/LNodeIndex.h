@@ -43,7 +43,6 @@
 #include "SAMRAI_config.h"
 #include "blitz/array.h"
 #include "ibtk/Vector.h"
-#include "ibtk/Vector.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"

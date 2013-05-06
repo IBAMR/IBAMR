@@ -42,6 +42,7 @@
 #include "SideGeometry.h"
 #include "SideNoCornersFillPattern.h"
 #include "SideOverlap.h"
+#include "boost/array.hpp"
 #include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
