@@ -38,8 +38,8 @@
 #include <vector>
 
 #include "CellVariable.h"
-#include "EdgeVariable.h"
-#include "NodeVariable.h"
+#include "EdgeVariable.h" // IWYU pragma: keep
+#include "NodeVariable.h" // IWYU pragma: keep
 #include "PatchLevel.h"
 #include "VariableContext.h"
 #include "ibamr/ibamr_enums.h"
