@@ -102,7 +102,7 @@ body_velocity_fcn(
     NumericVector<double>& U_b,
     NumericVector<double>& /*U*/,
     NumericVector<double>& /*X*/,
-    MeshBase& /*mesh*/,
+    EquationSystems* /*equation_systems*/,
     double /*time*/,
     void* /*ctx*/)
 {
