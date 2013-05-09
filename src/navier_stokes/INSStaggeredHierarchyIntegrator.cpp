@@ -1916,8 +1916,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                 stream << k;
                 d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name+"::nul_vec_U_"+stream.str());
                 d_nul_vecs[k]->allocateVectorData(current_time);
+                d_nul_vecs[k]->setToScalar(0.0);
                 d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_U_"+stream.str());
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
+                d_U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1925,10 +1927,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                     {
                         Pointer<Patch<NDIM> > patch = level->getPatch(p());
                         Pointer<SideData<NDIM,double> > nul_data = patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        nul_data->fillAll(0.0);
                         nul_data->getArrayData(k).fillAll(1.0);
                         Pointer<SideData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->fillAll(0.0);
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
                 }
