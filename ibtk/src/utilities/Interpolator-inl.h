@@ -35,6 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>  // IWYU pragma: keep
+
 #include "ibtk/Interpolator.h"
 #include "ibtk/compiler_hints.h"
 
