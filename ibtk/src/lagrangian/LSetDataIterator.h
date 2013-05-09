@@ -35,13 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSet.h>
+#include "Box.h"
+#include "IndexData.h"
+#include "ibtk/LSet.h"
+#include "tbox/DescribedClass.h"
 
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <CellGeometry.h>
-#include <IndexData.h>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+namespace pdat {
+template <int DIM> class CellGeometry;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -149,7 +155,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LSetDataIterator.I>
+#include "ibtk/LSetDataIterator-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

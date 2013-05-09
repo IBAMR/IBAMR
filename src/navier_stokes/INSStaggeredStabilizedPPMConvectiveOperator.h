@@ -35,15 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/ConvectiveOperator.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "PatchHierarchy.h"
+#include "SideVariable.h"
+#include "blitz/tinyvec2.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -209,10 +219,6 @@ private:
     int d_U_scratch_idx;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSStaggeredStabilizedPPMConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

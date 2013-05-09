@@ -35,8 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <PatchDataFactory.h>
+#include <stddef.h>
+#include <unistd.h>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "PatchDataFactory.h"
+#include "tbox/Arena.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoxGeometry;
+template <int DIM> class MultiblockDataTranslator;
+template <int DIM> class Patch;
+template <int DIM> class PatchData;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -208,7 +223,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/VecCellDataFactory.I>
+#include "ibtk/VecCellDataFactory-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,10 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-#include <ibtk/JacobianOperator.h>
-#include <ibtk/KrylovLinearSolver.h>
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class HierarchyMathOps;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -251,10 +257,6 @@ private:
         const NewtonKrylovSolver& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/NewtonKrylovSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

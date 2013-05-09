@@ -35,15 +35,34 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
-// IBTK INCLUDES
-#include <ibtk/PoissonFACPreconditioner.h>
-#include <ibtk/PoissonFACPreconditionerStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+#include <vector>
+
+#include "IntVector.h"
+#include "PoissonSpecifications.h"
+#include "ibtk/PoissonFACPreconditioner.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/PoissonSolver.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Box;
+template <int DIM> class BoxList;
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -308,10 +327,6 @@ private:
     std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CCPoissonPointRelaxationFACOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

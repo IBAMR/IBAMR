@@ -35,9 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-#include <ibtk/ibtk_enums.h>
+#include <string>
+
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_enums.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -353,10 +363,6 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/FACPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

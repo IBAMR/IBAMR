@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.cpp
 EXTRA_DIST  = input2d input2d.shell input2d.shell_circum_fibers
 EXTRA_DIST += input3d
 EXTRA_DIST += generate_curve2d.m generate_shell2d.m

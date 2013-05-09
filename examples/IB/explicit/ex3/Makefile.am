@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C
+SOURCES = main.cpp
 EXTRA_DIST  = input2d
 EXTRA_DIST +=  fila_256.vertex  fila_256.spring  fila_256.beam  fila_256.target
 EXTRA_DIST +=  fila_512.vertex  fila_512.spring  fila_512.beam  fila_512.target

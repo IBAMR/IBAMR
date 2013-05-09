@@ -35,11 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
+#include <string>
 #include <vector>
+
+#include "PatchLevel.h"
+#include "ibtk/CartGridFunction.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -161,10 +171,6 @@ private:
         const CartGridFunctionSet& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartGridFunctionSet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

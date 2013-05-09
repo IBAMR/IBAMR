@@ -35,11 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "IntVector.h"
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class ArrayData;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+template <class TYPE> class Pointer;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -243,10 +259,6 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSIntermediateVelocityBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

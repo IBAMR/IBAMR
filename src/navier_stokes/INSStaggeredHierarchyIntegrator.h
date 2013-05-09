@@ -35,12 +35,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/StaggeredStokesSolver.h>
+#include <string>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/SideDataSynchronization.h>
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchyFaceDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
+#include "SAMRAIVectorReal.h"
+#include "SideVariable.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class ConvectiveOperator;
+}  // namespace IBAMR
+namespace IBTK {
+class PoissonSolver;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -389,10 +419,6 @@ private:
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSStaggeredHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

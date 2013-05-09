@@ -35,11 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/GeneralSolver.h>
-
-// C++ STDLIB INCLUDES
+#include <iosfwd>
 #include <vector>
+
+#include "ibtk/GeneralSolver.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -80,7 +86,7 @@ public:
      */
     virtual void
     setNullspace(
-        bool nullspace_containsconstant_vec,
+        bool nullspace_contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
 
     /*!
@@ -165,10 +171,6 @@ private:
         const LinearSolver& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LinearSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

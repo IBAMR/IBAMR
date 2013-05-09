@@ -35,10 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBTK_prefix_config
-#include <IBTK_prefix_config.h>
-#define included_IBTK_prefix_config
-#endif
+#include "IBTK_prefix_config.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 

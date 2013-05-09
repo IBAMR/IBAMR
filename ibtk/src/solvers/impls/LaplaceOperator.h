@@ -35,12 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
+#include "PoissonSpecifications.h"
+#include "ibtk/LinearOperator.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -153,10 +158,6 @@ private:
         const LaplaceOperator& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LaplaceOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

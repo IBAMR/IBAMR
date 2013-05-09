@@ -35,21 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <FaceData.h>
-#include <Patch.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-// IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
 
+#include "ibamr/ibamr_enums.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class FaceData;
+}  // namespace pdat
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -415,10 +418,6 @@ private:
 #endif
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvectorExplicitPredictorStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

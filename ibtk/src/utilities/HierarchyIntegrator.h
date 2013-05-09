@@ -35,25 +35,46 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/ibtk_enums.h>
-
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-#include <ibtk/HierarchyMathOps.h>
-
-// SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <GriddingAlgorithm.h>
-#include <RefineAlgorithm.h>
-#include <StandardTagAndInitStrategy.h>
-#include <VisItDataWriter.h>
-#include <tbox/Serializable.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <deque>
 #include <list>
 #include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "BasePatchLevel.h"
+#include "CoarsenAlgorithm.h"
+#include "CoarsenSchedule.h"
+#include "ComponentSelector.h"
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "RefineSchedule.h"
+#include "StandardTagAndInitStrategy.h"
+#include "VariableContext.h"
+#include "VisItDataWriter.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_enums.h"
+#include "tbox/Array.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenPatchStrategy;
+template <int DIM> class RefinePatchStrategy;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -1062,10 +1083,6 @@ private:
     CoarsenScheduleMap      d_coarsen_scheds;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/HierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,11 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
+#include <string>
 
-// IBTK INCLUDES
-#include <ibtk/PETScNewtonKrylovSolver.h>
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/PETScNewtonKrylovSolver.h"
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -238,10 +243,6 @@ private:
     std::string d_options_prefix;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScMFFDJacobianOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

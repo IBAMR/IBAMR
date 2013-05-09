@@ -35,16 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
-// SAMRAI INCLUDES
-#include <PatchLevel.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "PoissonSpecifications.h"
+#include "petscmat.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -115,10 +119,6 @@ private:
         const StaggeredStokesPETScMatUtilities& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "StaggeredStokesPETScMatUtilities.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

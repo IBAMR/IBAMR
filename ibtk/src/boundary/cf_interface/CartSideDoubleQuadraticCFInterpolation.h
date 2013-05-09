@@ -35,16 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-
-// SAMRAI INCLUDES
-#include <CoarseFineBoundary.h>
-#include <RefineOperator.h>
-#include <SideVariable.h>
-
-// C++ STDLIB INCLUDES
+#include <set>
 #include <vector>
+
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "RefineOperator.h"
+#include "SideVariable.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class CoarseFineBoundary;
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -264,10 +272,6 @@ private:
     int d_sc_indicator_idx;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideDoubleQuadraticCFInterpolation.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

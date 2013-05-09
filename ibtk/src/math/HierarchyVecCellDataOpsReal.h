@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PatchVecCellDataOpsReal.h>
+#include <iosfwd>
 
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsReal.h>
+#include "HierarchyDataOpsReal.h"
+#include "PatchHierarchy.h"
+#include "ibtk/PatchVecCellDataOpsReal.h"
+#include "ibtk/VecCellDataFactory-inl.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -518,10 +520,6 @@ private:
     PatchVecCellDataOpsReal<TYPE> d_patch_ops;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/HierarchyVecCellDataOpsReal.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

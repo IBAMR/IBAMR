@@ -35,28 +35,50 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// BLITZ INCLUDES
-#include <blitz/array.h>
-
-// LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <libmesh/enum_order.h>
-#include <libmesh/enum_quadrature_type.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/linear_solver.h>
-#include <libmesh/sparse_matrix.h>
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <stddef.h>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/libmesh_utilities.h>
+#include "BasePatchLevel.h"
+#include "CellVariable.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
+#include "RefineSchedule.h"
+#include "StandardTagAndInitStrategy.h"
+#include "VariableContext.h"
+#include "blitz/array.h"
+#include "libmesh/auto_ptr.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
+#include "libmesh/partitioner.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
 
-// SAMRAI INCLUDES
-#include <CellVariable.h>
-#include <LoadBalancer.h>
-#include <RefineSchedule.h>
-#include <StandardTagAndInitStrategy.h>
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
+namespace libMesh {
+class Elem;
+class EquationSystems;
+class MeshBase;
+class QBase;
+template <typename T> class LinearSolver;
+template <typename T> class NumericVector;
+template <typename T> class SparseMatrix;
+}  // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -667,10 +689,6 @@ private:
 
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/FEDataManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

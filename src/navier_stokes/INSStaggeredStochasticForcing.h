@@ -33,10 +33,33 @@
 #ifndef included_INSStaggeredStochasticForcing
 #define included_INSStaggeredStochasticForcing
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
+#include <stddef.h>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include "CellVariable.h"
+#include "NodeVariable.h"
+#include "PatchLevel.h"
+#include "VariableContext.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/CartGridFunction.h"
+#include "tbox/Array.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class INSStaggeredHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -186,10 +209,6 @@ private:
 #endif
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/INSStaggeredStochasticForcing.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

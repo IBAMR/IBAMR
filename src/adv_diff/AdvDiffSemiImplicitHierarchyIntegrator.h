@@ -35,12 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <map>
+#include <set>
+#include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/ConvectiveOperator.h>
+#include "HierarchyFaceDataOpsReal.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class ConvectiveOperator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace pdat {
+template <int DIM, class TYPE> class CellVariable;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -402,10 +422,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

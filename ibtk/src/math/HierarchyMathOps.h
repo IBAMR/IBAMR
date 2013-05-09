@@ -35,34 +35,37 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/PatchMathOps.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <CoarsenOperator.h>
-#include <CoarsenSchedule.h>
-#include <FaceVariable.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchyFaceDataOpsReal.h>
-#include <HierarchyNodeDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <NodeVariable.h>
-#include <OuterfaceVariable.h>
-#include <OutersideVariable.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
-#include <tbox/Pointer.h>
-#include <tbox/DescribedClass.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "CellVariable.h"
+#include "CoarsenAlgorithm.h"
+#include "CoarsenOperator.h"
+#include "FaceVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchyFaceDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
+#include "NodeVariable.h"
+#include "OuterfaceVariable.h"
+#include "OutersideVariable.h"
+#include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
+#include "SideVariable.h"
+#include "VariableContext.h"
+#include "ibtk/PatchMathOps.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class HierarchyGhostCellInterpolation;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -1215,10 +1218,6 @@ private:
     double d_volume;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/HierarchyMathOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

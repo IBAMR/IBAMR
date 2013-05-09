@@ -35,14 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -231,10 +239,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "FaceDataSynchronization.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

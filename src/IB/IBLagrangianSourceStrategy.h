@@ -35,17 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LDataManager.h>
-#include <ibtk/LData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -179,10 +185,6 @@ private:
         const IBLagrangianSourceStrategy& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBLagrangianSourceStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,8 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <VariableFillPattern.h>
+#include <string>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "VariableFillPattern.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoxGeometry;
+template <int DIM> class BoxOverlap;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -142,10 +153,6 @@ private:
     const unsigned int d_axis;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "NodeSynchCopyFillPattern.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

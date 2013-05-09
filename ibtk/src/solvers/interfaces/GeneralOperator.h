@@ -35,12 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/HierarchyMathOps.h>
+#include <iosfwd>
+#include <string>
+#include <utility>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/DescribedClass.h>
+#include "ibtk/HierarchyMathOps.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -337,10 +344,6 @@ private:
         const GeneralOperator& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/GeneralOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,11 +35,39 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsys.h>
+#include <string>
+#include <vector>
 
-// IBAMR INCLUDES
-#include <ibamr/INSHierarchyIntegrator.h>
+#include "CellVariable.h"
+#include "FaceVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchyFaceDataOpsReal.h"
+#include "SAMRAIVectorReal.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class ConvectiveOperator;
+}  // namespace IBAMR
+namespace IBTK {
+class PoissonSolver;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class Patch;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -355,10 +383,6 @@ private:
     int d_Omega_Norm_idx, d_Grad_P_idx, d_Phi_idx, d_Grad_Phi_cc_idx, d_Grad_Phi_fc_idx, d_F_div_idx;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSCollocatedHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

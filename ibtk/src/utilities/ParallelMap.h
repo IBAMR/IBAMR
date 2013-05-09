@@ -35,12 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class Streamable;
+}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -133,10 +136,6 @@ private:
     std::vector<int> d_pending_removals;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/ParallelMap.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

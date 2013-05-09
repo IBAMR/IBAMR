@@ -35,16 +35,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/IBHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/StaggeredStokesOperator.h>
+#include "SAMRAIVectorReal.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOperator.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/LinearSolver.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
-// IBTK INCLUDES
-#include <ibtk/NewtonKrylovSolver.h>
+namespace IBAMR {
+class IBStrategy;
+class INSStaggeredHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -402,10 +419,6 @@ private:
     };
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBImplicitStaggeredHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

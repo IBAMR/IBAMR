@@ -35,11 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/ConvectiveOperator.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+#include <vector>
+
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -158,10 +167,6 @@ private:
     std::map<std::string,OperatorMaker> d_operator_maker_map;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSCollocatedConvectiveOperatorManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

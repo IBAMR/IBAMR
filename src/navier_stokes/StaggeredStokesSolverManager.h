@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesSolver.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+
+#include "ibamr/StaggeredStokesSolver.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -197,10 +198,6 @@ private:
     std::map<std::string,SolverMaker> d_solver_maker_map;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesSolverManager.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,12 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/StokesBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "IntVector.h"
+#include "ibamr/StokesBcCoefStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class INSStaggeredHierarchyIntegrator;
+class StokesSpecifications;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class ArrayData;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -289,10 +306,6 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSStaggeredVelocityBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

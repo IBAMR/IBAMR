@@ -35,15 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <tbox/ConstPointer.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+#include <vector>
+
+#include "ibtk/LinearSolver.h"
+#include "tbox/ConstPointer.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LinearOperator;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -335,10 +345,6 @@ private:
     bool d_symmetric_preconditioner, d_reverse_order;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/BGaussSeidelPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

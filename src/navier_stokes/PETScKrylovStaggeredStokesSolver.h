@@ -35,14 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h>
+#include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "tbox/Pointer.h"
 
-// IBTK INCLUDES
-#include <ibtk/PETScKrylovLinearSolver.h>
+namespace SAMRAI {
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -105,10 +108,6 @@ private:
         const PETScKrylovStaggeredStokesSolver& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/PETScKrylovStaggeredStokesSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,17 +35,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/ConvectiveOperator.h>
-
-// SAMRAI INCLUDES
-#include <CellVariable.h>
-#include <CoarsenAlgorithm.h>
-#include <FaceVariable.h>
-#include <RefineAlgorithm.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "CellVariable.h"
+#include "CoarsenAlgorithm.h"
+#include "FaceVariable.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "RefinePatchStrategy.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -202,10 +215,6 @@ private:
     int d_u_extrap_idx, d_u_flux_idx;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSCollocatedCenteredConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,18 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsnes.h>
-
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
 #include <string>
-#include <ostream>
+
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -224,10 +220,6 @@ private:
     Vec d_petsc_x, d_petsc_y;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScSNESFunctionGOWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

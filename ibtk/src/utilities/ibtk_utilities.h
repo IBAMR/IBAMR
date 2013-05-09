@@ -33,14 +33,17 @@
 #ifndef included_ibtk_utilities
 #define included_ibtk_utilities
 
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include "tbox/PIO.h"
+#include "tbox/Utilities.h"
+
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBTK_BIT_SET(   bitfield,b) ((bitfield) |=  (1 << (b)))
 #define IBTK_BIT_CLEAR( bitfield,b) ((bitfield) &= ~(1 << (b)))
 #define IBTK_BIT_TOGGLE(bitfield,b) ((bitfield) ^=  (1 << (b)))
 #define IBTK_BIT_CHECK( bitfield,b) ((bitfield) &   (1 << (b)))
-
-#include <tbox/PIO.h>
 
 #define IBTK_DO_ONCE(task)                                      \
     do                                                          \

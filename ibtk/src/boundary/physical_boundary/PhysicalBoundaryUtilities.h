@@ -35,10 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <BoundaryBox.h>
-#include <Patch.h>
-#include <tbox/Pointer.h>
+#include "BoundaryBox.h"
+#include "Box.h"
+#include "tbox/Array.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -161,10 +166,6 @@ private:
         const PhysicalBoundaryUtilities& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PhysicalBoundaryUtilities.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

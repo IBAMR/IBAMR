@@ -35,11 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSiloDataWriter.h>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <VisItDataWriter.h>
+#include "VisItDataWriter.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "tbox/Database.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -265,10 +268,6 @@ private:
     int d_timer_dump_interval;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/AppInitializer.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

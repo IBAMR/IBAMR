@@ -131,18 +131,21 @@ public:
     int ordering(const int r) const
     {
       BZPRECONDITION(r==0);
+      (void)r;
       return 0;
     }
 
     int lbound(const int r) const
     {
       BZPRECONDITION(r==0);
+      (void)r;
       return 0;
     }
 
     int ubound(const int r) const
     {
       BZPRECONDITION(r==0);
+      (void)r;
       return N_length-1;
     }
 
@@ -169,40 +172,40 @@ public:
   bool isVectorAligned(diffType offset) const
   { return (offset%simdTypes<T_numtype>::vecWidth==0) ? true : false; }
 
-    int suggestStride(int r) const
-  { BZPRECONDITION(r==0); return stride_; }
+  int suggestStride(int r) const
+  { BZPRECONDITION(r==0); (void)r; return stride_; }
 
-    bool isStride(int r, diffType stride) const
-  { BZPRECONDITION(r==0); return stride==stride_; }
+  bool isStride(int r, diffType stride) const
+  { BZPRECONDITION(r==0); (void)r; return stride==stride_; }
 
-    void push(int position)
-    {
-      BZPRECONDITION(position==0); stack_[position] = data_;
-    }
+  void push(int position)
+  {
+    BZPRECONDITION(position==0); stack_[position] = data_;
+  }
 
-    void pop(int position)
-    {
-      BZPRECONDITION(position==0); data_ = stack_[position];
-    }
+  void pop(int position)
+  {
+    BZPRECONDITION(position==0); data_ = stack_[position];
+  }
 
-    void advance()
-    {
-      data_ += stride_;
-    }
+  void advance()
+  {
+    data_ += stride_;
+  }
 
-    void advance(int n)
-    {
-      data_ += n * stride_;
-    }
+  void advance(int n)
+  {
+    data_ += n * stride_;
+  }
 
-    void loadStride(int r)
-    {
-      BZPRECONDITION(r==0); //stride_ = 1;
-    }
+  void loadStride(int r)
+  {
+    BZPRECONDITION(r==0); (void)r; //stride_ = 1;
+  }
 
   // This is used as lvalue, so it should return the actual data
-    const T_numtype * restrict data() const
-    { return data_; }
+  const T_numtype * restrict data() const
+  { return data_; }
 
   const T_vector& array() const
   {return array_; }
@@ -211,8 +214,8 @@ public:
   { BZPRECONDITION(0); //data_ = ptr;
   }
 
-    // this is needed for the stencil expression fastRead to work
-    void _bz_offsetData(sizeType i)
+  // this is needed for the stencil expression fastRead to work
+  void _bz_offsetData(sizeType i)
   { BZPRECONDITION(0); //data_ += i;
   }
 
@@ -230,7 +233,7 @@ public:
     { return stride_; }
 
     bool isUnitStride(int r) const
-    { BZPRECONDITION(r==0); return stride_ == 1; }
+    { BZPRECONDITION(r==0); (void)r; return stride_ == 1; }
 
     bool isUnitStride() const
     { return stride_ == 1; }

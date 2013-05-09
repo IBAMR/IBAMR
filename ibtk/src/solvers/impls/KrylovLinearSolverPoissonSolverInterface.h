@@ -35,8 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PoissonSolver.h>
+#include <vector>
+
+#include "PoissonSpecifications.h"
+#include "ibtk/PoissonSolver.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -126,10 +134,6 @@ private:
         const KrylovLinearSolverPoissonSolverInterface& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/KrylovLinearSolverPoissonSolverInterface.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

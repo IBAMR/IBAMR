@@ -35,13 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefinePatchStrategy.h>
-#include <RobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <set>
 #include <vector>
+
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "RefinePatchStrategy.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -226,10 +235,6 @@ private:
         const RobinPhysBdryPatchStrategy& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/RobinPhysBdryPatchStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

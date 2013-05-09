@@ -35,42 +35,47 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/AdvectorExplicitPredictorStrategy.h>
-#include <ibamr/ibamr_enums.h>
-#include <ibamr/ibamr_utilities.h>  // needed for less<SAMRAI::tbox::Pointer<T> >
-
-// IBTK INCLUDES
-#include <ibtk/CartExtrapPhysBdryOp.h>
-#include <ibtk/CartGridFunction.h>
-
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <CartesianGridGeometry.h>
-#include <CellData.h>
-#include <CellVariable.h>
-#include <FaceData.h>
-#include <FaceVariable.h>
-#include <GriddingAlgorithm.h>
-#include <HyperbolicLevelIntegrator.h>
-#include <HyperbolicPatchStrategy.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <PatchLevel.h>
-#include <RobinBcCoefStrategy.h>
-#include <VariableContext.h>
-#include <VisItDataWriter.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
-#include <ostream>
 #include <set>
 #include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "HyperbolicPatchStrategy.h"
+#include "IntVector.h"
+#include "VisItDataWriter.h"
+#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "tbox/Array.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace IBTK {
+class CartGridFunction;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace algs {
+template <int DIM> class HyperbolicLevelIntegrator;
+}  // namespace algs
+namespace hier {
+class VariableContext;
+template <int DIM> class Patch;
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellVariable;
+template <int DIM, class TYPE> class FaceData;
+template <int DIM, class TYPE> class FaceVariable;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -592,10 +597,6 @@ private:
     SAMRAI::tbox::Array<double> d_grad_time_min;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,15 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <IntVector.h>
-#include <Patch.h>
-#include <RefinePatchStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
+
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "RefinePatchStrategy.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -304,10 +310,6 @@ private:
     std::string d_extrap_type;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartExtrapPhysBdryOp.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

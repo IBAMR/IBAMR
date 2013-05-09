@@ -35,11 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <CellData.h>
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -146,10 +157,6 @@ private:
         const StaggeredStokesPhysicalBoundaryHelper& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,16 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PoissonFACPreconditioner.h>
-#include <ibtk/PoissonFACPreconditionerStrategy.h>
-#include <ibtk/StaggeredPhysicalBoundaryHelper.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+#include <vector>
+
+#include "ibtk/PoissonFACPreconditioner.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Box;
+template <int DIM> class BoxList;
+}  // namespace hier
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -269,10 +282,6 @@ private:
     int d_mask_idx;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/SCPoissonPointRelaxationFACOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

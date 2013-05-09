@@ -282,12 +282,12 @@ public:
     { return N_length; }
 
   static int                               lbound(int rank)
-  { BZPRECONDITION(rank==0); return 0; }
+  { BZPRECONDITION(rank==0); (void)rank; return 0; }
   static int            lbound()
   { return 0; }
 
   static int                               length(int rank)
-  { BZPRECONDITION(rank==0); return N_length; }
+  { BZPRECONDITION(rank==0); (void)rank;  return N_length; }
   static int    length()
   { return N_length; }
 
@@ -295,7 +295,7 @@ public:
   { BZPRECONDITION(rank==0); return N_length; }
 
   static int                               ordering(int storageRankIndex)
-  { return 0; }
+  { (void)storageRankIndex; return 0; }
 
   static int    ordering()
   { return 0; }
@@ -310,10 +310,10 @@ public:
     { return 1; }
 
   static diffType                               stride(int rank)
-    { BZPRECONDITION(rank==0); return 1; }
+  { BZPRECONDITION(rank==0); (void)rank; return 1; }
 
   static int                               ubound(int rank)
-  { BZPRECONDITION(rank==0); return length()-1; }
+  { BZPRECONDITION(rank==0); (void)rank; return length()-1; }
 
   static int           ubound()
   { return length()-1; }

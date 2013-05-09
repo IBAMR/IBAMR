@@ -35,9 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <PatchLevel.h>
-#include <tbox/Transaction.h>
+#include <iosfwd>
+
+#include "PatchData.h"
+#include "PatchLevel.h"
+#include "tbox/Pointer.h"
+#include "tbox/Transaction.h"
+
+namespace SAMRAI {
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -172,10 +181,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > d_dst_patch_data;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "CopyToRootTransaction.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

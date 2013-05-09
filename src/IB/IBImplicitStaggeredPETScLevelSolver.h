@@ -35,18 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StokesSpecifications.h>
-
-// IBTK INCLUDES
-#include <ibtk/PETScLevelSolver.h>
-
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
-#include <RefineSchedule.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "CellVariable.h"
+#include "RefineSchedule.h"
+#include "SideVariable.h"
+#include "VariableContext.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+template <int DIM> class LocationIndexRobinBcCoefs;
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -215,10 +229,6 @@ private:
     //\}
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBImplicitStaggeredPETScLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

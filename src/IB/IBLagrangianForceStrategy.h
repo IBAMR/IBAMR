@@ -35,17 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LData.h>
-#include <ibtk/LDataManager.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "petscmat.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -205,10 +209,6 @@ private:
         const IBLagrangianForceStrategy& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBLagrangianForceStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,8 +35,34 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBStrategy.h>
+#include <vector>
+
+#include "ibamr/IBStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class IBHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+template <int DIM> class IntVector;
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+template <int DIM> class LoadBalancer;
+}  // namespace mesh
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -383,10 +409,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBStrategy> > d_strategy_set;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBStrategySet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

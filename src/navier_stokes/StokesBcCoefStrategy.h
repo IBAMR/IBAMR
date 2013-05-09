@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StokesSpecifications.h>
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
+namespace IBAMR {
+class StokesSpecifications;
+}  // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -140,10 +140,6 @@ private:
         const StokesBcCoefStrategy& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "StokesBcCoefStrategy.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

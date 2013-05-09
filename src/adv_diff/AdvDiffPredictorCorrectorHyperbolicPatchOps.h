@@ -35,18 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
-#include <ibamr/AdvectorExplicitPredictorStrategy.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <PatchLevel.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <string>
+
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class AdvectorExplicitPredictorStrategy;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace geom {
+template <int DIM> class CartesianGridGeometry;
+}  // namespace geom
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -173,10 +181,6 @@ private:
         const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

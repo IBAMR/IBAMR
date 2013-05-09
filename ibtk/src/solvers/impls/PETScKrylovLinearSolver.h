@@ -35,17 +35,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
+#include <stddef.h>
+#include <iosfwd>
+#include <string>
+#include <vector>
 
-// IBTK INCLUDES
-#include <ibtk/KrylovLinearSolver.h>
+#include "SAMRAIVectorReal.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "mpi.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpc.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LinearOperator;
+}  // namespace IBTK
 
 /////////////////////////////// FORWARD DECLARATION //////////////////////////
 
 namespace IBTK
 {
-class PETScNewtonKrylovSolver;
 }
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -467,10 +481,6 @@ private:
     bool d_solver_has_attached_nullspace;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScKrylovLinearSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

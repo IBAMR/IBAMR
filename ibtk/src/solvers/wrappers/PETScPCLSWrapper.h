@@ -35,18 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
-
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
+
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearSolver.h"
+#include "petscpc.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -325,10 +320,6 @@ private:
     Vec d_petsc_x, d_petsc_b;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScPCLSWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

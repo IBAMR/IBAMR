@@ -35,11 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/IBHierarchyIntegrator.h>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "tbox/Pointer.h"
+
+namespace IBAMR {
+class IBStrategy;
+class INSHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -163,10 +178,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBExplicitHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

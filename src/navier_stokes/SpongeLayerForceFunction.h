@@ -35,15 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSHierarchyIntegrator.h>
+#include <stddef.h>
+#include <string>
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <SideData.h>
+#include "CartesianGridGeometry.h"
+#include "PatchLevel.h"
+#include "blitz/tinyvec2.h"
+#include "ibtk/CartGridFunction.h"
+#include "tbox/Pointer.h"
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+namespace IBAMR {
+class INSHierarchyIntegrator;
+}  // namespace IBAMR
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class Variable;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -155,10 +172,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/SpongeLayerForceFunction.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

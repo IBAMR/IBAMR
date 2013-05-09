@@ -35,11 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/PatchVecCellDataBasicOps.h>
+#include <iosfwd>
 
-// SAMRAI INCLUDES
-#include <Patch.h>
+#include "Box.h"
+#include "ibtk/PatchVecCellDataBasicOps.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+template <class TYPE> class VecCellData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -110,10 +121,6 @@ private:
     void operator=(const PatchVecCellDataOpsReal<TYPE>&);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PatchVecCellDataOpsReal.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

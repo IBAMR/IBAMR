@@ -35,9 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/FACPreconditioner.h>
-#include <ibtk/PoissonSolver.h>
+#include <string>
+#include <vector>
+
+#include "PoissonSpecifications.h"
+#include "ibtk/FACPreconditioner.h"
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -140,10 +153,6 @@ private:
         const PoissonFACPreconditioner& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PoissonFACPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

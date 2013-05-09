@@ -35,14 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <IntVector.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+#include <unistd.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "tbox/DescribedClass.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -137,10 +144,6 @@ private:
         const Streamable& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/Streamable.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

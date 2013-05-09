@@ -35,11 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefinePatchStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "Box.h"
+#include "BoxList.h"
+#include "IntVector.h"
+#include "RefinePatchStrategy.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -232,10 +239,6 @@ private:
     const bool d_managed;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/RefinePatchStrategySet.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,11 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
+
+#include "ibtk/LinearSolver.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -274,10 +283,6 @@ private:
     std::map<unsigned int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/BJacobiPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

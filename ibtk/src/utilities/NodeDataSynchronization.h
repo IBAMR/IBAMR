@@ -35,17 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
+#include "PatchHierarchy.h"
+#include "blitz/tinyvec2.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineAlgorithm;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -234,10 +240,6 @@ private:
     blitz::TinyVector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >,NDIM> d_refine_scheds;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "NodeDataSynchronization.I"
 
 //////////////////////////////////////////////////////////////////////////////
 

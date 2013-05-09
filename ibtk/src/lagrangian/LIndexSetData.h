@@ -35,11 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSetData.h>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <Patch.h>
+#include "Box.h"
+#include "IntVector.h"
+#include "ibtk/LSetData.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -191,7 +198,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LIndexSetData.I>
+#include "ibtk/LIndexSetData-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -490,7 +490,7 @@ public:
     }
 
 protected:
-    _bz_ArrayExpr() { }
+    _bz_ArrayExpr();
 
     T_expr iter_;
 };
@@ -1087,7 +1087,7 @@ public:
     }
 
 protected:
-    _bz_ArrayExprBinaryOp() { }
+    _bz_ArrayExprBinaryOp();
 
     T_expr1 iter1_;
     T_expr2 iter2_;
@@ -2071,10 +2071,10 @@ public:
 
   template<int N>
   typename tvresult<N>::Type fastRead_tv(diffType i) const
-  { return value_; }
+  { (void)i; return value_; }
 
   bool isVectorAligned(diffType offset) const
-  { return true; }
+  { (void)offset; return true; }
 
   // this is needed for the stencil expression fastRead to work
   void _bz_offsetData(sizeType i) const{};

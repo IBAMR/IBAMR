@@ -35,12 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
+#include <string>
 
-// IBTK INCLUDES
-#include <ibtk/KrylovLinearSolverPoissonSolverInterface.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -103,10 +108,6 @@ private:
         const PETScKrylovPoissonSolver& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScKrylovPoissonSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,9 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/IBSpringForceFunctions.h>
+#include <stddef.h>
+#include <map>
+#include <set>
+#include <vector>
+
+#include "blitz/array.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBSpringForceFunctions.h"
+#include "petscmat.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+}  // namespace SAMRAI
+namespace blitz {
+template <typename P_numtype, int N_length> class TinyVector;
+}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -291,10 +311,6 @@ private:
     std::map<int,SpringForceDerivFcnPtr> d_spring_force_deriv_fcn_map;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBStandardForceGen.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,11 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
+#include <string>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
+#include "ibtk/GeneralOperator.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -127,10 +131,6 @@ private:
         const LinearOperator& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LinearOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

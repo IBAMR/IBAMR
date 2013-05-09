@@ -35,8 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/StaggeredStokesBlockPreconditioner.h>
+#include <string>
+
+#include "CellVariable.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM, class TYPE> class SAMRAIVectorReal;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -190,10 +202,6 @@ private:
     int d_Phi_scratch_idx, d_F_Phi_idx;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/StaggeredStokesProjectionPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

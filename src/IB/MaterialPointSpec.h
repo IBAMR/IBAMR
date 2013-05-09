@@ -35,24 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_prefix_config
-#include <IBAMR_prefix_config.h>
-#define included_IBAMR_prefix_config
-#endif
+#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-#include <ibtk/StreamableFactory.h>
-
-// SAMRAI INCLUDES
-#include <tbox/AbstractStream.h>
-
-// C++ STDLIB INCLUDES
+#include <unistd.h>
 #include <vector>
 
-// LIBMESH INCLUDES
-#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <libmesh/id_types.h>
+#include "ibtk/Streamable.h"
+#include "ibtk/StreamableFactory.h"
+#include "libmesh/id_types.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -289,7 +280,16 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibamr/MaterialPointSpec.I>
+#include "ibamr/MaterialPointSpec-inl.h" // IWYU pragma: keep
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,14 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <Index.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+#include <unistd.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "IntVector.h"
+#include "blitz/tinyvec2.h"
+#include "tbox/DescribedClass.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -226,7 +232,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LMarker.I>
+#include "ibtk/LMarker-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

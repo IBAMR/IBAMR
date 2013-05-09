@@ -35,18 +35,44 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBStrategy.h>
-
-// IBTK INCLUDES
-#include <ibtk/LDataManager.h>
-#include <ibtk/LSiloDataWriter.h>
-
-// LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <libmesh/id_types.h>
-#include <libmesh/tensor_value.h>
-#include <libmesh/point.h>
+
+#include <stddef.h>
+#include <string>
+#include <vector>
+
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "libmesh/id_types.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+}  // namespace hier
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
+namespace libMesh {
+class Point;
+template <typename T> class TensorValue;
+}  // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -478,10 +504,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IMPMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

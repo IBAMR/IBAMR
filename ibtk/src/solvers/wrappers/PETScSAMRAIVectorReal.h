@@ -35,15 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscvec.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <set>
+#include "SAMRAIVectorReal.h"
+#include "mpi.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+// IWYU pragma: no_include "petscmath.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -203,7 +200,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScSAMRAIVectorReal.I>
+#include "ibtk/PETScSAMRAIVectorReal-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

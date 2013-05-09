@@ -23,12 +23,12 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/advect_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/StokesSpecifications.C \
-$(top_srcdir)/src/utilities/RNG.C
+$(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
+$(top_srcdir)/src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
 libIBAMR_a_SOURCES += \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
 endif
 
 pkg_include_HEADERS = \
@@ -46,109 +46,109 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
-$(top_srcdir)/src/IB/GeneralizedIBMethod.C \
-$(top_srcdir)/src/IB/IBAnchorPointSpec.C \
-$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
-$(top_srcdir)/src/IB/IBBeamForceSpec.C \
-$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
-$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
-$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.C \
-$(top_srcdir)/src/IB/IBInstrumentPanel.C \
-$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
-$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
-$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
-$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
-$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
-$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-$(top_srcdir)/src/IB/IBMethod.C \
-$(top_srcdir)/src/IB/IBMethodPostProcessStrategy.C \
-$(top_srcdir)/src/IB/IBRodForceSpec.C \
-$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBSourceSpec.C \
-$(top_srcdir)/src/IB/IBSourceSpecFactory.C \
-$(top_srcdir)/src/IB/IBSpringForceSpec.C \
-$(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBStandardForceGen.C \
-$(top_srcdir)/src/IB/IBStandardSourceGen.C \
-$(top_srcdir)/src/IB/IBStandardInitializer.C \
-$(top_srcdir)/src/IB/IBStrategy.C \
-$(top_srcdir)/src/IB/IBStrategySet.C \
-$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
-$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
-$(top_srcdir)/src/IB/PenaltyIBMethod.C \
-$(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.C \
-$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.C \
-$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.C \
-$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
-$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.C \
-$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.C \
-$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.C \
-$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredStabilizedPPMConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.C \
-$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.C \
-$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.C \
-$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.C \
-$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.C \
-$(top_srcdir)/src/utilities/ConvectiveOperator.C
+$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp \
+$(top_srcdir)/src/IB/IBAnchorPointSpec.cpp \
+$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBBeamForceSpec.cpp \
+$(top_srcdir)/src/IB/IBBeamForceSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBEulerianForceFunction.cpp \
+$(top_srcdir)/src/IB/IBEulerianSourceFunction.cpp \
+$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
+$(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
+$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
+$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+$(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
+$(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
+$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.cpp \
+$(top_srcdir)/src/IB/IBLagrangianForceStrategy.cpp \
+$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.cpp \
+$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.cpp \
+$(top_srcdir)/src/IB/IBMethod.cpp \
+$(top_srcdir)/src/IB/IBMethodPostProcessStrategy.cpp \
+$(top_srcdir)/src/IB/IBRodForceSpec.cpp \
+$(top_srcdir)/src/IB/IBRodForceSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBSourceSpec.cpp \
+$(top_srcdir)/src/IB/IBSourceSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBSpringForceSpec.cpp \
+$(top_srcdir)/src/IB/IBSpringForceSpecFactory.cpp \
+$(top_srcdir)/src/IB/IBStandardForceGen.cpp \
+$(top_srcdir)/src/IB/IBStandardSourceGen.cpp \
+$(top_srcdir)/src/IB/IBStandardInitializer.cpp \
+$(top_srcdir)/src/IB/IBStrategy.cpp \
+$(top_srcdir)/src/IB/IBStrategySet.cpp \
+$(top_srcdir)/src/IB/IBTargetPointForceSpec.cpp \
+$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.cpp \
+$(top_srcdir)/src/IB/PenaltyIBMethod.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
+$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
+$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
+$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredConvectiveOperatorManager.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStabilizedPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
+$(top_srcdir)/src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+$(top_srcdir)/src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesBlockPreconditioner.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditioner.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesOperator.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScLevelSolver.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScMatUtilities.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesPETScVecUtilities.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesProjectionPreconditioner.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesSolver.cpp \
+$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.cpp \
+$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.cpp \
+$(top_srcdir)/src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/IB/IBFEMethod.C \
-$(top_srcdir)/src/IB/IMPMethod.C \
-$(top_srcdir)/src/IB/IMPInitializer.C \
-$(top_srcdir)/src/IB/MaterialPointSpec.C \
-$(top_srcdir)/src/IB/MaterialPointSpecFactory.C \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+$(top_srcdir)/src/IB/IBFEMethod.cpp \
+$(top_srcdir)/src/IB/IMPMethod.cpp \
+$(top_srcdir)/src/IB/IMPInitializer.cpp \
+$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
+$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
+$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
 endif
 
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/GeneralizedIBMethod.h \
-$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
+$(top_srcdir)/src/IB/IBAnchorPointSpec-inl.h \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
-$(top_srcdir)/src/IB/IBBeamForceSpec.I \
+$(top_srcdir)/src/IB/IBBeamForceSpec-inl.h \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
-$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
+$(top_srcdir)/src/IB/IBInstrumentationSpec-inl.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
@@ -156,19 +156,19 @@ $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
 $(top_srcdir)/src/IB/IBMethod.h \
 $(top_srcdir)/src/IB/IBMethodPostProcessStrategy.h \
-$(top_srcdir)/src/IB/IBRodForceSpec.I \
+$(top_srcdir)/src/IB/IBRodForceSpec-inl.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
-$(top_srcdir)/src/IB/IBSourceSpec.I \
+$(top_srcdir)/src/IB/IBSourceSpec-inl.h \
 $(top_srcdir)/src/IB/IBSourceSpec.h \
 $(top_srcdir)/src/IB/IBSpringForceFunctions.h \
-$(top_srcdir)/src/IB/IBSpringForceSpec.I \
+$(top_srcdir)/src/IB/IBSpringForceSpec-inl.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
 $(top_srcdir)/src/IB/IBStrategy.h \
 $(top_srcdir)/src/IB/IBStrategySet.h \
-$(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
+$(top_srcdir)/src/IB/IBTargetPointForceSpec-inl.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
 $(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.h \
@@ -224,7 +224,7 @@ $(top_srcdir)/src/IB/IBFEMethod.h \
 $(top_srcdir)/src/IB/IMPMethod.h \
 $(top_srcdir)/src/IB/IMPInitializer.h \
 $(top_srcdir)/src/IB/MaterialPointSpec.h \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.C
+$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

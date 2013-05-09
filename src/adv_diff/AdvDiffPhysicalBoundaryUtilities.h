@@ -35,13 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CellData.h>
-#include <FaceData.h>
-#include <RobinBcCoefStrategy.h>
-
-// C++ INCLUDES
 #include <vector>
+
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class CellData;
+template <int DIM, class TYPE> class FaceData;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -100,10 +109,6 @@ private:
         const AdvDiffPhysicalBoundaryUtilities& that);
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/AdvDiffPhysicalBoundaryUtilities.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

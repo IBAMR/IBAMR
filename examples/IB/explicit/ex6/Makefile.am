@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C IBSimpleHierarchyIntegrator.C IBSimpleHierarchyIntegrator.h
+SOURCES = main.cpp IBSimpleHierarchyIntegrator.cpp IBSimpleHierarchyIntegrator.h
 EXTRA_DIST  = input2d
 EXTRA_DIST += generate_curve2d.m
 

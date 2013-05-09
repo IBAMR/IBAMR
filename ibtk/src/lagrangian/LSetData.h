@@ -35,25 +35,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LSet.h>
-#include <ibtk/IndexUtilities.h>
+#include "Box.h"
+#include "CellIterator.h"
+#include "IndexData.h"
+#include "IntVector.h"
+#include "ibtk/FixedSizedStream-inl.h"
+#include "ibtk/LMarker.h"
+#include "ibtk/LMarker-inl.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeIndex-inl.h"
+#include "ibtk/LNode-inl.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/LSet-inl.h"
 
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <CellGeometry.h>
-#include <CellIterator.h>
-#include <IndexData.h>
-#include <IntVector.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
+namespace IBTK {
+template <class T> class LSet;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace pdat {
+template <int DIM> class CellGeometry;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
-template<class T> class LSetDataIterator;
 }// namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -154,7 +162,7 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LSetData.I>
+#include "ibtk/LSetData-inl.h"  // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

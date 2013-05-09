@@ -35,14 +35,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <RobinBcCoefStrategy.h>
-#include <SideData.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
+
+#include "PatchHierarchy.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+template <int DIM> class Box;
+template <int DIM> class Patch;
+}  // namespace hier
+namespace pdat {
+template <int DIM, class TYPE> class ArrayData;
+template <int DIM, class TYPE> class SideData;
+}  // namespace pdat
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+namespace tbox {
+template <class TYPE> class Array;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -181,10 +197,6 @@ private:
         const StaggeredPhysicalBoundaryHelper& that);
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StaggeredPhysicalBoundaryHelper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

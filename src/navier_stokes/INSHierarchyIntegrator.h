@@ -35,13 +35,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/ConvectiveOperator.h>
-#include <ibamr/StokesSpecifications.h>
+#include <string>
+#include <vector>
 
-// SAMRAI INCLUDES
-#include <LocationIndexRobinBcCoefs.h>
+#include "FaceVariable.h"
+#include "LocationIndexRobinBcCoefs.h"
+#include "Variable.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Patch;
+template <int DIM> class PatchLevel;
+}  // namespace hier
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -584,10 +604,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,19 +35,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LDataManager.h>
-
-// SAMRAI INCLUDES
-#include <Index.h>
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/array.h>
-
-// C++ STDLIB INCLUDES
+#include <fstream>
+#include <functional>
+#include <iosfwd>
 #include <map>
+#include <string>
+#include <vector>
+
+#include "Index.h"
+#include "IntVector.h"
+#include "blitz/array.h"
+#include "blitz/tinyvec2.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LDataManager;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -309,10 +321,6 @@ private:
     std::string d_flow_units, d_pres_units;
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBInstrumentPanel.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,18 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsnes.h>
-
-// IBTK INCLUDES
-#include <ibtk/JacobianOperator.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
 #include <string>
-#include <ostream>
+
+#include "SAMRAIVectorReal.h"
+#include "ibtk/JacobianOperator.h"
+#include "petscmat.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -276,10 +273,6 @@ private:
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScSNESJacobianJOWrapper.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

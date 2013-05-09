@@ -33,9 +33,11 @@
 #ifndef included_ibamr_utilities
 #define included_ibamr_utilities
 
-/////////////////////////////// MACRO DEFINITIONS ////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <tbox/PIO.h>
+#include "tbox/PIO.h"
+
+/////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBAMR_DO_ONCE(task)                                      \
     do                                                           \

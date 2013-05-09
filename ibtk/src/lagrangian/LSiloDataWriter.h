@@ -35,23 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LData.h>
-
-// SAMRAI INCLUDES
-#include <IntVector.h>
-#include <PatchHierarchy.h>
-#include <tbox/Pointer.h>
-#include <tbox/Serializable.h>
-
-// PETSc INCLUDES
-#include <petscvec.h>
-#include <petscao.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "petscao.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace tbox {
+class Database;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -376,10 +380,6 @@ private:
     std::vector<std::map<int,VecScatter> > d_vec_scatter;
 };
 }// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/LSiloDataWriter.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

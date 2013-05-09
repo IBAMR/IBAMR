@@ -35,11 +35,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/IBMethod.h>
+#include <string>
+#include <vector>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+#include "blitz/tinyvec2.h"
+#include "ibamr/IBMethod.h"
+#include "petscmat.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class LData;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchHierarchy;
+}  // namespace hier
+namespace mesh {
+template <int DIM> class GriddingAlgorithm;
+}  // namespace mesh
+namespace tbox {
+class Database;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -244,10 +265,6 @@ private:
     getFromRestart();
 };
 }// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/PenaltyIBMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
