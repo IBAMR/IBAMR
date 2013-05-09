@@ -1158,15 +1158,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_cc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
-    // Synchronize solution and right-hand-side data before solve.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
-    SynchronizationTransactionComponent sol_synch_transaction = SynchronizationTransactionComponent(d_sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
-    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
-    d_side_synch_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent rhs_synch_transaction = SynchronizationTransactionComponent(d_rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
-    d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
-    d_side_synch_op->synchronizeData(current_time);
-
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1/2).
     d_hier_sc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(0), d_U_new_idx);
@@ -1175,6 +1166,15 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Enforce Dirichlet boundary conditions.
     d_bc_helper->enforceNormalVelocityBoundaryConditions(d_sol_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(1), d_U_bc_coefs, new_time, /*homogeneous_bc*/ false);
     d_bc_helper->copyDataAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(0));
+
+    // Synchronize solution and right-hand-side data before solve.
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent sol_synch_transaction = SynchronizationTransactionComponent(d_sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
+    SynchronizationTransactionComponent rhs_synch_transaction = SynchronizationTransactionComponent(d_rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
+    d_side_synch_op->synchronizeData(current_time);
 
     // Solve for u(n+1), p(n+1/2).
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
@@ -1916,8 +1916,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                 stream << k;
                 d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name+"::nul_vec_U_"+stream.str());
                 d_nul_vecs[k]->allocateVectorData(current_time);
+                d_nul_vecs[k]->setToScalar(0.0);
                 d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_U_"+stream.str());
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
+                d_U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1925,10 +1927,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                     {
                         Pointer<Patch<NDIM> > patch = level->getPatch(p());
                         Pointer<SideData<NDIM,double> > nul_data = patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        nul_data->fillAll(0.0);
                         nul_data->getArrayData(k).fillAll(1.0);
                         Pointer<SideData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->fillAll(0.0);
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
                 }
