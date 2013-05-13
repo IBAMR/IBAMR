@@ -41,7 +41,7 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -131,7 +131,7 @@ public:
      */
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(
-        const Vector<double,NDIM>& X,
+        const boost::array<double,NDIM>& X,
         const double* XLower,
         const double* XUpper,
         const double* dx,

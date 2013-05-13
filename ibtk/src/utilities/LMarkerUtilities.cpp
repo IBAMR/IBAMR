@@ -83,7 +83,6 @@
 #include "ibtk/LSetDataIterator-inl.h"
 #include "ibtk/LSetData-inl.h"
 #include "ibtk/LSet-inl.h"
-#include "ibtk/Vector.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -135,7 +134,7 @@ discard_comments(
 
 unsigned int
 LMarkerUtilities::readMarkerPositions(
-    std::vector<Vector<double,NDIM> >& mark_init_posns,
+    std::vector<boost::array<double,NDIM> >& mark_init_posns,
     const std::string& mark_input_file_name,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom)
 {
@@ -541,9 +540,9 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox()); it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
-            const Vector<double,NDIM>& X = mark->getPosition();
+            const boost::array<double,NDIM>& X = mark->getPosition();
             const IntVector<NDIM>& offset = mark->getPeriodicOffset();
-            Vector<double,NDIM> X_shifted;
+            boost::array<double,NDIM> X_shifted;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_shifted[d] = X[d] + static_cast<double>(offset(d))*patchDx[d];
@@ -590,7 +589,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
 void
 LMarkerUtilities::initializeMarkersOnLevel(
     const int mark_idx,
-    const std::vector<Vector<double,NDIM> >& mark_init_posns,
+    const std::vector<boost::array<double,NDIM> >& mark_init_posns,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const bool initial_time,
@@ -617,8 +616,8 @@ LMarkerUtilities::initializeMarkersOnLevel(
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             for (unsigned int k = 0; k < mark_init_posns.size(); ++k)
             {
-                const Vector<double,NDIM>& X = mark_init_posns[k];
-                static const Vector<double,NDIM> U(0.0);
+                const boost::array<double,NDIM>& X = mark_init_posns[k];
+                static const boost::array<double,NDIM> U(init_array<double,NDIM>(0.0));
                 const bool patch_owns_mark_at_loc =
                     ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
 #if (NDIM > 1)
@@ -756,7 +755,7 @@ LMarkerUtilities::collectMarkerPositionsOnPatch(
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
-        const Vector<double,NDIM>& X = mark->getPosition();
+        const boost::array<double,NDIM>& X = mark->getPosition();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_mark[NDIM*k+d] = X[d];
@@ -774,7 +773,7 @@ LMarkerUtilities::resetMarkerPositionsOnPatch(
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
-        Vector<double,NDIM>& X = mark->getPosition();
+        boost::array<double,NDIM>& X = mark->getPosition();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X[d] = X_mark[NDIM*k+d];
@@ -793,7 +792,7 @@ LMarkerUtilities::collectMarkerVelocitiesOnPatch(
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
-        const Vector<double,NDIM>& U = mark->getVelocity();
+        const boost::array<double,NDIM>& U = mark->getVelocity();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             U_mark[NDIM*k+d] = U[d];
@@ -811,7 +810,7 @@ LMarkerUtilities::resetMarkerVelocitiesOnPatch(
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
-        Vector<double,NDIM>& U = mark->getVelocity();
+        boost::array<double,NDIM>& U = mark->getVelocity();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             U[d] = U_mark[NDIM*k+d];

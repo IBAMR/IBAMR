@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "blitz/array.h"
+#include "boost/multi_array.hpp"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -168,9 +168,9 @@ public:
     getVec();
 
     /*!
-     * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.  This method is appropriate
-     * only for \em scalar-valued quantities.
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the PETSc Vec object.  This method is
+     * appropriate only for \em scalar-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
@@ -183,13 +183,13 @@ public:
      *
      * \see restoreArrays()
      */
-    blitz::Array<double,1>*
+    boost::multi_array_ref<double,1>*
     getArray();
 
     /*!
-     * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.  This method is appropriate
-     * only for \em scalar-valued quantities.
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the PETSc Vec object.  This method is
+     * appropriate only for \em scalar-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
@@ -202,71 +202,13 @@ public:
      *
      * \see restoreArrays()
      */
-    blitz::Array<double,1>*
+    boost::multi_array_ref<double,1>*
     getLocalFormArray();
 
     /*!
-     * \brief Returns a reference to a blitz::Array object that wraps the array
-     * corresponding to the \em ghosted local part of the PETSc Vec object.
-     * This method is appropriate only for \em scalar-valued quantities.
-     *
-     * \note Only local (i.e., on processor) and ghost node data are accessible
-     * via this array.  All other nonlocal data must be accessed via appropriate
-     * PETSc function calls.
-     *
-     * \note The returned array object is indexed using the \em local PETSc
-     * indexing scheme.
-     *
-     * \note Any outstanding references to the underlying array data are
-     * invalidated by restoreArrays().
-     *
-     * \see restoreArrays()
-     */
-    blitz::Array<double,1>*
-    getGhostedLocalFormArray();
-
-    /*!
-     * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.  This method is appropriate
-     * for \em either scalar- or vector-valued quantities.
-     *
-     * \note Only local data are accessible via the returned array.  Nonlocal
-     * data must be accessed via appropriate PETSc function calls.
-     *
-     * \note The returned array is indexed using the \em global PETSc indexing
-     * scheme.
-     *
-     * \note Any outstanding references to the underlying array data are
-     * invalidated by restoreArrays().
-     *
-     * \see restoreArrays()
-     */
-    blitz::Array<double,2>*
-    getVecArray();
-
-    /*!
-     * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.  This method is appropriate
-     * for \em either scalar- or vector-valued quantities.
-     *
-     * \note Only local data are accessible via the returned array.  Nonlocal
-     * data must be accessed via appropriate PETSc function calls.
-     *
-     * \note The returned array is indexed using the \em local PETSc indexing
-     * scheme.
-     *
-     * \note Any outstanding references to the underlying array data are
-     * invalidated by restoreArrays().
-     *
-     * \see restoreArrays()
-     */
-    blitz::Array<double,2>*
-    getLocalFormVecArray();
-
-    /*!
-     * \brief Returns a reference to a blitz::Array object that wraps the array
-     * corresponding to the \em ghosted local part of the PETSc Vec object.
-     * This method is appropriate for \em either scalar- or vector-valued
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the \em ghosted local part of the PETSc
+     * Vec object.  This method is appropriate only for \em scalar-valued
      * quantities.
      *
      * \note Only local (i.e., on processor) and ghost node data are accessible
@@ -281,7 +223,66 @@ public:
      *
      * \see restoreArrays()
      */
-    blitz::Array<double,2>*
+    boost::multi_array_ref<double,1>*
+    getGhostedLocalFormArray();
+
+    /*!
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the PETSc Vec object.  This method is
+     * appropriate for \em either scalar- or vector-valued quantities.
+     *
+     * \note Only local data are accessible via the returned array.  Nonlocal
+     * data must be accessed via appropriate PETSc function calls.
+     *
+     * \note The returned array is indexed using the \em global PETSc indexing
+     * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
+     */
+    boost::multi_array_ref<double,2>*
+    getVecArray();
+
+    /*!
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the PETSc Vec object.  This method is
+     * appropriate for \em either scalar- or vector-valued quantities.
+     *
+     * \note Only local data are accessible via the returned array.  Nonlocal
+     * data must be accessed via appropriate PETSc function calls.
+     *
+     * \note The returned array is indexed using the \em local PETSc indexing
+     * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
+     */
+    boost::multi_array_ref<double,2>*
+    getLocalFormVecArray();
+
+    /*!
+     * \brief Returns a \em pointer to a boost::multi_array_ref object that
+     * wraps the array corresponding to the \em ghosted local part of the PETSc
+     * Vec object.  This method is appropriate for \em either scalar- or
+     * vector-valued quantities.
+     *
+     * \note Only local (i.e., on processor) and ghost node data are accessible
+     * via this array.  All other nonlocal data must be accessed via appropriate
+     * PETSc function calls.
+     *
+     * \note The returned array object is indexed using the \em local PETSc
+     * indexing scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
+     */
+    boost::multi_array_ref<double,2>*
     getGhostedLocalFormVecArray();
 
     /*!
@@ -369,22 +370,23 @@ private:
 
     /*
      * The global PETSc Vec object that contains the mesh data, its underlying
-     * array, and a blitz::Array object that wraps that array.
+     * array, and a boost::multi_array_ref object that wraps that array.
      */
     Vec d_global_vec;
     bool d_managing_petsc_vec;
     double* d_array;
-    blitz::Array<double,1> d_blitz_array, d_blitz_local_array;
-    blitz::Array<double,2> d_blitz_vec_array, d_blitz_local_vec_array;
+    boost::multi_array_ref<double,1>* d_boost_array, * d_boost_local_array;
+    boost::multi_array_ref<double,2>* d_boost_vec_array, * d_boost_local_vec_array;
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
-     * underyling array, and a blitz::Array object that wraps that array.
+     * underyling array, and a boost::multi_array_ref object that wraps that
+     * array.
      */
     Vec d_ghosted_local_vec;
     double* d_ghosted_local_array;
-    blitz::Array<double,1> d_blitz_ghosted_local_array;
-    blitz::Array<double,2> d_blitz_vec_ghosted_local_array;
+    boost::multi_array_ref<double,1>* d_boost_ghosted_local_array;
+    boost::multi_array_ref<double,2>* d_boost_vec_ghosted_local_array;
 };
 }// namespace IBTK
 

@@ -52,7 +52,7 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "boost/array.hpp"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -2968,14 +2968,14 @@ PatchMathOps::laplace(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    Vector<double*,NDIM> F;
+    boost::array<double*,NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d,l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    Vector<const double*,NDIM> U;
+    boost::array<const double*,NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d,m);
@@ -3034,7 +3034,7 @@ PatchMathOps::laplace(
 
     if (!src2 || (gamma == 0.0))
     {
-        Vector<int,NDIM> ilower, iupper;
+        boost::array<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3074,7 +3074,7 @@ PatchMathOps::laplace(
     }
     else
     {
-        Vector<const double*,NDIM> V;
+        boost::array<const double*,NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d,n);
@@ -3094,7 +3094,7 @@ PatchMathOps::laplace(
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
-        Vector<int,NDIM> ilower, iupper;
+        boost::array<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)

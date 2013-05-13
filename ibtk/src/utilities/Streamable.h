@@ -39,10 +39,6 @@
 
 #include "tbox/DescribedClass.h"
 
-namespace IBTK {
-template <class T, size_t N> class Vector;
-}  // namespace IBTK
-
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class IntVector;
@@ -51,6 +47,10 @@ namespace tbox {
 class AbstractStream;
 }  // namespace tbox
 }  // namespace SAMRAI
+
+namespace boost {
+template <class T, size_t N> class array;
+}  // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -118,7 +118,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const Vector<double,NDIM>& displacement);
+        const boost::array<double,NDIM>& displacement);
 
 private:
     /*!

@@ -81,80 +81,87 @@ LData::getVec()
     return d_global_vec;
 }// getVec
 
-inline blitz::Array<double,1>*
+inline boost::multi_array_ref<double,1>*
 LData::getArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
-    return &d_blitz_array;
+    return d_boost_array;
 }// getArray
 
-inline blitz::Array<double,1>*
+inline boost::multi_array_ref<double,1>*
 LData::getLocalFormArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
-    return &d_blitz_local_array;
+    return d_boost_local_array;
 }// getLocalFormArray
 
-inline blitz::Array<double,1>*
+inline boost::multi_array_ref<double,1>*
 LData::getGhostedLocalFormArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
-    return &d_blitz_ghosted_local_array;
+    return d_boost_ghosted_local_array;
 }// getGhostedLocalFormArray
 
-inline blitz::Array<double,2>*
+inline boost::multi_array_ref<double,2>*
 LData::getVecArray()
 {
     if (!d_array) getArrayCommon();
-    return &d_blitz_vec_array;
+    return d_boost_vec_array;
 }// getVecArray
 
-inline blitz::Array<double,2>*
+inline boost::multi_array_ref<double,2>*
 LData::getLocalFormVecArray()
 {
     if (!d_array) getArrayCommon();
-    return &d_blitz_local_vec_array;
+    return d_boost_local_vec_array;
 }// getLocalFormVecArray
 
-inline blitz::Array<double,2>*
+inline boost::multi_array_ref<double,2>*
 LData::getGhostedLocalFormVecArray()
 {
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
-    return &d_blitz_vec_ghosted_local_array;
+    return d_boost_vec_ghosted_local_array;
 }// getGhostedLocalFormVecArray
 
 inline void
 LData::restoreArrays()
 {
-    if (d_array)
-    {
-        int ierr = VecRestoreArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
-        d_array = NULL;
-        d_blitz_array.free();
-        d_blitz_local_array.free();
-        d_blitz_vec_array.free();
-        d_blitz_local_vec_array.free();
-    }
+    int ierr;
     if (d_ghosted_local_array)
     {
-        int ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
         d_ghosted_local_array = NULL;
-        d_blitz_ghosted_local_array.free();
-        d_blitz_vec_ghosted_local_array.free();
+        delete d_boost_ghosted_local_array;
+        delete d_boost_vec_ghosted_local_array;
+        d_boost_ghosted_local_array = NULL;
+        d_boost_vec_ghosted_local_array = NULL;
     }
     if (d_ghosted_local_vec)
     {
-        int ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
         d_ghosted_local_vec = NULL;
+    }
+    if (d_array)
+    {
+        ierr = VecRestoreArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
+        d_array = NULL;
+        delete d_boost_array;
+        delete d_boost_local_array;
+        delete d_boost_vec_array;
+        delete d_boost_local_vec_array;
+        d_boost_array = NULL;
+        d_boost_local_array = NULL;
+        d_boost_vec_array = NULL;
+        d_boost_local_vec_array = NULL;
     }
     return;
 }// restoreArray
@@ -183,29 +190,18 @@ LData::getArrayCommon()
         int ierr = VecGetArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
-        if (iupper-ilower == 0)
+        typedef boost::multi_array_types::extent_range range;
+        if (d_depth == 1)
         {
-            d_blitz_array.free();
-            d_blitz_local_array.free();
-            d_blitz_vec_array.free();
-            d_blitz_local_vec_array.free();
+            typedef boost::multi_array<double, 1> array_type;
+            array_type::extent_gen extents;
+            d_boost_array       = new boost::multi_array_ref<double,1>(d_array, extents[range(ilower,iupper)]);
+            d_boost_local_array = new boost::multi_array_ref<double,1>(d_array, extents[iupper-ilower]);
         }
-        else
-        {
-            blitz::TinyVector<int,1> shape(iupper-ilower);
-            blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
-            blitz::GeneralArrayStorage<1> global_storage;
-            global_storage.base() = ilower;
-            blitz::GeneralArrayStorage<2> vec_global_storage;
-            vec_global_storage.base() = ilower/d_depth , 0;
-            if (d_depth == 1)
-            {
-                d_blitz_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData, global_storage));
-                d_blitz_local_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData));
-            }
-            d_blitz_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData, vec_global_storage));
-            d_blitz_local_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData));
-        }
+        typedef boost::multi_array<double, 2> array_type;
+        array_type::extent_gen extents;
+        d_boost_vec_array       = new boost::multi_array_ref<double,2>(d_array, extents[range(ilower/d_depth,iupper/d_depth)][d_depth]);
+        d_boost_local_vec_array = new boost::multi_array_ref<double,2>(d_array, extents[(iupper-ilower)/d_depth][d_depth]);
     }
     return;
 }// getArrayCommon
@@ -222,21 +218,11 @@ LData::getGhostedLocalFormArrayCommon()
         int ierr = VecGetArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_ghosted_local_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
-        if (iupper-ilower == 0)
+        if (d_depth == 1)
         {
-            d_blitz_ghosted_local_array.free();
-            d_blitz_vec_ghosted_local_array.free();
+            d_boost_ghosted_local_array = new boost::multi_array_ref<double,1>(d_ghosted_local_array, boost::extents[iupper-ilower]);
         }
-        else
-        {
-            blitz::TinyVector<int,1> shape(iupper-ilower);
-            blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
-            if (d_depth == 1)
-            {
-                d_blitz_ghosted_local_array.reference(blitz::Array<double,1>(d_ghosted_local_array, shape, blitz::neverDeleteData));
-            }
-            d_blitz_vec_ghosted_local_array.reference(blitz::Array<double,2>(d_ghosted_local_array, vec_shape, blitz::neverDeleteData));
-        }
+        d_boost_vec_ghosted_local_array = new boost::multi_array_ref<double,2>(d_ghosted_local_array, boost::extents[(iupper-ilower)/d_depth][d_depth]);
     }
     return;
 }// getGhostedLocalFormArrayCommon

@@ -39,7 +39,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
@@ -85,7 +85,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            const Vector<double,NDIM>& posn=0.0)
+            const boost::array<double,NDIM>& posn=init_array<double,NDIM>(0.0))
             : item(item),
               posn(posn)
             {
@@ -139,7 +139,7 @@ public:
 
         // Data.
         typename LSet<T>::value_type item;
-        Vector<double,NDIM> posn;
+        boost::array<double,NDIM> posn;
     };
 
     /*!

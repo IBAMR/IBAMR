@@ -38,7 +38,8 @@
 #include <unistd.h>
 
 #include "IntVector.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI {
@@ -67,8 +68,8 @@ public:
      */
     LMarker(
         int idx=-1,
-        const Vector<double,NDIM>& X=0.0,
-        const Vector<double,NDIM>& U=0.0,
+        const boost::array<double,NDIM>& X=init_array<double,NDIM>(0.0),
+        const boost::array<double,NDIM>& U=init_array<double,NDIM>(0.0),
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -125,13 +126,13 @@ public:
     /*!
      * \return A const reference to the marker position.
      */
-    const Vector<double,NDIM>&
+    const boost::array<double,NDIM>&
     getPosition() const;
 
     /*!
      * \return A non-const reference to the marker position.
      */
-    Vector<double,NDIM>&
+    boost::array<double,NDIM>&
     getPosition();
 
     /*!
@@ -139,18 +140,18 @@ public:
      */
     void
     setPosition(
-        const Vector<double,NDIM>& X);
+        const boost::array<double,NDIM>& X);
 
     /*!
      * \return A const reference to the marker velocity.
      */
-    const Vector<double,NDIM>&
+    const boost::array<double,NDIM>&
     getVelocity() const;
 
     /*!
      * \return A non-const reference to the marker velocity.
      */
-    Vector<double,NDIM>&
+    boost::array<double,NDIM>&
     getVelocity();
 
     /*!
@@ -158,7 +159,7 @@ public:
      */
     void
     setVelocity(
-        const Vector<double,NDIM>& U);
+        const boost::array<double,NDIM>& U);
 
     /*!
      * \return A const reference to the periodic offset.
@@ -221,7 +222,7 @@ private:
     /*!
      * \brief The marker position and velocity.
      */
-    Vector<double,NDIM> d_X, d_U;
+    boost::array<double,NDIM> d_X, d_U;
 
     /*!
      * \brief The periodic offset.

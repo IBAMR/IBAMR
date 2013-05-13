@@ -47,9 +47,9 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
-template <class T, size_t N> class Vector;
-}  // namespace IBTK
+namespace boost {
+template <class T, std::size_t N> class array;
+}  // namespace boost
 
 namespace SAMRAI {
 namespace hier {
@@ -274,8 +274,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<Vector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<Vector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

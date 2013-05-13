@@ -42,9 +42,9 @@
 #include "ibtk/LMarkerSetData.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
-template <class T, size_t N> class Vector;
-}  // namespace IBTK
+namespace boost {
+template <class T, std::size_t N> class array;
+}  // namespace boost
 
 namespace SAMRAI {
 namespace geom {
@@ -73,7 +73,7 @@ public:
      */
     static unsigned int
     readMarkerPositions(
-        std::vector<Vector<double,NDIM> >& mark_init_posns,
+        std::vector<boost::array<double,NDIM> >& mark_init_posns,
         const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
@@ -145,7 +145,7 @@ public:
     static void
     initializeMarkersOnLevel(
         int mark_idx,
-        const std::vector<Vector<double,NDIM> >& mark_init_posns,
+        const std::vector<boost::array<double,NDIM> >& mark_init_posns,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         bool initial_time,

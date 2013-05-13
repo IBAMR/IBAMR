@@ -55,7 +55,7 @@
 #include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -444,7 +444,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    Vector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -458,8 +458,8 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
 
-    Vector<Box<NDIM>,NDIM> side_box;
-    Vector<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
+    boost::array<Box<NDIM>,NDIM> side_box;
+    boost::array<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -576,7 +576,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                Vector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -680,7 +680,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    Vector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -692,8 +692,8 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
 #if (NDIM == 3)
-    Vector<Box<NDIM>,NDIM> side_box;
-    Vector<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
+    boost::array<Box<NDIM>,NDIM> side_box;
+    boost::array<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -792,7 +792,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    Vector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);

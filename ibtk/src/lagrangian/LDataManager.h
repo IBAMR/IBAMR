@@ -55,7 +55,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
@@ -77,9 +77,6 @@ namespace tbox {
 class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_rank> class Array;
-}  // namespace blitz
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -543,10 +540,10 @@ public:
      *
      * in which N is the number of nodes associated with that structure.
      *
-     * \note Returns Vector<double,NDIM>(0.0) in the case that the
+     * \note Returns boost::array<double,NDIM>(0.0) in the case that the
      * Lagrangian structure ID is not associated with any Lagrangian structure.
      */
-    Vector<double,NDIM>
+    boost::array<double,NDIM>
     computeLagrangianStructureCenterOfMass(
         int structure_id,
         int level_number);
@@ -559,7 +556,7 @@ public:
      * that the Lagrangian structure ID is not associated with any Lagrangian
      * structure.
      */
-    std::pair<Vector<double,NDIM>,Vector<double,NDIM> >
+    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> >
     computeLagrangianStructureBoundingBox(
         int structure_id,
         int level_number);
@@ -574,7 +571,7 @@ public:
      */
     void
     reinitLagrangianStructure(
-        const Vector<double,NDIM>& X_center,
+        const boost::array<double,NDIM>& X_center,
         int structure_id,
         int level_number);
 
@@ -590,7 +587,7 @@ public:
      */
     void
     displaceLagrangianStructure(
-        const Vector<double,NDIM>& dX,
+        const boost::array<double,NDIM>& dX,
         int structure_id,
         int level_number);
 
@@ -647,30 +644,12 @@ public:
         int level_number) const;
 
     /*!
-     * \brief Map the collection of Lagrangian indices to the corresponding
-     * global PETSc indices.
-     */
-    void
-    mapLagrangianToPETSc(
-        blitz::Array<int,1>& inds,
-        int level_number) const;
-
-    /*!
      * \brief Map the collection of global PETSc indices to the corresponding
      * Lagrangian indices.
      */
     void
     mapPETScToLagrangian(
         std::vector<int>& inds,
-        int level_number) const;
-
-    /*!
-     * \brief Map the collection of global PETSc indices to the corresponding
-     * Lagrangian indices.
-     */
-    void
-    mapPETScToLagrangian(
-        blitz::Array<int,1>& inds,
         int level_number) const;
 
     /*!
@@ -1166,9 +1145,9 @@ private:
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<Vector<double,NDIM>,Vector<double,NDIM> > > > d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<Vector<double,NDIM> > > d_displaced_strct_lnode_posns;
+    std::vector<std::vector<boost::array<double,NDIM> > > d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.

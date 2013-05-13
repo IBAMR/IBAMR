@@ -65,14 +65,14 @@ LData::LData(
       d_global_vec(NULL),
       d_managing_petsc_vec(true),
       d_array(NULL),
-      d_blitz_array(),
-      d_blitz_local_array(),
-      d_blitz_vec_array(),
-      d_blitz_local_vec_array(),
+      d_boost_array(NULL),
+      d_boost_local_array(NULL),
+      d_boost_vec_array(NULL),
+      d_boost_local_vec_array(NULL),
       d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
-      d_blitz_ghosted_local_array(),
-      d_blitz_vec_ghosted_local_array()
+      d_boost_ghosted_local_array(NULL),
+      d_boost_vec_ghosted_local_array(NULL)
 {
     // Create the PETSc Vec that provides storage for the Lagrangian data.
     int ierr;
@@ -120,14 +120,14 @@ LData::LData(
       d_global_vec(vec),
       d_managing_petsc_vec(manage_petsc_vec),
       d_array(NULL),
-      d_blitz_array(),
-      d_blitz_local_array(),
-      d_blitz_vec_array(),
-      d_blitz_local_vec_array(),
+      d_boost_array(NULL),
+      d_boost_local_array(NULL),
+      d_boost_vec_array(NULL),
+      d_boost_local_vec_array(NULL),
       d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
-      d_blitz_ghosted_local_array(),
-      d_blitz_vec_ghosted_local_array()
+      d_boost_ghosted_local_array(NULL),
+      d_boost_vec_ghosted_local_array(NULL)
 {
     int ierr;
     int depth;
@@ -164,14 +164,14 @@ LData::LData(
       d_nonlocal_petsc_indices(),
       d_global_vec(NULL),
       d_array(NULL),
-      d_blitz_array(),
-      d_blitz_local_array(),
-      d_blitz_vec_array(),
-      d_blitz_local_vec_array(),
+      d_boost_array(NULL),
+      d_boost_local_array(NULL),
+      d_boost_vec_array(NULL),
+      d_boost_local_vec_array(NULL),
       d_ghosted_local_vec(NULL),
       d_ghosted_local_array(NULL),
-      d_blitz_ghosted_local_array(),
-      d_blitz_vec_ghosted_local_array()
+      d_boost_ghosted_local_array(NULL),
+      d_boost_vec_ghosted_local_array(NULL)
 {
     int num_local_nodes = db->getInteger("num_local_nodes");
     int num_ghost_nodes = db->getInteger("num_ghost_nodes");

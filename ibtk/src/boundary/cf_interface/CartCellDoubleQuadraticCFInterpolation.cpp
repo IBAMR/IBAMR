@@ -53,7 +53,7 @@
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
 #include "boost/array.hpp"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Utilities.h"
@@ -545,12 +545,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                 }
 
                 // Determine the interpolation degrees and weights.
-                Vector<int,NDIM> interp_degree;
+                boost::array<int,NDIM> interp_degree;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
                 }
-                Vector<std::vector<double>,NDIM> wgts;
+                boost::array<std::vector<double>,NDIM> wgts;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];

@@ -422,7 +422,6 @@ AC_CONFIG_FILES([
   src/lagrangian/fortran/Makefile
   src/math/Makefile
   src/math/fortran/Makefile
-  src/patch_data/Makefile
   src/refine_ops/Makefile
   src/refine_ops/fortran/Makefile
   src/solvers/Makefile

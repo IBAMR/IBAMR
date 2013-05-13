@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
+
+#include "boost/array.hpp"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
@@ -133,6 +136,23 @@ static const bool ENABLE_TIMERS = true;
     {                                                           \
         if (IBTK::ENABLE_TIMERS) timer->stop();                 \
     } while (0);
+
+/////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
+
+namespace IBTK
+{
+
+template<class T, std::size_t N>
+inline boost::array<T,N>
+init_array(
+    const T& v)
+{
+    boost::array<T,N> arr;
+    std::fill(arr.begin(),arr.end(),v);
+    return arr;
+}// init_array
+
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

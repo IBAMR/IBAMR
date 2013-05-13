@@ -49,7 +49,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSet-inl.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI {
@@ -146,9 +146,9 @@ LMarkerRefine::refine(
             for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
-                const Vector<double,NDIM>& X = coarse_mark->getPosition();
+                const boost::array<double,NDIM>& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
-                Vector<double,NDIM> X_shifted;
+                boost::array<double,NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];

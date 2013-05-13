@@ -60,7 +60,7 @@
 #include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
@@ -161,7 +161,7 @@ PoissonUtilities::computeCCMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    Vector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -367,7 +367,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    Vector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -686,7 +686,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    Vector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -776,7 +776,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            Vector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1271,7 +1271,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            Vector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];

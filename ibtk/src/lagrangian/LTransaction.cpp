@@ -132,7 +132,7 @@ LTransaction<T>::packStream(
     {
         typename LSet<T>::value_type& item = it->item;
         item->packStream(stream);
-        const Vector<double,NDIM>& posn = it->posn;
+        const boost::array<double,NDIM>& posn = it->posn;
         stream.pack(posn.data(),NDIM);
     }
     return;
@@ -150,7 +150,7 @@ LTransaction<T>::unpackStream(
     for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end(); ++it)
     {
         it->item->unpackStream(stream, periodic_offset);
-        Vector<double,NDIM>& posn = it->posn;
+        boost::array<double,NDIM>& posn = it->posn;
         stream.unpack(posn.data(),NDIM);
     }
     return;

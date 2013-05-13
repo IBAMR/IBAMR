@@ -43,7 +43,7 @@
 #include "SideNoCornersFillPattern.h"
 #include "SideOverlap.h"
 #include "boost/array.hpp"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -99,7 +99,7 @@ SideNoCornersFillPattern::calculateOverlap(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    Vector<BoxList<NDIM>,NDIM> dst_boxes;
+    boost::array<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -172,7 +172,7 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    Vector<BoxList<NDIM>,NDIM> dst_boxes;
+    boost::array<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();

@@ -41,8 +41,9 @@
 
 #include "IntVector.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "ibtk/Vector.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
@@ -77,7 +78,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const Vector<double,NDIM>& periodic_displacement=0.0);
+        const boost::array<double,NDIM>& periodic_displacement=init_array<double,NDIM>(0.0));
 
     /*!
      * \brief Copy constructor.
@@ -157,7 +158,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const Vector<double,NDIM>& displacement);
+        const boost::array<double,NDIM>& displacement);
 
     /*!
      * \brief Get the periodic offset.
@@ -168,7 +169,7 @@ public:
     /*!
      * \brief Get the periodic displacement.
      */
-    virtual const Vector<double,NDIM>&
+    virtual const boost::array<double,NDIM>&
     getPeriodicDisplacement() const;
 
     /*!
@@ -218,7 +219,7 @@ private:
 
     // the periodic offset and displacement
     SAMRAI::hier::IntVector<NDIM> d_offset;
-    Vector<double,NDIM> d_displacement;
+    boost::array<double,NDIM> d_displacement;
 };
 
 /*!
@@ -231,7 +232,7 @@ class LNodeIndexPosnComp
 {
 public:
     LNodeIndexPosnComp(
-        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
         {
             // intentionally blank
@@ -255,9 +256,9 @@ public:
                        << NDIM << endl);
 #endif
 #endif
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
-            const bool ret_val = (
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+            return
                 ((X_lhs[0]< X_rhs[0])) ||
 #if (NDIM > 1)
                 ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]< X_rhs[1])) ||
@@ -272,9 +273,7 @@ public:
                  (X_lhs[2]==X_rhs[2])&&
 #endif
 #endif
-                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()))
-                                  );
-            return ret_val;
+                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()));
         }// operator()
 
     inline bool
@@ -286,7 +285,7 @@ public:
         }// operator()
 
 private:
-    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
 };
 
 /*!
@@ -387,7 +386,7 @@ class LNodeIndexPosnEqual
 {
 public:
     LNodeIndexPosnEqual(
-        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
         {
             // intentionally blank
@@ -405,8 +404,8 @@ public:
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d],X_rhs[d])) return false;
@@ -423,7 +422,7 @@ public:
         }// operator()
 
 private:
-    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
 };
 
 /*!

@@ -101,7 +101,7 @@ IndexUtilities::getCellIndex(
 
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(
-    const Vector<double,NDIM>& X,
+    const boost::array<double,NDIM>& X,
     const double* const XLower,
     const double* const XUpper,
     const double* const dx,

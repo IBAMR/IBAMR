@@ -62,7 +62,7 @@
 #include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
@@ -557,7 +557,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
         Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        Vector<Box<NDIM>,NDIM> data_boxes;
+        boost::array<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

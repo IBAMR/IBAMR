@@ -134,7 +134,6 @@ am__libIBTK2d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp \
-	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp \
 	$(top_srcdir)/src/lagrangian/LData.cpp \
 	$(top_srcdir)/src/lagrangian/LDataManager.cpp \
 	$(top_srcdir)/src/lagrangian/LEInteractor.cpp \
@@ -155,22 +154,15 @@ am__libIBTK2d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/lagrangian/LSiloDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LTransaction.cpp \
 	$(top_srcdir)/src/math/HierarchyMathOps.cpp \
-	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PETScMatUtilities.cpp \
 	$(top_srcdir)/src/math/PETScVecUtilities.cpp \
 	$(top_srcdir)/src/math/PatchMathOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PoissonUtilities.cpp \
-	$(top_srcdir)/src/patch_data/VecCellData.cpp \
-	$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp \
-	$(top_srcdir)/src/patch_data/VecCellVariable.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -280,7 +272,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK2d_a-LMarkerCoarsen.$(OBJEXT) \
-	libIBTK2d_a-VecCellCoarsenAdapter.$(OBJEXT) \
 	libIBTK2d_a-LData.$(OBJEXT) libIBTK2d_a-LDataManager.$(OBJEXT) \
 	libIBTK2d_a-LEInteractor.$(OBJEXT) \
 	libIBTK2d_a-LIndexSetData.$(OBJEXT) \
@@ -297,22 +288,15 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-LSiloDataWriter.$(OBJEXT) \
 	libIBTK2d_a-LTransaction.$(OBJEXT) \
 	libIBTK2d_a-HierarchyMathOps.$(OBJEXT) \
-	libIBTK2d_a-HierarchyVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK2d_a-PETScMatUtilities.$(OBJEXT) \
 	libIBTK2d_a-PETScVecUtilities.$(OBJEXT) \
 	libIBTK2d_a-PatchMathOps.$(OBJEXT) \
-	libIBTK2d_a-PatchVecCellDataBasicOps.$(OBJEXT) \
-	libIBTK2d_a-PatchVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK2d_a-PoissonUtilities.$(OBJEXT) \
-	libIBTK2d_a-VecCellData.$(OBJEXT) \
-	libIBTK2d_a-VecCellDataFactory.$(OBJEXT) \
-	libIBTK2d_a-VecCellVariable.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
-	libIBTK2d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
@@ -413,7 +397,6 @@ am__libIBTK3d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp \
-	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp \
 	$(top_srcdir)/src/lagrangian/LData.cpp \
 	$(top_srcdir)/src/lagrangian/LDataManager.cpp \
 	$(top_srcdir)/src/lagrangian/LEInteractor.cpp \
@@ -434,22 +417,15 @@ am__libIBTK3d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/lagrangian/LSiloDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LTransaction.cpp \
 	$(top_srcdir)/src/math/HierarchyMathOps.cpp \
-	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PETScMatUtilities.cpp \
 	$(top_srcdir)/src/math/PETScVecUtilities.cpp \
 	$(top_srcdir)/src/math/PatchMathOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PoissonUtilities.cpp \
-	$(top_srcdir)/src/patch_data/VecCellData.cpp \
-	$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp \
-	$(top_srcdir)/src/patch_data/VecCellVariable.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -558,7 +534,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK3d_a-LMarkerCoarsen.$(OBJEXT) \
-	libIBTK3d_a-VecCellCoarsenAdapter.$(OBJEXT) \
 	libIBTK3d_a-LData.$(OBJEXT) libIBTK3d_a-LDataManager.$(OBJEXT) \
 	libIBTK3d_a-LEInteractor.$(OBJEXT) \
 	libIBTK3d_a-LIndexSetData.$(OBJEXT) \
@@ -575,22 +550,15 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-LSiloDataWriter.$(OBJEXT) \
 	libIBTK3d_a-LTransaction.$(OBJEXT) \
 	libIBTK3d_a-HierarchyMathOps.$(OBJEXT) \
-	libIBTK3d_a-HierarchyVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK3d_a-PETScMatUtilities.$(OBJEXT) \
 	libIBTK3d_a-PETScVecUtilities.$(OBJEXT) \
 	libIBTK3d_a-PatchMathOps.$(OBJEXT) \
-	libIBTK3d_a-PatchVecCellDataBasicOps.$(OBJEXT) \
-	libIBTK3d_a-PatchVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK3d_a-PoissonUtilities.$(OBJEXT) \
-	libIBTK3d_a-VecCellData.$(OBJEXT) \
-	libIBTK3d_a-VecCellDataFactory.$(OBJEXT) \
-	libIBTK3d_a-VecCellVariable.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleSpecializedConstantRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
-	libIBTK3d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
@@ -1054,7 +1022,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.h \
-	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.h \
 	$(top_srcdir)/src/lagrangian/LData-inl.h \
 	$(top_srcdir)/src/lagrangian/LData.h \
 	$(top_srcdir)/src/lagrangian/LDataManager-inl.h \
@@ -1100,24 +1067,15 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/lagrangian/LSiloDataWriter.h \
 	$(top_srcdir)/src/lagrangian/LTransaction.h \
 	$(top_srcdir)/src/math/HierarchyMathOps.h \
-	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.h \
 	$(top_srcdir)/src/math/PETScMatUtilities.h \
 	$(top_srcdir)/src/math/PETScVecUtilities.h \
 	$(top_srcdir)/src/math/PatchMathOps.h \
-	$(top_srcdir)/src/math/PatchVecCellDataBasicOps.h \
-	$(top_srcdir)/src/math/PatchVecCellDataOpsReal.h \
 	$(top_srcdir)/src/math/PoissonUtilities.h \
-	$(top_srcdir)/src/patch_data/VecCellData-inl.h \
-	$(top_srcdir)/src/patch_data/VecCellData.h \
-	$(top_srcdir)/src/patch_data/VecCellDataFactory-inl.h \
-	$(top_srcdir)/src/patch_data/VecCellDataFactory.h \
-	$(top_srcdir)/src/patch_data/VecCellVariable.h \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
-	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.h \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.h \
@@ -1209,7 +1167,6 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/boundary/HierarchyGhostCellInterpola
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp \
-	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp \
 	$(top_srcdir)/src/lagrangian/LData.cpp \
 	$(top_srcdir)/src/lagrangian/LDataManager.cpp \
 	$(top_srcdir)/src/lagrangian/LEInteractor.cpp \
@@ -1230,22 +1187,15 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/boundary/HierarchyGhostCellInterpola
 	$(top_srcdir)/src/lagrangian/LSiloDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LTransaction.cpp \
 	$(top_srcdir)/src/math/HierarchyMathOps.cpp \
-	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PETScMatUtilities.cpp \
 	$(top_srcdir)/src/math/PETScVecUtilities.cpp \
 	$(top_srcdir)/src/math/PatchMathOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp \
-	$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp \
 	$(top_srcdir)/src/math/PoissonUtilities.cpp \
-	$(top_srcdir)/src/patch_data/VecCellData.cpp \
-	$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp \
-	$(top_srcdir)/src/patch_data/VecCellVariable.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp \
 	$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -1486,7 +1436,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolver.Po@am__quote@
@@ -1539,8 +1488,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
@@ -1561,11 +1508,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-muParserRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@
@@ -1611,7 +1553,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolver.Po@am__quote@
@@ -1664,8 +1605,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PhysicalBoundaryUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonFACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PoissonFACPreconditionerStrategy.Po@am__quote@
@@ -1686,11 +1625,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-muParserRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/muParser.Po@am__quote@
@@ -2036,20 +1970,6 @@ libIBTK2d_a-LMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
 
-libIBTK2d_a-VecCellCoarsenAdapter.o: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellCoarsenAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK2d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Tpo $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' object='libIBTK2d_a-VecCellCoarsenAdapter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-
-libIBTK2d_a-VecCellCoarsenAdapter.obj: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellCoarsenAdapter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK2d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Tpo $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' object='libIBTK2d_a-VecCellCoarsenAdapter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; fi`
-
 libIBTK2d_a-LData.o: $(top_srcdir)/src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LData.Tpo -c -o libIBTK2d_a-LData.o `test -f '$(top_srcdir)/src/lagrangian/LData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LData.Tpo $(DEPDIR)/libIBTK2d_a-LData.Po
@@ -2330,20 +2250,6 @@ libIBTK2d_a-HierarchyMathOps.obj: $(top_srcdir)/src/math/HierarchyMathOps.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-HierarchyMathOps.obj `if test -f '$(top_srcdir)/src/math/HierarchyMathOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyMathOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyMathOps.cpp'; fi`
 
-libIBTK2d_a-HierarchyVecCellDataOpsReal.o: $(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyVecCellDataOpsReal.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Tpo -c -o libIBTK2d_a-HierarchyVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' object='libIBTK2d_a-HierarchyVecCellDataOpsReal.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-HierarchyVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-
-libIBTK2d_a-HierarchyVecCellDataOpsReal.obj: $(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyVecCellDataOpsReal.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Tpo -c -o libIBTK2d_a-HierarchyVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' object='libIBTK2d_a-HierarchyVecCellDataOpsReal.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-HierarchyVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; fi`
-
 libIBTK2d_a-PETScMatUtilities.o: $(top_srcdir)/src/math/PETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScMatUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Tpo -c -o libIBTK2d_a-PETScMatUtilities.o `test -f '$(top_srcdir)/src/math/PETScMatUtilities.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Tpo $(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Po
@@ -2386,34 +2292,6 @@ libIBTK2d_a-PatchMathOps.obj: $(top_srcdir)/src/math/PatchMathOps.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PatchMathOps.obj `if test -f '$(top_srcdir)/src/math/PatchMathOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchMathOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchMathOps.cpp'; fi`
 
-libIBTK2d_a-PatchVecCellDataBasicOps.o: $(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PatchVecCellDataBasicOps.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Tpo -c -o libIBTK2d_a-PatchVecCellDataBasicOps.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Tpo $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' object='libIBTK2d_a-PatchVecCellDataBasicOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PatchVecCellDataBasicOps.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-
-libIBTK2d_a-PatchVecCellDataBasicOps.obj: $(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PatchVecCellDataBasicOps.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Tpo -c -o libIBTK2d_a-PatchVecCellDataBasicOps.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Tpo $(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' object='libIBTK2d_a-PatchVecCellDataBasicOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PatchVecCellDataBasicOps.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; fi`
-
-libIBTK2d_a-PatchVecCellDataOpsReal.o: $(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PatchVecCellDataOpsReal.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Tpo -c -o libIBTK2d_a-PatchVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' object='libIBTK2d_a-PatchVecCellDataOpsReal.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PatchVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-
-libIBTK2d_a-PatchVecCellDataOpsReal.obj: $(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PatchVecCellDataOpsReal.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Tpo -c -o libIBTK2d_a-PatchVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' object='libIBTK2d_a-PatchVecCellDataOpsReal.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PatchVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; fi`
-
 libIBTK2d_a-PoissonUtilities.o: $(top_srcdir)/src/math/PoissonUtilities.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PoissonUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PoissonUtilities.Tpo -c -o libIBTK2d_a-PoissonUtilities.o `test -f '$(top_srcdir)/src/math/PoissonUtilities.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PoissonUtilities.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PoissonUtilities.Tpo $(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po
@@ -2427,48 +2305,6 @@ libIBTK2d_a-PoissonUtilities.obj: $(top_srcdir)/src/math/PoissonUtilities.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PoissonUtilities.cpp' object='libIBTK2d_a-PoissonUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PoissonUtilities.obj `if test -f '$(top_srcdir)/src/math/PoissonUtilities.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PoissonUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PoissonUtilities.cpp'; fi`
-
-libIBTK2d_a-VecCellData.o: $(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellData.Tpo -c -o libIBTK2d_a-VecCellData.o `test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellData.Tpo $(DEPDIR)/libIBTK2d_a-VecCellData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellData.cpp' object='libIBTK2d_a-VecCellData.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellData.o `test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellData.cpp
-
-libIBTK2d_a-VecCellData.obj: $(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellData.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellData.Tpo -c -o libIBTK2d_a-VecCellData.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellData.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellData.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellData.Tpo $(DEPDIR)/libIBTK2d_a-VecCellData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellData.cpp' object='libIBTK2d_a-VecCellData.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellData.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellData.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellData.cpp'; fi`
-
-libIBTK2d_a-VecCellDataFactory.o: $(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Tpo -c -o libIBTK2d_a-VecCellDataFactory.o `test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' object='libIBTK2d_a-VecCellDataFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellDataFactory.o `test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-
-libIBTK2d_a-VecCellDataFactory.obj: $(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Tpo -c -o libIBTK2d_a-VecCellDataFactory.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' object='libIBTK2d_a-VecCellDataFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellDataFactory.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; fi`
-
-libIBTK2d_a-VecCellVariable.o: $(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellVariable.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellVariable.Tpo -c -o libIBTK2d_a-VecCellVariable.o `test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellVariable.Tpo $(DEPDIR)/libIBTK2d_a-VecCellVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellVariable.cpp' object='libIBTK2d_a-VecCellVariable.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellVariable.o `test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellVariable.cpp
-
-libIBTK2d_a-VecCellVariable.obj: $(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellVariable.Tpo -c -o libIBTK2d_a-VecCellVariable.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellVariable.Tpo $(DEPDIR)/libIBTK2d_a-VecCellVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellVariable.cpp' object='libIBTK2d_a-VecCellVariable.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellVariable.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; fi`
 
 libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o: $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Tpo -c -o libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
@@ -2539,20 +2375,6 @@ libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' object='libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; fi`
-
-libIBTK2d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo -c -o libIBTK2d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' object='libIBTK2d_a-VecCellRefineAdapter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-
-libIBTK2d_a-VecCellRefineAdapter.obj: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellRefineAdapter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo -c -o libIBTK2d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' object='libIBTK2d_a-VecCellRefineAdapter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; fi`
 
 libIBTK2d_a-LMarkerRefine.o: $(top_srcdir)/src/refine_ops/LMarkerRefine.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo -c -o libIBTK2d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp
@@ -3786,20 +3608,6 @@ libIBTK3d_a-LMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
 
-libIBTK3d_a-VecCellCoarsenAdapter.o: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellCoarsenAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK3d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' object='libIBTK3d_a-VecCellCoarsenAdapter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-
-libIBTK3d_a-VecCellCoarsenAdapter.obj: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellCoarsenAdapter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK3d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp' object='libIBTK3d_a-VecCellCoarsenAdapter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp'; fi`
-
 libIBTK3d_a-LData.o: $(top_srcdir)/src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LData.Tpo -c -o libIBTK3d_a-LData.o `test -f '$(top_srcdir)/src/lagrangian/LData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LData.Tpo $(DEPDIR)/libIBTK3d_a-LData.Po
@@ -4080,20 +3888,6 @@ libIBTK3d_a-HierarchyMathOps.obj: $(top_srcdir)/src/math/HierarchyMathOps.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-HierarchyMathOps.obj `if test -f '$(top_srcdir)/src/math/HierarchyMathOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyMathOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyMathOps.cpp'; fi`
 
-libIBTK3d_a-HierarchyVecCellDataOpsReal.o: $(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyVecCellDataOpsReal.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Tpo -c -o libIBTK3d_a-HierarchyVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' object='libIBTK3d_a-HierarchyVecCellDataOpsReal.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-HierarchyVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-
-libIBTK3d_a-HierarchyVecCellDataOpsReal.obj: $(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyVecCellDataOpsReal.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Tpo -c -o libIBTK3d_a-HierarchyVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp' object='libIBTK3d_a-HierarchyVecCellDataOpsReal.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-HierarchyVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp'; fi`
-
 libIBTK3d_a-PETScMatUtilities.o: $(top_srcdir)/src/math/PETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScMatUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Tpo -c -o libIBTK3d_a-PETScMatUtilities.o `test -f '$(top_srcdir)/src/math/PETScMatUtilities.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Tpo $(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po
@@ -4136,34 +3930,6 @@ libIBTK3d_a-PatchMathOps.obj: $(top_srcdir)/src/math/PatchMathOps.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PatchMathOps.obj `if test -f '$(top_srcdir)/src/math/PatchMathOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchMathOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchMathOps.cpp'; fi`
 
-libIBTK3d_a-PatchVecCellDataBasicOps.o: $(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PatchVecCellDataBasicOps.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Tpo -c -o libIBTK3d_a-PatchVecCellDataBasicOps.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Tpo $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' object='libIBTK3d_a-PatchVecCellDataBasicOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PatchVecCellDataBasicOps.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-
-libIBTK3d_a-PatchVecCellDataBasicOps.obj: $(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PatchVecCellDataBasicOps.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Tpo -c -o libIBTK3d_a-PatchVecCellDataBasicOps.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Tpo $(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp' object='libIBTK3d_a-PatchVecCellDataBasicOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PatchVecCellDataBasicOps.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp'; fi`
-
-libIBTK3d_a-PatchVecCellDataOpsReal.o: $(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PatchVecCellDataOpsReal.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Tpo -c -o libIBTK3d_a-PatchVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' object='libIBTK3d_a-PatchVecCellDataOpsReal.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PatchVecCellDataOpsReal.o `test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-
-libIBTK3d_a-PatchVecCellDataOpsReal.obj: $(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PatchVecCellDataOpsReal.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Tpo -c -o libIBTK3d_a-PatchVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Tpo $(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp' object='libIBTK3d_a-PatchVecCellDataOpsReal.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PatchVecCellDataOpsReal.obj `if test -f '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp'; fi`
-
 libIBTK3d_a-PoissonUtilities.o: $(top_srcdir)/src/math/PoissonUtilities.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PoissonUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PoissonUtilities.Tpo -c -o libIBTK3d_a-PoissonUtilities.o `test -f '$(top_srcdir)/src/math/PoissonUtilities.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/math/PoissonUtilities.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PoissonUtilities.Tpo $(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po
@@ -4177,48 +3943,6 @@ libIBTK3d_a-PoissonUtilities.obj: $(top_srcdir)/src/math/PoissonUtilities.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/math/PoissonUtilities.cpp' object='libIBTK3d_a-PoissonUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PoissonUtilities.obj `if test -f '$(top_srcdir)/src/math/PoissonUtilities.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/math/PoissonUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/math/PoissonUtilities.cpp'; fi`
-
-libIBTK3d_a-VecCellData.o: $(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellData.Tpo -c -o libIBTK3d_a-VecCellData.o `test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellData.Tpo $(DEPDIR)/libIBTK3d_a-VecCellData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellData.cpp' object='libIBTK3d_a-VecCellData.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellData.o `test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellData.cpp
-
-libIBTK3d_a-VecCellData.obj: $(top_srcdir)/src/patch_data/VecCellData.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellData.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellData.Tpo -c -o libIBTK3d_a-VecCellData.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellData.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellData.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellData.Tpo $(DEPDIR)/libIBTK3d_a-VecCellData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellData.cpp' object='libIBTK3d_a-VecCellData.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellData.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellData.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellData.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellData.cpp'; fi`
-
-libIBTK3d_a-VecCellDataFactory.o: $(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Tpo -c -o libIBTK3d_a-VecCellDataFactory.o `test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' object='libIBTK3d_a-VecCellDataFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellDataFactory.o `test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-
-libIBTK3d_a-VecCellDataFactory.obj: $(top_srcdir)/src/patch_data/VecCellDataFactory.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Tpo -c -o libIBTK3d_a-VecCellDataFactory.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp' object='libIBTK3d_a-VecCellDataFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellDataFactory.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp'; fi`
-
-libIBTK3d_a-VecCellVariable.o: $(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellVariable.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellVariable.Tpo -c -o libIBTK3d_a-VecCellVariable.o `test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellVariable.Tpo $(DEPDIR)/libIBTK3d_a-VecCellVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellVariable.cpp' object='libIBTK3d_a-VecCellVariable.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellVariable.o `test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/patch_data/VecCellVariable.cpp
-
-libIBTK3d_a-VecCellVariable.obj: $(top_srcdir)/src/patch_data/VecCellVariable.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellVariable.Tpo -c -o libIBTK3d_a-VecCellVariable.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellVariable.Tpo $(DEPDIR)/libIBTK3d_a-VecCellVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/patch_data/VecCellVariable.cpp' object='libIBTK3d_a-VecCellVariable.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellVariable.obj `if test -f '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/patch_data/VecCellVariable.cpp'; fi`
 
 libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o: $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Tpo -c -o libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
@@ -4289,20 +4013,6 @@ libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' object='libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; fi`
-
-libIBTK3d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo -c -o libIBTK3d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' object='libIBTK3d_a-VecCellRefineAdapter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-
-libIBTK3d_a-VecCellRefineAdapter.obj: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellRefineAdapter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo -c -o libIBTK3d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp' object='libIBTK3d_a-VecCellRefineAdapter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp'; fi`
 
 libIBTK3d_a-LMarkerRefine.o: $(top_srcdir)/src/refine_ops/LMarkerRefine.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo -c -o libIBTK3d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.cpp

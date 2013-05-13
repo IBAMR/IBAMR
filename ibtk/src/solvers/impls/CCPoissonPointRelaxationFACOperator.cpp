@@ -78,7 +78,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
@@ -945,7 +945,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    Vector<int,NDIM> num_cells;
+    boost::array<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1066,7 +1066,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
 #endif
 
     // Setup the finite difference stencil.
-    Vector<int,NDIM> num_cells;
+    boost::array<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

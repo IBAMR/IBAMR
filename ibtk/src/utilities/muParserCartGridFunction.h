@@ -42,7 +42,7 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/muParser.h"
 #include "tbox/Pointer.h"
@@ -168,7 +168,7 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    Vector<double,NDIM> d_parser_posn;
+    boost::array<double,NDIM> d_parser_posn;
 };
 }// namespace IBTK
 

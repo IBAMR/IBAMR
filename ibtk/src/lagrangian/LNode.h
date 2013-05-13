@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
 #include "tbox/Pointer.h"
@@ -76,7 +76,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const Vector<double,NDIM>& periodic_displacement=0.0,
+        const boost::array<double,NDIM>& periodic_displacement=init_array<double,NDIM>(0.0),
         const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data=std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
     /*!
@@ -164,7 +164,7 @@ public:
     void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const Vector<double,NDIM>& displacement);
+        const boost::array<double,NDIM>& displacement);
 
     /*!
      * \brief Copy data from the source.
