@@ -55,6 +55,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
 
@@ -82,10 +83,10 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_open_bdry(false),
-      d_inflow_bdry(false),
-      d_outflow_bdry(false),
-      d_width(0.0),
+      d_open_bdry(init_array<bool,2*NDIM>(false)),
+      d_inflow_bdry(init_array<bool,2*NDIM>(false)),
+      d_outflow_bdry(init_array<bool,2*NDIM>(false)),
+      d_width(init_array<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {

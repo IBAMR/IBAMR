@@ -50,8 +50,7 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -326,8 +325,8 @@ IMPInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_array = *X_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -361,7 +360,7 @@ IMPInitializer::initializeDataOnPatchLevel(
             const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             for (int d = 0; d < NDIM; ++d)
             {
-                X_array(local_petsc_idx,d) = X(d);
+                X_array[local_petsc_idx][d] = X(d);
                 if (X(d) <= grid_x_lower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
@@ -384,13 +383,13 @@ IMPInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const Vector<double,NDIM> periodic_displacement(0.0);
+            static const boost::array<double,NDIM> periodic_displacement(init_array<double,NDIM>(0.0));
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second], d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
-            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
+            std::fill(&U_array[local_petsc_idx][0],&U_array[local_petsc_idx][0]+NDIM,0.0);
         }
     }
     X_data->restoreArrays();

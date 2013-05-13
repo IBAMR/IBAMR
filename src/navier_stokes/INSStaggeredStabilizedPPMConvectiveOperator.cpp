@@ -65,7 +65,8 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/Vector.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -284,8 +285,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
-      d_open_bdry(false),
-      d_width(0.0),
+      d_open_bdry(init_array<bool,2*NDIM>(false)),
+      d_width(init_array<double,2*NDIM>(0.0)),
       d_bc_coefs(bc_coefs),
       d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),
@@ -406,10 +407,10 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> >        U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            Vector<Box<NDIM>,NDIM> side_boxes;
-            Vector<Pointer<FaceData<NDIM,double> >,NDIM>         U_adv_data;
-            Vector<Pointer<FaceData<NDIM,double> >,NDIM>        U_half_data;
-            Vector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_upwind_data;
+            boost::array<Box<NDIM>,NDIM> side_boxes;
+            boost::array<Pointer<FaceData<NDIM,double> >,NDIM>         U_adv_data;
+            boost::array<Pointer<FaceData<NDIM,double> >,NDIM>        U_half_data;
+            boost::array<Pointer<FaceData<NDIM,double> >,NDIM> U_half_upwind_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes        [axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);

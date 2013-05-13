@@ -63,7 +63,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "tbox/Array.h"
@@ -117,7 +117,7 @@ buildBoxOperator(
     const PoissonSpecifications& U_problem_coefs,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
-    const Vector<double,NDIM>& dx)
+    const boost::array<double,NDIM>& dx)
 {
     int ierr;
 
@@ -125,8 +125,8 @@ buildBoxOperator(
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    Vector<Box<NDIM>,NDIM> side_boxes;
-    Vector<BoxList<NDIM>,NDIM> side_ghost_boxes;
+    boost::array<Box<NDIM>,NDIM> side_boxes;
+    boost::array<BoxList<NDIM>,NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -633,7 +633,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     const Box<NDIM> box(Index<NDIM>(0),Index<NDIM>(0));
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
-    Vector<double,NDIM> dx;
+    boost::array<double,NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();

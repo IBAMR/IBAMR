@@ -57,7 +57,7 @@
 #include "boost/array.hpp"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -312,9 +312,9 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            Vector<Box<NDIM>,NDIM> side_boxes;
-            Vector<Pointer<FaceData<NDIM,double> >,NDIM>  U_adv_data;
-            Vector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_data;
+            boost::array<Box<NDIM>,NDIM> side_boxes;
+            boost::array<Pointer<FaceData<NDIM,double> >,NDIM>  U_adv_data;
+            boost::array<Pointer<FaceData<NDIM,double> >,NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes [axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);

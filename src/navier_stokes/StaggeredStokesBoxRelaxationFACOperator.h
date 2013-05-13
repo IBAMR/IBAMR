@@ -39,15 +39,12 @@
 #include <string>
 #include <vector>
 
+#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
-
-namespace IBTK {
-template <class T, size_t N> class Vector;
-}  // namespace IBTK
 
 namespace SAMRAI {
 namespace hier {
@@ -172,7 +169,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<IBTK::Vector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 }// namespace IBTK

@@ -38,13 +38,13 @@
 #include <unistd.h>
 #include <vector>
 
+#include "boost/array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {
 class LData;
 class LDataManager;
-template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
@@ -124,7 +124,7 @@ public:
      */
     virtual void
     getSourceLocations(
-        std::vector<IBTK::Vector<double,NDIM> >& X_src,
+        std::vector<boost::array<double,NDIM> >& X_src,
         std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

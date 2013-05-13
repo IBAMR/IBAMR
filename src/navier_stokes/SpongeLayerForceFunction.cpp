@@ -58,6 +58,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
@@ -86,8 +87,8 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_forcing_enabled(SAMRAI::tbox::Array<bool>(NDIM)),
-      d_width(0.0),
+      d_forcing_enabled(init_array<SAMRAI::tbox::Array<bool>,2*NDIM>(SAMRAI::tbox::Array<bool>(NDIM))),
+      d_width(init_array<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {

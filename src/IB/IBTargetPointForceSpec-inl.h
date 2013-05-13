@@ -59,7 +59,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
     const double kappa_target,
     const double eta_target,
-    const IBTK::Vector<double,NDIM>& X_target)
+    const boost::array<double,NDIM>& X_target)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
       d_eta_target(eta_target),
@@ -119,13 +119,13 @@ IBTargetPointForceSpec::getDamping()
     return d_eta_target;
 }// getDamping
 
-inline const IBTK::Vector<double,NDIM>&
+inline const boost::array<double,NDIM>&
 IBTargetPointForceSpec::getTargetPointPosition() const
 {
     return d_X_target;
 }// getTargetPointPosition
 
-inline IBTK::Vector<double,NDIM>&
+inline boost::array<double,NDIM>&
 IBTargetPointForceSpec::getTargetPointPosition()
 {
     return d_X_target;

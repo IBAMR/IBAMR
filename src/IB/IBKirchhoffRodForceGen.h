@@ -48,13 +48,16 @@
 namespace IBTK {
 class LData;
 class LDataManager;
-template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class PatchHierarchy;
 }  // namespace hier
 }  // namespace SAMRAI
+
+namespace boost {
+template <class T, size_t N> class array;
+}  // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -151,7 +154,7 @@ private:
     //\{
     std::vector<Mat> d_D_next_mats, d_X_next_mats;
     std::vector<std::vector<int> > d_petsc_curr_node_idxs, d_petsc_next_node_idxs;
-    std::vector<std::vector<IBTK::Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
+    std::vector<std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
     std::vector<bool> d_is_initialized;
     //\}
 };

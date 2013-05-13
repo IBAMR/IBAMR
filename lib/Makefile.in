@@ -56,26 +56,20 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR3d.a
-@LIBMESH_ENABLED_TRUE@am__append_3 = \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-
-@LIBMESH_ENABLED_TRUE@am__append_4 = \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
-
+@LIBMESH_ENABLED_TRUE@am__append_3 = 
+@LIBMESH_ENABLED_TRUE@am__append_4 = 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IMPMethod.h \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IMPInitializer.h \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/MaterialPointSpec.h \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/MaterialPointSpec.h
 
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -128,14 +122,7 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libIBAMR_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_a_LIBADD =
-am__libIBAMR_a_SOURCES_DIST =  \
-	$(top_builddir)/src/advect/fortran/advect_helpers.f \
-	$(top_builddir)/src/fortran/sqrtm.f \
-	$(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
-	$(top_srcdir)/src/utilities/RNG.cpp \
-	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-@LIBMESH_ENABLED_TRUE@am__objects_1 =  \
-@LIBMESH_ENABLED_TRUE@	ExplicitFEMechanicsSolver.$(OBJEXT)
+am__objects_1 =
 am_libIBAMR_a_OBJECTS = advect_helpers.$(OBJEXT) sqrtm.$(OBJEXT) \
 	StokesSpecifications.$(OBJEXT) RNG.$(OBJEXT) $(am__objects_1)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
@@ -227,7 +214,6 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
-	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect2d.f \
@@ -245,8 +231,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-SimplifiedIBFEMethod.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT)
 am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -427,7 +412,6 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
-	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect3d.f \
@@ -445,8 +429,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-SimplifiedIBFEMethod.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT)
 am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
@@ -554,8 +537,7 @@ F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
 SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
 	$(libIBAMR3d_a_SOURCES)
-DIST_SOURCES = $(am__libIBAMR_a_SOURCES_DIST) \
-	$(am__libIBAMR2d_a_SOURCES_DIST) \
+DIST_SOURCES = $(libIBAMR_a_SOURCES) $(am__libIBAMR2d_a_SOURCES_DIST) \
 	$(am__libIBAMR3d_a_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -569,7 +551,6 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
 	$(top_srcdir)/src/utilities/app_namespaces.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
-	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 	$(top_srcdir)/src/IB/GeneralizedIBMethod.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec-inl.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -652,8 +633,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBFEMethod.h \
 	$(top_srcdir)/src/IB/IMPMethod.h \
 	$(top_srcdir)/src/IB/IMPInitializer.h \
-	$(top_srcdir)/src/IB/MaterialPointSpec.h \
-	$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+	$(top_srcdir)/src/IB/MaterialPointSpec.h
 HEADERS = $(pkg_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -954,9 +934,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config -I${top_srcdir}/ibtk/third_party/blitz-0.10 -I${top_builddir}/ibtk/third_party/blitz-0.10
-AM_LDFLAGS = -L${top_builddir}/ibtk/third_party/blitz-0.10/lib
-IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a -lblitz
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config
+IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
 IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
@@ -1251,7 +1230,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExplicitFEMechanicsSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RNG.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StokesSpecifications.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@
@@ -1323,7 +1301,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
@@ -1409,7 +1386,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockPreconditioner.Po@am__quote@
@@ -1468,20 +1444,6 @@ RNG.obj: $(top_srcdir)/src/utilities/RNG.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/RNG.cpp' object='RNG.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o RNG.obj `if test -f '$(top_srcdir)/src/utilities/RNG.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/RNG.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/RNG.cpp'; fi`
-
-ExplicitFEMechanicsSolver.o: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.o -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp' object='ExplicitFEMechanicsSolver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-
-ExplicitFEMechanicsSolver.obj: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.obj -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp' object='ExplicitFEMechanicsSolver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp'; fi`
 
 libIBAMR2d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR2d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
@@ -2673,20 +2635,6 @@ libIBAMR2d_a-MaterialPointSpecFactory.obj: $(top_srcdir)/src/IB/MaterialPointSpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
 
-libIBAMR2d_a-SimplifiedIBFEMethod.o: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SimplifiedIBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR2d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' object='libIBAMR2d_a-SimplifiedIBFEMethod.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-
-libIBAMR2d_a-SimplifiedIBFEMethod.obj: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-SimplifiedIBFEMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR2d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR2d_a-SimplifiedIBFEMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' object='libIBAMR2d_a-SimplifiedIBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; fi`
-
 libIBAMR3d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR3d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
@@ -3876,20 +3824,6 @@ libIBAMR3d_a-MaterialPointSpecFactory.obj: $(top_srcdir)/src/IB/MaterialPointSpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR3d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
-
-libIBAMR3d_a-SimplifiedIBFEMethod.o: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SimplifiedIBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR3d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' object='libIBAMR3d_a-SimplifiedIBFEMethod.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SimplifiedIBFEMethod.o `test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-
-libIBAMR3d_a-SimplifiedIBFEMethod.obj: $(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-SimplifiedIBFEMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo -c -o libIBAMR3d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Tpo $(DEPDIR)/libIBAMR3d_a-SimplifiedIBFEMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp' object='libIBAMR3d_a-SimplifiedIBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-SimplifiedIBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp'; fi`
 
 .f.o:
 	$(F77COMPILE) -c -o $@ $<

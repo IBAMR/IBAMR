@@ -57,7 +57,6 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
 #include "boost/array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBAnchorPointSpec-inl.h"
@@ -144,7 +143,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_silo_writer(NULL),
       d_base_filename(),
       d_length_scale_factor(1.0),
-      d_posn_shift(0.0),
+      d_posn_shift(init_array<double,NDIM>(0.0)),
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
@@ -372,8 +371,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_array = *X_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -403,12 +402,12 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const Vector<double,NDIM> X = getVertexPosn(point_idx, level_number);
+            const boost::array<double,NDIM> X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
             for (int d = 0; d < NDIM; ++d)
             {
-                X_array(local_petsc_idx,d) = X[d];
+                X_array[local_petsc_idx][d] = X[d];
 
                 if (X[d] <= XLower[d])
                 {
@@ -441,11 +440,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const Vector<double,NDIM> periodic_displacement(0.0);
+            static const boost::array<double,NDIM> periodic_displacement(init_array<double,NDIM>(0.0));
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
 
             // Initialize the velocity of the present vertex.
-            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
+            std::fill(&U_array[local_petsc_idx][0],&U_array[local_petsc_idx][0]+NDIM,0.0);
         }
     }
     X_data->restoreArrays();
@@ -478,8 +477,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& M_array = *M_data->getLocalFormVecArray();
-    blitz::Array<double,2>& K_array = *K_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,1>& M_array = *M_data->getLocalFormArray();
+    boost::multi_array_ref<double,1>& K_array = *K_data->getLocalFormArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -506,13 +505,13 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
             // Avoid division by zero at massless nodes.
             if (MathUtilities<double>::equalEps(M,0.0))
             {
-                M_array(local_petsc_idx) = std::numeric_limits<double>::epsilon();
-                K_array(local_petsc_idx) = 0.0;
+                M_array[local_petsc_idx] = std::numeric_limits<double>::epsilon();
+                K_array[local_petsc_idx] = 0.0;
             }
             else
             {
-                M_array(local_petsc_idx) = M;
-                K_array(local_petsc_idx) = K;
+                M_array[local_petsc_idx] = M;
+                K_array[local_petsc_idx] = K;
             }
         }
     }
@@ -535,7 +534,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -557,7 +556,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
             const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
             for (int d = 0; d < 3*3; ++d)
             {
-                D_array(local_petsc_idx,d) = D[d];
+                D_array[local_petsc_idx][d] = D[d];
             }
         }
     }
@@ -602,7 +601,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 const std::pair<int,int>& point_idx = (*it);
 
                 // Get the coordinates of the present vertex.
-                const Vector<double,NDIM> X = getVertexPosn(point_idx, ln);
+                const boost::array<double,NDIM> X = getVertexPosn(point_idx, ln);
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
@@ -1238,7 +1237,7 @@ IBStandardInitializer::readBeamFiles(
                 {
                     int prev_idx = std::numeric_limits<int>::max(), curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
                     double bend = 0.0;
-                    Vector<double,NDIM> curv(0.0);
+                    boost::array<double,NDIM> curv(init_array<double,NDIM>(0.0));
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -1426,7 +1425,7 @@ IBStandardInitializer::readRodFiles(
                 for (int k = 0; k < num_rods; ++k)
                 {
                     int curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
-                    Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+                    boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
                     double& ds = properties[0];
                     double& a1 = properties[1];
                     double& a2 = properties[2];
@@ -2555,7 +2554,7 @@ IBStandardInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const Vector<double,NDIM>& X = d_vertex_posn[level_number][j][k];
+            const boost::array<double,NDIM>& X = d_vertex_posn[level_number][j][k];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -2579,7 +2578,7 @@ IBStandardInitializer::getCanonicalLagrangianIndex(
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCanonicalLagrangianIndex
 
-Vector<double,NDIM>
+boost::array<double,NDIM>
 IBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
@@ -2727,7 +2726,7 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<std::pair<int,int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
-        std::vector<Vector<double,NDIM> > beam_mesh_dependent_curvature;
+        std::vector<boost::array<double,NDIM> > beam_mesh_dependent_curvature;
         for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx); it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
@@ -2745,7 +2744,7 @@ IBStandardInitializer::initializeSpecs(
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx); it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2779,7 +2778,7 @@ IBStandardInitializer::initializeSpecs(
         const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
-        const Vector<double,NDIM> X_target = getVertexPosn(point_index, level_number);
+        const boost::array<double,NDIM> X_target = getVertexPosn(point_index, level_number);
         vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
     }
 
@@ -3019,11 +3018,11 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
         d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
-        d_uniform_beam_curvature[ln].resize(num_base_filename,Vector<double,NDIM>(0.0));
+        d_uniform_beam_curvature[ln].resize(num_base_filename,init_array<double,NDIM>(0.0));
 
         d_enable_rods[ln].resize(num_base_filename,true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename,false);
-        d_uniform_rod_properties[ln].resize(num_base_filename,Vector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
+        d_uniform_rod_properties[ln].resize(num_base_filename,init_array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
 
         d_enable_target_points[ln].resize(num_base_filename,true);
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);

@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBMethod.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
@@ -216,7 +216,7 @@ protected:
     /*
      * Gravitational acceleration.
      */
-    IBTK::Vector<double,NDIM> d_gravitational_acceleration;
+    boost::array<double,NDIM> d_gravitational_acceleration;
 
 private:
     /*!

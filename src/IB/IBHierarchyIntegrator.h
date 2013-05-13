@@ -46,7 +46,7 @@
 #include "PatchLevel.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
@@ -306,7 +306,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
     int d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx;
-    std::vector<IBTK::Vector<double,NDIM> > d_mark_init_posns;
+    std::vector<boost::array<double,NDIM> > d_mark_init_posns;
     std::string d_mark_file_name;
 
     /*!

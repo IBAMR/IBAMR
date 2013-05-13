@@ -44,8 +44,8 @@
 
 #include "Index.h"
 #include "IntVector.h"
-#include "blitz/array.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -251,9 +251,9 @@ private:
     bool d_initialized;
     unsigned int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
-    std::vector<IBTK::Vector<double,NDIM> > d_X_centroid;
-    std::vector<blitz::Array<IBTK::Vector<double,NDIM>,1> > d_X_perimeter;
-    std::vector<blitz::Array<IBTK::Vector<double,NDIM>,2> > d_X_web, d_dA_web;
+    std::vector<boost::array<double,NDIM> > d_X_centroid;
+    std::vector<boost::multi_array<boost::array<double,NDIM>,1> > d_X_perimeter;
+    std::vector<boost::multi_array<boost::array<double,NDIM>,2> > d_X_web, d_dA_web;
 
     int d_instrument_read_timestep_num;
     double d_instrument_read_time;
@@ -289,8 +289,8 @@ private:
     struct WebPatch
     {
         int meter_num;
-        const IBTK::Vector<double,NDIM>* X;
-        const IBTK::Vector<double,NDIM>* dA;
+        const boost::array<double,NDIM>* X;
+        const boost::array<double,NDIM>* dA;
     };
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
@@ -299,7 +299,7 @@ private:
     struct WebCentroid
     {
         int meter_num;
-        const IBTK::Vector<double,NDIM>* X;
+        const boost::array<double,NDIM>* X;
     };
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebCentroid,IndexFortranOrder> WebCentroidMap;

@@ -41,7 +41,7 @@
 #include <set>
 #include <vector>
 
-#include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
 #include "petscmat.h"
@@ -50,7 +50,6 @@
 namespace IBTK {
 class LData;
 class LDataManager;
-template <class T, size_t N> class Vector;
 }  // namespace IBTK
 namespace SAMRAI {
 namespace hier {
@@ -214,27 +213,27 @@ private:
     //\{
     struct SpringData
     {
-        blitz::Array<int,1> lag_mastr_node_idxs, lag_slave_node_idxs;
-        blitz::Array<int,1> petsc_mastr_node_idxs, petsc_slave_node_idxs;
-        blitz::Array<SpringForceFcnPtr,1> force_fcns;
-        blitz::Array<SpringForceDerivFcnPtr,1> force_deriv_fcns;
-        blitz::Array<const double*,1> parameters;
+        std::vector<int> lag_mastr_node_idxs, lag_slave_node_idxs;
+        std::vector<int> petsc_mastr_node_idxs, petsc_slave_node_idxs;
+        std::vector<SpringForceFcnPtr> force_fcns;
+        std::vector<SpringForceDerivFcnPtr> force_deriv_fcns;
+        std::vector<const double*> parameters;
     };
     std::vector<SpringData> d_spring_data;
 
     struct BeamData
     {
-        blitz::Array<int,1> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
-        blitz::Array<const double*,1> rigidities;
-        blitz::Array<const IBTK::Vector<double,NDIM>*,1> curvatures;
+        std::vector<int> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
+        std::vector<const double*> rigidities;
+        std::vector<const boost::array<double,NDIM>*> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
     struct TargetPointData
     {
-        blitz::Array<int,1> petsc_node_idxs;
-        blitz::Array<const double*,1> kappa, eta;
-        blitz::Array<const IBTK::Vector<double,NDIM>*,1> X0;
+        std::vector<int> petsc_node_idxs;
+        std::vector<const double*> kappa, eta;
+        std::vector<const boost::array<double,NDIM>*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 

@@ -37,8 +37,6 @@
 #include "GriddingAlgorithm.h"
 #include "PatchHierarchy.h"
 #include "PenaltyIBMethod.h"
-#include "blitz/array.h"
-#include "blitz/compiler.h"
 #include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -180,13 +178,13 @@ PenaltyIBMethod::eulerStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const restrict K =         d_K_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict M =         d_M_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict   Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict   V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const K =         d_K_data[ln]->getLocalFormArray()   ->data();
+        const double* const M =         d_M_data[ln]->getLocalFormArray()   ->data();
+        const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const V = d_V_current_data[ln]->getLocalFormVecArray()->data();
+        double* const   Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
+        double* const   V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         for (i = 0; i < n_local; ++i)
@@ -216,14 +214,14 @@ PenaltyIBMethod::midpointStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const restrict      K =         d_K_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict      M =         d_M_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict      X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict      Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict      V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict  X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict        Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict        V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const      K =         d_K_data[ln]->getLocalFormArray()   ->data();
+        const double* const      M =         d_M_data[ln]->getLocalFormArray()   ->data();
+        const double* const      X = d_X_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const      Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const      V = d_V_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const  X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
+        double* const        Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
+        double* const        V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         double X_half, Y_half, V_half;
@@ -257,14 +255,14 @@ PenaltyIBMethod::trapezoidalStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const restrict      K =         d_K_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict      M =         d_M_data[ln]->getLocalFormArray()   ->data();
-        const double* const restrict      X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict      Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict      V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const restrict  X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict        Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const restrict        V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const      K =         d_K_data[ln]->getLocalFormArray()   ->data();
+        const double* const      M =         d_M_data[ln]->getLocalFormArray()   ->data();
+        const double* const      X = d_X_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const      Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const      V = d_V_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const  X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
+        double* const        Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
+        double* const        V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         double X_half, Y_half, V_half;
@@ -297,10 +295,10 @@ PenaltyIBMethod::computeLagrangianForce(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const restrict       F = d_F_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict K =         d_K_data[ln]->getLocalFormArray()   ->data();
-            const double* const restrict X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+            double* const       F = d_F_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const K =         d_K_data[ln]->getLocalFormArray()   ->data();
+            const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             for (i = 0; i < n_local; ++i)
@@ -318,12 +316,12 @@ PenaltyIBMethod::computeLagrangianForce(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const restrict       F     =    d_F_half_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict K     =         d_K_data[ln]->getLocalFormArray()   ->data();
-            const double* const restrict X     = d_X_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict Y     = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
+            double* const       F     =    d_F_half_data[ln]->getLocalFormVecArray()->data();
+            const double* const K     =         d_K_data[ln]->getLocalFormArray()   ->data();
+            const double* const X     = d_X_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const Y     = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
+            const double* const Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             double X_half, Y_half;
@@ -344,10 +342,10 @@ PenaltyIBMethod::computeLagrangianForce(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const restrict       F = d_F_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict K =     d_K_data[ln]->getLocalFormArray()   ->data();
-            const double* const restrict X = d_X_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
+            double* const       F = d_F_new_data[ln]->getLocalFormVecArray()->data();
+            const double* const K =     d_K_data[ln]->getLocalFormArray()   ->data();
+            const double* const X = d_X_new_data[ln]->getLocalFormVecArray()->data();
+            const double* const Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             for (i = 0; i < n_local; ++i)

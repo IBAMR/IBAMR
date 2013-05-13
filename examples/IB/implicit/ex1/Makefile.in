@@ -79,15 +79,13 @@ CONFIG_CLEAN_VPATH_FILES =
 am__objects_1 = main2d-main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
-am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
-	${top_builddir}/ibtk/lib/libIBTK.a
-main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(am__DEPENDENCIES_1)
+main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__objects_2 = main3d-main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(am__DEPENDENCIES_1)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_LINK = $(CXXLD) $(main3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
@@ -404,9 +402,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config -I${top_srcdir}/ibtk/third_party/blitz-0.10 -I${top_builddir}/ibtk/third_party/blitz-0.10
-AM_LDFLAGS = -L${top_builddir}/ibtk/third_party/blitz-0.10/lib
-IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a -lblitz
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config
+IBAMR_LIBS = ${top_builddir}/lib/libIBAMR.a ${top_builddir}/ibtk/lib/libIBTK.a
 IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK2d.a
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@

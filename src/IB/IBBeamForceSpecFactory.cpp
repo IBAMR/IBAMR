@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "IBBeamForceSpec.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBBeamForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"

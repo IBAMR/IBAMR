@@ -55,14 +55,6 @@
 #include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
-#include "blitz/array.h"
-#include "blitz/array/expr.h"
-#include "blitz/array/ops.h"
-#include "blitz/array/reduce.h"
-#include "blitz/array/shape.h"
-#include "blitz/etbase.h"
-#include "blitz/indexexpr.h"
-#include "blitz/memblock.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -333,7 +325,7 @@ GeneralizedIBMethod::eulerStep(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-
+#if 0 // XXXX
     // Update the value of D^{n+1} using forward Euler.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -380,6 +372,7 @@ GeneralizedIBMethod::eulerStep(
             }
         }
     }
+#endif
     return;
 }// eulerStep
 
@@ -406,6 +399,7 @@ GeneralizedIBMethod::trapezoidalStep(
     const double dt = new_time-current_time;
 
     // Update the value of D^{n+1} using the trapezoidal rule.
+#if 0  // XXXX
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -452,6 +446,7 @@ GeneralizedIBMethod::trapezoidalStep(
             }
         }
     }
+#endif
     return;
 }// trapezoidalStep
 

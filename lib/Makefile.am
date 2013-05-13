@@ -27,8 +27,7 @@ $(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
 $(top_srcdir)/src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
-libIBAMR_a_SOURCES += \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
+libIBAMR_a_SOURCES +=
 endif
 
 pkg_include_HEADERS = \
@@ -40,8 +39,7 @@ $(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 if LIBMESH_ENABLED
-pkg_include_HEADERS += \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
+pkg_include_HEADERS +=
 endif
 
 ## Dimension-dependent libraries
@@ -133,8 +131,7 @@ $(top_srcdir)/src/IB/IBFEMethod.cpp \
 $(top_srcdir)/src/IB/IMPMethod.cpp \
 $(top_srcdir)/src/IB/IMPInitializer.cpp \
 $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -223,8 +220,7 @@ pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBFEMethod.h \
 $(top_srcdir)/src/IB/IMPMethod.h \
 $(top_srcdir)/src/IB/IMPInitializer.h \
-$(top_srcdir)/src/IB/MaterialPointSpec.h \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+$(top_srcdir)/src/IB/MaterialPointSpec.h
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

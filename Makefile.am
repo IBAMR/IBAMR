@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = doc ibtk src lib bin examples
+SUBDIRS = doc ibtk src lib examples
 ACLOCAL_AMFLAGS = -I m4
 
 ## Standard make targets.

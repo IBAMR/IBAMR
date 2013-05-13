@@ -58,8 +58,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "blitz/array.h"
-#include "blitz/range.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -552,9 +550,9 @@ IMPMethod::interpolateVelocity(
         {
             u_ghost_fill_scheds[ln]->fillData(data_time);
         }
-        double*      U_array = (*     U_data)[ln]->getLocalFormVecArray()->data();
-        double* Grad_U_array = (*Grad_U_data)[ln]->getLocalFormVecArray()->data();
-        double*      X_array = (*     X_data)[ln]->getLocalFormVecArray()->data();
+        boost::multi_array_ref<double,2>&      U_array = *(*     U_data)[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>&      X_array = *(*     X_data)[ln]->getLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -582,7 +580,7 @@ IMPMethod::interpolateVelocity(
                 {
                     const LNode* const node_idx = *it;
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const double* const X = &X_array[NDIM*local_idx];
+                    const double* const X = &X_array[local_idx][0];
 
                     // WARNING: As written here, this implicitly imposes u = 0 in
                     // the ghost cell region at physical boundaries.
@@ -597,7 +595,7 @@ IMPMethod::interpolateVelocity(
                     }
                     for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        blitz::Array<double,1> phi[NDIM], dphi[NDIM];
+                        boost::array<boost::multi_array<double,1>,NDIM> phi, dphi;
                         Box<NDIM> box(i,i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -611,8 +609,9 @@ IMPMethod::interpolateVelocity(
                                 box.lower(d) -= (X[d] <= X_cell(d) ? kernel_width : kernel_width-1);
                                 box.upper(d) += (X[d] >= X_cell(d) ? kernel_width : kernel_width-1);
                             }
-                            phi [d].resize(blitz::Range(box.lower(d),box.upper(d)));
-                            dphi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                            typedef boost::multi_array_types::extent_range range;
+                            phi [d].resize(boost::extents[range(box.lower(d),box.upper(d))]);
+                            dphi[d].resize(boost::extents[range(box.lower(d),box.upper(d))]);
                         }
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -620,8 +619,8 @@ IMPMethod::interpolateVelocity(
                             {
                                 const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
                                 const double del = x_grid - X[d];
-                                phi [d](i) = kernel(del/dx[d]);
-                                dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
+                                phi [d][i] = kernel(del/dx[d]);
+                                dphi[d][i] = kernel_diff(del/dx[d])/dx[d];
                             }
                         }
                         for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
@@ -631,7 +630,7 @@ IMPMethod::interpolateVelocity(
                             double w = 1.0;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                w *= phi[d](i(d));
+                                w *= phi[d][i(d)];
                             }
                             U(component) += u*w;
                             for (unsigned int k = 0; k < NDIM; ++k)
@@ -639,8 +638,8 @@ IMPMethod::interpolateVelocity(
                                 double dw_dx_k = 1.0;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    if (d == k) dw_dx_k *= dphi[d](i(d));
-                                    else        dw_dx_k *=  phi[d](i(d));
+                                    if (d == k) dw_dx_k *= dphi[d][i(d)];
+                                    else        dw_dx_k *=  phi[d][i(d)];
                                 }
                                 Grad_U(component,k) -= u*dw_dx_k;
                             }
@@ -648,10 +647,10 @@ IMPMethod::interpolateVelocity(
                     }
                     for (int i = 0; i < NDIM; ++i)
                     {
-                        U_array[NDIM*local_idx+i] = U(i);
+                        U_array[local_idx][i] = U(i);
                         for (int j = 0; j < NDIM; ++j)
                         {
-                            Grad_U_array[NDIM*NDIM*local_idx+NDIM*i+j] = Grad_U(i,j);
+                            Grad_U_array[local_idx][NDIM*i+j] = Grad_U(i,j);
                         }
                     }
                 }
@@ -686,10 +685,10 @@ IMPMethod::eulerStep(
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
-        blitz::Array<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
-        blitz::Array<double,2>& F_half_array    = *d_F_half_data   [ln]->getVecArray();
-        blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_half_array    = *d_F_half_data   [ln]->getVecArray();
+        boost::multi_array_ref<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, F_half, Grad_U;
         TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -700,8 +699,8 @@ IMPMethod::eulerStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_current(i,j) = F_current_array(idx,NDIM*i+j);
-                    Grad_U   (i,j) = Grad_U_array   (idx,NDIM*i+j);
+                    F_current(i,j) = F_current_array[idx][NDIM*i+j];
+                    Grad_U   (i,j) = Grad_U_array   [idx][NDIM*i+j];
                 }
             }
 #if (NDIM == 2)
@@ -713,8 +712,8 @@ IMPMethod::eulerStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_new_array (idx,NDIM*i+j) = F_new (i,j);
-                    F_half_array(idx,NDIM*i+j) = F_half(i,j);
+                    F_new_array [idx][NDIM*i+j] = F_new (i,j);
+                    F_half_array[idx][NDIM*i+j] = F_half(i,j);
                 }
             }
         }
@@ -745,9 +744,9 @@ IMPMethod::midpointStep(
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
-        blitz::Array<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
-        blitz::Array<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
+        boost::multi_array_ref<double,2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U;
         TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -758,8 +757,8 @@ IMPMethod::midpointStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_current(i,j) = F_current_array(idx,NDIM*i+j);
-                    Grad_U   (i,j) = Grad_U_array   (idx,NDIM*i+j);
+                    F_current(i,j) = F_current_array[idx][NDIM*i+j];
+                    Grad_U   (i,j) = Grad_U_array   [idx][NDIM*i+j];
                 }
             }
 #if (NDIM == 2)
@@ -770,7 +769,7 @@ IMPMethod::midpointStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_new_array(idx,NDIM*i+j) = F_new(i,j);
+                    F_new_array[idx][NDIM*i+j] = F_new(i,j);
                 }
             }
         }
@@ -803,10 +802,10 @@ IMPMethod::trapezoidalStep(
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
-        blitz::Array<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
-        blitz::Array<double,2>& Grad_U_current_array = *(*Grad_U_current_data)[ln]->getVecArray();
-        blitz::Array<double,2>& Grad_U_new_array     = *(*Grad_U_new_data    )[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_current_array = *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& F_new_array     = *d_F_new_data    [ln]->getVecArray();
+        boost::multi_array_ref<double,2>& Grad_U_current_array = *(*Grad_U_current_data)[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& Grad_U_new_array     = *(*Grad_U_new_data    )[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U_current, Grad_U_new;
         TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -817,9 +816,9 @@ IMPMethod::trapezoidalStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_current     (i,j) = F_current_array     (idx,NDIM*i+j);
-                    Grad_U_current(i,j) = Grad_U_current_array(idx,NDIM*i+j);
-                    Grad_U_new    (i,j) = Grad_U_new_array    (idx,NDIM*i+j);
+                    F_current     (i,j) = F_current_array     [idx][NDIM*i+j];
+                    Grad_U_current(i,j) = Grad_U_current_array[idx][NDIM*i+j];
+                    Grad_U_new    (i,j) = Grad_U_new_array    [idx][NDIM*i+j];
                 }
             }
 #if (NDIM == 2)
@@ -830,7 +829,7 @@ IMPMethod::trapezoidalStep(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_new_array(idx,NDIM*i+j) = F_new(i,j);
+                    F_new_array[idx][NDIM*i+j] = F_new(i,j);
                 }
             }
         }
@@ -855,10 +854,10 @@ IMPMethod::computeLagrangianForce(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>&   x_array =  *(*X_data)[ln]->getVecArray();
-        blitz::Array<double,2>&   X_array =  *d_X0_data[ln]->getVecArray();
-        blitz::Array<double,2>&   F_array =  *(*F_data)[ln]->getVecArray();
-        blitz::Array<double,2>& tau_array = *d_tau_data[ln]->getVecArray();
+        boost::multi_array_ref<double,2>&   x_array =  *(*X_data)[ln]->getVecArray();
+        boost::multi_array_ref<double,2>&   X_array =  *d_X0_data[ln]->getVecArray();
+        boost::multi_array_ref<double,2>&   F_array =  *(*F_data)[ln]->getVecArray();
+        boost::multi_array_ref<double,2>& tau_array = *d_tau_data[ln]->getVecArray();
         TensorValue<double> FF, PP, tau;
         VectorValue<double> X, x;
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -872,10 +871,10 @@ IMPMethod::computeLagrangianForce(
                 {
                     for (int j = 0; j < NDIM; ++j)
                     {
-                        FF(i,j) = F_array(idx,NDIM*i+j);
+                        FF(i,j) = F_array[idx][NDIM*i+j];
                     }
-                    x(i) = x_array(idx,i);
-                    X(i) = X_array(idx,i);
+                    x(i) = x_array[idx][i];
+                    X(i) = X_array[idx][i];
                 }
 #if (NDIM == 2)
                 FF(2,2) = 1.0;
@@ -891,7 +890,7 @@ IMPMethod::computeLagrangianForce(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    tau_array(idx,NDIM*i+j) = tau(i,j);
+                    tau_array[idx][NDIM*i+j] = tau(i,j);
                 }
             }
         }
@@ -929,8 +928,8 @@ IMPMethod::spreadForce(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        blitz::Array<double,2>&   X_array = *( *X_data)[ln]->getGhostedLocalFormVecArray();
-        blitz::Array<double,2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double,2>&   X_array = *( *X_data)[ln]->getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double,2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -957,13 +956,13 @@ IMPMethod::spreadForce(
                     if (!mp_spec) continue;
                     const double wgt = mp_spec->getWeight();
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const double* const X = &X_array(local_idx,0);
+                    const double* const X = &X_array[local_idx][0];
                     TensorValue<double> tau;
                     for (int i = 0; i < NDIM; ++i)
                     {
                         for (int j = 0; j < NDIM; ++j)
                         {
-                            tau(i,j) = tau_array(local_idx,NDIM*i+j);
+                            tau(i,j) = tau_array[local_idx][NDIM*i+j];
                         }
                     }
 
@@ -977,7 +976,7 @@ IMPMethod::spreadForce(
                     }
                     for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        blitz::Array<double,1> phi[NDIM], dphi[NDIM];
+                        boost::array<boost::multi_array<double,1>,NDIM> phi, dphi;
                         Box<NDIM> box(i,i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -991,8 +990,9 @@ IMPMethod::spreadForce(
                                 box.lower(d) -= (X[d] <= X_cell(d) ? kernel_width : kernel_width-1);
                                 box.upper(d) += (X[d] >= X_cell(d) ? kernel_width : kernel_width-1);
                             }
-                            phi [d].resize(blitz::Range(box.lower(d),box.upper(d)));
-                            dphi[d].resize(blitz::Range(box.lower(d),box.upper(d)));
+                            typedef boost::multi_array_types::extent_range range;
+                            phi [d].resize(boost::extents[range(box.lower(d),box.upper(d))]);
+                            dphi[d].resize(boost::extents[range(box.lower(d),box.upper(d))]);
                         }
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -1000,8 +1000,8 @@ IMPMethod::spreadForce(
                             {
                                 const double x_grid = x_lower[d] + dx[d]*(static_cast<double>(i-patch_box.lower(d))+(d == component ? 0.0 : 0.5));
                                 const double del = x_grid - X[d];
-                                phi [d](i) = kernel(del/dx[d]);
-                                dphi[d](i) = kernel_diff(del/dx[d])/dx[d];
+                                phi [d][i] = kernel(del/dx[d]);
+                                dphi[d][i] = kernel_diff(del/dx[d])/dx[d];
                             }
                         }
                         for (Box<NDIM>::Iterator b(box*side_boxes[component]); b; b++)
@@ -1013,8 +1013,8 @@ IMPMethod::spreadForce(
                                 double dw_dx_k = 1.0;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    if (d == k) dw_dx_k *= dphi[d](i(d));
-                                    else        dw_dx_k *=  phi[d](i(d));
+                                    if (d == k) dw_dx_k *= dphi[d][i(d)];
+                                    else        dw_dx_k *=  phi[d][i(d)];
                                 }
                                 f += tau(component,k)*dw_dx_k;
                             }
@@ -1138,8 +1138,8 @@ IMPMethod::initializeLevelData(
         // Initialize the deformation gradient and Kirchhoff stress.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        blitz::Array<double,2>&   F_array = *  F_data->getLocalFormVecArray();
-        blitz::Array<double,2>& tau_array = *tau_data->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>&   F_array = *  F_data->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& tau_array = *tau_data->getLocalFormVecArray();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
@@ -1148,8 +1148,8 @@ IMPMethod::initializeLevelData(
             {
                 for (int j = 0; j < NDIM; ++j)
                 {
-                    F_array  (idx,NDIM*i+j) = (i == j ? 1.0 : 0.0);
-                    tau_array(idx,NDIM*i+j) = 0.0;
+                    F_array  [idx][NDIM*i+j] = (i == j ? 1.0 : 0.0);
+                    tau_array[idx][NDIM*i+j] = 0.0;
                 }
             }
         }

@@ -35,6 +35,7 @@
 #include "IBAMR_config.h"
 #include "IBFEMethod.h"
 #include "SAMRAI_config.h"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -90,7 +91,7 @@ static const double POINT_FACTOR = 2.0;
 inline double
 get_elem_hmax(
     Elem* elem,
-    const blitz::Array<double,2>& X_node)
+    const boost::multi_array<double,2>& X_node)
 {
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES];
@@ -104,7 +105,7 @@ get_elem_hmax(
         Point& X = elem->point(k);
         for (int d = 0; d < NDIM; ++d)
         {
-            X(d) = X_node(k,d);
+            X(d) = X_node[k][d];
         }
     }
     double hmax = 0.0;
@@ -942,8 +943,8 @@ IBFEMethod::computeInteriorForceDensity(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<Point>& q_point = fe->get_xyz();
@@ -1012,7 +1013,7 @@ IBFEMethod::computeInteriorForceDensity(
     VectorValue<double> F, F_b, F_s, F_qp, n;
     Point X_qp;
     double P;
-    blitz::Array<double,2> X_node;
+    boost::multi_array<double,2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1022,10 +1023,10 @@ IBFEMethod::computeInteriorForceDensity(
         fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            dof_map.dof_indices(elem, dof_indices(d), d);
-            if (G_rhs_e[d].size() != dof_indices(d).size())
+            dof_map.dof_indices(elem, dof_indices[d], d);
+            if (G_rhs_e[d].size() != dof_indices[d].size())
             {
-                G_rhs_e[d].resize(dof_indices(d).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
+                G_rhs_e[d].resize(dof_indices[d].size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
             }
             else
             {
@@ -1034,7 +1035,7 @@ IBFEMethod::computeInteriorForceDensity(
         }
 
         const unsigned int n_qp = qrule->n_points();
-        const unsigned int n_basis = dof_indices(0).size();
+        const unsigned int n_basis = dof_indices[0].size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -1103,7 +1104,7 @@ IBFEMethod::computeInteriorForceDensity(
             fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
-            const unsigned int n_basis = dof_indices(0).size();
+            const unsigned int n_basis = dof_indices[0].size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -1165,8 +1166,8 @@ IBFEMethod::computeInteriorForceDensity(
         // add the elemental contributions to the global vector.
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            dof_map.constrain_element_vector(G_rhs_e[i], dof_indices(i));
-            G_rhs_vec->add_vector(G_rhs_e[i], dof_indices(i));
+            dof_map.constrain_element_vector(G_rhs_e[i], dof_indices[i]);
+            G_rhs_vec->add_vector(G_rhs_e[i], dof_indices[i]);
         }
     }
 
@@ -1197,10 +1198,10 @@ IBFEMethod::spreadTransmissionForceDensity(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
+    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
@@ -1239,20 +1240,20 @@ IBFEMethod::spreadTransmissionForceDensity(
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s;
     Point X_qp;
     double P;
     std::vector<Point> elem_X;
-    blitz::Array<double,2> X_node, X_node_side;
+    boost::multi_array<double,2> X_node, X_node_side;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1275,7 +1276,7 @@ IBFEMethod::spreadTransmissionForceDensity(
         int qp_offset = 0;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems[e_idx];
 
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1292,7 +1293,7 @@ IBFEMethod::spreadTransmissionForceDensity(
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dof_map.dof_indices(elem, dof_indices(d), d);
+                dof_map.dof_indices(elem, dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
@@ -1323,7 +1324,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                 AutoPtr<Elem> side_elem = elem->build_side(side);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                    dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
                 const double hmax = get_elem_hmax(side_elem.get(), X_node_side);
@@ -1418,10 +1419,10 @@ IBFEMethod::imposeJumpConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
+    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
     const std::vector<Point>& normal_face = fe_face->get_normals();
@@ -1459,22 +1460,22 @@ IBFEMethod::imposeJumpConditions(
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n;
     Point X_qp;
     double P;
-    blitz::Array<double,2> F_node, X_node;
+    boost::multi_array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    Vector<double,NDIM> X_min, X_max;
+    boost::array<double,NDIM> X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1488,7 +1489,7 @@ IBFEMethod::imposeJumpConditions(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        Vector<Box<NDIM>,NDIM> side_boxes;
+        boost::array<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1497,7 +1498,7 @@ IBFEMethod::imposeJumpConditions(
         // Loop over the elements.
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems[e_idx];
 
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1514,7 +1515,7 @@ IBFEMethod::imposeJumpConditions(
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dof_map.dof_indices(elem, dof_indices(d), d);
+                dof_map.dof_indices(elem, dof_indices[d], d);
             }
 
             // Loop over the element boundaries.
@@ -1547,7 +1548,7 @@ IBFEMethod::imposeJumpConditions(
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                    dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
 
                 // Cache the nodal and physical coordinates of the side element,
@@ -1557,14 +1558,14 @@ IBFEMethod::imposeJumpConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(n_node_side <= MAX_NODES);
 #endif
-                X_min =  0.5*std::numeric_limits<double>::max();
-                X_max = -0.5*std::numeric_limits<double>::max();
+                X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
+                X_max = init_array<double,NDIM>(-0.5*std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices(d)[k]);
+                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices[d][k]);
                         X_min[d] = std::min(X_min[d],X_node_cache[k](d));
                         X_max[d] = std::max(X_max[d],X_node_cache[k](d));
                     }
@@ -1586,7 +1587,7 @@ IBFEMethod::imposeJumpConditions(
                     q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
-                    Vector<int,NDIM> i_begin, i_end, ic;
+                    boost::array<int,NDIM> i_begin, i_end, ic;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

@@ -40,8 +40,6 @@
 
 #include "IBStandardSourceGen.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "blitz/compiler.h"
 #include "boost/array.hpp"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSourceSpec-inl.h"
@@ -55,7 +53,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -228,7 +226,7 @@ IBStandardSourceGen::getNumSources(
 
 void
 IBStandardSourceGen::getSourceLocations(
-    std::vector<Vector<double,NDIM> >& X_src,
+    std::vector<boost::array<double,NDIM> >& X_src,
     std::vector<double>& r_src,
     Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
@@ -247,8 +245,8 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(), X_src.end(), Vector<double,NDIM>(0.0));
-    const double* const restrict X_node = X_data->getLocalFormVecArray()->data();
+    std::fill(X_src.begin(), X_src.end(), init_array<double,NDIM>(0.0));
+    const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)

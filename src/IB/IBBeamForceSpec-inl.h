@@ -78,7 +78,7 @@ IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
     const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities,
-    const std::vector<IBTK::Vector<double,NDIM> >& mesh_dependent_curvatures)
+    const std::vector<boost::array<double,NDIM> >& mesh_dependent_curvatures)
     : d_master_idx(master_idx),
       d_neighbor_idxs(neighbor_idxs),
       d_bend_rigidities(bend_rigidities),
@@ -152,13 +152,13 @@ IBBeamForceSpec::getBendingRigidities()
     return d_bend_rigidities;
 }// getBendingRigidities
 
-inline const std::vector<IBTK::Vector<double,NDIM> >&
+inline const std::vector<boost::array<double,NDIM> >&
 IBBeamForceSpec::getMeshDependentCurvatures() const
 {
     return d_mesh_dependent_curvatures;
 }// getMeshDependentCurvatures
 
-inline std::vector<IBTK::Vector<double,NDIM> >&
+inline std::vector<boost::array<double,NDIM> >&
 IBBeamForceSpec::getMeshDependentCurvatures()
 {
     return d_mesh_dependent_curvatures;

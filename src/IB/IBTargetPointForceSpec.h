@@ -39,7 +39,8 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
-#include "ibtk/Vector.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI {
@@ -97,7 +98,7 @@ public:
         int master_idx=-1,
         double kappa_target=0.0,
         double eta_target=0.0,
-        const IBTK::Vector<double,NDIM>& X_target=0.0);
+        const boost::array<double,NDIM>& X_target=IBTK::init_array<double,NDIM>(0.0));
 
     /*!
      * \brief Destructor.
@@ -148,14 +149,14 @@ public:
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const IBTK::Vector<double,NDIM>&
+    const boost::array<double,NDIM>&
     getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    IBTK::Vector<double,NDIM>&
+    boost::array<double,NDIM>&
     getTargetPointPosition();
 
     /*!
@@ -209,7 +210,7 @@ private:
      */
     int d_master_idx;
     double d_kappa_target, d_eta_target;
-    IBTK::Vector<double,NDIM> d_X_target;
+    boost::array<double,NDIM> d_X_target;
 
     /*!
      * \brief A factory class to rebuild IBTargetPointForceSpec objects from

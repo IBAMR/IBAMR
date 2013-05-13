@@ -61,7 +61,8 @@
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/Vector.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "tbox/Array.h"
@@ -109,7 +110,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2*NDIM+1;
-    std::vector<Index<NDIM> > uu_stencil(uu_stencil_sz,Index<NDIM>(0));
+    boost::array<Index<NDIM>,uu_stencil_sz> uu_stencil(init_array<Index<NDIM>,uu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -118,7 +119,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    Vector<std::vector<Index<NDIM> >,NDIM> up_stencil(std::vector<Index<NDIM> >(up_stencil_sz,Index<NDIM>(0)));
+    boost::array<boost::array<Index<NDIM>,up_stencil_sz>,NDIM> up_stencil(init_array<boost::array<Index<NDIM>,up_stencil_sz>,NDIM>(init_array<Index<NDIM>,up_stencil_sz>(Index<NDIM>(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -127,7 +128,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 4;
-    std::vector<Index<NDIM> > pu_stencil(pu_stencil_sz,Index<NDIM>(0));
+    boost::array<Index<NDIM>,pu_stencil_sz> pu_stencil(init_array<Index<NDIM>,pu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -333,7 +334,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                Vector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];

@@ -40,7 +40,7 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI {
@@ -104,7 +104,7 @@ public:
     IBRodForceSpec(
         int master_idx,
         const std::vector<int>& next_idxs,
-        const std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >& material_params);
+        const std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!
      * \brief Destructor.
@@ -147,14 +147,14 @@ public:
      * \return A const reference to the material parameters of the rods attached
      * to the master node.
      */
-    const std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >&
+    const std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams() const;
 
     /*!
      * \return A non-const reference to the material parameters of the rods
      * attached to the master node.
      */
-    std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> >&
+    std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams();
 
     /*!
@@ -208,7 +208,7 @@ private:
      */
     int d_master_idx;
     std::vector<int> d_next_idxs;
-    std::vector<IBTK::Vector<double,NUM_MATERIAL_PARAMS> > d_material_params;
+    std::vector<boost::array<double,NUM_MATERIAL_PARAMS> > d_material_params;
 
     /*!
      * \brief A factory class to rebuild IBRodForceSpec objects from

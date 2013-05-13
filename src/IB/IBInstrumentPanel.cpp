@@ -76,7 +76,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -91,7 +91,7 @@
 #if HAVE_LIBSILO
 #include <silo.h>
 #endif
-
+#if 0 // XXXX
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -124,7 +124,7 @@ init_meter_elements(
     blitz::Array<Vector<double,NDIM>,2>& X_web,
     blitz::Array<Vector<double,NDIM>,2>& dA_web,
     const blitz::Array<Vector<double,NDIM>,1>& X_perimeter,
-    const Vector<double,NDIM>& X_centroid)
+    const boost::array<double,NDIM>& X_centroid)
 {
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");
@@ -142,11 +142,11 @@ init_meter_elements(
     const int num_web_nodes = X_web.extent(1);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
-        const Vector<double,NDIM>& X_perimeter0(X_perimeter(m));
-        const Vector<double,NDIM> dX0((X_centroid-X_perimeter0)/static_cast<double>(num_web_nodes));
+        const boost::array<double,NDIM>& X_perimeter0(X_perimeter(m));
+        const boost::array<double,NDIM> dX0((X_centroid-X_perimeter0)/static_cast<double>(num_web_nodes));
 
-        const Vector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
-        const Vector<double,NDIM> dX1((X_centroid-X_perimeter1)/static_cast<double>(num_web_nodes));
+        const boost::array<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+        const boost::array<double,NDIM> dX1((X_centroid-X_perimeter1)/static_cast<double>(num_web_nodes));
 
         // Away from the center of the web, each web patch is a planar
         // quadrilateral.  At the web centroid, the quadrilateral is degenerate,
@@ -157,24 +157,24 @@ init_meter_elements(
             //
             // Note that here the vertices are placed in "standard" (i.e.,
             // "counter-clockwise") orientation.
-            const Vector<double,NDIM> X0(X_perimeter0+static_cast<double>(n  )*dX0);
-            const Vector<double,NDIM> X1(X_perimeter1+static_cast<double>(n  )*dX1);
-            const Vector<double,NDIM> X2(X_perimeter1+static_cast<double>(n+1)*dX1);
-            const Vector<double,NDIM> X3(X_perimeter0+static_cast<double>(n+1)*dX0);
+            const boost::array<double,NDIM> X0(X_perimeter0+static_cast<double>(n  )*dX0);
+            const boost::array<double,NDIM> X1(X_perimeter1+static_cast<double>(n  )*dX1);
+            const boost::array<double,NDIM> X2(X_perimeter1+static_cast<double>(n+1)*dX1);
+            const boost::array<double,NDIM> X3(X_perimeter0+static_cast<double>(n+1)*dX0);
 
             // Compute the midpoints of the edges of the quadrilateral.
-            const Vector<double,NDIM> X01(0.5*(X0+X1));
-            const Vector<double,NDIM> X12(0.5*(X1+X2));
-            const Vector<double,NDIM> X23(0.5*(X2+X3));
-            const Vector<double,NDIM> X30(0.5*(X3+X0));
+            const boost::array<double,NDIM> X01(0.5*(X0+X1));
+            const boost::array<double,NDIM> X12(0.5*(X1+X2));
+            const boost::array<double,NDIM> X23(0.5*(X2+X3));
+            const boost::array<double,NDIM> X30(0.5*(X3+X0));
 
             // Construct a parametric representation of the lines connecting the
             // midpoints of the edges.
-            const Vector<double,NDIM>& l0 = X01;
-            const Vector<double,NDIM>  d0 = X23-X01;
+            const boost::array<double,NDIM>& l0 = X01;
+            const boost::array<double,NDIM>  d0 = X23-X01;
 
-            const Vector<double,NDIM>& l1 = X12;
-            const Vector<double,NDIM>  d1 = X30-X12;
+            const boost::array<double,NDIM>& l1 = X12;
+            const boost::array<double,NDIM>  d1 = X30-X12;
 
             // Compute the centroid as the intersection of the lines connecting
             // the midpoints of the edges.
@@ -207,9 +207,9 @@ init_meter_elements(
 double
 compute_flow_correction(
     const blitz::Array<Vector<double,NDIM>,1>& U_perimeter,
-    const Vector<double,NDIM>& U_centroid,
+    const boost::array<double,NDIM>& U_centroid,
     const blitz::Array<Vector<double,NDIM>,1>& X_perimeter,
-    const Vector<double,NDIM>& X_centroid)
+    const boost::array<double,NDIM>& X_centroid)
 {
     double U_dot_dA = 0.0;
 #if (NDIM == 2)
@@ -223,18 +223,18 @@ compute_flow_correction(
     const int num_perimeter_nodes = X_perimeter.extent(0);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
-        const Vector<double,NDIM>& U_perimeter0(U_perimeter(m));
-        const Vector<double,NDIM>& X_perimeter0(X_perimeter(m));
+        const boost::array<double,NDIM>& U_perimeter0(U_perimeter(m));
+        const boost::array<double,NDIM>& X_perimeter0(X_perimeter(m));
 
-        const Vector<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
-        const Vector<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
+        const boost::array<double,NDIM>& U_perimeter1(U_perimeter((m+1)%num_perimeter_nodes));
+        const boost::array<double,NDIM>& X_perimeter1(X_perimeter((m+1)%num_perimeter_nodes));
 
         // Compute the linear interpolation of the velocity at the center of the
         // triangle.
-        const Vector<double,NDIM> U = Vector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
+        const boost::array<double,NDIM> U = Vector<double,NDIM>((U_perimeter0+U_perimeter1+U_centroid)/3.0);
 
         // Compute the area weighted normal to the triangle.
-        const Vector<double,NDIM> dA = 0.5*cross(Vector<double,NDIM>(X_centroid-X_perimeter0),Vector<double,NDIM>(X_centroid-X_perimeter1));
+        const boost::array<double,NDIM> dA = 0.5*cross(Vector<double,NDIM>(X_centroid-X_perimeter0),Vector<double,NDIM>(X_centroid-X_perimeter1));
 
         // Compute the contribution to U_dot_dA.
         U_dot_dA += dot(U,dA);
@@ -325,11 +325,11 @@ build_meter_web(
 #endif
 
 template <int DEPTH>
-inline Vector<double,DEPTH>
+inline boost::array<double,DEPTH>
 linear_interp(
-    const Vector<double,NDIM>& X,
+    const boost::array<double,NDIM>& X,
     const Index<NDIM>& i_cell,
-    const Vector<double,NDIM>& X_cell,
+    const boost::array<double,NDIM>& X_cell,
     const CellData<NDIM,double>& v,
     const Index<NDIM>& /*patch_lower*/,
     const Index<NDIM>& /*patch_upper*/,
@@ -340,12 +340,12 @@ linear_interp(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v.getDepth() == DEPTH);
 #endif
-    Vector<bool,NDIM> is_lower;
+    boost::array<bool,NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         is_lower[d] = X[d] < X_cell[d];
     }
-    Vector<double,DEPTH> U(0.0);
+    boost::array<double,DEPTH> U(0.0);
 #if (NDIM == 3)
     for (int i_shift2 = (is_lower[2] ? -1 : 0); i_shift2 <= (is_lower[2] ? 0 : 1); ++i_shift2)
     {
@@ -354,7 +354,7 @@ linear_interp(
         {
             for (int i_shift0 = (is_lower[0] ? -1 : 0); i_shift0 <= (is_lower[0] ? 0 : 1); ++i_shift0)
             {
-                const Vector<double,NDIM> X_center(X_cell[0]+static_cast<double>(i_shift0)*dx[0],
+                const boost::array<double,NDIM> X_center(X_cell[0]+static_cast<double>(i_shift0)*dx[0],
                                                    X_cell[1]+static_cast<double>(i_shift1)*dx[1]
 #if (NDIM == 3)
                                                    ,
@@ -388,11 +388,11 @@ linear_interp(
     return U;
 }// linear_interp
 
-inline Vector<double,NDIM>
+inline boost::array<double,NDIM>
 linear_interp(
-    const Vector<double,NDIM>& X,
+    const boost::array<double,NDIM>& X,
     const Index<NDIM>& i_cell,
-    const Vector<double,NDIM>& X_cell,
+    const boost::array<double,NDIM>& X_cell,
     const SideData<NDIM,double>& v,
     const Index<NDIM>& /*patch_lower*/,
     const Index<NDIM>& /*patch_upper*/,
@@ -403,10 +403,10 @@ linear_interp(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v.getDepth() == 1);
 #endif
-    Vector<double,NDIM> U(0.0);
+    boost::array<double,NDIM> U(0.0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Vector<bool,NDIM> is_lower;
+        boost::array<bool,NDIM> is_lower;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d == axis)
@@ -426,7 +426,7 @@ linear_interp(
             {
                 for (int i_shift0 = (is_lower[0] ? -1 : 0); i_shift0 <= (is_lower[0] ? 0 : 1); ++i_shift0)
                 {
-                    const Vector<double,NDIM> X_side(X_cell[0]+(static_cast<double>(i_shift0) + (axis == 0 ? -0.5 : 0.0))*dx[0],
+                    const boost::array<double,NDIM> X_side(X_cell[0]+(static_cast<double>(i_shift0) + (axis == 0 ? -0.5 : 0.0))*dx[0],
                                                      X_cell[1]+(static_cast<double>(i_shift1) + (axis == 1 ? -0.5 : 0.0))*dx[1]
 #if (NDIM == 3)
                                                      ,
@@ -766,7 +766,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     }
 
     // Determine the centroid of each perimeter.
-    std::fill(d_X_centroid.begin(), d_X_centroid.end(), Vector<double,NDIM>(0.0));
+    std::fill(d_X_centroid.begin(), d_X_centroid.end(), boost::array<double,NDIM>(0.0));
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
@@ -782,7 +782,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            const Vector<double,NDIM> r(d_X_perimeter[m](n)-d_X_centroid[m]);
+            const boost::array<double,NDIM> r(d_X_perimeter[m](n)-d_X_centroid[m]);
             r_max[m] = std::max(r_max[m],norm(r));
         }
     }
@@ -796,7 +796,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
-    Vector<double,NDIM> dx_finest(0.0);
+    boost::array<double,NDIM> dx_finest(0.0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d]/static_cast<double>(ratio_to_level_zero(d));
@@ -837,7 +837,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
-        Vector<double,NDIM> dx;
+        boost::array<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
@@ -848,7 +848,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        Vector<double,NDIM> finer_dx;
+        boost::array<double,NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d]/static_cast<double>(finer_ratio(d));
@@ -861,7 +861,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 for (int n = 0; n < d_X_web[l].extent(1); ++n)
                 {
-                    const Vector<double,NDIM>& X = d_X_web[l](m,n);
+                    const boost::array<double,NDIM>& X = d_X_web[l](m,n);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
                     const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -876,7 +876,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             }
 
             // Setup the web centroid mapping.
-            const Vector<double,NDIM>& X = d_X_centroid[l];
+            const boost::array<double,NDIM>& X = d_X_centroid[l];
             const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
             const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -960,7 +960,7 @@ IBInstrumentPanel::readInstrumentData(
                 std::pair<WebPatchMap::const_iterator,WebPatchMap::const_iterator> patch_range = d_web_patch_map[ln].equal_range(i);
                 if (patch_range.first != patch_range.second)
                 {
-                    const Vector<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
+                    const boost::array<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
                                                      x_lower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
 #if (NDIM == 3)
                                                      ,
@@ -972,9 +972,9 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const Vector<double,NDIM>& X = *(it->second.X);
-                            const Vector<double,NDIM>& dA = *(it->second.dA);
-                            const Vector<double,NDIM> U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const boost::array<double,NDIM>& X = *(it->second.X);
+                            const boost::array<double,NDIM>& dA = *(it->second.dA);
+                            const boost::array<double,NDIM> U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
                             d_flow_values[meter_num] += dot(U,dA);
                         }
                     }
@@ -983,9 +983,9 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const Vector<double,NDIM>& X = *(it->second.X);
-                            const Vector<double,NDIM>& dA = *(it->second.dA);
-                            const Vector<double,NDIM> U = linear_interp(X, i, X_cell, *U_sc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const boost::array<double,NDIM>& X = *(it->second.X);
+                            const boost::array<double,NDIM>& dA = *(it->second.dA);
+                            const boost::array<double,NDIM> U = linear_interp(X, i, X_cell, *U_sc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
                             d_flow_values[meter_num] += dot(U,dA);
                         }
                     }
@@ -994,9 +994,9 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const Vector<double,NDIM>& X = *(it->second.X);
-                            const Vector<double,NDIM>& dA = *(it->second.dA);
-                            const Vector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const boost::array<double,NDIM>& X = *(it->second.X);
+                            const boost::array<double,NDIM>& dA = *(it->second.dA);
+                            const boost::array<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
                             d_mean_pres_values[meter_num] += P[0]*norm(dA);
                             A                 [meter_num] += norm(dA);
                         }
@@ -1006,7 +1006,7 @@ IBInstrumentPanel::readInstrumentData(
                 std::pair<WebCentroidMap::const_iterator,WebCentroidMap::const_iterator> centroid_range = d_web_centroid_map[ln].equal_range(i);
                 if (centroid_range.first != centroid_range.second)
                 {
-                    const Vector<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
+                    const boost::array<double,NDIM> X_cell(x_lower[0] + dx[0]*(static_cast<double>(i(0)-patch_lower(0))+0.5),
                                                      x_lower[1] + dx[1]*(static_cast<double>(i(1)-patch_lower(1))+0.5)
 #if (NDIM == 3)
                                                      ,
@@ -1018,8 +1018,8 @@ IBInstrumentPanel::readInstrumentData(
                         for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
-                            const Vector<double,NDIM>& X = *(it->second.X);
-                            const Vector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const boost::array<double,NDIM>& X = *(it->second.X);
+                            const boost::array<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
                             d_point_pres_values[meter_num] = P[0];
                         }
                     }
@@ -1373,5 +1373,5 @@ IBInstrumentPanel::outputLogData(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
-
+#endif // XXXX
 //////////////////////////////////////////////////////////////////////////////

@@ -35,7 +35,7 @@
 #include <vector>
 
 #include "IBRodForceSpec.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"

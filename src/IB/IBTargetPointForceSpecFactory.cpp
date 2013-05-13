@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBTargetPointForceSpec.h"
-#include "ibtk/Vector.h"
+#include "boost/array.hpp"
 #include "ibamr/IBTargetPointForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
