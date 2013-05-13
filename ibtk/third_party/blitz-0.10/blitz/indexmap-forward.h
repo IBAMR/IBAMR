@@ -1,9 +1,0 @@
-#ifndef BZ_INDEXMAP_FWD
-#define BZ_INDEXMAP_FWD
-
-BZ_NAMESPACE(blitz)
-
-
-BZ_NAMESPACE_END
-
-#endif

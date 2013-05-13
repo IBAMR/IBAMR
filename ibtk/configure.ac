@@ -434,5 +434,4 @@ AC_CONFIG_FILES([
   src/utilities/Makefile
   third_party/Makefile
 ])
-AC_CONFIG_SUBDIRS([third_party/blitz-0.10])
 AC_OUTPUT

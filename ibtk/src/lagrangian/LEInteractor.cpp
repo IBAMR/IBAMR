@@ -53,12 +53,8 @@
 #include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "blitz/array.h"
-#include "blitz/array/storage.h"
-#include "blitz/memblock.h"
-#include "blitz/range.h"
-#include "blitz/tinyvec2.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"
@@ -2124,19 +2120,14 @@ LEInteractor::userDefinedInterpolate(
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    const blitz::TinyVector<int,NDIM+1> shape(q_data_box.numberCells(0)+2*q_gcw[0],
-                                              q_data_box.numberCells(1)+2*q_gcw[1],
+    typedef boost::multi_array_types::extent_range range;
+    boost::const_multi_array_ref<double,NDIM+1> q_data(q, (boost::extents
+                                                           [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0])]
+                                                           [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1])]
 #if (NDIM == 3)
-                                              q_data_box.numberCells(2)+2*q_gcw[2],
+                                                           [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2])]
 #endif
-                                              q_depth);
-    blitz::GeneralArrayStorage<NDIM+1> storage_order = blitz::ColumnMajorArray<NDIM+1>();
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        storage_order.base()[d] = ilower[d]-q_gcw[d];
-    }
-    const blitz::Array<double,NDIM+1> q_data(const_cast<double*>(q), shape, blitz::neverDeleteData, storage_order);
-
+                                                           [range(0,q_depth)]), boost::fortran_storage_order());
     boost::array<double,NDIM> X_cell;
     boost::array<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
@@ -2184,22 +2175,22 @@ LEInteractor::userDefinedInterpolate(
         }
 
         // Compute the delta function weights.
-        blitz::Array<double,1> w0(blitz::Range(stencil_lower[0],stencil_upper[0]));
+        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0[ic0] = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
-        blitz::Array<double,1> w1(blitz::Range(stencil_lower[1],stencil_upper[1]));
+        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1[ic1] = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
-        blitz::Array<double,1> w2(blitz::Range(stencil_lower[2],stencil_upper[2]));
+        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2[ic2] = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Interpolate u onto V.
@@ -2215,10 +2206,10 @@ LEInteractor::userDefinedInterpolate(
                     for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
                     {
 #if (NDIM == 2)
-                        Q[d+s*Q_depth] += w0(ic0)*w1(ic1)*q_data(ic0,ic1,d);
+                        Q[d+s*Q_depth] += w0[ic0]*w1[ic1]*q_data[ic0][ic1][d];
 #endif
 #if (NDIM == 3)
-                        Q[d+s*Q_depth] += w0(ic0)*w1(ic1)*w2(ic2)*q_data(ic0,ic1,ic2,d);
+                        Q[d+s*Q_depth] += w0[ic0]*w1[ic1]*w2[ic2]*q_data[ic0][ic1][ic2][d];
 #endif
                     }
                 }
@@ -2248,19 +2239,14 @@ LEInteractor::userDefinedSpread(
 {
     const int* const ilower = q_data_box.lower();
     const int* const iupper = q_data_box.upper();
-    const blitz::TinyVector<int,NDIM+1> shape(q_data_box.numberCells(0)+2*q_gcw[0],
-                                              q_data_box.numberCells(1)+2*q_gcw[1],
+    typedef boost::multi_array_types::extent_range range;
+    boost::multi_array_ref<double,NDIM+1> q_data(q, (boost::extents
+                                                     [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0])]
+                                                     [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1])]
 #if (NDIM == 3)
-                                              q_data_box.numberCells(2)+2*q_gcw[2],
+                                                     [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2])]
 #endif
-                                              q_depth);
-    blitz::GeneralArrayStorage<NDIM+1> storage_order = blitz::ColumnMajorArray<NDIM+1>();
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        storage_order.base()[d] = ilower[d]-q_gcw[d];
-    }
-    blitz::Array<double,NDIM+1> q_data(q, shape, blitz::neverDeleteData, storage_order);
-
+                                                     [range(0,q_depth)]), boost::fortran_storage_order());
     boost::array<double,NDIM> X_cell;
     boost::array<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
@@ -2309,22 +2295,22 @@ LEInteractor::userDefinedSpread(
 
 
         // Compute the delta function weights.
-        blitz::Array<double,1> w0(blitz::Range(stencil_lower[0],stencil_upper[0]));
+        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0[ic0] = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
-        blitz::Array<double,1> w1(blitz::Range(stencil_lower[1],stencil_upper[1]));
+        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1[ic1] = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
-        blitz::Array<double,1> w2(blitz::Range(stencil_lower[2],stencil_upper[2]));
+        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2[ic2] = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Spread V onto u.
@@ -2339,10 +2325,10 @@ LEInteractor::userDefinedSpread(
                     for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
                     {
 #if (NDIM == 2)
-                        q_data(ic0,ic1,d) += w0(ic0)*w1(ic1)*Q[d+s*Q_depth]/(dx[0]*dx[1]);
+                        q_data[ic0][ic1][d] += w0[ic0]*w1[ic1]*Q[d+s*Q_depth]/(dx[0]*dx[1]);
 #endif
 #if (NDIM == 3)
-                        q_data(ic0,ic1,ic2,d) += w0(ic0)*w1(ic1)*w2(ic2)*Q[d+s*Q_depth]/(dx[0]*dx[1]*dx[2]);
+                        q_data[ic0][ic1][ic2][d] += w0[ic0]*w1[ic1]*w2[ic2]*Q[d+s*Q_depth]/(dx[0]*dx[1]*dx[2]);
 #endif
                     }
                 }
