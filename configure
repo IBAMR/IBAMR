@@ -23338,6 +23338,8 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" == false; then
   CPPFLAGS="${CPPFLAGS} -DNDEBUG"
+else
+  CPPFLAGS="${CPPFLAGS} -DDEBUG"
 fi
 
 
