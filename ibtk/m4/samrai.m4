@@ -12,19 +12,23 @@ AC_SUBST(SAMRAI_FORTDIR,[${SAMRAI_DIR}/include])
 
 AC_CHECK_HEADER([SAMRAI_config.h],,AC_MSG_ERROR([could not find header file SAMRAI_config.h]))
 
+AC_MSG_CHECKING([whether SAMRAI is configured with debugging enabled])
+
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <SAMRAI_config.h>
 ]], [[
-#ifdef INCLUDE_TEMPLATE_IMPLEMENTATION
-#if (INCLUDE_TEMPLATE_IMPLEMENTATION == 1)
+#if defined(DEBUG_CHECK_ASSERTIONS)
 asdf
 #endif
-#endif
-]])],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=false],[SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=true])
+]])],[
+SAMRAI_DEBUG_CHECK_ASSERTIONS=false
+AC_MSG_RESULT(no)],[
+SAMRAI_DEBUG_CHECK_ASSERTIONS=true
+AC_MSG_RESULT(yes)
+])
 
-if test "$SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION" == "false"; then
-  AC_MSG_ERROR([SAMRAI must be configured with implicit template instantiation enabled
-reconfigure and recompile SAMRAI with the flag --enable-implicit-template-instantiation])
+if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" == false; then
+  CPPFLAGS="${CPPFLAGS} -DNDEBUG"
 fi
 
 AC_LIB_HAVE_LINKFLAGS([SAMRAI])

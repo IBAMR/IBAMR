@@ -23284,6 +23284,9 @@ fi
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether SAMRAI is configured with debugging enabled" >&5
+$as_echo_n "checking whether SAMRAI is configured with debugging enabled... " >&6; }
+
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -23309,10 +23312,8 @@ int
 main ()
 {
 
-#ifdef INCLUDE_TEMPLATE_IMPLEMENTATION
-#if (INCLUDE_TEMPLATE_IMPLEMENTATION == 1)
+#if defined(DEBUG_CHECK_ASSERTIONS)
 asdf
-#endif
 #endif
 
   ;
@@ -23320,15 +23321,21 @@ asdf
 }
 _ACEOF
 if ac_fn_cxx_try_compile "$LINENO"; then :
-  SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=false
+
+SAMRAI_DEBUG_CHECK_ASSERTIONS=false
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 else
-  SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION=true
+
+SAMRAI_DEBUG_CHECK_ASSERTIONS=true
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-if test "$SAMRAI_HAS_IMPLICIT_TEMPLATE_INSTANTIATION" == "false"; then
-  as_fn_error $? "SAMRAI must be configured with implicit template instantiation enabled
-reconfigure and recompile SAMRAI with the flag --enable-implicit-template-instantiation" "$LINENO" 5
+if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" == false; then
+  CPPFLAGS="${CPPFLAGS} -DNDEBUG"
 fi
 
 
