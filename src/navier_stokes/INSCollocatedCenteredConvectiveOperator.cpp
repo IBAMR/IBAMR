@@ -257,7 +257,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
@@ -271,7 +271,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 #endif
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
@@ -285,7 +285,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_flux_idx >= 0);
 #endif
 
@@ -311,7 +311,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
@@ -342,17 +342,17 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
 
             Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 #endif
             // Interpolate from cell centers to cell faces.
@@ -544,7 +544,7 @@ INSCollocatedCenteredConvectiveOperator::initializeOperatorState(
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());

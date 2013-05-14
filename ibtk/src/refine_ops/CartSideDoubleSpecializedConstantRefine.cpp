@@ -163,7 +163,7 @@ CartSideDoubleSpecializedConstantRefine::refine(
     // Get the patch data.
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(src_component);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -172,13 +172,13 @@ CartSideDoubleSpecializedConstantRefine::refine(
 
     const Box<NDIM>& fdata_box = fdata->getBox();
     const int fdata_gcw = fdata->getGhostCellWidth().max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata_gcw == fdata->getGhostCellWidth().min());
 #endif
 
     const Box<NDIM>& cdata_box = cdata->getBox();
     const int cdata_gcw = cdata->getGhostCellWidth().max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
 #endif
 

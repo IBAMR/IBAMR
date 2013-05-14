@@ -456,7 +456,7 @@ build_local_ucd_mesh(
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         std::pair<int,int> e = it->second;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(vertices.count(e.first ) == 1);
         TBOX_ASSERT(vertices.count(e.second) == 1);
 #endif
@@ -686,7 +686,7 @@ void
 LSiloDataWriter::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
@@ -700,7 +700,7 @@ LSiloDataWriter::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
     if (d_hierarchy)
     {
@@ -805,7 +805,7 @@ LSiloDataWriter::registerMarkerCloud(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(nmarks > 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -868,7 +868,7 @@ LSiloDataWriter::registerLogicallyCartesianBlock(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(nelem(d) > 0);
@@ -937,7 +937,7 @@ LSiloDataWriter::registerLogicallyCartesianMultiblock(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(periodic     .size() == nelem.size());
     TBOX_ASSERT(first_lag_idx.size() == nelem.size());
     int sz = nelem.size();
@@ -1012,7 +1012,7 @@ LSiloDataWriter::registerUnstructuredMesh(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1081,7 +1081,7 @@ LSiloDataWriter::registerCoordsData(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1116,7 +1116,7 @@ LSiloDataWriter::registerVariableData(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!var_name.empty());
     TBOX_ASSERT(var_data);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1149,7 +1149,7 @@ LSiloDataWriter::registerLagrangianAO(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1164,7 +1164,7 @@ LSiloDataWriter::registerLagrangianAO(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= finest_ln);
 #endif
 
@@ -1173,7 +1173,7 @@ LSiloDataWriter::registerLagrangianAO(
         resetLevels(std::min(coarsest_ln,d_coarsest_ln),std::max(finest_ln,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
 #endif
 
@@ -1190,7 +1190,7 @@ LSiloDataWriter::writePlotData(
     const double simulation_time)
 {
 #if HAVE_LIBSILO
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(time_step_number >= 0);
     TBOX_ASSERT(!d_dump_directory_name.empty());
 #endif
@@ -1980,7 +1980,7 @@ void
 LSiloDataWriter::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("LAG_SILO_DATA_WRITER_VERSION",
@@ -2388,7 +2388,7 @@ LSiloDataWriter::getFromRestart()
                     const int idx1 = ucd_mesh_edge_maps_vector[3*l];
                     const std::pair<int,int> e(ucd_mesh_edge_maps_vector[3*l+1],
                                                ucd_mesh_edge_maps_vector[3*l+2]);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(idx1 == e.first);
 #endif
                     d_ucd_mesh_edge_maps[ln][mesh].insert(std::make_pair(idx1,e));

@@ -84,7 +84,7 @@ LData::getVec()
 inline boost::multi_array_ref<double,1>*
 LData::getArray()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
@@ -94,7 +94,7 @@ LData::getArray()
 inline boost::multi_array_ref<double,1>*
 LData::getLocalFormArray()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
@@ -104,7 +104,7 @@ LData::getLocalFormArray()
 inline boost::multi_array_ref<double,1>*
 LData::getGhostedLocalFormArray()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();

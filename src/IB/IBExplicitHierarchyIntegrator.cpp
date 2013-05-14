@@ -293,7 +293,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     }
     else
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_current_num_cycles == 1);
 #endif
         const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();

@@ -197,7 +197,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_source_idx(),
       d_global_index_offset()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -267,7 +267,7 @@ void
 IBStandardInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
 
@@ -623,7 +623,7 @@ void
 IBStandardInitializer::initializeLSiloDataWriter(
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_max_levels);
     TBOX_ASSERT(d_level_is_initialized[level_number]);
@@ -2669,7 +2669,7 @@ IBStandardInitializer::initializeSpecs(
         {
             for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
 #endif
                 // The connectivity information.
@@ -2695,7 +2695,7 @@ IBStandardInitializer::initializeSpecs(
             if (!d_enable_xsprings[level_number][j]) continue;
             for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
 #endif
                 // The connectivity information.
@@ -2747,7 +2747,7 @@ IBStandardInitializer::initializeSpecs(
         std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx); it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
 #endif
             // The connectivity information.
@@ -2822,7 +2822,7 @@ void
 IBStandardInitializer::getFromInput(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
 

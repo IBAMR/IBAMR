@@ -71,7 +71,7 @@ void
 StokesBcCoefStrategy::setStokesSpecifications(
     const StokesSpecifications* const problem_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);
 #endif
     d_problem_coefs = problem_coefs;

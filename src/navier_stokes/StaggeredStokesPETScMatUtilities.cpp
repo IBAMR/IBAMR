@@ -229,7 +229,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
 #endif

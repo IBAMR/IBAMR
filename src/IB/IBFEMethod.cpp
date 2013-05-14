@@ -96,7 +96,7 @@ get_elem_hmax(
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES];
     const int n_node = elem->n_nodes();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
     for (int k = 0; k < n_node; ++k)
@@ -171,7 +171,7 @@ FEDataManager*
 IBFEMethod::getFEDataManager(
     const unsigned int part) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
 #endif
     return d_fe_data_managers[part];
@@ -181,7 +181,7 @@ void
 IBFEMethod::registerConstrainedPart(
     unsigned int part)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
 #endif
     d_has_constrained_parts = true;
@@ -195,7 +195,7 @@ IBFEMethod::registerConstrainedPartVelocityFunction(
     void* constrained_part_velocity_fcn_ctx,
     unsigned int part)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
     TBOX_ASSERT(d_constrained_part[part]);
 #endif
@@ -539,7 +539,7 @@ void
 IBFEMethod::computeLagrangianForce(
     const double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -562,7 +562,7 @@ IBFEMethod::spreadForce(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -760,7 +760,7 @@ IBFEMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -860,7 +860,7 @@ IBFEMethod::applyGradientDetector(
     bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -940,7 +940,7 @@ IBFEMethod::computeInteriorForceDensity(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
@@ -959,7 +959,7 @@ IBFEMethod::computeInteriorForceDensity(
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1195,7 +1195,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
@@ -1210,7 +1210,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1416,7 +1416,7 @@ IBFEMethod::imposeJumpConditions(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
@@ -1429,7 +1429,7 @@ IBFEMethod::imposeJumpConditions(
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1555,7 +1555,7 @@ IBFEMethod::imposeJumpConditions(
                 // determine the bounding box of the current configuration of
                 // the side element, and set the nodal coordinates to correspond
                 // to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(n_node_side <= MAX_NODES);
 #endif
                 X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
@@ -1661,7 +1661,7 @@ IBFEMethod::imposeJumpConditions(
                     {
                         ++i(axis);
                     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

@@ -310,7 +310,7 @@ void
 CCPoissonPointRelaxationFACOperator::setSmootherType(
     const std::string& smoother_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
 #endif
     d_smoother_type = smoother_type;
@@ -355,7 +355,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
     if (d_using_petsc_smoothers) TBOX_ASSERT(smoother_type == PATCH_GAUSS_SEIDEL || smoother_type == PROCESSOR_GAUSS_SEIDEL);
 #endif
@@ -371,7 +371,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -398,7 +398,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -434,7 +434,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
@@ -559,7 +559,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
     int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
     if (d_coarse_solver)
@@ -575,7 +575,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
     }
     else
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
 #endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
@@ -651,7 +651,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     Pointer<CellDataFactory<NDIM,double> > solution_pdat_fac = solution_var->getPatchDataFactory();
     Pointer<CellDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(     rhs_var);
     TBOX_ASSERT(solution_pdat_fac);
@@ -842,7 +842,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (ghost_cell_width.min() == 0)
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator():\n"
@@ -938,7 +938,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
 #endif
@@ -1060,7 +1060,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE);  IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
 #endif

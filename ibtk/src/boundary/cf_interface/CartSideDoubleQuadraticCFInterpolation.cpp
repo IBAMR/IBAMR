@@ -183,7 +183,7 @@ CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
 IntVector<NDIM>
 CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
 #endif
     return REFINE_OP_STENCIL_WIDTH;
@@ -207,7 +207,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -222,7 +222,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
         }
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         // Ensure the fine patch corresponds to the expected patch in the cached
@@ -246,7 +246,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
         Pointer<SideData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
         Pointer<SideData<NDIM,int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -255,7 +255,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::postprocessRefine():\n"
@@ -378,7 +378,7 @@ void
 CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     if (d_hierarchy) clearPatchHierarchy();
@@ -440,7 +440,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& ratio,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -450,7 +450,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
     {
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         const int patch_num = patch.getPatchNumber();
@@ -477,14 +477,14 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
         SideData<NDIM,double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data,data->getGhostBox());
         Pointer<SideData<NDIM,int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
         const int W_ghosts = (data_copy.getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"

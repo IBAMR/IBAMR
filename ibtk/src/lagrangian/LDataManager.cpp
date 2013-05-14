@@ -202,7 +202,7 @@ void
 LDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
 
@@ -217,7 +217,7 @@ LDataManager::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
@@ -282,7 +282,7 @@ LDataManager::spread(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> >  F_data_vec(finest_ln+1);
@@ -361,7 +361,7 @@ LDataManager::spread(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
@@ -492,7 +492,7 @@ LDataManager::interp(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
@@ -585,7 +585,7 @@ void
 LDataManager::registerLInitStrategy(
     Pointer<LInitStrategy> lag_init)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(lag_init);
 #endif
     d_lag_init = lag_init;
@@ -603,7 +603,7 @@ void
 LDataManager::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
 #endif
     d_visit_writer = visit_writer;
@@ -622,7 +622,7 @@ void
 LDataManager::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
@@ -634,7 +634,7 @@ void
 LDataManager::registerLM3DDataWriter(
     Pointer<LM3DDataWriter> m3D_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(m3D_writer);
 #endif
     d_m3D_writer = m3D_writer;
@@ -647,7 +647,7 @@ LDataManager::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -655,7 +655,7 @@ LDataManager::registerLoadBalancer(
     Pointer<Variable<NDIM> > workload_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_workload_var);
 #endif
     return;
@@ -668,7 +668,7 @@ LDataManager::createLData(
     const unsigned int depth,
     const bool maintain_data)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!maintain_data || (d_lag_mesh_data[level_number].find(quantity_name) == d_lag_mesh_data[level_number].end()));
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -687,7 +687,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -729,7 +729,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -768,7 +768,7 @@ LDataManager::reinitLagrangianStructure(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -815,7 +815,7 @@ LDataManager::reinitLagrangianStructure(
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -883,7 +883,7 @@ LDataManager::displaceLagrangianStructure(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -897,7 +897,7 @@ LDataManager::displaceLagrangianStructure(
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -963,7 +963,7 @@ LDataManager::activateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -980,7 +980,7 @@ LDataManager::inactivateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -997,7 +997,7 @@ LDataManager::zeroInactivatedComponents(
     Pointer<LData> lag_data,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1063,7 +1063,7 @@ LDataManager::mapLagrangianToPETSc(
 {
     IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1085,7 +1085,7 @@ LDataManager::mapPETScToLagrangian(
 {
     IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1160,7 +1160,7 @@ LDataManager::beginDataRedistribution(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -1310,7 +1310,7 @@ LDataManager::endDataRedistribution(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -1351,7 +1351,7 @@ LDataManager::endDataRedistribution(
 
         // Determine which processor owns each of the local displaced nodes.
         size_t num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
         typedef LNodeTransaction::LTransactionComponent LNodeTransactionComponent;
@@ -1364,11 +1364,11 @@ LDataManager::endDataRedistribution(
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
             const int patch_num = indices[0];
-#if DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
 #endif
             const int dst_proc = processor_mapping.getProcessorAssignment(patch_num);
@@ -1422,7 +1422,7 @@ LDataManager::endDataRedistribution(
 
         // Determine which patch owns each of the local displaced nodes.
         num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
         for (size_t k = 0; k < num_nodes; ++k)
@@ -1433,11 +1433,11 @@ LDataManager::endDataRedistribution(
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
             const int patch_num = indices[0];
-#if DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
 #endif
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
@@ -1568,7 +1568,7 @@ LDataManager::endDataRedistribution(
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
             Pointer<LData> data = it->second;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(data);
 #endif
             const int depth = data->getDepth();
@@ -1734,7 +1734,7 @@ LDataManager::updateWorkloadEstimates(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -1757,7 +1757,7 @@ LDataManager::updateNodeCountData(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -1800,7 +1800,7 @@ LDataManager::initializeLevelData(
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1813,7 +1813,7 @@ LDataManager::initializeLevelData(
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     // Check for overlapping boxes on this level.
     //
     // (This is potentially fairly expensive and hence is only done when
@@ -1904,7 +1904,7 @@ LDataManager::initializeLevelData(
         d_local_petsc_indices           .resize(level_number+1);
         d_nonlocal_petsc_indices        .resize(level_number+1);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_lag_init);
 #endif
         d_level_contains_lag_data[level_number] = d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined);
@@ -2065,7 +2065,7 @@ LDataManager::resetHierarchyConfiguration(
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
@@ -2143,7 +2143,7 @@ LDataManager::applyGradientDetector(
 {
     IBTK_TIMER_START(t_apply_gradient_detector);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -2243,7 +2243,7 @@ LDataManager::putToDatabase(
 {
     IBTK_TIMER_START(t_put_to_database);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
@@ -2397,7 +2397,7 @@ LDataManager::LDataManager(
       d_local_petsc_indices(),
       d_nonlocal_petsc_indices()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(ghost_width.min() >= 0);
 #endif
@@ -2513,7 +2513,7 @@ LDataManager::spread_specialized(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == finest_ln);
 #endif
         if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
@@ -2554,7 +2554,7 @@ LDataManager::interp_specialized(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == finest_ln);
 #endif
         if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln]) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
@@ -2596,13 +2596,13 @@ LDataManager::scatterData(
     int petsc_size, lagrangian_size;
     ierr = VecGetSize(petsc_vec, &petsc_size);  IBTK_CHKERRQ(ierr);
     ierr = VecGetSize(lagrangian_vec, &lagrangian_size);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_size == lagrangian_size);
 #endif
     int petsc_bs, lagrangian_bs;
     ierr = VecGetBlockSize(petsc_vec, &petsc_bs);  IBTK_CHKERRQ(ierr);
     ierr = VecGetBlockSize(lagrangian_vec, &lagrangian_bs);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_bs == lagrangian_bs);
 #endif
     const int depth = petsc_bs;
@@ -2659,7 +2659,7 @@ LDataManager::beginNonlocalDataFill(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -2689,7 +2689,7 @@ LDataManager::endNonlocalDataFill(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -2720,7 +2720,7 @@ LDataManager::computeNodeDistribution(
 {
     IBTK_TIMER_START(t_compute_node_distribution);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= d_coarsest_ln &&
                 level_number <= d_finest_ln);
 #endif

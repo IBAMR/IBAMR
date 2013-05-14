@@ -245,7 +245,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
         d_U_var = new SideVariable<NDIM,double>(U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
 
@@ -271,7 +271,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():\n"
@@ -485,7 +485,7 @@ INSStaggeredUpwindConvectiveOperator::initializeOperatorState(
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());

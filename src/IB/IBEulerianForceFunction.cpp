@@ -123,12 +123,12 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
     if (initial_time)
@@ -138,12 +138,12 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
         return;
     }
     Pointer<PatchData<NDIM> > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_data);
 #endif
     Pointer<CellData<NDIM,double> > f_ib_cc_data = f_ib_data;
     Pointer<SideData<NDIM,double> > f_ib_sc_data = f_ib_data;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
 #endif

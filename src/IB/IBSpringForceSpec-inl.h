@@ -62,7 +62,7 @@ IBSpringForceSpec::IBSpringForceSpec(
       d_force_fcn_idxs(num_springs),
       d_parameters(num_springs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
@@ -84,7 +84,7 @@ IBSpringForceSpec::IBSpringForceSpec(
       d_force_fcn_idxs(force_fcn_idxs),
       d_parameters(parameters)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const unsigned int num_springs = d_slave_idxs.size();
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -109,7 +109,7 @@ inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {
     const unsigned int num_springs = d_slave_idxs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
@@ -174,7 +174,7 @@ inline size_t
 IBSpringForceSpec::getDataStreamSize() const
 {
     const unsigned int num_springs = d_slave_idxs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
@@ -191,7 +191,7 @@ IBSpringForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_springs = d_slave_idxs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif

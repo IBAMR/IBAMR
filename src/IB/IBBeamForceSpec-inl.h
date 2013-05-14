@@ -62,7 +62,7 @@ IBBeamForceSpec::IBBeamForceSpec(
       d_bend_rigidities(num_beams),
       d_mesh_dependent_curvatures(num_beams)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
@@ -84,7 +84,7 @@ IBBeamForceSpec::IBBeamForceSpec(
       d_bend_rigidities(bend_rigidities),
       d_mesh_dependent_curvatures(mesh_dependent_curvatures)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const unsigned int num_beams = d_neighbor_idxs.size();
     TBOX_ASSERT(num_beams == d_bend_rigidities.size());
     TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
@@ -109,7 +109,7 @@ inline unsigned int
 IBBeamForceSpec::getNumberOfBeams() const
 {
     const unsigned int num_beams = d_neighbor_idxs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(num_beams == d_bend_rigidities.size());
     TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
 #endif
@@ -183,7 +183,7 @@ IBBeamForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_beams = d_neighbor_idxs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(num_beams == d_bend_rigidities.size());
     TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
 #endif

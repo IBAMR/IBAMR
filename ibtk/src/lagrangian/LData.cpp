@@ -96,7 +96,7 @@ LData::LData(
     }
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
 #endif
     d_global_node_count = global_node_count;
@@ -132,20 +132,20 @@ LData::LData(
     int ierr;
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 0);
 #endif
     d_depth = depth;
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
 #endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     int local_node_count;
     ierr = VecGetLocalSize(d_global_vec, &local_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(local_node_count >= 0);
 #endif
     d_local_node_count = local_node_count;
@@ -206,7 +206,7 @@ LData::LData(
     }
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
 #endif
     d_global_node_count = global_node_count;
@@ -253,20 +253,20 @@ LData::resetData(
 
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 0);
 #endif
     d_depth = depth;
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
 #endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     int local_node_count;
     ierr = VecGetLocalSize(d_global_vec, &local_node_count);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(local_node_count >= 0);
 #endif
     d_local_node_count = local_node_count;
@@ -280,7 +280,7 @@ void
 LData::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     const int num_local_nodes = getLocalNodeCount();

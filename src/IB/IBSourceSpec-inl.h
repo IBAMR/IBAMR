@@ -61,7 +61,7 @@ IBSourceSpec::IBSourceSpec(
     : d_master_idx(master_idx),
       d_source_idx(source_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSourceSpec::IBSourceSpec():\n"

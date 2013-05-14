@@ -101,7 +101,7 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
@@ -141,7 +141,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;

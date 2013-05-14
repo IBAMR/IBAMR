@@ -236,7 +236,7 @@ CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
 IntVector<NDIM>
 CartCellDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
 #endif
     return REFINE_OP_STENCIL_WIDTH;
@@ -260,7 +260,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -275,7 +275,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
         }
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         // Ensure the fine patch corresponds to the expected patch in the cached
@@ -347,7 +347,7 @@ void
 CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     if (d_hierarchy) clearPatchHierarchy();
@@ -403,7 +403,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& ratio,
     const IntVector<NDIM>& ghost_width_to_fill)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -413,7 +413,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     {
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         const int patch_num = patch.getPatchNumber();
@@ -485,7 +485,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -637,14 +637,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
@@ -740,7 +740,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
         const int data_depth = data->getDepth();
@@ -824,11 +824,11 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::computeNormalExtension():\n"

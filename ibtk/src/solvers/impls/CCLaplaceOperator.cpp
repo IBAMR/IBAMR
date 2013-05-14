@@ -122,7 +122,7 @@ CCLaplaceOperator::apply(
 {
     IBTK_TIMER_START(t_apply);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -200,7 +200,7 @@ CCLaplaceOperator::initializeOperatorState(
 
     d_ncomp = in.getNumberOfComponents();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
@@ -213,7 +213,7 @@ CCLaplaceOperator::initializeOperatorState(
     }
     else
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_hier_math_ops);
 #endif
     }

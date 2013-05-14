@@ -184,7 +184,7 @@ LNode::copySourceItem(
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
     const LNode* const p_src_item = dynamic_cast<const LNode*>(&src_item);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(p_src_item);
 #endif
     assignThatToThis(*p_src_item);

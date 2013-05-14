@@ -64,13 +64,13 @@ QInit::QInit(
       d_zalesak_slot_w(0.025),
       d_zalesak_slot_l(0.1)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
 #endif
     d_object_name = object_name;
     d_grid_geom = grid_geom;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
 #endif
 
@@ -113,7 +113,7 @@ QInit::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();

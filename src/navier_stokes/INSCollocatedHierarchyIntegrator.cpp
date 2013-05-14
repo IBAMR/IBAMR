@@ -924,7 +924,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
 #endif
         if (getIntegratorStep() == 0)
@@ -982,7 +982,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(cycle_num == 0);
 #endif
             const double omega = dt / d_dt_previous[0];
@@ -1152,7 +1152,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         if (d_current_num_cycles != adv_diff_num_cycles)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(d_current_num_cycles == 1);
 #endif
             for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
@@ -1266,7 +1266,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -1348,7 +1348,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_level)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
@@ -1408,7 +1408,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
     const bool /*initial_time*/,
     const bool /*uses_richardson_extrapolation_too*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));

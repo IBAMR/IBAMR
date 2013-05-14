@@ -59,7 +59,7 @@ UFunction::UFunction(
       d_init_type("UNIFORM"),
       d_uniform_u()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
 #endif
@@ -95,7 +95,7 @@ UFunction::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
 #endif
 

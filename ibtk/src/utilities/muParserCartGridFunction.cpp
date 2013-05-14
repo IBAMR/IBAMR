@@ -89,7 +89,7 @@ muParserCartGridFunction::muParserCartGridFunction(
       d_parser_time(),
       d_parser_posn()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -272,7 +272,7 @@ muParserCartGridFunction::setDataOnPatch(
 
     // Set the data in the patch.
     Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
     Pointer<CellData<NDIM,double> > cc_data = data;
@@ -281,7 +281,7 @@ muParserCartGridFunction::setDataOnPatch(
     Pointer<SideData<NDIM,double> > sc_data = data;
     if (cc_data)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
@@ -300,7 +300,7 @@ muParserCartGridFunction::setDataOnPatch(
     }
     else if (fc_data)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM || d_parsers.size() == static_cast<unsigned int>(fc_data->getDepth()) || d_parsers.size() == NDIM*static_cast<unsigned int>(fc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < fc_data->getDepth(); ++data_depth)
@@ -349,7 +349,7 @@ muParserCartGridFunction::setDataOnPatch(
     }
     else if (nc_data)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(nc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
@@ -368,7 +368,7 @@ muParserCartGridFunction::setDataOnPatch(
     }
     else if (sc_data)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM || d_parsers.size() == static_cast<unsigned int>(sc_data->getDepth()) || d_parsers.size() == NDIM*static_cast<unsigned int>(sc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < sc_data->getDepth(); ++data_depth)

@@ -70,7 +70,7 @@ StreamableManager::packStream(
     SAMRAI::tbox::AbstractStream& stream,
     SAMRAI::tbox::Pointer<Streamable> data_item)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(data_item);
 #endif
     const int streamable_id = data_item->getStreamableClassID();
@@ -100,7 +100,7 @@ StreamableManager::unpackStream(
 {
     int streamable_id;
     stream.unpack(&streamable_id,1);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_factory_map.count(streamable_id) == 1);
 #endif
     return d_factory_map[streamable_id]->unpackStream(stream,offset);

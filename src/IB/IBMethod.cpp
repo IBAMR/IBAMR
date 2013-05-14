@@ -220,7 +220,7 @@ void
 IBMethod::registerIBLagrangianForceFunction(
     Pointer<IBLagrangianForceStrategy> ib_force_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_fcn);
 #endif
     d_ib_force_fcn = ib_force_fcn;
@@ -231,7 +231,7 @@ void
 IBMethod::registerIBLagrangianSourceFunction(
     Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_source_fcn);
 #endif
     d_ib_source_fcn = ib_source_fcn;
@@ -242,7 +242,7 @@ void
 IBMethod::registerLInitStrategy(
     Pointer<LInitStrategy> l_initializer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
 #endif
     d_l_initializer = l_initializer;
@@ -282,7 +282,7 @@ void
 IBMethod::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
@@ -295,7 +295,7 @@ void
 IBMethod::registerLM3DDataWriter(
     Pointer<LM3DDataWriter> m3D_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(m3D_writer);
 #endif
     d_m3D_writer = m3D_writer;
@@ -510,7 +510,7 @@ IBMethod::getLEOperatorPositions(
     int level_num,
     double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
@@ -788,7 +788,7 @@ IBMethod::spreadFluidSource(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
 #endif
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -942,7 +942,7 @@ IBMethod::interpolatePressure(
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
         const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
@@ -1149,7 +1149,7 @@ IBMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -1295,7 +1295,7 @@ IBMethod::applyGradientDetector(
     bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1582,7 +1582,7 @@ IBMethod::resetAnchorPointValues(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         const int depth = U_data[ln]->getDepth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == NDIM);
 #endif
         Vec U_vec = U_data[ln]->getVec();

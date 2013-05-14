@@ -90,7 +90,7 @@ HierarchyIntegrator::HierarchyIntegrator(
     Pointer<Database> input_db,
     bool register_for_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
 #endif
     d_object_name = object_name;
@@ -192,7 +192,7 @@ HierarchyIntegrator::initializePatchHierarchy(
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(gridding_alg);
 #endif
@@ -525,7 +525,7 @@ HierarchyIntegrator::preprocessIntegrateHierarchy(
     d_current_num_cycles = num_cycles;
     d_current_cycle_num = -1;
     d_current_dt = new_time-current_time;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_current_num_cycles > 0);
     TBOX_ASSERT(d_current_dt > 0.0);
 #endif
@@ -539,7 +539,7 @@ HierarchyIntegrator::integrateHierarchy(
     const int cycle_num)
 {
     ++d_current_cycle_num;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time-current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
@@ -558,7 +558,7 @@ HierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool /*skip_synchronize_new_state_data*/,
     const int num_cycles)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time-current_time));
     TBOX_ASSERT(num_cycles == d_current_num_cycles);
     TBOX_ASSERT(d_current_cycle_num+1 == d_current_num_cycles);
@@ -625,7 +625,7 @@ HierarchyIntegrator::initializeLevelData(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -716,7 +716,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(
     const int finest_level)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)
@@ -805,7 +805,7 @@ HierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -962,7 +962,7 @@ HierarchyIntegrator::synchronizeHierarchyDataSpecialized(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const bool synch_current_data = ctx_type == CURRENT_DATA;
     const bool synch_new_data     = ctx_type == NEW_DATA;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(synch_current_data || synch_new_data);
 #endif
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -1002,7 +1002,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
 #endif
@@ -1182,7 +1182,7 @@ HierarchyIntegrator::registerVariable(
     const std::string& refine_name,
     Pointer<CartGridFunction> init_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(variable);
 #endif
     d_state_var_init_fcns[variable] = init_fcn;
@@ -1243,7 +1243,7 @@ HierarchyIntegrator::registerVariable(
     const IntVector<NDIM>& ghosts,
     Pointer<VariableContext> ctx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(variable);
 #endif
     if (!ctx) ctx = getScratchContext();
@@ -1282,7 +1282,7 @@ HierarchyIntegrator::registerGhostfillRefineAlgorithm(
     Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
     RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
 #endif
     d_ghostfill_algs[name] = ghostfill_alg;
@@ -1295,7 +1295,7 @@ HierarchyIntegrator::registerProlongRefineAlgorithm(
     Pointer<RefineAlgorithm<NDIM> > prolong_alg,
     RefinePatchStrategy<NDIM>* prolong_patch_strategy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
 #endif
     d_prolong_algs[name] = prolong_alg;
@@ -1308,7 +1308,7 @@ HierarchyIntegrator::registerCoarsenAlgorithm(
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
     CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
 #endif
     d_coarsen_algs[name] = coarsen_alg;
@@ -1320,7 +1320,7 @@ HierarchyIntegrator::getGhostfillRefineAlgorithm(
     const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
 #endif
     return alg_it->second;
@@ -1331,7 +1331,7 @@ HierarchyIntegrator::getProlongRefineAlgorithm(
     const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_prolong_algs.end());
 #endif
     return alg_it->second;
@@ -1342,7 +1342,7 @@ HierarchyIntegrator::getCoarsenAlgorithm(
     const std::string& name) const
 {
     CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_coarsen_algs.end());
 #endif
     return alg_it->second;
@@ -1353,7 +1353,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(
     const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
 #endif
     return sched_it->second;
@@ -1364,7 +1364,7 @@ HierarchyIntegrator::getProlongRefineSchedules(
     const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_prolong_scheds.end());
 #endif
     return sched_it->second;
@@ -1375,7 +1375,7 @@ HierarchyIntegrator::getCoarsenSchedules(
     const std::string& name) const
 {
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
 #endif
     return sched_it->second;
@@ -1385,7 +1385,7 @@ void
 HierarchyIntegrator::registerChildHierarchyIntegrator(
     HierarchyIntegrator* child_integrator)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(child_integrator != this);
 #endif
     child_integrator->d_parent_integrator = this;
@@ -1397,7 +1397,7 @@ void
 HierarchyIntegrator::registerParentHierarchyIntegrator(
     HierarchyIntegrator* parent_integrator)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(parent_integrator != this);
 #endif
     d_parent_integrator = parent_integrator;
@@ -1449,7 +1449,7 @@ HierarchyIntegrator::getFromInput(
     Pointer<Database> db,
     bool is_from_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     // Read in data members from input database.

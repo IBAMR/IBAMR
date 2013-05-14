@@ -129,7 +129,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(
         while (input_db->keyExists(key_name))
         {
             d_weights.push_back(input_db->getDoubleArray(key_name));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
@@ -189,7 +189,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(
     const int cycle_num = d_adv_diff_solver->getCurrentCycleNumber();
     if (!initial_time)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0);
 #endif
         // Allocate data to store components of the stochastic stress components.
@@ -278,7 +278,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(
 
         // Set random values for the present cycle as weighted combinations of
         // the generated random values.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
 #endif
         const Array<double>& weights = d_weights[cycle_num];

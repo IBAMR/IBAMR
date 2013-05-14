@@ -59,7 +59,7 @@ IBTargetPointForceSpec::registerWithStreamableManager()
     SAMRAI_MPI::barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBTargetPointForceSpecFactory());

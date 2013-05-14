@@ -200,11 +200,11 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(src_data_idx, var);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
@@ -312,7 +312,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
         if (!null_bc_coefs && sc_var)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
             d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
@@ -344,7 +344,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(
 {
     IBTK_TIMER_START(t_reset_transaction_component);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != 1)
@@ -364,7 +364,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 {
     IBTK_TIMER_START(t_reset_transaction_components);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
@@ -388,11 +388,11 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(src_data_idx, var);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
@@ -454,13 +454,13 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (d_extrap_bc_ops[comp_idx])
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(phys_bdry_extrap_type != "NONE");
 #endif
             d_extrap_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
             d_extrap_bc_ops[comp_idx]->setExtrapolationType(phys_bdry_extrap_type);
         }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         else
         {
             TBOX_ASSERT(phys_bdry_extrap_type == "NONE");
@@ -468,7 +468,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 
 #endif
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         bool null_bc_coefs = true;
         for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
@@ -477,7 +477,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #endif
         if (d_cc_robin_bc_ops[comp_idx])
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(cc_var);
 #endif
@@ -486,7 +486,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
         if (d_sc_robin_bc_ops[comp_idx])
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(sc_var);
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
@@ -556,7 +556,7 @@ HierarchyGhostCellInterpolation::fillData(
 {
     IBTK_TIMER_START(t_fill_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     // Ensure the boundary condition objects are in the correct state.

@@ -233,7 +233,7 @@ PhysicalBoundaryUtilities::trimBoundaryCodim1Box(
     const BoundaryBox<NDIM>& bdry_box,
     const Patch<NDIM>& patch)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Trim a boundary box so it does not stick out past the corners of a patch.
@@ -258,7 +258,7 @@ Box<NDIM>
 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(
     const BoundaryBox<NDIM>& bdry_box)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Make surface box on boundary.

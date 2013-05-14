@@ -955,7 +955,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1053,7 +1053,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1155,7 +1155,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1229,7 +1229,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1331,7 +1331,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1406,7 +1406,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1480,7 +1480,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1535,7 +1535,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1583,7 +1583,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1642,7 +1642,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1690,7 +1690,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1744,7 +1744,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (G_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1818,7 +1818,7 @@ PatchMathOps::grad(
         const double* const V = src2->getPointer();
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1881,7 +1881,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1943,7 +1943,7 @@ PatchMathOps::grad(
 #endif
         const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2006,7 +2006,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2068,7 +2068,7 @@ PatchMathOps::grad(
 #endif
         const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2138,7 +2138,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2224,7 +2224,7 @@ PatchMathOps::grad(
 
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2275,7 +2275,7 @@ PatchMathOps::grad(
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2338,7 +2338,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2416,7 +2416,7 @@ PatchMathOps::grad(
 
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2467,7 +2467,7 @@ PatchMathOps::grad(
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2508,7 +2508,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (dst->getDepth() != NDIM*src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2579,7 +2579,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (dst->getDepth() != NDIM*src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2650,7 +2650,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (NDIM*dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2730,7 +2730,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (NDIM*dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2823,7 +2823,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -2905,7 +2905,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -2984,7 +2984,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3081,7 +3081,7 @@ PatchMathOps::laplace(
         }
         const int V_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3170,7 +3170,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3279,7 +3279,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3366,7 +3366,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3475,7 +3475,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3577,7 +3577,7 @@ PatchMathOps::vc_laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (f_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
@@ -3723,7 +3723,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3767,7 +3767,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3820,7 +3820,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3876,7 +3876,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3943,7 +3943,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4043,7 +4043,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4087,7 +4087,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4144,7 +4144,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4200,7 +4200,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4271,7 +4271,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4370,7 +4370,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4414,7 +4414,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4468,7 +4468,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4524,7 +4524,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4592,7 +4592,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4692,7 +4692,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4736,7 +4736,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4793,7 +4793,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4849,7 +4849,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4920,7 +4920,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -5013,7 +5013,7 @@ PatchMathOps::pointwiseL1Norm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
@@ -5073,7 +5073,7 @@ PatchMathOps::pointwiseL2Norm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
@@ -5133,7 +5133,7 @@ PatchMathOps::pointwiseMaxNorm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
@@ -5194,7 +5194,7 @@ PatchMathOps::pointwiseL1Norm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
@@ -5255,7 +5255,7 @@ PatchMathOps::pointwiseL2Norm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
@@ -5316,7 +5316,7 @@ PatchMathOps::pointwiseMaxNorm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"

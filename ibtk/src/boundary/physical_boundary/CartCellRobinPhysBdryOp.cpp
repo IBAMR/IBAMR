@@ -352,7 +352,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -424,7 +424,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -457,7 +457,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"

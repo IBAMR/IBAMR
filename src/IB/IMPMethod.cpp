@@ -344,7 +344,7 @@ void
 IMPMethod::registerLInitStrategy(
     Pointer<LInitStrategy> l_initializer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
 #endif
     d_l_initializer = l_initializer;
@@ -370,7 +370,7 @@ void
 IMPMethod::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
@@ -1066,7 +1066,7 @@ IMPMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -1185,7 +1185,7 @@ IMPMethod::applyGradientDetector(
     bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));

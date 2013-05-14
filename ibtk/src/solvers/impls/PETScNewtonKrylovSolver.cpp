@@ -222,7 +222,7 @@ PETScNewtonKrylovSolver::solveSystem(
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_petsc_snes);
 #endif
     resetSNESOptions();
@@ -272,7 +272,7 @@ PETScNewtonKrylovSolver::initializeSolverState(
     int ierr;
 
     // Rudimentary error checking.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -518,7 +518,7 @@ void
 PETScNewtonKrylovSolver::resetWrappedSNES(
     SNES& petsc_snes)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_managing_petsc_snes);
 #endif
     d_petsc_snes = petsc_snes;
@@ -634,7 +634,7 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_F);
 #endif
@@ -654,7 +654,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
 #endif
     if (newton_solver->d_J)
@@ -683,7 +683,7 @@ PETScNewtonKrylovSolver::MatVecMult_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
 #endif
@@ -703,7 +703,7 @@ PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
 #endif
@@ -722,7 +722,7 @@ PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
 #endif
     if (right)

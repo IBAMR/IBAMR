@@ -108,7 +108,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(
         }
         else
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(d_adv_diff_hier_integrator->getCurrentCycleNumber() > 0);
 #endif
             hier_cc_data_ops->linearSum(T_scratch_idx, 0.5, T_current_idx, 0.5, T_new_idx);

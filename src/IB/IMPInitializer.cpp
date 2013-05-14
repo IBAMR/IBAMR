@@ -120,7 +120,7 @@ IMPInitializer::IMPInitializer(
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
       d_silo_writer(NULL)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -226,7 +226,7 @@ void
 IMPInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
 
@@ -457,7 +457,7 @@ void
 IMPInitializer::initializeLSiloDataWriter(
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_gridding_alg->getMaxLevels());
     TBOX_ASSERT(d_level_is_initialized[level_number]);

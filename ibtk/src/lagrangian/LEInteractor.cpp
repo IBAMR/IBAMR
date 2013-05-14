@@ -516,7 +516,7 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -547,7 +547,7 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -583,7 +583,7 @@ LEInteractor::interpolate(
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  side-centered interpolation requires vector-valued data.\n");
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -617,7 +617,7 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -673,7 +673,7 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -735,7 +735,7 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -865,7 +865,7 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
@@ -921,7 +921,7 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
@@ -983,7 +983,7 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
@@ -1062,7 +1062,7 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1093,7 +1093,7 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1129,7 +1129,7 @@ LEInteractor::spread(
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  side-centered spreading requires vector-valued data.\n");
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1163,7 +1163,7 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -1219,7 +1219,7 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -1281,7 +1281,7 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
@@ -1414,7 +1414,7 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
@@ -1470,7 +1470,7 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
@@ -1537,7 +1537,7 @@ LEInteractor::spread(
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  side-centered spreading requires vector-valued data.\n");
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);

@@ -127,7 +127,7 @@ LSetDataIterator<T>::operator++()
     if (d_index_it)
     {
         d_node_set = &(*d_index_it);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(!d_node_set->empty());
 #endif
         d_node_it = d_node_set->begin();
@@ -156,7 +156,7 @@ template<class T>
 inline typename LSet<T>::value_type&
 LSetDataIterator<T>::getDataItem() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_index_it && d_node_set);
 #endif
     return *d_node_it;

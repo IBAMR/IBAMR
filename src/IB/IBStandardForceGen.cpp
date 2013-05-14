@@ -90,13 +90,13 @@ resetLocalPETScIndices(
     const int global_node_offset,
     const int num_local_nodes)
 {
-#ifndef DEBUG_CHECK_ASSERTIONS
+#if defined(NDEBUG)
     NULL_USE(num_local_nodes);
 #endif
     for (std::vector<int>::iterator it = inds.begin(); it !=inds.end(); ++it)
     {
         int& idx = *it;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(idx >= global_node_offset && idx < global_node_offset+num_local_nodes);
 #endif
         idx -= global_node_offset;
@@ -125,7 +125,7 @@ resetLocalOrNonlocalPETScIndices(
             //
             // First, lookup the slave node index in the set of ghost nodes.
             const std::vector<int>::const_iterator posn = std::lower_bound(nonlocal_petsc_idxs.begin(), nonlocal_petsc_idxs.end(), idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(idx == *posn);
 #endif
             // Second, set the local index via the offset of the ghost node
@@ -173,7 +173,7 @@ IBStandardForceGen::initializeLevelData(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -293,7 +293,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
@@ -461,7 +461,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
@@ -694,7 +694,7 @@ IBStandardForceGen::initializeSpringLevelData(
         if (!force_spec) continue;
 
         const int lag_idx = node_idx->getLagrangianIndex();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
         const int petsc_idx = node_idx->getGlobalPETScIndex();
@@ -702,7 +702,7 @@ IBStandardForceGen::initializeSpringLevelData(
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         const std::vector<std::vector<double> >& params = force_spec->getParameters();
         const unsigned int num_springs = force_spec->getNumberOfSprings();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(num_springs == slv   .size());
         TBOX_ASSERT(num_springs == fcn   .size());
         TBOX_ASSERT(num_springs == params.size());
@@ -778,7 +778,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
             k = kblock*BLOCKSIZE+kunroll;
             mastr_idx = petsc_mastr_node_idxs[k];
             slave_idx = petsc_slave_node_idxs[k];
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
@@ -820,7 +820,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
     {
         mastr_idx = petsc_mastr_node_idxs[k];
         slave_idx = petsc_slave_node_idxs[k];
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
         D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
@@ -913,7 +913,7 @@ IBStandardForceGen::initializeBeamLevelData(
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (!force_spec) continue;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         const int lag_idx = node_idx->getLagrangianIndex();
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
@@ -922,7 +922,7 @@ IBStandardForceGen::initializeBeamLevelData(
         const std::vector<double>& bend = force_spec->getBendingRigidities();
         const std::vector<boost::array<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(num_beams == nghbrs.size());
         TBOX_ASSERT(num_beams == bend.size());
         TBOX_ASSERT(num_beams == curv.size());
@@ -1009,7 +1009,7 @@ IBStandardForceGen::computeLagrangianBeamForce(
             mastr_idx = petsc_mastr_node_idxs[k];
             next_idx  = petsc_next_node_idxs [k];
             prev_idx  = petsc_prev_node_idxs [k];
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx != next_idx);
             TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
@@ -1050,7 +1050,7 @@ IBStandardForceGen::computeLagrangianBeamForce(
         mastr_idx = petsc_mastr_node_idxs[k];
         next_idx  = petsc_next_node_idxs [k];
         prev_idx  = petsc_prev_node_idxs [k];
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(mastr_idx != next_idx);
         TBOX_ASSERT(mastr_idx != prev_idx);
 #endif

@@ -67,7 +67,7 @@ inline bool
 LDataManager::levelContainsLagrangianData(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
 #endif
     if (!(d_coarsest_ln <= level_number &&
@@ -85,7 +85,7 @@ inline unsigned int
 LDataManager::getNumberOfNodes(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -97,7 +97,7 @@ inline unsigned int
 LDataManager::getNumberOfLocalNodes(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -109,7 +109,7 @@ inline unsigned int
 LDataManager::getGlobalNodeOffset(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
@@ -121,7 +121,7 @@ inline SAMRAI::tbox::Pointer<LMesh>
 LDataManager::getLMesh(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
@@ -133,7 +133,7 @@ LDataManager::getLData(
     const std::string& quantity_name,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_lag_mesh_data[level_number].find(quantity_name) != d_lag_mesh_data[level_number].end());
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -164,7 +164,7 @@ inline std::vector<std::string>
 LDataManager::getLagrangianStructureNames(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -180,7 +180,7 @@ inline std::vector<int>
 LDataManager::getLagrangianStructureIDs(
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -197,14 +197,14 @@ LDataManager::getLagrangianStructureID(
     const int lagrangian_index,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
     std::map<int,int>::const_iterator cit = d_last_lag_idx_to_strct_id_map[level_number].lower_bound(lagrangian_index);
     if (UNLIKELY(cit == d_last_lag_idx_to_strct_id_map[level_number].end())) return -1;
     const int strct_id = cit->second;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const std::pair<int,int>& idx_range = getLagrangianStructureIndexRange(strct_id, level_number);
     TBOX_ASSERT(idx_range.first <= lagrangian_index && lagrangian_index < idx_range.second);
 #endif
@@ -216,7 +216,7 @@ LDataManager::getLagrangianStructureID(
     const std::string& structure_name,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -230,7 +230,7 @@ LDataManager::getLagrangianStructureName(
     const int structure_id,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -244,7 +244,7 @@ LDataManager::getLagrangianStructureIndexRange(
     const int structure_id,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -258,7 +258,7 @@ LDataManager::getLagrangianStructureIsActivated(
     const int structure_id,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif

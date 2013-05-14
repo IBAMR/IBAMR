@@ -192,7 +192,7 @@ get_elem_hmax(
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
     Point s_node_cache[MAX_NODES];
     const int n_node = elem->n_nodes();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
     for (int k = 0; k < n_node; ++k)
@@ -271,7 +271,7 @@ FEDataManager::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -283,7 +283,7 @@ void
 FEDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     // Reset the hierarchy.
@@ -296,7 +296,7 @@ FEDataManager::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
@@ -449,7 +449,7 @@ FEDataManager::spread(
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -461,7 +461,7 @@ FEDataManager::spread(
 
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
@@ -619,11 +619,11 @@ FEDataManager::prolongData(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
 #endif
     const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -633,7 +633,7 @@ FEDataManager::prolongData(
 
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -696,7 +696,7 @@ FEDataManager::prolongData(
             // determine the bounding box of the current configuration of the
             // element, and set the nodal coordinates of the element to
             // correspond to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
             X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
@@ -833,7 +833,7 @@ FEDataManager::interp(
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -845,7 +845,7 @@ FEDataManager::interp(
 
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
@@ -1051,11 +1051,11 @@ FEDataManager::restrictData(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
 #endif
     const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
@@ -1065,7 +1065,7 @@ FEDataManager::restrictData(
 
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     FEType X_fe_type = X_dof_map.variable_type(0);
@@ -1130,7 +1130,7 @@ FEDataManager::restrictData(
             // determine the bounding box of the current configuration of the
             // element, and set the nodal coordinates of the element to
             // correspond to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
             X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
@@ -1465,7 +1465,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
                         {
                             const double integrand = (phi[i][qp]*phi[j][qp])*JxW[qp];
                             if (i == j) M_diag_e(i) += integrand;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                             else TBOX_ASSERT(std::abs(integrand) < std::numeric_limits<double>::epsilon());
 #endif
                         }
@@ -1585,7 +1585,7 @@ FEDataManager::updateWorkloadEstimates(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -1616,7 +1616,7 @@ FEDataManager::initializeLevelData(
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1643,7 +1643,7 @@ FEDataManager::resetHierarchyConfiguration(
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
@@ -1680,7 +1680,7 @@ FEDataManager::applyGradientDetector(
 
     IBTK_TIMER_START(t_apply_gradient_detector);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1707,7 +1707,7 @@ FEDataManager::applyGradientDetector(
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
         std::vector<std::vector<unsigned int> > X_dof_indices(dim);
@@ -1814,7 +1814,7 @@ FEDataManager::putToDatabase(
 {
     IBTK_TIMER_START(t_put_to_database);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("FE_DATA_MANAGER_VERSION", FE_DATA_MANAGER_VERSION);
@@ -1855,7 +1855,7 @@ FEDataManager::FEDataManager(
       d_L2_proj_quad_type(),
       d_L2_proj_quad_order()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
 #endif
 
@@ -1942,7 +1942,7 @@ FEDataManager::updateQuadPointCountData(
 
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
         std::vector<std::vector<unsigned int> > X_dof_indices(dim);
@@ -2038,7 +2038,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             Node* node = elem->get_node(k);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(node->n_dofs(X_sys_num,0) > 0);
 #endif
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -2088,7 +2088,7 @@ FEDataManager::collectActivePatchElements(
     const int level_number,
     const IntVector<NDIM>& ghost_width)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -2099,7 +2099,7 @@ FEDataManager::collectActivePatchElements(
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > X_dof_indices(dim);
@@ -2420,7 +2420,7 @@ FEDataManager::do_partition(
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             Node* node = elem->get_node(k);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(node->n_dofs(X_sys_num,0) > 0);
 #endif
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -2467,7 +2467,7 @@ FEDataManager::do_partition(
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& domain_box0 = grid_geom->getPhysicalDomain()[0];
@@ -2489,7 +2489,7 @@ FEDataManager::do_partition(
         const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, lower, upper);
         Array<int> indices;
         box_tree->findOverlapIndices(indices, Box<NDIM>(i,i));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(indices.size() == 1);
 #endif
         elem->processor_id() = proc_map.getProcessorAssignment(indices[0]);

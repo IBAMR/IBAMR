@@ -119,7 +119,7 @@ void
 RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         TBOX_ASSERT(bc_coefs[l]);

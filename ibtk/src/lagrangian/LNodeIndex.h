@@ -250,7 +250,7 @@ public:
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
             TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
                        << NDIM << endl);
@@ -301,7 +301,7 @@ struct LNodeIndexLagrangianIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
             TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
@@ -330,7 +330,7 @@ struct LNodeIndexGlobalPETScIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
@@ -359,7 +359,7 @@ struct LNodeIndexLocalPETScIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif
@@ -438,7 +438,7 @@ struct LNodeIndexLagrangianIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
             TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
@@ -467,7 +467,7 @@ struct LNodeIndexGlobalPETScIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
@@ -496,7 +496,7 @@ struct LNodeIndexLocalPETScIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif

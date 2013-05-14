@@ -312,7 +312,7 @@ AdvectorExplicitPredictorStrategy::AdvectorExplicitPredictorStrategy(
     , d_using_full_ctu(true)
 #endif
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -349,7 +349,7 @@ AdvectorExplicitPredictorStrategy::computeStableDtOnPatch(
     const FaceData<NDIM,double>& u_ADV,
     const Patch<NDIM>& patch) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 #endif
@@ -390,7 +390,7 @@ AdvectorExplicitPredictorStrategy::computeAdvectiveDerivative(
     const FaceData<NDIM,double>& q_half,
     const Patch<NDIM>& patch) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
@@ -446,7 +446,7 @@ AdvectorExplicitPredictorStrategy::computeFlux(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
@@ -571,7 +571,7 @@ AdvectorExplicitPredictorStrategy::enforceIncompressibility(
 {
 #if (NDIM != 1)
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
 
@@ -656,7 +656,7 @@ void
 AdvectorExplicitPredictorStrategy::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putString("d_limiter_type", IBAMR::enum_to_string<LimiterType>(d_limiter_type));
@@ -677,7 +677,7 @@ AdvectorExplicitPredictorStrategy::predict(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getBox()   == patch.getBox());
 
@@ -796,7 +796,7 @@ AdvectorExplicitPredictorStrategy::predictWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getDepth() == F.getDepth());
     TBOX_ASSERT(q_half.getBox()   == patch.getBox());
@@ -924,7 +924,7 @@ AdvectorExplicitPredictorStrategy::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     if (db->keyExists("limiter_type"))

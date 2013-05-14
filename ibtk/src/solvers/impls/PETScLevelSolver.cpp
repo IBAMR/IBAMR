@@ -185,7 +185,7 @@ PETScLevelSolver::initializeSolverState(
     IBTK_TIMER_START(t_initialize_solver_state);
 
     // Rudimentary error checking.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -244,7 +244,7 @@ PETScLevelSolver::initializeSolverState(
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
 #endif
 

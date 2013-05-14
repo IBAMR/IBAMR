@@ -153,7 +153,7 @@ StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
 #endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
@@ -171,7 +171,7 @@ StaggeredStokesBlockPreconditioner::initializeSolverState(
     d_hierarchy = x.getPatchHierarchy();
     d_coarsest_ln = x.getCoarsestLevelNumber();
     d_finest_ln = x.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
@@ -226,7 +226,7 @@ StaggeredStokesBlockPreconditioner::correctNullspace(
                 U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
             }
         }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
 #endif
     }
@@ -241,7 +241,7 @@ StaggeredStokesBlockPreconditioner::correctNullspace(
             const double P_mean = (1.0/volume)*d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
 #endif
     }

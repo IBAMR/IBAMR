@@ -138,7 +138,7 @@ init_meter_elements(
     NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT( X_web.shape()[0] == X_perimeter.shape()[0]);
     TBOX_ASSERT(dA_web.shape()[0] == X_perimeter.shape()[0]);
 #endif
@@ -398,7 +398,7 @@ linear_interp(
     const double* const /*x_upper*/,
     const double* const dx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
 #endif
     boost::array<bool,NDIM> is_lower;
@@ -461,7 +461,7 @@ linear_interp(
     const double* const /*x_upper*/,
     const double* const dx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == 1);
 #endif
     VectorNd U = VectorNd::Zero();
@@ -670,7 +670,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     }
     SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL,
                              d_num_meters);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         TBOX_ASSERT(d_num_perimeter_nodes[m] > 0);
@@ -1225,7 +1225,7 @@ IBInstrumentPanel::writePlotData(
 
     IBAMR_TIMER_START(t_write_plot_data);
 #if HAVE_LIBSILO
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(timestep_num >= 0);
     TBOX_ASSERT(!d_plot_directory_name.empty());
 #endif
@@ -1377,7 +1377,7 @@ void
 IBInstrumentPanel::getFromInput(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");

@@ -271,7 +271,7 @@ void
 HierarchyMathOps::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     // Reset the hierarchy.
@@ -301,7 +301,7 @@ HierarchyMathOps::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
@@ -488,7 +488,7 @@ HierarchyMathOps::resetLevels(
         }
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         // Check for overlapping boxes on this level.
@@ -1560,7 +1560,7 @@ HierarchyMathOps::grad(
                     {
                         if (pgeom->getTouchesRegularBoundary(axis,upperlower))
                         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis,upperlower));
 #endif
                             if (upperlower == 0)
@@ -1665,7 +1665,7 @@ HierarchyMathOps::grad(
                     {
                         if (pgeom->getTouchesRegularBoundary(axis,upperlower))
                         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis,upperlower));
 #endif
                             if (upperlower == 0)
@@ -1948,11 +1948,11 @@ HierarchyMathOps::laplace(
         Pointer<Variable<NDIM> > dummy_var;
         var_db->mapIndexToVariable(alpha_idx, dummy_var);
         alpha_var = dummy_var;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(alpha_var);
 #endif
         Pointer<SideDataFactory<NDIM,double> > alpha_fac = var_db->getPatchDescriptor()->getPatchDataFactory(alpha_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(alpha_fac);
 #endif
         nonaligned_anisotropy = alpha_fac->getDefaultDepth() > 1;
@@ -1964,7 +1964,7 @@ HierarchyMathOps::laplace(
         Pointer<Variable<NDIM> > dummy_var;
         var_db->mapIndexToVariable(beta_idx, dummy_var);
         beta_var = dummy_var;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(beta_var);
 #endif
     }
@@ -2991,7 +2991,7 @@ HierarchyMathOps::pointwiseMaxNorm(
 void
 HierarchyMathOps::resetCoarsenOperators()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
 #endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
@@ -3012,7 +3012,7 @@ HierarchyMathOps::resetCoarsenOperators()
 void
 HierarchyMathOps::resetRefineOperators()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
 #endif
     // intentionally blank
@@ -3025,7 +3025,7 @@ HierarchyMathOps::xeqScheduleOuterfaceRestriction(
     const int src_idx,
     const int dst_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln+1 <= d_finest_ln);
 #endif
@@ -3052,7 +3052,7 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(
     const int src_idx,
     const int dst_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln+1 <= d_finest_ln);
 #endif

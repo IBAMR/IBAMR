@@ -97,7 +97,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -238,7 +238,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     TimeSteppingType convective_time_stepping_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_time_stepping_type[Q_var] = convective_time_stepping_type;
@@ -249,7 +249,7 @@ TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(
     Pointer<CellVariable<NDIM,double> > Q_var) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_time_stepping_type.find(Q_var)->second;
@@ -260,7 +260,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     TimeSteppingType init_convective_time_stepping_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     d_Q_init_convective_time_stepping_type[Q_var] = init_convective_time_stepping_type;
@@ -271,7 +271,7 @@ TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(
     Pointer<CellVariable<NDIM,double> > Q_var) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     return d_Q_init_convective_time_stepping_type.find(Q_var)->second;
@@ -282,7 +282,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const std::string& op_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_op_type[Q_var] = op_type;
@@ -293,7 +293,7 @@ const std::string&
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(
     Pointer<CellVariable<NDIM,double> > Q_var) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_op_type.find(Q_var)->second;
@@ -304,7 +304,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<Database> input_db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_op_input_db[Q_var] = input_db;
@@ -315,7 +315,7 @@ Pointer<Database>
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
     Pointer<CellVariable<NDIM,double> > Q_var) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_op_input_db.find(Q_var)->second;
@@ -326,7 +326,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<ConvectiveOperator> convective_op)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
@@ -339,7 +339,7 @@ Pointer<ConvectiveOperator>
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
 #endif
     if (!d_Q_convective_op[Q_var])
@@ -704,7 +704,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (is_multistep_time_stepping_type(convective_time_stepping_type))
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
 #endif
                 if (getIntegratorStep() == 0)
@@ -751,7 +751,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
             }
             if (convective_time_stepping_type == ADAMS_BASHFORTH)
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(cycle_num == 0);
 #endif
                 const int N_old_current_idx = var_db->mapVariableAndContextToIndex(N_old_var, getCurrentContext());
@@ -865,7 +865,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
     Pointer<Database> db,
     bool is_from_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     if (!is_from_restart)

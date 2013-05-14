@@ -228,7 +228,7 @@ PETScKrylovLinearSolver::solveSystem(
 {
     IBTK_TIMER_START(t_solve_system);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_A);
 #endif
     int ierr;
@@ -236,7 +236,7 @@ PETScKrylovLinearSolver::solveSystem(
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_petsc_ksp);
 #endif
     resetKSPOptions();
@@ -285,7 +285,7 @@ PETScKrylovLinearSolver::initializeSolverState(
     int ierr;
 
     // Rudimentary error checking.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -510,7 +510,7 @@ void
 PETScKrylovLinearSolver::resetWrappedKSP(
     KSP& petsc_ksp)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_managing_petsc_ksp);
 #endif
     d_petsc_ksp = petsc_ksp;
@@ -753,7 +753,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
@@ -773,7 +773,7 @@ PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
 #endif
@@ -792,7 +792,7 @@ PETScKrylovLinearSolver::MatGetVecs_SAMRAI(
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
 #endif
     if (right)
@@ -820,7 +820,7 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_pc_solver);
 #endif

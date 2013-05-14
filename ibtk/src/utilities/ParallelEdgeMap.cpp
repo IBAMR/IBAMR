@@ -78,7 +78,7 @@ ParallelEdgeMap::addEdge(
     {
         mastr_idx = std::min(link.first,link.second);
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(mastr_idx == link.first || mastr_idx == link.second);
 #endif
     d_pending_additions.insert(std::make_pair(mastr_idx, link));
@@ -94,7 +94,7 @@ ParallelEdgeMap::removeEdge(
     {
         mastr_idx = std::min(link.first,link.second);
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(mastr_idx == link.first || mastr_idx == link.second);
 #endif
     d_pending_removals.insert(std::make_pair(mastr_idx, link));

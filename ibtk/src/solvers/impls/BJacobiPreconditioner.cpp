@@ -90,7 +90,7 @@ BJacobiPreconditioner::setComponentPreconditioner(
     Pointer<LinearSolver> preconditioner,
     const unsigned int component)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
 #endif
     d_pc_map[component] = preconditioner;
@@ -109,7 +109,7 @@ BJacobiPreconditioner::solveSystem(
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int   finest_ln = x.getFinestLevelNumber()  ;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(x.getNumberOfComponents() == b.getNumberOfComponents());
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
@@ -120,7 +120,7 @@ BJacobiPreconditioner::solveSystem(
     bool ret_val = true;
 
     // Zero out the initial guess.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_initial_guess_nonzero == false);
 #endif
     x.setToScalar(0.0, /*interior_only*/ false);
@@ -163,7 +163,7 @@ BJacobiPreconditioner::initializeSolverState(
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(finest_ln == b.getFinestLevelNumber());

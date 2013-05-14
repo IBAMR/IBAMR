@@ -223,7 +223,7 @@ PoissonFACPreconditionerStrategy::setResetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) ||
                 (coarsest_ln >=  0 && finest_ln >= coarsest_ln));
 #endif
@@ -393,7 +393,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(
 
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_op);
     TBOX_ASSERT(d_cf_bdry_op);
 #endif

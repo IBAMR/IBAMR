@@ -135,7 +135,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     IBAMR_TIMER_START(t_initialize_level_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     int ierr;
@@ -186,12 +186,12 @@ IBKirchhoffRodForceGen::initializeLevelData(
         {
             const int& curr_idx = node_idx->getLagrangianIndex();
             const unsigned int num_rods = force_spec->getNumberOfRods();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
             const std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params = force_spec->getMaterialParams();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
 #endif
             for (unsigned int k = 0; k < num_rods; ++k)
@@ -325,7 +325,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
     IBAMR_TIMER_START(t_compute_lagrangian_force_and_torque);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif

@@ -117,7 +117,7 @@ void
 CopyToRootSchedule::commonClassCtor()
 {
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()[0];

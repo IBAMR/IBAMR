@@ -147,7 +147,7 @@ LM3DDataWriter::LM3DDataWriter(
       d_dst_vec(d_finest_ln+1),
       d_vec_scatter(d_finest_ln+1)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_experiment_name.size() == 3);
     TBOX_ASSERT((0 <= d_experiment_number) && (d_experiment_number <= 9999));
 #endif
@@ -189,7 +189,7 @@ void
 LM3DDataWriter::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
 #endif
@@ -203,7 +203,7 @@ LM3DDataWriter::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln));
     if (d_hierarchy)
     {
@@ -289,7 +289,7 @@ LM3DDataWriter::registerMarkerCloud(
     const int nmarks,
     const int first_mark_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(nmarks > 0);
 #endif
 
@@ -322,7 +322,7 @@ LM3DDataWriter::registerLogicallyCartesianBlock(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(nelem[d] > 0);
@@ -388,7 +388,7 @@ LM3DDataWriter::registerCoordsData(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -408,7 +408,7 @@ LM3DDataWriter::registerLagrangianAO(
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -423,7 +423,7 @@ LM3DDataWriter::registerLagrangianAO(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= finest_ln);
 #endif
 
@@ -432,7 +432,7 @@ LM3DDataWriter::registerLagrangianAO(
         resetLevels(std::min(coarsest_ln,d_coarsest_ln),std::max(finest_ln,d_finest_ln));
     }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= coarsest_ln && finest_ln <= d_finest_ln);
 #endif
 
@@ -448,7 +448,7 @@ LM3DDataWriter::writePlotData(
     const int time_step_number,
     const double simulation_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(time_step_number >= 0);
     TBOX_ASSERT(!d_dump_directory_name.empty());
 #endif

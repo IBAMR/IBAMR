@@ -157,7 +157,7 @@ void
 INSStaggeredVelocityBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
@@ -229,7 +229,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
@@ -241,7 +241,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
     if (!gcoef_data) return;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
@@ -253,7 +253,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     Pointer<SideData<NDIM,double> > u_target_data;
     if      (d_u_target_data_idx >= 0) u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx   >= 0) u_target_data = patch.getPatchData(d_target_data_idx  );
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
 
@@ -271,7 +271,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const unsigned int bdry_normal_axis = location_index/2;
     const bool is_lower                 = location_index%2 == 0;
     const Box<NDIM>& bc_coef_box        = acoef_data->getBox();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
@@ -288,7 +288,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
         double& gamma = (*gcoef_data)(i,0);
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
         if (velocity_bc)
@@ -334,7 +334,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 IntVector<NDIM>
 INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);

@@ -259,7 +259,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndex(patch_data_index);
@@ -274,7 +274,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -289,7 +289,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -436,7 +436,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     Pointer<Variable<NDIM> > var;
     var_db->mapIndexToVariable(patch_data_idx, var);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -672,7 +672,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 
     Pointer<SideData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -784,7 +784,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
 
     Pointer<SideData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"

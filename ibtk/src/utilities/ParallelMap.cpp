@@ -154,7 +154,7 @@ ParallelMap::communicateData()
                 stream.pack(&keys_to_send[0], keys_to_send.size());
                 streamable_manager->packStream(stream, data_items_to_send);
                 int data_size = stream.getCurrentSize();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
@@ -170,7 +170,7 @@ ParallelMap::communicateData()
                 std::vector<char> buffer(data_sz[sending_proc]);
                 int data_size = data_sz[sending_proc];
                 SAMRAI_MPI::bcast(&buffer[0], data_size, sending_proc);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
                 FixedSizedStream stream(&buffer[0], data_size);
@@ -179,7 +179,7 @@ ParallelMap::communicateData()
                 std::vector<tbox::Pointer<Streamable> > data_items_received;
                 hier::IntVector<NDIM> offset = 0;
                 streamable_manager->unpackStream(stream, offset, data_items_received);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(keys_received.size() == data_items_received.size());
 #endif
                 for (int k = 0; k < num_keys; ++k)
@@ -210,7 +210,7 @@ ParallelMap::communicateData()
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);

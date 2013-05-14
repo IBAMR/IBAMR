@@ -65,7 +65,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
       d_eta_target(eta_target),
       d_X_target(X_target)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"

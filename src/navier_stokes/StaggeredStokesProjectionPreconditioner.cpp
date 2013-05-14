@@ -130,7 +130,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
         d_Phi_var = new CellVariable<NDIM,double>(Phi_var_name);
         d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
 #endif
     const std::string F_var_name = d_object_name+"::F";

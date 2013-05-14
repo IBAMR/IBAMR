@@ -92,11 +92,11 @@ SideNoCornersFillPattern::calculateOverlap(
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
     boost::array<BoxList<NDIM>,NDIM> dst_boxes;
@@ -165,11 +165,11 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
     boost::array<BoxList<NDIM>,NDIM> dst_boxes;

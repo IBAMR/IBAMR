@@ -127,7 +127,7 @@ CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(
     const double fill_time,
     const IntVector<NDIM>& ghost_width_to_fill)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_fill_time));
 #endif
     if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
@@ -164,7 +164,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     // corrections.
     const Box<NDIM> fine_box = unrestricted_fine_box * Box<NDIM>::grow(fine.getBox(),2);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (int d = 0; d < NDIM; ++d)
     {
         if (ratio(d)%2 != 0)
@@ -176,17 +176,17 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 #endif
 
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(d_u_dst_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
 #endif
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
 #endif
     const int fdata_depth = fdata->getDepth();
 
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(d_u_dst_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
@@ -263,7 +263,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         // Determine the box on which we need to compute the divergence- and
         // curl-preserving correction.
         const Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box,2),2);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata->getGhostBox().contains(correction_box));
 #endif
         // Apply the divergence- and curl-preserving correction to the fine grid
@@ -340,7 +340,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
             Pointer<SideData<NDIM,double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
             u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
             indicator_idata->fillAll(-1.0);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             Pointer<SideData<NDIM,double> >     u_src_fdata = fine.getPatchData(    d_u_src_idx);
             Pointer<SideData<NDIM,double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
             TBOX_ASSERT(    u_src_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));

@@ -59,7 +59,7 @@ IBAnchorPointSpec::IBAnchorPointSpec(
     const int node_idx)
     : d_node_idx(node_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBAnchorPointSpec::IBAnchorPointSpec():\n"

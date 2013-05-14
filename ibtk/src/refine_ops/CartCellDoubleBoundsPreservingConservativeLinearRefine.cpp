@@ -162,7 +162,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
     // Correct the data within the correction box.
     Pointer<CellData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(src_component);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());

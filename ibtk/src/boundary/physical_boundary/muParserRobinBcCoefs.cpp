@@ -84,7 +84,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
       d_parser_time(new double),
       d_parser_posn(new double[NDIM])
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #else
@@ -289,7 +289,7 @@ muParserRobinBcCoefs::setBcCoefs(
                                     bcoef_data ? bcoef_data->getBox() :
                                     gcoef_data ? gcoef_data->getBox() :
                                     Box<NDIM>());
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());

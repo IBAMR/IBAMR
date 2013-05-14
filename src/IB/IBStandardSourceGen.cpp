@@ -186,7 +186,7 @@ IBStandardSourceGen::initializeLevelData(
 
     d_n_src[level_number] = getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(l_data_manager->levelContainsLagrangianData(level_number));
 #endif
     d_source_names[level_number] = getSourceNames(level_number);
@@ -218,7 +218,7 @@ IBStandardSourceGen::getNumSources(
     const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
 #endif
     return d_n_src[level_number];
@@ -236,7 +236,7 @@ IBStandardSourceGen::getSourceLocations(
 {
     if (d_n_src[level_number] == 0) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
     TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
 #endif
@@ -311,7 +311,7 @@ void
 IBStandardSourceGen::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("s_num_sources.size()",s_num_sources.size());

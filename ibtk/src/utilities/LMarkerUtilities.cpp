@@ -263,7 +263,7 @@ LMarkerUtilities::eulerStep(
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
 #endif
             // Collect the local marker positions at time n.
@@ -324,7 +324,7 @@ LMarkerUtilities::midpointStep(
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
 #endif
             // Collect the local marker positions at time n and predicted marker
@@ -392,7 +392,7 @@ LMarkerUtilities::trapezoidalStep(
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
 #endif
             // Collect the local marker positions at time n and predicted marker

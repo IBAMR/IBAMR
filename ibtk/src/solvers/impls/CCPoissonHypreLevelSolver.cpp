@@ -249,7 +249,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(
     IBTK_TIMER_START(t_initialize_solver_state);
 
     // Rudimentary error checking.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -324,7 +324,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<SideDataFactory<NDIM,double> > pdat_factory = var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
 #endif
         d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
