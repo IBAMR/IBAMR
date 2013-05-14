@@ -41,8 +41,9 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+// EIGEN INCLUDES
+#include <Eigen/Dense>
+typedef Eigen::Matrix<double,3,1> VectorNd;
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>
@@ -142,7 +143,7 @@ private:
     /*
      * The center of the initial data.
      */
-    TinyVector<double,NDIM> d_X;
+    VectorNd d_X;
 
     /*
      * The initialization type.

@@ -1,5 +1,5 @@
 // Filename: UFunction.cpp
-// Created on 23 June 2004 by Boyce Griffith
+// Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
 // All rights reserved.
@@ -57,8 +57,6 @@ UFunction::UFunction(
       d_grid_geom(grid_geom),
       d_X(),
       d_init_type("UNIFORM"),
-      d_kappa(),
-      d_omega(),
       d_uniform_u()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -67,13 +65,11 @@ UFunction::UFunction(
 #endif
 
     // Default initial values.
-    const double* const XUpper = d_grid_geom->getXUpper();
-    const double* const XLower = d_grid_geom->getXLower();
+    const double* const x_upper = d_grid_geom->getXUpper();
+    const double* const x_lower = d_grid_geom->getXLower();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
-        d_omega[d] = 2.0*M_PI;
-        d_kappa[d] = 0.25;
+        d_X[d] = x_lower[d] + 0.5*(x_upper[d] - x_lower[d]);
         d_uniform_u[d] = 1.0;
     }
 
@@ -94,7 +90,7 @@ UFunction::setDataOnPatch(
     const int data_idx,
     Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
-    const double data_time,
+    const double /*data_time*/,
     const bool /*initial_time*/,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
@@ -107,9 +103,7 @@ UFunction::setDataOnPatch(
     {
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            u_data->getArrayData(axis).
-                fillAll(d_uniform_u[axis]*
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0));
+            u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
         }
     }
     else if (d_init_type == "VORTEX")
@@ -118,10 +112,10 @@ UFunction::setDataOnPatch(
         const Index<NDIM>& patch_lower = patch_box.lower();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
-        const double* const XLower = pgeom->getXLower();
+        const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
 
-        TinyVector<double,NDIM> X;
+        VectorNd X;
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -132,32 +126,17 @@ UFunction::setDataOnPatch(
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    if (d != axis)
-                    {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
-                    }
-                    else
-                    {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
-                    }
+                    X[d] = x_lower[d] + dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+(d==axis ? 0.0 : 0.5));
                 }
 
                 // 2D vortex
                 if (axis == 0)
                 {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (X[1] - d_X[axis]);
+                    (*u_data)(i) = (X[1] - d_X[axis]);
                 }
                 else if (axis == 1)
                 {
-                    (*u_data)(i) =
-                        (d_kappa[axis]*sin(d_omega[axis]*data_time)+1.0)*
-                        (d_X[axis] - X[0]);
+                    (*u_data)(i) = (d_X[axis] - X[0]);
                 }
                 else
                 {
@@ -184,16 +163,6 @@ UFunction::getFromInput(
 {
     if (db)
     {
-        if (db->keyExists("omega"))
-        {
-            db->getDoubleArray("omega", d_omega.data(), NDIM);
-        }
-
-        if (db->keyExists("kappa"))
-        {
-            db->getDoubleArray("kappa", d_kappa.data(), NDIM);
-        }
-
         if (db->keyExists("X"))
         {
             db->getDoubleArray("X", d_X.data(), NDIM);

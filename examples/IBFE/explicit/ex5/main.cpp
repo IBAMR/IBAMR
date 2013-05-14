@@ -49,6 +49,7 @@
 #include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -59,7 +60,6 @@
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
 
 inline double
 kernel(
@@ -484,13 +484,13 @@ postprocess_data(
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
-        blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
         AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
-        blitz::Array<double,2> F_node;
+        boost::multi_array<double,2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -499,10 +499,10 @@ postprocess_data(
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                F_dof_map.dof_indices(elem, F_dof_indices(d), d);
+                F_dof_map.dof_indices(elem, F_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices(0).size();
+            const int n_basis = F_dof_indices[0].size();
             get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
             for (int qp = 0; qp < n_qp; ++qp)
             {
@@ -510,7 +510,7 @@ postprocess_data(
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                        F_integral[d] += F_node[k][d]*phi[k][qp]*JxW[qp];
                     }
                 }
             }
@@ -533,14 +533,14 @@ postprocess_data(
         NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
         U_vec->localize(*U_ghost_vec);
         DofMap& U_dof_map = U_system.get_dof_map();
-        blitz::Array<std::vector<unsigned int>,1> U_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
         AutoPtr<FEBase> fe(FEBase::build(NDIM, U_dof_map.variable_type(0)));
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
         VectorValue<double> U_qp;
-        blitz::Array<double,2> U_node;
+        boost::multi_array<double,2> U_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -549,7 +549,7 @@ postprocess_data(
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_dof_map.dof_indices(elem, U_dof_indices(d), d);
+                U_dof_map.dof_indices(elem, U_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
             get_values_for_interpolation(U_node, *U_ghost_vec, U_dof_indices);
