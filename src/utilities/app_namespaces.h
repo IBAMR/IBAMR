@@ -95,11 +95,6 @@ using namespace SAMRAI::solv;
 using namespace SAMRAI::tbox;
 using namespace SAMRAI::xfer;
 
-namespace blitz
-{
-}
-using namespace blitz;
-
 namespace libMesh
 {
 }

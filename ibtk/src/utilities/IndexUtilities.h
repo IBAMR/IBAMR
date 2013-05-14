@@ -97,43 +97,12 @@ public:
      *
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
+    template<class DoubleArray>
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(
-        const double* X,
-        const double* XLower,
-        const double* XUpper,
-        const double* dx,
-        const SAMRAI::hier::Index<NDIM>& ilower,
-        const SAMRAI::hier::Index<NDIM>& iupper);
-
-    /*!
-     * \return The cell index corresponding to location \p X relative
-     * to \p XLower and \p XUpper for the specified Cartesian grid
-     * spacings \p dx and box extents \p ilower and \p iupper.
-     *
-     * \see SAMRAI::geom::CartesianPatchGeometry
-     */
-    static SAMRAI::hier::Index<NDIM>
-    getCellIndex(
-        const std::vector<double>& X,
-        const double* XLower,
-        const double* XUpper,
-        const double* dx,
-        const SAMRAI::hier::Index<NDIM>& ilower,
-        const SAMRAI::hier::Index<NDIM>& iupper);
-
-    /*!
-     * \return The cell index corresponding to location \p X relative
-     * to \p XLower and \p XUpper for the specified Cartesian grid
-     * spacings \p dx and box extents \p ilower and \p iupper.
-     *
-     * \see SAMRAI::geom::CartesianPatchGeometry
-     */
-    static SAMRAI::hier::Index<NDIM>
-    getCellIndex(
-        const boost::array<double,NDIM>& X,
-        const double* XLower,
-        const double* XUpper,
+        const DoubleArray& X,
+        const double* x_lower,
+        const double* x_upper,
         const double* dx,
         const SAMRAI::hier::Index<NDIM>& ilower,
         const SAMRAI::hier::Index<NDIM>& iupper);

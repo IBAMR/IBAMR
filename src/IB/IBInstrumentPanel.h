@@ -48,6 +48,7 @@
 #include "boost/multi_array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+#include "Eigen/Dense" // IWYU pragma: export
 
 namespace IBTK {
 class LDataManager;
@@ -251,9 +252,10 @@ private:
     bool d_initialized;
     unsigned int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
-    std::vector<boost::array<double,NDIM> > d_X_centroid;
-    std::vector<boost::multi_array<boost::array<double,NDIM>,1> > d_X_perimeter;
-    std::vector<boost::multi_array<boost::array<double,NDIM>,2> > d_X_web, d_dA_web;
+    typedef Eigen::Matrix<double,NDIM,1> VectorNd;
+    std::vector<VectorNd > d_X_centroid;
+    std::vector<boost::multi_array<VectorNd,1> > d_X_perimeter;
+    std::vector<boost::multi_array<VectorNd,2> > d_X_web, d_dA_web;
 
     int d_instrument_read_timestep_num;
     double d_instrument_read_time;
@@ -289,8 +291,8 @@ private:
     struct WebPatch
     {
         int meter_num;
-        const boost::array<double,NDIM>* X;
-        const boost::array<double,NDIM>* dA;
+        const VectorNd* X;
+        const VectorNd* dA;
     };
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
@@ -299,7 +301,7 @@ private:
     struct WebCentroid
     {
         int meter_num;
-        const boost::array<double,NDIM>* X;
+        const VectorNd* X;
     };
 
     typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebCentroid,IndexFortranOrder> WebCentroidMap;

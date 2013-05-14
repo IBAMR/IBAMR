@@ -71,7 +71,10 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Utilities.h"
+#include "Eigen/Dense" // IWYU pragma: export
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
+
+using namespace Eigen;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -464,7 +467,6 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 #endif
 
     int ierr;
-#if 0
     {   // Spring forces.
 
         const std::vector<int>&                 lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
@@ -475,8 +477,10 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<SpringForceDerivFcnPtr>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
         const std::vector<const double*>&                parameters = d_spring_data[level_number].parameters;
         const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
-        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
-        boost::array<double,NDIM> D;
+        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
+        typedef Matrix<double, NDIM, 1> VectorNd;
+        MatrixNd dF_dX;
+        VectorNd D;
         double R, T, dT_dR, eps;
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
@@ -489,19 +493,11 @@ IBStandardForceGen::computeLagrangianForceJacobian(
             const SpringForceFcnPtr force_fcn = force_fcns[k];
             const SpringForceDerivFcnPtr force_deriv_fcn = force_deriv_fcns[k];
             const double* const params = parameters[k];
-
-            D[0] = X_node[petsc_slave_idx+0] - X_node[petsc_mastr_idx+0];
-            D[1] = X_node[petsc_slave_idx+1] - X_node[petsc_mastr_idx+1];
-#if (NDIM == 3)
-            D[2] = X_node[petsc_slave_idx+2] - X_node[petsc_mastr_idx+2];
-#endif
-#if (NDIM == 2)
-            R = sqrt(D[0]*D[0]+D[1]*D[1]);
-#endif
-#if (NDIM == 3)
-            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
-#endif
-            if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+            for (unsigned int i = 0; i < NDIM; ++i)
+            {
+                D(i) = X_node[petsc_slave_idx+i] - X_node[petsc_mastr_idx+i];
+            }
+            R = D.norm();
             T = force_fcn(R,params,lag_mastr_idx,lag_slave_idx);
             if (!force_deriv_fcn)
             {
@@ -514,7 +510,6 @@ IBStandardForceGen::computeLagrangianForceJacobian(
             {
                 dT_dR = force_deriv_fcn(R,params,lag_mastr_idx,lag_slave_idx);
             }
-
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
@@ -534,13 +529,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
             // Negate dF_dX to obtain the Jacobian of the force applied by the
             // spring to the "master" node with respect to the position of the
             // "master" node.
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                for (unsigned int j = 0; j < NDIM; ++j)
-                {
-                    dF_dX(i,j) *= -1.0;
-                }
-            }
+            dF_dX *= -1.0;
 
             // Accumulate the diagonal parts of the matrix.
             ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -555,7 +544,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<int>& petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
         const std::vector<int>& petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
         const std::vector<const double*>& rigidities = d_beam_data[level_number].rigidities;
-        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
+        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
+        MatrixNd dF_dX = MatrixNd::Zero();
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
             const int petsc_mastr_idx = petsc_mastr_node_idxs[k]/NDIM;  // block indices
@@ -595,7 +585,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<int>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
         const std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
         const  std::vector<const double*>&  eta = d_target_point_data[level_number].eta;
-        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
+        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
+        MatrixNd dF_dX = MatrixNd::Zero();
         for (unsigned int k = 0; k < petsc_node_idxs.size(); ++k)
         {
             const int petsc_node_idx = petsc_node_idxs[k]/NDIM;  // block index
@@ -609,7 +600,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         }
 
     }
-#endif // XXXX
+
     // Assemble the matrix.
     ierr = MatAssemblyBegin(J_mat, assembly_type); IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(  J_mat, assembly_type); IBTK_CHKERRQ(ierr);
