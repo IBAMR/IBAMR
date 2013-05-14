@@ -373,11 +373,7 @@ void
 CCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
-#ifdef HAVE_MPI
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
-#else
-    MPI_Comm communicator;
-#endif
 
     // Setup the hypre grid.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -746,11 +742,7 @@ void
 CCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
-#ifdef HAVE_MPI
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
-#else
-    MPI_Comm communicator;
-#endif
 
     d_solvers .resize(d_depth);
     d_preconds.resize(d_depth);

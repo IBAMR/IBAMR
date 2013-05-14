@@ -144,7 +144,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
         d_F_Phi_var = new CellVariable<NDIM,double>(F_var_name);
         d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
     }
-#ifdef DEBFG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_F_Phi_idx >= 0);
 #endif
 

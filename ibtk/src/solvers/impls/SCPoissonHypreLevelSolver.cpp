@@ -313,11 +313,7 @@ void
 SCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
-#ifdef HAVE_MPI
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
-#else
-    MPI_Comm communicator;
-#endif
 
     // Setup the hypre grid and variables and assemble the grid.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -444,11 +440,7 @@ void
 SCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
-#ifdef HAVE_MPI
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
-#else
-    MPI_Comm communicator;
-#endif
 
     // Determine the split solver type.
     int split_solver_type_id = -1;
