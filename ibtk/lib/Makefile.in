@@ -141,7 +141,6 @@ am__libIBTK2d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.cpp \
 	$(top_srcdir)/src/lagrangian/LIndexSetVariable.cpp \
 	$(top_srcdir)/src/lagrangian/LInitStrategy.cpp \
-	$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LMarker.cpp \
 	$(top_srcdir)/src/lagrangian/LMesh.cpp \
 	$(top_srcdir)/src/lagrangian/LNode.cpp \
@@ -278,7 +277,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-LIndexSetDataFactory.$(OBJEXT) \
 	libIBTK2d_a-LIndexSetVariable.$(OBJEXT) \
 	libIBTK2d_a-LInitStrategy.$(OBJEXT) \
-	libIBTK2d_a-LM3DDataWriter.$(OBJEXT) \
 	libIBTK2d_a-LMarker.$(OBJEXT) libIBTK2d_a-LMesh.$(OBJEXT) \
 	libIBTK2d_a-LNode.$(OBJEXT) libIBTK2d_a-LNodeIndex.$(OBJEXT) \
 	libIBTK2d_a-LSet.$(OBJEXT) libIBTK2d_a-LSetData.$(OBJEXT) \
@@ -404,7 +402,6 @@ am__libIBTK3d_a_SOURCES_DIST = $(top_srcdir)/src/boundary/HierarchyGhostCellInte
 	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.cpp \
 	$(top_srcdir)/src/lagrangian/LIndexSetVariable.cpp \
 	$(top_srcdir)/src/lagrangian/LInitStrategy.cpp \
-	$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LMarker.cpp \
 	$(top_srcdir)/src/lagrangian/LMesh.cpp \
 	$(top_srcdir)/src/lagrangian/LNode.cpp \
@@ -540,7 +537,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-LIndexSetDataFactory.$(OBJEXT) \
 	libIBTK3d_a-LIndexSetVariable.$(OBJEXT) \
 	libIBTK3d_a-LInitStrategy.$(OBJEXT) \
-	libIBTK3d_a-LM3DDataWriter.$(OBJEXT) \
 	libIBTK3d_a-LMarker.$(OBJEXT) libIBTK3d_a-LMesh.$(OBJEXT) \
 	libIBTK3d_a-LNode.$(OBJEXT) libIBTK3d_a-LNodeIndex.$(OBJEXT) \
 	libIBTK3d_a-LSet.$(OBJEXT) libIBTK3d_a-LSetData.$(OBJEXT) \
@@ -1031,7 +1027,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.h \
 	$(top_srcdir)/src/lagrangian/LIndexSetVariable.h \
 	$(top_srcdir)/src/lagrangian/LInitStrategy.h \
-	$(top_srcdir)/src/lagrangian/LM3DDataWriter.h \
 	$(top_srcdir)/src/lagrangian/LMarker-inl.h \
 	$(top_srcdir)/src/lagrangian/LMarker.h \
 	$(top_srcdir)/src/lagrangian/LMarkerSet.h \
@@ -1173,7 +1168,6 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/boundary/HierarchyGhostCellInterpola
 	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.cpp \
 	$(top_srcdir)/src/lagrangian/LIndexSetVariable.cpp \
 	$(top_srcdir)/src/lagrangian/LInitStrategy.cpp \
-	$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp \
 	$(top_srcdir)/src/lagrangian/LMarker.cpp \
 	$(top_srcdir)/src/lagrangian/LMesh.cpp \
 	$(top_srcdir)/src/lagrangian/LNode.cpp \
@@ -1447,7 +1441,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po@am__quote@
@@ -1564,7 +1557,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@
@@ -2066,20 +2058,6 @@ libIBTK2d_a-LInitStrategy.obj: $(top_srcdir)/src/lagrangian/LInitStrategy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.cpp' object='libIBTK2d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; fi`
-
-libIBTK2d_a-LM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo -c -o libIBTK2d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' object='libIBTK2d_a-LM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-
-libIBTK2d_a-LM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo -c -o libIBTK2d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' object='libIBTK2d_a-LM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; fi`
 
 libIBTK2d_a-LMarker.o: $(top_srcdir)/src/lagrangian/LMarker.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarker.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarker.Tpo -c -o libIBTK2d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.cpp
@@ -3704,20 +3682,6 @@ libIBTK3d_a-LInitStrategy.obj: $(top_srcdir)/src/lagrangian/LInitStrategy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.cpp' object='libIBTK3d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.cpp'; fi`
-
-libIBTK3d_a-LM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo -c -o libIBTK3d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' object='libIBTK3d_a-LM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-
-libIBTK3d_a-LM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo -c -o libIBTK3d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp' object='libIBTK3d_a-LM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp'; fi`
 
 libIBTK3d_a-LMarker.o: $(top_srcdir)/src/lagrangian/LMarker.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarker.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarker.Tpo -c -o libIBTK3d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.cpp

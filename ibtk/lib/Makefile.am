@@ -77,7 +77,6 @@ $(top_srcdir)/src/lagrangian/LIndexSetData.cpp \
 $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.cpp \
 $(top_srcdir)/src/lagrangian/LIndexSetVariable.cpp \
 $(top_srcdir)/src/lagrangian/LInitStrategy.cpp \
-$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp \
 $(top_srcdir)/src/lagrangian/LMarker.cpp \
 $(top_srcdir)/src/lagrangian/LMesh.cpp \
 $(top_srcdir)/src/lagrangian/LNode.cpp \
@@ -203,7 +202,6 @@ $(top_srcdir)/src/lagrangian/LIndexSetData.h \
 $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.h \
 $(top_srcdir)/src/lagrangian/LIndexSetVariable.h \
 $(top_srcdir)/src/lagrangian/LInitStrategy.h \
-$(top_srcdir)/src/lagrangian/LM3DDataWriter.h \
 $(top_srcdir)/src/lagrangian/LMarker-inl.h \
 $(top_srcdir)/src/lagrangian/LMarker.h \
 $(top_srcdir)/src/lagrangian/LMarkerSet.h \
