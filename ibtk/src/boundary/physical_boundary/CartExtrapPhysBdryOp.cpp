@@ -334,11 +334,10 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
     }
 
     // Set the boundary values.
-    setPhysicalBoundaryConditions_cell(    patch, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_vec_cell(patch, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_face(    patch, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_node(    patch, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_side(    patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_cell(patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_face(patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_node(patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_side(patch, bdry_fill_boxes);
     return;
 }// setPhysicalBoundaryConditions
 
