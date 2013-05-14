@@ -78,14 +78,9 @@ class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
 
-/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
-
 namespace IBTK
 {
 class LData;
-#if (NDIM == 3)
-class LM3DDataWriter;
-#endif
 }// namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -357,15 +352,6 @@ public:
     void
     registerLSiloDataWriter(
         SAMRAI::tbox::Pointer<LSiloDataWriter> silo_writer);
-
-#if (NDIM == 3)
-    /*!
-     * \brief Register a myocardial3D data writer with the manager.
-     */
-    void
-    registerLM3DDataWriter(
-        SAMRAI::tbox::Pointer<LM3DDataWriter> m3D_writer);
-#endif
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
@@ -1056,9 +1042,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_writer;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<LM3DDataWriter> d_m3D_writer;
-#endif
 
     /*
      * We cache a pointer to the load balancer.

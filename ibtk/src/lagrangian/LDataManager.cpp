@@ -77,7 +77,6 @@
 #include "ibtk/LData-inl.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LIndexSetData.h"
-#include "ibtk/LM3DDataWriter.h" // IWYU pragma: keep
 #include "ibtk/LMesh.h"
 #include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
@@ -628,19 +627,6 @@ LDataManager::registerLSiloDataWriter(
     d_silo_writer = silo_writer;
     return;
 }// registerLSiloDataWriter
-
-#if (NDIM == 3)
-void
-LDataManager::registerLM3DDataWriter(
-    Pointer<LM3DDataWriter> m3D_writer)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(m3D_writer);
-#endif
-    d_m3D_writer = m3D_writer;
-    return;
-}// registerLM3DDataWriter
-#endif
 
 void
 LDataManager::registerLoadBalancer(
@@ -1710,14 +1696,7 @@ LDataManager::endDataRedistribution(
     {
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
-#if (NDIM == 3)
-    // If a myocardial3D data writer is registered with the manager, give it
-    // access to the new application orderings.
-    if (d_m3D_writer)
-    {
-        d_m3D_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
-    }
-#endif
+
     IBTK_TIMER_STOP(t_end_data_redistribution);
     return;
 }// endDataRedistribution
@@ -2044,15 +2023,7 @@ LDataManager::initializeLevelData(
         d_silo_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         d_silo_writer->registerLagrangianAO(d_ao[level_number], level_number);
     }
-#if (NDIM == 3)
-    // If a myocardial3D data writer is registered with the manager, give it
-    // access to the new application ordering.
-    if (d_m3D_writer && d_level_contains_lag_data[level_number])
-    {
-        d_m3D_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
-        d_m3D_writer->registerLagrangianAO(d_ao[level_number], level_number);
-    }
-#endif
+
     IBTK_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
@@ -2092,19 +2063,7 @@ LDataManager::resetHierarchyConfiguration(
             d_silo_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         }
     }
-#if (NDIM == 3)
-    // Reset the myocardial3D data writer.
-    if (d_m3D_writer)
-    {
-        d_m3D_writer->setPatchHierarchy(hierarchy);
-        d_m3D_writer->resetLevels(d_coarsest_ln, d_finest_ln);
-        for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
-        {
-            if (!d_level_contains_lag_data[level_number]) continue;
-            d_m3D_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
-        }
-    }
-#endif
+
     // If we have added or removed a level, resize the schedule vectors.
     d_lag_node_index_bdry_fill_scheds.resize(finest_hier_level+1);
     d_node_count_coarsen_scheds      .resize(finest_hier_level+1);
@@ -2359,9 +2318,6 @@ LDataManager::LDataManager(
       d_finest_ln(-1),
       d_visit_writer(NULL),
       d_silo_writer(NULL),
-#if (NDIM == 3)
-      d_m3D_writer(NULL),
-#endif
       d_load_balancer(NULL),
       d_lag_init(NULL),
       d_level_contains_lag_data(),
