@@ -230,7 +230,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         (*cit)->DefineConst("PI", pi);
 
         // Ensure that the parser understands "if-then-else" statements.
-        (*it)->DefineFun(_T("if"), mu_parser_if_then_else);
+        (*cit)->DefineFun(_T("if"), mu_parser_if_then_else);
 
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)
