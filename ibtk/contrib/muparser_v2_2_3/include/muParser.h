@@ -101,6 +101,7 @@ namespace mu
     static value_type  UnaryMinus(value_type);
 
     // Functions with variable number of arguments
+    static value_type IfThenElse(const value_type*, int);  // if-then-else
     static value_type Sum(const value_type*, int);  // sum
     static value_type Avg(const value_type*, int);  // mean value
     static value_type Min(const value_type*, int);  // minimum

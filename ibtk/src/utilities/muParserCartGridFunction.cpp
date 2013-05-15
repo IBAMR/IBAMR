@@ -75,21 +75,6 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-mu::value_type
-mu_parser_if_then_else(
-    const mu::value_type* a_afArg,
-    int a_iArgc)
-{
-    if (a_iArgc != 3)
-    {
-        throw mu::ParserBase::exception_type(_T("incorrect number of arguments for function if."));
-    }
-    return a_afArg[0] ? a_afArg[1] : a_afArg[2];
-}// mu_parser_if_then_else
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(
@@ -198,9 +183,6 @@ muParserCartGridFunction::muParserCartGridFunction(
         it->DefineConst("pi", pi);
         it->DefineConst("Pi", pi);
         it->DefineConst("PI", pi);
-
-        // Ensure that the parser understands "if-then-else" statements.
-        it->DefineFun(_T("if"), mu_parser_if_then_else);
 
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)

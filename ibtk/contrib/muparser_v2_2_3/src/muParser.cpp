@@ -129,6 +129,18 @@ namespace mu
   }
 
   //---------------------------------------------------------------------------
+  /** \brief Callback for old-style if-then-else expressions.
+      \param [in] a_afArg Vector with the function arguments
+      \param [in] a_iArgc The size of a_afArg
+  */
+  value_type Parser::IfThenElse(const mu::value_type *a_afArg, int a_iArgc)
+  {
+    if (a_iArgc != 3)
+      throw mu::ParserBase::exception_type(_T("incorrect number of arguments for function if."));
+    return a_afArg[0] ? a_afArg[1] : a_afArg[2];
+  }
+
+  //---------------------------------------------------------------------------
   /** \brief Callback for adding multiple values. 
       \param [in] a_afArg Vector with the function arguments
       \param [in] a_iArgc The size of a_afArg
@@ -293,6 +305,7 @@ namespace mu
       DefineFun(_T("rint"), Rint);
       DefineFun(_T("abs"), Abs);
       // Functions with variable number of arguments
+      DefineFun(_T("if"), IfThenElse);
       DefineFun(_T("sum"), Sum);
       DefineFun(_T("avg"), Avg);
       DefineFun(_T("min"), Min);
