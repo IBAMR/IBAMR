@@ -155,9 +155,6 @@ IBMethod::IBMethod(
     d_normalize_source_strength = false;
     d_post_processor = NULL;
     d_silo_writer = NULL;
-#if (NDIM == 3)
-    d_m3D_writer = NULL;
-#endif
 
     // Set some default values.
     d_interp_delta_fcn = "IB_4";
@@ -289,20 +286,6 @@ IBMethod::registerLSiloDataWriter(
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
 }// registerLSiloDataWriter
-
-#if (NDIM == 3)
-void
-IBMethod::registerLM3DDataWriter(
-    Pointer<LM3DDataWriter> m3D_writer)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(m3D_writer);
-#endif
-    d_m3D_writer = m3D_writer;
-    d_l_data_manager->registerLM3DDataWriter(d_m3D_writer);
-    return;
-}// registerLM3DDataWriter
-#endif
 
 const IntVector<NDIM>&
 IBMethod::getMinimumGhostCellWidth() const

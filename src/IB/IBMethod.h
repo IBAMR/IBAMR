@@ -74,10 +74,6 @@ template <int DIM> class RefineSchedule;
 }  // namespace xfer
 }  // namespace SAMRAI
 
-#if (NDIM == 3)
-#include "ibtk/LM3DDataWriter.h"
-#endif
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -156,17 +152,6 @@ public:
     void
     registerLSiloDataWriter(
         SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
-
-#if (NDIM == 3)
-    /*!
-     * Register a Lagrangian myocardial3D data writer so this class will write
-     * plot files that may be postprocessed with the myocardial3D visualization
-     * program.
-     */
-    void
-    registerLM3DDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> m3D_writer);
-#endif
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -605,9 +590,6 @@ protected:
      * Visualization data writers.
      */
     SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
-#endif
 
     /*
      * Nonuniform load balancing data structures.
