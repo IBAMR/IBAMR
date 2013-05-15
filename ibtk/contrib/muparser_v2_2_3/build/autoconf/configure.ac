@@ -44,7 +44,7 @@ AC_PROG_CXXCPP
 
 
 AC_BAKEFILE_DEBUGOPT([no])
-AC_BAKEFILE_SHAREDOPT([yes])
+AC_BAKEFILE_SHAREDOPT([no])
 
 ### AC_ARG_ENABLE([samples],
 ###             AC_HELP_STRING([--enable-samples], [Builds the library samples, too]),

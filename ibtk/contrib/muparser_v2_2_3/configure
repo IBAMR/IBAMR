@@ -3561,7 +3561,7 @@ $as_echo "no" >&6; }
     CFLAGS="$my_CFLAGS $CFLAGS"
 
 
-    default="yes"
+    default="no"
     if [ -z "$default" ]; then
         default="no"
     fi
