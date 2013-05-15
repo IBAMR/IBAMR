@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+
+<!-- RCS-ID: $Id: muparser.bkl 635 2012-12-22 10:58:11Z ibg $ -->
+
+<makefile>
+
+    <requires version="0.2.5"/>
+    <using module="pkgconfig"/>
+
+    <include file="presets/debugopt.bkl"/>
+    <include file="presets/sharedopt.bkl"/>
+    <include file="presets/setbuilddir.bkl"/>
+
+    <!-- put all object files under the OBJ folder -->
+    <if cond="FORMAT!='autoconf'">
+        <set var="BUILDDIR">obj$(DIRSEP)$(BUILDDIR)</set>
+    </if>
+
+    <set var="DEBUG_BUILD_POSTFIX">
+        <if cond="DEBUG=='0'"></if>
+        <if cond="DEBUG=='1'">d</if>
+    </set>
+
+    <!-- Sources for this library -->
+    <!-- ======================== -->
+
+    <if cond="FORMAT=='autoconf'">
+        <!-- Note that since autoconf 2.60 the top_builddir variable does
+             not ends with '/' anymore... -->
+        <set var="LIBOUTPATH">$(top_builddir)/lib</set>
+    </if>
+    <if cond="'msv' in FORMAT">
+        <!-- match all MSVC visual studio formats -->
+        <set-srcdir>../..</set-srcdir>
+    </if>
+    <if cond="FORMAT in [ 'borland', 'mingw', 'watcom', 'msvc' ]">
+        <set-srcdir>..</set-srcdir>
+    </if>
+    <if cond="FORMAT!='autoconf'">
+        <set var="LIBOUTPATH">$(SRCDIR)/lib</set>
+    </if>
+
+    <!-- Settings for this library -->
+    <!-- ========================= -->
+
+    <template id="muparser_base" template="debugopt">
+        <!-- tell Bakefile to define the MUPARSER_DLL symbol when building in shared mode -->
+        <define>$(substituteFromDict(SHARED, {'1':'MUPARSER_DLL', '0':''}))</define>
+        <define>$(substituteFromDict(SHARED, {'1':'MUPARSERLIB_EXPORTS', '0':''}))</define>
+        <if cond="FORMAT!='autoconf'">
+            <define>_WIN32</define>
+        </if>
+
+        <sources>$(fileList('src/*.cpp'))</sources>
+        <headers>$(fileList('include/*.h'))</headers>
+        <dirname>$(LIBOUTPATH)</dirname>
+        <include>$(SRCDIR)/include</include>
+
+        <install-to>$(LIBDIR)</install-to>
+        <install-headers-to>$(PREFIX)</install-headers-to>
+    </template>
+
+    <lib id="muParser_lib" template="muparser_base" cond="SHARED=='0'">
+        <libname>muparser$(DEBUG_BUILD_POSTFIX)</libname>
+    </lib>
+    <dll id="muParser_dll" template="muparser_base" cond="SHARED=='1'">
+        <dllname>muparser$(DEBUG_BUILD_POSTFIX)</dllname>
+        <libname>muparser$(DEBUG_BUILD_POSTFIX)</libname>
+
+        <version>2.2</version>
+        <so_version>2.2.3</so_version>
+        <mac_version>1</mac_version>        <!-- must be > 0 -->
+    </dll>
+
+    <!-- this makes the MSVC6 project files much nicer... -->
+    <set var="MSVC6PRJ_MERGED_TARGETS">muParser=muParser_lib+muParser_dll</set>
+
+    <!-- Installs the PKG-CONFIG file -->
+    <pkgconfig id="pkgconfig" cond="FORMAT=='autoconf'">
+        <src>build/autoconf/muparser.pc</src>
+    </pkgconfig>
+
+</makefile>
+

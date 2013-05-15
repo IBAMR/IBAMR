@@ -429,9 +429,8 @@ AC_CONFIG_FILES([
   src/solvers/impls/fortran/Makefile
   src/solvers/interfaces/Makefile
   src/solvers/wrappers/Makefile
-  src/third_party/Makefile
-  src/third_party/muParser/Makefile
   src/utilities/Makefile
-  third_party/Makefile
+  contrib/Makefile
 ])
+AC_CONFIG_SUBDIRS([contrib/muparser])
 AC_OUTPUT

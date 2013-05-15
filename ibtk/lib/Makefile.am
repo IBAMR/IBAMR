@@ -22,26 +22,10 @@ clean-local:
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-$(top_srcdir)/src/third_party/muParser/muParser.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserBase.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserBytecode.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserError.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
 $(top_srcdir)/src/utilities/Interpolator.cpp \
 $(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/third_party/muParser/muParser.h \
-$(top_srcdir)/src/third_party/muParser/muParserBase.h \
-$(top_srcdir)/src/third_party/muParser/muParserBytecode.h \
-$(top_srcdir)/src/third_party/muParser/muParserCallback.h \
-$(top_srcdir)/src/third_party/muParser/muParserDef.h \
-$(top_srcdir)/src/third_party/muParser/muParserError.h \
-$(top_srcdir)/src/third_party/muParser/muParserFixes.h \
-$(top_srcdir)/src/third_party/muParser/muParserStack.h \
-$(top_srcdir)/src/third_party/muParser/muParserToken.h \
-$(top_srcdir)/src/third_party/muParser/muParserTokenReader.h \
 $(top_srcdir)/src/utilities/IBTK_CHKERRQ.h \
 $(top_srcdir)/src/utilities/Interpolator-inl.h \
 $(top_srcdir)/src/utilities/Interpolator.h \

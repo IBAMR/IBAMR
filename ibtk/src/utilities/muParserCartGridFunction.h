@@ -44,7 +44,7 @@
 #include "PatchLevel.h"
 #include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/muParser.h"
+#include "muParser.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI {

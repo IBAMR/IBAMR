@@ -408,20 +408,21 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 MAINTAINERCLEANFILES = Makefile.in
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/third_party/eigen -I${top_builddir}/config
-AM_LDFLAGS = -L${top_builddir}/lib
-IBTK_LIBS = ${top_builddir}/lib/libIBTK.a
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/contrib/eigen -I${top_srcdir}/contrib/muparser/include -I${top_builddir}/config
+AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/contrib/muparser/lib
+IBTK_LIBS = ${top_builddir}/lib/libIBTK.a -lmuparser
 IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = boundary coarsen_ops fortran lagrangian math refine_ops solvers third_party utilities .
+SUBDIRS = boundary coarsen_ops fortran lagrangian math refine_ops solvers utilities .
 all: all-recursive
 
 .SUFFIXES:
