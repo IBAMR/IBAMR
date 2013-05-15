@@ -65,6 +65,18 @@ namespace IBTK
 namespace
 {
 static const int EXTENSIONS_FILLABLE = 128;
+
+mu::value_type
+mu_parser_if_then_else(
+    const mu::value_type* a_afArg,
+    int a_iArgc)
+{
+    if (a_iArgc != 3)
+    {
+        throw mu::ParserBase::exception_type(_T("incorrect number of arguments for function if."));
+    }
+    return a_afArg[0] ? a_afArg[1] : a_afArg[2];
+}// mu_parser_if_then_else
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -135,8 +147,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n" <<
-                       "  error:         " << e.GetMsg()  << "\n" <<
-                       "  in expression: " << e.GetExpr() << "\n");
+                       "  error: " << e.GetMsg()  << "\n" <<
+                       "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -162,8 +174,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n" <<
-                       "  error:         " << e.GetMsg()  << "\n" <<
-                       "  in expression: " << e.GetExpr() << "\n");
+                       "  error: " << e.GetMsg()  << "\n" <<
+                       "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -189,8 +201,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n" <<
-                       "  error:         " << e.GetMsg()  << "\n" <<
-                       "  in expression: " << e.GetExpr() << "\n");
+                       "  error: " << e.GetMsg()  << "\n" <<
+                       "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
@@ -216,6 +228,9 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         (*cit)->DefineConst("pi", pi);
         (*cit)->DefineConst("Pi", pi);
         (*cit)->DefineConst("PI", pi);
+
+        // Ensure that the parser understands "if-then-else" statements.
+        (*it)->DefineFun(_T("if"), mu_parser_if_then_else);
 
         // The extents of the domain.
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -364,8 +379,8 @@ muParserRobinBcCoefs::setBcCoefs(
         catch (mu::ParserError& e)
         {
             TBOX_ERROR("muParserRobinBcCoefs::setDataOnPatch():\n" <<
-                       "  error:         " << e.GetMsg()  << "\n" <<
-                       "  in expression: " << e.GetExpr() << "\n");
+                       "  error: " << e.GetMsg()  << "\n" <<
+                       "  in:    " << e.GetExpr() << "\n");
         }
         catch (...)
         {
