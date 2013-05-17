@@ -28,7 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBTK_prefix_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions

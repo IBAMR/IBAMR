@@ -89,7 +89,7 @@
 #include "Eigen/Dense" // IWYU pragma: export
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
-#if HAVE_LIBSILO
+#if defined(IBAMR_HAVE_SILO)
 #include <silo.h>
 #endif
 
@@ -247,7 +247,7 @@ compute_flow_correction(
     return U_dot_dA;
 }// compute_flow_correction
 
-#if HAVE_LIBSILO
+#if defined(IBAMR_HAVE_SILO)
 /*!
  * \brief Build a local mesh database entry corresponding to a meter web.
  */
@@ -551,7 +551,7 @@ IBInstrumentPanel::IBInstrumentPanel(
       d_flow_units(""),
       d_pres_units("")
 {
-#if HAVE_LIBSILO
+#if defined(IBAMR_HAVE_SILO)
     // intentionally blank
 #else
     TBOX_WARNING("IBInstrumentPanel::IBInstrumentPanel(): SILO is not installed; cannot write data." << std::endl);
@@ -1224,7 +1224,7 @@ IBInstrumentPanel::writePlotData(
     if (d_num_meters == 0) return;
 
     IBAMR_TIMER_START(t_write_plot_data);
-#if HAVE_LIBSILO
+#if defined(IBAMR_HAVE_SILO)
 #if !defined(NDEBUG)
     TBOX_ASSERT(timestep_num >= 0);
     TBOX_ASSERT(!d_plot_directory_name.empty());
@@ -1364,7 +1364,7 @@ IBInstrumentPanel::writePlotData(
     }
 #else
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);
-#endif //if HAVE_LIBSILO
+#endif //if defined(IBAMR_HAVE_SILO)
     IBAMR_TIMER_STOP(t_write_plot_data);
     return;
 }// writePlotData

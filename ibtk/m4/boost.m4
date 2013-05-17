@@ -105,7 +105,7 @@ boost_version_req=`expr "$[1]" '*' 100000 + "$[2]" '*' 100 + "$[3]"`
 boost_version_req_string=$[1].$[2].$[3]
 AC_ARG_WITH([boost],
    [AS_HELP_STRING([--with-boost=DIR],
-                   [prefix of Boost $1 @<:@guess@:>@])])dnl
+                   [location of required Boost installation])])dnl
 AC_ARG_VAR([BOOST_ROOT],[Location of Boost installation])dnl
 # If BOOST_ROOT is set and the user has not provided a value to
 # --with-boost, then treat BOOST_ROOT as if it the user supplied it.

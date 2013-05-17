@@ -270,11 +270,11 @@ CartExtrapPhysBdryOp::setExtrapolationType(
                    << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
-    if (extrap_type == "QUADRATIC" && !USING_LARGE_GHOST_CELL_WIDTH)
+    if (extrap_type == "QUADRATIC")
     {
         IBTK_DO_ONCE(
             TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                         << "  extrapolation type " << extrap_type << " requires large ghost cell widths" << std::endl);
+                         << "  extrapolation type " << extrap_type << " generally requires large ghost cell widths" << std::endl);
                      );
     }
 

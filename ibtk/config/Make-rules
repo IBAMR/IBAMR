@@ -5,9 +5,9 @@ AR = @AR@
 PETSC_DIR  = @PETSC_DIR@
 PETSC_ARCH = @PETSC_ARCH@
 
-AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/contrib/eigen -I${top_srcdir}/contrib/muparser/include -I${top_builddir}/config
-AM_LDFLAGS  = -L${top_builddir}/lib -L${top_builddir}/contrib/muparser/lib
-IBTK_LIBS   = ${top_builddir}/lib/libIBTK.a -lmuparser
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_builddir}/config
+AM_LDFLAGS  = -L${top_builddir}/lib
+IBTK_LIBS   = ${top_builddir}/lib/libIBTK.a
 IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 

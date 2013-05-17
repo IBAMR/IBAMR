@@ -66,7 +66,7 @@ static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

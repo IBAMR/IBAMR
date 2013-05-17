@@ -53,10 +53,10 @@ template <int DIM> class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define SC_CUBIC_COARSEN_FC FC_FUNC(sccubiccoarsen2d,SCCUBICCOARSEN2D)
+#define SC_CUBIC_COARSEN_FC IBTK_FC_FUNC(sccubiccoarsen2d,SCCUBICCOARSEN2D)
 #endif
 #if (NDIM == 3)
-#define SC_CUBIC_COARSEN_FC FC_FUNC(sccubiccoarsen3d,SCCUBICCOARSEN3D)
+#define SC_CUBIC_COARSEN_FC IBTK_FC_FUNC(sccubiccoarsen3d,SCCUBICCOARSEN3D)
 #endif
 
 // Function interfaces

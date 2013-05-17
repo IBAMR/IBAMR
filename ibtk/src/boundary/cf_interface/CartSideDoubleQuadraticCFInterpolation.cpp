@@ -60,12 +60,12 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define SC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(scquadtangentialinterpolation2d,SCQUADTANGENTIALINTERPOLATION2D)
-#define SC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(scquadnormalinterpolation2d,SCQUADNORMALINTERPOLATION2D)
+#define SC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(scquadtangentialinterpolation2d,SCQUADTANGENTIALINTERPOLATION2D)
+#define SC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(scquadnormalinterpolation2d,SCQUADNORMALINTERPOLATION2D)
 #endif
 #if (NDIM == 3)
-#define SC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(scquadtangentialinterpolation3d,SCQUADTANGENTIALINTERPOLATION3D)
-#define SC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(scquadnormalinterpolation3d,SCQUADNORMALINTERPOLATION3D)
+#define SC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(scquadtangentialinterpolation3d,SCQUADTANGENTIALINTERPOLATION3D)
+#define SC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(scquadnormalinterpolation3d,SCQUADNORMALINTERPOLATION3D)
 #endif
 
 // Function interfaces
@@ -135,8 +135,8 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int GHOST_WIDTH_TO_FILL     = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
+static const int GHOST_WIDTH_TO_FILL     = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

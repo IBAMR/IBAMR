@@ -3,10 +3,10 @@ include $(top_srcdir)/config/Make-rules
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED
-lib_LIBRARIES += libIBAMR2d.a
+  lib_LIBRARIES += libIBAMR2d.a
 endif
 if SAMRAI3D_ENABLED
-lib_LIBRARIES += libIBAMR3d.a
+  lib_LIBRARIES += libIBAMR3d.a
 endif
 
 all-local: $(lib_LIBRARIES)
@@ -27,7 +27,7 @@ $(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
 $(top_srcdir)/src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
-libIBAMR_a_SOURCES +=
+  libIBAMR_a_SOURCES +=
 endif
 
 pkg_include_HEADERS = \
@@ -39,7 +39,7 @@ $(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 if LIBMESH_ENABLED
-pkg_include_HEADERS +=
+  pkg_include_HEADERS +=
 endif
 
 ## Dimension-dependent libraries
@@ -126,12 +126,12 @@ $(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.cpp \
 $(top_srcdir)/src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/IB/IBFEMethod.cpp \
-$(top_srcdir)/src/IB/IMPMethod.cpp \
-$(top_srcdir)/src/IB/IMPInitializer.cpp \
-$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+  DIM_INDEPENDENT_SOURCES += \
+  $(top_srcdir)/src/IB/IBFEMethod.cpp \
+  $(top_srcdir)/src/IB/IMPMethod.cpp \
+  $(top_srcdir)/src/IB/IMPInitializer.cpp \
+  $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
+$  (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -216,11 +216,11 @@ $(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.h \
 $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
-pkg_include_HEADERS += \
-$(top_srcdir)/src/IB/IBFEMethod.h \
-$(top_srcdir)/src/IB/IMPMethod.h \
-$(top_srcdir)/src/IB/IMPInitializer.h \
-$(top_srcdir)/src/IB/MaterialPointSpec.h
+  pkg_include_HEADERS += \
+  $(top_srcdir)/src/IB/IBFEMethod.h \
+  $(top_srcdir)/src/IB/IMPMethod.h \
+  $(top_srcdir)/src/IB/IMPInitializer.h \
+  $(top_srcdir)/src/IB/MaterialPointSpec.h
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

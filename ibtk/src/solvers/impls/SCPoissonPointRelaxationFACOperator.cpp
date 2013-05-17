@@ -89,16 +89,16 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth2d,GSSMOOTH2D)
-#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask2d,GSSMOOTHMASK2D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
-#define RB_GS_SMOOTH_MASK_FC FC_FUNC(rbgssmoothmask2d,RBGSSMOOTHMASK2D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d,GSSMOOTH2D)
+#define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask2d,GSSMOOTHMASK2D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
+#define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask2d,RBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth3d,GSSMOOTH3D)
-#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask3d,GSSMOOTHMASK3D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
-#define RB_GS_SMOOTH_MASK_FC FC_FUNC(rbgssmoothmask3d,RBGSSMOOTHMASK3D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d,GSSMOOTH3D)
+#define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask3d,GSSMOOTHMASK3D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
+#define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask3d,RBGSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
@@ -174,7 +174,7 @@ static Timer* t_compute_residual;
 static const int DEFAULT_DATA_DEPTH = 1;
 
 // Number of ghosts cells used for each variable quantity.
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.

@@ -63,7 +63,7 @@
 #include "tbox/Utilities.h"
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
-#if HAVE_LIBSILO
+#if defined(IBTK_HAVE_SILO)
 #include "silo.h"
 #endif
 
@@ -91,7 +91,7 @@ static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 // Version of LSiloDataWriter restart file data.
 static const int LAG_SILO_DATA_WRITER_VERSION = 1;
 
-#if HAVE_LIBSILO
+#if defined(IBTK_HAVE_SILO)
 /*!
  * \brief Build a local mesh database entry corresponding to a cloud of marker
  * points.
@@ -581,7 +581,7 @@ build_local_ucd_mesh(
     }
     return;
 }// build_local_ucd_mesh
-#endif //if HAVE_LIBSILO
+#endif //if defined(IBTK_HAVE_SILO)
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -629,7 +629,7 @@ LSiloDataWriter::LSiloDataWriter(
       d_dst_vec(d_finest_ln+1),
       d_vec_scatter(d_finest_ln+1)
 {
-#if HAVE_LIBSILO
+#if defined(IBTK_HAVE_SILO)
     // intentionally blank
 #else
     TBOX_WARNING("LSiloDataWriter::LSiloDataWriter(): SILO is not installed; cannot write data." << std::endl);
@@ -1189,7 +1189,7 @@ LSiloDataWriter::writePlotData(
     const int time_step_number,
     const double simulation_time)
 {
-#if HAVE_LIBSILO
+#if defined(IBTK_HAVE_SILO)
 #if !defined(NDEBUG)
     TBOX_ASSERT(time_step_number >= 0);
     TBOX_ASSERT(!d_dump_directory_name.empty());
@@ -1972,7 +1972,7 @@ LSiloDataWriter::writePlotData(
     SAMRAI_MPI::barrier();
 #else
     TBOX_WARNING("LSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);
-#endif //if HAVE_LIBSILO
+#endif //if defined(IBTK_HAVE_SILO)
     return;
 }// writePlotData
 

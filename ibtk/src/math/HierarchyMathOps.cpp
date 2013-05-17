@@ -80,10 +80,10 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define S_TO_C_INTERP_SPECIAL_FC FC_FUNC(stocinterp2ndspecial2d,STOCINTERP2NDSPECIAL2D)
+#define S_TO_C_INTERP_SPECIAL_FC IBTK_FC_FUNC(stocinterp2ndspecial2d,STOCINTERP2NDSPECIAL2D)
 #endif
 #if (NDIM == 3)
-#define S_TO_C_INTERP_SPECIAL_FC FC_FUNC(stocinterp2ndspecial3d,STOCINTERP2NDSPECIAL3D)
+#define S_TO_C_INTERP_SPECIAL_FC IBTK_FC_FUNC(stocinterp2ndspecial3d,STOCINTERP2NDSPECIAL3D)
 #endif
 
 // Function interfaces

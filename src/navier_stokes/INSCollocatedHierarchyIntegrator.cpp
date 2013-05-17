@@ -100,17 +100,17 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
-#define NAVIER_STOKES_ADV_SOURCE_FC FC_FUNC_(navier_stokes_adv_source2d, NAVIER_STOKES_ADV_SOURCE2D)
-#define NAVIER_STOKES_CONS_SOURCE_FC FC_FUNC_(navier_stokes_cons_source2d, NAVIER_STOKES_CONS_SOURCE2D)
-#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_skew_sym_source2d, NAVIER_STOKES_SKEW_SYM_SOURCE2D)
+#define ADVECT_STABLEDT_FC IBAMR_FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
+#define NAVIER_STOKES_ADV_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_adv_source2d, NAVIER_STOKES_ADV_SOURCE2D)
+#define NAVIER_STOKES_CONS_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_cons_source2d, NAVIER_STOKES_CONS_SOURCE2D)
+#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_skew_sym_source2d, NAVIER_STOKES_SKEW_SYM_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
-#define NAVIER_STOKES_ADV_SOURCE_FC FC_FUNC_(navier_stokes_adv_source3d, NAVIER_STOKES_ADV_SOURCE3D)
-#define NAVIER_STOKES_CONS_SOURCE_FC FC_FUNC_(navier_stokes_cons_source3d, NAVIER_STOKES_CONS_SOURCE3D)
-#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_skew_sym_source3d, NAVIER_STOKES_SKEW_SYM_SOURCE3D)
+#define ADVECT_STABLEDT_FC IBAMR_FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
+#define NAVIER_STOKES_ADV_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_adv_source3d, NAVIER_STOKES_ADV_SOURCE3D)
+#define NAVIER_STOKES_CONS_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_cons_source3d, NAVIER_STOKES_CONS_SOURCE3D)
+#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC IBAMR_FC_FUNC_(navier_stokes_skew_sym_source3d, NAVIER_STOKES_SKEW_SYM_SOURCE3D)
 #endif
 
 extern "C"
@@ -198,8 +198,8 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
+static const int FACEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.

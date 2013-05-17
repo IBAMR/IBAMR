@@ -60,12 +60,12 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation2d,CCQUADTANGENTIALINTERPOLATION2D)
-#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(ccquadnormalinterpolation2d,CCQUADNORMALINTERPOLATION2D)
+#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadtangentialinterpolation2d,CCQUADTANGENTIALINTERPOLATION2D)
+#define CC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadnormalinterpolation2d,CCQUADNORMALINTERPOLATION2D)
 #endif
 #if (NDIM == 3)
-#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation3d,CCQUADTANGENTIALINTERPOLATION3D)
-#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(ccquadnormalinterpolation3d,CCQUADNORMALINTERPOLATION3D)
+#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadtangentialinterpolation3d,CCQUADTANGENTIALINTERPOLATION3D)
+#define CC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadnormalinterpolation3d,CCQUADNORMALINTERPOLATION3D)
 #endif
 
 // Function interfaces
@@ -121,8 +121,8 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int GHOST_WIDTH_TO_FILL     = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
+static const int GHOST_WIDTH_TO_FILL     = 1;
 
 inline int
 coarsen(
@@ -286,16 +286,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
         TBOX_ASSERT(&fine == fine_level->getPatch(patch_num).getPointer());
     }
 #endif
-
-    // Use the appropriate version of the coarse-fine interpolation code.
-    if (USING_EXPENSIVE_CF_INTERPOLATION)
-    {
-        postprocessRefine_expensive(fine, coarse, ratio);
-    }
-    else
-    {
-        postprocessRefine_optimized(fine, coarse, ratio);
-    }
+    postprocessRefine_optimized(fine, coarse, ratio);
     return;
 }// postprocessRefine
 
@@ -401,7 +392,7 @@ void
 CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     Patch<NDIM>& patch,
     const IntVector<NDIM>& ratio,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -422,16 +413,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
         TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
     }
 #endif
-
-    // Use the appropriate version of the coarse-fine interpolation code.
-    if (USING_EXPENSIVE_CF_INTERPOLATION)
-    {
-        computeNormalExtension_expensive(patch, ratio, ghost_width_to_fill);
-    }
-    else
-    {
-        computeNormalExtension_optimized(patch, ratio);
-    }
+    computeNormalExtension_optimized(patch, ratio);
     return;
 }// computeNormalExtension
 

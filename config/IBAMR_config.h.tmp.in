@@ -1,8 +1,4 @@
-/* config/IBTK_config.h.in.  Generated from configure.ac by autoheader.  */
-
-/* Define to dummy `main' function (if any) required to link to the Fortran
-   libraries. */
-#undef F77_DUMMY_MAIN
+/* config/IBAMR_config.h.tmp.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -17,9 +13,6 @@
 
 /* As FC_FUNC, but for C identifiers containing underscores. */
 #undef FC_FUNC_
-
-/* Define if you have a BLAS library. */
-#undef HAVE_BLAS
 
 /* Defined if the requested minimum BOOST version is satisfied */
 #undef HAVE_BOOST
@@ -41,50 +34,17 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have LAPACK library. */
-#undef HAVE_LAPACK
-
-/* Define if you have the libexodusii library. */
-#undef HAVE_LIBEXODUSII
-
-/* Define if you have the libGK library. */
-#undef HAVE_LIBGK
-
-/* Define if you have the libgmv library. */
-#undef HAVE_LIBGMV
-
-/* Define if you have the libgzstream library. */
-#undef HAVE_LIBGZSTREAM
-
 /* Define if you have the libhdf5 library. */
 #undef HAVE_LIBHDF5
 
 /* Define if you have the libhdf5_hl library. */
 #undef HAVE_LIBHDF5_HL
 
-/* Define if you have the libHilbert library. */
-#undef HAVE_LIBHILBERT
-
 /* Define if you have the libHYPRE library. */
 #undef HAVE_LIBHYPRE
 
-/* Define if you have the liblaspack library. */
-#undef HAVE_LIBLASPACK
-
-/* Define if you have the libmesh library. */
-#undef HAVE_LIBMESH
-
-/* Define if you have the libmetis library. */
-#undef HAVE_LIBMETIS
-
-/* Define if you have the libnemesis library. */
-#undef HAVE_LIBNEMESIS
-
-/* Define if you have the libnetcdf library. */
-#undef HAVE_LIBNETCDF
-
-/* Define if you have the libparmetis library. */
-#undef HAVE_LIBPARMETIS
+/* Define if you have the libmuParser library. */
+#undef HAVE_LIBMUPARSER
 
 /* Define if you have the libpetsc library. */
 #undef HAVE_LIBPETSC
@@ -146,26 +106,11 @@
 /* Define if you have the libSAMRAI3d_xfer library. */
 #undef HAVE_LIBSAMRAI3D_XFER
 
-/* Define if you have the libsfcurves library. */
-#undef HAVE_LIBSFCURVES
-
 /* Define if you have the libsilo library. */
 #undef HAVE_LIBSILO
 
 /* Define if you have the libsiloh5 library. */
 #undef HAVE_LIBSILOH5
-
-/* Define if you have the libtetgen library. */
-#undef HAVE_LIBTETGEN
-
-/* Define if you have the libtriangle library. */
-#undef HAVE_LIBTRIANGLE
-
-/* Define if you have the libvtk library. */
-#undef HAVE_LIBVTK
-
-/* Define if you have the libX11 library. */
-#undef HAVE_LIBX11
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -173,17 +118,14 @@
 /* Define if you have the MPI library. */
 #undef HAVE_MPI
 
-/* define if the compiler implements namespaces */
-#undef HAVE_NAMESPACES
+/* Define if you have the silo library. */
+#undef HAVE_SILO
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
-
-/* define if the compiler supports Standard Template Library */
-#undef HAVE_STL
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -231,13 +173,6 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
-
-/* Boolean value indicating whether we are using the expensive version of the
-   quadratic coarse-fine interface code */
-#undef USING_EXPENSIVE_CF_INTERPOLATION
-
-/* Boolean value indicating whether we are using large ghost cell widths */
-#undef USING_LARGE_GHOST_CELL_WIDTH
 
 /* Version number of package */
 #undef VERSION

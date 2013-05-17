@@ -66,7 +66,7 @@ const std::string CartCellDoubleQuadraticRefine::s_op_name = "QUADRATIC_REFINE";
 namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 inline int
 coarsen(
