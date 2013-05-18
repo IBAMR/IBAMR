@@ -16,11 +16,9 @@ AC_ARG_WITH([eigen],
    fi])
 USING_BUNDLED_EIGEN=no
 echo "first check for a system Eigen library; if not found, revert to bundled Eigen library"
-$as_unset ac_cv_header_Eigen_Eigen
 CHECK_EIGEN($EIGEN_DIR)
 if test "$HAVE_EIGEN" = no ; then
   AC_MSG_NOTICE([could not find system Eigen library, using bundled Eigen library])
-  $as_unset ac_cv_header_Eigen_Eigen
   EIGEN_DIR=$CONTRIB_SRCDIR
   CHECK_EIGEN($EIGEN_DIR)
   if test "$HAVE_EIGEN" = no ; then
@@ -48,6 +46,7 @@ if test x$CHECK_EIGEN_DIR != x ; then
   fi
 fi
 CPPFLAGS_PREPEND($CHECK_EIGEN_CPPFLAGS)
+$as_unset ac_cv_header_Eigen_Eigen
 AC_CHECK_HEADER([Eigen/Eigen],HAVE_EIGEN=yes,HAVE_EIGEN=no)
 PACKAGE_RESTORE_ENVIRONMENT
 ])

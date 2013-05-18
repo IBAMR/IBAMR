@@ -36,16 +36,13 @@ AX_PROG_CC_MPI		# Check for an MPI C compiler wrapper and use it as the default 
 AX_PROG_CXX_MPI		# Check for an MPI C++ compiler wrapper and use it as the default C++ compiler.
 AC_HEADER_MAJOR
 AC_HEADER_STDC
-AC_PROG_RANLIB
-AM_PROG_AR
+AM_PROG_LIBTOOL
 AC_ARG_WITH([M4],
   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
 AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
 if test -z "$M4" ; then
   AC_MSG_ERROR([m4 preprocessor not found, specify via --with-M4=ARG])
 fi
-AC_LIB_PREPARE_PREFIX
-AC_LIB_RPATH
 AC_PROG_GREP
 AC_PROG_SED
 CHECK_BUILTIN_EXPECT
