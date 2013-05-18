@@ -2,7 +2,7 @@
 # Prelude.
 ###########################################################################
 AC_INIT([IBAMR],[101029],[griffith@cims.nyu.edu],[IBAMR],[https://ibamr.googlecode.com])
-AC_PREREQ([2.68])
+AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBAMR_config.h.tmp])
@@ -36,7 +36,7 @@ AX_PROG_CC_MPI		# Check for an MPI C compiler wrapper and use it as the default 
 AX_PROG_CXX_MPI		# Check for an MPI C++ compiler wrapper and use it as the default C++ compiler.
 AC_HEADER_MAJOR
 AC_HEADER_STDC
-AM_PROG_LIBTOOL
+LT_INIT
 AC_ARG_WITH([M4],
   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
 AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
