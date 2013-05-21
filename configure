@@ -1637,7 +1637,7 @@ Optional Packages:
   --with-libmesh-method=METHOD
                           libMesh compile mode options include opt, devel,
                           dbg, prof, oprof [default=opt]
-  --with-gnu-ld           assume the C compiler uses GNU ld default=no
+  --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-boost=DIR        location of required Boost installation
   --with-eigen=PATH       location of required Eigen installation
   --with-hdf5=PATH        location of required hdf5 installation
@@ -21309,12 +21309,14 @@ $as_echo_n "checking if the linker ($LD) is GNU ld... " >&6; }
 if ${acl_cv_prog_gnu_ld+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  # I'd rather use --version here, but apparently some GNU ld's only accept -v.
+  # I'd rather use --version here, but apparently some GNU lds only accept -v.
 case `$LD -v 2>&1 </dev/null` in
 *GNU* | *'with BFD'*)
-  acl_cv_prog_gnu_ld=yes ;;
+  acl_cv_prog_gnu_ld=yes
+  ;;
 *)
-  acl_cv_prog_gnu_ld=no ;;
+  acl_cv_prog_gnu_ld=no
+  ;;
 esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $acl_cv_prog_gnu_ld" >&5
@@ -21762,6 +21764,7 @@ PACKAGE_CONTRIB_LIBS=""
   prefix="$acl_save_prefix"
 
 
+
 # Check whether --with-gnu-ld was given.
 if test "${with_gnu_ld+set}" = set; then :
   withval=$with_gnu_ld; test "$withval" = no || with_gnu_ld=yes
@@ -21772,21 +21775,21 @@ fi
 # Prepare PATH_SEPARATOR.
 # The user is always right.
 if test "${PATH_SEPARATOR+set}" != set; then
-  echo "#! /bin/sh" >conf$$.sh
-  echo  "exit 0"   >>conf$$.sh
-  chmod +x conf$$.sh
-  if (PATH="/nonexistent;."; conf$$.sh) >/dev/null 2>&1; then
-    PATH_SEPARATOR=';'
-  else
-    PATH_SEPARATOR=:
-  fi
-  rm -f conf$$.sh
+  # Determine PATH_SEPARATOR by trying to find /bin/sh in a PATH which
+  # contains only /bin. Note that ksh looks also at the FPATH variable,
+  # so we have to set that as well for the test.
+  PATH_SEPARATOR=:
+  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 \
+    && { (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 \
+           || PATH_SEPARATOR=';'
+       }
 fi
+
 ac_prog=ld
 if test "$GCC" = yes; then
   # Check if gcc -print-prog-name=ld gives a path.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld used by GCC" >&5
-$as_echo_n "checking for ld used by GCC... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ld used by $CC" >&5
+$as_echo_n "checking for ld used by $CC... " >&6; }
   case $host in
   *-*-mingw*)
     # gcc leaves a trailing carriage return which upsets mingw
@@ -21796,11 +21799,11 @@ $as_echo_n "checking for ld used by GCC... " >&6; }
   esac
   case $ac_prog in
     # Accept absolute paths.
-    [\\/]* | [A-Za-z]:[\\/]*)
+    [\\/]* | ?:[\\/]*)
       re_direlt='/[^/][^/]*/\.\./'
-      # Canonicalize the path of ld
-      ac_prog=`echo $ac_prog| sed 's%\\\\%/%g'`
-      while echo $ac_prog | grep "$re_direlt" > /dev/null 2>&1; do
+      # Canonicalize the pathname of ld
+      ac_prog=`echo "$ac_prog"| sed 's%\\\\%/%g'`
+      while echo "$ac_prog" | grep "$re_direlt" > /dev/null 2>&1; do
         ac_prog=`echo $ac_prog| sed "s%$re_direlt%/%"`
       done
       test -z "$LD" && LD="$ac_prog"
@@ -21825,23 +21828,26 @@ if ${acl_cv_path_LD+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   if test -z "$LD"; then
-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:}"
+  acl_save_ifs="$IFS"; IFS=$PATH_SEPARATOR
   for ac_dir in $PATH; do
+    IFS="$acl_save_ifs"
     test -z "$ac_dir" && ac_dir=.
     if test -f "$ac_dir/$ac_prog" || test -f "$ac_dir/$ac_prog$ac_exeext"; then
       acl_cv_path_LD="$ac_dir/$ac_prog"
       # Check to see if the program is GNU ld.  I'd rather use --version,
-      # but apparently some GNU ld's only accept -v.
+      # but apparently some variants of GNU ld only accept -v.
       # Break only if it was the GNU/non-GNU ld that we prefer.
-      case `"$acl_cv_path_LD" -v 2>&1 < /dev/null` in
+      case `"$acl_cv_path_LD" -v 2>&1 </dev/null` in
       *GNU* | *'with BFD'*)
-        test "$with_gnu_ld" != no && break ;;
+        test "$with_gnu_ld" != no && break
+        ;;
       *)
-        test "$with_gnu_ld" != yes && break ;;
+        test "$with_gnu_ld" != yes && break
+        ;;
       esac
     fi
   done
-  IFS="$ac_save_ifs"
+  IFS="$acl_save_ifs"
 else
   acl_cv_path_LD="$LD" # Let the user override the test with a path.
 fi
@@ -21861,12 +21867,14 @@ $as_echo_n "checking if the linker ($LD) is GNU ld... " >&6; }
 if ${acl_cv_prog_gnu_ld+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  # I'd rather use --version here, but apparently some GNU ld's only accept -v.
+  # I'd rather use --version here, but apparently some GNU lds only accept -v.
 case `$LD -v 2>&1 </dev/null` in
 *GNU* | *'with BFD'*)
-  acl_cv_prog_gnu_ld=yes ;;
+  acl_cv_prog_gnu_ld=yes
+  ;;
 *)
-  acl_cv_prog_gnu_ld=no ;;
+  acl_cv_prog_gnu_ld=no
+  ;;
 esac
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $acl_cv_prog_gnu_ld" >&5
@@ -25663,43 +25671,31 @@ if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; t
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hdf5; using PETSc hdf5 library" >&5
 $as_echo "$as_me: PETSc appears to provide hdf5; using PETSc hdf5 library" >&6;}
   PETSC_BUNDLES_HDF5=yes
-  PETSC_HDF5_DIR="${PETSC_DIR}/${PETSC_ARCH}"
-  HDF5_DIR=$PETSC_HDF5_DIR
 else
   PETSC_BUNDLES_HDF5=no
-fi
 
 
 # Check whether --with-hdf5 was given.
 if test "${with_hdf5+set}" = set; then :
-  withval=$with_hdf5; if test "$PETSC_BUNDLES_HDF5" = yes ; then
-     if test `echo "${withval}" | sed -e "s/\/*$//"` = "$PETSC_HDF5_DIR"; then
-       { $as_echo "$as_me:${as_lineno-$LINENO}: specified hdf5 installation appears to correspond to the hdf5 library provided by PETSc" >&5
-$as_echo "$as_me: specified hdf5 installation appears to correspond to the hdf5 library provided by PETSc" >&6;}
-     else
-       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using PETSc hdf5 library instead of hdf5 installation in PATH=$withval" >&5
-$as_echo "$as_me: WARNING: using PETSc hdf5 library instead of hdf5 installation in PATH=$withval" >&2;}
+  withval=$with_hdf5; if test ! -d "$withval" ; then
+       as_fn_error $? "it is necessary to specify an existing directory when using --with-hdf5=PATH" "$LINENO" 5
      fi
-   elif test ! -d "$withval" ; then
-     as_fn_error $? "it is necessary to specify an existing directory when using --with-hdf5=PATH" "$LINENO" 5
-   else
      HDF5_DIR=$withval
-   fi
 fi
 
 
-if test x$HDF5_DIR != x ; then
-  if test -d "${HDF5_DIR}/include" ; then
-    HDF5_CPPFLAGS="-I${HDF5_DIR}/include"
+  if test x$HDF5_DIR != x ; then
+    if test -d "${HDF5_DIR}/include" ; then
+      HDF5_CPPFLAGS="-I${HDF5_DIR}/include"
+    fi
+    if test -d "${HDF5_DIR}/lib" ; then
+      HDF5_LDFLAGS="-L${HDF5_DIR}/lib"
+    fi
   fi
-  if test -d "${HDF5_DIR}/lib" ; then
-    HDF5_LDFLAGS="-L${HDF5_DIR}/lib"
-  fi
-fi
 
-CPPFLAGS="$HDF5_CPPFLAGS $CPPFLAGS"
+  CPPFLAGS="$HDF5_CPPFLAGS $CPPFLAGS"
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+  ac_fn_cxx_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
 if test "x$ac_cv_header_hdf5_h" = xyes; then :
 
 else
@@ -25708,7 +25704,7 @@ fi
 
 
 
-LDFLAGS="$HDF5_LDFLAGS $LDFLAGS"
+  LDFLAGS="$HDF5_LDFLAGS $LDFLAGS"
 
 
 
@@ -26258,11 +26254,11 @@ $as_echo "$LIBHDF5" >&6; }
 
 
 
-if test "$HAVE_LIBHDF5" = no ; then
-  as_fn_error $? "could not find working libhdf5" "$LINENO" 5
-fi
+  if test "$HAVE_LIBHDF5" = no ; then
+    as_fn_error $? "could not find working libhdf5" "$LINENO" 5
+  fi
 
-LIBS="$LIBHDF5 $LIBS"
+  LIBS="$LIBHDF5 $LIBS"
 
 
 
@@ -26813,7 +26809,6 @@ $as_echo "$LIBHDF5_HL" >&6; }
 
 
 
-if test "$PETSC_BUNDLES_HDF5" = no ; then
   PACKAGE_CPPFLAGS="$HDF5_CPPFLAGS $PACKAGE_CPPFLAGS"
 
   PACKAGE_LDFLAGS="$HDF5_LDFLAGS $PACKAGE_LDFLAGS"
@@ -26867,43 +26862,31 @@ if test `grep -c HYPRE "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; 
   { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hypre; using PETSc hypre library" >&5
 $as_echo "$as_me: PETSc appears to provide hypre; using PETSc hypre library" >&6;}
   PETSC_BUNDLES_HYPRE=yes
-  PETSC_HYPRE_DIR="${PETSC_DIR}/${PETSC_ARCH}"
-  HYPRE_DIR=$PETSC_HYPRE_DIR
 else
   PETSC_BUNDLES_HYPRE=no
-fi
 
 
 # Check whether --with-hypre was given.
 if test "${with_hypre+set}" = set; then :
-  withval=$with_hypre; if test "$PETSC_BUNDLES_HYPRE" = yes ; then
-     if test `echo "${withval}" | sed -e "s/\/*$//"` = "$PETSC_HYPRE_DIR"; then
-       { $as_echo "$as_me:${as_lineno-$LINENO}: specified hypre installation appears to correspond to the hypre library provided by PETSc" >&5
-$as_echo "$as_me: specified hypre installation appears to correspond to the hypre library provided by PETSc" >&6;}
-     else
-       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using PETSc hypre library instead of hypre installation in PATH=$withval" >&5
-$as_echo "$as_me: WARNING: using PETSc hypre library instead of hypre installation in PATH=$withval" >&2;}
+  withval=$with_hypre; if test ! -d "$withval" ; then
+       as_fn_error $? "it is necessary to specify an existing directory when using --with-hypre=PATH" "$LINENO" 5
      fi
-   elif test ! -d "$withval" ; then
-     as_fn_error $? "it is necessary to specify an existing directory when using --with-hypre=PATH" "$LINENO" 5
-   else
      HYPRE_DIR=$withval
-   fi
 fi
 
 
-if test x$HYPRE_DIR != x ; then
-  if test -d "${HYPRE_DIR}/include" ; then
-    HYPRE_CPPFLAGS="-I${HYPRE_DIR}/include"
+  if test x$HYPRE_DIR != x ; then
+    if test -d "${HYPRE_DIR}/include" ; then
+      HYPRE_CPPFLAGS="-I${HYPRE_DIR}/include"
+    fi
+    if test -d "${HYPRE_DIR}/lib" ; then
+      HYPRE_LDFLAGS="-L${HYPRE_DIR}/lib"
+    fi
   fi
-  if test -d "${HYPRE_DIR}/lib" ; then
-    HYPRE_LDFLAGS="-L${HYPRE_DIR}/lib"
-  fi
-fi
 
-CPPFLAGS="$HYPRE_CPPFLAGS $CPPFLAGS"
+  CPPFLAGS="$HYPRE_CPPFLAGS $CPPFLAGS"
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "hypre.h" "ac_cv_header_hypre_h" "$ac_includes_default"
+  ac_fn_cxx_check_header_mongrel "$LINENO" "hypre.h" "ac_cv_header_hypre_h" "$ac_includes_default"
 if test "x$ac_cv_header_hypre_h" = xyes; then :
 
 else
@@ -26912,7 +26895,7 @@ fi
 
 
 
-LDFLAGS="$HYPRE_LDFLAGS $LDFLAGS"
+  LDFLAGS="$HYPRE_LDFLAGS $LDFLAGS"
 
 
 
@@ -27462,11 +27445,10 @@ $as_echo "$LIBHYPRE" >&6; }
 
 
 
-if test "$HAVE_LIBHYPRE" = no ; then
-  as_fn_error $? "could not find working libHYPRE" "$LINENO" 5
-fi
+  if test "$HAVE_LIBHYPRE" = no ; then
+    as_fn_error $? "could not find working libHYPRE" "$LINENO" 5
+  fi
 
-if test "$PETSC_BUNDLES_HYPRE" = no ; then
   PACKAGE_CPPFLAGS="$HYPRE_CPPFLAGS $PACKAGE_CPPFLAGS"
 
   PACKAGE_LDFLAGS="$HYPRE_LDFLAGS $PACKAGE_LDFLAGS"
