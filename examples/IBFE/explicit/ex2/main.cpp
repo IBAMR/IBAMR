@@ -179,17 +179,17 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
+                    BoundaryInfo* boundary_info = mesh.boundary_info.get();
 #if (NDIM == 2)
-                    if (boundary_id == 0 || boundary_id == 2)
+                    if (boundary_info->has_boundary_id(elem,side,0) || boundary_info->has_boundary_id(elem,side,2))
                     {
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
 #endif
 #if (NDIM == 3)
-                    if (!(boundary_id == 2 || boundary_id == 4))
+                    if (!(boundary_info->has_boundary_id(elem,side,2) || boundary_info->has_boundary_id(elem,side,4)))
                     {
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
                     }
 #endif
                 }

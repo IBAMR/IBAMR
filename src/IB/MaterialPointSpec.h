@@ -35,8 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-
 #include <unistd.h>
 #include <vector>
 

@@ -37,6 +37,7 @@ AX_PROG_CXX_MPI		# Check for an MPI C++ compiler wrapper and use it as the defau
 AC_HEADER_MAJOR
 AC_HEADER_STDC
 LT_INIT
+AC_LIB_PROG_LD_GNU
 AC_ARG_WITH([M4],
   AS_HELP_STRING([--with-M4=ARG],[manually set M4 to ARG]))
 AC_CHECK_PROGS(M4, $with_M4 gm4 m4,,)
@@ -54,6 +55,7 @@ CONFIGURE_DOT
 # Checks for optional and required third-party libraries.
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
+CONFIGURE_LIBMESH # must configure libMesh first to scope its configuration
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\${top_builddir}/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\${top_builddir}/ibtk/contrib/eigen")
 CONFIGURE_HDF5
@@ -62,7 +64,6 @@ CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\${top_builddir}/ib
 CONFIGURE_PETSC
 CONFIGURE_SAMRAI
 CONFIGURE_SILO
-AM_CONDITIONAL([LIBMESH_ENABLED],[false])
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 

@@ -227,10 +227,10 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = lower_mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id == 1 || boundary_id == 3)
+                    BoundaryInfo* boundary_info = lower_mesh.boundary_info.get();
+                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
                     {
-                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -252,10 +252,10 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = upper_mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id == 1 || boundary_id == 3)
+                    BoundaryInfo* boundary_info = upper_mesh.boundary_info.get();
+                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
                     {
-                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }

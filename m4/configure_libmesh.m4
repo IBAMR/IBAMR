@@ -1,278 +1,163 @@
+# -------------------------------------------------------------
+# -------------------------------------------------------------
 AC_DEFUN([CONFIGURE_LIBMESH],[
+echo
+echo "===================================="
+echo "Configuring optional package libMesh"
+echo "===================================="
+
+PACKAGE_SETUP_ENVIRONMENT
 
 AC_ARG_ENABLE([libmesh],
-  AS_HELP_STRING(--enable-libmesh,enable support for the optional libMesh library @<:@default=no@:>@),
-  [LIBMESH_ENABLED=$enableval], [LIBMESH_ENABLED=no])
-if test "$LIBMESH_ENABLED" = "" ; then
-  LIBMESH_ENABLED=no
-fi
+  AS_HELP_STRING(--enable-libmesh,enable support for the optional libMesh library @<:@default=yes@:>@),
+                 [case "$enableval" in
+                    yes)  LIBMESH_ENABLED=yes ;;
+                    no)   LIBMESH_ENABLED=no ;;
+                    *)    AC_MSG_ERROR(--enable-libmesh=$enableval is invalid; choices are "yes" and "no") ;;
+                  esac],[LIBMESH_ENABLED=yes])
+
+AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" = yes])
 
 AC_ARG_WITH([libmesh],
-  AS_HELP_STRING([--with-libmesh=PATH],[location of optional libMesh installation @<:@default=/usr/local/sfw/libmesh/current@:>@]),
+  AS_HELP_STRING(--with-libmesh=PATH,location of optional libMesh installation),
   [if test "$LIBMESH_ENABLED" = no ; then
-     AC_MSG_WARN([--with-libmesh is specified, but support for libMesh is DISABLED])
-     LIBMESH_DIR=NONE
+     AC_MSG_WARN([--with-libmesh is specified, but support for libMesh is disabled])
    else
      if test ! -d "$withval" ; then
-       AC_MSG_ERROR([you must specify an existing directory when using --with-libmesh=PATH])
+       AC_MSG_ERROR([it is necessary to specify an existing directory when using --with-libmesh=PATH])
      fi
      LIBMESH_DIR=$withval
-   fi],
-  [LIBMESH_DIR=/usr/local/sfw/libmesh/current])
+   fi])
 
-AC_ARG_WITH([libmesh-compile-mode],
-  AS_HELP_STRING([--with-libmesh-compile-mode=METHOD],[libMesh compile mode options include opt, devel, dbg, prof, oprof @<:@default=dbg@:>@]),
+AC_ARG_WITH([libmesh-method],
+  AS_HELP_STRING([--with-libmesh-method=METHOD],[libMesh compile mode options include opt, devel, dbg, prof, oprof @<:@default=opt@:>@]),
   [if test "$LIBMESH_ENABLED" = no ; then
-     AC_MSG_WARN([--with-libmesh-compile-mode is specified, but support for libMesh is DISABLED])
-     LIBMESH_COMPILE_MODE=NONE
-   else
-     LIBMESH_COMPILE_MODE=$withval
-   fi],
-  [LIBMESH_COMPILE_MODE=dbg])
+     AC_MSG_WARN([--with-libmesh-method is specified, but support for libMesh is disabled])
+     LIBMESH_METHOD=NONE
+   fi
+   LIBMESH_METHOD=$withval],
+  [LIBMESH_METHOD=opt])
 
+if test "$LIBMESH_ENABLED" = yes; then
+  if test x$LIBMESH_DIR != x ; then
+    if test -d "${LIBMESH_DIR}/include" ; then
+      LIBMESH_CPPFLAGS="-I${LIBMESH_DIR}/include"
+    fi
+    if test -d "${LIBMESH_DIR}/lib" ; then
+      LIBMESH_LDFLAGS="-L${LIBMESH_DIR}/lib"
+    fi
+    if test -d "${LIBMESH_DIR}/bin" ; then
+      LIBMESH_BIN="${LIBMESH_DIR}/bin"
+    fi
+  fi
 
-LIBMESH_HOSTTYPE=`grep "hosttype[ \t]*.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-LIBMESH_LIBDIR=${LIBMESH_DIR}/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
-LIBMESH_CONTRIBDIR=${LIBMESH_DIR}/contrib
-LIBMESH_CONTRIB_LIBDIR=${LIBMESH_DIR}/contrib/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
+  METHOD=$LIBMESH_METHOD
+  CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
+  AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh.h]))
+  AC_CHECK_HEADER([libmesh/libmesh_config.h],,AC_MSG_ERROR([libMesh enabled but could not find working libmesh_config.h]))
+  AC_MSG_NOTICE([obtaining libMesh configuration information from libmesh_common.h])
+  AC_RUN_IFELSE([AC_LANG_SOURCE([
+#include "libmesh/libmesh_config.h"
+#include <iostream>
+#define STRINGIFY(str) #str
+#define EXPAND_AND_STRINGIFY(str) STRINGIFY(str)
+int main()
+{
+   std::cout << EXPAND_AND_STRINGIFY(LIBMESH_CONFIGURE_INFO) << std::endl;
+   return 0;
+}
+])],[
+  LIBMESH_CONFIGURE_INFO=`./conftest$EXEEXT | sed -e 's/^"//' -e 's/"$//'`
+  for elem in $LIBMESH_CONFIGURE_INFO ; do
+    if test `echo $elem | grep -c "PETSC_DIR="` != 0 ; then
+      temp="${elem%\'}"
+      elem_strip="${temp#\'}"
+      LIBMESH_PETSC_DIR=`echo $elem_strip | sed -e 's/.*=//' -e 's/^[ \t]*//'`
+    elif test `echo $elem | grep -c "PETSC_ARCH="` != 0 ; then
+      temp="${elem%\'}"
+      elem_strip="${temp#\'}"
+      LIBMESH_PETSC_ARCH=`echo $elem_strip | sed -e 's/.*=//' -e 's/^[ \t]*//'`
+    fi
+  done
+  if test "$PETSC_DIR" != "$LIBMESH_PETSC_DIR" ; then
+    AC_MSG_NOTICE([using libMesh PETSC_DIR=${LIBMESH_PETSC_DIR} instead of PETSC_DIR=${PETSC_DIR}])
+    PETSC_DIR=$LIBMESH_PETSC_DIR
+  fi
+  if test "$PETSC_ARCH" != "$LIBMESH_PETSC_ARCH" ; then
+    AC_MSG_NOTICE([using libMesh PETSC_ARCH=${LIBMESH_PETSC_ARCH} instead of PETSC_ARCH=${PETSC_ARCH}])
+    PETSC_ARCH=$LIBMESH_PETSC_ARCH
+  fi
+  ],[
+  AC_MSG_ERROR([could not execute program to examine settings in libmesh_config.h])])
 
-if test "${LIBMESH_COMPILE_MODE}" = "opt" ; then
-  CPPFLAGS="${CPPFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//' | sed -e 's/.*libmesh_CPPFLAGS :=//' | sed -e 's/$(libmesh_CPPFLAGS)//'`"
-  CXXFLAGS="${CXXFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//' | sed -e 's/.*libmesh_CXXFLAGS :=//' | sed -e 's/$(libmesh_CXXFLAGS)//'`"
-  CFLAGS="${CFLAGS}     `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS   | sed -e 's/.*libmesh_CFLAGS   +=//' | sed -e 's/.*libmesh_CFLAGS   :=//' | sed -e 's/$(libmesh_CFLAGS)//'  `"
-fi
-if test "${LIBMESH_COMPILE_MODE}" = "devel" ; then
-  CPPFLAGS="${CPPFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//' | sed -e 's/.*libmesh_CPPFLAGS :=//' | sed -e 's/$(libmesh_CPPFLAGS)//'`"
-  CXXFLAGS="${CXXFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//' | sed -e 's/.*libmesh_CXXFLAGS :=//' | sed -e 's/$(libmesh_CXXFLAGS)//'`"
-  CFLAGS="${CFLAGS}     `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS   | sed -e 's/.*libmesh_CFLAGS   +=//' | sed -e 's/.*libmesh_CFLAGS   :=//' | sed -e 's/$(libmesh_CFLAGS)//'  `"
-fi
-if test "${LIBMESH_COMPILE_MODE}" = "dbg" ; then
-  CPPFLAGS="${CPPFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//' | sed -e 's/.*libmesh_CPPFLAGS :=//' | sed -e 's/$(libmesh_CPPFLAGS)//'`"
-  CXXFLAGS="${CXXFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//' | sed -e 's/.*libmesh_CXXFLAGS :=//' | sed -e 's/$(libmesh_CXXFLAGS)//'`"
-  CFLAGS="${CFLAGS}     `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS   | sed -e 's/.*libmesh_CFLAGS   +=//' | sed -e 's/.*libmesh_CFLAGS   :=//' | sed -e 's/$(libmesh_CFLAGS)//'  `"
-fi
-if test "${LIBMESH_COMPILE_MODE}" = "prof" ; then
-  CPPFLAGS="${CPPFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//' | sed -e 's/.*libmesh_CPPFLAGS :=//' | sed -e 's/$(libmesh_CPPFLAGS)//'`"
-  CXXFLAGS="${CXXFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//' | sed -e 's/.*libmesh_CXXFLAGS :=//' | sed -e 's/$(libmesh_CXXFLAGS)//'`"
-  CFLAGS="${CFLAGS}     `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS   | sed -e 's/.*libmesh_CFLAGS   +=//' | sed -e 's/.*libmesh_CFLAGS   :=//' | sed -e 's/$(libmesh_CFLAGS)//'  `"
-fi
-if test "${LIBMESH_COMPILE_MODE}" = "oprof" ; then
-  CPPFLAGS="${CPPFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//' | sed -e 's/.*libmesh_CPPFLAGS :=//' | sed -e 's/$(libmesh_CPPFLAGS)//'`"
-  CXXFLAGS="${CXXFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//' | sed -e 's/.*libmesh_CXXFLAGS :=//' | sed -e 's/$(libmesh_CXXFLAGS)//'`"
-  CFLAGS="${CFLAGS}     `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS   | sed -e 's/.*libmesh_CFLAGS   +=//' | sed -e 's/.*libmesh_CFLAGS   :=//' | sed -e 's/$(libmesh_CFLAGS)//'  `"
-fi
+  LDFLAGS_PREPEND($LIBMESH_LDFLAGS)
+  case "$METHOD" in
+    opt)
+      AC_LIB_HAVE_LINKFLAGS([mesh_opt])
+      if test "$HAVE_LIBMESH_OPT" = "no" ; then
+        AC_MSG_ERROR([libMesh enabled with METHOD=$METHOD but could not find working libmesh_opt])
+      fi
+      ;;
+    devel)
+      AC_LIB_HAVE_LINKFLAGS([mesh_devel])
+      if test "$HAVE_LIBMESH_DEVEL" = "no" ; then
+        AC_MSG_ERROR([libMesh enabled with METHOD=$METHOD but could not find working libmesh_devel])
+      fi
+      ;;
+    dbg)
+      AC_LIB_HAVE_LINKFLAGS([mesh_dbg])
+      if test "$HAVE_LIBMESH_DBG" = "no" ; then
+        AC_MSG_ERROR([libMesh enabled with METHOD=$METHOD but could not find working libmesh_dbg])
+      fi
+      ;;
+    prof)
+      AC_LIB_HAVE_LINKFLAGS([mesh_prof])
+      if test "$HAVE_LIBMESH_PROF" = "no" ; then
+        AC_MSG_ERROR([libMesh enabled with METHOD=$METHOD but could not find working libmesh_prof])
+      fi
+      ;;
+    oprof)
+      AC_LIB_HAVE_LINKFLAGS([mesh_oprof])
+      if test "$HAVE_LIBMESH_OPROF" = "no" ; then
+        AC_MSG_ERROR([libMesh enabled with METHOD=$METHOD but could not find working libmesh_oprof])
+      fi
+      ;;
+    *)
+      AC_MSG_ERROR("unknown libMesh METHOD=$METHOD; options are: opt, devel, dbg, prof, oprof") ;;
+  esac
+  AC_DEFINE([HAVE_LIBMESH],1,[Define if you have the libmesh library.])
 
-LIBMESH_TECPLOT_LIBS=`grep "libmesh_LIBS" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-LIBS="${LIBMESH_TECPLOT_LIBS} ${LIBS}"
+  AC_PATH_PROG(LIBMESH_CONFIG, libmesh-config, , [$PATH$PATH_SEPARATOR$LIBMESH_BIN])
+  if test -z "$LIBMESH_CONFIG" ; then
+    AC_MSG_ERROR([cannot find libmesh-config])
+  fi
 
-LIBMESH_TECPLOT_INCLUDE=`grep "libmesh_INCLUDE" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-CPPFLAGS="${LIBMESH_TECPLOT_INCLUDE} ${CPPFLAGS}"
+  LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
 
-LIBMESH_PETSC_ARCH=`grep "PETSC_ARCH[ \t]*.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-if test "${PETSC_ARCH}" != "${LIBMESH_PETSC_ARCH}"; then
-  AC_MSG_WARN([using libMesh PETSC_ARCH=${LIBMESH_PETSC_ARCH} instead of PETSC_ARCH=${PETSC_ARCH}])
-  PETSC_ARCH=${LIBMESH_PETSC_ARCH}
-fi
+  LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
+  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
+  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
+  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
+  LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
-LIBMESH_PETSC_DIR=`grep "PETSC_DIR[ \t]*.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-if test "${PETSC_DIR}" != "${LIBMESH_PETSC_DIR}"; then
-  AC_MSG_WARN([using libMesh PETSC_DIR=${LIBMESH_PETSC_DIR} instead of PETSC_DIR=${PETSC_DIR}])
-  PETSC_DIR=${LIBMESH_PETSC_DIR}
-fi
+  if test -e "$LIBMESH_DIR/include/Eigen" ; then
+    AC_MSG_NOTICE([using Eigen library bundled with libMesh])
+    with_eigen="$LIBMESH_DIR"
+  fi
 
-if test -d "${LIBMESH_LIBDIR}" ; then
-  LDFLAGS="-L${LIBMESH_LIBDIR} $LDFLAGS"
+  if test -e "$LIBMESH_DIR/include/boost" ; then
+    AC_MSG_ERROR([libMesh must be configured to use an external boost library])
+  fi
+
+  PACKAGE_CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
+  PACKAGE_CXXFLAGS_PREPEND($LIBMESH_CXXFLAGS)
+  PACKAGE_CFLAGS_PREPEND($LIBMESH_CFLAGS)
+  PACKAGE_FCFLAGS_PREPEND($LIBMESH_FCFLAGS)
+  PACKAGE_LIBS_PREPEND($LIBMESH_LIBS)
 else
-  AC_MSG_WARN([libMesh support is enabled, but could not find expected libMesh lib directory ${LIBMESH_LIBDIR}])
+  AC_MSG_NOTICE([Optional package libMesh is DISABLED])
 fi
 
-if test -d "${LIBMESH_CONTRIB_LIBDIR}" ; then
-  LDFLAGS="-L${LIBMESH_CONTRIB_LIBDIR} $LDFLAGS"
-else
-  AC_MSG_WARN([libMesh support is enabled, but could not find expected libMesh contrib lib directory ${LIBMESH_CONTRIB_LIBDIR}])
-fi
-
-contrib_lib_enabled=`grep "enable-laspack.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package laspack is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/laspack ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([laspack])
-  if test "$HAVE_LIBLASPACK" = yes ; then
-    LIBS="$LIBLASPACK $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib liblaspack is enabled, but could not find working liblaspack])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-metis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package metis is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([GK])
-  if test "$HAVE_LIBGK" = yes ; then
-    LIBS="$LIBGK $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libGK])
-  fi
-  AC_LIB_HAVE_LINKFLAGS([metis])
-  if test "$HAVE_LIBMETIS" = yes ; then
-    LIBS="$LIBMETIS $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libmetis])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-parmetis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package parmetis is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([parmetis])
-  if test "$HAVE_LIBPARMETIS" = yes ; then
-    LIBS="$LIBPARMETIS $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libparmetis is enabled, but could not find working libparmetis])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package sfcurves is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/sfcurves ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([sfcurves])
-  if test "$HAVE_LIBSFCURVES" = yes ; then
-    LIBS="$LIBSFCURVES $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libsfcurves is enabled, but could not find working libsfcurves])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-gzstream.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package gzstream is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gzstream ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([gzstream])
-  if test "$HAVE_LIBGZSTREAM" = yes ; then
-    LIBS="$LIBGZSTREAM $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libgzstream is enabled, but could not find working libgzstream])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-tetgen.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package tetgen is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/tetgen ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([tetgen])
-  if test "$HAVE_LIBTETGEN" = yes ; then
-    LIBS="$LIBTETGEN $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libtetgen is enabled, but could not find working libtetgen])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-triangle.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package triangle is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/triangle ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([triangle])
-  if test "$HAVE_LIBTRIANGLE" = yes ; then
-    LIBS="$LIBTRIANGLE $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libtriangle is enabled, but could not find working libtriangle])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-gmv.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package gmv is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/gmv ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([gmv])
-  if test "$HAVE_LIBGMV" = yes ; then
-    LIBS="$LIBGMV $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libgmv is enabled, but could not find working libgmv])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-vtk.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package vtk is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  AC_LIB_HAVE_LINKFLAGS([vtk])
-  if test "$HAVE_LIBVTK" = yes ; then
-    LIBS="$LIBVTK $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libvtk is enabled, but could not find working libvtk])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-netcdf.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package netcdf is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/netcdf/Lib ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([netcdf])
-  if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBS="$LIBNETCDF $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libnetcdf is enabled, but could not find working libnetcdf])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-exodus.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package exodus is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/exodusii/Lib/include ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([exodusii])
-  if test "$HAVE_LIBEXODUSII" = yes ; then
-    LIBS="$LIBEXODUSII $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libexodusii is enabled, but could not find working libexodusii])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-nemesis.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package nemesis is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/nemesis/Lib ${CPPFLAGS}"
-  AC_LIB_HAVE_LINKFLAGS([nemesis])
-  if test "$HAVE_LIBNEMESIS" = yes ; then
-    LIBS="$LIBNEMESIS $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libnemesis is enabled, but could not find working libnemesis])
-  fi
-fi
-
-contrib_lib_enabled=`grep "enable-libhilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
-AC_MSG_NOTICE([checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}])
-if test "${contrib_lib_enabled}" = yes ; then
-  AC_LIB_HAVE_LINKFLAGS([Hilbert])
-  if test "$HAVE_LIBHILBERT" = yes ; then
-    LIBS="$LIBHILBERT $LIBS"
-  else
-    AC_MSG_WARN([libMesh contributed lib libHilbert is enabled, but could not find working libHilbert])
-  fi
-fi
-
-CPPFLAGS="-I${LIBMESH_DIR}/include ${CPPFLAGS}"
-AC_CHECK_HEADER([libmesh/libmesh.h],,AC_MSG_WARN([could not find header file libmesh.h]))
-AC_LIB_HAVE_LINKFLAGS([mesh])
-if test "$HAVE_LIBMESH" = yes ; then
-  LIBS="$LIBMESH $LIBS"
-  AC_MSG_CHECKING([for libMesh version 0.8.0])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <libmesh/libmesh_version.h>
-]], [[
-#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 8) && (LIBMESH_MICRO_VERSION == 0))
-#else
-asdf
-#endif
-]])],[LIBMESH_VERSION_0_8_0=yes],[LIBMESH_VERSION_0_8_0=no])
-  if test "$LIBMESH_VERSION_0_8_0" = yes; then
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_ERROR([incorrect libMesh version detected: please use libMesh 0.8.0-release])
-  fi
-else
-  AC_MSG_WARN([libMesh support is enabled, but could not find working libmesh])
-fi
+PACKAGE_RESTORE_ENVIRONMENT
 
 ])

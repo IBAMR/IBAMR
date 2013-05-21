@@ -63,7 +63,7 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-@LIBMESH_ENABLED_TRUE@$  (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFEMethod.h \
@@ -82,6 +82,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
+	$(top_srcdir)/m4/configure_libmesh.m4 \
 	$(top_srcdir)/m4/configure_muparser.m4 \
 	$(top_srcdir)/m4/configure_petsc.m4 \
 	$(top_srcdir)/m4/configure_samrai.m4 \
@@ -225,8 +226,8 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBFEMethod.cpp \
 	$(top_srcdir)/src/IB/IMPMethod.cpp \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
-	$(top_srcdir)/src/IB/MaterialPointSpec.cpp $ \
-	(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
+	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
+	$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect2d.f \
@@ -423,8 +424,8 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBFEMethod.cpp \
 	$(top_srcdir)/src/IB/IMPMethod.cpp \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
-	$(top_srcdir)/src/IB/MaterialPointSpec.cpp $ \
-	(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
+	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
+	$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 	$(top_builddir)/src/advect/fortran/advect_detect3d.f \
@@ -726,6 +727,11 @@ HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
+HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
+HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
+HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
+HAVE_LIBMESH_OPT = @HAVE_LIBMESH_OPT@
+HAVE_LIBMESH_PROF = @HAVE_LIBMESH_PROF@
 HAVE_LIBMUPARSER = @HAVE_LIBMUPARSER@
 HAVE_LIBPETSC = @HAVE_LIBPETSC@
 HAVE_LIBSAMRAI = @HAVE_LIBSAMRAI@
@@ -762,6 +768,17 @@ LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
 LIBHDF5_PREFIX = @LIBHDF5_PREFIX@
 LIBHYPRE = @LIBHYPRE@
 LIBHYPRE_PREFIX = @LIBHYPRE_PREFIX@
+LIBMESH_CONFIG = @LIBMESH_CONFIG@
+LIBMESH_DBG = @LIBMESH_DBG@
+LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
+LIBMESH_DEVEL = @LIBMESH_DEVEL@
+LIBMESH_DEVEL_PREFIX = @LIBMESH_DEVEL_PREFIX@
+LIBMESH_OPROF = @LIBMESH_OPROF@
+LIBMESH_OPROF_PREFIX = @LIBMESH_OPROF_PREFIX@
+LIBMESH_OPT = @LIBMESH_OPT@
+LIBMESH_OPT_PREFIX = @LIBMESH_OPT_PREFIX@
+LIBMESH_PROF = @LIBMESH_PROF@
+LIBMESH_PROF_PREFIX = @LIBMESH_PROF_PREFIX@
 LIBMUPARSER = @LIBMUPARSER@
 LIBMUPARSER_PREFIX = @LIBMUPARSER_PREFIX@
 LIBOBJS = @LIBOBJS@
@@ -816,6 +833,11 @@ LN_S = @LN_S@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
 LTLIBHYPRE = @LTLIBHYPRE@
+LTLIBMESH_DBG = @LTLIBMESH_DBG@
+LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
+LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
+LTLIBMESH_OPT = @LTLIBMESH_OPT@
+LTLIBMESH_PROF = @LTLIBMESH_PROF@
 LTLIBMUPARSER = @LTLIBMUPARSER@
 LTLIBOBJS = @LTLIBOBJS@
 LTLIBPETSC = @LTLIBPETSC@
@@ -855,8 +877,11 @@ OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
+PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
 PACKAGE_CONTRIB_LIBS = @PACKAGE_CONTRIB_LIBS@
 PACKAGE_CPPFLAGS = @PACKAGE_CPPFLAGS@
+PACKAGE_CXXFLAGS = @PACKAGE_CXXFLAGS@
+PACKAGE_FCFLAGS = @PACKAGE_FCFLAGS@
 PACKAGE_LDFLAGS = @PACKAGE_LDFLAGS@
 PACKAGE_LIBS = @PACKAGE_LIBS@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -2626,19 +2651,19 @@ libIBAMR2d_a-MaterialPointSpec.obj: $(top_srcdir)/src/IB/MaterialPointSpec.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpec.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; fi`
 
-libIBAMR2d_a-MaterialPointSpecFactory.o: (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-MaterialPointSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR2d_a-MaterialPointSpecFactory.o `test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+libIBAMR2d_a-MaterialPointSpecFactory.o: $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-MaterialPointSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR2d_a-MaterialPointSpecFactory.o `test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR2d_a-MaterialPointSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR2d_a-MaterialPointSpecFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpecFactory.o `test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpecFactory.o `test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 
-libIBAMR2d_a-MaterialPointSpecFactory.obj: (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-MaterialPointSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
+libIBAMR2d_a-MaterialPointSpecFactory.obj: $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-MaterialPointSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR2d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR2d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
 
 libIBAMR3d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR3d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.cpp
@@ -3816,19 +3841,19 @@ libIBAMR3d_a-MaterialPointSpec.obj: $(top_srcdir)/src/IB/MaterialPointSpec.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpec.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpec.cpp'; fi`
 
-libIBAMR3d_a-MaterialPointSpecFactory.o: (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-MaterialPointSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR3d_a-MaterialPointSpecFactory.o `test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+libIBAMR3d_a-MaterialPointSpecFactory.o: $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-MaterialPointSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR3d_a-MaterialPointSpecFactory.o `test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR3d_a-MaterialPointSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR3d_a-MaterialPointSpecFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpecFactory.o `test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpecFactory.o `test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 
-libIBAMR3d_a-MaterialPointSpecFactory.obj: (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-MaterialPointSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
+libIBAMR3d_a-MaterialPointSpecFactory.obj: $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-MaterialPointSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo -c -o libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR3d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp' object='libIBAMR3d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-MaterialPointSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp'; fi`
 
 .f.o:
 	$(AM_V_F77)$(F77COMPILE) -c -o $@ $<

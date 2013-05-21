@@ -131,7 +131,7 @@ if LIBMESH_ENABLED
   $(top_srcdir)/src/IB/IMPMethod.cpp \
   $(top_srcdir)/src/IB/IMPInitializer.cpp \
   $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-$  (top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
+  $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 endif
 
 pkg_include_HEADERS += \

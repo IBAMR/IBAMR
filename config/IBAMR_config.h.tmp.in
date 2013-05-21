@@ -46,6 +46,24 @@
 /* Define if you have the libHYPRE library. */
 #undef HAVE_LIBHYPRE
 
+/* Define if you have the libmesh library. */
+#undef HAVE_LIBMESH
+
+/* Define if you have the libmesh_dbg library. */
+#undef HAVE_LIBMESH_DBG
+
+/* Define if you have the libmesh_devel library. */
+#undef HAVE_LIBMESH_DEVEL
+
+/* Define if you have the libmesh_oprof library. */
+#undef HAVE_LIBMESH_OPROF
+
+/* Define if you have the libmesh_opt library. */
+#undef HAVE_LIBMESH_OPT
+
+/* Define if you have the libmesh_prof library. */
+#undef HAVE_LIBMESH_PROF
+
 /* Define if you have the libmuParser library. */
 #undef HAVE_LIBMUPARSER
 

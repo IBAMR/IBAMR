@@ -35,8 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
 #include "libmesh/mesh.h"

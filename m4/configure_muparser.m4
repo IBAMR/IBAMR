@@ -12,9 +12,8 @@ AC_ARG_WITH([muparser],
   AS_HELP_STRING(--with-muparser=PATH,location of required muParser installation),
   [if test ! -d "$withval" ; then
      AC_MSG_ERROR([it is necessary to specify an existing directory when using --with-muparser=PATH])
-   else
-     MUPARSER_DIR=$withval
-   fi])
+   fi
+   MUPARSER_DIR=$withval])
 if test x$MUPARSER_DIR != x ; then
   if test -d "${MUPARSER_DIR}/include" ; then
     MUPARSER_CPPFLAGS="-I${MUPARSER_DIR}/include"

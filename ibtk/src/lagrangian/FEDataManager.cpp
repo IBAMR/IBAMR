@@ -404,7 +404,7 @@ FEDataManager::buildGhostedSolutionVector(
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
         }
-        AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build();
+        AutoPtr<NumericVector<double> > sol_ghost_vec = NumericVector<double>::build(sol_vec->comm());
         sol_ghost_vec->init(sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
     }
@@ -1275,6 +1275,7 @@ FEDataManager::buildL2ProjectionSolver(
         (d_L2_proj_quad_type[system_name] != quad_type) || (d_L2_proj_quad_order[system_name] != quad_order))
     {
         const MeshBase& mesh = d_es->get_mesh();
+        const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
         AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
@@ -1292,10 +1293,10 @@ FEDataManager::buildL2ProjectionSolver(
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
-        LinearSolver<double>* solver = LinearSolver<double>::build().release();
+        LinearSolver<double>* solver = LinearSolver<double>::build(comm).release();
         solver->init();
 
-        SparseMatrix<double>* M_mat = SparseMatrix<double>::build().release();
+        SparseMatrix<double>* M_mat = SparseMatrix<double>::build(comm).release();
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
@@ -1702,6 +1703,7 @@ FEDataManager::applyGradientDetector(
         collectGhostDOFIndices(X_ghost_dofs, active_level_elems, COORDINATES_SYSTEM_NAME);
 
         const MeshBase& mesh = d_es->get_mesh();
+        const Parallel::Communicator& comm = mesh.comm();
         const unsigned int dim = mesh.mesh_dimension();
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
@@ -1715,7 +1717,7 @@ FEDataManager::applyGradientDetector(
         X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
-        AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
+        AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec.get());
@@ -2095,6 +2097,7 @@ FEDataManager::collectActivePatchElements(
 
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
+    const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
@@ -2107,7 +2110,7 @@ FEDataManager::collectActivePatchElements(
     X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
-    AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
+    AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);

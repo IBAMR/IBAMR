@@ -11,9 +11,8 @@ AC_ARG_WITH([eigen],
   AS_HELP_STRING(--with-eigen=PATH,location of required Eigen installation),
   [if test ! -d "$withval" ; then
      AC_MSG_ERROR([it is necessary to specify an existing directory when using --with-eigen=PATH])
-   else
-     EIGEN_DIR=$withval
-   fi])
+   fi
+   EIGEN_DIR=$withval])
 USING_BUNDLED_EIGEN=no
 echo "first check for a system Eigen library; if not found, revert to bundled Eigen library"
 CHECK_EIGEN($EIGEN_DIR)
