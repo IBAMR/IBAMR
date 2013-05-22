@@ -83,10 +83,10 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_open_bdry(init_array<bool,2*NDIM>(false)),
-      d_inflow_bdry(init_array<bool,2*NDIM>(false)),
-      d_outflow_bdry(init_array<bool,2*NDIM>(false)),
-      d_width(init_array<double,2*NDIM>(0.0)),
+      d_open_bdry(array_constant<bool,2*NDIM>(false)),
+      d_inflow_bdry(array_constant<bool,2*NDIM>(false)),
+      d_outflow_bdry(array_constant<bool,2*NDIM>(false)),
+      d_width(array_constant<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {

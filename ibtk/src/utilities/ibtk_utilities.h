@@ -142,15 +142,36 @@ static const bool ENABLE_TIMERS = true;
 namespace IBTK
 {
 
-template<class T, std::size_t N>
+template<class T, unsigned N>
 inline boost::array<T,N>
-init_array(
+array_constant(
     const T& v)
 {
     boost::array<T,N> arr;
     std::fill(arr.begin(),arr.end(),v);
     return arr;
-}// init_array
+}// array_constant
+
+template<class T, unsigned N>
+inline boost::array<T,N>
+array_one()
+{
+    boost::array<T,N> arr;
+    std::fill(arr.begin(),arr.end(),1);
+    return arr;
+}// array_one
+
+template<class T, unsigned N>
+inline boost::array<T,N>
+array_zero()
+{
+    boost::array<T,N> arr;
+    std::fill(arr.begin(),arr.end(),0);
+    return arr;
+}// array_zero
+
+static const boost::array<double,NDIM> zeroNd = array_zero<double,NDIM>();
+static const boost::array<int,NDIM> zeroNi = array_zero<int,NDIM>();
 
 }
 

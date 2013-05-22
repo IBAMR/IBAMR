@@ -76,8 +76,8 @@ LMarker::LMarker(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
     : d_idx(-1),
-      d_X(init_array<double,NDIM>(0.0)),
-      d_U(init_array<double,NDIM>(0.0)),
+      d_X(zeroNd),
+      d_U(zeroNd),
       d_offset(offset)
 {
     unpackStream(stream,offset);

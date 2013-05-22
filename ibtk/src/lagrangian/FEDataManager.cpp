@@ -699,8 +699,8 @@ FEDataManager::prolongData(
 #if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-            X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-            X_max = init_array<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+            X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
+            X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -1133,8 +1133,8 @@ FEDataManager::restrictData(
 #if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-            X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-            X_max = init_array<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+            X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
+            X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -2022,7 +2022,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     // Compute the lower and upper bounds of all active local elements in the
     // mesh.  Assumes nodal basis functions.
     d_active_elem_bboxes.resize(n_elem);
-    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(init_array<double,NDIM>(0.0),init_array<double,NDIM>(0.0)));
+    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(zeroNd,array_constant<double,NDIM>(0.0)));
     MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for ( ; el_it != el_end; ++el_it)
@@ -2031,8 +2031,8 @@ FEDataManager::computeActiveElementBoundingBoxes()
         const unsigned int elem_id = elem->id();
         boost::array<double,NDIM>& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
         boost::array<double,NDIM>& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
-        elem_lower_bound = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-        elem_upper_bound = init_array<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+        elem_lower_bound = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
+        elem_upper_bound = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
 
         const unsigned int n_nodes = elem->n_nodes();
         std::vector<unsigned int> dof_indices;
@@ -2410,7 +2410,7 @@ FEDataManager::do_partition(
     // Compute the lower and upper bounds of all local elements in the mesh.
     //
     // NOTE: Assuming nodal basis functions.
-    std::vector<boost::array<double,NDIM> > elem_centroids(n_elem, init_array<double,NDIM>(0.0));
+    std::vector<boost::array<double,NDIM> > elem_centroids(n_elem, zeroNd);
     MeshBase::element_iterator       el_it  = mesh.local_elements_begin();
     const MeshBase::element_iterator el_end = mesh.local_elements_end();
     for ( ; el_it != el_end; ++el_it)

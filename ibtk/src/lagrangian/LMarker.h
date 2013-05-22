@@ -68,8 +68,8 @@ public:
      */
     LMarker(
         int idx=-1,
-        const boost::array<double,NDIM>& X=init_array<double,NDIM>(0.0),
-        const boost::array<double,NDIM>& U=init_array<double,NDIM>(0.0),
+        const boost::array<double,NDIM>& X=zeroNd,
+        const boost::array<double,NDIM>& U=zeroNd,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!

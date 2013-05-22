@@ -175,7 +175,7 @@ CartCellDoubleQuadraticRefine::refine(
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        boost::array<boost::array<double,degree+1>,NDIM> wgts(init_array<boost::array<double,degree+1>,NDIM>(boost::array<double,degree+1>(init_array<double,degree+1>(0.0))));
+        boost::array<boost::array<double,degree+1>,NDIM> wgts(array_constant<boost::array<double,degree+1>,NDIM>(boost::array<double,degree+1>(array_constant<double,degree+1>(0.0))));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);

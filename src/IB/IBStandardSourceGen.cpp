@@ -245,7 +245,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(), X_src.end(), init_array<double,NDIM>(0.0));
+    std::fill(X_src.begin(), X_src.end(), zeroNd);
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();

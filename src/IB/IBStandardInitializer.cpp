@@ -143,7 +143,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_silo_writer(NULL),
       d_base_filename(),
       d_length_scale_factor(1.0),
-      d_posn_shift(init_array<double,NDIM>(0.0)),
+      d_posn_shift(zeroNd),
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
@@ -440,7 +440,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const boost::array<double,NDIM> periodic_displacement(init_array<double,NDIM>(0.0));
+            static const boost::array<double,NDIM> periodic_displacement(zeroNd);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
 
             // Initialize the velocity of the present vertex.
@@ -1237,7 +1237,7 @@ IBStandardInitializer::readBeamFiles(
                 {
                     int prev_idx = std::numeric_limits<int>::max(), curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
                     double bend = 0.0;
-                    boost::array<double,NDIM> curv(init_array<double,NDIM>(0.0));
+                    boost::array<double,NDIM> curv(zeroNd);
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -3018,11 +3018,11 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
         d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
-        d_uniform_beam_curvature[ln].resize(num_base_filename,init_array<double,NDIM>(0.0));
+        d_uniform_beam_curvature[ln].resize(num_base_filename,zeroNd);
 
         d_enable_rods[ln].resize(num_base_filename,true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename,false);
-        d_uniform_rod_properties[ln].resize(num_base_filename,init_array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
+        d_uniform_rod_properties[ln].resize(num_base_filename,array_constant<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
 
         d_enable_target_points[ln].resize(num_base_filename,true);
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);

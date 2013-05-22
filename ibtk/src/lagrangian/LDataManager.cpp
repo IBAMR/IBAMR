@@ -678,7 +678,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
                 d_finest_ln   >= level_number);
 #endif
     int node_counter = 0;
-    boost::array<double,NDIM> X_com(init_array<double,NDIM>(0.0));
+    boost::array<double,NDIM> X_com(zeroNd);
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -719,8 +719,8 @@ LDataManager::computeLagrangianStructureBoundingBox(
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    boost::array<double,NDIM> X_lower(init_array<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
-    boost::array<double,NDIM> X_upper(init_array<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    boost::array<double,NDIM> X_lower(array_constant<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    boost::array<double,NDIM> X_upper(array_constant<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -762,8 +762,8 @@ LDataManager::reinitLagrangianStructure(
 
     // Compute the bounding box of the structure in its reference configuration.
     const boost::multi_array_ref<double,2>& X0_data = *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
-    boost::array<double,NDIM> X_lower(init_array<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
-    boost::array<double,NDIM> X_upper(init_array<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    boost::array<double,NDIM> X_lower(array_constant<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    boost::array<double,NDIM> X_upper(array_constant<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
@@ -788,7 +788,7 @@ LDataManager::reinitLagrangianStructure(
     std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > bounding_box = std::make_pair(X_lower,X_upper);
 
     // Compute the displacement.
-    boost::array<double,NDIM> dX(init_array<double,NDIM>(0.0));
+    boost::array<double,NDIM> dX(zeroNd);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dX[d] = X_center[d] - 0.5*(X_upper[d]+X_lower[d]);

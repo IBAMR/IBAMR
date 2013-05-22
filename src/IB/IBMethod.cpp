@@ -1101,7 +1101,7 @@ IBMethod::initializePatchHierarchy(
             {
                 d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
                 d_n_src[ln] = d_ib_source_fcn->getNumSources(d_hierarchy, ln, init_data_time, d_l_data_manager);
-                d_X_src[ln].resize(d_n_src[ln], init_array<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+                d_X_src[ln].resize(d_n_src[ln], array_constant<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
                 d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
@@ -1739,7 +1739,7 @@ IBMethod::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],init_array<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln],array_constant<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());

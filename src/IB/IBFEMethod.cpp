@@ -639,7 +639,7 @@ IBFEMethod::initializeFEData()
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        System* U_b_system;
+        System* U_b_system = NULL;
         if (d_constrained_part[part])
         {
             U_b_system = &equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
@@ -1558,8 +1558,8 @@ IBFEMethod::imposeJumpConditions(
 #if !defined(NDEBUG)
                 TBOX_ASSERT(n_node_side <= MAX_NODES);
 #endif
-                X_min = init_array<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-                X_max = init_array<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+                X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
+                X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);

@@ -82,7 +82,7 @@ LNodeIndex::LNodeIndex(
       d_global_petsc_nidx(-1),
       d_local_petsc_nidx(-1),
       d_offset(0),
-      d_displacement(init_array<double,NDIM>(0.0))
+      d_displacement(zeroNd)
 {
     unpackStream(stream,offset);
     return;

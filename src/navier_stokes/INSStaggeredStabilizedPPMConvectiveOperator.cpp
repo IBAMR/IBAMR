@@ -285,8 +285,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
-      d_open_bdry(init_array<bool,2*NDIM>(false)),
-      d_width(init_array<double,2*NDIM>(0.0)),
+      d_open_bdry(array_constant<bool,2*NDIM>(false)),
+      d_width(array_constant<double,2*NDIM>(0.0)),
       d_bc_coefs(bc_coefs),
       d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL),

@@ -85,7 +85,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            const boost::array<double,NDIM>& posn=init_array<double,NDIM>(0.0))
+            const boost::array<double,NDIM>& posn=zeroNd)
             : item(item),
               posn(posn)
             {

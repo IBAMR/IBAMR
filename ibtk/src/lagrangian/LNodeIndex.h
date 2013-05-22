@@ -78,7 +78,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const boost::array<double,NDIM>& periodic_displacement=init_array<double,NDIM>(0.0));
+        const boost::array<double,NDIM>& periodic_displacement=zeroNd);
 
     /*!
      * \brief Copy constructor.

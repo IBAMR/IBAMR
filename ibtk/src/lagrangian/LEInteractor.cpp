@@ -631,8 +631,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -687,8 +687,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -756,8 +756,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -879,8 +879,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -935,8 +935,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1004,8 +1004,8 @@ LEInteractor::interpolate(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1177,8 +1177,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1233,8 +1233,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1302,8 +1302,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1428,8 +1428,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1484,8 +1484,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1548,8 +1548,8 @@ LEInteractor::spread(
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
-    boost::array<int,NDIM> patch_touches_lower_physical_bdry(init_array<int,NDIM>(0));
-    boost::array<int,NDIM> patch_touches_upper_physical_bdry(init_array<int,NDIM>(0));
+    boost::array<int,NDIM> patch_touches_lower_physical_bdry(zeroNi);
+    boost::array<int,NDIM> patch_touches_upper_physical_bdry(zeroNi);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;

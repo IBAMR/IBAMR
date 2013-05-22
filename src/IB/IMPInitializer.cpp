@@ -383,7 +383,7 @@ IMPInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const boost::array<double,NDIM> periodic_displacement(init_array<double,NDIM>(0.0));
+            static const boost::array<double,NDIM> periodic_displacement(zeroNd);
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second], d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));

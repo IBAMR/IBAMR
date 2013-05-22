@@ -110,7 +110,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2*NDIM+1;
-    boost::array<Index<NDIM>,uu_stencil_sz> uu_stencil(init_array<Index<NDIM>,uu_stencil_sz>(Index<NDIM>(0)));
+    boost::array<Index<NDIM>,uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>,uu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -119,7 +119,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    boost::array<boost::array<Index<NDIM>,up_stencil_sz>,NDIM> up_stencil(init_array<boost::array<Index<NDIM>,up_stencil_sz>,NDIM>(init_array<Index<NDIM>,up_stencil_sz>(Index<NDIM>(0))));
+    boost::array<boost::array<Index<NDIM>,up_stencil_sz>,NDIM> up_stencil(array_constant<boost::array<Index<NDIM>,up_stencil_sz>,NDIM>(array_constant<Index<NDIM>,up_stencil_sz>(Index<NDIM>(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -128,7 +128,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 4;
-    boost::array<Index<NDIM>,pu_stencil_sz> pu_stencil(init_array<Index<NDIM>,pu_stencil_sz>(Index<NDIM>(0)));
+    boost::array<Index<NDIM>,pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>,pu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)

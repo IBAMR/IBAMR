@@ -617,7 +617,7 @@ LMarkerUtilities::initializeMarkersOnLevel(
             for (unsigned int k = 0; k < mark_init_posns.size(); ++k)
             {
                 const boost::array<double,NDIM>& X = mark_init_posns[k];
-                static const boost::array<double,NDIM> U(init_array<double,NDIM>(0.0));
+                static const boost::array<double,NDIM> U(zeroNd);
                 const bool patch_owns_mark_at_loc =
                     ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
 #if (NDIM > 1)

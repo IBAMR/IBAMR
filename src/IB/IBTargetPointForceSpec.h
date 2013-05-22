@@ -98,7 +98,7 @@ public:
         int master_idx=-1,
         double kappa_target=0.0,
         double eta_target=0.0,
-        const boost::array<double,NDIM>& X_target=IBTK::init_array<double,NDIM>(0.0));
+        const boost::array<double,NDIM>& X_target=IBTK::zeroNd);
 
     /*!
      * \brief Destructor.
