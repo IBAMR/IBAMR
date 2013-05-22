@@ -686,7 +686,7 @@ private:
     /*!
      * \return The initial position of the specified vertex.
      */
-    boost::array<double,NDIM>
+    IBTK::Point
     getVertexPosn(
         const std::pair<int,int>& point_index,
         int level_number) const;
@@ -814,13 +814,13 @@ private:
      * input files, i.e., X_final = scale*(X_initial + shift).
      */
     double d_length_scale_factor;
-    boost::array<double,NDIM> d_posn_shift;
+    IBTK::Vector d_posn_shift;
 
     /*
      * Vertex information.
      */
     std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<boost::array<double,NDIM> > > > d_vertex_posn;
+    std::vector<std::vector<std::vector<IBTK::Point> > > d_vertex_posn;
 
     /*
      * Edge data structures.
@@ -893,7 +893,7 @@ private:
     {
         std::pair<int,int> neighbor_idxs;
         double bend_rigidity;
-        boost::array<double,NDIM> curvature;
+        IBTK::Vector curvature;
     };
     std::vector<std::vector<std::multimap<int,BeamSpec> > > d_beam_spec_data;
 
@@ -901,7 +901,7 @@ private:
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
 
     std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
-    std::vector<std::vector<boost::array<double,NDIM> > > d_uniform_beam_curvature;
+    std::vector<std::vector<IBTK::Vector> > d_uniform_beam_curvature;
 
     /*
      * Rod information.

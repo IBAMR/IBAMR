@@ -198,7 +198,7 @@ public:
      */
     void
     getSourceLocations(
-        std::vector<boost::array<double,NDIM> >& X_src,
+        std::vector<IBTK::Point>& X_src,
         std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

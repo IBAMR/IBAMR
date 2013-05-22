@@ -169,7 +169,7 @@ IMPInitializer::registerMesh(
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
-    const std::vector<Point>& q_point = fe->get_xyz();
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const MeshBase::const_element_iterator el_begin = mesh->active_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh->active_elements_end();
@@ -356,7 +356,7 @@ IMPInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const Point& X = getVertexPosn(point_idx, level_number);
+            const libMesh::Point& X = getVertexPosn(point_idx, level_number);
             const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             for (int d = 0; d < NDIM; ++d)
             {
@@ -383,7 +383,7 @@ IMPInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const boost::array<double,NDIM> periodic_displacement(zeroNd);
+            static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second], d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
@@ -440,7 +440,7 @@ IMPInitializer::tagCellsForInitialRefinement(
             for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int,int>& point_idx = (*it);
-                const Point& X = getVertexPosn(point_idx, ln);
+                const libMesh::Point& X = getVertexPosn(point_idx, ln);
                 const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
@@ -503,7 +503,7 @@ IMPInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const Point& X = d_vertex_posn[level_number][j][k];
+            const libMesh::Point& X = d_vertex_posn[level_number][j][k];
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -522,7 +522,7 @@ IMPInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const Point& X = d_vertex_posn[level_number][j][k];
+            const libMesh::Point& X = d_vertex_posn[level_number][j][k];
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -542,7 +542,7 @@ IMPInitializer::getCanonicalLagrangianIndex(
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCanonicalLagrangianIndex
 
-const Point&
+const libMesh::Point&
 IMPInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const

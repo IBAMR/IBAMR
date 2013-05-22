@@ -85,7 +85,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            const boost::array<double,NDIM>& posn=zeroNd)
+            const Point& posn=Point::Zero())
             : item(item),
               posn(posn)
             {
@@ -139,7 +139,7 @@ public:
 
         // Data.
         typename LSet<T>::value_type item;
-        boost::array<double,NDIM> posn;
+        Point posn;
     };
 
     /*!

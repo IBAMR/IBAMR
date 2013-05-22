@@ -44,6 +44,7 @@
 #include "boost/array.hpp"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
@@ -225,7 +226,7 @@ private:
     {
         std::vector<int> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
         std::vector<const double*> rigidities;
-        std::vector<const boost::array<double,NDIM>*> curvatures;
+        std::vector<const IBTK::Vector*> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
@@ -233,7 +234,7 @@ private:
     {
         std::vector<int> petsc_node_idxs;
         std::vector<const double*> kappa, eta;
-        std::vector<const boost::array<double,NDIM>*> X0;
+        std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 

@@ -43,6 +43,7 @@
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
 #include "muParser.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI {
@@ -212,7 +213,7 @@ private:
      * Time and position variables.
      */
     double* d_parser_time;
-    double* d_parser_posn;
+    Point* d_parser_posn;
 };
 }// namespace IBTK
 

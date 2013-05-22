@@ -87,7 +87,7 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_forcing_enabled(array_constant<SAMRAI::tbox::Array<bool>,2*NDIM>(SAMRAI::tbox::Array<bool>(NDIM))),
+      d_forcing_enabled(array_constant<Array<bool>,2*NDIM>(Array<bool>(NDIM))),
       d_width(array_constant<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)

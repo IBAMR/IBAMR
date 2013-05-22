@@ -78,7 +78,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const boost::array<double,NDIM>& periodic_displacement=zeroNd);
+        const Vector& periodic_displacement=Vector::Zero());
 
     /*!
      * \brief Copy constructor.
@@ -158,7 +158,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const boost::array<double,NDIM>& displacement);
+        const Vector& displacement);
 
     /*!
      * \brief Get the periodic offset.
@@ -169,7 +169,7 @@ public:
     /*!
      * \brief Get the periodic displacement.
      */
-    virtual const boost::array<double,NDIM>&
+    virtual const Vector&
     getPeriodicDisplacement() const;
 
     /*!
@@ -219,7 +219,7 @@ private:
 
     // the periodic offset and displacement
     SAMRAI::hier::IntVector<NDIM> d_offset;
-    boost::array<double,NDIM> d_displacement;
+    Vector d_displacement;
 };
 
 /*!

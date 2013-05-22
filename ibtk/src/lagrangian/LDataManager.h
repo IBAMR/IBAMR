@@ -526,10 +526,10 @@ public:
      *
      * in which N is the number of nodes associated with that structure.
      *
-     * \note Returns boost::array<double,NDIM>(0.0) in the case that the
-     * Lagrangian structure ID is not associated with any Lagrangian structure.
+     * \note Returns Point::Zero() in the case that the Lagrangian structure
+     * ID is not associated with any Lagrangian structure.
      */
-    boost::array<double,NDIM>
+    Point
     computeLagrangianStructureCenterOfMass(
         int structure_id,
         int level_number);
@@ -542,7 +542,7 @@ public:
      * that the Lagrangian structure ID is not associated with any Lagrangian
      * structure.
      */
-    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> >
+    std::pair<Point,Point>
     computeLagrangianStructureBoundingBox(
         int structure_id,
         int level_number);
@@ -557,7 +557,7 @@ public:
      */
     void
     reinitLagrangianStructure(
-        const boost::array<double,NDIM>& X_center,
+        const Point& X_center,
         int structure_id,
         int level_number);
 
@@ -573,7 +573,7 @@ public:
      */
     void
     displaceLagrangianStructure(
-        const boost::array<double,NDIM>& dX,
+        const Vector& dX,
         int structure_id,
         int level_number);
 
@@ -1128,9 +1128,9 @@ private:
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > > > d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<std::pair<Point,Point> > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<boost::array<double,NDIM> > > d_displaced_strct_lnode_posns;
+    std::vector<std::vector<Point> > d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.

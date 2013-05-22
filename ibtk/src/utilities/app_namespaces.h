@@ -40,6 +40,11 @@
  * file may be included in application codes, but it MUST NOT be included in any
  * other header (.h) or inline (-inl.h) file in the library.
  */
+namespace Eigen
+{
+}
+using namespace Eigen;
+
 namespace IBTK
 {
 }

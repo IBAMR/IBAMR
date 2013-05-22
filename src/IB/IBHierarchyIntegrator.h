@@ -306,7 +306,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
     int d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx;
-    std::vector<boost::array<double,NDIM> > d_mark_init_posns;
+    std::vector<IBTK::Point> d_mark_init_posns;
     std::string d_mark_file_name;
 
     /*!

@@ -37,6 +37,7 @@
 
 #include <unistd.h>
 
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI {
@@ -118,7 +119,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const boost::array<double,NDIM>& displacement);
+        const Vector& displacement);
 
 private:
     /*!

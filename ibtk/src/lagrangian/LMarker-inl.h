@@ -47,8 +47,8 @@ namespace IBTK
 inline
 LMarker::LMarker(
     const int idx,
-    const boost::array<double,NDIM>& X,
-    const boost::array<double,NDIM>& U,
+    const Point& X,
+    const Vector& U,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
     : d_idx(idx),
       d_X(X),
@@ -76,8 +76,8 @@ LMarker::LMarker(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset)
     : d_idx(-1),
-      d_X(zeroNd),
-      d_U(zeroNd),
+      d_X(Point::Zero()),
+      d_U(Vector::Zero()),
       d_offset(offset)
 {
     unpackStream(stream,offset);
@@ -123,13 +123,13 @@ LMarker::setIndex(
     return;
 }// setIndex
 
-inline const boost::array<double,NDIM>&
+inline const Point&
 LMarker::getPosition() const
 {
     return d_X;
 }// getPosition
 
-inline boost::array<double,NDIM>&
+inline Point&
 LMarker::getPosition()
 {
     return d_X;
@@ -137,19 +137,19 @@ LMarker::getPosition()
 
 inline void
 LMarker::setPosition(
-    const boost::array<double,NDIM>& X)
+    const Point& X)
 {
     d_X = X;
     return;
 }// setPosition
 
-inline const boost::array<double,NDIM>&
+inline const Vector&
 LMarker::getVelocity() const
 {
     return d_U;
 }// getVelocity
 
-inline boost::array<double,NDIM>&
+inline Vector&
 LMarker::getVelocity()
 {
     return d_U;
@@ -157,7 +157,7 @@ LMarker::getVelocity()
 
 inline void
 LMarker::setVelocity(
-    const boost::array<double,NDIM>& U)
+    const Vector& U)
 {
     d_U = U;
     return;

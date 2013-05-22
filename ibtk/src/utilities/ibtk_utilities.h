@@ -37,6 +37,7 @@
 
 #include <algorithm>
 
+#include "Eigen/Core"  // IWYU pragma: export
 #include "boost/array.hpp"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -170,8 +171,29 @@ array_zero()
     return arr;
 }// array_zero
 
-static const boost::array<double,NDIM> zeroNd = array_zero<double,NDIM>();
-static const boost::array<int,NDIM> zeroNi = array_zero<int,NDIM>();
+typedef Eigen::Matrix<double,2,2> Matrix2d;
+typedef Eigen::Matrix<double,2,1> Vector2d;
+typedef Eigen::Matrix<double,2,1> ColumnVector2d;
+typedef Eigen::Matrix<double,1,2> RowVector2d;
+
+typedef Eigen::Matrix<double,3,3> Matrix3d;
+typedef Eigen::Matrix<double,3,1> Vector3d;
+typedef Eigen::Matrix<double,3,1> ColumnVector3d;
+typedef Eigen::Matrix<double,1,3> RowVector3d;
+
+typedef Eigen::Matrix<double,NDIM,NDIM> MatrixNd;
+typedef Eigen::Matrix<double,NDIM,1> VectorNd;
+typedef Eigen::Matrix<double,NDIM,1> ColumnVectorNd;
+typedef Eigen::Matrix<double,1,NDIM> RowVectorNd;
+
+typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MatrixXd;
+typedef Eigen::Matrix<double,Eigen::Dynamic,1> VectorXd;
+typedef Eigen::Matrix<double,Eigen::Dynamic,1> ColumnVectorXd;
+typedef Eigen::Matrix<double,1,Eigen::Dynamic> RowVectorXd;
+
+typedef MatrixNd Matrix;
+typedef VectorNd Point;
+typedef VectorNd Vector;
 
 }
 

@@ -44,6 +44,7 @@
 #include "PatchLevel.h"
 #include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "muParser.h"
 #include "tbox/Pointer.h"
 
@@ -168,7 +169,7 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    boost::array<double,NDIM> d_parser_posn;
+    Point d_parser_posn;
 };
 }// namespace IBTK
 

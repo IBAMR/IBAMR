@@ -74,8 +74,6 @@
 #include "Eigen/Dense" // IWYU pragma: export
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
-using namespace Eigen;
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -477,10 +475,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<SpringForceDerivFcnPtr>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
         const std::vector<const double*>&                parameters = d_spring_data[level_number].parameters;
         const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
-        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
-        typedef Matrix<double, NDIM, 1> VectorNd;
         MatrixNd dF_dX;
-        VectorNd D;
+        Vector D;
         double R, T, dT_dR, eps;
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
@@ -544,8 +540,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<int>& petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
         const std::vector<int>& petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
         const std::vector<const double*>& rigidities = d_beam_data[level_number].rigidities;
-        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
-        MatrixNd dF_dX = MatrixNd::Zero();
+        MatrixNd dF_dX(MatrixNd::Zero());
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
             const int petsc_mastr_idx = petsc_mastr_node_idxs[k]/NDIM;  // block indices
@@ -585,8 +580,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         const std::vector<int>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
         const std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
         const  std::vector<const double*>&  eta = d_target_point_data[level_number].eta;
-        typedef Matrix<double, NDIM, NDIM, RowMajor> MatrixNd;
-        MatrixNd dF_dX = MatrixNd::Zero();
+        MatrixNd dF_dX(MatrixNd::Zero());
         for (unsigned int k = 0; k < petsc_node_idxs.size(); ++k)
         {
             const int petsc_node_idx = petsc_node_idxs[k]/NDIM;  // block index
@@ -867,11 +861,11 @@ IBStandardForceGen::initializeBeamLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    std::vector<int>&                        petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
-    std::vector<int>&                         petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
-    std::vector<int>&                         petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
-    std::vector<const double*>&                         rigidities = d_beam_data[level_number].rigidities;
-    std::vector<const boost::array<double,NDIM>*>& curvatures = d_beam_data[level_number].curvatures;
+    std::vector<int>&  petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
+    std::vector<int>&   petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
+    std::vector<int>&   petsc_prev_node_idxs = d_beam_data[level_number].petsc_prev_node_idxs;
+    std::vector<const double*>&   rigidities = d_beam_data[level_number].rigidities;
+    std::vector<const Vector*>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -920,7 +914,7 @@ IBStandardForceGen::initializeBeamLevelData(
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
-        const std::vector<boost::array<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
+        const std::vector<Vector>& curv = force_spec->getMeshDependentCurvatures();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
 #if !defined(NDEBUG)
         TBOX_ASSERT(num_beams == nghbrs.size());
@@ -982,13 +976,13 @@ IBStandardForceGen::computeLagrangianBeamForce(
     const int num_beams = d_beam_data[level_number].petsc_mastr_node_idxs.size();
     if (!num_beams) return;
 
-    const int*                        const petsc_mastr_node_idxs = &d_beam_data[level_number].petsc_mastr_node_idxs[0];
-    const int*                        const  petsc_next_node_idxs = &d_beam_data[level_number].petsc_next_node_idxs [0];
-    const int*                        const  petsc_prev_node_idxs = &d_beam_data[level_number].petsc_prev_node_idxs [0];
-    const double**                    const            rigidities = &d_beam_data[level_number].rigidities           [0];
-    const boost::array<double,NDIM>** const            curvatures = &d_beam_data[level_number].curvatures           [0];
-    double*                           const                F_node = F_data->getLocalFormVecArray()       ->data();
-    const double*                     const                X_node = X_data->getGhostedLocalFormVecArray()->data();
+    const int*       const petsc_mastr_node_idxs = &d_beam_data[level_number].petsc_mastr_node_idxs[0];
+    const int*       const  petsc_next_node_idxs = &d_beam_data[level_number].petsc_next_node_idxs [0];
+    const int*       const  petsc_prev_node_idxs = &d_beam_data[level_number].petsc_prev_node_idxs [0];
+    const double**   const            rigidities = &d_beam_data[level_number].rigidities           [0];
+    const Vector** const            curvatures = &d_beam_data[level_number].curvatures           [0];
+    double*          const                F_node = F_data->getLocalFormVecArray()       ->data();
+    const double*    const                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
     int k, kblock, kunroll, mastr_idx, next_idx, prev_idx;
@@ -1092,10 +1086,10 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    std::vector<int>&                      petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
-    std::vector<const double*>&                      kappa = d_target_point_data[level_number].kappa;
-    std::vector<const double*>&                        eta = d_target_point_data[level_number].eta;
-    std::vector<const boost::array<double,NDIM>*>& X0 = d_target_point_data[level_number].X0;
+    std::vector<int>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
+    std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
+    std::vector<const double*>&   eta = d_target_point_data[level_number].eta;
+    std::vector<const Point*>&     X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -1161,13 +1155,13 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     const int num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
     if (!num_target_points) return;
 
-    const int*                        const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
-    const double**                    const           kappa = &d_target_point_data[level_number].kappa          [0];
-    const double**                    const             eta = &d_target_point_data[level_number].eta            [0];
-    const boost::array<double,NDIM>** const              X0 = &d_target_point_data[level_number].X0             [0];
-    double*                           const          F_node = F_data->getLocalFormVecArray()->data();
-    const double*                     const          X_node = X_data->getLocalFormVecArray()->data();
-    const double*                     const          U_node = U_data->getLocalFormVecArray()->data();
+    const int*     const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
+    const double** const           kappa = &d_target_point_data[level_number].kappa          [0];
+    const double** const             eta = &d_target_point_data[level_number].eta            [0];
+    const Point**  const              X0 = &d_target_point_data[level_number].X0             [0];
+    double*        const          F_node = F_data->getLocalFormVecArray()->data();
+    const double*  const          X_node = X_data->getLocalFormVecArray()->data();
+    const double*  const          U_node = U_data->getLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
     int k, kblock, kunroll, idx;

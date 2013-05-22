@@ -82,7 +82,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
       d_bcoef_parsers(2*NDIM),
       d_gcoef_parsers(2*NDIM),
       d_parser_time(new double),
-      d_parser_posn(new double[NDIM])
+      d_parser_posn(new Point)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -291,10 +291,10 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("X_" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x_" + postfix, &(d_parser_posn[d]));
+            (*cit)->DefineVar("X" + postfix, &d_parser_posn->data()[d]);
+            (*cit)->DefineVar("x" + postfix, &d_parser_posn->data()[d]);
+            (*cit)->DefineVar("X_" + postfix, &d_parser_posn->data()[d]);
+            (*cit)->DefineVar("x_" + postfix, &d_parser_posn->data()[d]);
         }
     }
     return;
@@ -302,8 +302,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
 
 muParserRobinBcCoefs::~muParserRobinBcCoefs()
 {
-    delete   d_parser_time;
-    delete[] d_parser_posn;
+    delete d_parser_time;
+    delete d_parser_posn;
     return;
 }// ~muParserRobinBcCoefs
 
@@ -321,7 +321,7 @@ muParserRobinBcCoefs::setBcCoefs(
     const Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
-    const double* const XLower = pgeom->getXLower();
+    const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Loop over the boundary box and set the coefficients.
@@ -348,11 +348,11 @@ muParserRobinBcCoefs::setBcCoefs(
         {
             if (d != bdry_normal_axis)
             {
-                d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                (*d_parser_posn)[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
             }
             else
             {
-                d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
+                (*d_parser_posn)[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
             }
         }
         try

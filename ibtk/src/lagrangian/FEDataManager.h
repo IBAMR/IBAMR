@@ -54,6 +54,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/partitioner.h"
 #include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -526,7 +527,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > >*
+    std::vector<std::pair<Point,Point> >*
     computeActiveElementBoundingBoxes();
 
     /*!
@@ -640,7 +641,7 @@ private:
      */
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > > d_active_elem_bboxes;
+    std::vector<std::pair<Point,Point> > d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.

@@ -73,8 +73,6 @@
 #include "tbox/Utilities.h"
 #include "Eigen/Dense"  // IWYU pragma: export
 
-using namespace Eigen;
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -357,8 +355,8 @@ GeneralizedIBMethod::eulerStep(
                     ,      (1.0-c_t)*e(2)*e(0) - s_t*e(1) ,       (1.0-c_t)*e(2)*e(1) + s_t*e(0) , c_t + (1.0-c_t)*e(2)*e(2)           ;
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
-                    Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = R*D_current_alpha;
                 }
             }
@@ -366,8 +364,8 @@ GeneralizedIBMethod::eulerStep(
             {
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
-                    Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = D_current_alpha;
                 }
             }
@@ -427,8 +425,8 @@ GeneralizedIBMethod::trapezoidalStep(
                     ,      (1.0-c_t)*e(2)*e(0) - s_t*e(1) ,       (1.0-c_t)*e(2)*e(1) + s_t*e(0) , c_t + (1.0-c_t)*e(2)*e(2)           ;
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
-                    Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = R*D_current_alpha;
                 }
             }
@@ -436,8 +434,8 @@ GeneralizedIBMethod::trapezoidalStep(
             {
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
-                    Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = D_current_alpha;
                 }
             }

@@ -668,7 +668,7 @@ LDataManager::createLData(
     return ret_val;
 }// createLData
 
-boost::array<double,NDIM>
+Point
 LDataManager::computeLagrangianStructureCenterOfMass(
     const int structure_id,
     const int level_number)
@@ -678,7 +678,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
                 d_finest_ln   >= level_number);
 #endif
     int node_counter = 0;
-    boost::array<double,NDIM> X_com(zeroNd);
+    Point X_com(Point::Zero());
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -710,7 +710,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     return X_com;
 }// computeLagrangianStructureCenterOfMass
 
-std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> >
+std::pair<Point,Point>
 LDataManager::computeLagrangianStructureBoundingBox(
     const int structure_id,
     const int level_number)
@@ -719,8 +719,8 @@ LDataManager::computeLagrangianStructureBoundingBox(
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    boost::array<double,NDIM> X_lower(array_constant<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
-    boost::array<double,NDIM> X_upper(array_constant<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_lower(Point::Constant( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_upper(Point::Constant(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
@@ -750,7 +750,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
 
 void
 LDataManager::reinitLagrangianStructure(
-    const boost::array<double,NDIM>& X_center,
+    const Point& X_center,
     const int structure_id,
     const int level_number)
 {
@@ -762,8 +762,8 @@ LDataManager::reinitLagrangianStructure(
 
     // Compute the bounding box of the structure in its reference configuration.
     const boost::multi_array_ref<double,2>& X0_data = *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
-    boost::array<double,NDIM> X_lower(array_constant<double,NDIM>( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
-    boost::array<double,NDIM> X_upper(array_constant<double,NDIM>(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_lower(Point::Constant( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_upper(Point::Constant(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
@@ -785,17 +785,17 @@ LDataManager::reinitLagrangianStructure(
     }
     SAMRAI_MPI::minReduction(&X_lower[0],NDIM);
     SAMRAI_MPI::maxReduction(&X_upper[0],NDIM);
-    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > bounding_box = std::make_pair(X_lower,X_upper);
+    std::pair<Point,Point> bounding_box = std::make_pair(X_lower,X_upper);
 
     // Compute the displacement.
-    boost::array<double,NDIM> dX(zeroNd);
+    Vector dX(Vector::Zero());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dX[d] = X_center[d] - 0.5*(X_upper[d]+X_lower[d]);
     }
 
     // Compute the shifted bounding box.
-    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Point,Point> shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
@@ -844,7 +844,7 @@ LDataManager::reinitLagrangianStructure(
                             X[d] = X0[d] + dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        boost::array<double,NDIM> X_displaced;
+                        Point X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -865,7 +865,7 @@ LDataManager::reinitLagrangianStructure(
 
 void
 LDataManager::displaceLagrangianStructure(
-    const boost::array<double,NDIM>& dX,
+    const Vector& dX,
     const int structure_id,
     const int level_number)
 {
@@ -876,8 +876,8 @@ LDataManager::displaceLagrangianStructure(
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the shifted bounding box.
-    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
-    std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Point,Point> bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
+    std::pair<Point,Point> shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
@@ -926,7 +926,7 @@ LDataManager::displaceLagrangianStructure(
                             X[d] += dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        boost::array<double,NDIM> X_displaced;
+                        Point X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -1168,13 +1168,13 @@ LDataManager::beginDataRedistribution(
     // Ensure that no IB points manage to escape the computational domain.
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
-    boost::array<double,NDIM> grid_length;
+    Vector grid_length;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
     }
     std::vector<std::vector<IntVector<NDIM> > > periodic_offset_data(finest_ln+1);
-    std::vector<std::vector<boost::array<double,NDIM> > > displacement_data(finest_ln+1);
+    std::vector<std::vector<Vector> > displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1195,7 +1195,7 @@ LDataManager::beginDataRedistribution(
         {
             double* const X = &X_data[local_idx][0];
             IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
-            boost::array<double,NDIM>& displacement = displacement_data[level_number][local_idx];
+            Vector& displacement = displacement_data[level_number][local_idx];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = 0;
@@ -1261,7 +1261,7 @@ LDataManager::beginDataRedistribution(
                         if (patch_box.contains(new_cell_idx))
                         {
                             const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
-                            const boost::array<double,NDIM>& displacement = displacement_data[level_number][local_idx];
+                            const Vector& displacement = displacement_data[level_number][local_idx];
                             if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, displacement);
                             if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
                             LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
@@ -1345,7 +1345,7 @@ LDataManager::endDataRedistribution(
         for (size_t k = 0; k < num_nodes; ++k)
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const boost::array<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
@@ -1414,7 +1414,7 @@ LDataManager::endDataRedistribution(
         for (size_t k = 0; k < num_nodes; ++k)
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const boost::array<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
@@ -2173,9 +2173,9 @@ LDataManager::applyGradientDetector(
 
             for (int ln = level_number+1; ln <= d_finest_ln; ++ln)
             {
-                for (std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
+                for (std::vector<std::pair<Point,Point> >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
                 {
-                    const std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> >& bounding_box = *cit;
+                    const std::pair<Point,Point>& bounding_box = *cit;
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.

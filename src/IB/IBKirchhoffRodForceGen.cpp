@@ -66,8 +66,6 @@
 #include "unsupported/Eigen/MatrixFunctions" // IWYU pragma: export
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
-using namespace Eigen;
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -240,8 +238,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
                              PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &D_next_mat);  IBTK_CHKERRQ(ierr);
 
-        Matrix<double,3*3,3*3,RowMajor> curr_vals = Matrix<double,3*3,3*3,RowMajor>::Zero();
-        Matrix<double,3*3,3*3,RowMajor> next_vals = Matrix<double,3*3,3*3,RowMajor>::Zero();
+        Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor> curr_vals(Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor>::Zero());
+        Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor> next_vals(Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor>::Zero());
         for (unsigned int d = 0; d < 3*3; ++d)
         {
             curr_vals(d,d) =  0.0;
@@ -272,9 +270,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
                              PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &X_next_mat);  IBTK_CHKERRQ(ierr);
 
-        typedef Matrix<double,NDIM,NDIM,RowMajor> MatrixNd;
-        MatrixNd curr_vals;  curr_vals = MatrixNd::Zero();
-        MatrixNd next_vals;  next_vals = MatrixNd::Zero();
+        Matrix curr_vals(Matrix::Zero());
+        Matrix next_vals(Matrix::Zero());
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             curr_vals(d,d) =  0.0;
@@ -383,23 +380,23 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
         // Compute the forces applied by the rod to the "current" and "next"
         // nodes.
         const int D1_offset = 0;
-        Map<const Vector3d> D1(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D1_offset]);
-        Map<const Vector3d> D1_next(&D_next_vals[k*3*3+D1_offset]);
+        Eigen::Map<const Vector3d> D1(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D1_offset]);
+        Eigen::Map<const Vector3d> D1_next(&D_next_vals[k*3*3+D1_offset]);
 
         const int D2_offset = 3;
-        Map<const Vector3d> D2(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D2_offset]);
-        Map<const Vector3d> D2_next(&D_next_vals[k*3*3+D2_offset]);
+        Eigen::Map<const Vector3d> D2(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D2_offset]);
+        Eigen::Map<const Vector3d> D2_next(&D_next_vals[k*3*3+D2_offset]);
 
         const int D3_offset = 6;
-        Map<const Vector3d> D3(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D3_offset]);
-        Map<const Vector3d> D3_next(&D_next_vals[k*3*3+D3_offset]);
+        Eigen::Map<const Vector3d> D3(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D3_offset]);
+        Eigen::Map<const Vector3d> D3_next(&D_next_vals[k*3*3+D3_offset]);
 
-        Map<const Vector3d> X(&X_vals[(petsc_curr_node_idxs[k]-global_offset)*NDIM]);
-        Map<const Vector3d> X_next(&X_next_vals[k*NDIM]);
+        Eigen::Map<const Vector3d> X(&X_vals[(petsc_curr_node_idxs[k]-global_offset)*NDIM]);
+        Eigen::Map<const Vector3d> X_next(&X_next_vals[k*NDIM]);
 
-        boost::array<Map<const Vector3d>*,3> D = {{&D1,&D2,&D3}};
-        boost::array<Map<const Vector3d>*,3> D_next = {{&D1_next,&D2_next,&D3_next}};
-        Matrix3d A = Matrix3d::Zero();
+        boost::array<Eigen::Map<const Vector3d>*,3> D = {{&D1,&D2,&D3}};
+        boost::array<Eigen::Map<const Vector3d>*,3> D_next = {{&D1_next,&D2_next,&D3_next}};
+        Matrix3d A(Matrix3d::Zero());
         for (int i = 0; i < 3; ++i)
         {
             A += (*D_next[i])*(*D[i]).transpose();
@@ -437,13 +434,13 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
         const double N3 = a3*(dD1_ds.dot(D2_half)-tau);
         const Vector3d N_half = N1*D1_half + N2*D2_half + N3*D3_half;
 
-        Map<Vector3d> F_curr(&F_curr_node_vals[k*NDIM]);
-        Map<Vector3d> F_next(&F_next_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> F_curr(&F_curr_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> F_next(&F_next_node_vals[k*NDIM]);
         F_curr =  F_half;
         F_next = -F_half;
 
-        Map<Vector3d> N_curr(&N_curr_node_vals[k*NDIM]);
-        Map<Vector3d> N_next(&N_next_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> N_curr(&N_curr_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> N_next(&N_next_node_vals[k*NDIM]);
         N_curr =  N_half + 0.5*(X_next-X).cross(F_half);
         N_next = -N_half + 0.5*(X_next-X).cross(F_half);
     }

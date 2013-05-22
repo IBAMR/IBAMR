@@ -576,7 +576,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
     bool d_ib_source_fcn_needs_init;
-    std::vector<std::vector<boost::array<double,NDIM> > > d_X_src;
+    std::vector<std::vector<IBTK::Point> > d_X_src;
     std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
     bool d_normalize_source_strength;

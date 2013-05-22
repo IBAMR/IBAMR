@@ -226,7 +226,7 @@ IBStandardSourceGen::getNumSources(
 
 void
 IBStandardSourceGen::getSourceLocations(
-    std::vector<boost::array<double,NDIM> >& X_src,
+    std::vector<Point>& X_src,
     std::vector<double>& r_src,
     Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
@@ -245,7 +245,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(), X_src.end(), zeroNd);
+    std::fill(X_src.begin(), X_src.end(), Point::Zero());
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();

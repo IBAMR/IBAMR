@@ -94,7 +94,7 @@ get_elem_hmax(
     const boost::multi_array<double,2>& X_node)
 {
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES];
+    libMesh::Point s_node_cache[MAX_NODES];
     const int n_node = elem->n_nodes();
 #if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
@@ -102,7 +102,7 @@ get_elem_hmax(
     for (int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
-        Point& X = elem->point(k);
+        libMesh::Point& X = elem->point(k);
         for (int d = 0; d < NDIM; ++d)
         {
             X(d) = X_node[k][d];
@@ -947,15 +947,15 @@ IBFEMethod::computeInteriorForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
-    const std::vector<Point>& q_point = fe->get_xyz();
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
@@ -1011,7 +1011,7 @@ IBFEMethod::computeInteriorForceDensity(
     // interior elastic force density.
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_b, F_s, F_qp, n;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
     boost::multi_array<double,2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -1040,7 +1040,7 @@ IBFEMethod::computeInteriorForceDensity(
         get_values_for_interpolation(X_node, X_vec, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const Point& s_qp = q_point[qp];
+            const libMesh::Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(FF,qp,X_node,dphi);
 
@@ -1109,7 +1109,7 @@ IBFEMethod::computeInteriorForceDensity(
             get_values_for_interpolation(X_node, X_vec, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
-                const Point& s_qp = q_point_face[qp];
+                const libMesh::Point& s_qp = q_point_face[qp];
                 interpolate(X_qp,qp,X_node,phi_face);
                 jacobian(FF,qp,X_node,dphi_face);
                 const double J = std::abs(FF.det());
@@ -1204,9 +1204,9 @@ IBFEMethod::spreadTransmissionForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
@@ -1244,9 +1244,8 @@ IBFEMethod::spreadTransmissionForceDensity(
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
-    std::vector<Point> elem_X;
     boost::multi_array<double,2> X_node, X_node_side;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
@@ -1345,7 +1344,7 @@ IBFEMethod::spreadTransmissionForceDensity(
 
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
-                    const Point& s_qp = q_point_face[qp];
+                    const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
@@ -1424,8 +1423,8 @@ IBFEMethod::imposeJumpConditions(
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
@@ -1464,12 +1463,12 @@ IBFEMethod::imposeJumpConditions(
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
     boost::multi_array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    boost::array<double,NDIM> X_min, X_max;
+    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    IBTK::Point X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1558,8 +1557,8 @@ IBFEMethod::imposeJumpConditions(
 #if !defined(NDEBUG)
                 TBOX_ASSERT(n_node_side <= MAX_NODES);
 #endif
-                X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-                X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+                X_min = IBTK::Point::Constant( 0.5*std::numeric_limits<double>::max());
+                X_max = IBTK::Point::Constant(-0.5*std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);
@@ -1574,8 +1573,8 @@ IBFEMethod::imposeJumpConditions(
 
                 // Loop over coordinate directions and look for intersections
                 // with the background fluid grid.
-                std::vector<Point> intersection_ref_points;
-                std::vector<int>   intersection_axes;
+                std::vector<libMesh::Point> intersection_ref_points;
+                std::vector<int>            intersection_axes;
                 static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
                 intersection_ref_points.reserve(estimated_max_size);
                 intersection_axes      .reserve(estimated_max_size);
@@ -1609,16 +1608,16 @@ IBFEMethod::imposeJumpConditions(
                         {
                             for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
                             {
-                                Point r;
+                                libMesh::Point r;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+0.5));
                                 }
 #if (NDIM == 2)
-                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
+                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
 #endif
 #if (NDIM == 3)
-                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
+                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
 #endif
                                 for (unsigned int k = 0; k < intersections.size(); ++k)
                                 {
@@ -1682,7 +1681,7 @@ IBFEMethod::imposeJumpConditions(
                     const int d = axis;
                     const SideIndex<NDIM> s_i(i,d,0);
                     if (!side_boxes[d].contains(s_i)) continue;
-                    const Point& s_qp = q_point_face[qp];
+                    const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
@@ -1769,8 +1768,8 @@ IBFEMethod::initializeCoordinates(
         if (n->n_vars(X_sys_num))
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
-            const Point& s = *n;
-            Point X = s;
+            const libMesh::Point& s = *n;
+            libMesh::Point X = s;
             if (!identity_mapping)
             {
                 d_coordinate_mapping_fcns[part](X, s, d_coordinate_mapping_fcn_ctxs[part]);
@@ -1806,7 +1805,7 @@ IBFEMethod::updateCoordinateMapping(
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
             libmesh_assert(n->n_vars(X_mapping_sys_num) == NDIM);
-            const Point& s = *n;
+            const libMesh::Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const int X_dof_index = n->dof_number(X_sys_num,d,0);

@@ -40,6 +40,11 @@
  * header file may be included in application codes, but it MUST NOT be included
  * in any other header (.h) or inline (.I) file in the library.
  */
+namespace Eigen
+{
+}
+using namespace Eigen;
+
 namespace IBAMR
 {
 }

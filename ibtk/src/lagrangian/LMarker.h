@@ -68,8 +68,8 @@ public:
      */
     LMarker(
         int idx=-1,
-        const boost::array<double,NDIM>& X=zeroNd,
-        const boost::array<double,NDIM>& U=zeroNd,
+        const Point& X=Point::Zero(),
+        const Vector& U=Vector::Zero(),
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -126,13 +126,13 @@ public:
     /*!
      * \return A const reference to the marker position.
      */
-    const boost::array<double,NDIM>&
+    const Point&
     getPosition() const;
 
     /*!
      * \return A non-const reference to the marker position.
      */
-    boost::array<double,NDIM>&
+    Point&
     getPosition();
 
     /*!
@@ -140,18 +140,18 @@ public:
      */
     void
     setPosition(
-        const boost::array<double,NDIM>& X);
+        const Point& X);
 
     /*!
      * \return A const reference to the marker velocity.
      */
-    const boost::array<double,NDIM>&
+    const Vector&
     getVelocity() const;
 
     /*!
      * \return A non-const reference to the marker velocity.
      */
-    boost::array<double,NDIM>&
+    Vector&
     getVelocity();
 
     /*!
@@ -159,7 +159,7 @@ public:
      */
     void
     setVelocity(
-        const boost::array<double,NDIM>& U);
+        const Vector& U);
 
     /*!
      * \return A const reference to the periodic offset.
@@ -222,7 +222,8 @@ private:
     /*!
      * \brief The marker position and velocity.
      */
-    boost::array<double,NDIM> d_X, d_U;
+    Point d_X;
+    Vector d_U;
 
     /*!
      * \brief The periodic offset.

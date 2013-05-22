@@ -143,7 +143,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_silo_writer(NULL),
       d_base_filename(),
       d_length_scale_factor(1.0),
-      d_posn_shift(zeroNd),
+      d_posn_shift(Vector::Zero()),
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
@@ -402,7 +402,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const boost::array<double,NDIM> X = getVertexPosn(point_idx, level_number);
+            const Point X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
             for (int d = 0; d < NDIM; ++d)
@@ -440,7 +440,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const boost::array<double,NDIM> periodic_displacement(zeroNd);
+            static const Vector periodic_displacement(Vector::Zero());
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
 
             // Initialize the velocity of the present vertex.
@@ -601,7 +601,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 const std::pair<int,int>& point_idx = (*it);
 
                 // Get the coordinates of the present vertex.
-                const boost::array<double,NDIM> X = getVertexPosn(point_idx, ln);
+                const Point X = getVertexPosn(point_idx, ln);
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
@@ -1237,7 +1237,7 @@ IBStandardInitializer::readBeamFiles(
                 {
                     int prev_idx = std::numeric_limits<int>::max(), curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
                     double bend = 0.0;
-                    boost::array<double,NDIM> curv(zeroNd);
+                    Vector curv(Vector::Zero());
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -2554,7 +2554,7 @@ IBStandardInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const boost::array<double,NDIM>& X = d_vertex_posn[level_number][j][k];
+            const Point& X = d_vertex_posn[level_number][j][k];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -2578,7 +2578,7 @@ IBStandardInitializer::getCanonicalLagrangianIndex(
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCanonicalLagrangianIndex
 
-boost::array<double,NDIM>
+Point
 IBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
@@ -2726,7 +2726,7 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<std::pair<int,int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
-        std::vector<boost::array<double,NDIM> > beam_mesh_dependent_curvature;
+        std::vector<Vector> beam_mesh_dependent_curvature;
         for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx); it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
@@ -2778,7 +2778,7 @@ IBStandardInitializer::initializeSpecs(
         const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
-        const boost::array<double,NDIM> X_target = getVertexPosn(point_index, level_number);
+        const Point X_target = getVertexPosn(point_index, level_number);
         vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
     }
 
@@ -3018,7 +3018,7 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
         d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
-        d_uniform_beam_curvature[ln].resize(num_base_filename,zeroNd);
+        d_uniform_beam_curvature[ln].resize(num_base_filename,Vector::Zero());
 
         d_enable_rods[ln].resize(num_base_filename,true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename,false);

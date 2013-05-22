@@ -190,7 +190,7 @@ get_elem_hmax(
     const boost::multi_array<double,2>& X_node)
 {
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES];
+    libMesh::Point s_node_cache[MAX_NODES];
     const int n_node = elem->n_nodes();
 #if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
@@ -198,7 +198,7 @@ get_elem_hmax(
     for (int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
-        Point& X = elem->point(k);
+        libMesh::Point& X = elem->point(k);
         for (int d = 0; d < NDIM; ++d)
         {
             X(d) = X_node[k][d];
@@ -480,7 +480,6 @@ FEDataManager::spread(
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // element quadrature points, then spread thost values onto the Eulerian
     // grid.
-    std::vector<Point> elem_X;
     boost::multi_array<double,2> F_node, X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
@@ -654,8 +653,8 @@ FEDataManager::prolongData(
     TensorValue<double> dX_ds;
     boost::multi_array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    boost::array<double,NDIM> X_min, X_max;
+    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    Point X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -699,8 +698,8 @@ FEDataManager::prolongData(
 #if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-            X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-            X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+            X_min = Point::Constant( 0.5*std::numeric_limits<double>::max());
+            X_max = Point::Constant(-0.5*std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -715,7 +714,7 @@ FEDataManager::prolongData(
 
             // Loop over coordinate directions and look for Eulerian grid points
             // that are covered by the element.
-            std::vector<Point>            intersection_master_coords;
+            std::vector<libMesh::Point>   intersection_master_coords;
             std::vector<SideIndex<NDIM> > intersection_indices;
             static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
             intersection_master_coords.reserve(estimated_max_size);
@@ -745,12 +744,12 @@ FEDataManager::prolongData(
                     {
                         for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
                         {
-                            Point p;
+                            libMesh::Point p;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
                             }
-                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
+                            const libMesh::Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
                             if (FEInterface::on_reference_element(master_coords,elem->type()))
                             {
                                 intersection_master_coords.push_back(master_coords);
@@ -868,7 +867,6 @@ FEDataManager::interp(
     // the interpolated velocity field onto the FE basis functions.
     AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
-    std::vector<Point> elem_X;
     boost::multi_array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
@@ -1085,8 +1083,8 @@ FEDataManager::restrictData(
     TensorValue<double> dX_ds;
     boost::multi_array<double,2> X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    boost::array<double,NDIM> X_min, X_max;
+    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    Point X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1133,8 +1131,8 @@ FEDataManager::restrictData(
 #if !defined(NDEBUG)
             TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-            X_min = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-            X_max = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+            X_min = Point::Constant( 0.5*std::numeric_limits<double>::max());
+            X_max = Point::Constant(-0.5*std::numeric_limits<double>::max());
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -1149,7 +1147,7 @@ FEDataManager::restrictData(
 
             // Loop over coordinate directions and look for Eulerian grid points
             // that are covered by the element.
-            std::vector<Point>            intersection_master_coords;
+            std::vector<libMesh::Point>   intersection_master_coords;
             std::vector<SideIndex<NDIM> > intersection_indices;
             static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
             intersection_master_coords.reserve(estimated_max_size);
@@ -1179,12 +1177,12 @@ FEDataManager::restrictData(
                     {
                         for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
                         {
-                            Point p;
+                            libMesh::Point p;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
                             }
-                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
+                            const libMesh::Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
                             if (FEInterface::on_reference_element(master_coords,elem->type()))
                             {
                                 intersection_master_coords.push_back(master_coords);
@@ -1724,9 +1722,8 @@ FEDataManager::applyGradientDetector(
 
         // Tag cells for refinement whenever they contain active element
         // quadrature points.
-        std::vector<Point> elem_X;
         boost::multi_array<double,2> X_node;
-        boost::array<double,NDIM> X_qp;
+        Point X_qp;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1955,9 +1952,8 @@ FEDataManager::updateQuadPointCountData(
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
-        std::vector<Point> elem_X;
         boost::multi_array<double,2> X_node;
-        boost::array<double,NDIM> X_qp;
+        Point X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2006,7 +2002,7 @@ FEDataManager::updateQuadPointCountData(
     return;
 }// updateQuadPointCountData
 
-std::vector<std::pair<boost::array<double,NDIM>,boost::array<double,NDIM> > >*
+std::vector<std::pair<Point,Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
     const MeshBase& mesh = d_es->get_mesh();
@@ -2022,17 +2018,17 @@ FEDataManager::computeActiveElementBoundingBoxes()
     // Compute the lower and upper bounds of all active local elements in the
     // mesh.  Assumes nodal basis functions.
     d_active_elem_bboxes.resize(n_elem);
-    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(zeroNd,array_constant<double,NDIM>(0.0)));
+    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(Point::Zero(),Point::Zero()));
     MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for ( ; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const unsigned int elem_id = elem->id();
-        boost::array<double,NDIM>& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
-        boost::array<double,NDIM>& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
-        elem_lower_bound = array_constant<double,NDIM>( 0.5*std::numeric_limits<double>::max());
-        elem_upper_bound = array_constant<double,NDIM>(-0.5*std::numeric_limits<double>::max());
+        Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
+        Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
+        elem_lower_bound = Point::Constant( 0.5*std::numeric_limits<double>::max());
+        elem_upper_bound = Point::Constant(-0.5*std::numeric_limits<double>::max());
 
         const unsigned int n_nodes = elem->n_nodes();
         std::vector<unsigned int> dof_indices;
@@ -2134,8 +2130,8 @@ FEDataManager::collectActivePatchElements(
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        boost::array<double,NDIM> x_lower;  for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
-        boost::array<double,NDIM> x_upper;  for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
+        Point x_lower;  for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
+        Point x_upper;  for (unsigned int d = 0; d < NDIM; ++d) x_upper[d] = pgeom->getXUpper()[d];
         const double* const dx = pgeom->getDx();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -2149,8 +2145,8 @@ FEDataManager::collectActivePatchElements(
         {
             Elem* const elem = *el_it;
             const unsigned int elem_id = elem->id();
-            const boost::array<double,NDIM>& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
-            const boost::array<double,NDIM>& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
+            const Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
+            const Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
             bool in_patch = true;
             for (unsigned int d = 0; d < NDIM && in_patch; ++d)
             {
@@ -2180,9 +2176,8 @@ FEDataManager::collectActivePatchElements(
 
         // Keep only those elements that have a quadrature point on the local
         // patch.
-        std::vector<Point> elem_X;
         boost::multi_array<double,2> X_node;
-        boost::array<double,NDIM> X_qp;
+        Point X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2391,114 +2386,6 @@ FEDataManager::getFromRestart()
     d_finest_ln   = db->getInteger("d_finest_ln"  );
     return;
 }// getFromRestart
-
-void
-FEDataManager::do_partition(
-    MeshBase& mesh,
-    const unsigned int /*n*/)
-{
-    // Compute the centroids of the elements.
-    const unsigned int n_elem = mesh.max_elem_id()+1;
-    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
-    const unsigned int X_sys_num = X_system.number();
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    NumericVector<double>& X_vec = *X_system.solution;
-    NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
-    X_vec.localize(X_ghost_vec);
-    X_dof_map.enforce_constraints_exactly(X_system, &X_ghost_vec);
-
-    // Compute the lower and upper bounds of all local elements in the mesh.
-    //
-    // NOTE: Assuming nodal basis functions.
-    std::vector<boost::array<double,NDIM> > elem_centroids(n_elem, zeroNd);
-    MeshBase::element_iterator       el_it  = mesh.local_elements_begin();
-    const MeshBase::element_iterator el_end = mesh.local_elements_end();
-    for ( ; el_it != el_end; ++el_it)
-    {
-        const Elem* const elem = *el_it;
-        const unsigned int elem_id = elem->id();
-        const unsigned int n_nodes = elem->n_nodes();
-        std::vector<unsigned int> dof_indices;
-        dof_indices.reserve(NDIM*n_nodes);
-        for (unsigned int k = 0; k < n_nodes; ++k)
-        {
-            Node* node = elem->get_node(k);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(node->n_dofs(X_sys_num,0) > 0);
-#endif
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                dof_indices.push_back(node->dof_number(X_sys_num,d,0));
-            }
-        }
-        std::vector<double> X_node;
-        X_ghost_vec.get(dof_indices, X_node);
-        for (unsigned int k = 0; k < n_nodes; ++k)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const double& X = X_node[k*NDIM+d];
-                elem_centroids[elem_id][d] += X;
-            }
-        }
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            elem_centroids[elem_id][d] /= static_cast<double>(n_nodes);
-        }
-    }
-
-    // Parallel sum elem_centroids so that each process has access to the
-    // centroid data for each active element in the mesh.
-    std::vector<double> elem_centroids_flattened(NDIM*n_elem);
-    for (unsigned int e = 0; e < n_elem; ++e)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            elem_centroids_flattened[e*NDIM+d] = elem_centroids[e][d];
-        }
-    }
-    SAMRAI_MPI::sumReduction(&elem_centroids_flattened[0], elem_centroids_flattened.size());
-    for (unsigned int e = 0; e < n_elem; ++e)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            elem_centroids[e][d] = elem_centroids_flattened[e*NDIM+d];
-        }
-    }
-
-    // Find which patch contains each element centroid.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
-    const Box<NDIM>& domain_box0 = grid_geom->getPhysicalDomain()[0];
-    const Box<NDIM>  domain_box  = Box<NDIM>::refine(domain_box0, ratio);
-    const Index<NDIM>& lower = domain_box.lower();
-    const Index<NDIM>& upper = domain_box.upper();
-    const double* const x_lower = grid_geom->getXLower();
-    const double* const x_upper = grid_geom->getXUpper();
-    const double* const dx0 = grid_geom->getDx();
-    double dx[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) dx[d] = dx0[d]/static_cast<double>(ratio(d));
-    Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
-    const ProcessorMapping& proc_map = level->getProcessorMapping();
-    for (el_it = mesh.elements_begin(); el_it != mesh.elements_end(); ++el_it)
-    {
-        Elem* const elem = *el_it;
-        const unsigned int elem_id = elem->id();
-        const double* const X = elem_centroids[elem_id].data();
-        const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, lower, upper);
-        Array<int> indices;
-        box_tree->findOverlapIndices(indices, Box<NDIM>(i,i));
-#if !defined(NDEBUG)
-        TBOX_ASSERT(indices.size() == 1);
-#endif
-        elem->processor_id() = proc_map.getProcessorAssignment(indices[0]);
-    }
-    return;
-}// do_partition
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

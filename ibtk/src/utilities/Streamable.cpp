@@ -35,10 +35,6 @@
 #include "Streamable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace IBTK {
-template <class T, size_t N> class Vector;
-}  // namespace IBTK
-
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class IntVector;
@@ -68,7 +64,7 @@ Streamable::~Streamable()
 void
 Streamable::registerPeriodicShift(
     const IntVector<NDIM>& /*offset*/,
-    const boost::array<double,NDIM>& /*displacement*/)
+    const Vector& /*displacement*/)
 {
     // intentionally blank
     return;

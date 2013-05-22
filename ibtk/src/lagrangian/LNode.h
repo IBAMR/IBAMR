@@ -76,7 +76,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const boost::array<double,NDIM>& periodic_displacement=zeroNd,
+        const Vector& periodic_displacement=Vector::Zero(),
         const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data=std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
     /*!
@@ -164,7 +164,7 @@ public:
     void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const boost::array<double,NDIM>& displacement);
+        const Vector& displacement);
 
     /*!
      * \brief Copy data from the source.

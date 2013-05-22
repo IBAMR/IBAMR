@@ -216,7 +216,7 @@ protected:
     /*
      * Gravitational acceleration.
      */
-    boost::array<double,NDIM> d_gravitational_acceleration;
+    IBTK::Vector d_gravitational_acceleration;
 
 private:
     /*!
