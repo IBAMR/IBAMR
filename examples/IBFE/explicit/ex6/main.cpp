@@ -71,8 +71,8 @@ void
 block_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -88,8 +88,8 @@ void
 beam_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -114,8 +114,8 @@ void
 beam_PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& s,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,

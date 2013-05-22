@@ -72,8 +72,8 @@ static const double mu = 1.0;
 // Coordinate mapping function.
 void
 coordinate_mapping_function(
-    Point& X,
-    const Point& s,
+    libMesh::Point& X,
+    const libMesh::Point& s,
     void* /*ctx*/)
 {
     X(0) = (R+      s(1))*cos(s(0)/R)+0.5;
@@ -87,8 +87,8 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& /*s*/,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
