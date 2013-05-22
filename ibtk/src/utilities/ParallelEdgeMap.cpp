@@ -59,7 +59,7 @@ ParallelEdgeMap::ParallelEdgeMap()
       d_pending_additions(),
       d_pending_removals()
 {
-    IBTK_DEPRECATED_CLASS2("ParallelEdgeMap","ParallelMap");
+    // intentionally blank
     return;
 }// ParallelEdgeMap
 
