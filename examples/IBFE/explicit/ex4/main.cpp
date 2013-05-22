@@ -186,7 +186,7 @@ main(
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+                mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
             TriangleInterface triangle(mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;

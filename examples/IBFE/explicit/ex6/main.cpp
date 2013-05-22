@@ -222,7 +222,7 @@ main(
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                block_mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+                block_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
             TriangleInterface triangle(block_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
@@ -562,7 +562,7 @@ postprocess_data(
     MeshFunction X_fcn(*beam_equation_systems, *X_serial_vec, X_dof_map, vars);
     X_fcn.init();
     DenseVector<double> X_A(2);
-    X_fcn(Point(0.6,0.2,0), 0.0, X_A);
+    X_fcn(libMesh::Point(0.6,0.2,0), 0.0, X_A);
     if (SAMRAI_MPI::getRank() == 0)
     {
         A_x_posn_stream.precision(12);
