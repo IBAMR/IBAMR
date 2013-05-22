@@ -22,7 +22,6 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/advect_helpers.f \
-$(top_builddir)/src/fortran/sqrtm.f \
 $(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
 $(top_srcdir)/src/utilities/RNG.cpp
 
