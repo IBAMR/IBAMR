@@ -86,8 +86,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
-$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -176,8 +176,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.h \
 $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \

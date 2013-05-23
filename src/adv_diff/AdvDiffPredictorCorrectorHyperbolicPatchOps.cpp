@@ -56,7 +56,7 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -131,7 +131,7 @@ namespace IBAMR
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name, input_db, explicit_predictor, grid_geom, register_for_restart)

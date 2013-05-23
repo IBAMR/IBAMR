@@ -117,7 +117,7 @@ main(
         const string adv_diff_solver_type = main_db->getStringWithDefault("adv_diff_solver_type", "GODUNOV");
         if (adv_diff_solver_type == "GODUNOV")
         {
-            Pointer<AdvectorExplicitPredictorStrategy> predictor = new AdvectorExplicitPredictorStrategy("AdvectorExplicitPredictorStrategy", app_initializer->getComponentDatabase("AdvectorExplicitPredictorStrategy"));
+            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps("AdvectorExplicitPredictorPatchOps", app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator("AdvDiffPredictorCorrectorHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
         }
         else if (adv_diff_solver_type == "SEMI_IMPLICIT")

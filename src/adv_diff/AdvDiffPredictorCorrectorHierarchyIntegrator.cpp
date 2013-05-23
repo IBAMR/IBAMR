@@ -107,7 +107,7 @@ static const int ADV_DIFF_PREDICTOR_CORRECTOR_HIERARCHY_INTEGRATOR_VERSION = 1;
 AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
       d_hyp_level_integrator(NULL),

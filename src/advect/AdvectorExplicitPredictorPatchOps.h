@@ -1,4 +1,4 @@
-// Filename: AdvectorExplicitPredictorStrategy.h
+// Filename: AdvectorExplicitPredictorPatchOps.h
 // Created on 14 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvectorExplicitPredictorStrategy
-#define included_AdvectorExplicitPredictorStrategy
+#ifndef included_AdvectorExplicitPredictorPatchOps
+#define included_AdvectorExplicitPredictorPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -59,11 +59,11 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief Class AdvectorExplicitPredictorStrategy provides patch-based operations required to
+ * \brief Class AdvectorExplicitPredictorPatchOps provides patch-based operations required to
  * implement a second-order Godunov method for the linear advection equation in
  * conservative and non-conservative forms.
  *
- * Class AdvectorExplicitPredictorStrategy implements the predictors required to use an explicit
+ * Class AdvectorExplicitPredictorPatchOps implements the predictors required to use an explicit
  * predictor-corrector method to solve the \em non-conservative advection
  * equation, \f[
  *
@@ -92,12 +92,12 @@ namespace IBAMR
  *
  * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvectorExplicitPredictorStrategy
+class AdvectorExplicitPredictorPatchOps
     : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * The constructor for AdvectorExplicitPredictorStrategy sets default parameters for the
+     * The constructor for AdvectorExplicitPredictorPatchOps sets default parameters for the
      * advection predictor.  The constructor also registers this object for
      * restart with the restart manager using the object name.
      *
@@ -106,16 +106,16 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvectorExplicitPredictorStrategy(
+    AdvectorExplicitPredictorPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for AdvectorExplicitPredictorStrategy unregisters the predictor object with
+     * The destructor for AdvectorExplicitPredictorPatchOps unregisters the predictor object with
      * the restart manager when so registered.
      */
-    ~AdvectorExplicitPredictorStrategy();
+    ~AdvectorExplicitPredictorPatchOps();
 
     /*!
      * Return the name of the patch operations object.
@@ -321,7 +321,7 @@ public:
     getNumberFluxGhosts() const;
 
     /*!
-     * \brief Write state of AdvectorExplicitPredictorStrategy object to the given database for
+     * \brief Write state of AdvectorExplicitPredictorPatchOps object to the given database for
      * restart.
      *
      * This routine is a concrete implementation of the function declared in the
@@ -337,7 +337,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvectorExplicitPredictorStrategy();
+    AdvectorExplicitPredictorPatchOps();
 
     /*!
      * \brief Copy constructor.
@@ -346,8 +346,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorExplicitPredictorStrategy(
-        const AdvectorExplicitPredictorStrategy& from);
+    AdvectorExplicitPredictorPatchOps(
+        const AdvectorExplicitPredictorPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -358,9 +358,9 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorExplicitPredictorStrategy&
+    AdvectorExplicitPredictorPatchOps&
     operator=(
-        const AdvectorExplicitPredictorStrategy& that);
+        const AdvectorExplicitPredictorPatchOps& that);
 
     /*
      * Private functions used to compute the predicted values/fluxes.
@@ -421,4 +421,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvectorExplicitPredictorStrategy
+#endif //#ifndef included_AdvectorExplicitPredictorPatchOps

@@ -381,7 +381,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine advect_predict_with_source3d(
      &     dx,dt,
-     &     usefullctu,limiter,
+     &     limiter,usefullctu,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
@@ -1214,6 +1214,8 @@ c
 c     (Limited) centered differences are used to approximate normal
 c     derivatives.  Transverse derivatives are NOT included.
 c
+      Qx = 0.d0
+
       do ic2 = ifirst2-1,ilast2+1
          do ic1 = ifirst1-1,ilast1+1
 
@@ -1353,6 +1355,8 @@ c
 c     (Limited) centered differences are used to approximate normal
 c     derivatives.  Transverse derivatives are NOT included.
 c
+      Qx = 0.d0
+
       do ic2 = ifirst2-1,ilast2+1
          do ic1 = ifirst1-1,ilast1+1
 

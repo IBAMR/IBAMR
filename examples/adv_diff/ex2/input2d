@@ -59,7 +59,7 @@ ConcentrationBcCoefs {
    gcoef_function_3 = dC_dn3
 }
 
-AdvectorExplicitPredictorStrategy {
+AdvectorExplicitPredictorPatchOps {
 // Available values for limiter_type:
 // "CTU_ONLY", "MINMOD_LIMITED", "MC_LIMITED",
 // "SUPERBEE_LIMITED", "MUSCL_LIMITED"

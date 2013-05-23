@@ -7,7 +7,7 @@
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/AdvDiffStochasticForcing.h"
-#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/GeneralizedIBMethod.h"
 #include "ibamr/IBAnchorPointSpec-inl.h"

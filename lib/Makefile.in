@@ -186,8 +186,8 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+	$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
-	$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -289,8 +289,8 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffPhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffStochasticForcing.$(OBJEXT) \
+	libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
-	libIBAMR2d_a-AdvectorExplicitPredictorStrategy.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -384,8 +384,8 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+	$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
-	$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -487,8 +487,8 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffPhysicalBoundaryUtilities.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffStochasticForcing.$(OBJEXT) \
+	libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
-	libIBAMR3d_a-AdvectorExplicitPredictorStrategy.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -633,8 +633,8 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
+	$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -1017,8 +1017,8 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
+	$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -1099,8 +1099,8 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+	$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
-	$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -1263,7 +1263,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
@@ -1348,7 +1348,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
@@ -2076,6 +2076,20 @@ libIBAMR2d_a-AdvDiffStochasticForcing.obj: $(top_srcdir)/src/adv_diff/AdvDiffSto
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; fi`
 
+libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o: $(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Tpo $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' object='libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+
+libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.obj: $(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Tpo $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' object='libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; fi`
+
 libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o: $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Tpo -c -o libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Tpo $(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
@@ -2089,20 +2103,6 @@ libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj: $(top_srcdir)/src
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp' object='libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; fi`
-
-libIBAMR2d_a-AdvectorExplicitPredictorStrategy.o: $(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectorExplicitPredictorStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Tpo -c -o libIBAMR2d_a-AdvectorExplicitPredictorStrategy.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' object='libIBAMR2d_a-AdvectorExplicitPredictorStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvectorExplicitPredictorStrategy.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-
-libIBAMR2d_a-AdvectorExplicitPredictorStrategy.obj: $(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectorExplicitPredictorStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Tpo -c -o libIBAMR2d_a-AdvectorExplicitPredictorStrategy.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' object='libIBAMR2d_a-AdvectorExplicitPredictorStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvectorExplicitPredictorStrategy.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; fi`
 
 libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Tpo -c -o libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
@@ -3266,6 +3266,20 @@ libIBAMR3d_a-AdvDiffStochasticForcing.obj: $(top_srcdir)/src/adv_diff/AdvDiffSto
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp'; fi`
 
+libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o: $(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Tpo $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' object='libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+
+libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.obj: $(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Tpo $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp' object='libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp'; fi`
+
 libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o: $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Tpo -c -o libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Tpo $(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
@@ -3279,20 +3293,6 @@ libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj: $(top_srcdir)/src
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp' object='libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.obj `if test -f '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp'; fi`
-
-libIBAMR3d_a-AdvectorExplicitPredictorStrategy.o: $(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectorExplicitPredictorStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Tpo -c -o libIBAMR3d_a-AdvectorExplicitPredictorStrategy.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' object='libIBAMR3d_a-AdvectorExplicitPredictorStrategy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvectorExplicitPredictorStrategy.o `test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-
-libIBAMR3d_a-AdvectorExplicitPredictorStrategy.obj: $(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectorExplicitPredictorStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Tpo -c -o libIBAMR3d_a-AdvectorExplicitPredictorStrategy.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp' object='libIBAMR3d_a-AdvectorExplicitPredictorStrategy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvectorExplicitPredictorStrategy.obj `if test -f '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp'; fi`
 
 libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Tpo -c -o libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp

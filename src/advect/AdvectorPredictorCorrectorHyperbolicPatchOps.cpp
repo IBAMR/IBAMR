@@ -179,7 +179,7 @@ static const int FALSE_VAL = 0;
 AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
     : d_integrator(NULL),

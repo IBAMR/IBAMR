@@ -154,7 +154,7 @@ INSStaggeredHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
 }
 
-AdvectorExplicitPredictorStrategy{
+AdvectorExplicitPredictorPatchOps{
     limiter_type = "MC_LIMITED"
 }
 

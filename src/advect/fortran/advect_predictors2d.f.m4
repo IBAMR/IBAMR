@@ -978,7 +978,7 @@ include(TOP_SRCDIR/src/advect/fortran/limitertypes.i)dnl
 c
 c     Functions.
 c
-      REAL sign_eps,muscldiff,minmod3
+      REAL minmod,sign_eps,muscldiff,maxmod2,minmod3
 c
 c     Input.
 c
@@ -1025,12 +1025,23 @@ c     Employ second order slopes (no limiting).
          elseif ( limiter.eq.fourth_order ) then
             Qx = twothird*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
      &           - sixth*half*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
+         else if ( limiter.eq.minmod_limited ) then
+c     Employ minmod limiter
+            Qx = minmod(Q(ifirst0-1,ic1)-Q(ifirst0-2,ic1),
+     &                   Q(ifirst0  ,ic1)-Q(ifirst0-1,ic1))
          elseif ( limiter.eq.mc_limited ) then
 c     Employ van Leer's MC limiter.
             Qx = minmod3(
      &           0.5d0*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1)),
      &           2.0d0*(Q(ifirst0-1  ,ic1)-Q(ifirst0-1-1,ic1)),
      &           2.0d0*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1  ,ic1)))
+         else if ( limiter.eq.superbee_limited ) then
+c     Employ superbee limiter
+            Qx = maxmod2(
+     &           minmod(2.0d0*(Q(ifirst0-1,ic1)-Q(ifirst0-2,ic1)),
+     &                         Q(ifirst0  ,ic1)-Q(ifirst0-1,ic1)),
+     &           minmod(       Q(ifirst0-1,ic1)-Q(ifirst0-2,ic1),
+     &                  2.0d0*(Q(ifirst0  ,ic1)-Q(ifirst0-1,ic1))))
          elseif ( limiter.eq.muscl_limited ) then
 c     Employ Colella's MUSCL limiter.
             Qx = muscldiff(Q(ifirst0-1-2,ic1))
@@ -1054,11 +1065,20 @@ c     Employ simple upwind scheme (piece-wise constant approximation)
             elseif ( limiter.eq.fourth_order ) then
                Qx = twothird*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
      &              - sixth*half*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
+            elseif ( limiter.eq.minmod_limited ) then
+               Qx = minmod(Q(ic0+1,ic1)-Q(ic0  ,ic1),
+     &                     Q(ic0+2,ic1)-Q(ic0+1,ic1))
             elseif ( limiter.eq.mc_limited ) then
                Qx = minmod3(
      &              0.5d0*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1)),
      &              2.0d0*(Q(ic0+1  ,ic1)-Q(ic0+1-1,ic1)),
      &              2.0d0*(Q(ic0+1+1,ic1)-Q(ic0+1  ,ic1)))
+            elseif ( limiter.eq.superbee_limited ) then
+               Qx = maxmod2(
+     &              minmod(2.0d0*(Q(ic0+1,ic1)-Q(ic0  ,ic1)),
+     &                            Q(ic0+2,ic1)-Q(ic0+1,ic1)),
+     &              minmod(       Q(ic0+1,ic1)-Q(ic0  ,ic1),
+     &                     2.0d0*(Q(ic0+2,ic1)-Q(ic0+1,ic1))))
             elseif ( limiter.eq.muscl_limited ) then
                Qx = muscldiff(Q(ic0+1-2,ic1))
             elseif ( limiter.eq.ctu_only) then

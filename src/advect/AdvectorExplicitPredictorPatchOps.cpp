@@ -1,4 +1,4 @@
-// Filename: AdvectorExplicitPredictorStrategy.cpp
+// Filename: AdvectorExplicitPredictorPatchOps.cpp
 // Created on 14 Feb 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
@@ -35,7 +35,7 @@
 #include <limits>
 #include <ostream>
 
-#include "AdvectorExplicitPredictorStrategy.h"
+#include "AdvectorExplicitPredictorPatchOps.h"
 #include "ArrayData.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -162,10 +162,10 @@ extern "C"
     void
     ADVECT_PREDICT_FC(
         const double* , const double& ,
+        const int& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
-        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -191,10 +191,10 @@ extern "C"
     void
     ADVECT_PREDICT_WITH_SOURCE_FC(
         const double* , const double& ,
+        const int& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
-        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -223,10 +223,10 @@ extern "C"
     void
     ADVECT_PREDICT_PPM_FC(
         const double* , const double& ,
+        const int& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
-        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -252,10 +252,10 @@ extern "C"
     void
     ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
         const double* , const double& ,
+        const int& ,
 #if (NDIM == 3)
         const unsigned int& ,
 #endif
-        const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -294,14 +294,14 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int FACEG = 1;
 
-// Version of AdvectorExplicitPredictorStrategy restart file data
+// Version of AdvectorExplicitPredictorPatchOps restart file data
 // TODO: get rid of this ?
 static const int GODUNOV_ADVECTOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvectorExplicitPredictorStrategy::AdvectorExplicitPredictorStrategy(
+AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
     const bool register_for_restart)
@@ -327,25 +327,25 @@ AdvectorExplicitPredictorStrategy::AdvectorExplicitPredictorStrategy(
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
     return;
-}// AdvectorExplicitPredictorStrategy
+}// AdvectorExplicitPredictorPatchOps
 
-AdvectorExplicitPredictorStrategy::~AdvectorExplicitPredictorStrategy()
+AdvectorExplicitPredictorPatchOps::~AdvectorExplicitPredictorPatchOps()
 {
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-}// ~AdvectorExplicitPredictorStrategy
+}// ~AdvectorExplicitPredictorPatchOps
 
 const std::string&
-AdvectorExplicitPredictorStrategy::getName() const
+AdvectorExplicitPredictorPatchOps::getName() const
 {
     return d_object_name;
 }// getName
 
 double
-AdvectorExplicitPredictorStrategy::computeStableDtOnPatch(
+AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(
     const FaceData<NDIM,double>& u_ADV,
     const Patch<NDIM>& patch) const
 {
@@ -384,7 +384,7 @@ AdvectorExplicitPredictorStrategy::computeStableDtOnPatch(
 }// computeStableDtOnPatch
 
 void
-AdvectorExplicitPredictorStrategy::computeAdvectiveDerivative(
+AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(
     CellData<NDIM,double>& N,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& q_half,
@@ -439,7 +439,7 @@ AdvectorExplicitPredictorStrategy::computeAdvectiveDerivative(
 }// computeAdvectiveDerivative
 
 void
-AdvectorExplicitPredictorStrategy::computeFlux(
+AdvectorExplicitPredictorPatchOps::computeFlux(
     FaceData<NDIM,double>& flux,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& q_half,
@@ -491,7 +491,7 @@ AdvectorExplicitPredictorStrategy::computeFlux(
 }// computeFlux
 
 void
-AdvectorExplicitPredictorStrategy::predictValue(
+AdvectorExplicitPredictorPatchOps::predictValue(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -503,7 +503,7 @@ AdvectorExplicitPredictorStrategy::predictValue(
 }// predictValue
 
 void
-AdvectorExplicitPredictorStrategy::predictValueWithSourceTerm(
+AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -516,7 +516,7 @@ AdvectorExplicitPredictorStrategy::predictValueWithSourceTerm(
 }// predictValueWithSourceTerm
 
 void
-AdvectorExplicitPredictorStrategy::predictNormalVelocity(
+AdvectorExplicitPredictorPatchOps::predictNormalVelocity(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& V,
@@ -539,7 +539,7 @@ AdvectorExplicitPredictorStrategy::predictNormalVelocity(
 }// predictNormalVelocity
 
 void
-AdvectorExplicitPredictorStrategy::predictNormalVelocityWithSourceTerm(
+AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& V,
@@ -563,7 +563,7 @@ AdvectorExplicitPredictorStrategy::predictNormalVelocityWithSourceTerm(
 }// predictNormalVelocityWithSourceTerm
 
 void
-AdvectorExplicitPredictorStrategy::enforceIncompressibility(
+AdvectorExplicitPredictorPatchOps::enforceIncompressibility(
     FaceData<NDIM,double>& v_half,
     const FaceData<NDIM,double>& u_ADV,
     const FaceData<NDIM,double>& grad_phi,
@@ -616,7 +616,7 @@ AdvectorExplicitPredictorStrategy::enforceIncompressibility(
 }// enforceIncompressibility
 
 int
-AdvectorExplicitPredictorStrategy::getNumberCellGhosts() const
+AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
 {
     // The number of ghosts cells needed for the advected quantity
     // only depends on the slope limiter (see fortran/advect_predictors2d.f.m4)
@@ -645,7 +645,7 @@ AdvectorExplicitPredictorStrategy::getNumberCellGhosts() const
 }// getNumberCellGhosts
 
 int
-AdvectorExplicitPredictorStrategy::getNumberFluxGhosts() const
+AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
 {
     // The number of ghosts cells for flux computations is the same,
     // regardless of the slope limiter
@@ -653,7 +653,7 @@ AdvectorExplicitPredictorStrategy::getNumberFluxGhosts() const
 }// getNumberFluxGhosts
 
 void
-AdvectorExplicitPredictorStrategy::putToDatabase(
+AdvectorExplicitPredictorPatchOps::putToDatabase(
     Pointer<Database> db)
 {
 #if !defined(NDEBUG)
@@ -670,7 +670,7 @@ AdvectorExplicitPredictorStrategy::putToDatabase(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvectorExplicitPredictorStrategy::predict(
+AdvectorExplicitPredictorPatchOps::predict(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -788,7 +788,7 @@ AdvectorExplicitPredictorStrategy::predict(
 }// predict
 
 void
-AdvectorExplicitPredictorStrategy::predictWithSourceTerm(
+AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(
     FaceData<NDIM,double>& q_half,
     const FaceData<NDIM,double>& u_ADV,
     const CellData<NDIM,double>& Q,
@@ -920,7 +920,7 @@ AdvectorExplicitPredictorStrategy::predictWithSourceTerm(
 }// predictWithSourceTerm
 
 void
-AdvectorExplicitPredictorStrategy::getFromInput(
+AdvectorExplicitPredictorPatchOps::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
@@ -939,7 +939,7 @@ AdvectorExplicitPredictorStrategy::getFromInput(
 }// getFromInput
 
 void
-AdvectorExplicitPredictorStrategy::getFromRestart()
+AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
     Pointer<Database> root_db =
         RestartManager::getManager()->getRootDatabase();
