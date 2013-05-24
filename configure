@@ -28102,7 +28102,7 @@ $as_echo "$as_me: could not find system muParser library, using bundled muParser
   MUPARSER_SRCDIR=$CONTRIB_SRCDIR
   MUPARSER_BUILDDIR=$CONTRIB_BUILDDIR
   MUPARSER_CPPFLAGS="-I${MUPARSER_SRCDIR}/include"
-  MUPARSER_LDFLAGS="-L${MUPARSER_BUILDDIR}/lib"
+  MUPARSER_LDFLAGS=""
   CPPFLAGS="$MUPARSER_CPPFLAGS $CPPFLAGS"
 
   $as_unset ac_cv_header_muParser_h
