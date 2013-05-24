@@ -27485,7 +27485,7 @@ FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
 CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/contrib/muparser"
-CONTRIB_BUILDDIR="\${top_builddir}/contrib/muparser"
+CONTRIB_BUILDDIR="\$(abs_top_builddir)/contrib/muparser"
 
 # Check whether --with-muparser was given.
 if test "${with_muparser+set}" = set; then :
