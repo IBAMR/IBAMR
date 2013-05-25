@@ -65,7 +65,7 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
@@ -77,6 +77,7 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
@@ -88,16 +89,16 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth2d,GSSMOOTH2D)
-#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask2d,GSSMOOTHMASK2D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
-#define RB_GS_SMOOTH_MASK_FC FC_FUNC(rbgssmoothmask2d,RBGSSMOOTHMASK2D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d,GSSMOOTH2D)
+#define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask2d,GSSMOOTHMASK2D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
+#define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask2d,RBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth3d,GSSMOOTH3D)
-#define GS_SMOOTH_MASK_FC FC_FUNC(gssmoothmask3d,GSSMOOTHMASK3D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
-#define RB_GS_SMOOTH_MASK_FC FC_FUNC(rbgssmoothmask3d,RBGSSMOOTHMASK3D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d,GSSMOOTH3D)
+#define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask3d,GSSMOOTHMASK3D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
+#define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask3d,RBGSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
@@ -173,7 +174,7 @@ static Timer* t_compute_residual;
 static const int DEFAULT_DATA_DEPTH = 1;
 
 // Number of ghosts cells used for each variable quantity.
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -368,7 +369,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
 #endif
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
@@ -383,7 +384,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -413,7 +414,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<SideData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
                     Pointer<SideData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -452,7 +453,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
@@ -583,7 +584,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
     if (d_coarse_solver)
@@ -600,7 +601,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
     }
     else
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
 #endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
@@ -676,7 +677,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     Pointer<SideDataFactory<NDIM,double> > solution_pdat_fac = solution_var->getPatchDataFactory();
     Pointer<SideDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(     rhs_var);
     TBOX_ASSERT(solution_pdat_fac);

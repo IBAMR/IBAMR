@@ -58,7 +58,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "Index.h"
 #include "LDataManager.h"
 #include "NodeData.h"
 #include "Patch.h"
@@ -70,7 +69,7 @@
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
@@ -78,7 +77,6 @@
 #include "ibtk/LData-inl.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LIndexSetData.h"
-#include "ibtk/LM3DDataWriter.h" // IWYU pragma: keep
 #include "ibtk/LMesh.h"
 #include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
@@ -96,6 +94,7 @@
 #include "ibtk/LSet-inl.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/LTransaction.h"
+#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -112,6 +111,12 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Index;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -144,28 +149,6 @@ static const int CFL_WIDTH = 2;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
-
-inline CellIndex<NDIM>
-get_canonical_cell_index(
-    const CellIndex<NDIM>& cell_idx,
-    const Box<NDIM>& domain_box,
-    const IntVector<NDIM>& periodic_shift)
-{
-    if (periodic_shift == IntVector<NDIM>(0)) return cell_idx;
-
-    if (domain_box.contains(cell_idx)) return cell_idx;
-
-    CellIndex<NDIM> shifted_idx = cell_idx;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if      (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
-        else if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
-    }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(domain_box.contains(shifted_idx));
-#endif
-    return shifted_idx;
-}// get_canonical_cell_index
 }
 
 const std::string LDataManager::     POSN_DATA_NAME = "X";
@@ -218,7 +201,7 @@ void
 LDataManager::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
 
@@ -233,7 +216,7 @@ LDataManager::resetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) &&
                 (finest_ln >= coarsest_ln) &&
@@ -298,7 +281,7 @@ LDataManager::spread(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> >  F_data_vec(finest_ln+1);
@@ -343,14 +326,14 @@ LDataManager::spread(
 
         const int depth = F_data[ln]->getDepth();
         F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
-        blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
-        const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
-        const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
+        boost::multi_array_ref<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
+        const boost::multi_array_ref<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
+        const boost::multi_array_ref<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
         for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
         {
             for (int d = 0; d < depth; ++d)
             {
-                F_ds_arr(k,d) = F_arr(k,d)*ds_arr(k);
+                F_ds_arr[k][d] = F_arr[k][d]*ds_arr[k];
             }
         }
         F_ds_data[ln]->restoreArrays();
@@ -377,7 +360,7 @@ LDataManager::spread(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
@@ -508,7 +491,7 @@ LDataManager::interp(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln+1);
@@ -601,7 +584,7 @@ void
 LDataManager::registerLInitStrategy(
     Pointer<LInitStrategy> lag_init)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(lag_init);
 #endif
     d_lag_init = lag_init;
@@ -619,7 +602,7 @@ void
 LDataManager::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
 #endif
     d_visit_writer = visit_writer;
@@ -638,32 +621,19 @@ void
 LDataManager::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
     return;
 }// registerLSiloDataWriter
 
-#if (NDIM == 3)
-void
-LDataManager::registerLM3DDataWriter(
-    Pointer<LM3DDataWriter> m3D_writer)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(m3D_writer);
-#endif
-    d_m3D_writer = m3D_writer;
-    return;
-}// registerLM3DDataWriter
-#endif
-
 void
 LDataManager::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -671,7 +641,7 @@ LDataManager::registerLoadBalancer(
     Pointer<Variable<NDIM> > workload_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_workload_var);
 #endif
     return;
@@ -684,7 +654,7 @@ LDataManager::createLData(
     const unsigned int depth,
     const bool maintain_data)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!maintain_data || (d_lag_mesh_data[level_number].find(quantity_name) == d_lag_mesh_data[level_number].end()));
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
@@ -698,20 +668,20 @@ LDataManager::createLData(
     return ret_val;
 }// createLData
 
-blitz::TinyVector<double,NDIM>
+Point
 LDataManager::computeLagrangianStructureCenterOfMass(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
     int node_counter = 0;
-    blitz::TinyVector<double,NDIM> X_com(0.0);
+    Point X_com(Point::Zero());
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
-    const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+    const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -722,7 +692,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
         {
             ++node_counter;
             const int local_idx = node_idx->getLocalPETScIndex();
-            const double* const X = &X_data(local_idx,0);
+            const double* const X = &X_data[local_idx][0];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_com[d] += X[d];
@@ -740,20 +710,20 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     return X_com;
 }// computeLagrangianStructureCenterOfMass
 
-std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >
+std::pair<Point,Point>
 LDataManager::computeLagrangianStructureBoundingBox(
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    blitz::TinyVector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
-    blitz::TinyVector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    Point X_lower(Point::Constant( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_upper(Point::Constant(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
-    const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+    const boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -763,7 +733,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
             const int local_idx = node_idx->getLocalPETScIndex();
-            const double* const X = &X_data(local_idx,0);
+            const double* const X = &X_data[local_idx][0];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_lower[d] = std::min(X_lower[d],X[d]);
@@ -780,20 +750,20 @@ LDataManager::computeLagrangianStructureBoundingBox(
 
 void
 LDataManager::reinitLagrangianStructure(
-    const blitz::TinyVector<double,NDIM>& X_center,
+    const Point& X_center,
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the bounding box of the structure in its reference configuration.
-    const blitz::Array<double,2>& X0_data = *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
-    blitz::TinyVector<double,NDIM> X_lower( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
-    blitz::TinyVector<double,NDIM> X_upper(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
+    const boost::multi_array_ref<double,2>& X0_data = *d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
+    Point X_lower(Point::Constant( (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
+    Point X_upper(Point::Constant(-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon()))));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
@@ -805,7 +775,7 @@ LDataManager::reinitLagrangianStructure(
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
             const int local_idx = node_idx->getLocalPETScIndex();
-            const double* const X0 = &X0_data(local_idx,0);
+            const double* const X0 = &X0_data[local_idx][0];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_lower[d] = std::min(X_lower[d],X0[d]);
@@ -815,23 +785,23 @@ LDataManager::reinitLagrangianStructure(
     }
     SAMRAI_MPI::minReduction(&X_lower[0],NDIM);
     SAMRAI_MPI::maxReduction(&X_upper[0],NDIM);
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > bounding_box = std::make_pair(X_lower,X_upper);
+    std::pair<Point,Point> bounding_box = std::make_pair(X_lower,X_upper);
 
     // Compute the displacement.
-    blitz::TinyVector<double,NDIM> dX(0.0);
+    Vector dX(Vector::Zero());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dX[d] = X_center[d] - 0.5*(X_upper[d]+X_lower[d]);
     }
 
     // Compute the shifted bounding box.
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Point,Point> shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -845,7 +815,7 @@ LDataManager::reinitLagrangianStructure(
     // For each node within the shifted structure: update the position of the
     // node; excise that node from the LNodeSetData patch data structure; and
     // collect that node into a set of shifted Lagrangian nodes.
-    blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -867,14 +837,14 @@ LDataManager::reinitLagrangianStructure(
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        double* const X = &X_data(local_idx,0);
-                        const double* const X0 = &X0_data(local_idx,0);
+                        double* const X = &X_data[local_idx][0];
+                        const double* const X0 = &X0_data[local_idx][0];
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] = X0[d] + dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        blitz::TinyVector<double,NDIM> X_displaced;
+                        Point X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -895,25 +865,25 @@ LDataManager::reinitLagrangianStructure(
 
 void
 LDataManager::displaceLagrangianStructure(
-    const blitz::TinyVector<double,NDIM>& dX,
+    const Vector& dX,
     const int structure_id,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the shifted bounding box.
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
+    std::pair<Point,Point> bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
+    std::pair<Point,Point> shifted_bounding_box = bounding_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -927,7 +897,7 @@ LDataManager::displaceLagrangianStructure(
     // For each node within the shifted structure: update the position of the
     // node; excise that node from the LNodeSetData patch data structure; and
     // collect that node into a set of shifted Lagrangian nodes.
-    blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -950,13 +920,13 @@ LDataManager::displaceLagrangianStructure(
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        double* const X = &X_data(local_idx,0);
+                        double* const X = &X_data[local_idx][0];
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] += dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
-                        blitz::TinyVector<double,NDIM> X_displaced;
+                        Point X_displaced;
                         for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
@@ -979,7 +949,7 @@ LDataManager::activateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -996,7 +966,7 @@ LDataManager::inactivateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1013,7 +983,7 @@ LDataManager::zeroInactivatedComponents(
     Pointer<LData> lag_data,
     const int level_number) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1079,7 +1049,7 @@ LDataManager::mapLagrangianToPETSc(
 {
     IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1088,28 +1058,6 @@ LDataManager::mapLagrangianToPETSc(
         d_ao[level_number],
         (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
         (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
-    IBTK_CHKERRQ(ierr);
-
-    IBTK_TIMER_STOP(t_map_lagrangian_to_petsc);
-    return;
-}// mapLagrangianToPETSc
-
-void
-LDataManager::mapLagrangianToPETSc(
-    blitz::Array<int,1>& inds,
-    const int level_number) const
-{
-    IBTK_TIMER_START(t_map_lagrangian_to_petsc);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_coarsest_ln <= level_number &&
-                d_finest_ln   >= level_number);
-#endif
-
-    const int ierr = AOApplicationToPetsc(
-        d_ao[level_number],
-        (inds.size() > 0 ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
-        (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     IBTK_TIMER_STOP(t_map_lagrangian_to_petsc);
@@ -1123,7 +1071,7 @@ LDataManager::mapPETScToLagrangian(
 {
     IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
@@ -1132,28 +1080,6 @@ LDataManager::mapPETScToLagrangian(
         d_ao[level_number],
         (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
         (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
-    IBTK_CHKERRQ(ierr);
-
-    IBTK_TIMER_STOP(t_map_petsc_to_lagrangian);
-    return;
-}// mapPETScToLagrangian
-
-void
-LDataManager::mapPETScToLagrangian(
-    blitz::Array<int,1>& inds,
-    const int level_number) const
-{
-    IBTK_TIMER_START(t_map_petsc_to_lagrangian);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_coarsest_ln <= level_number &&
-                d_finest_ln   >= level_number);
-#endif
-
-    const int ierr = AOPetscToApplication(
-        d_ao[level_number],
-        (inds.size() > 0 ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
-        (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     IBTK_TIMER_STOP(t_map_petsc_to_lagrangian);
@@ -1220,7 +1146,7 @@ LDataManager::beginDataRedistribution(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -1242,13 +1168,13 @@ LDataManager::beginDataRedistribution(
     // Ensure that no IB points manage to escape the computational domain.
     const double* const grid_x_lower = d_grid_geom->getXLower();
     const double* const grid_x_upper = d_grid_geom->getXUpper();
-    blitz::TinyVector<double,NDIM> grid_length;
+    Vector grid_length;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
     }
-    std::vector<blitz::Array<IntVector<NDIM>,1> > periodic_offset_data(finest_ln+1);
-    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > displacement_data(finest_ln+1);
+    std::vector<std::vector<IntVector<NDIM> > > periodic_offset_data(finest_ln+1);
+    std::vector<std::vector<Vector> > displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1261,15 +1187,15 @@ LDataManager::beginDataRedistribution(
         // NOTE: We cannot use LMesh data structures here because they have not
         // been (re-)initialized yet.
         static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
-        blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
-        periodic_offset_data[level_number].resize(X_data.extent(0));
-        displacement_data   [level_number].resize(X_data.extent(0));
+        boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
+        periodic_offset_data[level_number].resize(X_data.shape()[0]);
+        displacement_data   [level_number].resize(X_data.shape()[0]);
         const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(d_hierarchy->getPatchLevel(level_number)->getRatio());
-        for (int local_idx = 0; local_idx < X_data.extent(0); ++local_idx)
+        for (size_t local_idx = 0; local_idx < X_data.shape()[0]; ++local_idx)
         {
-            double* const X = &X_data(local_idx,0);
-            IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
-            blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+            double* const X = &X_data[local_idx][0];
+            IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
+            Vector& displacement = displacement_data[level_number][local_idx];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = 0;
@@ -1306,7 +1232,7 @@ LDataManager::beginDataRedistribution(
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
-        blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -1330,12 +1256,12 @@ LDataManager::beginDataRedistribution(
                     {
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        double* const X = &X_data(local_idx,0);
+                        double* const X = &X_data[local_idx][0];
                         const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(new_cell_idx))
                         {
-                            const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number](local_idx);
-                            const blitz::TinyVector<double,NDIM>& displacement = displacement_data[level_number](local_idx);
+                            const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
+                            const Vector& displacement = displacement_data[level_number][local_idx];
                             if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, displacement);
                             if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
                             LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
@@ -1370,7 +1296,7 @@ LDataManager::endDataRedistribution(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -1403,7 +1329,7 @@ LDataManager::endDataRedistribution(
         const CellIndex<NDIM>& domain_lower = domain_box.lower();
         const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
-        blitz::TinyVector<double,NDIM> dx;
+        boost::array<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx0[d]/static_cast<double>(ratio(d));
@@ -1411,7 +1337,7 @@ LDataManager::endDataRedistribution(
 
         // Determine which processor owns each of the local displaced nodes.
         size_t num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
         typedef LNodeTransaction::LTransactionComponent LNodeTransactionComponent;
@@ -1419,16 +1345,16 @@ LDataManager::endDataRedistribution(
         for (size_t k = 0; k < num_nodes; ++k)
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
             const int patch_num = indices[0];
-#if DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
 #endif
             const int dst_proc = processor_mapping.getProcessorAssignment(patch_num);
@@ -1482,22 +1408,22 @@ LDataManager::endDataRedistribution(
 
         // Determine which patch owns each of the local displaced nodes.
         num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
         for (size_t k = 0; k < num_nodes; ++k)
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
-            const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
+            const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
             const int patch_num = indices[0];
-#if DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
 #endif
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
@@ -1628,7 +1554,7 @@ LDataManager::endDataRedistribution(
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
             Pointer<LData> data = it->second;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(data);
 #endif
             const int depth = data->getDepth();
@@ -1770,14 +1696,7 @@ LDataManager::endDataRedistribution(
     {
         d_silo_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
-#if (NDIM == 3)
-    // If a myocardial3D data writer is registered with the manager, give it
-    // access to the new application orderings.
-    if (d_m3D_writer)
-    {
-        d_m3D_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
-    }
-#endif
+
     IBTK_TIMER_STOP(t_end_data_redistribution);
     return;
 }// endDataRedistribution
@@ -1794,7 +1713,7 @@ LDataManager::updateWorkloadEstimates(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -1817,7 +1736,7 @@ LDataManager::updateNodeCountData(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -1860,7 +1779,7 @@ LDataManager::initializeLevelData(
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1873,7 +1792,7 @@ LDataManager::initializeLevelData(
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     // Check for overlapping boxes on this level.
     //
     // (This is potentially fairly expensive and hence is only done when
@@ -1964,7 +1883,7 @@ LDataManager::initializeLevelData(
         d_local_petsc_indices           .resize(level_number+1);
         d_nonlocal_petsc_indices        .resize(level_number+1);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_lag_init);
 #endif
         d_level_contains_lag_data[level_number] = d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined);
@@ -2104,15 +2023,7 @@ LDataManager::initializeLevelData(
         d_silo_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         d_silo_writer->registerLagrangianAO(d_ao[level_number], level_number);
     }
-#if (NDIM == 3)
-    // If a myocardial3D data writer is registered with the manager, give it
-    // access to the new application ordering.
-    if (d_m3D_writer && d_level_contains_lag_data[level_number])
-    {
-        d_m3D_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
-        d_m3D_writer->registerLagrangianAO(d_ao[level_number], level_number);
-    }
-#endif
+
     IBTK_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
@@ -2125,7 +2036,7 @@ LDataManager::resetHierarchyConfiguration(
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0)
                 && (coarsest_ln <= finest_ln)
@@ -2152,19 +2063,7 @@ LDataManager::resetHierarchyConfiguration(
             d_silo_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
         }
     }
-#if (NDIM == 3)
-    // Reset the myocardial3D data writer.
-    if (d_m3D_writer)
-    {
-        d_m3D_writer->setPatchHierarchy(hierarchy);
-        d_m3D_writer->resetLevels(d_coarsest_ln, d_finest_ln);
-        for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
-        {
-            if (!d_level_contains_lag_data[level_number]) continue;
-            d_m3D_writer->registerCoordsData(d_lag_mesh_data[level_number][POSN_DATA_NAME], level_number);
-        }
-    }
-#endif
+
     // If we have added or removed a level, resize the schedule vectors.
     d_lag_node_index_bdry_fill_scheds.resize(finest_hier_level+1);
     d_node_count_coarsen_scheds      .resize(finest_hier_level+1);
@@ -2203,7 +2102,7 @@ LDataManager::applyGradientDetector(
 {
     IBTK_TIMER_START(t_apply_gradient_detector);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -2274,9 +2173,9 @@ LDataManager::applyGradientDetector(
 
             for (int ln = level_number+1; ln <= d_finest_ln; ++ln)
             {
-                for (std::vector<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
+                for (std::vector<std::pair<Point,Point> >::const_iterator cit = d_displaced_strct_bounding_boxes[ln].begin(); cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
                 {
-                    const std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >& bounding_box = *cit;
+                    const std::pair<Point,Point>& bounding_box = *cit;
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
@@ -2303,7 +2202,7 @@ LDataManager::putToDatabase(
 {
     IBTK_TIMER_START(t_put_to_database);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
@@ -2419,9 +2318,6 @@ LDataManager::LDataManager(
       d_finest_ln(-1),
       d_visit_writer(NULL),
       d_silo_writer(NULL),
-#if (NDIM == 3)
-      d_m3D_writer(NULL),
-#endif
       d_load_balancer(NULL),
       d_lag_init(NULL),
       d_level_contains_lag_data(),
@@ -2457,7 +2353,7 @@ LDataManager::LDataManager(
       d_local_petsc_indices(),
       d_nonlocal_petsc_indices()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(ghost_width.min() >= 0);
 #endif
@@ -2573,7 +2469,7 @@ LDataManager::spread_specialized(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == finest_ln);
 #endif
         if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
@@ -2614,7 +2510,7 @@ LDataManager::interp_specialized(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == finest_ln);
 #endif
         if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln]) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
@@ -2656,13 +2552,13 @@ LDataManager::scatterData(
     int petsc_size, lagrangian_size;
     ierr = VecGetSize(petsc_vec, &petsc_size);  IBTK_CHKERRQ(ierr);
     ierr = VecGetSize(lagrangian_vec, &lagrangian_size);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_size == lagrangian_size);
 #endif
     int petsc_bs, lagrangian_bs;
     ierr = VecGetBlockSize(petsc_vec, &petsc_bs);  IBTK_CHKERRQ(ierr);
     ierr = VecGetBlockSize(lagrangian_vec, &lagrangian_bs);  IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_bs == lagrangian_bs);
 #endif
     const int depth = petsc_bs;
@@ -2719,7 +2615,7 @@ LDataManager::beginNonlocalDataFill(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln &&
                 coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln &&
@@ -2749,7 +2645,7 @@ LDataManager::endNonlocalDataFill(
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
 #endif
@@ -2780,7 +2676,7 @@ LDataManager::computeNodeDistribution(
 {
     IBTK_TIMER_START(t_compute_node_distribution);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= d_coarsest_ln &&
                 level_number <= d_finest_ln);
 #endif

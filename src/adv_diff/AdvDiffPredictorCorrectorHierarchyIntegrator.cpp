@@ -95,7 +95,7 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
 
 // Version of AdvDiffPredictorCorrectorHierarchyIntegrator restart file data.
 // TODO: remove ?
@@ -107,7 +107,7 @@ static const int ADV_DIFF_PREDICTOR_CORRECTOR_HIERARCHY_INTEGRATOR_VERSION = 1;
 AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
       d_hyp_level_integrator(NULL),
@@ -116,7 +116,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
       d_hyp_patch_ops_db(NULL),
       d_explicit_predictor(explicit_predictor)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
     TBOX_ASSERT(explicit_predictor);
@@ -696,7 +696,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -731,7 +731,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(F_data);
 #endif
                     F_data->fillAll(0.0);
@@ -755,7 +755,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<SideData<NDIM,double> > D_data = patch->getPatchData(D_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(D_data);
 #endif
                     D_data->fillAll(0.0);

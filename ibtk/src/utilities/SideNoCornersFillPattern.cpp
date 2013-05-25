@@ -42,7 +42,8 @@
 #include "SideGeometry.h"
 #include "SideNoCornersFillPattern.h"
 #include "SideOverlap.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -91,14 +92,14 @@ SideNoCornersFillPattern::calculateOverlap(
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
+    boost::array<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -164,14 +165,14 @@ SideNoCornersFillPattern::calculateOverlapOnLevel(
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
+    boost::array<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();

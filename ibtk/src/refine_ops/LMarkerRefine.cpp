@@ -38,7 +38,7 @@
 #include "Index.h"
 #include "LMarkerRefine.h"
 #include "Patch.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LMarker.h"
@@ -49,6 +49,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSet-inl.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI {
@@ -145,9 +146,9 @@ LMarkerRefine::refine(
             for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
-                const blitz::TinyVector<double,NDIM>& X = coarse_mark->getPosition();
+                const Point& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
-                blitz::TinyVector<double,NDIM> X_shifted;
+                boost::array<double,NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];

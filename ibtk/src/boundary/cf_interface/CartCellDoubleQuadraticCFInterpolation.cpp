@@ -52,19 +52,20 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation2d,CCQUADTANGENTIALINTERPOLATION2D)
-#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(ccquadnormalinterpolation2d,CCQUADNORMALINTERPOLATION2D)
+#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadtangentialinterpolation2d,CCQUADTANGENTIALINTERPOLATION2D)
+#define CC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadnormalinterpolation2d,CCQUADNORMALINTERPOLATION2D)
 #endif
 #if (NDIM == 3)
-#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation3d,CCQUADTANGENTIALINTERPOLATION3D)
-#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(ccquadnormalinterpolation3d,CCQUADNORMALINTERPOLATION3D)
+#define CC_QUAD_TANGENTIAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadtangentialinterpolation3d,CCQUADTANGENTIALINTERPOLATION3D)
+#define CC_QUAD_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(ccquadnormalinterpolation3d,CCQUADNORMALINTERPOLATION3D)
 #endif
 
 // Function interfaces
@@ -120,8 +121,8 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int GHOST_WIDTH_TO_FILL     = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
+static const int GHOST_WIDTH_TO_FILL     = 1;
 
 inline int
 coarsen(
@@ -235,7 +236,7 @@ CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
 IntVector<NDIM>
 CartCellDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
 #endif
     return REFINE_OP_STENCIL_WIDTH;
@@ -259,7 +260,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -274,7 +275,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
         }
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         // Ensure the fine patch corresponds to the expected patch in the cached
@@ -285,16 +286,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
         TBOX_ASSERT(&fine == fine_level->getPatch(patch_num).getPointer());
     }
 #endif
-
-    // Use the appropriate version of the coarse-fine interpolation code.
-    if (USING_EXPENSIVE_CF_INTERPOLATION)
-    {
-        postprocessRefine_expensive(fine, coarse, ratio);
-    }
-    else
-    {
-        postprocessRefine_optimized(fine, coarse, ratio);
-    }
+    postprocessRefine_optimized(fine, coarse, ratio);
     return;
 }// postprocessRefine
 
@@ -346,7 +338,7 @@ void
 CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     if (d_hierarchy) clearPatchHierarchy();
@@ -400,9 +392,9 @@ void
 CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     Patch<NDIM>& patch,
     const IntVector<NDIM>& ratio,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     // Ensure that the fine patch is located on the expected destination level;
@@ -412,7 +404,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     {
         return;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         const int patch_num = patch.getPatchNumber();
@@ -421,16 +413,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
         TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
     }
 #endif
-
-    // Use the appropriate version of the coarse-fine interpolation code.
-    if (USING_EXPENSIVE_CF_INTERPOLATION)
-    {
-        computeNormalExtension_expensive(patch, ratio, ghost_width_to_fill);
-    }
-    else
-    {
-        computeNormalExtension_optimized(patch, ratio);
-    }
+    computeNormalExtension_optimized(patch, ratio);
     return;
 }// computeNormalExtension
 
@@ -484,7 +467,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -544,12 +527,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                 }
 
                 // Determine the interpolation degrees and weights.
-                blitz::TinyVector<int,NDIM> interp_degree;
+                boost::array<int,NDIM> interp_degree;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
                 }
-                blitz::TinyVector<std::vector<double>,NDIM> wgts;
+                boost::array<std::vector<double>,NDIM> wgts;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];
@@ -636,14 +619,14 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > fdata = fine  .getPatchData(patch_data_index);
         Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 #endif
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::postprocessRefine():\n"
@@ -739,7 +722,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
         const int data_depth = data->getDepth();
@@ -823,11 +806,11 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleQuadraticCFInterpolation::computeNormalExtension():\n"

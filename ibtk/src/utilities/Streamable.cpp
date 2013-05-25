@@ -40,9 +40,6 @@ namespace hier {
 template <int DIM> class IntVector;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -67,7 +64,7 @@ Streamable::~Streamable()
 void
 Streamable::registerPeriodicShift(
     const IntVector<NDIM>& /*offset*/,
-    const blitz::TinyVector<double,NDIM>& /*displacement*/)
+    const Vector& /*displacement*/)
 {
     // intentionally blank
     return;

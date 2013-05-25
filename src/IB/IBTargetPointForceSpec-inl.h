@@ -59,13 +59,13 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
     const double kappa_target,
     const double eta_target,
-    const blitz::TinyVector<double,NDIM>& X_target)
+    const IBTK::Point& X_target)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
       d_eta_target(eta_target),
       d_X_target(X_target)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
@@ -119,13 +119,13 @@ IBTargetPointForceSpec::getDamping()
     return d_eta_target;
 }// getDamping
 
-inline const blitz::TinyVector<double,NDIM>&
+inline const IBTK::Point&
 IBTargetPointForceSpec::getTargetPointPosition() const
 {
     return d_X_target;
 }// getTargetPointPosition
 
-inline blitz::TinyVector<double,NDIM>&
+inline IBTK::Point&
 IBTargetPointForceSpec::getTargetPointPosition()
 {
     return d_X_target;

@@ -51,9 +51,11 @@
 #include "StaggeredStokesOpenBoundaryStabilizer.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
 
@@ -81,10 +83,10 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_open_bdry(false),
-      d_inflow_bdry(false),
-      d_outflow_bdry(false),
-      d_width(0.0),
+      d_open_bdry(array_constant<bool,2*NDIM>(false)),
+      d_inflow_bdry(array_constant<bool,2*NDIM>(false)),
+      d_outflow_bdry(array_constant<bool,2*NDIM>(false)),
+      d_width(array_constant<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {
@@ -151,7 +153,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<SideData<NDIM,double> > F_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
     F_data->fillAll(0.0);
@@ -162,7 +164,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
     const double kappa  = cycle_num >= 0 ? 0.5*rho/dt : 0.0;
     Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     Pointer<SideData<NDIM,double> > U_new_data     = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    );
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();

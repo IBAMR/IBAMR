@@ -35,9 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <unistd.h>
 #include <string>
 #include <vector>
 
+#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -55,9 +57,6 @@ namespace tbox {
 class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -170,7 +169,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 }// namespace IBTK

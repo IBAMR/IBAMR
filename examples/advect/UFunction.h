@@ -41,8 +41,9 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+// EIGEN INCLUDES
+#include <Eigen/Dense>
+typedef Eigen::Matrix<double,3,1> VectorNd;
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>
@@ -50,7 +51,7 @@
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to initialize the value of the advection velocity u.
+ * \brief Method to initialize the value of the advection velocity u.
  */
 class UFunction
     : public CartGridFunction
@@ -70,15 +71,14 @@ public:
     ~UFunction();
 
     /*!
-     * Indicates whether the concrete CartGridFunction object is time
-     * dependent.
+     * Indicates whether the concrete CartGridFunction object is time dependent.
      */
     bool
     isTimeDependent() const
         { return true; }
 
     /*!
-     * Set the data on the patch interior to some values.
+     * Set the data on the patch interior to some initial values.
      */
     void
     setDataOnPatch(
@@ -143,7 +143,7 @@ private:
     /*
      * The center of the initial data.
      */
-    TinyVector<double,NDIM> d_X;
+    VectorNd d_X;
 
     /*
      * The initialization type.
@@ -151,15 +151,9 @@ private:
     string d_init_type;
 
     /*
-     * The amplification and frequency of the sin wave used in setting
-     * velocities.
-     */
-    TinyVector<double,NDIM> d_kappa, d_omega;
-
-    /*
      * Parameters for uniform constant velocity.
      */
-    TinyVector<double,NDIM> d_uniform_u;
+    VectorNd d_uniform_u;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

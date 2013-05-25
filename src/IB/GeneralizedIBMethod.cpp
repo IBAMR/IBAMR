@@ -55,14 +55,6 @@
 #include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
-#include "blitz/array.h"
-#include "blitz/array/expr.h"
-#include "blitz/array/ops.h"
-#include "blitz/array/reduce.h"
-#include "blitz/array/shape.h"
-#include "blitz/etbase.h"
-#include "blitz/indexexpr.h"
-#include "blitz/memblock.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -79,6 +71,7 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+#include "Eigen/Dense"  // IWYU pragma: export
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -127,7 +120,7 @@ void
 GeneralizedIBMethod::registerIBKirchhoffRodForceGen(
     Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_and_torque_fcn);
 #endif
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
@@ -338,43 +331,41 @@ GeneralizedIBMethod::eulerStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        blitz::Array<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
-        blitz::Array<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
-        blitz::Array<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
         const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
-        blitz::Array<double,1> e(3);
+        Matrix3d R;
+        Vector3d e;
         for (int l = 0; l < n_local; ++l)
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                e(d) = W_current_data(l,d);
+                e(d) = W_current_data[l][d];
             }
-            const double norm_e = sqrt(e(0)*e(0) + e(1)*e(1) + e(2)*e(2));
+            const double norm_e = e.norm();
             if (norm_e > std::numeric_limits<double>::epsilon())
             {
                 const double theta = norm_e*dt;
                 e /= norm_e;
                 const double c_t = cos(theta);
                 const double s_t = sin(theta);
-                blitz::Array<double,2> R(3,3);
-                R(0,0) = c_t + (1.0-c_t)*e(0)*e(0)           ;  R(0,1) =       (1.0-c_t)*e(0)*e(1) - s_t*e(2);  R(0,2) =       (1.0-c_t)*e(0)*e(2) + s_t*e(1);
-                R(1,0) =       (1.0-c_t)*e(1)*e(0) + s_t*e(2);  R(1,1) = c_t + (1.0-c_t)*e(1)*e(1)           ;  R(1,2) =       (1.0-c_t)*e(1)*e(2) - s_t*e(0);
-                R(2,0) =       (1.0-c_t)*e(2)*e(0) - s_t*e(1);  R(2,1) =       (1.0-c_t)*e(2)*e(1) + s_t*e(0);  R(2,2) = c_t + (1.0-c_t)*e(2)*e(2)           ;
+                R << c_t + (1.0-c_t)*e(0)*e(0)            ,       (1.0-c_t)*e(0)*e(1) - s_t*e(2) ,       (1.0-c_t)*e(0)*e(2) + s_t*e(1)
+                    ,      (1.0-c_t)*e(1)*e(0) + s_t*e(2) , c_t + (1.0-c_t)*e(1)*e(1)            ,       (1.0-c_t)*e(1)*e(2) - s_t*e(0)
+                    ,      (1.0-c_t)*e(2)*e(0) - s_t*e(1) ,       (1.0-c_t)*e(2)*e(1) + s_t*e(0) , c_t + (1.0-c_t)*e(2)*e(2)           ;
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz:: firstIndex i;
-                    blitz::secondIndex j;
-                    D_new_alpha = blitz::sum(R(i,j)*D_current_alpha(j),j);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    D_new_alpha = R*D_current_alpha;
                 }
             }
             else
             {
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = D_current_alpha;
                 }
             }
@@ -409,44 +400,42 @@ GeneralizedIBMethod::trapezoidalStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        blitz::Array<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
-        blitz::Array<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
-        blitz::Array<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
-        blitz::Array<double,2>&     W_new_data = *    d_W_new_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double,2>&     W_new_data = *    d_W_new_data[ln]->getLocalFormVecArray();
         const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
-        blitz::Array<double,1> e(3);
+        Matrix3d R;
+        Vector3d e;
         for (int l = 0; l < n_local; ++l)
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                e(d) = 0.5*(W_current_data(l,d)+W_new_data(l,d));
+                e(d) = 0.5*(W_current_data[l][d]+W_new_data[l][d]);
             }
-            const double norm_e = sqrt(e(0)*e(0) + e(1)*e(1) + e(2)*e(2));
+            const double norm_e = e.norm();
             if (norm_e > std::numeric_limits<double>::epsilon())
             {
                 const double theta = norm_e*dt;
                 e /= norm_e;
                 const double c_t = cos(theta);
                 const double s_t = sin(theta);
-                blitz::Array<double,2> R(3,3);
-                R(0,0) = c_t + (1.0-c_t)*e(0)*e(0)           ;  R(0,1) =       (1.0-c_t)*e(0)*e(1) - s_t*e(2);  R(0,2) =       (1.0-c_t)*e(0)*e(2) + s_t*e(1);
-                R(1,0) =       (1.0-c_t)*e(1)*e(0) + s_t*e(2);  R(1,1) = c_t + (1.0-c_t)*e(1)*e(1)           ;  R(1,2) =       (1.0-c_t)*e(1)*e(2) - s_t*e(0);
-                R(2,0) =       (1.0-c_t)*e(2)*e(0) - s_t*e(1);  R(2,1) =       (1.0-c_t)*e(2)*e(1) + s_t*e(0);  R(2,2) = c_t + (1.0-c_t)*e(2)*e(2)           ;
+                R << c_t + (1.0-c_t)*e(0)*e(0)            ,       (1.0-c_t)*e(0)*e(1) - s_t*e(2) ,       (1.0-c_t)*e(0)*e(2) + s_t*e(1)
+                    ,      (1.0-c_t)*e(1)*e(0) + s_t*e(2) , c_t + (1.0-c_t)*e(1)*e(1)            ,       (1.0-c_t)*e(1)*e(2) - s_t*e(0)
+                    ,      (1.0-c_t)*e(2)*e(0) - s_t*e(1) ,       (1.0-c_t)*e(2)*e(1) + s_t*e(0) , c_t + (1.0-c_t)*e(2)*e(2)           ;
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz:: firstIndex i;
-                    blitz::secondIndex j;
-                    D_new_alpha = blitz::sum(R(i,j)*D_current_alpha(j),j);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
+                    D_new_alpha = R*D_current_alpha;
                 }
             }
             else
             {
                 for (int alpha = 0; alpha < 3; ++alpha)
                 {
-                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
-                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    Eigen::Map<const Vector3d> D_current_alpha(&D_current_data[l][3*alpha]);
+                    Eigen::Map<Vector3d>           D_new_alpha(&    D_new_data[l][3*alpha]);
                     D_new_alpha = D_current_alpha;
                 }
             }

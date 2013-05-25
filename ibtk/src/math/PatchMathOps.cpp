@@ -51,125 +51,126 @@
 #include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define LAPLACE_FC FC_FUNC(laplace2d, LAPLACE2D)
-#define LAPLACE_ADD_FC FC_FUNC(laplaceadd2d, LAPLACEADD2D)
-#define DAMPED_LAPLACE_FC FC_FUNC(dampedlaplace2d, DAMPEDLAPLACE2D)
-#define DAMPED_LAPLACE_ADD_FC FC_FUNC(dampedlaplaceadd2d, DAMPEDLAPLACEADD2D)
+#define LAPLACE_FC IBTK_FC_FUNC(laplace2d, LAPLACE2D)
+#define LAPLACE_ADD_FC IBTK_FC_FUNC(laplaceadd2d, LAPLACEADD2D)
+#define DAMPED_LAPLACE_FC IBTK_FC_FUNC(dampedlaplace2d, DAMPEDLAPLACE2D)
+#define DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(dampedlaplaceadd2d, DAMPEDLAPLACEADD2D)
 
-#define MULTIPLY1_FC FC_FUNC(multiply12d, MULTIPLY12D)
-#define MULTIPLY_ADD1_FC FC_FUNC(multiplyadd12d, MULTIPLYADD12D)
-#define MULTIPLY2_FC FC_FUNC(multiply22d, MULTIPLY22D)
-#define MULTIPLY_ADD2_FC FC_FUNC(multiplyadd22d, MULTIPLYADD22D)
-#define MULTIPLY_ADD3_FC FC_FUNC(multiplyadd32d, MULTIPLYADD32D)
+#define MULTIPLY1_FC IBTK_FC_FUNC(multiply12d, MULTIPLY12D)
+#define MULTIPLY_ADD1_FC IBTK_FC_FUNC(multiplyadd12d, MULTIPLYADD12D)
+#define MULTIPLY2_FC IBTK_FC_FUNC(multiply22d, MULTIPLY22D)
+#define MULTIPLY_ADD2_FC IBTK_FC_FUNC(multiplyadd22d, MULTIPLYADD22D)
+#define MULTIPLY_ADD3_FC IBTK_FC_FUNC(multiplyadd32d, MULTIPLYADD32D)
 
-#define PW_L1_NORM_FC FC_FUNC(pwl1norm2d, PWL1NORM2D)
-#define PW_L2_NORM_FC FC_FUNC(pwl2norm2d, PWL2NORM2D)
-#define PW_MAX_NORM_FC FC_FUNC(pwmaxnorm2d, PWMAXNORM2D)
+#define PW_L1_NORM_FC IBTK_FC_FUNC(pwl1norm2d, PWL1NORM2D)
+#define PW_L2_NORM_FC IBTK_FC_FUNC(pwl2norm2d, PWL2NORM2D)
+#define PW_MAX_NORM_FC IBTK_FC_FUNC(pwmaxnorm2d, PWMAXNORM2D)
 
-#define C_TO_C_CURL_FC FC_FUNC(ctoccurl2d, CTOCCURL2D)
-#define C_TO_C_DIV_FC FC_FUNC(ctocdiv2d, CTOCDIV2D)
-#define C_TO_C_DIV_ADD_FC FC_FUNC(ctocdivadd2d, CTOCDIVADD2D)
-#define C_TO_C_GRAD_FC FC_FUNC(ctocgrad2d, CTOCGRAD2D)
-#define C_TO_C_GRAD_ADD_FC FC_FUNC(ctocgradadd2d, CTOCGRADADD2D)
+#define C_TO_C_CURL_FC IBTK_FC_FUNC(ctoccurl2d, CTOCCURL2D)
+#define C_TO_C_DIV_FC IBTK_FC_FUNC(ctocdiv2d, CTOCDIV2D)
+#define C_TO_C_DIV_ADD_FC IBTK_FC_FUNC(ctocdivadd2d, CTOCDIVADD2D)
+#define C_TO_C_GRAD_FC IBTK_FC_FUNC(ctocgrad2d, CTOCGRAD2D)
+#define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd2d, CTOCGRADADD2D)
 
-#define C_TO_C_ANISO_F_LAPLACE_FC FC_FUNC(ctocanisoflaplace2d, CTOCANISOFLAPLACE2D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace2d, CTOCANISOFLAPLACE2D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
 
-#define C_TO_C_ANISO_S_LAPLACE_FC FC_FUNC(ctocanisoslaplace2d, CTOCANISOSLAPLACE2D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace2d, CTOCANISOSLAPLACE2D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
 
-#define C_TO_F_GRAD_FC FC_FUNC(ctofgrad2d, CTOFGRAD2D)
-#define C_TO_F_FLUX_FC FC_FUNC(ctofflux2d, CTOFFLUX2D)
-#define C_TO_F_ANISO_FLUX_FC FC_FUNC(ctofanisoflux2d, CTOFANISOFLUX2D)
-#define C_TO_F_GRAD_ADD_FC FC_FUNC(ctofgradadd2d, CTOFGRADADD2D)
-#define C_TO_F_INTERP_FC FC_FUNC(ctofinterp2nd2d, CTOFINTERP2ND2D)
+#define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad2d, CTOFGRAD2D)
+#define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux2d, CTOFFLUX2D)
+#define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux2d, CTOFANISOFLUX2D)
+#define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd2d, CTOFGRADADD2D)
+#define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd2d, CTOFINTERP2ND2D)
 
-#define C_TO_S_GRAD_FC FC_FUNC(ctosgrad2d, CTOSGRAD2D)
-#define C_TO_S_FLUX_FC FC_FUNC(ctosflux2d, CTOSFLUX2D)
-#define C_TO_S_ANISO_FLUX_FC FC_FUNC(ctosanisoflux2d, CTOSANISOFLUX2D)
-#define C_TO_S_GRAD_ADD_FC FC_FUNC(ctosgradadd2d, CTOSGRADADD2D)
-#define C_TO_S_INTERP_FC FC_FUNC(ctosinterp2nd2d, CTOSINTERP2ND2D)
+#define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad2d, CTOSGRAD2D)
+#define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux2d, CTOSFLUX2D)
+#define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux2d, CTOSANISOFLUX2D)
+#define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd2d, CTOSGRADADD2D)
+#define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd2d, CTOSINTERP2ND2D)
 
-#define F_TO_C_CURL_FC FC_FUNC(ftoccurl2d, FTOCCURL2D)
-#define F_TO_C_DIV_FC FC_FUNC(ftocdiv2d, FTOCDIV2D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC(ftocdivadd2d, FTOCDIVADD2D)
-#define F_TO_C_INTERP_FC FC_FUNC(ftocinterp2nd2d, FTOCINTERP2ND2D)
+#define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl2d, FTOCCURL2D)
+#define F_TO_C_DIV_FC IBTK_FC_FUNC(ftocdiv2d, FTOCDIV2D)
+#define F_TO_C_DIV_ADD_FC IBTK_FC_FUNC(ftocdivadd2d, FTOCDIVADD2D)
+#define F_TO_C_INTERP_FC IBTK_FC_FUNC(ftocinterp2nd2d, FTOCINTERP2ND2D)
 
-#define S_TO_C_CURL_FC FC_FUNC(stoccurl2d, STOCCURL2D)
-#define S_TO_C_DIV_FC FC_FUNC(stocdiv2d, STOCDIV2D)
-#define S_TO_C_DIV_ADD_FC FC_FUNC(stocdivadd2d, STOCDIVADD2D)
-#define S_TO_C_INTERP_FC FC_FUNC(stocinterp2nd2d, STOCINTERP2ND2D)
+#define S_TO_C_CURL_FC IBTK_FC_FUNC(stoccurl2d, STOCCURL2D)
+#define S_TO_C_DIV_FC IBTK_FC_FUNC(stocdiv2d, STOCDIV2D)
+#define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd2d, STOCDIVADD2D)
+#define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd2d, STOCINTERP2ND2D)
 
-#define S_TO_S_VC_LAPLACE_FC FC_FUNC(stosvclaplace2d, STOSVCLAPLACE2D)
+#define S_TO_S_VC_LAPLACE_FC IBTK_FC_FUNC(stosvclaplace2d, STOSVCLAPLACE2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
-#define LAPLACE_FC FC_FUNC(laplace3d, LAPLACE3D)
-#define LAPLACE_ADD_FC FC_FUNC(laplaceadd3d, LAPLACEADD3D)
-#define DAMPED_LAPLACE_FC FC_FUNC(dampedlaplace3d, DAMPEDLAPLACE3D)
-#define DAMPED_LAPLACE_ADD_FC FC_FUNC(dampedlaplaceadd3d, DAMPEDLAPLACEADD3D)
+#define LAPLACE_FC IBTK_FC_FUNC(laplace3d, LAPLACE3D)
+#define LAPLACE_ADD_FC IBTK_FC_FUNC(laplaceadd3d, LAPLACEADD3D)
+#define DAMPED_LAPLACE_FC IBTK_FC_FUNC(dampedlaplace3d, DAMPEDLAPLACE3D)
+#define DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(dampedlaplaceadd3d, DAMPEDLAPLACEADD3D)
 
-#define MULTIPLY1_FC FC_FUNC(multiply13d, MULTIPLY13D)
-#define MULTIPLY_ADD1_FC FC_FUNC(multiplyadd13d, MULTIPLYADD13D)
-#define MULTIPLY2_FC FC_FUNC(multiply23d, MULTIPLY23D)
-#define MULTIPLY_ADD2_FC FC_FUNC(multiplyadd23d, MULTIPLYADD23D)
-#define MULTIPLY_ADD3_FC FC_FUNC(multiplyadd33d, MULTIPLYADD33D)
+#define MULTIPLY1_FC IBTK_FC_FUNC(multiply13d, MULTIPLY13D)
+#define MULTIPLY_ADD1_FC IBTK_FC_FUNC(multiplyadd13d, MULTIPLYADD13D)
+#define MULTIPLY2_FC IBTK_FC_FUNC(multiply23d, MULTIPLY23D)
+#define MULTIPLY_ADD2_FC IBTK_FC_FUNC(multiplyadd23d, MULTIPLYADD23D)
+#define MULTIPLY_ADD3_FC IBTK_FC_FUNC(multiplyadd33d, MULTIPLYADD33D)
 
-#define PW_L1_NORM_FC FC_FUNC(pwl1norm3d, PWL1NORM3D)
-#define PW_L2_NORM_FC FC_FUNC(pwl2norm3d, PWL2NORM3D)
-#define PW_MAX_NORM_FC FC_FUNC(pwmaxnorm3d, PWMAXNORM3D)
+#define PW_L1_NORM_FC IBTK_FC_FUNC(pwl1norm3d, PWL1NORM3D)
+#define PW_L2_NORM_FC IBTK_FC_FUNC(pwl2norm3d, PWL2NORM3D)
+#define PW_MAX_NORM_FC IBTK_FC_FUNC(pwmaxnorm3d, PWMAXNORM3D)
 
-#define C_TO_C_CURL_FC FC_FUNC(ctoccurl3d, CTOCCURL3D)
-#define C_TO_C_DIV_FC FC_FUNC(ctocdiv3d, CTOCDIV3D)
-#define C_TO_C_DIV_ADD_FC FC_FUNC(ctocdivadd3d, CTOCDIVADD3D)
-#define C_TO_C_GRAD_FC FC_FUNC(ctocgrad3d, CTOCGRAD3D)
-#define C_TO_C_GRAD_ADD_FC FC_FUNC(ctocgradadd3d, CTOCGRADADD3D)
+#define C_TO_C_CURL_FC IBTK_FC_FUNC(ctoccurl3d, CTOCCURL3D)
+#define C_TO_C_DIV_FC IBTK_FC_FUNC(ctocdiv3d, CTOCDIV3D)
+#define C_TO_C_DIV_ADD_FC IBTK_FC_FUNC(ctocdivadd3d, CTOCDIVADD3D)
+#define C_TO_C_GRAD_FC IBTK_FC_FUNC(ctocgrad3d, CTOCGRAD3D)
+#define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd3d, CTOCGRADADD3D)
 
-#define C_TO_C_ANISO_F_LAPLACE_FC FC_FUNC(ctocanisoflaplace3d, CTOCANISOFLAPLACE3D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace3d, CTOCANISOFLAPLACE3D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
 
-#define C_TO_C_ANISO_S_LAPLACE_FC FC_FUNC(ctocanisoslaplace3d, CTOCANISOSLAPLACE3D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace3d, CTOCANISOSLAPLACE3D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
 
-#define C_TO_F_GRAD_FC FC_FUNC(ctofgrad3d, CTOFGRAD3D)
-#define C_TO_F_FLUX_FC FC_FUNC(ctofflux3d, CTOFFLUX3D)
-#define C_TO_F_ANISO_FLUX_FC FC_FUNC(ctofanisoflux3d, CTOFANISOFLUX3D)
-#define C_TO_F_GRAD_ADD_FC FC_FUNC(ctofgradadd3d, CTOFGRADADD3D)
-#define C_TO_F_INTERP_FC FC_FUNC(ctofinterp2nd3d, CTOFINTERP2ND3D)
+#define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad3d, CTOFGRAD3D)
+#define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux3d, CTOFFLUX3D)
+#define C_TO_F_ANISO_FLUX_FC IBTK_FC_FUNC(ctofanisoflux3d, CTOFANISOFLUX3D)
+#define C_TO_F_GRAD_ADD_FC IBTK_FC_FUNC(ctofgradadd3d, CTOFGRADADD3D)
+#define C_TO_F_INTERP_FC IBTK_FC_FUNC(ctofinterp2nd3d, CTOFINTERP2ND3D)
 
-#define C_TO_S_GRAD_FC FC_FUNC(ctosgrad3d, CTOSGRAD3D)
-#define C_TO_S_FLUX_FC FC_FUNC(ctosflux3d, CTOSFLUX3D)
-#define C_TO_S_ANISO_FLUX_FC FC_FUNC(ctosanisoflux3d, CTOSANISOFLUX3D)
-#define C_TO_S_GRAD_ADD_FC FC_FUNC(ctosgradadd3d, CTOSGRADADD3D)
-#define C_TO_S_INTERP_FC FC_FUNC(ctosinterp2nd3d, CTOSINTERP2ND3D)
+#define C_TO_S_GRAD_FC IBTK_FC_FUNC(ctosgrad3d, CTOSGRAD3D)
+#define C_TO_S_FLUX_FC IBTK_FC_FUNC(ctosflux3d, CTOSFLUX3D)
+#define C_TO_S_ANISO_FLUX_FC IBTK_FC_FUNC(ctosanisoflux3d, CTOSANISOFLUX3D)
+#define C_TO_S_GRAD_ADD_FC IBTK_FC_FUNC(ctosgradadd3d, CTOSGRADADD3D)
+#define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd3d, CTOSINTERP2ND3D)
 
-#define F_TO_C_CURL_FC FC_FUNC(ftoccurl3d, FTOCCURL3D)
-#define F_TO_C_DIV_FC FC_FUNC(ftocdiv3d, FTOCDIV3D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC(ftocdivadd3d, FTOCDIVADD3D)
-#define F_TO_C_INTERP_FC FC_FUNC(ftocinterp2nd3d, FTOCINTERP2ND3D)
+#define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl3d, FTOCCURL3D)
+#define F_TO_C_DIV_FC IBTK_FC_FUNC(ftocdiv3d, FTOCDIV3D)
+#define F_TO_C_DIV_ADD_FC IBTK_FC_FUNC(ftocdivadd3d, FTOCDIVADD3D)
+#define F_TO_C_INTERP_FC IBTK_FC_FUNC(ftocinterp2nd3d, FTOCINTERP2ND3D)
 
-#define F_TO_F_CURL_FC FC_FUNC(ftofcurl3d, FTOFCURL3D)
+#define F_TO_F_CURL_FC IBTK_FC_FUNC(ftofcurl3d, FTOFCURL3D)
 
-#define S_TO_C_CURL_FC FC_FUNC(stoccurl3d, STOCCURL3D)
-#define S_TO_C_DIV_FC FC_FUNC(stocdiv3d, STOCDIV3D)
-#define S_TO_C_DIV_ADD_FC FC_FUNC(stocdivadd3d, STOCDIVADD3D)
-#define S_TO_C_INTERP_FC FC_FUNC(stocinterp2nd3d, STOCINTERP2ND3D)
+#define S_TO_C_CURL_FC IBTK_FC_FUNC(stoccurl3d, STOCCURL3D)
+#define S_TO_C_DIV_FC IBTK_FC_FUNC(stocdiv3d, STOCDIV3D)
+#define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd3d, STOCDIVADD3D)
+#define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd3d, STOCINTERP2ND3D)
 
-#define S_TO_S_CURL_FC FC_FUNC(stoscurl3d, STOSCURL3D)
+#define S_TO_S_CURL_FC IBTK_FC_FUNC(stoscurl3d, STOSCURL3D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -954,7 +955,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1052,7 +1053,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1154,7 +1155,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1228,7 +1229,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1330,7 +1331,7 @@ PatchMathOps::curl(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (w_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1405,7 +1406,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1479,7 +1480,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1534,7 +1535,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1582,7 +1583,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1641,7 +1642,7 @@ PatchMathOps::div(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
@@ -1689,7 +1690,7 @@ PatchMathOps::div(
         const double* const V = src2->getPointer(m);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
@@ -1743,7 +1744,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (G_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1817,7 +1818,7 @@ PatchMathOps::grad(
         const double* const V = src2->getPointer();
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1880,7 +1881,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -1942,7 +1943,7 @@ PatchMathOps::grad(
 #endif
         const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2005,7 +2006,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2067,7 +2068,7 @@ PatchMathOps::grad(
 #endif
         const int v_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (v_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2137,7 +2138,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2223,7 +2224,7 @@ PatchMathOps::grad(
 
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2274,7 +2275,7 @@ PatchMathOps::grad(
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2337,7 +2338,7 @@ PatchMathOps::grad(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (g_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
@@ -2415,7 +2416,7 @@ PatchMathOps::grad(
 
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2466,7 +2467,7 @@ PatchMathOps::grad(
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const int v_ghosts = (src2->getGhostCellWidth()).max();
 
             if (v_ghosts != (src2->getGhostCellWidth()).min())
@@ -2507,7 +2508,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (dst->getDepth() != NDIM*src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2578,7 +2579,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (dst->getDepth() != NDIM*src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2649,7 +2650,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (NDIM*dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2729,7 +2730,7 @@ PatchMathOps::interp(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (NDIM*dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
@@ -2822,7 +2823,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -2904,7 +2905,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -2967,14 +2968,14 @@ PatchMathOps::laplace(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    blitz::TinyVector<double*,NDIM> F;
+    boost::array<double*,NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d,l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    blitz::TinyVector<const double*,NDIM> U;
+    boost::array<const double*,NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d,m);
@@ -2983,7 +2984,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3033,7 +3034,7 @@ PatchMathOps::laplace(
 
     if (!src2 || (gamma == 0.0))
     {
-        blitz::TinyVector<int,NDIM> ilower, iupper;
+        boost::array<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3073,14 +3074,14 @@ PatchMathOps::laplace(
     }
     else
     {
-        blitz::TinyVector<const double*,NDIM> V;
+        boost::array<const double*,NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d,n);
         }
         const int V_ghosts = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3093,7 +3094,7 @@ PatchMathOps::laplace(
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
-        blitz::TinyVector<int,NDIM> ilower, iupper;
+        boost::array<int,NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3169,7 +3170,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3278,7 +3279,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3365,7 +3366,7 @@ PatchMathOps::laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (F_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3474,7 +3475,7 @@ PatchMathOps::laplace(
         const double* const V = src2->getPointer(n);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
@@ -3576,7 +3577,7 @@ PatchMathOps::vc_laplace(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (f_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
@@ -3722,7 +3723,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3766,7 +3767,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3819,7 +3820,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3875,7 +3876,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -3942,7 +3943,7 @@ PatchMathOps::pointwiseMultiply(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4042,7 +4043,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4086,7 +4087,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4143,7 +4144,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4199,7 +4200,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4270,7 +4271,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4369,7 +4370,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4413,7 +4414,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4467,7 +4468,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4523,7 +4524,7 @@ PatchMathOps::pointwiseMultiply(
         const double* const V = src2->getPointer(k);
         const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4591,7 +4592,7 @@ PatchMathOps::pointwiseMultiply(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (D_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4691,7 +4692,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4735,7 +4736,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4792,7 +4793,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4848,7 +4849,7 @@ PatchMathOps::pointwiseMultiply(
             const double* const V = src2->getPointer(axis,k);
             const int V_ghosts    = (src2->getGhostCellWidth()).max();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -4919,7 +4920,7 @@ PatchMathOps::pointwiseMultiply(
         const Box<NDIM>& patch_box = patch->getBox();
         const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
@@ -5012,7 +5013,7 @@ PatchMathOps::pointwiseL1Norm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
@@ -5072,7 +5073,7 @@ PatchMathOps::pointwiseL2Norm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
@@ -5132,7 +5133,7 @@ PatchMathOps::pointwiseMaxNorm(
 
     const Box<NDIM>& patch_box = patch->getBox();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
@@ -5193,7 +5194,7 @@ PatchMathOps::pointwiseL1Norm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
@@ -5254,7 +5255,7 @@ PatchMathOps::pointwiseL2Norm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
@@ -5315,7 +5316,7 @@ PatchMathOps::pointwiseMaxNorm(
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"

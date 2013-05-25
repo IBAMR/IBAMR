@@ -59,9 +59,10 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
@@ -96,7 +97,7 @@ PETScVecUtilities::copyToPatchLevelVec(
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
     if (data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
@@ -106,7 +107,7 @@ PETScVecUtilities::copyToPatchLevelVec(
     }
     else if (data_sc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
@@ -138,7 +139,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
     if (data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
@@ -148,7 +149,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
     }
     else if (data_sc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
@@ -272,7 +273,7 @@ PETScVecUtilities::copyToPatchLevelVec_cell(
         Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
@@ -310,7 +311,7 @@ PETScVecUtilities::copyToPatchLevelVec_side(
         Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -351,7 +352,7 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
         Pointer<CellData<NDIM,double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
@@ -387,7 +388,7 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
         Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -556,7 +557,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
         Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
+        boost::array<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

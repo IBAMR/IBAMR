@@ -137,7 +137,7 @@ ForcingFunction {
    function_2 = mGP2
 }
 
-AdvectorExplicitPredictorStrategy {
+AdvectorExplicitPredictorPatchOps {
 // Available values for limiter_type:
 // "CTU_ONLY", "MINMOD_LIMITED", "MC_LIMITED",
 // "SUPERBEE_LIMITED", "MUSCL_LIMITED"

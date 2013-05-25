@@ -40,7 +40,7 @@
 #include "HyperbolicLevelIntegrator.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -76,12 +76,12 @@ namespace IBAMR
  *
  * Either Crank-Nicolson (i.e., the trapezoidal rule) or backward Euler is used
  * for the linearly implicit treatment of the diffusive terms.  The advective
- * terms are discretized by the AdvectorExplicitPredictorStrategy object supplied to the class
+ * terms are discretized by the AdvectorExplicitPredictorPatchOps object supplied to the class
  * constructor.
  *
  * \see AdvDiffPredictorCorrectorHyperbolicPatchOps
  * \see HierarchyIntegrator
- * \see AdvectorExplicitPredictorStrategy
+ * \see AdvectorExplicitPredictorPatchOps
  * \see SAMRAI::algs::HyperbolicLevelIntegrator
  * \see SAMRAI::mesh::StandardTagAndInitStrategy
  * \see SAMRAI::algs::TimeRefinementIntegrator
@@ -100,7 +100,7 @@ public:
     AdvDiffPredictorCorrectorHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         bool register_for_restart=true);
 
     /*!
@@ -215,7 +215,7 @@ protected:
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to gradient criteria specified by the
-     * AdvectorExplicitPredictorStrategy object.
+     * AdvectorExplicitPredictorPatchOps object.
      */
     void
     applyGradientDetectorSpecialized(
@@ -268,7 +268,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
     SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> d_explicit_predictor;
+    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
 };
 }// namespace IBAMR
 

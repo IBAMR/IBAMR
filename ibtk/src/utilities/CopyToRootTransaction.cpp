@@ -108,7 +108,7 @@ CopyToRootTransaction::computeOutgoingMessageSize()
     Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& dst_box = grid_geom->getPhysicalDomain()[0];
@@ -150,7 +150,7 @@ CopyToRootTransaction::packStream(
     Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& dst_box = grid_geom->getPhysicalDomain()[0];
@@ -186,7 +186,7 @@ CopyToRootTransaction::unpackStream(
     Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& dst_box = grid_geom->getPhysicalDomain()[0];
@@ -215,7 +215,7 @@ CopyToRootTransaction::copyLocalData()
     Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
     const Box<NDIM>& dst_box = grid_geom->getPhysicalDomain()[0];

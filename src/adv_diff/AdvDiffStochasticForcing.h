@@ -44,7 +44,7 @@
 #include "SideVariable.h"
 #include "VariableContext.h"
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/muParser.h"
+#include "muParser.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 

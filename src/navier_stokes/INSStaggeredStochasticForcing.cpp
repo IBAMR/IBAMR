@@ -45,6 +45,9 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "EdgeData.h"     // IWYU pragma: keep
+#include "EdgeGeometry.h" // IWYU pragma: keep
+#include "EdgeIndex.h"    // IWYU pragma: keep
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IBAMR_config.h"
@@ -52,9 +55,9 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
-#include "NodeData.h"
-#include "NodeGeometry.h"
-#include "NodeIndex.h"
+#include "NodeData.h"     // IWYU pragma: keep
+#include "NodeGeometry.h" // IWYU pragma: keep
+#include "NodeIndex.h"    // IWYU pragma: keep
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchHierarchy.h"
@@ -81,10 +84,10 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC FC_FUNC_(navier_stokes_stochastic_stress_div2d,NAVIER_STOKES_STOCHASTIC_STRESS_DIV2D)
+#define NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC IBAMR_FC_FUNC_(navier_stokes_stochastic_stress_div2d,NAVIER_STOKES_STOCHASTIC_STRESS_DIV2D)
 #endif
 #if (NDIM == 3)
-#define NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC FC_FUNC_(navier_stokes_stochastic_stress_div3d,NAVIER_STOKES_STOCHASTIC_STRESS_DIV3D)
+#define NAVIER_STOKES_STOCHASTIC_STRESS_DIV_FC IBAMR_FC_FUNC_(navier_stokes_stochastic_stress_div3d,NAVIER_STOKES_STOCHASTIC_STRESS_DIV3D)
 #endif
 
 extern "C"
@@ -192,7 +195,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(
         while (input_db->keyExists(key_name))
         {
             d_weights.push_back(input_db->getDoubleArray(key_name));
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
 #endif
             ++k;
@@ -253,7 +256,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     if (!initial_time)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0);
 #endif
         // Allocate data to store components of the stochastic stress components.
@@ -303,7 +306,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
 
         // Set random values for the present cycle as weighted combinations of
         // the generated random values.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
 #endif
         const Array<double>& weights = d_weights[cycle_num];

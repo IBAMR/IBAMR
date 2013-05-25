@@ -35,6 +35,7 @@
 #include "IBAMR_config.h"
 #include "IBFEMethod.h"
 #include "SAMRAI_config.h"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -90,24 +91,28 @@ static const double POINT_FACTOR = 2.0;
 inline double
 get_elem_hmax(
     Elem* elem,
-    const blitz::Array<double,2>& X_node)
+    const boost::multi_array<double,2>& X_node)
 {
     static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES];
+    libMesh::Point s_node_cache[MAX_NODES];
     const int n_node = elem->n_nodes();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
     for (int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
-        Point& X = elem->point(k);
+        libMesh::Point& X = elem->point(k);
         for (int d = 0; d < NDIM; ++d)
         {
-            X(d) = X_node(k,d);
+            X(d) = X_node[k][d];
         }
     }
-    const double hmax = elem->hmax();
+    double hmax = 0.0;
+    for (unsigned int e = 0; e < elem->n_edges(); ++e)
+    {
+        hmax = std::max(hmax, elem->build_edge(e)->hmax());
+    }
     for (int k = 0; k < n_node; ++k)
     {
         elem->point(k) = s_node_cache[k];
@@ -166,7 +171,7 @@ FEDataManager*
 IBFEMethod::getFEDataManager(
     const unsigned int part) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
 #endif
     return d_fe_data_managers[part];
@@ -176,7 +181,7 @@ void
 IBFEMethod::registerConstrainedPart(
     unsigned int part)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
 #endif
     d_has_constrained_parts = true;
@@ -190,7 +195,7 @@ IBFEMethod::registerConstrainedPartVelocityFunction(
     void* constrained_part_velocity_fcn_ctx,
     unsigned int part)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_parts);
     TBOX_ASSERT(d_constrained_part[part]);
 #endif
@@ -355,14 +360,6 @@ IBFEMethod::preprocessIntegrateData(
         d_U_half_vecs[part]->close();
         d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
         d_U_new_vecs[part]->close();
-
-        // Compute the constraint velocity.
-        if (d_constrained_part[part] && d_constrained_part_velocity_fcns[part])
-        {
-            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-            MeshBase& mesh = equation_systems->get_mesh();
-            d_constrained_part_velocity_fcns[part](*d_U_b_vecs[part], *d_U_current_vecs[part], *d_X_current_vecs[part], mesh, d_current_time, d_constrained_part_velocity_fcn_ctxs[part]);
-        }
     }
     return;
 }// preprocessIntegrateData
@@ -542,7 +539,7 @@ void
 IBFEMethod::computeLagrangianForce(
     const double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -565,7 +562,7 @@ IBFEMethod::spreadForce(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -642,7 +639,7 @@ IBFEMethod::initializeFEData()
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        System* U_b_system;
+        System* U_b_system = NULL;
         if (d_constrained_part[part])
         {
             U_b_system = &equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
@@ -709,14 +706,14 @@ IBFEMethod::initializeFEData()
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
-                        if (node->n_dofs(F_sys_num) > 0)
+                        if (node->n_dofs(F_sys_num))
                         {
                             const int F_dof_index = node->dof_number(F_sys_num,d,0);
                             DofConstraintRow F_constraint_row;
                             F_constraint_row[F_dof_index] = 1.0;
                             F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
                         }
-                        if (node->n_dofs(U_sys_num) > 0)
+                        if (node->n_dofs(U_sys_num))
                         {
                             const int U_dof_index = node->dof_number(U_sys_num,d,0);
                             DofConstraintRow U_constraint_row;
@@ -763,7 +760,7 @@ IBFEMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -863,7 +860,7 @@ IBFEMethod::applyGradientDetector(
     bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -908,11 +905,10 @@ IBFEMethod::computeConstraintForceDensity(
 {
     if (d_constrained_part[part])
     {
-        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        MeshBase& mesh = equation_systems->get_mesh();
         if (d_constrained_part_velocity_fcns[part])
         {
-            d_constrained_part_velocity_fcns[part](U_b_vec, U_vec, X_vec, mesh, data_time, d_constrained_part_velocity_fcn_ctxs[part]);
+            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+            d_constrained_part_velocity_fcns[part](U_b_vec, U_vec, X_vec, equation_systems, data_time, d_constrained_part_velocity_fcn_ctxs[part]);
         }
         const double dt = d_new_time-d_current_time;
         const double rho = getINSHierarchyIntegrator()->getStokesSpecifications()->getRho();
@@ -944,26 +940,26 @@ IBFEMethod::computeInteriorForceDensity(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
-    const std::vector<Point>& q_point = fe->get_xyz();
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1015,9 +1011,9 @@ IBFEMethod::computeInteriorForceDensity(
     // interior elastic force density.
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_b, F_s, F_qp, n;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
-    blitz::Array<double,2> X_node;
+    boost::multi_array<double,2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1027,10 +1023,10 @@ IBFEMethod::computeInteriorForceDensity(
         fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            dof_map.dof_indices(elem, dof_indices(d), d);
-            if (G_rhs_e[d].size() != dof_indices(d).size())
+            dof_map.dof_indices(elem, dof_indices[d], d);
+            if (G_rhs_e[d].size() != dof_indices[d].size())
             {
-                G_rhs_e[d].resize(dof_indices(d).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
+                G_rhs_e[d].resize(dof_indices[d].size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
             }
             else
             {
@@ -1039,12 +1035,12 @@ IBFEMethod::computeInteriorForceDensity(
         }
 
         const unsigned int n_qp = qrule->n_points();
-        const unsigned int n_basis = dof_indices(0).size();
+        const unsigned int n_basis = dof_indices[0].size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            const Point& s_qp = q_point[qp];
+            const libMesh::Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(FF,qp,X_node,dphi);
 
@@ -1108,12 +1104,12 @@ IBFEMethod::computeInteriorForceDensity(
             fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
-            const unsigned int n_basis = dof_indices(0).size();
+            const unsigned int n_basis = dof_indices[0].size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
-                const Point& s_qp = q_point_face[qp];
+                const libMesh::Point& s_qp = q_point_face[qp];
                 interpolate(X_qp,qp,X_node,phi_face);
                 jacobian(FF,qp,X_node,dphi_face);
                 const double J = std::abs(FF.det());
@@ -1170,8 +1166,8 @@ IBFEMethod::computeInteriorForceDensity(
         // add the elemental contributions to the global vector.
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            dof_map.constrain_element_vector(G_rhs_e[i], dof_indices(i));
-            G_rhs_vec->add_vector(G_rhs_e[i], dof_indices(i));
+            dof_map.constrain_element_vector(G_rhs_e[i], dof_indices[i]);
+            G_rhs_vec->add_vector(G_rhs_e[i], dof_indices[i]);
         }
     }
 
@@ -1199,22 +1195,22 @@ IBFEMethod::spreadTransmissionForceDensity(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
+    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1244,20 +1240,19 @@ IBFEMethod::spreadTransmissionForceDensity(
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
-    std::vector<Point> elem_X;
-    blitz::Array<double,2> X_node, X_node_side;
+    boost::multi_array<double,2> X_node, X_node_side;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1280,7 +1275,7 @@ IBFEMethod::spreadTransmissionForceDensity(
         int qp_offset = 0;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems[e_idx];
 
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1297,7 +1292,7 @@ IBFEMethod::spreadTransmissionForceDensity(
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dof_map.dof_indices(elem, dof_indices(d), d);
+                dof_map.dof_indices(elem, dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
@@ -1328,7 +1323,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                 AutoPtr<Elem> side_elem = elem->build_side(side);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                    dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
                 const double hmax = get_elem_hmax(side_elem.get(), X_node_side);
@@ -1349,7 +1344,7 @@ IBFEMethod::spreadTransmissionForceDensity(
 
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
-                    const Point& s_qp = q_point_face[qp];
+                    const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
@@ -1420,20 +1415,20 @@ IBFEMethod::imposeJumpConditions(
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
-    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
+    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
+    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    const std::vector<Point>& q_point_face = fe_face->get_xyz();
-    const std::vector<Point>& normal_face = fe_face->get_normals();
+    const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
@@ -1464,22 +1459,22 @@ IBFEMethod::imposeJumpConditions(
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n;
-    Point X_qp;
+    libMesh::Point X_qp;
     double P;
-    blitz::Array<double,2> F_node, X_node;
+    boost::multi_array<double,2> F_node, X_node;
     static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
+    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    IBTK::Point X_min, X_max;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1493,7 +1488,7 @@ IBFEMethod::imposeJumpConditions(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        boost::array<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1502,7 +1497,7 @@ IBFEMethod::imposeJumpConditions(
         // Loop over the elements.
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            Elem* const elem = patch_elems(e_idx);
+            Elem* const elem = patch_elems[e_idx];
 
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1519,7 +1514,7 @@ IBFEMethod::imposeJumpConditions(
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dof_map.dof_indices(elem, dof_indices(d), d);
+                dof_map.dof_indices(elem, dof_indices[d], d);
             }
 
             // Loop over the element boundaries.
@@ -1552,24 +1547,24 @@ IBFEMethod::imposeJumpConditions(
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                    dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
 
                 // Cache the nodal and physical coordinates of the side element,
                 // determine the bounding box of the current configuration of
                 // the side element, and set the nodal coordinates to correspond
                 // to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(n_node_side <= MAX_NODES);
 #endif
-                X_min =  0.5*std::numeric_limits<double>::max();
-                X_max = -0.5*std::numeric_limits<double>::max();
+                X_min = IBTK::Point::Constant( 0.5*std::numeric_limits<double>::max());
+                X_max = IBTK::Point::Constant(-0.5*std::numeric_limits<double>::max());
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices(d)[k]);
+                        X_node_cache[k](d) = X_ghost_vec(side_dof_indices[d][k]);
                         X_min[d] = std::min(X_min[d],X_node_cache[k](d));
                         X_max[d] = std::max(X_max[d],X_node_cache[k](d));
                     }
@@ -1578,8 +1573,8 @@ IBFEMethod::imposeJumpConditions(
 
                 // Loop over coordinate directions and look for intersections
                 // with the background fluid grid.
-                std::vector<Point> intersection_ref_points;
-                std::vector<int>   intersection_axes;
+                std::vector<libMesh::Point> intersection_ref_points;
+                std::vector<int>            intersection_axes;
                 static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
                 intersection_ref_points.reserve(estimated_max_size);
                 intersection_axes      .reserve(estimated_max_size);
@@ -1591,7 +1586,7 @@ IBFEMethod::imposeJumpConditions(
                     q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
-                    blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                    boost::array<int,NDIM> i_begin, i_end, ic;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
@@ -1613,16 +1608,16 @@ IBFEMethod::imposeJumpConditions(
                         {
                             for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
                             {
-                                Point r;
+                                libMesh::Point r;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+0.5));
                                 }
 #if (NDIM == 2)
-                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
+                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
 #endif
 #if (NDIM == 3)
-                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
+                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
 #endif
                                 for (unsigned int k = 0; k < intersections.size(); ++k)
                                 {
@@ -1665,7 +1660,7 @@ IBFEMethod::imposeJumpConditions(
                     {
                         ++i(axis);
                     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
@@ -1686,7 +1681,7 @@ IBFEMethod::imposeJumpConditions(
                     const int d = axis;
                     const SideIndex<NDIM> s_i(i,d,0);
                     if (!side_boxes[d].contains(s_i)) continue;
-                    const Point& s_qp = q_point_face[qp];
+                    const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(FF,qp,X_node,dphi_face);
                     const double J = std::abs(FF.det());
@@ -1770,11 +1765,11 @@ IBFEMethod::initializeCoordinates(
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(X_sys_num) > 0)
+        if (n->n_vars(X_sys_num))
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
-            const Point& s = *n;
-            Point X = s;
+            const libMesh::Point& s = *n;
+            libMesh::Point X = s;
             if (!identity_mapping)
             {
                 d_coordinate_mapping_fcns[part](X, s, d_coordinate_mapping_fcn_ctxs[part]);
@@ -1806,11 +1801,11 @@ IBFEMethod::updateCoordinateMapping(
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(X_sys_num) > 0)
+        if (n->n_vars(X_sys_num))
         {
             libmesh_assert(n->n_vars(X_sys_num) == NDIM);
             libmesh_assert(n->n_vars(X_mapping_sys_num) == NDIM);
-            const Point& s = *n;
+            const libMesh::Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const int X_dof_index = n->dof_number(X_sys_num,d,0);

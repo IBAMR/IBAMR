@@ -38,14 +38,9 @@
 #include <iosfwd>
 #include <vector>
 
+#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "tbox/Pointer.h"
-
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -50,6 +50,7 @@
 #include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -70,8 +71,8 @@ void
 block_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -87,8 +88,8 @@ void
 beam_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -113,8 +114,8 @@ void
 beam_PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& s,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -221,7 +222,7 @@ main(
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                block_mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+                block_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
             TriangleInterface triangle(block_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
@@ -507,13 +508,13 @@ postprocess_data(
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
-        blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
+        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
         AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
         AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
-        blitz::Array<double,2> F_node;
+        boost::multi_array<double,2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh[k]->active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh[k]->active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -522,10 +523,10 @@ postprocess_data(
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                F_dof_map.dof_indices(elem, F_dof_indices(d), d);
+                F_dof_map.dof_indices(elem, F_dof_indices[d], d);
             }
             const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices(0).size();
+            const int n_basis = F_dof_indices[0].size();
             get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
             for (int qp = 0; qp < n_qp; ++qp)
             {
@@ -533,7 +534,7 @@ postprocess_data(
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                        F_integral[d] += F_node[k][d]*phi[k][qp]*JxW[qp];
                     }
                 }
             }
@@ -552,7 +553,7 @@ postprocess_data(
 
     System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     NumericVector<double>* X_vec = X_system.solution.get();
-    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build();
+    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();
@@ -561,7 +562,7 @@ postprocess_data(
     MeshFunction X_fcn(*beam_equation_systems, *X_serial_vec, X_dof_map, vars);
     X_fcn.init();
     DenseVector<double> X_A(2);
-    X_fcn(Point(0.6,0.2,0), 0.0, X_A);
+    X_fcn(libMesh::Point(0.6,0.2,0), 0.0, X_A);
     if (SAMRAI_MPI::getRank() == 0)
     {
         A_x_posn_stream.precision(12);

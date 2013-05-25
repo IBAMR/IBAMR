@@ -53,9 +53,6 @@ namespace tbox {
 class AbstractStream;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace IBTK {
-class Streamable;
-}  // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -252,15 +249,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibtk/StreamableManager-inl.h"  // IWYU pragma: keep
-
-namespace IBTK {
-class Streamable;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

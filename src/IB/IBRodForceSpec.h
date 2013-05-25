@@ -38,10 +38,19 @@
 #include <unistd.h>
 #include <vector>
 
-#include "blitz/tinyvec2.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "boost/array.hpp"
 #include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -95,7 +104,7 @@ public:
     IBRodForceSpec(
         int master_idx,
         const std::vector<int>& next_idxs,
-        const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params);
+        const std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!
      * \brief Destructor.
@@ -138,14 +147,14 @@ public:
      * \return A const reference to the material parameters of the rods attached
      * to the master node.
      */
-    const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
+    const std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams() const;
 
     /*!
      * \return A non-const reference to the material parameters of the rods
      * attached to the master node.
      */
-    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
+    std::vector<boost::array<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams();
 
     /*!
@@ -199,7 +208,7 @@ private:
      */
     int d_master_idx;
     std::vector<int> d_next_idxs;
-    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> > d_material_params;
+    std::vector<boost::array<double,NUM_MATERIAL_PARAMS> > d_material_params;
 
     /*!
      * \brief A factory class to rebuild IBRodForceSpec objects from
@@ -278,15 +287,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibamr/IBRodForceSpec-inl.h" // IWYU pragma: keep
-
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

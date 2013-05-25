@@ -47,6 +47,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
+#include "boost/array.hpp"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
@@ -123,12 +124,12 @@ EdgeDataSynchronization::initializeOperatorState(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
@@ -191,7 +192,7 @@ void
 EdgeDataSynchronization::resetTransactionComponent(
     const SynchronizationTransactionComponent& transaction_comp)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != 1)
@@ -207,7 +208,7 @@ void
 EdgeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
@@ -231,12 +232,12 @@ EdgeDataSynchronization::resetTransactionComponents(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
             Pointer<CoarsenOperator<NDIM> > coarsen_op =
                 d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
             d_coarsen_alg->registerCoarsen(data_idx,  // destination
@@ -310,7 +311,7 @@ void
 EdgeDataSynchronization::synchronizeData(
     const double fill_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)

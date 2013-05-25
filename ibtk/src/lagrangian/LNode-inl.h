@@ -54,7 +54,7 @@ LNode::LNode(
     const int global_petsc_nidx,
     const int local_petsc_nidx,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-    const blitz::TinyVector<double,NDIM>& periodic_displacement,
+    const Vector& periodic_displacement,
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
     : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
       d_node_data(node_data)
@@ -106,7 +106,7 @@ LNode::operator=(
 inline void
 LNode::registerPeriodicShift(
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    const blitz::TinyVector<double,NDIM>& displacement)
+    const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end(); ++it)
@@ -184,7 +184,7 @@ LNode::copySourceItem(
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
     const LNode* const p_src_item = dynamic_cast<const LNode*>(&src_item);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(p_src_item);
 #endif
     assignThatToThis(*p_src_item);

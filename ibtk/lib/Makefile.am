@@ -22,26 +22,10 @@ clean-local:
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
 $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-$(top_srcdir)/src/third_party/muParser/muParser.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserBase.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserBytecode.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserError.cpp \
-$(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
 $(top_srcdir)/src/utilities/Interpolator.cpp \
 $(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/third_party/muParser/muParser.h \
-$(top_srcdir)/src/third_party/muParser/muParserBase.h \
-$(top_srcdir)/src/third_party/muParser/muParserBytecode.h \
-$(top_srcdir)/src/third_party/muParser/muParserCallback.h \
-$(top_srcdir)/src/third_party/muParser/muParserDef.h \
-$(top_srcdir)/src/third_party/muParser/muParserError.h \
-$(top_srcdir)/src/third_party/muParser/muParserFixes.h \
-$(top_srcdir)/src/third_party/muParser/muParserStack.h \
-$(top_srcdir)/src/third_party/muParser/muParserToken.h \
-$(top_srcdir)/src/third_party/muParser/muParserTokenReader.h \
 $(top_srcdir)/src/utilities/IBTK_CHKERRQ.h \
 $(top_srcdir)/src/utilities/Interpolator-inl.h \
 $(top_srcdir)/src/utilities/Interpolator.h \
@@ -70,7 +54,6 @@ $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.cpp \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.cpp \
-$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.cpp \
 $(top_srcdir)/src/lagrangian/LData.cpp \
 $(top_srcdir)/src/lagrangian/LDataManager.cpp \
 $(top_srcdir)/src/lagrangian/LEInteractor.cpp \
@@ -78,7 +61,6 @@ $(top_srcdir)/src/lagrangian/LIndexSetData.cpp \
 $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.cpp \
 $(top_srcdir)/src/lagrangian/LIndexSetVariable.cpp \
 $(top_srcdir)/src/lagrangian/LInitStrategy.cpp \
-$(top_srcdir)/src/lagrangian/LM3DDataWriter.cpp \
 $(top_srcdir)/src/lagrangian/LMarker.cpp \
 $(top_srcdir)/src/lagrangian/LMesh.cpp \
 $(top_srcdir)/src/lagrangian/LNode.cpp \
@@ -91,22 +73,15 @@ $(top_srcdir)/src/lagrangian/LSetVariable.cpp \
 $(top_srcdir)/src/lagrangian/LSiloDataWriter.cpp \
 $(top_srcdir)/src/lagrangian/LTransaction.cpp \
 $(top_srcdir)/src/math/HierarchyMathOps.cpp \
-$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.cpp \
 $(top_srcdir)/src/math/PETScMatUtilities.cpp \
 $(top_srcdir)/src/math/PETScVecUtilities.cpp \
 $(top_srcdir)/src/math/PatchMathOps.cpp \
-$(top_srcdir)/src/math/PatchVecCellDataBasicOps.cpp \
-$(top_srcdir)/src/math/PatchVecCellDataOpsReal.cpp \
 $(top_srcdir)/src/math/PoissonUtilities.cpp \
-$(top_srcdir)/src/patch_data/VecCellData.cpp \
-$(top_srcdir)/src/patch_data/VecCellDataFactory.cpp \
-$(top_srcdir)/src/patch_data/VecCellVariable.cpp \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.cpp \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.cpp \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 $(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -201,7 +176,6 @@ $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.h \
-$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.h \
 $(top_srcdir)/src/lagrangian/LData-inl.h \
 $(top_srcdir)/src/lagrangian/LData.h \
 $(top_srcdir)/src/lagrangian/LDataManager-inl.h \
@@ -212,7 +186,6 @@ $(top_srcdir)/src/lagrangian/LIndexSetData.h \
 $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.h \
 $(top_srcdir)/src/lagrangian/LIndexSetVariable.h \
 $(top_srcdir)/src/lagrangian/LInitStrategy.h \
-$(top_srcdir)/src/lagrangian/LM3DDataWriter.h \
 $(top_srcdir)/src/lagrangian/LMarker-inl.h \
 $(top_srcdir)/src/lagrangian/LMarker.h \
 $(top_srcdir)/src/lagrangian/LMarkerSet.h \
@@ -247,24 +220,15 @@ $(top_srcdir)/src/lagrangian/LSetVariable.h \
 $(top_srcdir)/src/lagrangian/LSiloDataWriter.h \
 $(top_srcdir)/src/lagrangian/LTransaction.h \
 $(top_srcdir)/src/math/HierarchyMathOps.h \
-$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.h \
 $(top_srcdir)/src/math/PETScMatUtilities.h \
 $(top_srcdir)/src/math/PETScVecUtilities.h \
 $(top_srcdir)/src/math/PatchMathOps.h \
-$(top_srcdir)/src/math/PatchVecCellDataBasicOps.h \
-$(top_srcdir)/src/math/PatchVecCellDataOpsReal.h \
 $(top_srcdir)/src/math/PoissonUtilities.h \
-$(top_srcdir)/src/patch_data/VecCellData-inl.h \
-$(top_srcdir)/src/patch_data/VecCellData.h \
-$(top_srcdir)/src/patch_data/VecCellDataFactory-inl.h \
-$(top_srcdir)/src/patch_data/VecCellDataFactory.h \
-$(top_srcdir)/src/patch_data/VecCellVariable.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
-$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.h \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.h \

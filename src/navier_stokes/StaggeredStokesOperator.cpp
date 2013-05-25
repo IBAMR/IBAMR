@@ -64,8 +64,8 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
+static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -154,7 +154,7 @@ StaggeredStokesOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -184,7 +184,7 @@ void
 StaggeredStokesOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;
@@ -267,7 +267,7 @@ StaggeredStokesOperator::initializeOperatorState(
     {
         d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     else
     {
         TBOX_ASSERT(d_hier_math_ops);

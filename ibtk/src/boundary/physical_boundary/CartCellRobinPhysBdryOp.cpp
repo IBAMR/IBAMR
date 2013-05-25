@@ -60,17 +60,17 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(ccrobinphysbdryop1x2d, CCROBINPHYSBDRYOP1X2D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(ccrobinphysbdryop1y2d, CCROBINPHYSBDRYOP1Y2D)
-#define CC_ROBIN_PHYS_BDRY_OP_2_FC FC_FUNC(ccrobinphysbdryop22d, CCROBINPHYSBDRYOP22D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x2d, CCROBINPHYSBDRYOP1X2D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y2d, CCROBINPHYSBDRYOP1Y2D)
+#define CC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(ccrobinphysbdryop22d, CCROBINPHYSBDRYOP22D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
-#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(ccrobinphysbdryop1x3d, CCROBINPHYSBDRYOP1X3D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(ccrobinphysbdryop1y3d, CCROBINPHYSBDRYOP1Y3D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Z_FC FC_FUNC(ccrobinphysbdryop1z3d, CCROBINPHYSBDRYOP1Z3D)
-#define CC_ROBIN_PHYS_BDRY_OP_2_FC FC_FUNC(ccrobinphysbdryop23d, CCROBINPHYSBDRYOP23D)
-#define CC_ROBIN_PHYS_BDRY_OP_3_FC FC_FUNC(ccrobinphysbdryop33d, CCROBINPHYSBDRYOP33D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x3d, CCROBINPHYSBDRYOP1X3D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y3d, CCROBINPHYSBDRYOP1Y3D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Z_FC IBTK_FC_FUNC(ccrobinphysbdryop1z3d, CCROBINPHYSBDRYOP1Z3D)
+#define CC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(ccrobinphysbdryop23d, CCROBINPHYSBDRYOP23D)
+#define CC_ROBIN_PHYS_BDRY_OP_3_FC IBTK_FC_FUNC(ccrobinphysbdryop33d, CCROBINPHYSBDRYOP33D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -159,7 +159,7 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -352,7 +352,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -424,7 +424,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -457,7 +457,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
                 double* const U = patch_data->getPointer(depth);
                 const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 if (U_gcw != (patch_data->getGhostCellWidth()).min())
                 {
                     TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"

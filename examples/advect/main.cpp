@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,7 +44,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h>
-#include <ibamr/AdvectorExplicitPredictorStrategy.h>
+#include <ibamr/AdvectorExplicitPredictorPatchOps.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -121,8 +121,8 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor = new AdvectorExplicitPredictorStrategy(
-            "AdvectorExplicitPredictorStrategy", app_initializer->getComponentDatabase("AdvectorExplicitPredictorStrategy"));
+        Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
+            "AdvectorExplicitPredictorPatchOps", app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops = new AdvectorPredictorCorrectorHyperbolicPatchOps(

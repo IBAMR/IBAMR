@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -69,8 +69,8 @@ void
 upper_PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& s,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -100,8 +100,8 @@ void
 lower_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -116,8 +116,8 @@ void
 upper_tether_force_function(
     VectorValue<double>& F,
     const TensorValue<double>& /*FF*/,
-    const Point& X,
-    const Point& s,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
@@ -227,10 +227,10 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = lower_mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id == 1 || boundary_id == 3)
+                    BoundaryInfo* boundary_info = lower_mesh.boundary_info.get();
+                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
                     {
-                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -252,10 +252,10 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = upper_mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id == 1 || boundary_id == 3)
+                    BoundaryInfo* boundary_info = upper_mesh.boundary_info.get();
+                    if (boundary_info->has_boundary_id(elem,side,1) || boundary_id == boundary_info->has_boundary_id(elem,side,3))
                     {
-                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }

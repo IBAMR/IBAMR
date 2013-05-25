@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
 #include "petscksp.h"
 #include "petscmat.h"
@@ -49,9 +50,6 @@ namespace SAMRAI {
 namespace hier {
 template <int DIM> class PatchLevel;
 }  // namespace hier
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
 namespace tbox {
 class Database;
 }  // namespace tbox

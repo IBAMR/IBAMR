@@ -70,19 +70,19 @@ template <int DIM> class RobinBcCoefStrategy;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define ADVECT_FLUX_FC FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
-#define C_TO_F_CWISE_INTERP_2ND_FC FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
-#define F_TO_C_DIV_FC FC_FUNC_(ftocdiv2d, FTOCDIV2D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC_(ftocdivadd2d, FTOCDIVADD2D)
+#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
+#define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv2d, FTOCDIV2D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd2d, FTOCDIVADD2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
-#define ADVECT_FLUX_FC FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
-#define C_TO_F_CWISE_INTERP_2ND_FC FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
-#define F_TO_C_DIV_FC FC_FUNC_(ftocdiv3d, FTOCDIV3D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC_(ftocdivadd3d, FTOCDIVADD3D)
+#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
+#define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv3d, FTOCDIV3D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd3d, FTOCDIVADD3D)
 #endif
 
 extern "C"
@@ -257,7 +257,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 #endif
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
@@ -271,7 +271,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 #endif
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
@@ -285,7 +285,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_flux_idx >= 0);
 #endif
 
@@ -311,7 +311,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
@@ -342,17 +342,17 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
 
             Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 #endif
             // Interpolate from cell centers to cell faces.
@@ -544,7 +544,7 @@ INSCollocatedCenteredConvectiveOperator::initializeOperatorState(
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());

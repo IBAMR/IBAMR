@@ -263,15 +263,6 @@ private:
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
-     * cell-centered quantities.
-     */
-    void
-    setPhysicalBoundaryConditions_vec_cell(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
-
-    /*!
-     * \brief The implementation of setPhysicalBoundaryConditions() for
      * face-centered quantities.
      */
     void

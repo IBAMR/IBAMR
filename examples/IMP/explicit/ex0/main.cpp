@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -68,8 +68,8 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*x*/,
-    const Point& /*X*/,
+    const libMesh::Point& /*x*/,
+    const libMesh::Point& /*X*/,
     subdomain_id_type /*subdomain_id*/,
     std::vector<double>& /*internal_vars*/,
     double /*time*/,
@@ -146,7 +146,7 @@ main(
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+                mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
             TriangleInterface triangle(mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;

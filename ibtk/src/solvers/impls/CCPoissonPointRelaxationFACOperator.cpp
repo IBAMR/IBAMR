@@ -66,7 +66,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
@@ -78,6 +78,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
@@ -90,12 +91,12 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth2d,GSSMOOTH2D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d,GSSMOOTH2D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC FC_FUNC(gssmooth3d,GSSMOOTH3D)
-#define RB_GS_SMOOTH_FC FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d,GSSMOOTH3D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
 #endif
 
 // Function interfaces
@@ -144,7 +145,7 @@ static Timer* t_compute_residual;
 static const int DEFAULT_DATA_DEPTH = 1;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -309,7 +310,7 @@ void
 CCPoissonPointRelaxationFACOperator::setSmootherType(
     const std::string& smoother_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
 #endif
     d_smoother_type = smoother_type;
@@ -354,7 +355,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
     if (d_using_petsc_smoothers) TBOX_ASSERT(smoother_type == PATCH_GAUSS_SEIDEL || smoother_type == PROCESSOR_GAUSS_SEIDEL);
 #endif
@@ -370,7 +371,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -397,7 +398,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
@@ -433,7 +434,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
@@ -558,7 +559,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
     int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
     if (d_coarse_solver)
@@ -574,7 +575,7 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
     }
     else
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
 #endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
@@ -650,7 +651,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     Pointer<CellDataFactory<NDIM,double> > solution_pdat_fac = solution_var->getPatchDataFactory();
     Pointer<CellDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(     rhs_var);
     TBOX_ASSERT(solution_pdat_fac);
@@ -841,7 +842,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (ghost_cell_width.min() == 0)
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator():\n"
@@ -937,14 +938,14 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
 #endif
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    blitz::TinyVector<int,NDIM> num_cells;
+    boost::array<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1059,13 +1060,13 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE);  IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
 #endif
 
     // Setup the finite difference stencil.
-    blitz::TinyVector<int,NDIM> num_cells;
+    boost::array<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

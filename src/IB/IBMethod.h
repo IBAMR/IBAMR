@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -72,13 +73,6 @@ template <int DIM> class CoarsenSchedule;
 template <int DIM> class RefineSchedule;
 }  // namespace xfer
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
-
-#if (NDIM == 3)
-#include "ibtk/LM3DDataWriter.h"
-#endif
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -158,17 +152,6 @@ public:
     void
     registerLSiloDataWriter(
         SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
-
-#if (NDIM == 3)
-    /*!
-     * Register a Lagrangian myocardial3D data writer so this class will write
-     * plot files that may be postprocessed with the myocardial3D visualization
-     * program.
-     */
-    void
-    registerLM3DDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> m3D_writer);
-#endif
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -593,7 +576,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
     bool d_ib_source_fcn_needs_init;
-    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_X_src;
+    std::vector<std::vector<IBTK::Point> > d_X_src;
     std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
     bool d_normalize_source_strength;
@@ -607,9 +590,6 @@ protected:
      * Visualization data writers.
      */
     SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
-#endif
 
     /*
      * Nonuniform load balancing data structures.

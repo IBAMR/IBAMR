@@ -40,9 +40,7 @@
 
 #include "IBStandardSourceGen.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "blitz/compiler.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSourceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -55,6 +53,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
+#include "boost/array.hpp"
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -187,7 +186,7 @@ IBStandardSourceGen::initializeLevelData(
 
     d_n_src[level_number] = getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(l_data_manager->levelContainsLagrangianData(level_number));
 #endif
     d_source_names[level_number] = getSourceNames(level_number);
@@ -219,7 +218,7 @@ IBStandardSourceGen::getNumSources(
     const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
 #endif
     return d_n_src[level_number];
@@ -227,7 +226,7 @@ IBStandardSourceGen::getNumSources(
 
 void
 IBStandardSourceGen::getSourceLocations(
-    std::vector<blitz::TinyVector<double,NDIM> >& X_src,
+    std::vector<Point>& X_src,
     std::vector<double>& r_src,
     Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
@@ -237,7 +236,7 @@ IBStandardSourceGen::getSourceLocations(
 {
     if (d_n_src[level_number] == 0) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
     TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
 #endif
@@ -246,8 +245,8 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(), X_src.end(), blitz::TinyVector<double,NDIM>(0.0));
-    const double* const restrict X_node = X_data->getLocalFormVecArray()->data();
+    std::fill(X_src.begin(), X_src.end(), Point::Zero());
+    const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -312,7 +311,7 @@ void
 IBStandardSourceGen::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     db->putInteger("s_num_sources.size()",s_num_sources.size());

@@ -65,7 +65,7 @@ MaterialPointSpec::MaterialPointSpec(
       d_subdomain_id(subdomain_id),
       d_internal_vars(internal_vars)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("MaterialPointSpec::MaterialPointSpec():\n"

@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
 #include "tbox/Pointer.h"
@@ -76,7 +76,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const blitz::TinyVector<double,NDIM>& periodic_displacement=0.0,
+        const Vector& periodic_displacement=Vector::Zero(),
         const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data=std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
     /*!
@@ -164,7 +164,7 @@ public:
     void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const blitz::TinyVector<double,NDIM>& displacement);
+        const Vector& displacement);
 
     /*!
      * \brief Copy data from the source.

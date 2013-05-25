@@ -50,8 +50,7 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -121,7 +120,7 @@ IMPInitializer::IMPInitializer(
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()),
       d_silo_writer(NULL)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -170,7 +169,7 @@ IMPInitializer::registerMesh(
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
     AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
-    const std::vector<Point>& q_point = fe->get_xyz();
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const MeshBase::const_element_iterator el_begin = mesh->active_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh->active_elements_end();
@@ -227,7 +226,7 @@ void
 IMPInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
 
@@ -326,8 +325,8 @@ IMPInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_array = *X_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -357,11 +356,11 @@ IMPInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const Point& X = getVertexPosn(point_idx, level_number);
+            const libMesh::Point& X = getVertexPosn(point_idx, level_number);
             const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             for (int d = 0; d < NDIM; ++d)
             {
-                X_array(local_petsc_idx,d) = X(d);
+                X_array[local_petsc_idx][d] = X(d);
                 if (X(d) <= grid_x_lower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
@@ -384,13 +383,13 @@ IMPInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
+            static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second], d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
-            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
+            std::fill(&U_array[local_petsc_idx][0],&U_array[local_petsc_idx][0]+NDIM,0.0);
         }
     }
     X_data->restoreArrays();
@@ -441,7 +440,7 @@ IMPInitializer::tagCellsForInitialRefinement(
             for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int,int>& point_idx = (*it);
-                const Point& X = getVertexPosn(point_idx, ln);
+                const libMesh::Point& X = getVertexPosn(point_idx, ln);
                 const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
@@ -458,7 +457,7 @@ void
 IMPInitializer::initializeLSiloDataWriter(
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_gridding_alg->getMaxLevels());
     TBOX_ASSERT(d_level_is_initialized[level_number]);
@@ -504,7 +503,7 @@ IMPInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const Point& X = d_vertex_posn[level_number][j][k];
+            const libMesh::Point& X = d_vertex_posn[level_number][j][k];
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -523,7 +522,7 @@ IMPInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const Point& X = d_vertex_posn[level_number][j][k];
+            const libMesh::Point& X = d_vertex_posn[level_number][j][k];
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -543,7 +542,7 @@ IMPInitializer::getCanonicalLagrangianIndex(
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCanonicalLagrangianIndex
 
-const Point&
+const libMesh::Point&
 IMPInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const

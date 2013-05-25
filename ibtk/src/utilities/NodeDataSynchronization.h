@@ -41,7 +41,7 @@
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "PatchHierarchy.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
@@ -236,8 +236,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
-    blitz::TinyVector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >,NDIM> d_refine_alg;
-    blitz::TinyVector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >,NDIM> d_refine_scheds;
+    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >,NDIM> d_refine_alg;
+    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >,NDIM> d_refine_scheds;
 };
 }// namespace IBTK
 

@@ -41,8 +41,9 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec2.h>
+// EIGEN INCLUDES
+#include <Eigen/Dense>
+typedef Eigen::Matrix<double,3,1> VectorNd;
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>
@@ -50,7 +51,7 @@
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!
- * \brief Class to initialize the value of the advected scalar Q.
+ * \brief Method to initialize the value of the advected scalar Q.
  */
 class QInit
     : public CartGridFunction
@@ -70,12 +71,11 @@ public:
     ~QInit();
 
     /*!
-     * Indicates whether the concrete CartGridFunction object is time
-     * dependent.
+     * Indicates whether the concrete CartGridFunction object is time dependent.
      */
     bool
     isTimeDependent() const
-        { return false; }
+        { return true; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
@@ -143,7 +143,7 @@ private:
     /*
      * The center of the initial data.
      */
-    TinyVector<double,NDIM> d_X;
+    VectorNd d_X;
 
     /*
      * The initialization type.

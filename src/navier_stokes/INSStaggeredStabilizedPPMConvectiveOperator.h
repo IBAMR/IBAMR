@@ -40,7 +40,7 @@
 
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
@@ -198,8 +198,8 @@ private:
         const INSStaggeredStabilizedPPMConvectiveOperator& that);
 
     // Operator configuration.
-    blitz::TinyVector<bool,2*NDIM> d_open_bdry;
-    blitz::TinyVector<double,2*NDIM> d_width;
+    boost::array<bool,2*NDIM> d_open_bdry;
+    boost::array<double,2*NDIM> d_width;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

@@ -74,7 +74,7 @@ CartGridFunction::setDataOnPatchHierarchy(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     const int coarsest_ln =
@@ -102,7 +102,7 @@ CartGridFunction::setDataOnPatchLevel(
     const double data_time,
     const bool initial_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)

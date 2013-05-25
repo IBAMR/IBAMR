@@ -106,7 +106,7 @@ void
 INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);
 #endif
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
@@ -120,7 +120,7 @@ void
 INSHierarchyIntegrator::setStokesSpecifications(
     StokesSpecifications problem_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_problem_coefs = problem_coefs;
@@ -137,7 +137,7 @@ void
 INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
@@ -149,7 +149,7 @@ void
 INSHierarchyIntegrator::registerVelocityInitialConditions(
     Pointer<CartGridFunction> U_init)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_U_init = U_init;
@@ -160,7 +160,7 @@ void
 INSHierarchyIntegrator::registerPressureInitialConditions(
     Pointer<CartGridFunction> P_init)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_P_init = P_init;
@@ -171,7 +171,7 @@ void
 INSHierarchyIntegrator::registerBodyForceFunction(
     Pointer<CartGridFunction> F_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_F_fcn)
@@ -199,7 +199,7 @@ void
 INSHierarchyIntegrator::registerFluidSourceFunction(
     Pointer<CartGridFunction> Q_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_Q_fcn)
@@ -269,7 +269,7 @@ void
 INSHierarchyIntegrator::registerMassDensityVariable(
     Pointer<Variable<NDIM> > rho_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
@@ -281,7 +281,7 @@ void
 INSHierarchyIntegrator::setMassDensityFunction(
     Pointer<CartGridFunction> rho_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_rho_fcn = rho_fcn;
@@ -298,7 +298,7 @@ void
 INSHierarchyIntegrator::setCreepingFlow(
     bool creeping_flow)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_creeping_flow = creeping_flow;
@@ -317,7 +317,7 @@ void
 INSHierarchyIntegrator::setConvectiveOperatorType(
     const std::string& op_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
@@ -336,7 +336,7 @@ void
 INSHierarchyIntegrator::setConvectiveDifferencingType(
     ConvectiveDifferencingType difference_form)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
@@ -355,7 +355,7 @@ void
 INSHierarchyIntegrator::setConvectiveOperator(
     Pointer<ConvectiveOperator> convective_op)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
 #endif
@@ -368,7 +368,7 @@ void
 INSHierarchyIntegrator::setVelocitySubdomainSolver(
     Pointer<PoissonSolver> velocity_solver)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_velocity_solver);
 #endif
@@ -380,7 +380,7 @@ void
 INSHierarchyIntegrator::setPressureSubdomainSolver(
     Pointer<PoissonSolver> pressure_solver)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_pressure_solver);
 #endif

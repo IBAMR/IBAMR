@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -46,6 +47,10 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
+namespace boost {
+template <class T, std::size_t N> class array;
+}  // namespace boost
+
 namespace SAMRAI {
 namespace hier {
 template <int DIM> class Box;
@@ -55,9 +60,6 @@ namespace solv {
 template <int DIM, class TYPE> class SAMRAIVectorReal;
 }  // namespace solv
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -272,8 +274,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM > > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/IBMethod.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
@@ -216,7 +216,7 @@ protected:
     /*
      * Gravitational acceleration.
      */
-    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
+    IBTK::Vector d_gravitational_acceleration;
 
 private:
     /*!

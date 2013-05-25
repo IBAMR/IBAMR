@@ -62,7 +62,7 @@ LSetData<T>::data_begin(
         if (it.d_index_it && it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_node_set = &(*it.d_index_it);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(!it.d_node_set->empty());
 #endif
             it.d_node_it = it.d_node_set->begin();

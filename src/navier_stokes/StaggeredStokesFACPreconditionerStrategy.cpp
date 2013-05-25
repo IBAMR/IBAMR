@@ -235,7 +235,7 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -265,7 +265,7 @@ void
 StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;
@@ -277,7 +277,7 @@ StaggeredStokesFACPreconditionerStrategy::setResetLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) ||
                 (coarsest_ln >=  0 && finest_ln >= coarsest_ln));
 #endif
@@ -478,12 +478,12 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int coarsest_ln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
     if (!d_coarse_solver)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(d_coarse_solver_type == "BLOCK_JACOBI");
 #endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);

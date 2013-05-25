@@ -7,7 +7,7 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
-AdvectorExplicitPredictorStrategy {
+AdvectorExplicitPredictorPatchOps {
 // Available values for limiter_type:
 // "CTU_ONLY", "MINMOD_LIMITED", "MC_LIMITED",
 // "SUPERBEE_LIMITED", "MUSCL_LIMITED"

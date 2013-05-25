@@ -53,10 +53,10 @@ template <int DIM> class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define SC_CUBIC_COARSEN_FC FC_FUNC(sccubiccoarsen2d,SCCUBICCOARSEN2D)
+#define SC_CUBIC_COARSEN_FC IBTK_FC_FUNC(sccubiccoarsen2d,SCCUBICCOARSEN2D)
 #endif
 #if (NDIM == 3)
-#define SC_CUBIC_COARSEN_FC FC_FUNC(sccubiccoarsen3d,SCCUBICCOARSEN3D)
+#define SC_CUBIC_COARSEN_FC IBTK_FC_FUNC(sccubiccoarsen3d,SCCUBICCOARSEN3D)
 #endif
 
 // Function interfaces
@@ -166,7 +166,7 @@ CartSideDoubleCubicCoarsen::coarsen(
     Pointer<SideData<NDIM,double> > fdata = fine  .getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
@@ -187,7 +187,7 @@ CartSideDoubleCubicCoarsen::coarsen(
     }
 #endif
     const int data_depth = cdata->getDepth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());
 #endif
     const Box<NDIM>& patch_box_fine = fine.getBox();

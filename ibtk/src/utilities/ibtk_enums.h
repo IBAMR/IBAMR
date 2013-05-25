@@ -50,7 +50,7 @@ namespace IBTK
 template<typename T>
 inline T
 string_to_enum(
-    const std::string& val)
+    const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return -1;
@@ -62,7 +62,7 @@ string_to_enum(
 template<typename T>
 inline std::string
 enum_to_string(
-    T val)
+    T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";

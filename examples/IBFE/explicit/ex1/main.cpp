@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -49,6 +49,7 @@
 #include <libmesh/periodic_boundary.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -71,8 +72,8 @@ static const double mu = 1.0;
 // Coordinate mapping function.
 void
 coordinate_mapping_function(
-    Point& X,
-    const Point& s,
+    libMesh::Point& X,
+    const libMesh::Point& s,
     void* /*ctx*/)
 {
     X(0) = (R+      s(1))*cos(s(0)/R)+0.5;
@@ -86,8 +87,8 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& /*s*/,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
@@ -400,14 +401,14 @@ main(
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
-            blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+            std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
             AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
             AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
             fe->attach_quadrature_rule(qrule.get());
             const std::vector<double>& JxW = fe->get_JxW();
             const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
             TensorValue<double> FF;
-            blitz::Array<double,2> X_node;
+            boost::multi_array<double,2> X_node;
             const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
             const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
             for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -416,7 +417,7 @@ main(
                 fe->reinit(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+                    X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
                 const int n_qp = qrule->n_points();
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);

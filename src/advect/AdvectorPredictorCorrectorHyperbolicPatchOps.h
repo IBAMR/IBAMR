@@ -44,7 +44,7 @@
 #include "HyperbolicPatchStrategy.h"
 #include "IntVector.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvectorExplicitPredictorStrategy.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
@@ -83,7 +83,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class AdvectorPredictorCorrectorHyperbolicPatchOps is a concrete
- * SAMRAI::algs::HyperbolicPatchStrategy that makes use of class AdvectorExplicitPredictorStrategy
+ * SAMRAI::algs::HyperbolicPatchStrategy that makes use of class AdvectorExplicitPredictorPatchOps
  * to solve the linear advection equation.
  *
  * Class AdvectorPredictorCorrectorHyperbolicPatchOps provides numerical routines for solving the advection
@@ -135,7 +135,7 @@ public:
     AdvectorPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart=true);
 
@@ -443,9 +443,9 @@ protected:
     SAMRAI::algs::HyperbolicLevelIntegrator<NDIM>* d_integrator;
 
     /*
-     * The AdvectorExplicitPredictorStrategy being used to advect the cell-centered quantities Q.
+     * The AdvectorExplicitPredictorPatchOps being used to advect the cell-centered quantities Q.
      */
-    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> d_explicit_predictor;
+    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
 
     /*
      * Advection velocity data.

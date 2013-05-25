@@ -35,8 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-
 #include <stddef.h>
 #include <map>
 #include <string>
@@ -51,11 +49,12 @@
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "blitz/array.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/partitioner.h"
+#include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -67,9 +66,6 @@ namespace tbox {
 class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 namespace libMesh {
 class Elem;
 class EquationSystems;
@@ -248,7 +244,7 @@ public:
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
-    const blitz::Array<blitz::Array<libMesh::Elem*,1>,1>&
+    const std::vector<std::vector<libMesh::Elem*> >&
     getActivePatchElementMap() const;
 
     /*!
@@ -531,7 +527,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
+    std::vector<std::pair<Point,Point> >*
     computeActiveElementBoundingBoxes();
 
     /*!
@@ -543,7 +539,7 @@ private:
      */
     void
     collectActivePatchElements(
-        blitz::Array<blitz::Array<libMesh::Elem*,1>,1>& active_patch_elems,
+        std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
         int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
@@ -553,7 +549,7 @@ private:
     void
     collectGhostDOFIndices(
         std::vector<unsigned int>& ghost_dofs,
-        const blitz::Array<libMesh::Elem*,1>& active_elems,
+        const std::vector<libMesh::Elem*>& active_elems,
         const std::string& system_name);
 
     /*!
@@ -643,9 +639,9 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    blitz::Array<blitz::Array<libMesh::Elem*,1>,1> d_active_patch_elem_map;
+    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1> d_active_elem_bboxes;
+    std::vector<std::pair<Point,Point> > d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.

@@ -82,7 +82,7 @@ void
 INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
@@ -154,7 +154,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
@@ -169,7 +169,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 IntVector<NDIM>
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);

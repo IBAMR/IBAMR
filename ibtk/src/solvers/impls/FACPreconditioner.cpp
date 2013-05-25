@@ -187,7 +187,7 @@ FACPreconditioner::initializeSolverState(
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln   = solution.getFinestLevelNumber();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy   == rhs.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln   == rhs.getFinestLevelNumber());

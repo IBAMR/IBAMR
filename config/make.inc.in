@@ -8,7 +8,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CXX = @CXX@
 CXXFLAGS = @CXXFLAGS@
-CPPFLAGS = -I. -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/ibtk/include -I$(abs_top_srcdir)/ibtk/third_party/blitz-0.10 -I$(abs_top_builddir)/ibtk/third_party/blitz-0.10 -I$(abs_top_builddir)/config -I$(abs_top_builddir)/ibtk/config @CPPFLAGS@
+CPPFLAGS = -I. -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/ibtk/include -I$(abs_top_builddir)/config -I$(abs_top_builddir)/ibtk/config @CPPFLAGS@
 CPPFLAGS_IBAMR = $(CPPFLAGS)
 FC = @FC@
 FCFLAGS = @FCFLAGS@
@@ -30,8 +30,8 @@ M4 = @M4@
 .C.o:
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
 
-IBAMR_LIB_2D = $(abs_top_builddir)/lib/libIBAMR2d.a $(abs_top_builddir)/ibtk/lib/libIBTK2d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a $(abs_top_builddir)/ibtk/third_party/blitz-0.10/lib/libblitz.a
-IBAMR_LIB_3D = $(abs_top_builddir)/lib/libIBAMR3d.a $(abs_top_builddir)/ibtk/lib/libIBTK3d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a $(abs_top_builddir)/ibtk/third_party/blitz-0.10/lib/libblitz.a
+IBAMR_LIB_2D = $(abs_top_builddir)/lib/libIBAMR2d.a $(abs_top_builddir)/ibtk/lib/libIBTK2d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a
+IBAMR_LIB_3D = $(abs_top_builddir)/lib/libIBAMR3d.a $(abs_top_builddir)/ibtk/lib/libIBTK3d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a
 
 IBTK_LIB_2D =
 IBTK_LIB_3D =

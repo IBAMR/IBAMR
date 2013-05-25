@@ -66,7 +66,7 @@ static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -185,7 +185,7 @@ PETScLevelSolver::initializeSolverState(
     IBTK_TIMER_START(t_initialize_solver_state);
 
     // Rudimentary error checking.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -244,7 +244,7 @@ PETScLevelSolver::initializeSolverState(
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
 #endif
 

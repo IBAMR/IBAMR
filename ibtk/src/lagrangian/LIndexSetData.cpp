@@ -37,8 +37,9 @@
 #include "Index.h"
 #include "LIndexSetData.h"
 #include "Patch.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/LSet.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK {
@@ -104,14 +105,14 @@ LIndexSetData<T>::cacheLocalIndices(
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    blitz::TinyVector<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    boost::array<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,0);
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
     }
 
-    blitz::TinyVector<int,NDIM> offset;
+    boost::array<int,NDIM> offset;
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();

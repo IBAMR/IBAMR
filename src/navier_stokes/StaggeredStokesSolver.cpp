@@ -98,7 +98,7 @@ StaggeredStokesSolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
 #endif
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -128,7 +128,7 @@ void
 StaggeredStokesSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
 #endif
     d_bc_helper = bc_helper;

@@ -59,10 +59,11 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -100,7 +101,7 @@ StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
@@ -140,7 +141,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
     Pointer<CellVariable<NDIM,double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         Pointer<Variable<NDIM> > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
         Pointer<SideVariable<NDIM,int> > u_dof_index_sc_var = u_dof_index_var;
@@ -431,7 +432,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(
         Pointer<SideData<NDIM,bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         Pointer<CellData<NDIM,int > > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
-        blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
+        boost::array<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {

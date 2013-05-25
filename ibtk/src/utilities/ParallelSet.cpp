@@ -126,7 +126,7 @@ ParallelSet::communicateData()
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_additions[0], num_keys, sending_proc);
@@ -168,7 +168,7 @@ ParallelSet::communicateData()
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);

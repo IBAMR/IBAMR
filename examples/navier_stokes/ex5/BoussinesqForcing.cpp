@@ -34,15 +34,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
 #include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
-
-#ifndef included_SAMRAI_config
 #include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -108,7 +101,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(
         }
         else
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(d_adv_diff_hier_integrator->getCurrentCycleNumber() > 0);
 #endif
             hier_cc_data_ops->linearSum(T_scratch_idx, 0.5, T_current_idx, 0.5, T_new_idx);

@@ -35,11 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <string>
 #include <vector>
 
 #include "ibtk/LMarkerSetData.h"
 #include "tbox/Pointer.h"
+
+namespace boost {
+template <class T, std::size_t N> class array;
+}  // namespace boost
 
 namespace SAMRAI {
 namespace geom {
@@ -50,9 +55,6 @@ template <int DIM> class BasePatchLevel;
 template <int DIM> class PatchHierarchy;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,7 +73,7 @@ public:
      */
     static unsigned int
     readMarkerPositions(
-        std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
+        std::vector<Point>& mark_init_posns,
         const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
@@ -143,7 +145,7 @@ public:
     static void
     initializeMarkersOnLevel(
         int mark_idx,
-        const std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
+        const std::vector<Point>& mark_init_posns,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         bool initial_time,

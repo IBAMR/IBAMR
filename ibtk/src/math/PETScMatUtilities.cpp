@@ -32,15 +32,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
 #include <numeric>
+#include <ostream>
 
+#include "Box.h"
+#include "BoxArray.h"
+#include "BoxTree.h"
 #include "CartesianGridGeometry.h"
+#include "CellData.h"
+#include "CellGeometry.h"
+#include "CellIndex.h"
+#include "Index.h"
+#include "IntVector.h"
 #include "PETScMatUtilities.h"
-#include "blitz/array.h"
+#include "Patch.h"
+#include "PatchLevel.h"
+#include "SAMRAI_config.h"
+#include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscsys.h"
+#include "tbox/Array.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace solv {
+template <int DIM> class RobinBcCoefStrategy;
+}  // namespace solv
+}  // namespace SAMRAI
+// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -122,7 +149,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
@@ -163,7 +190,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
 
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth); IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
 #endif
@@ -261,7 +288,7 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
@@ -302,7 +329,7 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
 
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth); IBTK_CHKERRQ(ierr);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
 #endif
@@ -333,7 +360,7 @@ PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
                 if ((i_lower <= dof_index_real && dof_index_real < i_upper) ||
                     (i_lower <= dof_index_imag && dof_index_imag < i_upper))
                 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(i_lower <= dof_index_real && dof_index_real < i_upper);
                     TBOX_ASSERT(i_lower <= dof_index_imag && dof_index_imag < i_upper);
 #endif
@@ -389,7 +416,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
 
@@ -424,7 +451,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -464,7 +491,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
 #endif
@@ -548,7 +575,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
     const Index<NDIM>& domain_lower = domain_boxes[0].lower();
@@ -601,14 +628,14 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
         {
             box.grow(IntVector<NDIM>(1));
             patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num_arr.size() != 0);
 #endif
         }
         patch_num[k] = patch_num_arr[0];
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(patch_num[k]);
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
 
@@ -642,7 +669,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
                 }
             }
             const int local_idx = NDIM*k+axis;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(SideGeometry<NDIM>::toSideBox(dof_index_data->getGhostBox(),axis).contains(stencil_box_axis));
 #endif
             for (Box<NDIM>::Iterator b(stencil_box_axis); b; b++)
@@ -666,7 +693,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
     ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat); IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
 #endif
@@ -679,7 +706,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
         // Look-up the local patch that we have associated with this IB point.
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(patch_num[k]);
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
 

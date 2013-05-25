@@ -39,10 +39,19 @@
 #include <utility>
 #include <vector>
 
-#include "blitz/tinyvec2.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "boost/array.hpp"
 #include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -105,7 +114,7 @@ public:
         int master_idx,
         const std::vector<NeighborIdxs>& neighbor_idxs,
         const std::vector<double>& bend_rigidities,
-        const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures);
+        const std::vector<IBTK::Vector>& mesh_dependent_curvatures);
 
     /*!
      * \brief Destructor.
@@ -162,14 +171,14 @@ public:
      * \return A const reference to the mesh-dependent curvatures of the beams
      * attached to the master node.
      */
-    const std::vector<blitz::TinyVector<double,NDIM> >&
+    const std::vector<IBTK::Vector>&
     getMeshDependentCurvatures() const;
 
     /*!
      * \return A non-const reference to the mesh-dependent curvatures of the
      * beams attached to the master node.
      */
-    std::vector<blitz::TinyVector<double,NDIM> >&
+    std::vector<IBTK::Vector>&
     getMeshDependentCurvatures();
 
     /*!
@@ -224,7 +233,7 @@ private:
     int d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
-    std::vector<blitz::TinyVector<double,NDIM> > d_mesh_dependent_curvatures;
+    std::vector<IBTK::Vector> d_mesh_dependent_curvatures;
 
     /*!
      * \brief A factory class to rebuild IBBeamForceSpec objects from
@@ -303,15 +312,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibamr/IBBeamForceSpec-inl.h" // IWYU pragma: keep
-
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

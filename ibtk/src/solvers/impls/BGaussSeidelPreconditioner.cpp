@@ -98,7 +98,7 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(
     Pointer<LinearSolver> preconditioner,
     const unsigned int component)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
 #endif
     d_pc_map[component] = preconditioner;
@@ -110,7 +110,7 @@ BGaussSeidelPreconditioner::setComponentOperators(
     const std::vector<Pointer<LinearOperator> >& linear_ops,
     const unsigned int component)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
         if (k != component) TBOX_ASSERT(linear_ops[k]);
@@ -145,7 +145,7 @@ BGaussSeidelPreconditioner::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int   finest_ln = x.getFinestLevelNumber()  ;
@@ -157,7 +157,7 @@ BGaussSeidelPreconditioner::solveSystem(
     bool ret_val = true;
 
     // Zero out the initial guess.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_initial_guess_nonzero == false);
 #endif
     x.setToScalar(0.0, /*interior_only*/ false);
@@ -253,7 +253,7 @@ BGaussSeidelPreconditioner::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();

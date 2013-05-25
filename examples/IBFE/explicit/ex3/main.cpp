@@ -28,8 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_prefix_config.h>
-#include <IBTK_prefix_config.h>
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -70,8 +70,8 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& /*X*/,
-    const Point& /*s*/,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
@@ -179,14 +179,14 @@ main(
                 const bool at_mesh_bdry = !elem->neighbor(side);
                 if (at_mesh_bdry)
                 {
-                    const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id != 2)
+                    BoundaryInfo* boundary_info = mesh.boundary_info.get();
+                    if (!boundary_info->has_boundary_id(elem,side,2))
                     {
 #if (NDIM == 2)
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
 #endif
 #if (NDIM == 3)
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
 #endif
                     }
                 }

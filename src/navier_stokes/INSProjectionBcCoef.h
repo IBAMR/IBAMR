@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \param bc_coefs        Vector of boundary condition specification objects
+     * \param bc_coefs        IBTK::Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
@@ -99,7 +99,7 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \param bc_coefs  Vector of boundary condition specification objects
+     * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
     void
     setPhysicalBcCoefs(

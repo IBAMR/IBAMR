@@ -54,9 +54,11 @@
 #include "SpongeLayerForceFunction.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
@@ -85,8 +87,8 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
-      d_forcing_enabled(SAMRAI::tbox::Array<bool>(NDIM)),
-      d_width(0.0),
+      d_forcing_enabled(array_constant<Array<bool>,2*NDIM>(Array<bool>(NDIM))),
+      d_width(array_constant<double,2*NDIM>(0.0)),
       d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {
@@ -136,12 +138,12 @@ SpongeLayerForceFunction::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
     if (f_cc_data) f_cc_data->fillAll(0.0);
@@ -153,7 +155,7 @@ SpongeLayerForceFunction::setDataOnPatch(
     const double kappa  = cycle_num >= 0 ? 0.5*rho/dt : 0.0;
     Pointer<PatchData<NDIM> > u_current_data = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     Pointer<PatchData<NDIM> > u_new_data     = patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()    );
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
 #endif
     if (f_cc_data) setDataOnPatchCell(f_data, u_current_data, u_new_data, kappa, patch);
@@ -173,7 +175,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(
     const double kappa,
     Pointer<Patch<NDIM> > patch)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
@@ -227,7 +229,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(
     const double kappa,
     Pointer<Patch<NDIM> > patch)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();

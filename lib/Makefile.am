@@ -3,10 +3,10 @@ include $(top_srcdir)/config/Make-rules
 
 lib_LIBRARIES = libIBAMR.a
 if SAMRAI2D_ENABLED
-lib_LIBRARIES += libIBAMR2d.a
+  lib_LIBRARIES += libIBAMR2d.a
 endif
 if SAMRAI3D_ENABLED
-lib_LIBRARIES += libIBAMR3d.a
+  lib_LIBRARIES += libIBAMR3d.a
 endif
 
 all-local: $(lib_LIBRARIES)
@@ -22,13 +22,11 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/advect_helpers.f \
-$(top_builddir)/src/fortran/sqrtm.f \
 $(top_srcdir)/src/navier_stokes/StokesSpecifications.cpp \
 $(top_srcdir)/src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
-libIBAMR_a_SOURCES += \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.cpp
+  libIBAMR_a_SOURCES +=
 endif
 
 pkg_include_HEADERS = \
@@ -40,8 +38,7 @@ $(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 if LIBMESH_ENABLED
-pkg_include_HEADERS += \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
+  pkg_include_HEADERS +=
 endif
 
 ## Dimension-dependent libraries
@@ -89,8 +86,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.cpp \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
-$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
@@ -128,13 +125,12 @@ $(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.cpp \
 $(top_srcdir)/src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/IB/IBFEMethod.cpp \
-$(top_srcdir)/src/IB/IMPMethod.cpp \
-$(top_srcdir)/src/IB/IMPInitializer.cpp \
-$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
-$(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+  DIM_INDEPENDENT_SOURCES += \
+  $(top_srcdir)/src/IB/IBFEMethod.cpp \
+  $(top_srcdir)/src/IB/IMPMethod.cpp \
+  $(top_srcdir)/src/IB/IMPInitializer.cpp \
+  $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
+  $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -180,8 +176,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
+$(top_srcdir)/src/advect/AdvectorExplicitPredictorPatchOps.h \
 $(top_srcdir)/src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-$(top_srcdir)/src/advect/AdvectorExplicitPredictorStrategy.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -219,12 +215,11 @@ $(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.h \
 $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
-pkg_include_HEADERS += \
-$(top_srcdir)/src/IB/IBFEMethod.h \
-$(top_srcdir)/src/IB/IMPMethod.h \
-$(top_srcdir)/src/IB/IMPInitializer.h \
-$(top_srcdir)/src/IB/MaterialPointSpec.h \
-$(top_srcdir)/src/IB/SimplifiedIBFEMethod.cpp
+  pkg_include_HEADERS += \
+  $(top_srcdir)/src/IB/IBFEMethod.h \
+  $(top_srcdir)/src/IB/IMPMethod.h \
+  $(top_srcdir)/src/IB/IMPInitializer.h \
+  $(top_srcdir)/src/IB/MaterialPointSpec.h
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

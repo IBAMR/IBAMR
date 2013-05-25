@@ -87,7 +87,7 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(
     const int coarsest_ln,
     const int finest_ln) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
@@ -142,7 +142,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(
     const int coarsest_ln,
     const int finest_ln) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
@@ -235,7 +235,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const double fill_time,
     const Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     TBOX_ASSERT(hierarchy);
 #endif
@@ -279,7 +279,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                         const Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i,0);
                         const double& beta  = (*bcoef_data)(i,0);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha+beta,1.0));
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha,1.0) || MathUtilities<double>::equalEps(beta,1.0));
 #endif

@@ -52,9 +52,10 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
@@ -62,23 +63,23 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(ccrobinphysbdryop1x2d, CCROBINPHYSBDRYOP1X2D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(ccrobinphysbdryop1y2d, CCROBINPHYSBDRYOP1Y2D)
-#define SC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(scrobinphysbdryop1x2d, SCROBINPHYSBDRYOP1X2D)
-#define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(scrobinphysbdryop1y2d, SCROBINPHYSBDRYOP1Y2D)
-#define SC_ROBIN_PHYS_BDRY_OP_2_FC FC_FUNC(scrobinphysbdryop22d, SCROBINPHYSBDRYOP22D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x2d, CCROBINPHYSBDRYOP1X2D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y2d, CCROBINPHYSBDRYOP1Y2D)
+#define SC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryop1x2d, SCROBINPHYSBDRYOP1X2D)
+#define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryop1y2d, SCROBINPHYSBDRYOP1Y2D)
+#define SC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(scrobinphysbdryop22d, SCROBINPHYSBDRYOP22D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
-#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(ccrobinphysbdryop1x3d, CCROBINPHYSBDRYOP1X3D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(ccrobinphysbdryop1y3d, CCROBINPHYSBDRYOP1Y3D)
-#define CC_ROBIN_PHYS_BDRY_OP_1_Z_FC FC_FUNC(ccrobinphysbdryop1z3d, CCROBINPHYSBDRYOP1Z3D)
-#define SC_ROBIN_PHYS_BDRY_OP_1_X_FC FC_FUNC(scrobinphysbdryop1x3d, SCROBINPHYSBDRYOP1X3D)
-#define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC FC_FUNC(scrobinphysbdryop1y3d, SCROBINPHYSBDRYOP1Y3D)
-#define SC_ROBIN_PHYS_BDRY_OP_1_Z_FC FC_FUNC(scrobinphysbdryop1z3d, SCROBINPHYSBDRYOP1Z3D)
-#define SC_ROBIN_PHYS_BDRY_OP_2_FC FC_FUNC(scrobinphysbdryop23d, SCROBINPHYSBDRYOP22D)
-#define CC_ROBIN_PHYS_BDRY_OP_2_FC FC_FUNC(ccrobinphysbdryop23d, CCROBINPHYSBDRYOP23D)
-#define SC_ROBIN_PHYS_BDRY_OP_3_FC FC_FUNC(scrobinphysbdryop33d, SCROBINPHYSBDRYOP32D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x3d, CCROBINPHYSBDRYOP1X3D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y3d, CCROBINPHYSBDRYOP1Y3D)
+#define CC_ROBIN_PHYS_BDRY_OP_1_Z_FC IBTK_FC_FUNC(ccrobinphysbdryop1z3d, CCROBINPHYSBDRYOP1Z3D)
+#define SC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryop1x3d, SCROBINPHYSBDRYOP1X3D)
+#define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryop1y3d, SCROBINPHYSBDRYOP1Y3D)
+#define SC_ROBIN_PHYS_BDRY_OP_1_Z_FC IBTK_FC_FUNC(scrobinphysbdryop1z3d, SCROBINPHYSBDRYOP1Z3D)
+#define SC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(scrobinphysbdryop23d, SCROBINPHYSBDRYOP22D)
+#define CC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(ccrobinphysbdryop23d, CCROBINPHYSBDRYOP23D)
+#define SC_ROBIN_PHYS_BDRY_OP_3_FC IBTK_FC_FUNC(scrobinphysbdryop33d, SCROBINPHYSBDRYOP32D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -230,7 +231,7 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 inline Box<NDIM>
 compute_tangential_extension(
@@ -258,7 +259,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndex(patch_data_index);
@@ -273,7 +274,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -288,7 +289,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -435,7 +436,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     Pointer<Variable<NDIM> > var;
     var_db->mapIndexToVariable(patch_data_idx, var);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -443,7 +444,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    blitz::TinyVector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -457,8 +458,8 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
 
-    blitz::TinyVector<Box<NDIM>,NDIM> side_box;
-    blitz::TinyVector<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
+    boost::array<Box<NDIM>,NDIM> side_box;
+    boost::array<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -575,7 +576,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
-                blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+                boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -671,7 +672,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 
     Pointer<SideData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -679,7 +680,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    blitz::TinyVector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -691,8 +692,8 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
 #if (NDIM == 3)
-    blitz::TinyVector<Box<NDIM>,NDIM> side_box;
-    blitz::TinyVector<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
+    boost::array<Box<NDIM>,NDIM> side_box;
+    boost::array<Index<NDIM>,NDIM> side_box_lower, side_box_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -783,7 +784,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
 
     Pointer<SideData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
     const int U_gcw = (patch_data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (U_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -791,7 +792,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    blitz::TinyVector<double*,NDIM> U;
+    boost::array<double*,NDIM> U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);

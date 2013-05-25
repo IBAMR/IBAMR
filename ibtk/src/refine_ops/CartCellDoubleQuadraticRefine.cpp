@@ -44,7 +44,8 @@
 #include "Index.h"
 #include "Patch.h"
 #include "SAMRAI_config.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -65,7 +66,7 @@ const std::string CartCellDoubleQuadraticRefine::s_op_name = "QUADRATIC_REFINE";
 namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
-static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 inline int
 coarsen(
@@ -142,7 +143,7 @@ CartCellDoubleQuadraticRefine::refine(
     // Get the patch data.
     Pointer<CellData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(src_component);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -174,7 +175,7 @@ CartCellDoubleQuadraticRefine::refine(
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        blitz::TinyVector<std::vector<double>,NDIM> wgts(std::vector<double>(degree+1,0.0));
+        boost::array<boost::array<double,degree+1>,NDIM> wgts(array_constant<boost::array<double,degree+1>,NDIM>(boost::array<double,degree+1>(array_constant<double,degree+1>(0.0))));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);

@@ -41,8 +41,9 @@
 
 #include "IntVector.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
@@ -77,7 +78,7 @@ public:
         int global_petsc_nidx=-1,
         int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const blitz::TinyVector<double,NDIM>& periodic_displacement=0.0);
+        const Vector& periodic_displacement=Vector::Zero());
 
     /*!
      * \brief Copy constructor.
@@ -157,7 +158,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const blitz::TinyVector<double,NDIM>& displacement);
+        const Vector& displacement);
 
     /*!
      * \brief Get the periodic offset.
@@ -168,7 +169,7 @@ public:
     /*!
      * \brief Get the periodic displacement.
      */
-    virtual const blitz::TinyVector<double,NDIM>&
+    virtual const Vector&
     getPeriodicDisplacement() const;
 
     /*!
@@ -218,7 +219,7 @@ private:
 
     // the periodic offset and displacement
     SAMRAI::hier::IntVector<NDIM> d_offset;
-    blitz::TinyVector<double,NDIM> d_displacement;
+    Vector d_displacement;
 };
 
 /*!
@@ -231,7 +232,7 @@ class LNodeIndexPosnComp
 {
 public:
     LNodeIndexPosnComp(
-        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
         {
             // intentionally blank
@@ -249,15 +250,15 @@ public:
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
             TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
                        << NDIM << endl);
 #endif
 #endif
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
-            const bool ret_val = (
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+            return
                 ((X_lhs[0]< X_rhs[0])) ||
 #if (NDIM > 1)
                 ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]< X_rhs[1])) ||
@@ -272,9 +273,7 @@ public:
                  (X_lhs[2]==X_rhs[2])&&
 #endif
 #endif
-                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()))
-                                  );
-            return ret_val;
+                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()));
         }// operator()
 
     inline bool
@@ -286,7 +285,7 @@ public:
         }// operator()
 
 private:
-    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
 };
 
 /*!
@@ -302,7 +301,7 @@ struct LNodeIndexLagrangianIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
             TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
@@ -331,7 +330,7 @@ struct LNodeIndexGlobalPETScIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
@@ -360,7 +359,7 @@ struct LNodeIndexLocalPETScIndexComp
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif
@@ -387,7 +386,7 @@ class LNodeIndexPosnEqual
 {
 public:
     LNodeIndexPosnEqual(
-        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
         {
             // intentionally blank
@@ -405,8 +404,8 @@ public:
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d],X_rhs[d])) return false;
@@ -423,7 +422,7 @@ public:
         }// operator()
 
 private:
-    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
 };
 
 /*!
@@ -439,7 +438,7 @@ struct LNodeIndexLagrangianIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
             TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
@@ -468,7 +467,7 @@ struct LNodeIndexGlobalPETScIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
@@ -497,7 +496,7 @@ struct LNodeIndexLocalPETScIndexEqual
         const LNodeIndex& lhs,
         const LNodeIndex& rhs)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
             TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif

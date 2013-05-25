@@ -59,10 +59,11 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "StaggeredStokesBoxRelaxationFACOperator.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "boost/array.hpp"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "tbox/Array.h"
@@ -78,7 +79,7 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int GHOSTS = 1;
 
 inline int
 compute_side_index(
@@ -116,7 +117,7 @@ buildBoxOperator(
     const PoissonSpecifications& U_problem_coefs,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
-    const blitz::TinyVector<double,NDIM>& dx)
+    const boost::array<double,NDIM>& dx)
 {
     int ierr;
 
@@ -124,8 +125,8 @@ buildBoxOperator(
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-    blitz::TinyVector<BoxList<NDIM>,NDIM> side_ghost_boxes;
+    boost::array<Box<NDIM>,NDIM> side_boxes;
+    boost::array<BoxList<NDIM>,NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -176,7 +177,7 @@ buildBoxOperator(
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
 #endif
@@ -471,7 +472,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
 
             Pointer<SideData<NDIM,double> >   U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM,double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
             TBOX_ASSERT(  U_error_data->getGhostCellWidth() == d_gcw);
@@ -487,7 +488,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
 
             Pointer<CellData<NDIM,double> >   P_error_data = error.getComponentPatchData(1, *patch);
             Pointer<CellData<NDIM,double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
             TBOX_ASSERT(  P_error_data->getGhostCellWidth() == d_gcw);
@@ -517,7 +518,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
 
                     Pointer<SideData<NDIM,double> >   U_error_data = error.getComponentPatchData(0, *patch);
                     Pointer<SideData<NDIM,double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
                     TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
                     TBOX_ASSERT(  U_error_data->getGhostCellWidth() == d_gcw);
@@ -533,7 +534,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
 
                     Pointer<CellData<NDIM,double> >   P_error_data = error.getComponentPatchData(1, *patch);
                     Pointer<CellData<NDIM,double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
                     TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
                     TBOX_ASSERT(  P_error_data->getGhostCellWidth() == d_gcw);
@@ -579,7 +580,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM,double> >    U_error_data = error   .getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM,double> > U_residual_data = residual.getComponentPatchData(0, *patch);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_residual_data->getGhostBox());
             TBOX_ASSERT(   U_error_data->getGhostCellWidth() == d_gcw);
@@ -587,7 +588,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(
 #endif
             Pointer<CellData<NDIM,double> >    P_error_data = error   .getComponentPatchData(1, *patch);
             Pointer<CellData<NDIM,double> > P_residual_data = residual.getComponentPatchData(1, *patch);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_residual_data->getGhostBox());
             TBOX_ASSERT(   P_error_data->getGhostCellWidth() == d_gcw);
@@ -632,7 +633,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     const Box<NDIM> box(Index<NDIM>(0),Index<NDIM>(0));
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
-    blitz::TinyVector<double,NDIM> dx;
+    boost::array<double,NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();

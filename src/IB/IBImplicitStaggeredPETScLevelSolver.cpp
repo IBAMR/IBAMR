@@ -69,8 +69,8 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
+static const int SIDEG = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

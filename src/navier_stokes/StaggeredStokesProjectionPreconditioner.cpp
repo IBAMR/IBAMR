@@ -72,8 +72,8 @@ namespace IBAMR
 namespace
 {
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int CELLG = 1;
+static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -130,7 +130,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
         d_Phi_var = new CellVariable<NDIM,double>(Phi_var_name);
         d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
 #endif
     const std::string F_var_name = d_object_name+"::F";
@@ -144,7 +144,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
         d_F_Phi_var = new CellVariable<NDIM,double>(F_var_name);
         d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
     }
-#ifdef DEBFG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_F_Phi_idx >= 0);
 #endif
 

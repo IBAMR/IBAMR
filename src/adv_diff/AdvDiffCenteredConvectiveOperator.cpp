@@ -72,19 +72,19 @@ template <int DIM> class RobinBcCoefStrategy;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define ADVECT_FLUX_FC FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
-#define C_TO_F_CWISE_INTERP_2ND_FC FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
-#define F_TO_C_DIV_FC FC_FUNC_(ftocdiv2d, FTOCDIV2D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC_(ftocdivadd2d, FTOCDIVADD2D)
+#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
+#define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv2d, FTOCDIV2D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd2d, FTOCDIVADD2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
-#define ADVECT_FLUX_FC FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
-#define C_TO_F_CWISE_INTERP_2ND_FC FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
-#define F_TO_C_DIV_FC FC_FUNC_(ftocdiv3d, FTOCDIV3D)
-#define F_TO_C_DIV_ADD_FC FC_FUNC_(ftocdivadd3d, FTOCDIVADD3D)
+#define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
+#define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv3d, FTOCDIV3D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd3d, FTOCDIVADD3D)
 #endif
 
 extern "C"
@@ -269,7 +269,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
         d_q_extrap_var = new FaceVariable<NDIM,double>(q_extrap_var_name, d_Q_data_depth);
         d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_q_extrap_idx >= 0);
 #endif
     const std::string q_flux_var_name = d_object_name + "::q_flux";
@@ -283,7 +283,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
         d_q_flux_var = new FaceVariable<NDIM,double>(q_flux_var_name, d_Q_data_depth);
         d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_q_flux_idx >= 0);
 #endif
 
@@ -309,7 +309,7 @@ AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     if (!d_is_initialized)
     {
         TBOX_ERROR("AdvDiffCenteredConvectiveOperator::applyConvectiveOperator():\n"
@@ -340,17 +340,17 @@ AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(
 
             Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
             const IntVector<NDIM>& Q_data_gcw = Q_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(Q_data_gcw.min() == Q_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > q_extrap_data = patch->getPatchData(d_q_extrap_idx);
             const IntVector<NDIM>& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
 #endif
             // Enforce physical boundary conditions at inflow boundaries.
@@ -545,7 +545,7 @@ AdvDiffCenteredConvectiveOperator::initializeOperatorState(
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());

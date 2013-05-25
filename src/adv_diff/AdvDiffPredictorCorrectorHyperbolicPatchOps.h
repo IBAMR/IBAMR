@@ -41,7 +41,7 @@
 #include "tbox/Pointer.h"
 
 namespace IBAMR {
-class AdvectorExplicitPredictorStrategy;
+class AdvectorExplicitPredictorPatchOps;
 }  // namespace IBAMR
 namespace SAMRAI {
 namespace geom {
@@ -85,7 +85,7 @@ public:
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart=true);
 

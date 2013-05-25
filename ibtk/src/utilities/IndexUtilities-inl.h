@@ -35,6 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <cmath>
+
 #include "ibtk/IndexUtilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -64,49 +66,26 @@ IndexUtilities::refine(
     return i_coarse*ratio;
 }// refine
 
+template<class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(
-    const double* const X,
-    const double* const XLower,
-    const double* const /*XUpper*/,
+    const DoubleArray& X,
+    const double* const x_lower,
+    const double* const /*x_upper*/,
     const double* const dx,
     const SAMRAI::hier::Index<NDIM>& ilower,
     const SAMRAI::hier::Index<NDIM>& /*iupper*/)
 {
     SAMRAI::hier::Index<NDIM> idx(
-        static_cast<int>( floor((X[0]-XLower[0])/dx[0]))+ilower(0)
+        static_cast<int>( floor((X[0]-x_lower[0])/dx[0]))+ilower(0)
 #if (NDIM > 1)
-        ,static_cast<int>(floor((X[1]-XLower[1])/dx[1]))+ilower(1)
+        ,static_cast<int>(floor((X[1]-x_lower[1])/dx[1]))+ilower(1)
 #if (NDIM > 2)
-        ,static_cast<int>(floor((X[2]-XLower[2])/dx[2]))+ilower(2)
+        ,static_cast<int>(floor((X[2]-x_lower[2])/dx[2]))+ilower(2)
 #endif
 #endif
                                   );
     return idx;
-}// getCellIndex
-
-inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::getCellIndex(
-    const std::vector<double>& X,
-    const double* const XLower,
-    const double* const XUpper,
-    const double* const dx,
-    const SAMRAI::hier::Index<NDIM>& ilower,
-    const SAMRAI::hier::Index<NDIM>& iupper)
-{
-    return getCellIndex(&X[0],XLower,XUpper,dx,ilower,iupper);
-}// getCellIndex
-
-inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::getCellIndex(
-    const blitz::TinyVector<double,NDIM>& X,
-    const double* const XLower,
-    const double* const XUpper,
-    const double* const dx,
-    const SAMRAI::hier::Index<NDIM>& ilower,
-    const SAMRAI::hier::Index<NDIM>& iupper)
-{
-    return getCellIndex(X.data(),XLower,XUpper,dx,ilower,iupper);
 }// getCellIndex
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

@@ -37,6 +37,7 @@
 
 #include <unistd.h>
 
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 
 namespace SAMRAI {
@@ -47,9 +48,10 @@ namespace tbox {
 class AbstractStream;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
+
+namespace boost {
+template <class T, size_t N> class array;
+}  // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -117,7 +119,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const blitz::TinyVector<double,NDIM>& displacement);
+        const Vector& displacement);
 
 private:
     /*!

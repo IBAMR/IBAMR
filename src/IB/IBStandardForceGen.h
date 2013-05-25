@@ -36,13 +36,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <unistd.h>
 #include <map>
 #include <set>
 #include <vector>
 
-#include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
@@ -55,9 +57,6 @@ namespace hier {
 template <int DIM> class PatchHierarchy;
 }  // namespace hier
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_length> class TinyVector;
-}  // namespace blitz
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -215,27 +214,27 @@ private:
     //\{
     struct SpringData
     {
-        blitz::Array<int,1> lag_mastr_node_idxs, lag_slave_node_idxs;
-        blitz::Array<int,1> petsc_mastr_node_idxs, petsc_slave_node_idxs;
-        blitz::Array<SpringForceFcnPtr,1> force_fcns;
-        blitz::Array<SpringForceDerivFcnPtr,1> force_deriv_fcns;
-        blitz::Array<const double*,1> parameters;
+        std::vector<int> lag_mastr_node_idxs, lag_slave_node_idxs;
+        std::vector<int> petsc_mastr_node_idxs, petsc_slave_node_idxs;
+        std::vector<SpringForceFcnPtr> force_fcns;
+        std::vector<SpringForceDerivFcnPtr> force_deriv_fcns;
+        std::vector<const double*> parameters;
     };
     std::vector<SpringData> d_spring_data;
 
     struct BeamData
     {
-        blitz::Array<int,1> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
-        blitz::Array<const double*,1> rigidities;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> curvatures;
+        std::vector<int> petsc_mastr_node_idxs, petsc_next_node_idxs, petsc_prev_node_idxs;
+        std::vector<const double*> rigidities;
+        std::vector<const IBTK::Vector*> curvatures;
     };
     std::vector<BeamData> d_beam_data;
 
     struct TargetPointData
     {
-        blitz::Array<int,1> petsc_node_idxs;
-        blitz::Array<const double*,1> kappa, eta;
-        blitz::Array<const blitz::TinyVector<double,NDIM>*,1> X0;
+        std::vector<int> petsc_node_idxs;
+        std::vector<const double*> kappa, eta;
+        std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;
 

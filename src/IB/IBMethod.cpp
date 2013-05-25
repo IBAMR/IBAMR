@@ -65,8 +65,7 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "blitz/array.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -87,6 +86,7 @@
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "boost/array.hpp"
 #include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -155,9 +155,6 @@ IBMethod::IBMethod(
     d_normalize_source_strength = false;
     d_post_processor = NULL;
     d_silo_writer = NULL;
-#if (NDIM == 3)
-    d_m3D_writer = NULL;
-#endif
 
     // Set some default values.
     d_interp_delta_fcn = "IB_4";
@@ -220,7 +217,7 @@ void
 IBMethod::registerIBLagrangianForceFunction(
     Pointer<IBLagrangianForceStrategy> ib_force_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_fcn);
 #endif
     d_ib_force_fcn = ib_force_fcn;
@@ -231,7 +228,7 @@ void
 IBMethod::registerIBLagrangianSourceFunction(
     Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_source_fcn);
 #endif
     d_ib_source_fcn = ib_source_fcn;
@@ -242,7 +239,7 @@ void
 IBMethod::registerLInitStrategy(
     Pointer<LInitStrategy> l_initializer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
 #endif
     d_l_initializer = l_initializer;
@@ -282,27 +279,13 @@ void
 IBMethod::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
 }// registerLSiloDataWriter
-
-#if (NDIM == 3)
-void
-IBMethod::registerLM3DDataWriter(
-    Pointer<LM3DDataWriter> m3D_writer)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(m3D_writer);
-#endif
-    d_m3D_writer = m3D_writer;
-    d_l_data_manager->registerLM3DDataWriter(d_m3D_writer);
-    return;
-}// registerLM3DDataWriter
-#endif
 
 const IntVector<NDIM>&
 IBMethod::getMinimumGhostCellWidth() const
@@ -510,7 +493,7 @@ IBMethod::getLEOperatorPositions(
     int level_num,
     double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
@@ -788,7 +771,7 @@ IBMethod::spreadFluidSource(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
 #endif
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -807,7 +790,7 @@ IBMethod::spreadFluidSource(
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                blitz::TinyVector<double,NDIM> r;
+                boost::array<double,NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
@@ -942,7 +925,7 @@ IBMethod::interpolatePressure(
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
         const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
@@ -1008,7 +991,7 @@ IBMethod::interpolatePressure(
             {
                 // The source radius must be an integer multiple of the grid
                 // spacing.
-                blitz::TinyVector<double,NDIM> r;
+                boost::array<double,NDIM> r;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
@@ -1118,7 +1101,7 @@ IBMethod::initializePatchHierarchy(
             {
                 d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
                 d_n_src[ln] = d_ib_source_fcn->getNumSources(d_hierarchy, ln, init_data_time, d_l_data_manager);
-                d_X_src[ln].resize(d_n_src[ln], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+                d_X_src[ln].resize(d_n_src[ln], Point::Constant(std::numeric_limits<double>::quiet_NaN()));
                 d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
@@ -1149,7 +1132,7 @@ IBMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
     int workload_data_idx)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -1214,13 +1197,12 @@ IBMethod::endDataRedistribution(
             }
         }
 
-        const blitz::Array<double,2>& X_array = *(X_data[ln]->getLocalFormVecArray());
+        const boost::multi_array_ref<double,2>& X_array = *(X_data[ln]->getLocalFormVecArray());
         for (int i = 0; i < static_cast<int>(X_data[ln]->getLocalNodeCount()); ++i)
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                if ((periodic_shift[d] == 0) &&
-                    (X_array(i,d) <= grid_x_lower[d]+eps || X_array(i,d) >= grid_x_upper[d]-eps))
+                if ((periodic_shift[d] == 0) && (X_array[i][d] <= grid_x_lower[d]+eps || X_array[i][d] >= grid_x_upper[d]-eps))
                 {
                     d_anchor_point_local_idxs[ln].insert(i);
                     break;
@@ -1296,7 +1278,7 @@ IBMethod::applyGradientDetector(
     bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1322,7 +1304,7 @@ IBMethod::applyGradientDetector(
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
-            blitz::TinyVector<double,NDIM> dx_finer;
+            boost::array<double,NDIM> dx_finer;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
@@ -1330,7 +1312,7 @@ IBMethod::applyGradientDetector(
 
             // The source radius must be an integer multiple of the grid
             // spacing.
-            blitz::TinyVector<double,NDIM> r;
+            boost::array<double,NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 r[d] = std::max(std::floor(d_r_src[finer_level_number][n]/dx_finer[d]+0.5),2.0)*dx_finer[d];
@@ -1583,7 +1565,7 @@ IBMethod::resetAnchorPointValues(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         const int depth = U_data[ln]->getDepth();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(depth == NDIM);
 #endif
         Vec U_vec = U_data[ln]->getVec();
@@ -1757,7 +1739,7 @@ IBMethod::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln],Point::Constant(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());

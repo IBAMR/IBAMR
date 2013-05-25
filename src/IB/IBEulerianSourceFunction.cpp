@@ -91,7 +91,7 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM,double> > q_cc_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(q_cc_data);
 #endif
     q_cc_data->fillAll(0.0);

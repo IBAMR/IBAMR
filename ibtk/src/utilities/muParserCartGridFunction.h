@@ -42,9 +42,10 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchLevel.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/muParser.h"
+#include "ibtk/ibtk_utilities.h"
+#include "muParser.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI {
@@ -168,7 +169,7 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    blitz::TinyVector<double,NDIM> d_parser_posn;
+    Point d_parser_posn;
 };
 }// namespace IBTK
 

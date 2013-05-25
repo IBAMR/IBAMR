@@ -37,10 +37,20 @@
 
 #include <unistd.h>
 
-#include "blitz/tinyvec2.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
+#include "ibtk/ibtk_utilities.h"
+#include "boost/array.hpp"
 #include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class IntVector;
+}  // namespace hier
+namespace tbox {
+class AbstractStream;
+}  // namespace tbox
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -88,7 +98,7 @@ public:
         int master_idx=-1,
         double kappa_target=0.0,
         double eta_target=0.0,
-        const blitz::TinyVector<double,NDIM>& X_target=0.0);
+        const IBTK::Point& X_target=IBTK::Point::Zero());
 
     /*!
      * \brief Destructor.
@@ -139,14 +149,14 @@ public:
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const blitz::TinyVector<double,NDIM>&
+    const IBTK::Point&
     getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    blitz::TinyVector<double,NDIM>&
+    IBTK::Point&
     getTargetPointPosition();
 
     /*!
@@ -200,7 +210,7 @@ private:
      */
     int d_master_idx;
     double d_kappa_target, d_eta_target;
-    blitz::TinyVector<double,NDIM> d_X_target;
+    IBTK::Point d_X_target;
 
     /*!
      * \brief A factory class to rebuild IBTargetPointForceSpec objects from
@@ -279,15 +289,6 @@ private:
 /////////////////////////////// INLINE ///////////////////////////////////////
 
 #include "ibamr/IBTargetPointForceSpec-inl.h" // IWYU pragma: keep
-
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
-class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

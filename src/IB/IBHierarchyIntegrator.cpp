@@ -100,7 +100,7 @@ void
 IBHierarchyIntegrator::registerBodyForceFunction(
     Pointer<CartGridFunction> f_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_body_force_fcn)
@@ -128,7 +128,7 @@ void
 IBHierarchyIntegrator::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
@@ -400,7 +400,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(ib_method_ops);
     TBOX_ASSERT(ins_hier_integrator);
 #endif
@@ -470,7 +470,7 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -506,7 +506,7 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_level)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) && (finest_level <= hierarchy->getFinestLevelNumber()));
     for (int ln = 0; ln <= finest_level; ++ln)

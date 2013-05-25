@@ -52,10 +52,10 @@ template <int DIM> class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC FC_FUNC(cart_side_specialized_linear_refine2d,CART_SIDE_SPECIALIZED_LINEAR_REFINE2D)
+#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC IBTK_FC_FUNC(cart_side_specialized_linear_refine2d,CART_SIDE_SPECIALIZED_LINEAR_REFINE2D)
 #endif
 #if (NDIM == 3)
-#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC FC_FUNC(cart_side_specialized_linear_refine3d,CART_SIDE_SPECIALIZED_LINEAR_REFINE3D)
+#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC IBTK_FC_FUNC(cart_side_specialized_linear_refine3d,CART_SIDE_SPECIALIZED_LINEAR_REFINE3D)
 #endif
 
 // Function interfaces
@@ -158,7 +158,7 @@ CartSideDoubleSpecializedLinearRefine::refine(
     // Get the patch data.
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(dst_component);
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(src_component);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -167,13 +167,13 @@ CartSideDoubleSpecializedLinearRefine::refine(
 
     const Box<NDIM>& fdata_box = fdata->getBox();
     const int fdata_gcw = fdata->getGhostCellWidth().max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(fdata_gcw == fdata->getGhostCellWidth().min());
 #endif
 
     const Box<NDIM>& cdata_box = cdata->getBox();
     const int cdata_gcw = cdata->getGhostCellWidth().max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
 #endif
 

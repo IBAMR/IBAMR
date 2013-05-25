@@ -57,7 +57,7 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
+#include "boost/array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBAnchorPointSpec-inl.h"
 #include "ibamr/IBBeamForceSpec.h"
@@ -143,7 +143,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_silo_writer(NULL),
       d_base_filename(),
       d_length_scale_factor(1.0),
-      d_posn_shift(0.0),
+      d_posn_shift(Vector::Zero()),
       d_num_vertex(),
       d_vertex_offset(),
       d_vertex_posn(),
@@ -197,7 +197,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_source_idx(),
       d_global_index_offset()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
@@ -267,7 +267,7 @@ void
 IBStandardInitializer::registerLSiloDataWriter(
     Pointer<LSiloDataWriter> silo_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
 #endif
 
@@ -371,8 +371,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& X_array = *X_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -402,12 +402,12 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const blitz::TinyVector<double,NDIM> X = getVertexPosn(point_idx, level_number);
+            const Point X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
             for (int d = 0; d < NDIM; ++d)
             {
-                X_array(local_petsc_idx,d) = X[d];
+                X_array[local_petsc_idx][d] = X[d];
 
                 if (X[d] <= XLower[d])
                 {
@@ -440,11 +440,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             }
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
+            static const Vector periodic_displacement(Vector::Zero());
             node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
 
             // Initialize the velocity of the present vertex.
-            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
+            std::fill(&U_array[local_petsc_idx][0],&U_array[local_petsc_idx][0]+NDIM,0.0);
         }
     }
     X_data->restoreArrays();
@@ -477,8 +477,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& M_array = *M_data->getLocalFormVecArray();
-    blitz::Array<double,2>& K_array = *K_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,1>& M_array = *M_data->getLocalFormArray();
+    boost::multi_array_ref<double,1>& K_array = *K_data->getLocalFormArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -505,13 +505,13 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
             // Avoid division by zero at massless nodes.
             if (MathUtilities<double>::equalEps(M,0.0))
             {
-                M_array(local_petsc_idx) = std::numeric_limits<double>::epsilon();
-                K_array(local_petsc_idx) = 0.0;
+                M_array[local_petsc_idx] = std::numeric_limits<double>::epsilon();
+                K_array[local_petsc_idx] = 0.0;
             }
             else
             {
-                M_array(local_petsc_idx) = M;
-                K_array(local_petsc_idx) = K;
+                M_array[local_petsc_idx] = M;
+                K_array[local_petsc_idx] = K;
             }
         }
     }
@@ -534,7 +534,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
+    boost::multi_array_ref<double,2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -556,7 +556,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
             const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
             for (int d = 0; d < 3*3; ++d)
             {
-                D_array(local_petsc_idx,d) = D[d];
+                D_array[local_petsc_idx][d] = D[d];
             }
         }
     }
@@ -601,7 +601,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
                 const std::pair<int,int>& point_idx = (*it);
 
                 // Get the coordinates of the present vertex.
-                const blitz::TinyVector<double,NDIM> X = getVertexPosn(point_idx, ln);
+                const Point X = getVertexPosn(point_idx, ln);
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
@@ -623,7 +623,7 @@ void
 IBStandardInitializer::initializeLSiloDataWriter(
     const int level_number)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_max_levels);
     TBOX_ASSERT(d_level_is_initialized[level_number]);
@@ -831,7 +831,7 @@ IBStandardInitializer::readSpringFiles(
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
-                int num_edges;
+                int num_edges = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << spring_filename << std::endl);
@@ -1022,7 +1022,7 @@ IBStandardInitializer::readXSpringFiles(
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
-                int num_edges;
+                int num_edges = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << xspring_filename << std::endl);
@@ -1211,7 +1211,7 @@ IBStandardInitializer::readBeamFiles(
 
                 // The first line in the file indicates the number of beams in
                 // the input file.
-                int num_beams;
+                int num_beams = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << beam_filename << std::endl);
@@ -1235,9 +1235,9 @@ IBStandardInitializer::readBeamFiles(
                 // parameter information for each beam in the structure.
                 for (int k = 0; k < num_beams; ++k)
                 {
-                    int prev_idx, curr_idx, next_idx;
-                    double bend;
-                    blitz::TinyVector<double,NDIM> curv(0.0);
+                    int prev_idx = std::numeric_limits<int>::max(), curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
+                    double bend = 0.0;
+                    Vector curv(Vector::Zero());
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -1400,7 +1400,7 @@ IBStandardInitializer::readRodFiles(
 
                 // The first line in the file indicates the number of rods in
                 // the input file.
-                int num_rods;
+                int num_rods = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << rod_filename << std::endl);
@@ -1424,8 +1424,8 @@ IBStandardInitializer::readRodFiles(
                 // parameter information for each rod in the structure.
                 for (int k = 0; k < num_rods; ++k)
                 {
-                    int curr_idx, next_idx;
-                    blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+                    int curr_idx = std::numeric_limits<int>::max(), next_idx = std::numeric_limits<int>::max();
+                    boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
                     double& ds = properties[0];
                     double& a1 = properties[1];
                     double& a2 = properties[2];
@@ -1663,7 +1663,7 @@ IBStandardInitializer::readTargetPointFiles(
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
-                int num_target_points;
+                int num_target_points = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << target_point_stiffness_filename << std::endl);
@@ -1687,7 +1687,7 @@ IBStandardInitializer::readTargetPointFiles(
                 // constant associated with any target points.
                 for (int k = 0; k < num_target_points; ++k)
                 {
-                    int n;
+                    int n = std::numeric_limits<int>::max();
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << target_point_stiffness_filename << std::endl);
@@ -1822,7 +1822,7 @@ IBStandardInitializer::readAnchorPointFiles(
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
-                int num_anchor_pts;
+                int num_anchor_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << anchor_point_filename << std::endl);
@@ -1923,7 +1923,7 @@ IBStandardInitializer::readBoundaryMassFiles(
 
                 // The first line in the file indicates the number of massive IB
                 // points in the input file.
-                int num_bdry_mass_pts;
+                int num_bdry_mass_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << bdry_mass_filename << std::endl);
@@ -2065,7 +2065,7 @@ IBStandardInitializer::readDirectorFiles(
 
                 // The first line in the file indicates the number of sets of
                 // directors in the input file.
-                int num_directors_pts;
+                int num_directors_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << directors_filename << std::endl);
@@ -2172,7 +2172,7 @@ IBStandardInitializer::readInstrumentationFiles(
 
                 // The first line in the file indicates the number of
                 // instruments in the input file.
-                int num_inst;
+                int num_inst = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << inst_filename << std::endl);
@@ -2218,7 +2218,7 @@ IBStandardInitializer::readInstrumentationFiles(
 
                 // The next line in the file indicates the number of
                 // instrumented IB points in the input file.
-                int num_inst_pts;
+                int num_inst_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << num_inst+2 << " of file " << inst_filename << std::endl);
@@ -2390,7 +2390,7 @@ IBStandardInitializer::readSourceFiles(
 
                 // The first line in the file indicates the number of sources in
                 // the input file.
-                int num_source;
+                int num_source = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << source_filename << std::endl);
@@ -2457,7 +2457,7 @@ IBStandardInitializer::readSourceFiles(
 
                 // The next line in the file indicates the number of source
                 // points in the input file.
-                int num_source_pts;
+                int num_source_pts = -1;
                 if (!std::getline(file_stream, line_string))
                 {
                     TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 2*num_source+2 << " of file " << source_filename << std::endl);
@@ -2554,7 +2554,7 @@ IBStandardInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const blitz::TinyVector<double,NDIM>& X = d_vertex_posn[level_number][j][k];
+            const Point& X = d_vertex_posn[level_number][j][k];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -2578,7 +2578,7 @@ IBStandardInitializer::getCanonicalLagrangianIndex(
     return d_vertex_offset[level_number][point_index.first]+point_index.second;
 }// getCanonicalLagrangianIndex
 
-blitz::TinyVector<double,NDIM>
+Point
 IBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
@@ -2669,7 +2669,7 @@ IBStandardInitializer::initializeSpecs(
         {
             for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
 #endif
                 // The connectivity information.
@@ -2695,7 +2695,7 @@ IBStandardInitializer::initializeSpecs(
             if (!d_enable_xsprings[level_number][j]) continue;
             for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
 #endif
                 // The connectivity information.
@@ -2726,7 +2726,7 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<std::pair<int,int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
-        std::vector<blitz::TinyVector<double,NDIM> > beam_mesh_dependent_curvature;
+        std::vector<Vector> beam_mesh_dependent_curvature;
         for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx); it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
@@ -2744,10 +2744,10 @@ IBStandardInitializer::initializeSpecs(
     if (d_enable_rods[level_number][j])
     {
         std::vector<int> rod_next_idxs;
-        std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
+        std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx); it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
 #endif
             // The connectivity information.
@@ -2778,7 +2778,7 @@ IBStandardInitializer::initializeSpecs(
         const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
-        const blitz::TinyVector<double,NDIM> X_target = getVertexPosn(point_index, level_number);
+        const Point X_target = getVertexPosn(point_index, level_number);
         vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
     }
 
@@ -2822,7 +2822,7 @@ void
 IBStandardInitializer::getFromInput(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
 
@@ -2924,10 +2924,10 @@ IBStandardInitializer::getFromInput(
     // level-by-level ``base_filenames'' keys if necessary.
     if (db->keyExists("structure_names"))
     {
-        const int n_strcts = db->getArraySize("structure_names");
-        std::vector<std::string> structure_names(n_strcts);
-        db->getStringArray("structure_names", &structure_names[0], n_strcts);
-        for (int n = 0; n < n_strcts; ++n)
+        const int num_strcts = db->getArraySize("structure_names");
+        std::vector<std::string> structure_names(num_strcts);
+        db->getStringArray("structure_names", &structure_names[0], num_strcts);
+        for (int n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
@@ -2970,9 +2970,9 @@ IBStandardInitializer::getFromInput(
             const std::string db_key_name = db_key_name_stream.str();
             if (db->keyExists(db_key_name))
             {
-                const int n_files = db->getArraySize(db_key_name);
-                d_base_filename[ln].resize(n_files);
-                db->getStringArray(db_key_name, &d_base_filename[ln][0], n_files);
+                const int num_files = db->getArraySize(db_key_name);
+                d_base_filename[ln].resize(num_files);
+                db->getStringArray(db_key_name, &d_base_filename[ln][0], num_files);
             }
             else
             {
@@ -3018,11 +3018,11 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
         d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
-        d_uniform_beam_curvature[ln].resize(num_base_filename,blitz::TinyVector<double,NDIM>(0.0));
+        d_uniform_beam_curvature[ln].resize(num_base_filename,Vector::Zero());
 
         d_enable_rods[ln].resize(num_base_filename,true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename,false);
-        d_uniform_rod_properties[ln].resize(num_base_filename,blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
+        d_uniform_rod_properties[ln].resize(num_base_filename,array_constant<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
 
         d_enable_target_points[ln].resize(num_base_filename,true);
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);

@@ -34,15 +34,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
 #include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
-
-#ifndef included_SAMRAI_config
 #include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -59,17 +52,17 @@ UFunction::UFunction(
       d_init_type("UNIFORM"),
       d_uniform_u()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
 #endif
 
     // Default initial values.
-    const double* const XUpper = d_grid_geom->getXUpper();
-    const double* const XLower = d_grid_geom->getXLower();
+    const double* const x_upper = d_grid_geom->getXUpper();
+    const double* const x_lower = d_grid_geom->getXLower();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
+        d_X[d] = x_lower[d] + 0.5*(x_upper[d] - x_lower[d]);
         d_uniform_u[d] = 1.0;
     }
 
@@ -95,7 +88,7 @@ UFunction::setDataOnPatch(
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
 #endif
 
@@ -103,8 +96,7 @@ UFunction::setDataOnPatch(
     {
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            u_data->getArrayData(axis).
-                fillAll(d_uniform_u[axis]);
+            u_data->getArrayData(axis).fillAll(d_uniform_u[axis]);
         }
     }
     else if (d_init_type == "VORTEX")
@@ -113,10 +105,10 @@ UFunction::setDataOnPatch(
         const Index<NDIM>& patch_lower = patch_box.lower();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
-        const double* const XLower = pgeom->getXLower();
+        const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
 
-        TinyVector<double,NDIM> X;
+        VectorNd X;
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -127,18 +119,7 @@ UFunction::setDataOnPatch(
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    if (d != axis)
-                    {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
-                    }
-                    else
-                    {
-                        X[d] =
-                            XLower[d] +
-                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
-                    }
+                    X[d] = x_lower[d] + dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+(d==axis ? 0.0 : 0.5));
                 }
 
                 // 2D vortex

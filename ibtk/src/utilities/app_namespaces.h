@@ -40,6 +40,11 @@
  * file may be included in application codes, but it MUST NOT be included in any
  * other header (.h) or inline (-inl.h) file in the library.
  */
+namespace Eigen
+{
+}
+using namespace Eigen;
+
 namespace IBTK
 {
 }
@@ -89,11 +94,6 @@ using namespace SAMRAI::pdat;
 using namespace SAMRAI::solv;
 using namespace SAMRAI::tbox;
 using namespace SAMRAI::xfer;
-
-namespace blitz
-{
-}
-using namespace blitz;
 
 namespace libMesh
 {

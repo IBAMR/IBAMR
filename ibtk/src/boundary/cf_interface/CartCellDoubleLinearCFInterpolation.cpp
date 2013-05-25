@@ -57,10 +57,10 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_LINEAR_NORMAL_INTERPOLATION_FC FC_FUNC(cclinearnormalinterpolation2d,CCLINEARNORMALINTERPOLATION2D)
+#define CC_LINEAR_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(cclinearnormalinterpolation2d,CCLINEARNORMALINTERPOLATION2D)
 #endif
 #if (NDIM == 3)
-#define CC_LINEAR_NORMAL_INTERPOLATION_FC FC_FUNC(cclinearnormalinterpolation3d,CCLINEARNORMALINTERPOLATION3D)
+#define CC_LINEAR_NORMAL_INTERPOLATION_FC IBTK_FC_FUNC(cclinearnormalinterpolation3d,CCLINEARNORMALINTERPOLATION3D)
 #endif
 
 // Function interfaces
@@ -123,7 +123,7 @@ CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(
 IntVector<NDIM>
 CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
 #endif
     return REFINE_OP_STENCIL_WIDTH;
@@ -203,7 +203,7 @@ void
 CartCellDoubleLinearCFInterpolation::setPatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     if (d_hierarchy) clearPatchHierarchy();
@@ -259,7 +259,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     const IntVector<NDIM>& ratio,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(!d_consistent_type_2_bdry);
     TBOX_ASSERT(ratio.min() == ratio.max());
@@ -272,7 +272,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = patch.getPatchNumber();
     const int patch_level_num = patch.getPatchLevelNumber();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
     TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
 #endif
@@ -288,11 +288,11 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleLinearCFInterpolation::computeNormalExtension():\n"

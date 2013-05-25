@@ -55,7 +55,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
@@ -77,18 +77,10 @@ namespace tbox {
 class Database;
 }  // namespace tbox
 }  // namespace SAMRAI
-namespace blitz {
-template <typename P_numtype, int N_rank> class Array;
-}  // namespace blitz
-
-/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
 class LData;
-#if (NDIM == 3)
-class LM3DDataWriter;
-#endif
 }// namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -361,15 +353,6 @@ public:
     registerLSiloDataWriter(
         SAMRAI::tbox::Pointer<LSiloDataWriter> silo_writer);
 
-#if (NDIM == 3)
-    /*!
-     * \brief Register a myocardial3D data writer with the manager.
-     */
-    void
-    registerLM3DDataWriter(
-        SAMRAI::tbox::Pointer<LM3DDataWriter> m3D_writer);
-#endif
-
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
@@ -543,10 +526,10 @@ public:
      *
      * in which N is the number of nodes associated with that structure.
      *
-     * \note Returns blitz::TinyVector<double,NDIM>(0.0) in the case that the
-     * Lagrangian structure ID is not associated with any Lagrangian structure.
+     * \note Returns Point::Zero() in the case that the Lagrangian structure
+     * ID is not associated with any Lagrangian structure.
      */
-    blitz::TinyVector<double,NDIM>
+    Point
     computeLagrangianStructureCenterOfMass(
         int structure_id,
         int level_number);
@@ -559,7 +542,7 @@ public:
      * that the Lagrangian structure ID is not associated with any Lagrangian
      * structure.
      */
-    std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >
+    std::pair<Point,Point>
     computeLagrangianStructureBoundingBox(
         int structure_id,
         int level_number);
@@ -574,7 +557,7 @@ public:
      */
     void
     reinitLagrangianStructure(
-        const blitz::TinyVector<double,NDIM>& X_center,
+        const Point& X_center,
         int structure_id,
         int level_number);
 
@@ -590,7 +573,7 @@ public:
      */
     void
     displaceLagrangianStructure(
-        const blitz::TinyVector<double,NDIM>& dX,
+        const Vector& dX,
         int structure_id,
         int level_number);
 
@@ -647,30 +630,12 @@ public:
         int level_number) const;
 
     /*!
-     * \brief Map the collection of Lagrangian indices to the corresponding
-     * global PETSc indices.
-     */
-    void
-    mapLagrangianToPETSc(
-        blitz::Array<int,1>& inds,
-        int level_number) const;
-
-    /*!
      * \brief Map the collection of global PETSc indices to the corresponding
      * Lagrangian indices.
      */
     void
     mapPETScToLagrangian(
         std::vector<int>& inds,
-        int level_number) const;
-
-    /*!
-     * \brief Map the collection of global PETSc indices to the corresponding
-     * Lagrangian indices.
-     */
-    void
-    mapPETScToLagrangian(
-        blitz::Array<int,1>& inds,
         int level_number) const;
 
     /*!
@@ -1077,9 +1042,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_writer;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<LM3DDataWriter> d_m3D_writer;
-#endif
 
     /*
      * We cache a pointer to the load balancer.
@@ -1166,9 +1128,9 @@ private:
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > > > d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<std::pair<Point,Point> > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_displaced_strct_lnode_posns;
+    std::vector<std::vector<Point> > d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.

@@ -58,7 +58,6 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "blitz/array.h"
 #include "ibtk/LData.h"
 #include "ibtk/LData-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -523,7 +522,7 @@ DebuggingUtilities::saveLagrangianData(
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const blitz::Array<double,2>& array_data = *lag_data->getGhostedLocalFormVecArray();
+    const boost::multi_array_ref<double,2>& array_data = *lag_data->getGhostedLocalFormVecArray();
     const int rank = SAMRAI_MPI::getRank();
     const int nodes = SAMRAI_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
@@ -540,7 +539,7 @@ DebuggingUtilities::saveLagrangianData(
             {
                 for (int d = 0; d < depth; ++d)
                 {
-                    of.write(reinterpret_cast<const char*>(&(array_data(i,d))),sizeof(double));
+                    of.write(reinterpret_cast<const char*>(&(array_data[i][d])),sizeof(double));
                 }
             }
             if (save_ghost_nodes)
@@ -551,7 +550,7 @@ DebuggingUtilities::saveLagrangianData(
                 {
                     for (int d = 0; d < depth; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&(array_data(i+num_local_nodes,d))),sizeof(double));
+                        of.write(reinterpret_cast<const char*>(&(array_data[i+num_local_nodes][d])),sizeof(double));
                     }
                 }
             }

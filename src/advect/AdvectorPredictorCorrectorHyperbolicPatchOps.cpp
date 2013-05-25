@@ -82,15 +82,15 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff2d, ADVECT_CONSDIFF2D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource2d, ADVECT_CONSDIFFWITHDIVSOURCE2D)
-#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad2d, ADVECT_DETECTGRAD2D)
+#define ADVECT_CONSDIFF_FC IBAMR_FC_FUNC_(advect_consdiff2d, ADVECT_CONSDIFF2D)
+#define ADVECT_CONSDIFFWITHDIVSOURCE_FC IBAMR_FC_FUNC_(advect_consdiffwithdivsource2d, ADVECT_CONSDIFFWITHDIVSOURCE2D)
+#define ADVECT_DETECTGRAD_FC IBAMR_FC_FUNC_(advect_detectgrad2d, ADVECT_DETECTGRAD2D)
 #endif
 
 #if (NDIM == 3)
-#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff3d, ADVECT_CONSDIFF3D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource3d, ADVECT_CONSDIFFWITHDIVSOURCE3D)
-#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad3d, ADVECT_DETECTGRAD3D)
+#define ADVECT_CONSDIFF_FC IBAMR_FC_FUNC_(advect_consdiff3d, ADVECT_CONSDIFF3D)
+#define ADVECT_CONSDIFFWITHDIVSOURCE_FC IBAMR_FC_FUNC_(advect_consdiffwithdivsource3d, ADVECT_CONSDIFFWITHDIVSOURCE3D)
+#define ADVECT_DETECTGRAD_FC IBAMR_FC_FUNC_(advect_detectgrad3d, ADVECT_DETECTGRAD3D)
 #endif
 
 extern "C"
@@ -179,7 +179,7 @@ static const int FALSE_VAL = 0;
 AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorStrategy> explicit_predictor,
+    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
     : d_integrator(NULL),
@@ -214,7 +214,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
       d_grad_time_max(),
       d_grad_time_min()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
     TBOX_ASSERT(d_explicit_predictor);
@@ -255,7 +255,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
 #endif
     d_visit_writer = visit_writer;
@@ -266,7 +266,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(u_var);
 #endif
     d_u_var.insert(u_var);
@@ -279,7 +279,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFr
     Pointer<FaceVariable<NDIM,double> > u_var,
     const bool is_div_free)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
 #endif
     d_u_is_div_free[u_var] = is_div_free;
@@ -291,7 +291,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
     Pointer<FaceVariable<NDIM,double> > u_var,
     Pointer<CartGridFunction> u_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
 #endif
     d_u_fcn[u_var] = u_fcn;
@@ -302,7 +302,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(F_var);
 #endif
     d_F_var.insert(F_var);
@@ -314,7 +314,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(
     Pointer<CellVariable<NDIM,double> > F_var,
     Pointer<CartGridFunction> F_fcn)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
 #endif
     if (d_F_fcn[F_var])
@@ -343,7 +343,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
 #endif
     d_Q_var.insert(Q_var);
@@ -356,7 +356,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
 #endif
@@ -369,7 +369,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CellVariable<NDIM,double> > F_var)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
 #endif
@@ -382,7 +382,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
 #endif
     d_Q_difference_form[Q_var] = difference_form;
@@ -394,7 +394,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CartGridFunction> Q_init)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
 #endif
     d_Q_init[Q_var] = Q_init;
@@ -406,7 +406,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
     const unsigned int Q_depth = Q_factory->getDefaultDepth();
@@ -421,7 +421,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
     const unsigned int Q_depth = Q_factory->getDefaultDepth();
@@ -435,7 +435,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(integrator);
 #endif
     d_integrator = integrator;
@@ -1123,7 +1123,7 @@ void
 AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(
     Pointer<Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
 
@@ -1160,7 +1160,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
 #endif
     if (d_Q_difference_form[Q_var] == CONSERVATIVE)
@@ -1179,7 +1179,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
 #endif
     if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
@@ -1198,7 +1198,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
 #endif
     Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
@@ -1323,7 +1323,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     if (db->keyExists("compute_init_velocity")) d_compute_init_velocity = db->getBool("compute_init_velocity");

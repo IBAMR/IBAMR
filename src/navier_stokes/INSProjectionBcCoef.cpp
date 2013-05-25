@@ -84,7 +84,7 @@ void
 INSProjectionBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
@@ -156,7 +156,7 @@ INSProjectionBcCoef::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double /*fill_time*/) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
@@ -165,7 +165,7 @@ INSProjectionBcCoef::setBcCoefs(
     TBOX_ASSERT(bcoef_data);
 #endif
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
@@ -191,7 +191,7 @@ INSProjectionBcCoef::setBcCoefs(
         double& gamma = gcoef_data ? (*gcoef_data)(i,0) : dummy_val;
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
         if (velocity_bc)
@@ -217,7 +217,7 @@ INSProjectionBcCoef::setBcCoefs(
 IntVector<NDIM>
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);

@@ -57,9 +57,10 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
@@ -140,7 +141,7 @@ PoissonUtilities::computeCCMatrixCoefficients(
     double data_time)
 {
     const int stencil_sz = stencil.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2*NDIM+1);
 #endif
     std::map<Index<NDIM>,int,IndexComp> stencil_map;
@@ -148,7 +149,7 @@ PoissonUtilities::computeCCMatrixCoefficients(
     {
         stencil_map[stencil[k]] = k;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -160,7 +161,7 @@ PoissonUtilities::computeCCMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    blitz::TinyVector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -170,7 +171,7 @@ PoissonUtilities::computeCCMatrixCoefficients(
         stencil_index_upper[axis] = stencil_map[iupper];
     }
     const int depth = bc_coefs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth*stencil_sz);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
@@ -346,7 +347,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
     double data_time)
 {
     const int stencil_sz = stencil.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2*NDIM+1);
 #endif
     std::map<Index<NDIM>,int,IndexComp> stencil_map;
@@ -354,7 +355,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
     {
         stencil_map[stencil[k]] = k;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -366,7 +367,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    blitz::TinyVector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -376,7 +377,7 @@ PoissonUtilities::computeCCComplexMatrixCoefficients(
         stencil_index_upper[axis] = stencil_map[iupper];
     }
     const int depth = bc_coefs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth*stencil_sz*2);
 #endif
@@ -661,11 +662,11 @@ PoissonUtilities::computeSCMatrixCoefficients(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     const int stencil_sz = stencil.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2*NDIM+1);
 #endif
     std::map<Index<NDIM>,int,IndexComp> stencil_map;
@@ -673,7 +674,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
     {
         stencil_map[stencil[k]] = k;
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -685,7 +686,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
     }
 #endif
     const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
-    blitz::TinyVector<int,NDIM> stencil_index_lower, stencil_index_upper;
+    boost::array<int,NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         Index<NDIM> ilower(0), iupper(0);
@@ -694,7 +695,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
         stencil_index_lower[axis] = stencil_map[ilower];
         stencil_index_upper[axis] = stencil_map[iupper];
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == stencil_sz);
 #endif
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
@@ -775,7 +776,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -927,7 +928,7 @@ PoissonUtilities::computeSCMatrixCoefficients(
                 }
                 else
                 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(!MathUtilities<double>::equalEps(b,0.0));
 #endif
                     if (is_lower)
@@ -972,7 +973,7 @@ PoissonUtilities::adjustCCBoundaryRhsEntries(
     bool homogeneous_bc)
 {
     const int depth = bc_coefs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(rhs_data.getDepth() == depth);
 #endif
 
@@ -1088,7 +1089,7 @@ PoissonUtilities::adjustCCComplexBoundaryRhsEntries(
     bool homogeneous_bc)
 {
     const int depth = bc_coefs.size();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(depth >=2 && depth % 2 == 0);
     TBOX_ASSERT(rhs_data.getDepth() == depth);
 #endif
@@ -1211,7 +1212,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
     double data_time,
     bool homogeneous_bc)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
@@ -1270,7 +1271,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
             // locations.
-            blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
+            boost::array<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -1404,7 +1405,7 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
                 if (b != 0.0)
                 {
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
                     TBOX_ASSERT(!MathUtilities<double>::equalEps(b,0.0));
 #endif
                     rhs_data(i_s_bdry) += (D/h)*(-2.0*g)/b;

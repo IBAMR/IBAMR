@@ -38,6 +38,7 @@
 #include <stddef.h>
 
 #include "Box.h"
+#include "CellGeometry.h"  // IWYU pragma: keep
 #include "IndexDataFactory.h"
 #include "IntVector.h"
 #include "ibtk/FixedSizedStream-inl.h"
@@ -60,9 +61,6 @@ template <int DIM> class Patch;
 template <int DIM> class PatchData;
 template <int DIM> class PatchDataFactory;
 }  // namespace hier
-namespace pdat {
-template <int DIM> class CellGeometry;
-}  // namespace pdat
 }  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

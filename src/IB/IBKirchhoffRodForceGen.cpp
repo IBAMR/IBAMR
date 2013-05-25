@@ -41,18 +41,7 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAI_config.h"
-#include "blitz/array.h"
-#include "blitz/array/expr.h"
-#include "blitz/array/ops.h"
-#include "blitz/array/reduce.h"
-#include "blitz/array/shape.h"
-#include "blitz/array/storage.h"
-#include "blitz/etbase.h"
-#include "blitz/indexexpr.h"
-#include "blitz/listinit.h"
-#include "blitz/memblock.h"
-#include "blitz/tinymat2.h"
-#include "blitz/tinyvec2.h"
+#include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/IBRodForceSpec-inl.h"
 #include "ibamr/ibamr_utilities.h"
@@ -67,21 +56,15 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
+#include "boost/array.hpp"
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+#include "Eigen/Dense" // IWYU pragma: export
+#include "unsupported/Eigen/MatrixFunctions" // IWYU pragma: export
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
-
-// FORTRAN ROUTINES
-#define DSQRTM_FC FC_FUNC(dsqrtm,DSQRTM)
-extern "C"
-{
-    void
-    DSQRTM_FC(
-        double* X, const double* A);
-}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -91,108 +74,6 @@ namespace IBAMR
 
 namespace
 {
-void
-interpolate_directors(
-    const blitz::Array<blitz::Array<double,1>*,1>& D_half,
-    const blitz::Array<blitz::Array<double,1>*,1>& D,
-    const blitz::Array<blitz::Array<double,1>*,1>& D_next)
-{
-    blitz::Array<double,2> A(3,3,blitz::ColumnMajorArray<2>());
-    for (int j = 0; j < 3; ++j)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            A(i,j) = (*D_next(0))(i)*(*D(0))(j) + (*D_next(1))(i)*(*D(1))(j) + (*D_next(2))(i)*(*D(2))(j);
-        }
-    }
-
-    blitz::Array<double,2> sqrt_A(3,3,blitz::ColumnMajorArray<2>());
-    DSQRTM_FC(sqrt_A.data(), A.data());
-
-    blitz::firstIndex i;
-    blitz::secondIndex j;
-    *D_half(0) = blitz::sum(sqrt_A(i,j)*(*D(0))(j),j);
-    *D_half(1) = blitz::sum(sqrt_A(i,j)*(*D(1))(j),j);
-    *D_half(2) = blitz::sum(sqrt_A(i,j)*(*D(2))(j),j);
-    return;
-}// interpolate_directors
-
-inline double
-dot(
-    const blitz::Array<double,1>& x,
-    const blitz::Array<double,1>& y)
-{
-    blitz::firstIndex i;
-    return blitz::sum(x(i) * y(i));
-}// dot
-
-inline blitz::Array<double,1>
-cross(
-    const blitz::Array<double,1>& x,
-    const blitz::Array<double,1>& y)
-{
-    blitz::Array<double,1> x_cross_y(3);
-    x_cross_y = x(1)*y(2) - y(1)*x(2) , y(0)*x(2) - x(0)*y(2) , x(0)*y(1) - y(0)*x(1);
-    return x_cross_y;
-}// cross
-
-void
-compute_force_and_torque(
-    blitz::Array<double,1>& F_half,
-    blitz::Array<double,1>& N_half,
-    blitz::Array<double,1>& X,
-    blitz::Array<double,1>& X_next,
-    blitz::Array<double,1>& D1,
-    blitz::Array<double,1>& D1_next,
-    blitz::Array<double,1>& D2,
-    blitz::Array<double,1>& D2_next,
-    blitz::Array<double,1>& D3,
-    blitz::Array<double,1>& D3_next,
-    const blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>& material_params)
-{
-    blitz::Array<blitz::Array<double,1>*,1> D(3);
-    D = &D1 , &D2 , &D3;
-
-    blitz::Array<blitz::Array<double,1>*,1> D_next(3);
-    D_next = &D1_next , &D2_next , &D3_next;
-
-    blitz::Array<blitz::Array<double,1>*,1> D_half(3);
-    blitz::Array<double,1> D1_half(3);
-    D_half(0) = &D1_half;
-    blitz::Array<double,1> D2_half(3);
-    D_half(1) = &D2_half;
-    blitz::Array<double,1> D3_half(3);
-    D_half(2) = &D3_half;
-
-    interpolate_directors(D_half, D, D_next);
-
-    const double ds     = material_params[0];
-    const double a1     = material_params[1];
-    const double a2     = material_params[2];
-    const double a3     = material_params[3];
-    const double b1     = material_params[4];
-    const double b2     = material_params[5];
-    const double b3     = material_params[6];
-    const double kappa1 = material_params[7];
-    const double kappa2 = material_params[8];
-    const double tau    = material_params[9];
-
-    const blitz::Array<double,1> dX_ds((X_next-X)/ds);
-    const double F1 = b1* dot(D1_half, dX_ds);
-    const double F2 = b2* dot(D2_half, dX_ds);
-    const double F3 = b3*(dot(D3_half, dX_ds) - 1.0);
-    F_half = F1*D1_half + F2*D2_half + F3*D3_half;
-
-    const blitz::Array<double,1> dD1_ds((D1_next-D1)/ds);
-    const blitz::Array<double,1> dD2_ds((D2_next-D2)/ds);
-    const blitz::Array<double,1> dD3_ds((D3_next-D3)/ds);
-    const double N1 = a1*(dot(dD2_ds,D3_half)-kappa1);
-    const double N2 = a2*(dot(dD3_ds,D1_half)-kappa2);
-    const double N3 = a3*(dot(dD1_ds,D2_half)-tau);
-    N_half = N1*D1_half + N2*D2_half + N3*D3_half;
-    return;
-}// compute_force_and_torque
-
 // Timers.
 static Timer* t_compute_lagrangian_force_and_torque;
 static Timer* t_initialize_level_data;
@@ -252,7 +133,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     IBAMR_TIMER_START(t_initialize_level_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
     int ierr;
@@ -275,7 +156,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_num];
+    std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_num];
 
     if (D_next_mat)
     {
@@ -303,12 +184,12 @@ IBKirchhoffRodForceGen::initializeLevelData(
         {
             const int& curr_idx = node_idx->getLagrangianIndex();
             const unsigned int num_rods = force_spec->getNumberOfRods();
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params = force_spec->getMaterialParams();
-#ifdef DEBUG_CHECK_ASSERTIONS
+            const std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params = force_spec->getMaterialParams();
+#if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
 #endif
             for (unsigned int k = 0; k < num_rods; ++k)
@@ -357,8 +238,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
                              PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &D_next_mat);  IBTK_CHKERRQ(ierr);
 
-        blitz::TinyMatrix<double,3*3,3*3> curr_vals; curr_vals = 0.0;
-        blitz::TinyMatrix<double,3*3,3*3> next_vals; next_vals = 0.0;
+        Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor> curr_vals(Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor>::Zero());
+        Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor> next_vals(Eigen::Matrix<double,3*3,3*3,Eigen::RowMajor>::Zero());
         for (unsigned int d = 0; d < 3*3; ++d)
         {
             curr_vals(d,d) =  0.0;
@@ -389,8 +270,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
                              PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : NULL,
                              &X_next_mat);  IBTK_CHKERRQ(ierr);
 
-        blitz::TinyMatrix<double,NDIM,NDIM> curr_vals;  curr_vals = 0.0;
-        blitz::TinyMatrix<double,NDIM,NDIM> next_vals;  next_vals = 0.0;
+        Matrix curr_vals(Matrix::Zero());
+        Matrix next_vals(Matrix::Zero());
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             curr_vals(d,d) =  0.0;
@@ -441,7 +322,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
     IBAMR_TIMER_START(t_compute_lagrangian_force_and_torque);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
+#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
@@ -486,7 +367,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_number];
+    const std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_number];
 
     const unsigned int local_sz = petsc_curr_node_idxs.size();
     std::vector<double> F_curr_node_vals(NDIM*local_sz,0.0);
@@ -498,35 +379,70 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     {
         // Compute the forces applied by the rod to the "current" and "next"
         // nodes.
-        blitz::Array<double,1> F_curr(&F_curr_node_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
-        blitz::Array<double,1> N_curr(&N_curr_node_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
-
-        blitz::Array<double,1> F_next(&F_next_node_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
-        blitz::Array<double,1> N_next(&N_next_node_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
-
         const int D1_offset = 0;
-        blitz::Array<double,1> D1(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D1_offset],blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D1_next(&D_next_vals[k*3*3+D1_offset],blitz::shape(3),blitz::neverDeleteData);
+        Eigen::Map<const Vector3d> D1(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D1_offset]);
+        Eigen::Map<const Vector3d> D1_next(&D_next_vals[k*3*3+D1_offset]);
 
         const int D2_offset = 3;
-        blitz::Array<double,1> D2(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D2_offset],blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D2_next(&D_next_vals[k*3*3+D2_offset],blitz::shape(3),blitz::neverDeleteData);
+        Eigen::Map<const Vector3d> D2(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D2_offset]);
+        Eigen::Map<const Vector3d> D2_next(&D_next_vals[k*3*3+D2_offset]);
 
         const int D3_offset = 6;
-        blitz::Array<double,1> D3(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D3_offset],blitz::shape(3),blitz::neverDeleteData);
-        blitz::Array<double,1> D3_next(&D_next_vals[k*3*3+D3_offset],blitz::shape(3),blitz::neverDeleteData);
+        Eigen::Map<const Vector3d> D3(&D_vals[(petsc_curr_node_idxs[k]-global_offset)*3*3+D3_offset]);
+        Eigen::Map<const Vector3d> D3_next(&D_next_vals[k*3*3+D3_offset]);
 
-        blitz::Array<double,1> X(&X_vals[(petsc_curr_node_idxs[k]-global_offset)*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
-        blitz::Array<double,1> X_next(&X_next_vals[k*NDIM],blitz::shape(NDIM),blitz::neverDeleteData);
+        Eigen::Map<const Vector3d> X(&X_vals[(petsc_curr_node_idxs[k]-global_offset)*NDIM]);
+        Eigen::Map<const Vector3d> X_next(&X_next_vals[k*NDIM]);
 
-        blitz::Array<double,1> F_plus_half(3), N_plus_half(3);
-        compute_force_and_torque(F_plus_half, N_plus_half, X, X_next, D1, D1_next, D2, D2_next, D3, D3_next, material_params[k]);
+        boost::array<Eigen::Map<const Vector3d>*,3> D = {{&D1,&D2,&D3}};
+        boost::array<Eigen::Map<const Vector3d>*,3> D_next = {{&D1_next,&D2_next,&D3_next}};
+        Matrix3d A(Matrix3d::Zero());
+        for (int i = 0; i < 3; ++i)
+        {
+            A += (*D_next[i])*(*D[i]).transpose();
+        }
+        Matrix3d sqrt_A = A.sqrt();
+        Vector3d D1_half, D2_half, D3_half;
+        boost::array<Vector3d*,3> D_half = {{&D1_half,&D2_half,&D3_half}};
+        for (int i = 0; i < 3; ++i)
+        {
+            *D_half[i] = sqrt_A*(*D[i]);
+        }
 
-        F_curr = +F_plus_half;
-        F_next = -F_plus_half;
+        const double ds     = material_params[k][0];
+        const double a1     = material_params[k][1];
+        const double a2     = material_params[k][2];
+        const double a3     = material_params[k][3];
+        const double b1     = material_params[k][4];
+        const double b2     = material_params[k][5];
+        const double b3     = material_params[k][6];
+        const double kappa1 = material_params[k][7];
+        const double kappa2 = material_params[k][8];
+        const double tau    = material_params[k][9];
 
-        N_curr = +N_plus_half + 0.5*cross(blitz::Array<double,1>(X_next-X),F_plus_half);
-        N_next = -N_plus_half + 0.5*cross(blitz::Array<double,1>(X_next-X),F_plus_half);
+        const Vector3d dX_ds((X_next-X)/ds);
+        const double F1 = b1* D1_half.dot(dX_ds);
+        const double F2 = b2* D2_half.dot(dX_ds);
+        const double F3 = b3*(D3_half.dot(dX_ds) - 1.0);
+        const Vector3d F_half = F1*D1_half + F2*D2_half + F3*D3_half;
+
+        const Vector3d dD1_ds((D1_next-D1)/ds);
+        const Vector3d dD2_ds((D2_next-D2)/ds);
+        const Vector3d dD3_ds((D3_next-D3)/ds);
+        const double N1 = a1*(dD2_ds.dot(D3_half)-kappa1);
+        const double N2 = a2*(dD3_ds.dot(D1_half)-kappa2);
+        const double N3 = a3*(dD1_ds.dot(D2_half)-tau);
+        const Vector3d N_half = N1*D1_half + N2*D2_half + N3*D3_half;
+
+        Eigen::Map<Vector3d> F_curr(&F_curr_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> F_next(&F_next_node_vals[k*NDIM]);
+        F_curr =  F_half;
+        F_next = -F_half;
+
+        Eigen::Map<Vector3d> N_curr(&N_curr_node_vals[k*NDIM]);
+        Eigen::Map<Vector3d> N_next(&N_next_node_vals[k*NDIM]);
+        N_curr =  N_half + 0.5*(X_next-X).cross(F_half);
+        N_next = -N_half + 0.5*(X_next-X).cross(F_half);
     }
 
     ierr = VecRestoreArray(D_vec, &D_vals);            IBTK_CHKERRQ(ierr);
