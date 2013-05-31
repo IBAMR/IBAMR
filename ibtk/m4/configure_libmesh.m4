@@ -43,9 +43,6 @@ if test "$LIBMESH_ENABLED" = yes; then
     if test -d "${LIBMESH_DIR}/include" ; then
       LIBMESH_CPPFLAGS="-I${LIBMESH_DIR}/include"
     fi
-    if test -d "${LIBMESH_DIR}/lib" ; then
-      LIBMESH_LDFLAGS="-L${LIBMESH_DIR}/lib"
-    fi
     if test -d "${LIBMESH_DIR}/bin" ; then
       LIBMESH_BIN="${LIBMESH_DIR}/bin"
     fi
@@ -90,7 +87,34 @@ int main()
   ],[
   AC_MSG_ERROR([could not execute program to examine settings in libmesh_config.h])])
 
-  LDFLAGS_PREPEND($LIBMESH_LDFLAGS)
+  AC_PATH_PROG(LIBMESH_CONFIG, libmesh-config, , [$PATH$PATH_SEPARATOR$LIBMESH_BIN])
+  if test -z "$LIBMESH_CONFIG" ; then
+    AC_MSG_ERROR([cannot find libmesh-config])
+  fi
+
+  LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
+
+  LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
+  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
+  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
+  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
+  LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
+
+  if test -e "$LIBMESH_DIR/include/Eigen" ; then
+    AC_MSG_NOTICE([using Eigen library bundled with libMesh])
+    with_eigen="$LIBMESH_DIR"
+  fi
+
+  if test -e "$LIBMESH_DIR/include/boost" ; then
+    AC_MSG_ERROR([libMesh must be configured to use an external boost library])
+  fi
+
+  CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
+  CXXFLAGS_PREPEND($LIBMESH_CXXFLAGS)
+  CFLAGS_PREPEND($LIBMESH_CFLAGS)
+  FCFLAGS_PREPEND($LIBMESH_FCFLAGS)
+  LIBS_PREPEND($LIBMESH_LIBS)
+
   case "$METHOD" in
     opt)
       AC_LIB_HAVE_LINKFLAGS([mesh_opt])
@@ -126,28 +150,6 @@ int main()
       AC_MSG_ERROR("unknown libMesh METHOD=$METHOD; options are: opt, devel, dbg, prof, oprof") ;;
   esac
   AC_DEFINE([HAVE_LIBMESH],1,[Define if you have the libmesh library.])
-
-  AC_PATH_PROG(LIBMESH_CONFIG, libmesh-config, , [$PATH$PATH_SEPARATOR$LIBMESH_BIN])
-  if test -z "$LIBMESH_CONFIG" ; then
-    AC_MSG_ERROR([cannot find libmesh-config])
-  fi
-
-  LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
-
-  LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
-  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
-  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
-  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
-  LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
-
-  if test -e "$LIBMESH_DIR/include/Eigen" ; then
-    AC_MSG_NOTICE([using Eigen library bundled with libMesh])
-    with_eigen="$LIBMESH_DIR"
-  fi
-
-  if test -e "$LIBMESH_DIR/include/boost" ; then
-    AC_MSG_ERROR([libMesh must be configured to use an external boost library])
-  fi
 
   PACKAGE_CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
   PACKAGE_CXXFLAGS_PREPEND($LIBMESH_CXXFLAGS)
