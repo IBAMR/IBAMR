@@ -14,7 +14,7 @@ AC_ARG_ENABLE([libmesh],
                     yes)  LIBMESH_ENABLED=yes ;;
                     no)   LIBMESH_ENABLED=no ;;
                     *)    AC_MSG_ERROR(--enable-libmesh=$enableval is invalid; choices are "yes" and "no") ;;
-                  esac],[LIBMESH_ENABLED=yes])
+                  esac],[LIBMESH_ENABLED=no])
 
 AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" = yes])
 

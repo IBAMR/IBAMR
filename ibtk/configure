@@ -22004,7 +22004,7 @@ if test "${enable_libmesh+set}" = set; then :
                     *)    as_fn_error $? "--enable-libmesh=$enableval is invalid; choices are \"yes\" and \"no\"" "$LINENO" 5 ;;
                   esac
 else
-  LIBMESH_ENABLED=yes
+  LIBMESH_ENABLED=no
 fi
 
 
