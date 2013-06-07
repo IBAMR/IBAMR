@@ -1646,6 +1646,8 @@ LDataManager::endDataRedistribution(
                 TBOX_ASSERT((*it).getPointer() == node_idx.getPointer());
             }
         }
+        // Swap out the LNode vectors now --- doing so earlier would potentially
+        // reset existing nodes on the patch.
         d_local_and_ghost_nodes[level_number] = new_local_and_ghost_nodes;
         std::vector<LNode*> local_nodes(num_local_nodes);
         for (int k = 0; k < num_local_nodes; ++k)
