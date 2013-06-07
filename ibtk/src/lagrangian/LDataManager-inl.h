@@ -106,6 +106,18 @@ LDataManager::getNumberOfLocalNodes(
 }// getNumberOfLocalNodes
 
 inline unsigned int
+LDataManager::getNumberOfGhostNodes(
+    const int level_number) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+    return d_nonlocal_lag_indices[level_number].size();
+}// getNumberOfGhostNodes
+
+inline unsigned int
 LDataManager::getGlobalNodeOffset(
     const int level_number) const
 {

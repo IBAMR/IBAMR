@@ -378,14 +378,28 @@ public:
         int level_number) const;
 
     /*!
-     * \return The number of local (i.e., on processor) nodes of the Lagrangian
+     * \return The number of local (i.e., on-processor) nodes of the Lagrangian
      * data for the specified level of the patch hierarchy.
      *
      * \note This count does not include nodes that only lie in ghost cells for
      * the current process.
+     *
+     * \see getNumberOfNodes
+     * \see getNumberOfGhostNodes
      */
     unsigned int
     getNumberOfLocalNodes(
+        int level_number) const;
+
+    /*!
+     * \return The number of ghost (i.e., off-processor) nodes of the Lagrangian
+     * data for the specified level of the patch hierarchy.
+     *
+     * \see getNumberOfNodes
+     * \see getNumberOfLocalNodes
+     */
+    unsigned int
+    getNumberOfGhostNodes(
         int level_number) const;
 
     /*!
@@ -1061,6 +1075,7 @@ private:
      */
     SAMRAI::tbox::Pointer<LNodeSetVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
+    std::vector<SAMRAI::tbox::Pointer<std::vector<LNode> > > d_local_and_ghost_nodes;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the

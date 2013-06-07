@@ -216,7 +216,7 @@ private:
     // a (possibly empty) collection of data objects that are associated with
     // the node
     std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
-    static const int MAX_SIZE = 8;
+    static const short int MAX_SIZE = 8;
     Streamable* d_node_data_type_arr[MAX_SIZE];
 };
 

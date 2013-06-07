@@ -1611,38 +1611,55 @@ LDataManager::endDataRedistribution(
     // Update cached indexing information on each grid patch and setup new LMesh
     // data structures.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    d_local_and_ghost_nodes.resize(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
+        const int num_ghost_nodes = getNumberOfGhostNodes(level_number);
+        const int num_local_and_ghost_nodes = num_local_nodes+num_ghost_nodes;
+        Pointer<std::vector<LNode> > new_local_and_ghost_nodes = new std::vector<LNode>(num_local_and_ghost_nodes);
+        std::vector<Pointer<LNode> > local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
+        for (int k = 0; k < num_local_and_ghost_nodes; ++k)
+        {
+            local_and_ghost_node_ptrs[k] = Pointer<LNode>(&(*new_local_and_ghost_nodes)[k],false);
+        }
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        std::set<int> local_petsc_idxs;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeSetData> lag_node_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            lag_node_idx_data->cacheLocalIndices(patch, periodic_shift);
-            const Box<NDIM>& ghost_box = lag_node_idx_data->getGhostBox();
-            for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(ghost_box); it != lag_node_idx_data->data_end(); ++it)
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            idx_data->cacheLocalIndices(patch, periodic_shift);
+            const Box<NDIM>& ghost_box = idx_data->getGhostBox();
+            for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
             {
-                LNode* const node_idx = *it;
-                if (node_idx->getLocalPETScIndex() < num_local_nodes)
-                {
-                    local_nodes.insert(node_idx);
-                }
-                else
-                {
-                    ghost_nodes.insert(node_idx);
-                }
+                LNode* const tmp_node_idx = *it;
+                const int local_petsc_idx = tmp_node_idx->getLocalPETScIndex();
+                TBOX_ASSERT(0 <= local_petsc_idx && local_petsc_idx < num_local_and_ghost_nodes);
+                Pointer<LNode> node_idx = local_and_ghost_node_ptrs[local_petsc_idx];
+                *node_idx = *tmp_node_idx;
+                local_petsc_idxs.insert(local_petsc_idx);
+                *it = node_idx;
+                TBOX_ASSERT((*it).getPointer() == node_idx.getPointer());
             }
+        }
+        d_local_and_ghost_nodes[level_number] = new_local_and_ghost_nodes;
+        std::vector<LNode*> local_nodes(num_local_nodes);
+        for (int k = 0; k < num_local_nodes; ++k)
+        {
+            local_nodes[k] = &(*d_local_and_ghost_nodes[level_number])[k];
+        }
+        std::vector<LNode*> ghost_nodes(num_ghost_nodes);
+        for (int k = 0; k < num_ghost_nodes; ++k)
+        {
+            ghost_nodes[k] = &(*d_local_and_ghost_nodes[level_number])[num_local_nodes+k];
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
-                                             std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
-                                             std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
+        d_lag_mesh[level_number] = new LMesh(name_stream.str(), local_nodes, ghost_nodes);
     }
 
     // End scattering data, reset LData objects, and destroy the VecScatter
@@ -2709,8 +2726,8 @@ LDataManager::computeNodeDistribution(
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box); it != lag_node_index_data->data_end(); ++it)
+        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        for (LNodeSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;
             const int lag_idx = node_idx->getLagrangianIndex();
@@ -2725,12 +2742,12 @@ LDataManager::computeNodeDistribution(
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
             const Index<NDIM>& i = b();
-            if (!lag_node_index_data->isElement(i)) continue;
-            const LNodeSet* const node_set = lag_node_index_data->getItem(i);
+            if (!idx_data->isElement(i)) continue;
+            const LNodeSet* const node_set = idx_data->getItem(i);
             for (LNodeSet::const_iterator node_it = node_set->begin(); node_it != node_set->end(); ++node_it)
             {
                 LNode* const node_idx = *node_it;
@@ -2749,12 +2766,12 @@ LDataManager::computeNodeDistribution(
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        BoxList<NDIM> ghost_boxes = lag_node_index_data->getGhostBox();
+        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        BoxList<NDIM> ghost_boxes = idx_data->getGhostBox();
         ghost_boxes.removeIntersections(patch_box);
         for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
         {
-            for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(bl()); it != lag_node_index_data->data_end(); ++it)
+            for (LNodeSetData::DataIterator it = idx_data->data_begin(bl()); it != idx_data->data_end(); ++it)
             {
                 LNode* const node_idx = *it;
                 const int lag_idx = node_idx->getLagrangianIndex();
@@ -2840,9 +2857,9 @@ LDataManager::computeNodeDistribution(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        const Box<NDIM>& ghost_box = lag_node_index_data->getGhostBox();
-        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(ghost_box); it != lag_node_index_data->data_end(); ++it)
+        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const Box<NDIM>& ghost_box = idx_data->getGhostBox();
+        for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;
             node_idx->setGlobalPETScIndex(node_indices[node_idx->getLocalPETScIndex()]);
