@@ -114,248 +114,248 @@
 #define LAGRANGIAN_IB_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_6_spread3d, LAGRANGIAN_IB_6_SPREAD3D)
 #endif
 
-extern "C"
-{
-    void
-    LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+    extern "C"
+    {
+        void
+        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                                            );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                                );
 
-    void
-    LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                                            );
+            double*
+                                                );
 
-    void
-    LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
-        const double* , const double* , const double* , const int& , const int& ,
+        void
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
+            const double* , const double* , const double* , const int& , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                                          );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                                  );
 
-    void
-    LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(
-        const double* , const double* , const double* , const int& , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(
+            const double* , const double* , const double* , const int& , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                                          );
+            double*
+                                                  );
 
-    void
-    LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+        void
+        LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                                          );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                              );
 
-    void
-    LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                                          );
+            double*
+                                              );
 
-    void
-    LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+        void
+        LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                                         );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                             );
 
-    void
-    LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                                         );
+            double*
+                                             );
 
-    void
-    LAGRANGIAN_IB_3_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+        void
+        LAGRANGIAN_IB_3_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                              );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                  );
 
-    void
-    LAGRANGIAN_IB_3_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_IB_3_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                              );
+            double*
+                                  );
 
-    void
-    LAGRANGIAN_IB_4_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+        void
+        LAGRANGIAN_IB_4_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                              );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                  );
 
-    void
-    LAGRANGIAN_IB_4_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_IB_4_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                              );
+            double*
+                                  );
 
-    void
-    LAGRANGIAN_IB_6_INTERP_FC(
-        const double* , const double* , const double* , const int& ,
+        void
+        LAGRANGIAN_IB_6_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        const double* ,
-        const int* , const double* , const int& ,
-        const double* , double*
-                              );
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                  );
 
-    void
-    LAGRANGIAN_IB_6_SPREAD_FC(
-        const double* , const double* , const double* , const int& ,
-        const int* , const double* , const int& ,
-        const double* , const double* ,
+        void
+        LAGRANGIAN_IB_6_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& ,
+            const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& ,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
-        const int& , const int& , const int& ,
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int* , const int* ,
+            const int& , const int& , const int& ,
 #endif
-        double*
-                              );
-}
+            double*
+                                  );
+    }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -387,53 +387,17 @@ ib4_delta_fcn(
         return 0.0;
     }
 }// ib4_delta_fcn
-
-struct SortModeComp
-    : std::binary_function<std::pair<const LNodeIndex*,boost::array<double,NDIM> >,std::pair<const LNodeIndex*,boost::array<double,NDIM> >,bool>
-{
-    inline bool
-    operator()(
-        const std::pair<const LNodeIndex*,boost::array<double,NDIM> >& lhs,
-        const std::pair<const LNodeIndex*,boost::array<double,NDIM> >& rhs) const
-        {
-            if (LEInteractor::s_sort_mode == LEInteractor::SORT_INCREASING_LAG_IDX) return lhs.first->getLagrangianIndex() < rhs.first->getLagrangianIndex();
-            if (LEInteractor::s_sort_mode == LEInteractor::SORT_DECREASING_LAG_IDX) return lhs.first->getLagrangianIndex() > rhs.first->getLagrangianIndex();
-            return true;
-        }
-};
 }
 
 double (*LEInteractor::s_delta_fcn)(double r) = &ib4_delta_fcn;
 int LEInteractor::s_delta_fcn_stencil_size = 4;
 double LEInteractor::s_delta_fcn_C = 3.0/8.0;
-LEInteractor::SortMode LEInteractor::s_sort_mode = NO_SORT;
 
 void
 LEInteractor::setFromDatabase(
-    Pointer<Database> db)
+    Pointer<Database> /*db*/)
 {
-    if (!db) return;
-
-    std::string debug_sort_mode_str = "NO_SORT";
-    if (db->keyExists("debug_sort_mode")) debug_sort_mode_str = db->getString("debug_sort_mode");
-    if (debug_sort_mode_str == "NO_SORT")
-    {
-        s_sort_mode = NO_SORT;
-    }
-    else if (debug_sort_mode_str == "SORT_INCREASING_LAG_IDX")
-    {
-        s_sort_mode = SORT_INCREASING_LAG_IDX;
-    }
-    else if (debug_sort_mode_str == "SORT_DECREASING_LAG_IDX")
-    {
-        s_sort_mode = SORT_DECREASING_LAG_IDX;
-    }
-    else
-    {
-        TBOX_ERROR("LEInteractor::setFromDatabase():\n"
-                   << ":  invalid debug_sort_mode: " << debug_sort_mode_str << ".\n"
-                   << "   Choices are: NO_SORT, SORT_INCREASING_LAG_IDX, SORT_DECREASING_LAG_IDX.\n");
-    }
+    // intentionally blank
     return;
 }// setFromDatabase
 
@@ -442,24 +406,6 @@ LEInteractor::printClassData(
     std::ostream& os)
 {
     os << "LEInteractor::printClassData():\n";
-    os << "  s_sort_mode = ";
-    if (s_sort_mode == NO_SORT)
-    {
-        os << "NO_SORT";
-    }
-    else if (s_sort_mode == SORT_INCREASING_LAG_IDX)
-    {
-        os << "SORT_INCREASING_LAG_IDX";
-    }
-    else if (s_sort_mode == SORT_DECREASING_LAG_IDX)
-    {
-        os << "SORT_DECREASING_LAG_IDX";
-    }
-    else
-    {
-        os << "UNKNOWN";
-    }
-    os << "\n";
     return;
 }// printClassData
 
@@ -643,8 +589,8 @@ LEInteractor::interpolate(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
 
     // Interpolate.
     if (!local_indices.empty())
@@ -653,7 +599,7 @@ LEInteractor::interpolate(
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    local_indices, periodic_offsets,
+                    local_indices, periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -699,8 +645,8 @@ LEInteractor::interpolate(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
 
     // Interpolate.
     if (!local_indices.empty())
@@ -715,7 +661,7 @@ LEInteractor::interpolate(
                     q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower_node.data(), x_upper_node.data(), dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    local_indices, periodic_offsets,
+                    local_indices, periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -768,8 +714,8 @@ LEInteractor::interpolate(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
 
     // Interpolate.
     if (!local_indices.empty())
@@ -790,7 +736,7 @@ LEInteractor::interpolate(
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                        local_indices, periodic_offsets,
+                        local_indices, periodic_shifts,
                         interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
@@ -893,7 +839,7 @@ LEInteractor::interpolate(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Interpolate.
     if (!local_indices.empty())
@@ -902,7 +848,7 @@ LEInteractor::interpolate(
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    local_indices, periodic_offsets,
+                    local_indices, periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -949,7 +895,7 @@ LEInteractor::interpolate(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Interpolate.
     if (!local_indices.empty())
@@ -964,7 +910,7 @@ LEInteractor::interpolate(
                     q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower_node.data(), x_upper_node.data(), dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    local_indices, periodic_offsets,
+                    local_indices, periodic_shifts,
                     interp_fcn);
     }
     return;
@@ -1018,7 +964,7 @@ LEInteractor::interpolate(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Interpolate.
     if (!local_indices.empty())
@@ -1039,7 +985,7 @@ LEInteractor::interpolate(
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                        local_indices, periodic_offsets,
+                        local_indices, periodic_shifts,
                         interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
@@ -1189,8 +1135,8 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
 
     // Spread.
     if (!local_indices.empty())
@@ -1199,7 +1145,7 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               local_indices, periodic_offsets,
+               local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1245,8 +1191,8 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
 
     // Spread.
     if (!local_indices.empty())
@@ -1261,7 +1207,7 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower_node.data(), x_upper_node.data(), dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               local_indices, periodic_offsets,
+               local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1314,8 +1260,8 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<double> periodic_offsets;
-    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    std::vector<double> periodic_shifts;
+    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
 
     // Spread.
     if (!local_indices.empty())
@@ -1340,7 +1286,7 @@ LEInteractor::spread(
                    &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                   local_indices, periodic_offsets,
+                   local_indices, periodic_shifts,
                    spread_fcn, axis);
         }
     }
@@ -1442,7 +1388,7 @@ LEInteractor::spread(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Spread.
     if (!local_indices.empty())
@@ -1451,7 +1397,7 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               local_indices, periodic_offsets,
+               local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1498,7 +1444,7 @@ LEInteractor::spread(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Spread.
     if (!local_indices.empty())
@@ -1513,7 +1459,7 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower_node.data(), x_upper_node.data(), dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               local_indices, periodic_offsets,
+               local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1562,7 +1508,7 @@ LEInteractor::spread(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+    std::vector<double> periodic_shifts(NDIM*local_indices.size());
 
     // Spread.
     if (!local_indices.empty())
@@ -1587,7 +1533,7 @@ LEInteractor::spread(
                    &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                   local_indices, periodic_offsets,
+                   local_indices, periodic_shifts,
                    spread_fcn, axis);
         }
     }
@@ -1613,7 +1559,7 @@ LEInteractor::interpolate(
     const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
     const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
-    const std::vector<double>& periodic_offsets,
+    const std::vector<double>& periodic_shifts,
     const std::string& interp_fcn,
     const int axis)
 {
@@ -1634,7 +1580,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data);
     }
     else if (interp_fcn == "DISCONTINUOUS_LINEAR")
@@ -1654,7 +1600,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "PIECEWISE_LINEAR")
@@ -1674,7 +1620,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "PIECEWISE_CUBIC")
@@ -1690,7 +1636,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "IB_3")
@@ -1706,7 +1652,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "IB_4")
@@ -1726,7 +1672,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "IB_6")
@@ -1746,7 +1692,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "USER_DEFINED")
@@ -1755,7 +1701,7 @@ LEInteractor::interpolate(
             Q_data, Q_depth, X_data,
             q_data, q_data_box, q_gcw, q_depth,
             x_lower, x_upper, dx,
-            &local_indices[0], &periodic_offsets[0], local_indices_size);
+            &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -1781,7 +1727,7 @@ LEInteractor::spread(
     const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
     const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
     const std::vector<int>& local_indices,
-    const std::vector<double>& periodic_offsets,
+    const std::vector<double>& periodic_shifts,
     const std::string& spread_fcn,
     const int axis)
 {
@@ -1793,7 +1739,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1809,7 +1755,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,axis,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1829,7 +1775,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1849,7 +1795,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1865,7 +1811,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_IB_3_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1881,7 +1827,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_IB_4_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1901,7 +1847,7 @@ LEInteractor::spread(
     {
         LAGRANGIAN_IB_6_SPREAD_FC(
             dx,x_lower,x_upper,q_depth,
-            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1923,7 +1869,7 @@ LEInteractor::spread(
             q_data, q_data_box, q_gcw, q_depth,
             x_lower, x_upper, dx,
             Q_data, Q_depth, X_data,
-            &local_indices[0], &periodic_offsets[0], local_indices_size);
+            &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -1938,18 +1884,18 @@ template<class T>
 void
 LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
-    std::vector<double>& periodic_offsets,
+    std::vector<double>& periodic_shifts,
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& periodic_shift,
     const Pointer<LIndexSetData<T> > idx_data)
 {
-    local_indices   .clear();
-    periodic_offsets.clear();
-    const unsigned int upper_bound = idx_data->getInteriorLocalPETScIndices().size() + idx_data->getGhostLocalPETScIndices().size();
+    local_indices  .clear();
+    periodic_shifts.clear();
+    const unsigned int upper_bound = idx_data->getLocalPETScIndices().size();
     if (upper_bound == 0) return;
-    local_indices   .reserve(     upper_bound);
-    periodic_offsets.reserve(NDIM*upper_bound);
+    local_indices  .reserve(     upper_bound);
+    periodic_shifts.reserve(NDIM*upper_bound);
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -1965,76 +1911,24 @@ LEInteractor::buildLocalIndices(
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
     }
 
-    boost::array<int   ,NDIM>      offset;
-    boost::array<double,NDIM> node_offset;
-    if (s_sort_mode == NO_SORT)
+    if (box == patch_box)
     {
-        if (box == patch_box)
-        {
-            local_indices = idx_data->getInteriorLocalPETScIndices();
-            periodic_offsets.resize(NDIM*local_indices.size(),0.0);
-        }
-        else if (box == ghost_box)
-        {
-            local_indices = idx_data->getLocalPETScIndices();
-            periodic_offsets.resize(NDIM*idx_data->getInteriorLocalPETScIndices().size(),0.0);
-            periodic_offsets.insert(periodic_offsets.end(), idx_data->getGhostPeriodicOffsets().begin(), idx_data->getGhostPeriodicOffsets().end());
-        }
-        else
-        {
-            for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (!box.contains(i)) continue;
-
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
-                    {
-                        offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
-                    }
-                    else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
-                    {
-                        offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
-                    }
-                    else
-                    {
-                        offset[d] = 0;
-                    }
-                }
-
-                const LSet<T>& node_set = it.getItem();
-                const typename LSet<T>::size_type num_ids = node_set.size();
-                const unsigned int old_size = local_indices.size();
-                const unsigned int new_size = old_size+num_ids;
-                local_indices   .resize(     new_size);
-                periodic_offsets.resize(NDIM*new_size);
-                for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
-                {
-                    local_indices[old_size+n] = node_set[n]->getLocalPETScIndex();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        periodic_offsets[NDIM*(old_size+n)+d] = static_cast<double>(offset[d])*dx[d];
-                    }
-                }
-            }
-        }
+        local_indices   = idx_data->getInteriorLocalPETScIndices();
+        periodic_shifts = idx_data->getInteriorPeriodicShifts();
+    }
+    else if (box == ghost_box)
+    {
+        local_indices   = idx_data->getLocalPETScIndices();
+        periodic_shifts = idx_data->getPeriodicShifts();
     }
     else
     {
-        if (s_sort_mode != SORT_INCREASING_LAG_IDX && s_sort_mode != SORT_DECREASING_LAG_IDX)
-        {
-            TBOX_ERROR("LEInteractor::buildLocalIndices():\n"
-                       << "  invalid debug sort mode; s_sort_mode = " << s_sort_mode << ".\n");
-        }
-
-        std::vector<std::pair<const LNodeIndex*,boost::array<double,NDIM> > > box_idxs_and_offsets;
-        box_idxs_and_offsets.reserve(upper_bound);
-        for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
+        for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
             if (!box.contains(i)) continue;
 
+            boost::array<int,NDIM> offset;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
@@ -2049,22 +1943,17 @@ LEInteractor::buildLocalIndices(
                 {
                     offset[d] = 0;
                 }
-                node_offset[d] = static_cast<double>(offset[d])*dx[d];
             }
-
-            const LSet<T>& node_set = it.getItem();
-            for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
+            const LSet<T>& idx_set = it.getItem();
+            for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
             {
-                box_idxs_and_offsets.push_back(std::make_pair(cit->getPointer(),node_offset));
+                const typename LSet<T>::value_type& idx = *n;
+                local_indices.push_back(idx->getLocalPETScIndex());
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+                }
             }
-
-        }
-
-        std::sort(box_idxs_and_offsets.begin(),box_idxs_and_offsets.end(),SortModeComp());
-        for (unsigned int n = 0; n < box_idxs_and_offsets.size(); ++n)
-        {
-            local_indices.push_back(box_idxs_and_offsets[n].first->getLocalPETScIndex());
-            periodic_offsets.insert(periodic_offsets.end(),box_idxs_and_offsets[n].second.data(),box_idxs_and_offsets[n].second.data()+NDIM);
         }
     }
     return;
@@ -2480,7 +2369,7 @@ template void IBTK::LEInteractor::spread(
 
 template void IBTK::LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
-    std::vector<double>& periodic_offsets,
+    std::vector<double>& periodic_shifts,
     const SAMRAI::hier::Box<NDIM>& box,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const SAMRAI::hier::IntVector<NDIM>& periodic_shift,

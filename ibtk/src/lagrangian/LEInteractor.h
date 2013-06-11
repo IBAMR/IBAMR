@@ -84,14 +84,6 @@ public:
     static double s_delta_fcn_C;
 
     /*!
-     * \brief Sort modes used when interpolating and spreading values.
-     *
-     * \note Default is: NO_SORT.
-     */
-    enum SortMode {NO_SORT=0, SORT_INCREASING_LAG_IDX=1, SORT_DECREASING_LAG_IDX=2};
-    static SortMode s_sort_mode;
-
-    /*!
      * \brief Set configuration options from a user-supplied database.
      */
     static void
@@ -877,7 +869,7 @@ private:
         const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
         const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
-        const std::vector<double>& periodic_offsets,
+        const std::vector<double>& periodic_shifts,
         const std::string& interp_fcn,
         int axis=0);
 
@@ -899,7 +891,7 @@ private:
         const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
         const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
         const std::vector<int>& local_indices,
-        const std::vector<double>& periodic_offsets,
+        const std::vector<double>& periodic_shifts,
         const std::string& spread_fcn,
         int axis=0);
 
@@ -911,7 +903,7 @@ private:
     static void
     buildLocalIndices(
         std::vector<int>& local_indices,
-        std::vector<double>& periodic_offsets,
+        std::vector<double>& periodic_shifts,
         const SAMRAI::hier::Box<NDIM>& box,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
