@@ -802,12 +802,12 @@ LDataManager::reinitLagrangianStructure(
         shifted_bounding_box.second[d] += dX[d];
     }
 #if !defined(NDEBUG)
-    const double* const grid_x_lower = d_grid_geom->getXLower();
-    const double* const grid_x_upper = d_grid_geom->getXUpper();
+    const double* const domain_x_lower = d_grid_geom->getXLower();
+    const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(grid_x_lower[d] <= shifted_bounding_box.first [d]);
-        TBOX_ASSERT(grid_x_upper[d] >= shifted_bounding_box.second[d]);
+        TBOX_ASSERT(domain_x_lower[d] <= shifted_bounding_box.first [d]);
+        TBOX_ASSERT(domain_x_upper[d] >= shifted_bounding_box.second[d]);
     }
 #endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
@@ -884,12 +884,12 @@ LDataManager::displaceLagrangianStructure(
         shifted_bounding_box.second[d] += dX[d];
     }
 #if !defined(NDEBUG)
-    const double* const grid_x_lower = d_grid_geom->getXLower();
-    const double* const grid_x_upper = d_grid_geom->getXUpper();
+    const double* const domain_x_lower = d_grid_geom->getXLower();
+    const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(grid_x_lower[d] <= shifted_bounding_box.first [d]);
-        TBOX_ASSERT(grid_x_upper[d] >= shifted_bounding_box.second[d]);
+        TBOX_ASSERT(domain_x_lower[d] <= shifted_bounding_box.first [d]);
+        TBOX_ASSERT(domain_x_upper[d] >= shifted_bounding_box.second[d]);
     }
 #endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
@@ -1166,15 +1166,15 @@ LDataManager::beginDataRedistribution(
     }
 
     // Ensure that no IB points manage to escape the computational domain.
-    const double* const grid_x_lower = d_grid_geom->getXLower();
-    const double* const grid_x_upper = d_grid_geom->getXUpper();
-    Vector grid_length;
+    const double* const domain_x_lower = d_grid_geom->getXLower();
+    const double* const domain_x_upper = d_grid_geom->getXUpper();
+    Vector domain_length;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
+        domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
     std::vector<std::vector<IntVector<NDIM> > > periodic_offset_data(finest_ln+1);
-    std::vector<std::vector<Vector> > displacement_data(finest_ln+1);
+    std::vector<std::vector<Vector> > periodic_displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1188,36 +1188,36 @@ LDataManager::beginDataRedistribution(
         // been (re-)initialized yet.
         static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
         boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
-        periodic_offset_data[level_number].resize(X_data.shape()[0]);
-        displacement_data   [level_number].resize(X_data.shape()[0]);
+        periodic_offset_data      [level_number].resize(X_data.shape()[0]);
+        periodic_displacement_data[level_number].resize(X_data.shape()[0]);
         const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(d_hierarchy->getPatchLevel(level_number)->getRatio());
         for (size_t local_idx = 0; local_idx < X_data.shape()[0]; ++local_idx)
         {
             double* const X = &X_data[local_idx][0];
-            IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
-            Vector& displacement = displacement_data[level_number][local_idx];
+            IntVector<NDIM>& periodic_offset = periodic_offset_data      [level_number][local_idx];
+            Vector& periodic_displacement    = periodic_displacement_data[level_number][local_idx];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                periodic_offset[d] = 0;
-                displacement   [d] = 0.0;
+                periodic_offset      [d] = 0;
+                periodic_displacement[d] = 0.0;
                 if (periodic_shift[d] == 0)
                 {
-                    X[d] = std::max(X[d],grid_x_lower[d]+edge_tol);
-                    X[d] = std::min(X[d],grid_x_upper[d]-edge_tol);
+                    X[d] = std::max(X[d],domain_x_lower[d]+edge_tol);
+                    X[d] = std::min(X[d],domain_x_upper[d]-edge_tol);
                 }
                 else
                 {
-                    while (X[d]+displacement[d] < grid_x_lower[d])
+                    while (X[d]-periodic_displacement[d] < domain_x_lower[d])
                     {
-                        periodic_offset[d] += periodic_shift[d];
-                        displacement   [d] += grid_length   [d];
+                        periodic_offset      [d] -= periodic_shift[d];
+                        periodic_displacement[d] -= domain_length [d];
                     }
-                    while (X[d]+displacement[d] >= grid_x_upper[d])
+                    while (X[d]-periodic_displacement[d] >= domain_x_upper[d])
                     {
-                        periodic_offset[d] -= periodic_shift[d];
-                        displacement[d]    -= grid_length[d];
+                        periodic_offset      [d] += periodic_shift[d];
+                        periodic_displacement[d] += domain_length [d];
                     }
-                    X[d] += displacement[d];
+                    X[d] -= periodic_displacement[d];
                 }
             }
         }
@@ -1260,9 +1260,9 @@ LDataManager::beginDataRedistribution(
                         const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(new_cell_idx))
                         {
-                            const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
-                            const Vector& displacement = displacement_data[level_number][local_idx];
-                            if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, displacement);
+                            const IntVector<NDIM>& periodic_offset = periodic_offset_data      [level_number][local_idx];
+                            const Vector& periodic_displacement    = periodic_displacement_data[level_number][local_idx];
+                            if (periodic_offset != IntVector<NDIM>(0)) node_idx->registerPeriodicShift(periodic_offset, periodic_displacement);
                             if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
                             LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
                             new_node_set->push_back(node_idx);
@@ -1315,8 +1315,8 @@ LDataManager::endDataRedistribution(
 
     // Update parallel data structures to account for any displaced nodes.
     const double* const dx0 = d_grid_geom->getDx();
-    const double* const grid_x_lower = d_grid_geom->getXLower();
-    const double* const grid_x_upper = d_grid_geom->getXUpper();
+    const double* const domain_x_lower = d_grid_geom->getXLower();
+    const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
@@ -1346,7 +1346,7 @@ LDataManager::endDataRedistribution(
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
@@ -1415,7 +1415,7 @@ LDataManager::endDataRedistribution(
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));

@@ -70,6 +70,9 @@ class LNode
 public:
     /*!
      * \brief Default constructor.
+     *
+     * \note Any nonzero periodic offset/displacement must already be registered
+     * with any provided node data items.
      */
     LNode(
         int lagrangian_nidx=-1,

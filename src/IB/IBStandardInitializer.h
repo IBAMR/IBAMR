@@ -755,7 +755,7 @@ private:
      * \return The specification objects associated with the specified vertex.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
-    initializeSpecs(
+    initializeNodeData(
         const std::pair<int,int>& point_index,
         unsigned int global_index_offset,
         int level_number) const;

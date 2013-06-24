@@ -238,7 +238,7 @@ private:
     };
     std::vector<TargetPointData> d_target_point_data;
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_F_ghost_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_F_ghost_data, d_dX_data;
     std::vector<bool> d_is_initialized;
     //\}
 

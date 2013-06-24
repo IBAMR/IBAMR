@@ -362,8 +362,13 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-    const double* const XLower = grid_geom->getXLower();
-    const double* const XUpper = grid_geom->getXUpper();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
+    Vector domain_length;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        domain_length[d] = domain_x_upper[d]-domain_x_lower[d];
+    }
 
     // Set the global index offset.  This is equal to the number of Lagrangian
     // indices that have already been initialized on the specified level.
@@ -376,6 +381,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -383,8 +389,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const xLower = patch_geom->getXLower();
-        const double* const xUpper = patch_geom->getXUpper();
+        const double* const patch_x_lower = patch_geom->getXLower();
+        const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
         Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
@@ -402,35 +408,59 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
-            const Point X = getVertexPosn(point_idx, level_number);
+            const Point& X = getVertexPosn(point_idx, level_number);
+            IntVector<NDIM> periodic_offset = 0;
+            Vector periodic_displacement = Vector::Zero();
 
             // Initialize the location of the present vertex.
             for (int d = 0; d < NDIM; ++d)
             {
-                X_array[local_petsc_idx][d] = X[d];
-
-                if (X[d] <= XLower[d])
+                // Account for any periodic boundaries.
+                if (!periodic_shift[d] && X[d] < domain_x_lower[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node below lower physical boundary\n"
                                << "  please ensure that all nodes are within the computational domain."<< std::endl);
                 }
+                else
+                {
+                    while (X[d]-periodic_displacement[d] < domain_x_lower[d])
+                    {
+                        periodic_offset      [d] -= periodic_shift[d];
+                        periodic_displacement[d] -= domain_length[d];
+                    }
+                }
 
-                if (X[d] >= XUpper[d])
+                if (!periodic_shift[d] && X[d] >= domain_x_upper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                << "  encountered node above upper physical boundary\n"
                                << "  please ensure that all nodes are within the computational domain."<< std::endl);
                 }
+                else
+                {
+                    while (X[d]-periodic_displacement[d] >= domain_x_upper[d])
+                    {
+                        periodic_offset      [d] += periodic_shift[d];
+                        periodic_displacement[d] += domain_length[d];
+                    }
+                }
+
+                // Set the vertex position.
+                X_array[local_petsc_idx][d] = X[d]-periodic_displacement[d];
             }
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, xLower, xUpper, dx, patch_lower, patch_upper);
+            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, dx, patch_lower, patch_upper);
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Streamable> > specs = initializeSpecs(point_idx, global_index_offset, level_number);
+            std::vector<Pointer<Streamable> > node_data = initializeNodeData(point_idx, global_index_offset, level_number);
+            for (std::vector<Pointer<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
+            {
+                (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
+            }
 
             // Create or retrieve a pointer to the LNodeSet associated with the
             // current Cartesian grid cell.
@@ -439,9 +469,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            static const IntVector<NDIM> periodic_offset(0);
-            static const Vector periodic_displacement(Vector::Zero());
-            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
+            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0],&U_array[local_petsc_idx][0]+NDIM,0.0);
@@ -582,8 +610,8 @@ IBStandardInitializer::tagCellsForInitialRefinement(
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
-        const double* const xLower = patch_geom->getXLower();
-        const double* const xUpper = patch_geom->getXUpper();
+        const double* const x_lower = patch_geom->getXLower();
+        const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
         Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
@@ -605,7 +633,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(X, xLower, xUpper, dx, patch_lower, patch_upper);
+                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_lower, patch_upper);
 
                 // Tag the cell for refinement.
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
@@ -755,6 +783,7 @@ IBStandardInitializer::readVertexFiles(
                 d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]);
                 for (int k = 0; k < d_num_vertex[ln][j]; ++k)
                 {
+                    Point& X = d_vertex_posn[ln][j][k];
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << std::endl);
@@ -765,11 +794,12 @@ IBStandardInitializer::readVertexFiles(
                         std::istringstream line_stream(line_string);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (!(line_stream >> d_vertex_posn[ln][j][k][d]))
+                            if (!(line_stream >> X[d]))
                             {
                                 TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << std::endl);
                             }
-                            d_vertex_posn[ln][j][k][d] = d_length_scale_factor*(d_vertex_posn[ln][j][k][d] + d_posn_shift[d]);
+                            X[d] = d_length_scale_factor*(X[d] + d_posn_shift[d]);
+
                         }
                     }
                 }
@@ -2547,8 +2577,8 @@ IBStandardInitializer::getPatchVertices(
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* const xLower = patch_geom->getXLower();
-    const double* const xUpper = patch_geom->getXUpper();
+    const double* const x_lower = patch_geom->getXLower();
+    const double* const x_upper = patch_geom->getXUpper();
 
     for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
     {
@@ -2556,11 +2586,11 @@ IBStandardInitializer::getPatchVertices(
         {
             const Point& X = d_vertex_posn[level_number][j][k];
             const bool patch_owns_node =
-                ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
+                ((  x_lower[0] <= X[0])&&(X[0] < x_upper[0]))
 #if (NDIM > 1)
-                &&((xLower[1] <= X[1])&&(X[1] < xUpper[1]))
+                &&((x_lower[1] <= X[1])&&(X[1] < x_upper[1]))
 #if (NDIM > 2)
-                &&((xLower[2] <= X[2])&&(X[2] < xUpper[2]))
+                &&((x_lower[2] <= X[2])&&(X[2] < x_upper[2]))
 #endif
 #endif
                 ;
@@ -2651,12 +2681,12 @@ IBStandardInitializer::getVertexSourceIndices(
 }// getVertexSourceIndices
 
 std::vector<Pointer<Streamable> >
-IBStandardInitializer::initializeSpecs(
+IBStandardInitializer::initializeNodeData(
     const std::pair<int,int>& point_index,
     const unsigned int global_index_offset,
     const int level_number) const
 {
-    std::vector<Pointer<Streamable> > vertex_specs;
+    std::vector<Pointer<Streamable> > node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2717,7 +2747,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (slave_idxs.size() > 0)
         {
-            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters));
+            node_data.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters));
         }
     }
 
@@ -2736,7 +2766,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (!beam_neighbor_idxs.empty())
         {
-            vertex_specs.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
+            node_data.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
         }
     }
 
@@ -2767,7 +2797,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (!rod_next_idxs.empty())
         {
-            vertex_specs.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params));
+            node_data.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params));
         }
     }
 
@@ -2779,7 +2809,7 @@ IBStandardInitializer::initializeSpecs(
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
         const Point X_target = getVertexPosn(point_index, level_number);
-        vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
+        node_data.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
     }
 
     // Initialize any anchor point specifications associated with the present
@@ -2790,7 +2820,7 @@ IBStandardInitializer::initializeSpecs(
         const bool is_anchor_point = spec_data.is_anchor_point;
         if (is_anchor_point)
         {
-            vertex_specs.push_back(new IBAnchorPointSpec(mastr_idx));
+            node_data.push_back(new IBAnchorPointSpec(mastr_idx));
         }
     }
 
@@ -2801,7 +2831,7 @@ IBStandardInitializer::initializeSpecs(
         const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
         if (inst_idx.first != -1 && inst_idx.second != -1)
         {
-            vertex_specs.push_back(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second));
+            node_data.push_back(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second));
         }
     }
 
@@ -2812,11 +2842,11 @@ IBStandardInitializer::initializeSpecs(
         const int source_idx = getVertexSourceIndices(point_index, level_number);
         if (source_idx != -1)
         {
-            vertex_specs.push_back(new IBSourceSpec(mastr_idx, source_idx));
+            node_data.push_back(new IBSourceSpec(mastr_idx, source_idx));
         }
     }
-    return vertex_specs;
-}// initializeSpecs
+    return node_data;
+}// initializeNodeData
 
 void
 IBStandardInitializer::getFromInput(
