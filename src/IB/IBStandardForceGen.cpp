@@ -231,7 +231,6 @@ IBStandardForceGen::initializeLevelData(
     for (int k = 0; k < num_local_nodes; ++k)
     {
         const LNode* const node = local_nodes[k];
-        TBOX_ASSERT(k == node->getLocalPETScIndex());  // BEG TODO: this should be removed.
         const Vector& periodic_displacement = node->getPeriodicDisplacement();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
