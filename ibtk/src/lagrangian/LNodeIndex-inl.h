@@ -154,10 +154,7 @@ LNodeIndex::registerPeriodicShift(
     const Vector& displacement)
 {
     d_offset += offset;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_displacement[d] += displacement[d];
-    }
+    d_displacement += displacement;
     return;
 }// registerPeriodicShift
 
