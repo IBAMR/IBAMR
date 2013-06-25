@@ -625,8 +625,8 @@ private:
     const bool d_interp_uses_consistent_mass_matrix;
 
     /*
-     * SAMRAI::hier::IntVector object which determines the ghost cell width of
-     * the LNodeIndexData SAMRAI::hier::PatchData objects.
+     * SAMRAI::hier::IntVector object which determines the ghost cell width used
+     * to determine elements that are associated with each Cartesian grid patch.
      */
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
 
@@ -657,32 +657,6 @@ private:
     std::map<std::string,libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
     std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
-
-    /*
-     * Partitioner support.
-     */
-    void
-    do_partition(
-        libMesh::MeshBase& mesh,
-        unsigned int n);
-
-    class IBFEPartitioner : public libMesh::Partitioner
-    {
-    public:
-        IBFEPartitioner(FEDataManager* fe_data_manager) : d_fe_data_manager(fe_data_manager) { return; }
-        ~IBFEPartitioner() { return; }
-        virtual libMesh::AutoPtr<libMesh::Partitioner> clone () const {
-            return libMesh::AutoPtr<libMesh::Partitioner>(new IBFEPartitioner(d_fe_data_manager));
-        }
-    protected:
-        virtual void _do_partition(libMesh::MeshBase& mesh, const unsigned int n)
-            {
-                d_fe_data_manager->do_partition(mesh, n);
-            }
-    private:
-        FEDataManager* const d_fe_data_manager;
-    };
-
 };
 }// namespace IBTK
 
