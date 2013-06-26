@@ -86,6 +86,7 @@ get_dirichlet_bdry_ids(
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 
+static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
 static const double POINT_FACTOR = 2.0;
 
 inline double
@@ -93,13 +94,12 @@ get_elem_hmax(
     Elem* elem,
     const boost::multi_array<double,2>& X_node)
 {
-    static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
     libMesh::Point s_node_cache[MAX_NODES];
-    const int n_node = elem->n_nodes();
+    const unsigned int n_node = elem->n_nodes();
 #if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-    for (int k = 0; k < n_node; ++k)
+    for (unsigned int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
         libMesh::Point& X = elem->point(k);
@@ -113,7 +113,7 @@ get_elem_hmax(
     {
         hmax = std::max(hmax, elem->build_edge(e)->hmax());
     }
-    for (int k = 0; k < n_node; ++k)
+    for (unsigned int k = 0; k < n_node; ++k)
     {
         elem->point(k) = s_node_cache[k];
     }
@@ -599,8 +599,10 @@ IBFEMethod::spreadForce(
 }// spreadForce
 
 void
-IBFEMethod::initializeFEData()
+IBFEMethod::initializeFESystems()
 {
+    if (d_fe_systems_initialized) return;
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -639,17 +641,33 @@ IBFEMethod::initializeFEData()
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        System* U_b_system = NULL;
         if (d_constrained_part[part])
         {
-            U_b_system = &equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
+            System& U_b_system = equation_systems->add_system<System>(BODY_VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream os;
                 os << "U_b_" << d;
-                U_b_system->add_variable(os.str(), d_fe_order, d_fe_family);
+                U_b_system.add_variable(os.str(), d_fe_order, d_fe_family);
             }
         }
+    }
+
+    d_fe_systems_initialized = true;
+    return;
+}// initializeFESystems
+
+void
+IBFEMethod::initializeFEData()
+{
+    if (d_fe_data_initialized) return;
+    if (!d_fe_systems_initialized) initializeFESystems();
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        EquationSystems* equation_systems = d_equation_systems[part];
+
+        // Create FE systems and corresponding variables.
 
         // Initialize FE equation systems.
         equation_systems->init();
@@ -657,6 +675,11 @@ IBFEMethod::initializeFEData()
         updateCoordinateMapping(part);
 
         // Assemble systems.
+        System&         X_system = equation_systems->get_system<System>(       COORDS_SYSTEM_NAME);
+        System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+        System&         U_system = equation_systems->get_system<System>(     VELOCITY_SYSTEM_NAME);
+        System&         F_system = equation_systems->add_system<System>(        FORCE_SYSTEM_NAME);
+
         X_system.assemble_before_solve = false;
         X_system.assemble();
 
@@ -671,8 +694,9 @@ IBFEMethod::initializeFEData()
 
         if (d_constrained_part[part])
         {
-            U_b_system->assemble_before_solve = false;
-            U_b_system->assemble();
+            System& U_b_system = equation_systems->get_system<System>(BODY_VELOCITY_SYSTEM_NAME);
+            U_b_system.assemble_before_solve = false;
+            U_b_system.assemble();
         }
 
         // Set up boundary conditions.  Specifically, add appropriate boundary
@@ -726,7 +750,7 @@ IBFEMethod::initializeFEData()
         }
     }
 
-    d_is_initialized = true;
+    d_fe_data_initialized = true;
     return;
 }// initializeFEData
 
@@ -933,7 +957,7 @@ IBFEMethod::computeInteriorForceDensity(
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
     AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim-1, d_quad_order);
 
@@ -944,13 +968,14 @@ IBFEMethod::computeInteriorForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
+
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<libMesh::Point>& q_point = fe->get_xyz();
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
@@ -1002,6 +1027,14 @@ IBFEMethod::computeInteriorForceDensity(
     AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[NDIM];
 
+    // Extract the underlying solution data.
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
     // Loop over the elements to compute the right-hand side vector.  This is
     // computed via
     //
@@ -1024,20 +1057,13 @@ IBFEMethod::computeInteriorForceDensity(
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
-            if (G_rhs_e[d].size() != dof_indices[d].size())
-            {
-                G_rhs_e[d].resize(dof_indices[d].size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
-            }
-            else
-            {
-                G_rhs_e[d].zero();
-            }
+            G_rhs_e[d].resize(dof_indices[d].size());
         }
 
         const unsigned int n_qp = qrule->n_points();
         const unsigned int n_basis = dof_indices[0].size();
 
-        get_values_for_interpolation(X_node, X_vec, dof_indices);
+        get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const libMesh::Point& s_qp = q_point[qp];
@@ -1096,7 +1122,7 @@ IBFEMethod::computeInteriorForceDensity(
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
             const bool compute_transmission_force = d_PK1_stress_fcns       [part] && (( d_split_forces && !at_dirichlet_bdry) ||
-                                                                                               (!d_split_forces &&  at_dirichlet_bdry));
+                                                                                       (!d_split_forces &&  at_dirichlet_bdry));
             const bool compute_pressure           = d_lag_pressure_fcns     [part] && ( !d_split_forces && !at_dirichlet_bdry );
             const bool compute_surface_force      = d_lag_surface_force_fcns[part] && ( !d_split_forces && !at_dirichlet_bdry );
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
@@ -1106,7 +1132,7 @@ IBFEMethod::computeInteriorForceDensity(
             const unsigned int n_qp = qrule_face->n_points();
             const unsigned int n_basis = dof_indices[0].size();
 
-            get_values_for_interpolation(X_node, X_vec, dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const libMesh::Point& s_qp = q_point_face[qp];
@@ -1171,6 +1197,9 @@ IBFEMethod::computeInteriorForceDensity(
         }
     }
 
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
     // Solve for G.
     G_rhs_vec->close();
     d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
@@ -1189,7 +1218,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim-1, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1199,11 +1228,8 @@ IBFEMethod::spreadTransmissionForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    fe_face->attach_quadrature_rule(qrule_face.get());
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
     const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
@@ -1238,6 +1264,14 @@ IBFEMethod::spreadTransmissionForceDensity(
         lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
+    // Extract the underlying solution data.
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_ghost_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
@@ -1247,6 +1281,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     libMesh::Point X_qp;
     double P;
     boost::multi_array<double,2> X_node, X_node_side;
+    std::vector<double> T_bdry, X_bdry;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1261,17 +1296,11 @@ IBFEMethod::spreadTransmissionForceDensity(
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx+NDIM);
 
-        // Setup vectors to store the values of T and X at the quadrature
-        // points.  We compute a somewhat conservative upper bound on the number
-        // of quadrature points to try to avoid reallocations.
-        static const unsigned int n_qp_estimate = (NDIM == 2 ? 12 : 12*12);
-        std::vector<double> T_bdry;
-        T_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
-        std::vector<double> X_bdry;
-        X_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
-
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
+        fe_face->attach_quadrature_rule(qrule_face.get());
+        T_bdry.resize(0);
+        X_bdry.resize(0);
         int qp_offset = 0;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -1294,7 +1323,7 @@ IBFEMethod::spreadTransmissionForceDensity(
             {
                 dof_map.dof_indices(elem, dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1325,10 +1354,9 @@ IBFEMethod::spreadTransmissionForceDensity(
                 {
                     dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
-                get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
+                get_values_for_interpolation(X_node_side, *X_petsc_vec, X_local_soln, side_dof_indices);
                 const double hmax = get_elem_hmax(side_elem.get(), X_node_side);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
                 if (order != qrule_face->get_order())
                 {
@@ -1394,6 +1422,9 @@ IBFEMethod::spreadTransmissionForceDensity(
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_weighting_fcn);
     }
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
 }// spreadTransmissionForceDensity
 
@@ -1410,7 +1441,8 @@ IBFEMethod::imposeJumpConditions(
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
@@ -1419,9 +1451,7 @@ IBFEMethod::imposeJumpConditions(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].reserve(27);
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices[d].reserve(9);
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
@@ -1456,6 +1486,21 @@ IBFEMethod::imposeJumpConditions(
         lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
+    // Extract the underlying solution data.
+    PetscVector<double>* F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_ghost_vec);
+    Vec F_global_vec = F_petsc_vec->vec();
+    Vec F_local_vec;
+    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    double* F_local_soln;
+    VecGetArray(F_local_vec, &F_local_soln);
+
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_ghost_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
+
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
@@ -1466,9 +1511,10 @@ IBFEMethod::imposeJumpConditions(
     libMesh::Point X_qp;
     double P;
     boost::multi_array<double,2> F_node, X_node;
-    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
     IBTK::Point X_min, X_max;
+    std::vector<libMesh::Point> intersection_ref_coords;
+    std::vector<int>            intersection_axes;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1537,7 +1583,7 @@ IBFEMethod::imposeJumpConditions(
                 // this part of the physical boundary; if not, skip the present
                 // side.
                 const bool compute_transmission_force = d_PK1_stress_fcns       [part] && (( d_split_forces && !at_dirichlet_bdry) ||
-                                                                                                   (!d_split_forces &&  at_dirichlet_bdry));
+                                                                                           (!d_split_forces &&  at_dirichlet_bdry));
                 const bool compute_pressure           = d_lag_pressure_fcns     [part] && ( !d_split_forces && !at_dirichlet_bdry );
                 const bool compute_surface_force      = d_lag_surface_force_fcns[part] && ( !d_split_forces && !at_dirichlet_bdry );
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
@@ -1573,11 +1619,8 @@ IBFEMethod::imposeJumpConditions(
 
                 // Loop over coordinate directions and look for intersections
                 // with the background fluid grid.
-                std::vector<libMesh::Point> intersection_ref_points;
-                std::vector<int>            intersection_axes;
-                static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
-                intersection_ref_points.reserve(estimated_max_size);
-                intersection_axes      .reserve(estimated_max_size);
+                intersection_ref_coords.resize(0);
+                intersection_axes      .resize(0);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     // Setup a unit vector pointing in the coordinate direction
@@ -1586,49 +1629,40 @@ IBFEMethod::imposeJumpConditions(
                     q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
-                    boost::array<int,NDIM> i_begin, i_end, ic;
+                    Box<NDIM> box;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
-                            i_begin[d] = 0;
-                            i_end  [d] = 1;
+                            box.lower(d) = 0;
+                            box.upper(d) = 0;
                         }
                         else
                         {
-                            i_begin[d] = std::ceil((X_min[d]-x_lower[d])/dx[d] - 0.5 - 1.0) + patch_lower[d];  // NOTE: added "safety factor" of one grid cell to range of indices
-                            i_end  [d] = std::ceil((X_max[d]-x_lower[d])/dx[d] - 0.5 + 1.0) + patch_lower[d];
+                            box.lower(d) = std::floor((X_min[d]-x_lower[d])/dx[d]-1.5) + patch_lower[d];
+                            box.upper(d) = std::ceil( (X_max[d]-x_lower[d])/dx[d]+1.5) + patch_lower[d];
                         }
                     }
-#if (NDIM == 3)
-                    for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
+                    for (BoxIterator<NDIM> b(box); b; b++)
                     {
-#endif
-                        for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
+                        const Index<NDIM>& ic = b();
+                        libMesh::Point r;
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
-                            {
-                                libMesh::Point r;
-                                for (unsigned int d = 0; d < NDIM; ++d)
-                                {
-                                    r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+0.5));
-                                }
-#if (NDIM == 2)
-                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
-#endif
-#if (NDIM == 3)
-                                std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
-#endif
-                                for (unsigned int k = 0; k < intersections.size(); ++k)
-                                {
-                                    intersection_ref_points.push_back(intersections[k].second);
-                                    intersection_axes.push_back(axis);
-                                }
-                            }
+                            r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic(d)-patch_lower[d])+0.5));
                         }
-#if (NDIM == 3)
-                    }
+#if (NDIM == 2)
+                        std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
 #endif
+#if (NDIM == 3)
+                        std::vector<std::pair<double,libMesh::Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
+#endif
+                        for (unsigned int k = 0; k < intersections.size(); ++k)
+                        {
+                            intersection_ref_coords.push_back(intersections[k].second);
+                            intersection_axes.push_back(axis);
+                        }
+                    }
                 }
 
                 // Restore the element coordinates.
@@ -1639,19 +1673,16 @@ IBFEMethod::imposeJumpConditions(
 
                 // If there are no intersection points, then continue to the
                 // next side.
-                if (intersection_ref_points.empty()) continue;
+                if (intersection_ref_coords.empty()) continue;
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
-                fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
+                fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_coords);
 
-                if (!d_use_IB_spread_operator)
-                {
-                    get_values_for_interpolation(F_node, F_ghost_vec, dof_indices);
-                }
-                get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+                if (!d_use_IB_spread_operator) get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, dof_indices);
+                get_values_for_interpolation(X_node, *X_petsc_vec, F_local_soln, dof_indices);
 
-                for (unsigned int qp = 0; qp < intersection_ref_points.size(); ++qp)
+                for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
                 {
                     const unsigned int axis = intersection_axes[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
@@ -1749,6 +1780,12 @@ IBFEMethod::imposeJumpConditions(
             }
         }
     }
+
+    VecRestoreArray(F_local_vec, &F_local_soln);
+    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
 }// imposeJumpConditions
 
@@ -1953,6 +1990,8 @@ IBFEMethod::commonConstructor(
     d_new_time     = std::numeric_limits<double>::quiet_NaN();
     d_half_time    = std::numeric_limits<double>::quiet_NaN();
 
+    d_fe_systems_initialized = false;
+    d_fe_data_initialized = false;
     d_is_initialized = false;
     return;
 }// commonConstructor

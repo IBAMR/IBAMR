@@ -443,7 +443,7 @@ FEDataManager::spread(
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -454,9 +454,7 @@ FEDataManager::spread(
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices[i].reserve(MAX_NODES);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -466,17 +464,30 @@ FEDataManager::spread(
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices[d].reserve(MAX_NODES);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
-    // Communicate any unsynchronized ghost data and enforce any constraints.
+    // Communicate any unsynchronized ghost data, enforce any constraints, and
+    // extract the underlying solution data.
     if (close_F) F_vec.close();
     F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
 
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    PetscVector<double>* F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
+    Vec F_global_vec = F_petsc_vec->vec();
+    Vec F_local_vec;
+    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    double* F_local_soln;
+    VecGetArray(F_local_vec, &F_local_soln);
+
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // element quadrature points, then spread thost values onto the Eulerian
@@ -507,18 +518,15 @@ FEDataManager::spread(
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
-            if (order != qrule->get_order())
-            {
-                qrule = QBase::build(QGAUSS, dim, order);
-            }
             ElemType elem_type = elem->type();
             unsigned int p_level = elem->p_level();
-            if (qrule->get_elem_type() != elem_type || qrule->get_p_level() != p_level)
+            if (order != qrule->get_order() || elem_type != qrule->get_elem_type() || p_level != qrule->get_p_level())
             {
+                qrule = QBase::build(QGAUSS, dim, order);
                 qrule->init(elem_type, p_level);
             }
             n_qp_patch += qrule->n_points();
@@ -529,6 +537,8 @@ FEDataManager::spread(
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
+        F_fe->attach_quadrature_rule(qrule.get());
+        X_fe->attach_quadrature_rule(qrule.get());
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -537,12 +547,12 @@ FEDataManager::spread(
             {
                 F_dof_map.dof_indices(elem, F_dof_indices[i], i);
             }
-            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
+            get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -586,6 +596,12 @@ FEDataManager::spread(
         if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
     }
 
+    VecRestoreArray(F_local_vec, &F_local_soln);
+    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
     IBTK_TIMER_STOP(t_spread);
     return;
 }// spread
@@ -618,7 +634,7 @@ FEDataManager::prolongData(
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -632,7 +648,6 @@ FEDataManager::prolongData(
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices[i].reserve(MAX_NODES);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -643,16 +658,30 @@ FEDataManager::prolongData(
 #endif
     FEType X_fe_type = X_dof_map.variable_type(0);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices[d].reserve(MAX_NODES);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
     const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
 
-    // Communicate any unsynchronized ghost data and enforce any constraints.
+    // Communicate any unsynchronized ghost data, enforce any constraints, and
+    // extract the underlying solution data.
     if (close_F) F_vec.close();
     F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
 
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    PetscVector<double>* F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
+    Vec F_global_vec = F_petsc_vec->vec();
+    Vec F_local_vec;
+    VecGhostGetLocalForm(F_global_vec, &F_local_vec);
+    double* F_local_soln;
+    VecGetArray(F_local_vec, &F_local_soln);
+
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // the points of the Eulerian grid.
@@ -729,8 +758,8 @@ FEDataManager::prolongData(
                 Box<NDIM> box;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    box.lower(d) = std::floor((X_min[d]-patch_x_lower[d])/patch_dx[d]-0.5) + patch_lower[d];
-                    box.upper(d) = std::ceil( (X_max[d]-patch_x_lower[d])/patch_dx[d]+0.5) + patch_lower[d];
+                    box.lower(d) = std::floor((X_min[d]-patch_x_lower[d])/patch_dx[d]-1.5) + patch_lower[d];
+                    box.upper(d) = std::ceil( (X_max[d]-patch_x_lower[d])/patch_dx[d]+1.5) + patch_lower[d];
                 }
                 for (BoxIterator<NDIM> b(box); b; b++)
                 {
@@ -769,8 +798,8 @@ FEDataManager::prolongData(
             {
                 F_dof_map.dof_indices(elem, F_dof_indices[i], i);
             }
-            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            if (is_density) get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, F_dof_indices);
+            if (is_density) get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             F_fe->reinit(elem, &intersection_master_coords);
             if (is_density) X_fe->reinit(elem, &intersection_master_coords);
             for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
@@ -793,6 +822,12 @@ FEDataManager::prolongData(
         }
     }
 
+    VecRestoreArray(F_local_vec, &F_local_soln);
+    VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+
     IBTK_TIMER_STOP(t_prolong_data);
     return;
 }// prolongData
@@ -811,7 +846,7 @@ FEDataManager::interp(
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIRST);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -822,9 +857,7 @@ FEDataManager::interp(
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices[i].reserve(MAX_NODES);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    F_fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -834,12 +867,11 @@ FEDataManager::interp(
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices[d].reserve(MAX_NODES);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(qrule.get());
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
-    // Communicate any unsynchronized ghost data and enforce any constraints.
+    // Communicate any unsynchronized ghost data, enforce any constraints, and
+    // extract the underlying solution data.
     for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
     {
         if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
@@ -847,6 +879,13 @@ FEDataManager::interp(
 
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
 
     // Loop over the patches to interpolate values to the element quadrature
     // points from the grid, then use these values to compute the projection of
@@ -879,18 +918,15 @@ FEDataManager::interp(
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
-            if (order != qrule->get_order())
-            {
-                qrule = QBase::build(QGAUSS, dim, order);
-            }
             ElemType elem_type = elem->type();
             unsigned int p_level = elem->p_level();
-            if (qrule->get_elem_type() != elem_type || qrule->get_p_level() != p_level)
+            if (order != qrule->get_order() || elem_type != qrule->get_elem_type() || p_level != qrule->get_p_level())
             {
+                qrule = QBase::build(QGAUSS, dim, order);
                 qrule->init(elem_type, p_level);
             }
             n_qp_patch += qrule->n_points();
@@ -901,6 +937,7 @@ FEDataManager::interp(
         std::fill(F_qp.begin(),F_qp.end(),0.0);
 
         // Loop over the elements and compute the positions of the quadrature points.
+        X_fe->attach_quadrature_rule(qrule.get());
         unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -909,7 +946,7 @@ FEDataManager::interp(
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -943,6 +980,7 @@ FEDataManager::interp(
         if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, d_interp_weighting_fcn);
 
         // Loop over the elements and accumulate the right-hand-side values.
+        F_fe->attach_quadrature_rule(qrule.get());
         qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -956,7 +994,7 @@ FEDataManager::interp(
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
             const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -988,6 +1026,9 @@ FEDataManager::interp(
             qp_offset += n_qp;
         }
     }
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
@@ -1021,7 +1062,8 @@ FEDataManager::restrictData(
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -1034,7 +1076,6 @@ FEDataManager::restrictData(
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
 #endif
     std::vector<std::vector<unsigned int> > F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices[i].reserve(MAX_NODES);
     AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
@@ -1045,13 +1086,20 @@ FEDataManager::restrictData(
 #endif
     FEType X_fe_type = X_dof_map.variable_type(0);
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices[d].reserve(MAX_NODES);
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
     const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
 
-    // Communicate any unsynchronized ghost data and enforce any constraints.
+    // Communicate any unsynchronized ghost data, enforce any constraints, and
+    // extract the underlying solution data.
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+    double* X_local_soln;
+    VecGetArray(X_local_vec, &X_local_soln);
 
     // Loop over the patches to assemble the right-hand-side vector used to
     // solve for F.
@@ -1133,8 +1181,8 @@ FEDataManager::restrictData(
                 Box<NDIM> box;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    box.lower(d) = std::floor((X_min[d]-patch_x_lower[d])/patch_dx[d]-0.5) + patch_lower[d];
-                    box.upper(d) = std::ceil( (X_max[d]-patch_x_lower[d])/patch_dx[d]+0.5) + patch_lower[d];
+                    box.lower(d) = std::floor((X_min[d]-patch_x_lower[d])/patch_dx[d]-1.5) + patch_lower[d];
+                    box.upper(d) = std::ceil( (X_max[d]-patch_x_lower[d])/patch_dx[d]+1.5) + patch_lower[d];
                 }
                 for (BoxIterator<NDIM> b(box); b; b++)
                 {
@@ -1178,7 +1226,7 @@ FEDataManager::restrictData(
 
             const unsigned int n_basis = F_dof_indices[0].size();
 
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
             {
                 const SideIndex<NDIM>& i_s = intersection_indices[qp];
@@ -1202,6 +1250,9 @@ FEDataManager::restrictData(
             }
         }
     }
+
+    VecRestoreArray(X_local_vec, &X_local_soln);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
@@ -1667,11 +1718,19 @@ FEDataManager::applyGradientDetector(
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
         X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+
         NumericVector<double>* X_vec = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec.get());
+
+        PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(X_ghost_vec.get());
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
 
         // Tag cells for refinement whenever they contain active element
         // quadrature points.
@@ -1705,7 +1764,7 @@ FEDataManager::applyGradientDetector(
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
-                get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
                 const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -1723,6 +1782,9 @@ FEDataManager::applyGradientDetector(
                 }
             }
         }
+
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     }
     else if (level_number+1 == d_level_number && level_number < d_hierarchy->getFinestLevelNumber())
     {
@@ -1900,10 +1962,19 @@ FEDataManager::updateQuadPointCountData(
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
         X_fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+
         NumericVector<double>* X_vec = getCoordsVector();
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
+        PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(X_ghost_vec);
+
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
+
         boost::multi_array<double,2> X_node;
         Point X_qp;
         int local_patch_num = 0;
@@ -1931,7 +2002,7 @@ FEDataManager::updateQuadPointCountData(
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
-                get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
                 const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -1949,6 +2020,9 @@ FEDataManager::updateQuadPointCountData(
                 }
             }
         }
+
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     }
     return;
 }// updateQuadPointCountData
@@ -2125,6 +2199,13 @@ FEDataManager::collectActivePatchElements(
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec.get());
 
+        PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(X_ghost_vec.get());
+        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_local_vec;
+        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        double* X_local_soln;
+        VecGetArray(X_local_vec, &X_local_soln);
+
         // Keep only those elements that have a quadrature point on the local
         // patch.
         boost::multi_array<double,2> X_node;
@@ -2157,7 +2238,7 @@ FEDataManager::collectActivePatchElements(
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
-                get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
                 const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
@@ -2181,6 +2262,9 @@ FEDataManager::collectActivePatchElements(
                 if (!found_qp) nonlocal_elems.insert(elem);
             }
         }
+
+        VecRestoreArray(X_local_vec, &X_local_soln);
+        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
         // Rebuild the set of frontier elements, which are any neighbors of a
         // local element that has not already been determined to be either a

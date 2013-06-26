@@ -233,12 +233,6 @@ main(
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
-        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-        {
-            System& system = equation_systems->get_system(k);
-            system.get_dof_map().add_periodic_boundary(pbc);
-        }
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -300,6 +294,13 @@ main(
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
+        ib_method_ops->initializeFESystems();
+        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
+        {
+            System& system = equation_systems->get_system(k);
+            system.get_dof_map().add_periodic_boundary(pbc);
+        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
