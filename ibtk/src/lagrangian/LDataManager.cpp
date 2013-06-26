@@ -1176,8 +1176,8 @@ LDataManager::beginDataRedistribution(
     const double* const domain_x_lower = d_grid_geom->getXLower();
     const double* const domain_x_upper = d_grid_geom->getXUpper();
     const double* const domain_dx = d_grid_geom->getDx();
-    std::vector<std::vector<IntVector<NDIM> > > periodic_offset_data(finest_ln+1);
-    std::vector<std::vector<Vector> > periodic_displacement_data(finest_ln+1);
+    std::vector<std::map<int,IntVector<NDIM> > > periodic_offset_data(finest_ln+1);
+    std::vector<std::map<int,Vector> > periodic_displacement_data(finest_ln+1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1191,8 +1191,6 @@ LDataManager::beginDataRedistribution(
         // been (re-)initialized yet.
         boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         unsigned int num_nodes = X_data.shape()[0];
-        periodic_offset_data      [level_number].resize(num_nodes);
-        periodic_displacement_data[level_number].resize(num_nodes);
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
         const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift();
         double level_dx[NDIM];
@@ -1201,24 +1199,28 @@ LDataManager::beginDataRedistribution(
         {
             Eigen::Map<Vector> X(&X_data[local_idx][0],NDIM);
             Vector X_real = X;
-            IntVector<NDIM>& periodic_offset = periodic_offset_data      [level_number][local_idx];
-            Vector& periodic_displacement    = periodic_displacement_data[level_number][local_idx];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (periodic_shift[d])
                 {
                     double domain_length = domain_x_upper[d]-domain_x_lower[d];
-                    while (X[d] < domain_x_lower[d]) X[d] += domain_length;
-                    while (X[d] > domain_x_upper[d]) X[d] -= domain_length;
-                    TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] <= domain_x_upper[d]);
+                    while (X[d] <  domain_x_lower[d]) X[d] += domain_length;
+                    while (X[d] >= domain_x_upper[d]) X[d] -= domain_length;
+                    TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
                 }
-                X[d] = std::max(X[d], domain_x_lower[d] + std::numeric_limits<double>::epsilon());
+                X[d] = std::max(X[d], domain_x_lower[d]);
                 X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
             }
-            periodic_displacement = X_real-X;
+            Vector periodic_displacement = X_real-X;
+            IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = round(periodic_displacement[d]/level_dx[d]);
+            }
+            if (periodic_offset != IntVector<NDIM>(0))
+            {
+                periodic_offset_data      [level_number][local_idx] = periodic_offset;
+                periodic_displacement_data[level_number][local_idx] = periodic_displacement;
             }
         }
         d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
@@ -1226,18 +1228,19 @@ LDataManager::beginDataRedistribution(
 
     // Update the index patch data.
     //
-    // We only keep nodes whose new locations are in the patch interior.
-    // That is to say, we only keep the nodes that the patch will own
-    // after redistribution.
+    // We only keep nodes whose new locations are in the patch interior.  That
+    // is to say, we only keep the nodes that the patch will own after
+    // redistribution.
     //
-    // Notice that we must ensure that we register any periodic shifts only once
-    // per node.
+    // Notice that it is possible for periodic copies of nodes to appear in
+    // multiple grid cells within the ghost cell region.  We must therefore
+    // ensure that nodes passing through periodic boundaries are added to the
+    // patch only once.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
         boost::multi_array_ref<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        std::set<int> registered_shift;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1250,6 +1253,7 @@ LDataManager::beginDataRedistribution(
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
+            std::set<int> registered_periodic_idx;
             for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
             {
                 const Index<NDIM>& old_cell_idx = *it;
@@ -1264,16 +1268,23 @@ LDataManager::beginDataRedistribution(
                         const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(new_cell_idx))
                         {
-                            const IntVector<NDIM>& periodic_offset = periodic_offset_data[level_number][local_idx];
-                            if (periodic_offset != IntVector<NDIM>(0) && registered_shift.find(local_idx) == registered_shift.end())
+                            std::map<int,IntVector<NDIM> >::const_iterator it_offset = periodic_offset_data[level_number].find(local_idx);
+                            const bool periodic_node = it_offset != periodic_offset_data[level_number].end();
+                            const bool unregistered_periodic_node = periodic_node && registered_periodic_idx.find(local_idx) == registered_periodic_idx.end();
+                            if (!periodic_node || unregistered_periodic_node)
                             {
-                                registered_shift.insert(local_idx);
-                                const Vector& periodic_displacement = periodic_displacement_data[level_number][local_idx];
-                                node_idx->registerPeriodicShift(periodic_offset, periodic_displacement);
+                                if (unregistered_periodic_node)
+                                {
+                                    const IntVector<NDIM>& periodic_offset = it_offset->second;
+                                    std::map<int,Vector>::const_iterator it_displacement = periodic_displacement_data[level_number].find(local_idx);
+                                    const Vector& periodic_displacement = it_displacement->second;
+                                    node_idx->registerPeriodicShift(periodic_offset, periodic_displacement);
+                                    registered_periodic_idx.insert(local_idx);
+                                }
+                                if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
+                                LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
+                                new_node_set->push_back(node_idx);
                             }
-                            if (!new_idx_data->isElement(new_cell_idx)) new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
-                            LNodeSet* const new_node_set = new_idx_data->getItem(new_cell_idx);
-                            new_node_set->push_back(node_idx);
                         }
                     }
                 }

@@ -2652,12 +2652,12 @@ IBStandardInitializer::getShiftedVertexPosn(
         if (periodic_shift[d])
         {
             double domain_length = domain_x_upper[d]-domain_x_lower[d];
-            while (X[d] < domain_x_lower[d]) X[d] += domain_length;
-            while (X[d] > domain_x_upper[d]) X[d] -= domain_length;
-            TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] <= domain_x_upper[d]);
+            while (X[d] <  domain_x_lower[d]) X[d] += domain_length;
+            while (X[d] >= domain_x_upper[d]) X[d] -= domain_length;
+            TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
+            X[d] = std::max(X[d], domain_x_lower[d]);
+            X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
         }
-        X[d] = std::max(X[d], domain_x_lower[d] + std::numeric_limits<double>::epsilon());
-        X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
     }
     return X;
 }// getShiftedVertexPosn
