@@ -182,7 +182,7 @@ get_dirichlet_bdry_ids(
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 
-static const int MAX_NODES = (NDIM == 2 ? 9 : 27);
+static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
 static const double POINT_FACTOR = 2.0;
 
 inline double
@@ -191,11 +191,11 @@ get_elem_hmax(
     const boost::multi_array<double,2>& X_node)
 {
     libMesh::Point s_node_cache[MAX_NODES];
-    const int n_node = elem->n_nodes();
+    const unsigned int n_node = elem->n_nodes();
 #if !defined(NDEBUG)
     TBOX_ASSERT(n_node <= MAX_NODES);
 #endif
-    for (int k = 0; k < n_node; ++k)
+    for (unsigned int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
         libMesh::Point& X = elem->point(k);
@@ -209,7 +209,7 @@ get_elem_hmax(
     {
         hmax = std::max(hmax, elem->build_edge(e)->hmax());
     }
-    for (int k = 0; k < n_node; ++k)
+    for (unsigned int k = 0; k < n_node; ++k)
     {
         elem->point(k) = s_node_cache[k];
     }
@@ -397,8 +397,10 @@ FEDataManager::buildGhostedSolutionVector(
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
     if (!d_system_ghost_vec.count(system_name))
     {
+        plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: " << system_name << "\n";
         if (!d_active_patch_ghost_dofs.count(system_name))
         {
+            plog << "FEDataManager::buildGhostedSolutionVector(): constructing ghost DOF index list for system: " << system_name << "\n";
             std::vector<Elem*> active_elems;
             collect_unique_elems(active_elems, d_active_patch_elem_map);
             collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], active_elems, system_name);
@@ -507,12 +509,17 @@ FEDataManager::spread(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
                 qrule = QBase::build(QGAUSS, dim, order);
+            }
+            ElemType elem_type = elem->type();
+            unsigned int p_level = elem->p_level();
+            if (qrule->get_elem_type() != elem_type || qrule->get_p_level() != p_level)
+            {
+                qrule->init(elem_type, p_level);
             }
             n_qp_patch += qrule->n_points();
         }
@@ -537,8 +544,7 @@ FEDataManager::spread(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
@@ -613,6 +619,7 @@ FEDataManager::prolongData(
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
@@ -874,12 +881,17 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
                 qrule = QBase::build(QGAUSS, dim, order);
+            }
+            ElemType elem_type = elem->type();
+            unsigned int p_level = elem->p_level();
+            if (qrule->get_elem_type() != elem_type || qrule->get_p_level() != p_level)
+            {
+                qrule->init(elem_type, p_level);
             }
             n_qp_patch += qrule->n_points();
         }
@@ -899,8 +911,7 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
@@ -947,8 +958,7 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             const double hmax = get_elem_hmax(elem, X_node);
-            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                      std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+            const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
             const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
             if (order != qrule->get_order())
             {
@@ -1697,8 +1707,7 @@ FEDataManager::applyGradientDetector(
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
                 if (order != qrule->get_order())
                 {
@@ -1924,8 +1933,7 @@ FEDataManager::updateQuadPointCountData(
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
                 if (order != qrule->get_order())
                 {
@@ -2151,8 +2159,7 @@ FEDataManager::collectActivePatchElements(
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                 const double hmax = get_elem_hmax(elem, X_node);
-                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0,
-                                          std::ceil(POINT_FACTOR*hmax/patch_dx_min));
+                const int npts = std::max(elem->default_order() == FIRST ? 1.0 : 2.0, std::ceil(POINT_FACTOR*hmax/patch_dx_min));
                 const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
                 if (order != qrule->get_order())
                 {
