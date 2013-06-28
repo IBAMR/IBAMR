@@ -909,6 +909,21 @@ protected:
     setupTagBuffer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
+    /*!
+     * Returns true when we are regridding the patch hierarchy.
+     */
+    bool
+    regriddingHierarchy() const
+        { return d_regridding_hierarchy; }
+
+    /*!
+     * Returns true when we are executing a time step in which a regridding
+     * operation was performed.
+     */
+    bool
+    atRegridTimeStep() const
+        { return d_at_regrid_time_step; }
+    
     /*
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.
@@ -932,13 +947,6 @@ protected:
      * Indicates whether the hierarchy has been initialized.
      */
     bool d_hierarchy_is_initialized;
-
-    /*
-     * Indicates whether we are currently regridding the hierarchy, or whether
-     * the time step began by regridding the hierarchy.
-     */
-    bool d_regridding_hierarchy;  // true only when we are regridding
-    bool d_at_regrid_time_step;   // true for the duration of a time step that included a regrid operation
     
     /*
      * Collection of child integrator objects.
@@ -1102,6 +1110,13 @@ private:
      */
     void
     getFromRestart();
+
+    /*
+     * Indicates whether we are currently regridding the hierarchy, or whether
+     * the time step began by regridding the hierarchy.
+     */
+    bool d_regridding_hierarchy;  // true only when we are regridding
+    bool d_at_regrid_time_step;   // true for the duration of a time step that included a regrid operation
 
     /*
      * Cached communications algorithms, strategies, and schedules.

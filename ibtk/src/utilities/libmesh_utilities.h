@@ -417,20 +417,21 @@ outer_product(
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline std::vector<std::pair<double,libMesh::Point> >
+inline void
 intersect_line_with_edge(
+    std::vector<std::pair<double,libMesh::Point> >& t_vals,
     libMesh::Edge* elem,
     libMesh::Point r,
     libMesh::VectorValue<double> q)
 {
-    std::vector<std::pair<double,libMesh::Point> > t_vals;
+    t_vals.resize(0);
     switch (elem->type())
     {
         case libMeshEnums::EDGE2:
         {
             // Linear interpolation:
             //
-            //    0.5*(1-u)*p0 + 0.5*(1+u)*p1 = r + t * q
+            //    0.5*(1-u)*p0 + 0.5*(1+u)*p1 = r + t*q
             //
             // Factor the interpolation formula:
             //
@@ -481,11 +482,11 @@ intersect_line_with_edge(
         {
             // Quadratic interpolation:
             //
-            //    0.5*u*(u-1)*p0 + 0.5*u*(u+1)*p1 + (1-u*u)*p2 = r + t * q
+            //    0.5*u*(u-1)*p0 + 0.5*u*(u+1)*p1 + (1-u*u)*p2 = r + t*q
             //
             // Factor the interpolation formula:
             //
-            //    (0.5*p0+0.5*p1-p2)*u^2 + 0.5*(p1-p0)*u + p2 = r + t * q
+            //    (0.5*p0+0.5*p1-p2)*u^2 + 0.5*(p1-p0)*u + p2 = r + t*q
             //
             // Solve for u:
             //
@@ -554,25 +555,26 @@ intersect_line_with_edge(
                        << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
-    return t_vals;
+    return;
 }// intersect_line_with_edge
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline std::vector<std::pair<double,libMesh::Point> >
+inline void
 intersect_line_with_face(
+    std::vector<std::pair<double,libMesh::Point> >& t_vals,
     libMesh::Face* elem,
     libMesh::Point r,
     libMesh::VectorValue<double> q)
 {
-    std::vector<std::pair<double,libMesh::Point> > t_vals;
+    t_vals.resize(0);
     switch (elem->type())
     {
         case libMeshEnums::TRI3:
         {
             // Linear interpolation:
             //
-            //    (1-u-v)*p0 + u*p1 + v*p2 = r + t * q
+            //    (1-u-v)*p0 + u*p1 + v*p2 = r + t*q
             //
             // Factor the interpolation formula:
             //
@@ -754,7 +756,7 @@ intersect_line_with_face(
                        << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
-    return t_vals;
+    return;
 }// intersect_line_with_face
 
 struct DofObjectComp
