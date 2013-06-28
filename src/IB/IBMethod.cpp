@@ -372,14 +372,14 @@ IBMethod::preprocessIntegrateData(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        d_X_current_data    [ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-        d_X_new_data        [ln] = d_l_data_manager->createLData("X_new",ln,NDIM);
-        d_U_current_data    [ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
-        d_U_new_data        [ln] = d_l_data_manager->createLData("U_new",ln,NDIM);
-        d_F_current_data    [ln] = d_l_data_manager->getLData("F",ln);
+        d_X_current_data   [ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+        d_X_new_data       [ln] = d_l_data_manager->createLData("X_new",ln,NDIM);
+        d_U_current_data   [ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
+        d_U_new_data       [ln] = d_l_data_manager->createLData("U_new",ln,NDIM);
+        d_F_current_data   [ln] = d_l_data_manager->getLData("F",ln);
         if (d_use_fixed_coupling_ops)
         {
-            d_X_LE_new_data [ln] = d_l_data_manager->createLData("X_LE_new",ln,NDIM);
+            d_X_LE_new_data[ln] = d_l_data_manager->createLData("X_LE_new",ln,NDIM);
         }
 
         // Initialize X^{n+1} to equal X^{n}, and initialize U^{n+1} to equal
