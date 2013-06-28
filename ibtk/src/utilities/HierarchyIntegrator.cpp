@@ -105,6 +105,8 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_hierarchy = NULL;
     d_gridding_alg = NULL;
     d_hierarchy_is_initialized = false;
+    d_regridding_hierarchy = false;
+    d_at_regrid_time_step = false;
     d_visit_writer = NULL;
     d_parent_integrator = NULL;
     d_current_num_cycles = -1;
@@ -287,7 +289,10 @@ HierarchyIntegrator::advanceHierarchy(
     if (atRegridPoint())
     {
         if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
+        d_regridding_hierarchy = true;
         regridHierarchy();
+        d_regridding_hierarchy = false;
+        d_at_regrid_time_step = true;
     }
 
     // Determine the number of cycles and the time step size.
@@ -298,7 +303,7 @@ HierarchyIntegrator::advanceHierarchy(
     // recursively execute all preprocessing callbacks registered with the
     // parent and child integrators.
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
-
+    
     // Perform one or more cycles.  In each cycle, execute the integration
     // method of the parent integrator, and recursively execute all integration
     // callbacks registered with the parent and child integrators.
@@ -338,6 +343,9 @@ HierarchyIntegrator::advanceHierarchy(
     // Reset all time dependent data.
     if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierarchyData(new_time);
+
+    // Reset the regrid indicator.
+    d_at_regrid_time_step = false;
     return;
 }// advanceHierarchy
 

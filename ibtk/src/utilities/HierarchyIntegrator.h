@@ -934,6 +934,13 @@ protected:
     bool d_hierarchy_is_initialized;
 
     /*
+     * Indicates whether we are currently regridding the hierarchy, or whether
+     * the time step began by regridding the hierarchy.
+     */
+    bool d_regridding_hierarchy;  // true only when we are regridding
+    bool d_at_regrid_time_step;   // true for the duration of a time step that included a regrid operation
+    
+    /*
      * Collection of child integrator objects.
      */
     HierarchyIntegrator* d_parent_integrator;
