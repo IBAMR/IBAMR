@@ -54,6 +54,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/partitioner.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -267,7 +268,8 @@ public:
      */
     libMesh::NumericVector<double>*
     buildGhostedSolutionVector(
-        const std::string& system_name);
+        const std::string& system_name,
+        bool localize_data=true);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
@@ -279,7 +281,8 @@ public:
      * \return A pointer to the ghosted coordinates (nodal position) vector.
      */
     libMesh::NumericVector<double>*
-    buildGhostedCoordsVector();
+    buildGhostedCoordsVector(
+        bool localize_data=true);
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid.
@@ -289,9 +292,7 @@ public:
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool close_F=true,
-        bool close_X=true);
+        const std::string& system_name);
 
     /*!
      * \brief Prolong a value or a density from the FE mesh to the Cartesian
@@ -303,8 +304,6 @@ public:
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        bool close_F=true,
-        bool close_X=true,
         bool is_density=true,
         bool accumulate_on_grid=true);
 
@@ -318,8 +317,7 @@ public:
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        bool close_X=true);
+        double fill_data_time=0.0);
 
     /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
@@ -329,8 +327,7 @@ public:
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool close_X=true);
+        const std::string& system_name);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
@@ -362,6 +359,17 @@ public:
         libMeshEnums::Order quad_order=FIFTH,
         double tol=1.0e-6,
         unsigned int max_its=100);
+
+    /*!
+     * Update the quadrature rule for the current element, if needed.  Returns
+     * true if the quadrature rule is updated; false otherwise.
+     */
+    bool
+    updateQuadratureRule(
+        libMesh::AutoPtr<libMesh::QBase>& qrule,
+        libMesh::Elem* elem,
+        const boost::multi_array<double,2>& X_node,
+        double dx_min) const;
 
     /*!
      * \brief Update the cell workload estimate.
