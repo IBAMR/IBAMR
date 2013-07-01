@@ -578,17 +578,17 @@ protected:
     /*
      * Method paramters.
      */
-    bool d_use_IB_spread_operator;
-    std::string d_spread_delta_fcn;
     bool d_use_IB_interp_operator;
-    std::string d_interp_delta_fcn;
+    IBTK::FEInterpSpec d_interp_spec;
+    bool d_use_IB_spread_operator;
+    IBTK::FESpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
-    bool d_use_consistent_mass_matrix;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
+    bool d_use_consistent_mass_matrix;
 
     /*
      * Data related to handling constrained body constraints.

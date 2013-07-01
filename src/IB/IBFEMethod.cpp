@@ -85,47 +85,6 @@ get_dirichlet_bdry_ids(
     }
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
-
-static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-
-inline double
-get_elem_hmax(
-    Elem* elem,
-    const boost::multi_array<double,2>& X_node)
-{
-    libMesh::Point s_node_cache[MAX_NODES];
-    const unsigned int n_node = elem->n_nodes();
-    TBOX_ASSERT(n_node <= MAX_NODES);
-    for (unsigned int k = 0; k < n_node; ++k)
-    {
-        s_node_cache[k] = elem->point(k);
-        libMesh::Point& X = elem->point(k);
-        for (int d = 0; d < NDIM; ++d)
-        {
-            X(d) = X_node[k][d];
-        }
-    }
-    double hmax = 0.0;
-    switch (elem->type())
-    {
-        case EDGE2:
-        case EDGE3:
-        case EDGE4:
-            hmax = elem->hmax();
-            break;
-        default:
-            for (unsigned int e = 0; e < elem->n_edges(); ++e)
-            {
-                hmax = std::max(hmax, elem->build_edge(e)->hmax());
-            }
-            break;
-    }
-    for (unsigned int k = 0; k < n_node; ++k)
-    {
-        elem->point(k) = s_node_cache[k];
-    }
-    return hmax;
-}// get_elem_hmax
 }
 
 const std::string IBFEMethod::       COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -540,7 +499,7 @@ IBFEMethod::computeLagrangianForce(
     {
         if (d_constrained_part[part])
         {
-           computeConstraintForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], *d_U_b_vecs[part], data_time, part);
+            computeConstraintForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], *d_U_b_vecs[part], data_time, part);
         }
         else
         {
@@ -888,17 +847,13 @@ IBFEMethod::putToDatabase(
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_use_IB_spread_operator", d_use_IB_spread_operator);
-    db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
-    db->putBool("d_use_IB_interp_operator", d_use_IB_interp_operator);
-    db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
     db->putBool("d_split_forces", d_split_forces);
     db->putBool("d_use_jump_conditions", d_use_jump_conditions);
-    db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
     db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
     db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
     db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
+    db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
 }// putToDatabase
 
@@ -1327,8 +1282,8 @@ IBFEMethod::spreadTransmissionForceDensity(
                     dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node_side, *X_petsc_vec, X_local_soln, side_dof_indices);
-                const bool qrule_changed = d_fe_data_managers[part]->updateQuadratureRule(qrule_face, side_elem.get(), X_node, patch_dx_min);
-                if (qrule_changed)
+                const bool qrule_needs_reinit = d_fe_data_managers[part]->updateFESpreadQuadratureRule(qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
+                if (qrule_needs_reinit)
                 {
                     fe_face->attach_quadrature_rule(qrule_face.get());
                 }
@@ -1386,7 +1341,7 @@ IBFEMethod::spreadTransmissionForceDensity(
         if (qp_offset == 0) continue;
 
         // Spread the boundary forces to the grid.
-        const std::string& spread_weighting_fcn = d_fe_data_managers[part]->getSpreadWeightingFunction();
+        const std::string& spread_weighting_fcn = d_spread_spec.weighting_fcn;
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
@@ -1478,7 +1433,7 @@ IBFEMethod::imposeJumpConditions(
     libMesh::Point X_qp;
     double P;
     boost::multi_array<double,2> F_node, X_node;
-    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
     IBTK::Point X_min, X_max;
     std::vector<libMesh::Point>   intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
@@ -1564,9 +1519,10 @@ IBFEMethod::imposeJumpConditions(
                 // determine the bounding box of the current configuration of
                 // the side element, and set the nodal coordinates to correspond
                 // to the physical coordinates.
+                s_node_cache.resize(n_node_side);
+                X_node_cache.resize(n_node_side);
                 X_min = IBTK::Point::Constant( 0.5*std::numeric_limits<double>::max());
                 X_max = IBTK::Point::Constant(-0.5*std::numeric_limits<double>::max());
-                TBOX_ASSERT(n_node_side <= MAX_NODES);
                 for (unsigned int k = 0; k < n_node_side; ++k)
                 {
                     s_node_cache[k] = side_elem->point(k);
@@ -1837,18 +1793,21 @@ IBFEMethod::commonConstructor(
     }
 
     // Set some default values.
-    d_use_IB_spread_operator = true;
-    d_spread_delta_fcn = "IB_4";
+    const bool use_adaptive_quadrature = true;
+    const int point_factor = 2.0;
+    const bool interp_use_consistent_mass_matrix = true;
     d_use_IB_interp_operator = true;
-    d_interp_delta_fcn = "IB_4";
+    d_interp_spec = FEInterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_factor, interp_use_consistent_mass_matrix);
+    d_use_IB_spread_operator = true;
+    d_spread_spec = FESpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_factor);
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
-    d_use_consistent_mass_matrix = true;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
     d_quad_type = QGAUSS;
-    d_quad_order = FIFTH;
+    d_quad_order = INVALID_ORDER;
+    d_use_consistent_mass_matrix = true;
     d_do_log = false;
 
     // Indicate that all of the parts are unconstrained by default and set some
@@ -1921,7 +1880,7 @@ IBFEMethod::commonConstructor(
     pout << "\n";
 
     // Check the choices for the delta function.
-    if (d_interp_delta_fcn != d_spread_delta_fcn)
+    if (d_interp_spec.weighting_fcn != d_spread_spec.weighting_fcn)
     {
         pout << "WARNING: different delta functions are being used for velocity interpolation and force spreading.\n"
              << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
@@ -1938,7 +1897,7 @@ IBFEMethod::commonConstructor(
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_delta_fcn, d_spread_delta_fcn, d_use_consistent_mass_matrix);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
         d_ghosts = IntVector<NDIM>::max(d_ghosts,d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems object.
@@ -1961,36 +1920,64 @@ IBFEMethod::commonConstructor(
 void
 IBFEMethod::getFromInput(
     Pointer<Database> db,
-    bool is_from_restart)
+    bool /*is_from_restart*/)
 {
-    if (!is_from_restart)
+    // Interpolation settings.
+    if      (db->isBool("use_IB_interp_operator")) d_use_IB_interp_operator = db->getBool("use_IB_interp_operator");
+
+    if      (db->isString("interp_delta_fcn"     )) d_interp_spec.weighting_fcn = db->getString("interp_delta_fcn"     );
+    else if (db->isString("interaction_delta_fcn")) d_interp_spec.weighting_fcn = db->getString("interaction_delta_fcn");
+    else if (db->isString("delta_fcn")            ) d_interp_spec.weighting_fcn = db->getString("delta_fcn"            );
+
+    if      (db->isString("interp_quad_type"     )) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"     ));
+    else if (db->isString("interaction_quad_type")) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interaction_quad_type"));
+
+    if      (db->isString("interp_quad_order"     )) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"     ));
+    else if (db->isString("interaction_quad_order")) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interaction_quad_order"));
+
+    if      (db->isBool("interp_use_adaptive_quadrature"     )) d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature"     );
+    else if (db->isBool("interaction_use_adaptive_quadrature")) d_interp_spec.use_adaptive_quadrature = db->getBool("interaction_use_adaptive_quadrature");
+
+    if      (db->isDouble("interp_point_factor"     )) d_interp_spec.point_factor = db->getDouble("interp_point_factor"     );
+    else if (db->isDouble("interaction_point_factor")) d_interp_spec.point_factor = db->getDouble("interaction_point_factor");
+
+    if      (db->isBool("interp_use_consistent_mass_matrix"     )) d_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix"     );
+    else if (db->isBool("interaction_use_consistent_mass_matrix")) d_interp_spec.use_consistent_mass_matrix = db->getBool("interaction_use_consistent_mass_matrix");
+
+    // Spreading settings.
+    if      (db->isBool("use_IB_spread_operator")) d_use_IB_spread_operator = db->getBool("use_IB_spread_operator");
+
+    if      (db->isString("spread_delta_fcn"     )) d_spread_spec.weighting_fcn = db->getString("spread_delta_fcn"     );
+    else if (db->isString("interaction_delta_fcn")) d_spread_spec.weighting_fcn = db->getString("interaction_delta_fcn");
+    else if (db->isString("delta_fcn")            ) d_spread_spec.weighting_fcn = db->getString("delta_fcn"            );
+
+    if      (db->isString("spread_quad_type"     )) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"     ));
+    else if (db->isString("interaction_quad_type")) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interaction_quad_type"));
+
+    if      (db->isString("spread_quad_order"     )) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"     ));
+    else if (db->isString("interaction_quad_order")) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interaction_quad_order"));
+
+    if      (db->isBool("spread_use_adaptive_quadrature"     )) d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature"     );
+    else if (db->isBool("interaction_use_adaptive_quadrature")) d_spread_spec.use_adaptive_quadrature = db->getBool("interaction_use_adaptive_quadrature");
+
+    if      (db->isDouble("spread_point_factor"     )) d_spread_spec.point_factor = db->getDouble("spread_point_factor"     );
+    else if (db->isDouble("interaction_point_factor")) d_spread_spec.point_factor = db->getDouble("interaction_point_factor");
+
+    // Force computation settings.
+    if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
+    if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
+    if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
+    if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
+    if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+
+    // Other settings.
+    if (db->isInteger("min_ghost_cell_width"))
     {
-        if      (db->isBool("use_IB_spread_operator"   )) d_use_IB_spread_operator = db->getBool("use_IB_spread_operator"   );
-        else if (db->isBool("use_IB_spreading_operator")) d_use_IB_spread_operator = db->getBool("use_IB_spreading_operator");
-        if      (db->isString("spread_delta_fcn"   )) d_spread_delta_fcn = db->getString("spread_delta_fcn"   );
-        else if (db->isString("spreading_delta_fcn")) d_spread_delta_fcn = db->getString("spreading_delta_fcn");
-        else if (db->isString("delta_fcn"          )) d_spread_delta_fcn = db->getString("delta_fcn"          );
-
-        if      (db->isBool("use_IB_interp_operator"       )) d_use_IB_interp_operator = db->getBool("use_IB_interp_operator"       );
-        else if (db->isBool("use_IB_interpolation_operator")) d_use_IB_interp_operator = db->getBool("use_IB_interpolation_operator");
-        if      (db->isString("interp_delta_fcn"       )) d_interp_delta_fcn = db->getString("interp_delta_fcn"       );
-        else if (db->isString("interpolation_delta_fcn")) d_interp_delta_fcn = db->getString("interpolation_delta_fcn");
-        else if (db->isString("delta_fcn"              )) d_interp_delta_fcn = db->getString("delta_fcn"              );
-
-        if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");
-        if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-        if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
-        if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
-        if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
-
-        if (db->isInteger("min_ghost_cell_width"))
-        {
-            d_ghosts = db->getInteger("min_ghost_cell_width");
-        }
-        else if (db->isDouble("min_ghost_cell_width"))
-        {
-            d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
-        }
+        d_ghosts = db->getInteger("min_ghost_cell_width");
+    }
+    else if (db->isDouble("min_ghost_cell_width"))
+    {
+        d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
     }
     if      (db->keyExists("do_log"        )) d_do_log = db->getBool("do_log"        );
     else if (db->keyExists("enable_logging")) d_do_log = db->getBool("enable_logging");
@@ -2019,17 +2006,13 @@ IBFEMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_use_IB_spread_operator = db->getBool("d_use_IB_spread_operator");
-    d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
-    d_use_IB_interp_operator = db->getBool("d_use_IB_interp_operator");
-    d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
     d_split_forces = db->getBool("d_split_forces");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
-    d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
     d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
     d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
+    d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 }// getFromRestart
 

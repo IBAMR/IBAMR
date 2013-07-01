@@ -82,6 +82,65 @@ template <typename T> class SparseMatrix;
 namespace IBTK
 {
 /*!
+ * \brief Struct FEInterpSpec encapsulates data needed to specify the manner in
+ * which Eulerian-to-Lagrangian interpolation is performed when using a FE
+ * structural discretization.
+ */
+struct FEInterpSpec
+{
+    FEInterpSpec() { }
+
+    FEInterpSpec(
+        const std::string& weighting_fcn,
+        const libMeshEnums::QuadratureType& quad_type,
+        const libMeshEnums::Order& quad_order,
+        bool use_adaptive_quadrature,
+        double point_factor,
+        bool use_consistent_mass_matrix)
+        : weighting_fcn(weighting_fcn),
+          quad_type(quad_type),
+          quad_order(quad_order),
+          use_adaptive_quadrature(use_adaptive_quadrature),
+          point_factor(point_factor),
+          use_consistent_mass_matrix(use_consistent_mass_matrix) { }
+
+    std::string weighting_fcn;
+    libMeshEnums::QuadratureType quad_type;
+    libMeshEnums::Order quad_order;
+    bool use_adaptive_quadrature;
+    double point_factor;
+    bool use_consistent_mass_matrix;
+};
+
+/*!
+ * \brief Struct FESpreadSpec encapsulates data needed to specify the manner in
+ * which Lagrangian-to-Eulerian spreading is performed when using a FE
+ * structural discretization.
+ */
+struct FESpreadSpec
+{
+    FESpreadSpec() { }
+
+    FESpreadSpec(
+        const std::string& weighting_fcn,
+        const libMeshEnums::QuadratureType& quad_type,
+        const libMeshEnums::Order& quad_order,
+        bool use_adaptive_quadrature,
+        double point_factor)
+        : weighting_fcn(weighting_fcn),
+          quad_type(quad_type),
+          quad_order(quad_order),
+          use_adaptive_quadrature(use_adaptive_quadrature),
+          point_factor(point_factor) { }
+
+    std::string weighting_fcn;
+    libMeshEnums::QuadratureType quad_type;
+    libMeshEnums::Order quad_order;
+    bool use_adaptive_quadrature;
+    double point_factor;
+};
+
+/*!
  * \brief Class FEDataManager coordinates data required for Lagrangian-Eulerian
  * interaction between a Lagrangian finite element (FE) mesh.
  *
@@ -128,9 +187,8 @@ public:
     static FEDataManager*
     getManager(
         const std::string& name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
-        bool interp_uses_consistent_mass_matrix,
+        const FEInterpSpec& interp_spec,
+        const FESpreadSpec& spread_spec,
         bool register_for_restart=true);
 
     /*!
@@ -207,39 +265,18 @@ public:
     getGhostCellWidth() const;
 
     /*!
-     * \return The name of the weighting function used for interpolating from
-     * the Cartesian grid to the FE mesh.
+     * \return The specifications of the scheme used for interpolating from the
+     * Cartesian grid to the FE mesh.
      */
-    const std::string&
-    getInterpWeightingFunction() const;
+    const FEInterpSpec&
+    getFEInterpSpec() const;
 
     /*!
-     * \return The name of the weighting function used for spreading densities
-     * from the FE mesh to the Cartesian grid.
+     * \return The specifications of the scheme used for spreading densities
+     * from the FE mesh to the Cartesian grid
      */
-    const std::string&
-    getSpreadWeightingFunction() const;
-
-    /*!
-     * \return A pointer to the quadrature rule used to construct the discrete
-     * Lagrangian-Eulerian interation operators.
-     */
-    libMesh::QBase*
-    getQuadratureRule() const;
-
-    /*!
-     * \return A pointer to the quadrature rule used to construct the discrete
-     * Lagrangian-Eulerian interation operators.
-     */
-    libMesh::QBase*
-    getQuadratureRuleFace() const;
-
-    /*!
-     * \return A boolean value indicating whether the interpolation operator is
-     * defined in terms of a consistent mass matrix.
-     */
-    bool
-    getInterpUsesConsistentMassMatrix() const;
+    const FESpreadSpec&
+    getFESpreadSpec() const;
 
     /*!
      * \return A const reference to the map from local patch number to local
@@ -361,15 +398,38 @@ public:
         unsigned int max_its=100);
 
     /*!
-     * Update the quadrature rule for the current element, if needed.  Returns
-     * true if the quadrature rule is updated; false otherwise.
+     * Update the quadrature rule for the current element used by the
+     * Lagrangian-Eulerian interaction scheme.  If the provided qrule is already
+     * configured appropriately, it is not modified.
+     *
+     * \return true if the quadrature rule is updated or otherwise requires
+     * reinitialization (e.g. because the element type or p_level changed);
+     * false otherwise.
      */
-    bool
-    updateQuadratureRule(
+    static bool
+    updateFEInterpQuadratureRule(
         libMesh::AutoPtr<libMesh::QBase>& qrule,
+        const FEInterpSpec& spec,
         libMesh::Elem* elem,
         const boost::multi_array<double,2>& X_node,
-        double dx_min) const;
+        double dx_min);
+
+    /*!
+     * Update the quadrature rule for the current element used by the
+     * Lagrangian-Eulerian interaction scheme.  If the provided qrule is already
+     * configured appropriately, it is not modified.
+     *
+     * \return true if the quadrature rule is updated or otherwise requires
+     * reinitialization (e.g. because the element type or p_level changed);
+     * false otherwise.
+     */
+    static bool
+    updateFESpreadQuadratureRule(
+        libMesh::AutoPtr<libMesh::QBase>& qrule,
+        const FESpreadSpec& spec,
+        libMesh::Elem* elem,
+        const boost::multi_array<double,2>& X_node,
+        double dx_min);
 
     /*!
      * \brief Update the cell workload estimate.
@@ -477,9 +537,8 @@ protected:
      */
     FEDataManager(
         const std::string& object_name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
-        bool interp_uses_consistent_mass_matrix,
+        const FEInterpSpec& interp_spec,
+        const FESpreadSpec& spread_spec,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
 
@@ -628,9 +687,8 @@ private:
      * The weighting functions and quadrature rule used to mediate
      * Lagrangian-Eulerian interaction.
      */
-    const std::string d_interp_weighting_fcn;
-    const std::string d_spread_weighting_fcn;
-    const bool d_interp_uses_consistent_mass_matrix;
+    const FEInterpSpec d_interp_spec;
+    const FESpreadSpec d_spread_spec;
 
     /*
      * SAMRAI::hier::IntVector object which determines the ghost cell width used

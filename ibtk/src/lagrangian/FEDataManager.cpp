@@ -194,13 +194,12 @@ get_dirichlet_bdry_ids(
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 
-static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-
 inline double
 get_elem_hmax(
     Elem* const elem,
     const boost::multi_array<double,2>& X_node)
 {
+    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
     libMesh::Point s_node_cache[MAX_NODES];
     const unsigned int n_node = elem->n_nodes();
     TBOX_ASSERT(n_node <= MAX_NODES);
@@ -250,16 +249,16 @@ unsigned char FEDataManager::s_shutdown_priority = 200;
 FEDataManager*
 FEDataManager::getManager(
     const std::string& name,
-    const std::string& interp_weighting_fcn,
-    const std::string& spread_weighting_fcn,
-    const bool interp_uses_consistent_mass_matrix,
+    const FEInterpSpec& interp_spec,
+    const FESpreadSpec& spread_spec,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
+        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_spec.weighting_fcn),
+                                          LEInteractor::getStencilSize(spread_spec.weighting_fcn));
         const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
-        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name, interp_spec, spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -347,23 +346,17 @@ FEDataManager::getGhostCellWidth() const
     return d_ghost_width;
 }// getGhostCellWidth
 
-const std::string&
-FEDataManager::getInterpWeightingFunction() const
+const FEInterpSpec&
+FEDataManager::getFEInterpSpec() const
 {
-    return d_interp_weighting_fcn;
-}// getInterpWeightingFunction
+    return d_interp_spec;
+}// getFEInterpSpec
 
-const std::string&
-FEDataManager::getSpreadWeightingFunction() const
+const FESpreadSpec&
+FEDataManager::getFESpreadSpec() const
 {
-    return d_spread_weighting_fcn;
-}// getSpreadWeightingFunction
-
-bool
-FEDataManager::getInterpUsesConsistentMassMatrix() const
-{
-    return d_interp_uses_consistent_mass_matrix;
-}// getInterpUsesConsistentMassMatrix
+    return d_spread_spec;
+}// getFESpreadSpec
 
 const std::vector<std::vector<Elem*> >&
 FEDataManager::getActivePatchElementMap() const
@@ -518,8 +511,8 @@ FEDataManager::spread(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            const bool qrule_needs_reinit = updateFESpreadQuadratureRule(qrule, d_spread_spec, elem, X_node, patch_dx_min);
+            if (qrule_needs_reinit)
             {
                 qrule->init(elem->type(), elem->p_level());
             }
@@ -546,8 +539,8 @@ FEDataManager::spread(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            const bool qrule_needs_reinit = updateFESpreadQuadratureRule(qrule, d_spread_spec, elem, X_node, patch_dx_min);
+            if (qrule_needs_reinit)
             {
                 fe->attach_quadrature_rule(qrule.get());
             }
@@ -580,8 +573,8 @@ FEDataManager::spread(
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
         const bool is_cc_data = f_cc_data;
         const bool is_sc_data = f_sc_data;
-        if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
-        if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
+        if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_spec.weighting_fcn);
+        if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_spec.weighting_fcn);
     }
 
     VecRestoreArray(F_local_vec, &F_local_soln);
@@ -661,7 +654,7 @@ FEDataManager::prolongData(
     // the points of the Eulerian grid.
     TensorValue<double> dX_ds;
     boost::multi_array<double,2> F_node, X_node;
-    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
     Point X_min, X_max;
     std::vector<libMesh::Point>   intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
@@ -707,9 +700,10 @@ FEDataManager::prolongData(
             // determine the bounding box of the current configuration of the
             // element, and set the nodal coordinates of the element to
             // correspond to the physical coordinates.
+            s_node_cache.resize(n_node);
+            X_node_cache.resize(n_node);
             X_min = Point::Constant( 0.5*std::numeric_limits<double>::max());
             X_max = Point::Constant(-0.5*std::numeric_limits<double>::max());
-            TBOX_ASSERT(n_node <= MAX_NODES);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -884,8 +878,8 @@ FEDataManager::interp(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+            if (qrule_needs_reinit)
             {
                 qrule->init(elem->type(), elem->p_level());
             }
@@ -907,15 +901,15 @@ FEDataManager::interp(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+            if (qrule_needs_reinit)
             {
-                fe->attach_quadrature_rule(qrule.get());
                 // NOTE: We only need to reinit the FE object whenever the
                 // quadrature rule changes because we are only using the shape
                 // function values, which depend only on the element type and
                 // quadrature rule.  In particular, they do not depend on the
                 // element geometry.
+                fe->attach_quadrature_rule(qrule.get());
                 fe->reinit(elem);
             }
             const unsigned int n_qp = qrule->n_points();
@@ -938,8 +932,8 @@ FEDataManager::interp(
         Pointer<SideData<NDIM,double> > f_sc_data = f_data;
         const bool is_cc_data = f_cc_data;
         const bool is_sc_data = f_sc_data;
-        if (is_cc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, d_interp_weighting_fcn);
-        if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, d_interp_weighting_fcn);
+        if (is_cc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, d_interp_spec.weighting_fcn);
+        if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, d_interp_spec.weighting_fcn);
 
         // Loop over the elements and accumulate the right-hand-side values.
         qp_offset = 0;
@@ -956,8 +950,8 @@ FEDataManager::interp(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-            if (qrule_changed)
+            const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+            if (qrule_needs_reinit)
             {
                 fe->attach_quadrature_rule(qrule.get());
             }
@@ -988,7 +982,7 @@ FEDataManager::interp(
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     // Solve for the nodal values.
-    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_spec.use_consistent_mass_matrix);
 
     IBTK_TIMER_STOP(t_interp);
     return;
@@ -1052,7 +1046,7 @@ FEDataManager::restrictData(
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
     TensorValue<double> dX_ds;
     boost::multi_array<double,2> X_node;
-    libMesh::Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    std::vector<libMesh::Point> s_node_cache, X_node_cache;
     Point X_min, X_max;
     std::vector<libMesh::Point>   intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
@@ -1101,9 +1095,10 @@ FEDataManager::restrictData(
             // determine the bounding box of the current configuration of the
             // element, and set the nodal coordinates of the element to
             // correspond to the physical coordinates.
+            s_node_cache.resize(n_node);
+            X_node_cache.resize(n_node);
             X_min = Point::Constant( 0.5*std::numeric_limits<double>::max());
             X_max = Point::Constant(-0.5*std::numeric_limits<double>::max());
-            TBOX_ASSERT(n_node <= MAX_NODES);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 s_node_cache[k] = elem->point(k);
@@ -1191,7 +1186,7 @@ FEDataManager::restrictData(
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
     // Solve for the nodal values.
-    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_spec.use_consistent_mass_matrix);
 
     IBTK_TIMER_STOP(t_restrict_data);
     return;
@@ -1514,32 +1509,86 @@ FEDataManager::computeL2Projection(
 }// computeL2Projection
 
 bool
-FEDataManager::updateQuadratureRule(
+FEDataManager::updateFEInterpQuadratureRule(
     AutoPtr<QBase>& qrule,
+    const FEInterpSpec& spec,
     Elem* const elem,
     const boost::multi_array<double,2>& X_node,
-    const double dx_min) const
+    const double dx_min)
 {
-    bool updated_qrule = false;
-    const unsigned int dim = elem->dim();
-    static const double POINT_FACTOR = 2.0;
-    const double hmax = get_elem_hmax(elem, X_node);
-    const int min_pts = elem->default_order() == FIRST ? 1 : 2;
-    const int npts = std::max(min_pts, static_cast<int>(std::ceil(POINT_FACTOR*hmax/dx_min)));
-    const Order order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
-    if (!qrule.get() || qrule->type() != QGAUSS || qrule->get_order() != order)
+    QuadratureType type = spec.quad_type;
+    Order order = spec.quad_order;
+    if (spec.use_adaptive_quadrature)
     {
-        qrule = QBase::build(QGAUSS, dim, order);
-        updated_qrule = true;
+        const double hmax = get_elem_hmax(elem, X_node);
+        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
+        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_factor*hmax/dx_min)));
+        switch (type)
+        {
+            case QGAUSS:
+                order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                break;
+            case QGRID:
+                order = static_cast<Order>(npts);
+                break;
+            default:
+                TBOX_ERROR("FEDataManager::updateInterpQuadratureRule():\n"
+                           << "  adaptive quadrature rules are available only for quad_type = QGAUSS or QGRID\n");
+        }
     }
-    else
+    bool qrule_needs_reinit = false;
+    if (!qrule.get() || qrule->type() != type || qrule->get_order() != order)
     {
-        const ElemType elem_type = elem->type();
-        const unsigned int p_level = elem->p_level();
-        updated_qrule = qrule->get_elem_type() != elem_type || qrule->get_p_level() != p_level;
+        qrule = QBase::build(type, elem->dim(), order);
+        qrule_needs_reinit = true;
     }
-    return updated_qrule;
-}// updateQuadratureRule
+    else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
+    {
+        qrule_needs_reinit = true;
+    }
+    return qrule_needs_reinit;
+}// updateInterpQuadratureRule
+
+bool
+FEDataManager::updateFESpreadQuadratureRule(
+    AutoPtr<QBase>& qrule,
+    const FESpreadSpec& spec,
+    Elem* const elem,
+    const boost::multi_array<double,2>& X_node,
+    const double dx_min)
+{
+    QuadratureType type = spec.quad_type;
+    Order order = spec.quad_order;
+    if (spec.use_adaptive_quadrature)
+    {
+        const double hmax = get_elem_hmax(elem, X_node);
+        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
+        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_factor*hmax/dx_min)));
+        switch (type)
+        {
+            case QGAUSS:
+                order = static_cast<Order>(std::min(2*npts-1,static_cast<int>(FORTYTHIRD)));
+                break;
+            case QGRID:
+                order = static_cast<Order>(npts);
+                break;
+            default:
+                TBOX_ERROR("FEDataManager::updateSpreadQuadratureRule():\n"
+                           << "  adaptive quadrature rules are available only for quad_type = QGAUSS or QGRID\n");
+        }
+    }
+    bool qrule_needs_reinit = false;
+    if (!qrule.get() || qrule->type() != type || qrule->get_order() != order)
+    {
+        qrule = QBase::build(type, elem->dim(), order);
+        qrule_needs_reinit = true;
+    }
+    else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
+    {
+        qrule_needs_reinit = true;
+    }
+    return qrule_needs_reinit;
+}// updateSpreadQuadratureRule
 
 void
 FEDataManager::updateWorkloadEstimates(
@@ -1705,15 +1754,15 @@ FEDataManager::applyGradientDetector(
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+                const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+                if (qrule_needs_reinit)
                 {
-                    fe->attach_quadrature_rule(qrule.get());
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -1782,9 +1831,8 @@ FEDataManager::putToDatabase(
 
 FEDataManager::FEDataManager(
     const std::string& object_name,
-    const std::string& interp_weighting_fcn,
-    const std::string& spread_weighting_fcn,
-    const bool interp_uses_consistent_mass_matrix,
+    const FEInterpSpec& interp_spec,
+    const FESpreadSpec& spread_spec,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
     : COORDINATES_SYSTEM_NAME("coordinates system"),
@@ -1794,9 +1842,8 @@ FEDataManager::FEDataManager(
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_interp_weighting_fcn(interp_weighting_fcn),
-      d_spread_weighting_fcn(spread_weighting_fcn),
-      d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
+      d_interp_spec(interp_spec),
+      d_spread_spec(spread_spec),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
@@ -1808,6 +1855,7 @@ FEDataManager::FEDataManager(
       d_L2_proj_quad_order()
 {
     TBOX_ASSERT(!object_name.empty());
+
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
@@ -1939,15 +1987,15 @@ FEDataManager::updateQuadPointCountData(
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+                const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+                if (qrule_needs_reinit)
                 {
-                    fe->attach_quadrature_rule(qrule.get());
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
@@ -1981,6 +2029,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     // mesh.  Assumes nodal basis functions.
     d_active_elem_bboxes.resize(n_elem);
     std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(Point::Zero(),Point::Zero()));
+    std::vector<unsigned int> dof_indices;
     MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
     for ( ; el_it != el_end; ++el_it)
@@ -1993,14 +2042,13 @@ FEDataManager::computeActiveElementBoundingBoxes()
         elem_upper_bound = Point::Constant(-0.5*std::numeric_limits<double>::max());
 
         const unsigned int n_nodes = elem->n_nodes();
-        std::vector<unsigned int> dof_indices;
-        dof_indices.reserve(NDIM*n_nodes);
+        dof_indices.clear();
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             Node* node = elem->get_node(k);
-            TBOX_ASSERT(node->n_dofs(X_sys_num,0) >= NDIM);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
+                TBOX_ASSERT(node->n_dofs(X_sys_num,d) == 1);
                 dof_indices.push_back(node->dof_number(X_sys_num,d,0));
             }
         }
@@ -2165,15 +2213,15 @@ FEDataManager::collectActivePatchElements(
                     X_dof_map.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-                const bool qrule_changed = updateQuadratureRule(qrule, elem, X_node, patch_dx_min);
-                if (qrule_changed)
+                const bool qrule_needs_reinit = updateFEInterpQuadratureRule(qrule, d_interp_spec, elem, X_node, patch_dx_min);
+                if (qrule_needs_reinit)
                 {
-                    fe->attach_quadrature_rule(qrule.get());
                     // NOTE: We only need to reinit the FE object whenever the
                     // quadrature rule changes because we are only using the
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
+                    fe->attach_quadrature_rule(qrule.get());
                     fe->reinit(elem);
                 }
                 bool found_qp = false;
