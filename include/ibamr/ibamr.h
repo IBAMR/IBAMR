@@ -16,6 +16,7 @@
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBExplicitHierarchyIntegrator.h"
 #include "ibamr/IBFEMethod.h"
+#include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStaggeredPETScLevelSolver.h"

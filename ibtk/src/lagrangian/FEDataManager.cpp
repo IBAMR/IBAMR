@@ -1517,6 +1517,7 @@ FEDataManager::updateFEInterpQuadratureRule(
     const double dx_min)
 {
     QuadratureType type = spec.quad_type;
+    unsigned int dim = elem->dim();
     Order order = spec.quad_order;
     if (spec.use_adaptive_quadrature)
     {
@@ -1537,9 +1538,9 @@ FEDataManager::updateFEInterpQuadratureRule(
         }
     }
     bool qrule_needs_reinit = false;
-    if (!qrule.get() || qrule->type() != type || qrule->get_order() != order)
+    if (!qrule.get() || qrule->type() != type || qrule->get_dim() != dim || qrule->get_order() != order)
     {
-        qrule = QBase::build(type, elem->dim(), order);
+        qrule = QBase::build(type, dim, order);
         qrule_needs_reinit = true;
     }
     else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
@@ -1558,6 +1559,7 @@ FEDataManager::updateFESpreadQuadratureRule(
     const double dx_min)
 {
     QuadratureType type = spec.quad_type;
+    unsigned int dim = elem->dim();
     Order order = spec.quad_order;
     if (spec.use_adaptive_quadrature)
     {
@@ -1578,9 +1580,9 @@ FEDataManager::updateFESpreadQuadratureRule(
         }
     }
     bool qrule_needs_reinit = false;
-    if (!qrule.get() || qrule->type() != type || qrule->get_order() != order)
+    if (!qrule.get() || qrule->type() != type || qrule->get_dim() != dim || qrule->get_order() != order)
     {
-        qrule = QBase::build(type, elem->dim(), order);
+        qrule = QBase::build(type, dim, order);
         qrule_needs_reinit = true;
     }
     else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
