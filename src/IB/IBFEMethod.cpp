@@ -1227,8 +1227,8 @@ IBFEMethod::spreadTransmissionForceDensity(
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
-        T_bdry.resize(0);
-        X_bdry.resize(0);
+        T_bdry.clear();
+        X_bdry.clear();
         int qp_offset = 0;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -1457,8 +1457,8 @@ IBFEMethod::imposeJumpConditions(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SideData<NDIM,bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(false);
+        SideData<NDIM,int> spread_values_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_values_at_loc.fillAll(0);
 
         // Loop over the elements.
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1541,8 +1541,8 @@ IBFEMethod::imposeJumpConditions(
 
                 // Loop over coordinate directions and look for intersections
                 // with the background fluid grid.
-                intersection_ref_coords.resize(0);
-                intersection_indices   .resize(0);
+                intersection_ref_coords.clear();
+                intersection_indices   .clear();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     // Setup a unit vector pointing in the coordinate direction
@@ -1573,12 +1573,9 @@ IBFEMethod::imposeJumpConditions(
                             libMesh::Point X = r+intersections[k].first*q;
                             SideIndex<NDIM> i_s(i_c,axis,0);
                             i_s(axis) = std::floor((X(axis)-x_lower[axis])/dx[axis]+0.5) + patch_lower[axis];
-                            if (!spread_value_at_loc(i_s))
-                            {
-                                spread_value_at_loc(i_s) = true;
-                                intersection_ref_coords.push_back(intersections[k].second);
-                                intersection_indices.push_back(i_s);
-                            }
+                            intersection_ref_coords.push_back(intersections[k].second);
+                            intersection_indices.push_back(i_s);
+                            spread_values_at_loc(i_s) += 1;
                         }
                     }
                 }
@@ -1595,7 +1592,8 @@ IBFEMethod::imposeJumpConditions(
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
-                fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_coords);
+                static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                fe_face->reinit(elem, side, TOL, &intersection_ref_coords);
                 if (!d_use_IB_spread_operator) get_values_for_interpolation(F_node, *F_petsc_vec, F_local_soln, dof_indices);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
                 for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
@@ -1687,7 +1685,7 @@ IBFEMethod::imposeJumpConditions(
                     const double x_cell_bdry = x_lower[axis]+static_cast<double>(i_s(axis)-patch_lower[axis])*dx[axis];
                     const double h = x_cell_bdry + (X > x_cell_bdry ? +0.5 : -0.5)*dx[axis] - X;
                     const double C_p = F*n - h*F_qp(axis);
-                    (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0)*C_p/dx[axis];
+                    (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0)*(C_p/dx[axis])/static_cast<double>(spread_values_at_loc(i_s));
                 }
             }
         }

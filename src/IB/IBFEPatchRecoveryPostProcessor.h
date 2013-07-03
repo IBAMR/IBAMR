@@ -48,8 +48,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBFEPatchRecoveryPostProcessor uses local least squares recovery
- * techniques to evaluate stresses on the nodes of the FE mesh.
+ * \brief Class IBFEPatchRecoveryPostProcessor uses least squares recovery
+ * techniques on element patches to evaluate stresses on the nodes of the FE
+ * mesh.
  */
 class IBFEPatchRecoveryPostProcessor
 {
@@ -67,21 +68,37 @@ public:
     ~IBFEPatchRecoveryPostProcessor();
 
     /*!
-     * Register the PK1 stress associated with an element and quadrature point.
+     * Register the Cauchy stress associated with an element and quadrature
+     * point.
      */
     void
-    registerPK1StressValue(
+    registerCauchyStressValue(
         const libMesh::Elem* elem,
         const libMesh::QBase* qrule,
         unsigned int qp,
-        const libMesh::TensorValue<double>& PP,
-        const libMesh::TensorValue<double>& FF);
+        const libMesh::TensorValue<double>& sigma);
+
+    /*!
+     * Register the pressure associated with an element and quadrature point.
+     */
+    void
+    registerPressureValue(
+        const libMesh::Elem* elem,
+        const libMesh::QBase* qrule,
+        unsigned int qp,
+        double p);
 
     /*!
      * Reconstruct the Cauchy stress at the nodes of the mesh.
      */
     void
     reconstructCauchyStress();
+
+    /*!
+     * Reconstruct the pressure at the nodes of the mesh.
+     */
+    void
+    reconstructPressure();
 
 private:
     /*!
@@ -119,6 +136,7 @@ private:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
+    libMeshEnums::Order d_interp_order, d_quad_order;
 
     /*
      * Map from local nodes to element patches.
@@ -134,10 +152,17 @@ private:
     std::vector<int> d_elem_n_qp, d_elem_qp_global_offset, d_elem_qp_local_offset;
 
     /*
+     * Element patch L2 projection matrices.
+     */
+    std::vector<Eigen::ColPivHouseholderQR<Eigen::MatrixXd> > d_local_patch_proj_solver;
+
+    /*
      * Stress data at interpolation points.
      */
     typedef std::vector<libMesh::TensorValue<double> > ElemStress;
     std::map<libMesh::dof_id_type,ElemStress> d_elem_sigma;
+    typedef std::vector<double> ElemPressure;
+    std::map<libMesh::dof_id_type,ElemPressure> d_elem_pressure;
 };
 }// namespace IBAMR
 

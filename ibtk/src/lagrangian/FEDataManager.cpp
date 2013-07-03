@@ -545,20 +545,27 @@ FEDataManager::spread(
                 fe->attach_quadrature_rule(qrule.get());
             }
             fe->reinit(elem);
+            const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            double* F_begin = &F_JxW_qp[n_vars*qp_offset];
+            double* X_begin = &X_qp    [NDIM  *qp_offset];
+            std::fill(F_begin, F_begin+n_vars*n_qp, 0.0);
+            std::fill(X_begin, X_begin+NDIM  *n_qp, 0.0);
+            for (unsigned int k = 0; k < n_node; ++k)
             {
-                const int idx = n_vars*(qp+qp_offset);
-                interpolate(&F_JxW_qp[idx],qp,F_node,phi);
-                for (unsigned int i = 0; i < n_vars; ++i)
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    F_JxW_qp[idx+i] *= JxW[qp];
+                    const double& p = phi[k][qp];
+                    const double p_JxW = p*JxW[qp];
+                    for (unsigned int i = 0; i < n_vars; ++i)
+                    {
+                        F_JxW_qp[n_vars*(qp_offset+qp)+i] += F_node[k][i]*p_JxW;
+                    }
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        X_qp[NDIM*(qp_offset+qp)+i] += X_node[k][i]*p;
+                    }
                 }
-            }
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {
-                const int idx = NDIM*(qp+qp_offset);
-                interpolate(&X_qp[idx],qp,X_node,phi);
             }
             qp_offset += n_qp;
         }
@@ -669,6 +676,7 @@ FEDataManager::prolongData(
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        if (!accumulate_on_grid) f_data->fillAll(0.0);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -683,8 +691,8 @@ FEDataManager::prolongData(
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         }
 
-        SideData<NDIM,bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(false);
+        SideData<NDIM,int> spread_values_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_values_at_loc.fillAll(0);
 
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -722,27 +730,28 @@ FEDataManager::prolongData(
 
             // Loop over coordinate directions and look for Eulerian grid points
             // that are covered by the element.
-            intersection_ref_coords.resize(0);
-            intersection_indices   .resize(0);
+            intersection_ref_coords.clear();
+            intersection_indices   .clear();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
                 for (SideIterator<NDIM> b(box,axis); b; b++)
                 {
                     const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s) && !spread_value_at_loc(i_s))
+                    if (side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(i_s(d)-patch_lower[d])+(d == axis ? 0.0 : 0.5));
                         }
-                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, fe_type, elem, p, TOLERANCE, false);
-                        if (FEInterface::on_reference_element(ref_coords,elem->type()))
+                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, fe_type, elem, p, TOL, false);
+                        if (FEInterface::on_reference_element(ref_coords,elem->type(),TOL))
                         {
-                            spread_value_at_loc(i_s) = true;
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
+                            spread_values_at_loc(i_s) += 1;
                         }
                     }
                 }
@@ -778,14 +787,7 @@ FEDataManager::prolongData(
                     jacobian(dX_ds,qp,X_node,dphi);
                     F_qp /= std::abs(dX_ds.det());
                 }
-                if (accumulate_on_grid)
-                {
-                    (*f_data)(i_s) += F_qp;
-                }
-                else
-                {
-                    (*f_data)(i_s) = F_qp;
-                }
+                (*f_data)(i_s) += F_qp/static_cast<double>(spread_values_at_loc(i_s));
             }
         }
     }
@@ -912,11 +914,20 @@ FEDataManager::interp(
                 fe->attach_quadrature_rule(qrule.get());
                 fe->reinit(elem);
             }
+            const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            double* X_begin = &X_qp[NDIM*qp_offset];
+            std::fill(X_begin, X_begin+NDIM*n_qp, 0.0);
+            for (unsigned int k = 0; k < n_node; ++k)
             {
-                const int idx = NDIM*(qp+qp_offset);
-                interpolate(&X_qp[idx],qp,X_node,phi);
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                {
+                    const double& p = phi[k][qp];
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        X_qp[NDIM*(qp_offset+qp)+i] += X_node[k][i]*p;
+                    }
+                }
             }
             qp_offset += n_qp;
         }
@@ -960,7 +971,7 @@ FEDataManager::interp(
             const unsigned int n_basis = F_dof_indices[0].size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
-                const int idx = n_vars*(qp+qp_offset);
+                const int idx = n_vars*(qp_offset+qp);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     for (unsigned int i = 0; i < n_vars; ++i)
@@ -1117,8 +1128,8 @@ FEDataManager::restrictData(
 
             // Loop over coordinate directions and look for Eulerian grid points
             // that are covered by the element.
-            intersection_ref_coords.resize(0);
-            intersection_indices   .resize(0);
+            intersection_ref_coords.clear();
+            intersection_indices   .clear();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
@@ -1132,12 +1143,13 @@ FEDataManager::restrictData(
                         {
                             p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(i_s(d)-patch_lower[d])+(d == axis ? 0.0 : 0.5));
                         }
-                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, fe_type, elem, p, TOLERANCE, false);
-                        if (FEInterface::on_reference_element(ref_coords,elem->type()))
+                        static const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+                        const libMesh::Point ref_coords = FEInterface::inverse_map(dim, fe_type, elem, p, TOL, false);
+                        if (FEInterface::on_reference_element(ref_coords,elem->type(),TOL))
                         {
-                            interpolated_value_at_loc(i_s) = true;
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
+                            interpolated_value_at_loc(i_s) = true;
                         }
                     }
                 }

@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBAMR_config.h"
+#include "Eigen/Dense"
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "SAMRAI_config.h"
 #include "boost/multi_array.hpp"
@@ -60,6 +61,96 @@ using namespace libMesh;
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+unsigned int
+num_basis_functions(
+    const unsigned int dim,
+    const unsigned int order)
+{
+    unsigned int num_basis = 0;
+    unsigned int order_p_1 = order+1;
+    switch (dim)
+    {
+        case 1:
+            num_basis = order_p_1;
+            break;
+        case 2:
+            num_basis = order_p_1*order_p_1+order_p_1;
+            num_basis /= 2;
+            break;
+        case 3:
+            num_basis = order_p_1*order_p_1*order_p_1+3*order_p_1*order_p_1+2*order_p_1;
+            num_basis /= 6;
+            break;
+        default:
+            TBOX_ERROR("only supports dim = 1, 2, or 3\n");
+    }
+    return num_basis;
+}// num_basis_functions
+
+void
+evaluate_basis_functions(
+    Eigen::VectorXd& P,
+    const libMesh::Point& x_center,
+    const libMesh::Point& x_eval,
+    const unsigned int dim,
+    const unsigned int order)
+{
+    TBOX_ASSERT(static_cast<unsigned int>(P.size()) == num_basis_functions(dim,order));
+
+    // Compute powers of the components of x up to the specified order.
+    libMesh::Point x = x_center-x_eval;
+    boost::multi_array<double,2> x_pow(boost::extents[dim][order+1]);
+    for (unsigned int d = 0; d < dim; ++d)
+    {
+        x_pow[d][0] = 1.0;
+        for (unsigned int k = 1; k <= order; ++k)
+        {
+            x_pow[d][k] = x(d)*x_pow[d][k-1];
+        }
+    }
+
+    // Evaluate complete polynomials up to the specified order.
+    switch (dim)
+    {
+        case 1:
+            for (unsigned int total_pow = 0, k = 0; total_pow <= order; ++total_pow, ++k)
+            {
+                unsigned int x_exp = total_pow;
+                P(k) = x_pow[0][x_exp];
+            }
+            break;
+        case 2:
+            for (unsigned int total_pow = 0, k = 0; total_pow <= order; ++total_pow)
+            {
+                for (unsigned int x_exp = 0; x_exp <= total_pow; ++x_exp, ++k)
+                {
+                    unsigned int y_exp = total_pow-x_exp;
+                    P(k) = x_pow[0][x_exp]*x_pow[1][y_exp];
+                }
+            }
+            break;
+        case 3:
+            for (unsigned int total_pow = 0, k = 0; total_pow <= order; ++total_pow)
+            {
+                for (unsigned int x_exp = 0; x_exp <= total_pow; ++x_exp)
+                {
+                    for (unsigned int y_exp = 0; y_exp <= total_pow-x_exp; ++y_exp, ++k)
+                    {
+                        unsigned int z_exp = total_pow-(x_exp+y_exp);
+                        P(k) = x_pow[0][x_exp]*x_pow[1][y_exp]*x_pow[2][z_exp];
+                    }
+                }
+            }
+            break;
+        default:
+            TBOX_ERROR("only supports dim = 1, 2, or 3\n");
+    }
+    return;
+}// evaluate_basis_functions
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -115,17 +206,23 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(
     d_elem_n_qp.resize(n_elem,0);
     d_elem_qp_global_offset.resize(n_elem,0);
     d_elem_qp_local_offset .resize(n_elem,0);
-    qrule.reset();
+    AutoPtr<QBase> qrule;
+    bool first_order_elems = false;
+    bool second_order_elems = false;
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const unsigned int dim = elem->dim();
-        TBOX_ASSERT(elem->default_order() == FIRST || elem->default_order() == SECOND);
-        const Order order = (elem->default_order() == FIRST ? THIRD : FIFTH);
+        TBOX_ASSERT(dim == d_mesh->mesh_dimension());
+        Order elem_order = elem->default_order();
+        if (elem_order == FIRST) first_order_elems = true;
+        if (elem_order == SECOND) second_order_elems = true;
+        TBOX_ASSERT(elem_order == FIRST || elem_order == SECOND);
+        const Order quad_order = (elem_order == FIRST ? THIRD : FIFTH);
         bool reinit_qrule = false;
-        if (!qrule.get() || qrule->get_dim() != dim || qrule->get_order() != order)
+        if (!qrule.get() || qrule->get_dim() != dim || qrule->get_order() != quad_order)
         {
-            qrule = QBase::build(QGAUSS, dim, order);
+            qrule = QBase::build(QGAUSS, dim, quad_order);
             reinit_qrule = true;
         }
         else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
@@ -138,7 +235,12 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(
         d_elem_n_qp[elem_id] = n_qp;
         d_elem_qp_local_offset[elem_id] = d_n_qp_local;
         d_n_qp_local += n_qp;
-        d_elem_sigma[elem_id].resize(n_qp);
+        d_elem_sigma   [elem_id].resize(n_qp);
+        d_elem_pressure[elem_id].resize(n_qp);
+    }
+    if (first_order_elems && second_order_elems)
+    {
+        TBOX_ERROR("cannot have both first- and second-order elements in the same mesh.\n");
     }
     std::vector<int> n_qp_per_proc(size);
     n_qp_per_proc[rank] = d_n_qp_local;
@@ -153,6 +255,45 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(
     }
     Parallel::sum(d_elem_qp_global_offset);
     Parallel::sum(d_elem_qp_local_offset);
+
+    // Set up element patch L2 projection matrices.
+    unsigned int dim = d_mesh->mesh_dimension();
+    d_interp_order = first_order_elems ? FIRST : SECOND;
+    d_quad_order = first_order_elems ? THIRD : FIFTH;
+    const unsigned int num_basis = num_basis_functions(dim, d_interp_order);
+    Eigen::MatrixXd M(num_basis, num_basis);
+    Eigen::VectorXd P(num_basis);
+    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
+    qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    fe->attach_quadrature_rule(qrule.get());
+    d_local_patch_proj_solver.resize(d_local_elem_patches.size());
+    unsigned int k = 0;
+    for (std::map<libMesh::dof_id_type,ElemPatch>::const_iterator it = d_local_elem_patches.begin();
+         it != d_local_elem_patches.end(); ++it, ++k)
+    {
+        const dof_id_type node_id = it->first;
+        const Node& node = d_mesh->node(node_id);
+        const ElemPatch& elem_patch = it->second;
+        M.setZero();
+        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+            {
+                evaluate_basis_functions(P, node, q_point[qp], dim, d_interp_order);
+                M += P*P.transpose();
+            }
+        }
+        d_local_patch_proj_solver[k] = M.colPivHouseholderQr();
+        if (!d_local_patch_proj_solver[k].isInvertible())
+        {
+            // TODO: We should try enlarging the element patch before emitting
+            // an error message.
+            TBOX_ERROR("encountered singular patch L2 projection matrix\n");
+        }
+    }
     return;
 }// IBFEPatchRecoveryPostProcessor
 
@@ -163,29 +304,49 @@ IBFEPatchRecoveryPostProcessor::~IBFEPatchRecoveryPostProcessor()
 }// IBFEPatchRecoveryPostProcessor
 
 void
-IBFEPatchRecoveryPostProcessor::registerPK1StressValue(
+IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(
     const Elem* const elem,
     const QBase* const qrule,
     const unsigned int qp,
-    const TensorValue<double>& PP,
-    const TensorValue<double>& FF)
+    const TensorValue<double>& sigma)
 {
-    if (elem->processor_id() != libMesh::processor_id() || !elem->active()) return;
+    if (elem->processor_id() != libMesh::processor_id())
+    {
+        TBOX_ERROR("must register stresses only for local elements\n");
+    }
+    TBOX_ASSERT(elem->default_order() == d_interp_order);
     TBOX_ASSERT(qrule->type() == QGAUSS);
-    TBOX_ASSERT(elem->default_order() == FIRST || elem->default_order() == SECOND);
-    const Order order = (elem->default_order() == FIRST ? THIRD : FIFTH);
-    TBOX_ASSERT(order == qrule->get_order());
+    TBOX_ASSERT(qrule->get_order() == d_quad_order);
     TBOX_ASSERT(0 >= qp && qp < qrule->n_points());
-    d_elem_sigma[elem->id()][qp] = PP*FF.transpose()/FF.det();
+    d_elem_sigma[elem->id()][qp] = sigma;
     return;
-}// registerPK1StressValue
+}// registerCauchyStressValue
+
+void
+IBFEPatchRecoveryPostProcessor::registerPressureValue(
+    const Elem* const elem,
+    const QBase* const qrule,
+    const unsigned int qp,
+    const double p)
+{
+    if (elem->processor_id() != libMesh::processor_id())
+    {
+        TBOX_ERROR("must register pressures only for local elements\n");
+    }
+    TBOX_ASSERT(elem->default_order() == d_interp_order);
+    TBOX_ASSERT(qrule->type() == QGAUSS);
+    TBOX_ASSERT(qrule->get_order() == d_quad_order);
+    TBOX_ASSERT(0 >= qp && qp < qrule->n_points());
+    d_elem_pressure[elem->id()][qp] = p;
+    return;
+}// registerPressureValue
 
 void
 IBFEPatchRecoveryPostProcessor::reconstructCauchyStress()
 {
-    // Communicate the values of the Cauchy stress.
-    static const int NVALS = 2*(NDIM+1);
-    std::vector<double> sigma_vals(NVALS*d_n_qp_global,0.0);
+    // Communicate the stored values of the Cauchy stress.
+    static const unsigned int NVARS = 2*(NDIM+1);
+    std::vector<double> sigma_vals(NVARS*d_n_qp_global,0.0);
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = d_mesh->active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -195,21 +356,107 @@ IBFEPatchRecoveryPostProcessor::reconstructCauchyStress()
         const int global_offset = d_elem_qp_global_offset[elem_id];
         for (int qp = 0; qp < d_elem_n_qp[elem_id]; ++qp)
         {
-            const TensorValue<double>& sigma = d_elem_sigma[elem_id][qp];
+            const TensorValue<double>& stress = d_elem_sigma[elem_id][qp];
             for (unsigned int i = 0, k = 0; i < NDIM; ++i)
             {
                 for (unsigned int j = i; j < NDIM; ++j, ++k)
                 {
-                    sigma_vals[NVALS*(global_offset+qp)+k] = sigma(i,j);
+                    sigma_vals[NVARS*(global_offset+qp)+k] = stress(i,j);
                 }
             }
         }
     }
     Parallel::sum(sigma_vals);
 
-
+    // Perform element patch L2 projections.
+    const unsigned int dim = d_mesh->mesh_dimension();
+    const unsigned int num_basis = num_basis_functions(dim, d_interp_order);
+    Eigen::VectorXd P(num_basis), a(num_basis), f(num_basis);
+    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    fe->attach_quadrature_rule(qrule.get());
+    unsigned int k = 0;
+    for (std::map<libMesh::dof_id_type,ElemPatch>::const_iterator it = d_local_elem_patches.begin();
+         it != d_local_elem_patches.end(); ++it, ++k)
+    {
+        const dof_id_type node_id = it->first;
+        const Node& node = d_mesh->node(node_id);
+        const ElemPatch& elem_patch = it->second;
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver = d_local_patch_proj_solver[k];
+        for (unsigned int var = 0; var < NVARS; ++var)
+        {
+            f.setZero();
+            for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+            {
+                const Elem* const elem = *el_it;
+                const dof_id_type elem_id = elem->id();
+                const int global_offset = d_elem_qp_global_offset[elem_id];
+                fe->reinit(elem);
+                for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+                {
+                    evaluate_basis_functions(P, node, q_point[qp], dim, d_interp_order);
+                    f += P*sigma_vals[NVARS*(global_offset+qp)+var];
+                }
+            }
+            a = patch_proj_solver.solve(f);
+        }
+    }
     return;
 }// reconstructCauchyStress
+
+void
+IBFEPatchRecoveryPostProcessor::reconstructPressure()
+{
+    // Communicate the stored values of the Cauchy stress.
+    std::vector<double> pressure_vals(d_n_qp_global,0.0);
+    const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end   = d_mesh->active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+        const dof_id_type elem_id = elem->id();
+        const int global_offset = d_elem_qp_global_offset[elem_id];
+        for (int qp = 0; qp < d_elem_n_qp[elem_id]; ++qp)
+        {
+            pressure_vals[global_offset+qp] = d_elem_pressure[elem_id][qp];
+        }
+    }
+    Parallel::sum(pressure_vals);
+
+    // Perform element patch L2 projections.
+    const unsigned int dim = d_mesh->mesh_dimension();
+    const unsigned int num_basis = num_basis_functions(dim, d_interp_order);
+    Eigen::VectorXd P(num_basis), a(num_basis), f(num_basis);
+    AutoPtr<FEBase> fe(FEBase::build(dim, FEType(d_interp_order, LAGRANGE)));
+    const std::vector<libMesh::Point>& q_point = fe->get_xyz();
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
+    fe->attach_quadrature_rule(qrule.get());
+    unsigned int k = 0;
+    for (std::map<libMesh::dof_id_type,ElemPatch>::const_iterator it = d_local_elem_patches.begin();
+         it != d_local_elem_patches.end(); ++it, ++k)
+    {
+        const dof_id_type node_id = it->first;
+        const Node& node = d_mesh->node(node_id);
+        const ElemPatch& elem_patch = it->second;
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver = d_local_patch_proj_solver[k];
+        f.setZero();
+        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            const dof_id_type elem_id = elem->id();
+            const int global_offset = d_elem_qp_global_offset[elem_id];
+            fe->reinit(elem);
+            for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+            {
+                evaluate_basis_functions(P, node, q_point[qp], dim, d_interp_order);
+                f += P*pressure_vals[global_offset+qp];
+            }
+        }
+        a = patch_proj_solver.solve(f);
+    }
+    return;
+}// reconstructPressure
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
