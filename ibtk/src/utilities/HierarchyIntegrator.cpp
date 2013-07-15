@@ -1471,7 +1471,6 @@ HierarchyIntegrator::getFromInput(
     if (db->keyExists("regrid_interval")) d_regrid_interval = db->getInteger("regrid_interval");
     if (db->keyExists("regrid_mode")) d_regrid_mode = string_to_enum<RegridMode>(db->getString("regrid_mode"));
     if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
-    else if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;
