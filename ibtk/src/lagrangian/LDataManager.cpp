@@ -60,6 +60,7 @@
 #include "HierarchyDataOpsReal.h"
 #include "LDataManager.h"
 #include "NodeData.h"
+#include "EdgeData.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
@@ -463,11 +464,13 @@ LDataManager::spread(
                 Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                 Pointer<CellData<NDIM,double> > f_cc_data = f_data;
                 Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getGhostBox();
                 if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
                 if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
                 if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             }
         }
@@ -567,11 +570,13 @@ LDataManager::interp(
                 Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                 Pointer<CellData<NDIM,double> > f_cc_data = f_data;
                 Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getBox();
                 if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
                 if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_interp_weighting_fcn);
                 if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
@@ -2522,11 +2527,13 @@ LDataManager::spread_specialized(
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             Pointer<CellData<NDIM,double> > f_cc_data = f_data;
             Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+            Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getGhostBox();
             if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
         }
     }
@@ -2560,11 +2567,13 @@ LDataManager::interp_specialized(
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             Pointer<CellData<NDIM,double> > f_cc_data = f_data;
             Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+            Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getBox();
             if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
         }
     }
