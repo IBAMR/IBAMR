@@ -563,10 +563,10 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-    if (Q_data->getDepth() != 3 || q_data->getDepth() != 1)
+    if (Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
-                   << "  edge-centered interpolation requires vector-valued data for 3d only.\n");
+                   << "  edge-centered interpolation requires vector-valued data.\n");
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
@@ -805,16 +805,16 @@ LEInteractor::interpolate(
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
-    TBOX_ASSERT(Q_depth == 3);
-    TBOX_ASSERT(X_depth == 3);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
 #else
     NULL_USE(X_depth);
 #endif
-    if (Q_depth != 3 || q_data->getDepth() != 1)
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
-                   << "  edge-centered interpolation requires vector-valued data for 3d only.\n");
+                   << "  edge-centered interpolation requires vector-valued data.\n");
     }
 
     // Determine the patch geometry.
@@ -1153,17 +1153,17 @@ LEInteractor::interpolate(
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
-    TBOX_ASSERT(Q_depth == 3);
-    TBOX_ASSERT(X_depth == 3);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
 #else
     NULL_USE(Q_size);
 #endif
-    if (Q_depth != 3 || q_data->getDepth() != 1)
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
-                   << "  side-centered interpolation requires vector-valued data and 3d only.\n");
+                   << "  side-centered interpolation requires vector-valued data.\n");
     }
 
     // Determine the patch geometry.
@@ -1331,10 +1331,10 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-    if (Q_data->getDepth() != 3 || q_data->getDepth() != 1)
+    if (Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
-                   << "  edge-centered spreading requires vector-valued data for 3d only.\n");
+                   << "  edge-centered spreading requires vector-valued data.\n");
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
@@ -1343,8 +1343,8 @@ LEInteractor::spread(
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    TBOX_ASSERT(Q_data->getDepth() == 3);
-    TBOX_ASSERT(X_data->getDepth() == 3);
+    TBOX_ASSERT(Q_data->getDepth() == NDIM);
+    TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
@@ -1573,15 +1573,15 @@ LEInteractor::spread(
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    TBOX_ASSERT(Q_depth == 3);
-    TBOX_ASSERT(X_depth == 3);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
 #else
     NULL_USE(X_depth);
 #endif
-    if (Q_depth != 3 || q_data->getDepth() != 1)
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
-                   << "  edge-centered spreading requires vector-valued data for 3d only.\n");
+                   << "  edge-centered spreading requires vector-valued data.\n");
     }
 
     // Determine the patch geometry.
@@ -1915,16 +1915,16 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-    if (Q_depth != 3 || q_data->getDepth() != 1)
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
-                   << "  edge-centered spreading requires vector-valued data and 3d only.\n");
+                   << "  edge-centered spreading requires vector-valued data.\n");
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
-    TBOX_ASSERT(Q_depth == 3);
-    TBOX_ASSERT(X_depth == 3);
+    TBOX_ASSERT(Q_depth == NDIM);
+    TBOX_ASSERT(X_depth == NDIM);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
