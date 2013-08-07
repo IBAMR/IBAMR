@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBStrategy.h"
+#include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibtk/FEDataManager.h"
 #include "libmesh/mesh.h"
 #include "libmesh/petsc_vector.h"
@@ -262,6 +263,14 @@ public:
         std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
         void* lag_surface_force_fcn_ctx=NULL,
         unsigned int part=0);
+
+    /*!
+     * Register the (optional) post-processor used to reconstruct nodal
+     * stresses.
+     */
+    void
+    registerIBFEPostProcessor(
+        SAMRAI::tbox::Pointer<IBFEPatchRecoveryPostProcessor> post_processor);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -627,6 +636,11 @@ protected:
     std::vector<LagSurfaceForceFcnPtr> d_lag_surface_force_fcns;
     std::vector<std::vector<unsigned int> > d_lag_surface_force_fcn_systems;
     std::vector<void*> d_lag_surface_force_fcn_ctxs;
+
+    /*
+     * Optional post-processor.
+     */
+    SAMRAI::tbox::Pointer<IBFEPatchRecoveryPostProcessor> d_post_processor;
 
     /*
      * Nonuniform load balancing data structures.

@@ -234,7 +234,11 @@ main(
 
         // Configure the IBFE solver.
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
+        Pointer<IBFEPatchRecoveryPostProcessor> ib_post_processor = new IBFEPatchRecoveryPostProcessor(&mesh, fe_data_manager);
+        System* sigma_system = ib_post_processor->initializeCauchyStressSystem();
+        ib_method_ops->registerIBFEPostProcessor(ib_post_processor);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -362,6 +366,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->reconstructCauchyStress(*sigma_system);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

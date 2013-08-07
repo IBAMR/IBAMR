@@ -227,6 +227,14 @@ IBFEMethod::registerLagSurfaceForceFunction(
     return;
 }// registerLagSurfaceForceFunction
 
+void
+IBFEMethod::registerIBFEPostProcessor(
+    Pointer<IBFEPatchRecoveryPostProcessor> post_processor)
+{
+    d_post_processor = post_processor;
+    return;
+}// registerIBFEPostProcessor
+
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -977,7 +985,7 @@ IBFEMethod::computeInteriorForceDensity(
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    TensorValue<double> PP, FF, FF_inv_trans;
+    TensorValue<double> PP, FF, FF_inv_trans, sigma;
     VectorValue<double> F, F_b, F_s, F_qp, n;
     libMesh::Point X_qp;
     double P;
@@ -1015,6 +1023,11 @@ IBFEMethod::computeInteriorForceDensity(
                     {
                         G_rhs_e[i](k) += F_qp(i);
                     }
+                }
+                if (d_post_processor)
+                {
+                    sigma = PP*FF.transpose()/FF.det();
+                    d_post_processor->registerCauchyStressValue(elem, qrule.get(), qp, sigma);
                 }
             }
 
@@ -1792,12 +1805,12 @@ IBFEMethod::commonConstructor(
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;
-    const int point_factor = 2.0;
+    const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_use_IB_interp_operator = true;
-    d_interp_spec = FEInterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_factor, interp_use_consistent_mass_matrix);
+    d_interp_spec = FEInterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
     d_use_IB_spread_operator = true;
-    d_spread_spec = FESpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_factor);
+    d_spread_spec = FESpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
@@ -1921,45 +1934,45 @@ IBFEMethod::getFromInput(
     bool /*is_from_restart*/)
 {
     // Interpolation settings.
-    if      (db->isBool("use_IB_interp_operator")) d_use_IB_interp_operator = db->getBool("use_IB_interp_operator");
+    if      (db->isBool("use_IB_interp_operator"      )) d_use_IB_interp_operator = db->getBool("use_IB_interp_operator"      );
+    else if (db->isBool("use_IB_interaction_operators")) d_use_IB_interp_operator = db->getBool("use_IB_interaction_operators");
 
-    if      (db->isString("interp_delta_fcn"     )) d_interp_spec.weighting_fcn = db->getString("interp_delta_fcn"     );
-    else if (db->isString("interaction_delta_fcn")) d_interp_spec.weighting_fcn = db->getString("interaction_delta_fcn");
-    else if (db->isString("delta_fcn")            ) d_interp_spec.weighting_fcn = db->getString("delta_fcn"            );
+    if      (db->isString("interp_delta_fcn")) d_interp_spec.weighting_fcn = db->getString("interp_delta_fcn");
+    else if (db->isString("IB_delta_fcn"    )) d_interp_spec.weighting_fcn = db->getString("IB_delta_fcn"    );
 
-    if      (db->isString("interp_quad_type"     )) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"     ));
-    else if (db->isString("interaction_quad_type")) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interaction_quad_type"));
+    if      (db->isString("interp_quad_type")) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
+    else if (db->isString("IB_quad_type"    )) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"    ));
 
-    if      (db->isString("interp_quad_order"     )) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"     ));
-    else if (db->isString("interaction_quad_order")) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interaction_quad_order"));
+    if      (db->isString("interp_quad_order")) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"));
+    else if (db->isString("IB_quad_order"    )) d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"    ));
 
-    if      (db->isBool("interp_use_adaptive_quadrature"     )) d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature"     );
-    else if (db->isBool("interaction_use_adaptive_quadrature")) d_interp_spec.use_adaptive_quadrature = db->getBool("interaction_use_adaptive_quadrature");
+    if      (db->isBool("interp_use_adaptive_quadrature")) d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature");
+    else if (db->isBool("IB_use_adaptive_quadrature"    )) d_interp_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature"    );
 
-    if      (db->isDouble("interp_point_factor"     )) d_interp_spec.point_factor = db->getDouble("interp_point_factor"     );
-    else if (db->isDouble("interaction_point_factor")) d_interp_spec.point_factor = db->getDouble("interaction_point_factor");
+    if      (db->isDouble("interp_point_density")) d_interp_spec.point_density = db->getDouble("interp_point_density");
+    else if (db->isDouble("IB_point_density"    )) d_interp_spec.point_density = db->getDouble("IB_point_density"    );
 
-    if      (db->isBool("interp_use_consistent_mass_matrix"     )) d_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix"     );
-    else if (db->isBool("interaction_use_consistent_mass_matrix")) d_interp_spec.use_consistent_mass_matrix = db->getBool("interaction_use_consistent_mass_matrix");
+    if      (db->isBool("interp_use_consistent_mass_matrix")) d_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix");
+    else if (db->isBool("IB_use_consistent_mass_matrix"    )) d_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix"    );
 
     // Spreading settings.
-    if      (db->isBool("use_IB_spread_operator")) d_use_IB_spread_operator = db->getBool("use_IB_spread_operator");
+    if      (db->isBool("use_IB_spread_operator"      )) d_use_IB_spread_operator = db->getBool("use_IB_spread_operator"     );
+    else if (db->isBool("use_IB_interaction_operators")) d_use_IB_spread_operator = db->getBool("use_IB_interaction_operators");
 
-    if      (db->isString("spread_delta_fcn"     )) d_spread_spec.weighting_fcn = db->getString("spread_delta_fcn"     );
-    else if (db->isString("interaction_delta_fcn")) d_spread_spec.weighting_fcn = db->getString("interaction_delta_fcn");
-    else if (db->isString("delta_fcn")            ) d_spread_spec.weighting_fcn = db->getString("delta_fcn"            );
+    if      (db->isString("spread_delta_fcn")) d_spread_spec.weighting_fcn = db->getString("spread_delta_fcn");
+    else if (db->isString("IB_delta_fcn"    )) d_spread_spec.weighting_fcn = db->getString("IB_delta_fcn"    );
 
-    if      (db->isString("spread_quad_type"     )) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"     ));
-    else if (db->isString("interaction_quad_type")) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interaction_quad_type"));
+    if      (db->isString("spread_quad_type")) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
+    else if (db->isString("IB_quad_type"    )) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"    ));
 
-    if      (db->isString("spread_quad_order"     )) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"     ));
-    else if (db->isString("interaction_quad_order")) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interaction_quad_order"));
+    if      (db->isString("spread_quad_order")) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
+    else if (db->isString("IB_quad_order"    )) d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("IB_quad_order"    ));
 
-    if      (db->isBool("spread_use_adaptive_quadrature"     )) d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature"     );
-    else if (db->isBool("interaction_use_adaptive_quadrature")) d_spread_spec.use_adaptive_quadrature = db->getBool("interaction_use_adaptive_quadrature");
+    if      (db->isBool("spread_use_adaptive_quadrature")) d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
+    else if (db->isBool("IB_use_adaptive_quadrature"    )) d_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature"    );
 
-    if      (db->isDouble("spread_point_factor"     )) d_spread_spec.point_factor = db->getDouble("spread_point_factor"     );
-    else if (db->isDouble("interaction_point_factor")) d_spread_spec.point_factor = db->getDouble("interaction_point_factor");
+    if      (db->isDouble("spread_point_density")) d_spread_spec.point_density = db->getDouble("spread_point_density");
+    else if (db->isDouble("IB_point_density"    )) d_spread_spec.point_density = db->getDouble("IB_point_density"    );
 
     // Force computation settings.
     if (db->isBool("split_forces")) d_split_forces = db->getBool("split_forces");

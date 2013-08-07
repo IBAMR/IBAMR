@@ -95,20 +95,20 @@ struct FEInterpSpec
         const libMeshEnums::QuadratureType& quad_type,
         const libMeshEnums::Order& quad_order,
         bool use_adaptive_quadrature,
-        double point_factor,
+        double point_density,
         bool use_consistent_mass_matrix)
         : weighting_fcn(weighting_fcn),
           quad_type(quad_type),
           quad_order(quad_order),
           use_adaptive_quadrature(use_adaptive_quadrature),
-          point_factor(point_factor),
+          point_density(point_density),
           use_consistent_mass_matrix(use_consistent_mass_matrix) { }
 
     std::string weighting_fcn;
     libMeshEnums::QuadratureType quad_type;
     libMeshEnums::Order quad_order;
     bool use_adaptive_quadrature;
-    double point_factor;
+    double point_density;
     bool use_consistent_mass_matrix;
 };
 
@@ -126,18 +126,18 @@ struct FESpreadSpec
         const libMeshEnums::QuadratureType& quad_type,
         const libMeshEnums::Order& quad_order,
         bool use_adaptive_quadrature,
-        double point_factor)
+        double point_density)
         : weighting_fcn(weighting_fcn),
           quad_type(quad_type),
           quad_order(quad_order),
           use_adaptive_quadrature(use_adaptive_quadrature),
-          point_factor(point_factor) { }
+          point_density(point_density) { }
 
     std::string weighting_fcn;
     libMeshEnums::QuadratureType quad_type;
     libMeshEnums::Order quad_order;
     bool use_adaptive_quadrature;
-    double point_factor;
+    double point_density;
 };
 
 /*!

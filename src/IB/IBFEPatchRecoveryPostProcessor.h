@@ -68,6 +68,18 @@ public:
     ~IBFEPatchRecoveryPostProcessor();
 
     /*!
+     * Initialize system to store reconstructed Cauchy stress values.
+     */
+    libMesh::System*
+    initializeCauchyStressSystem();
+
+    /*!
+     * Initialize system to store reconstructed pressure values.
+     */
+    libMesh::System*
+    initializePressureSystem();
+
+    /*!
      * Register the Cauchy stress associated with an element and quadrature
      * point.
      */
@@ -92,13 +104,15 @@ public:
      * Reconstruct the Cauchy stress at the nodes of the mesh.
      */
     void
-    reconstructCauchyStress();
+    reconstructCauchyStress(
+        libMesh::System& sigma_system);
 
     /*!
      * Reconstruct the pressure at the nodes of the mesh.
      */
     void
-    reconstructPressure();
+    reconstructPressure(
+        libMesh::System& p_system);
 
 private:
     /*!
@@ -136,6 +150,7 @@ private:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
+    PeriodicBoundaries* d_periodic_boundaries;
     libMeshEnums::Order d_interp_order, d_quad_order;
 
     /*
@@ -143,13 +158,12 @@ private:
      */
     typedef std::set<const Elem*> ElemPatch;
     std::map<libMesh::dof_id_type,ElemPatch> d_local_elem_patches;
-    std::vector<const Elem*> d_local_elems;
 
     /*
      * Interpolation point indexing data for each element.
      */
-    int d_n_qp_global, d_n_qp_local, d_qp_global_offset;
-    std::vector<int> d_elem_n_qp, d_elem_qp_global_offset, d_elem_qp_local_offset;
+    unsigned int d_n_qp_global, d_n_qp_local, d_qp_global_offset;
+    std::vector<unsigned int> d_elem_n_qp, d_elem_qp_global_offset, d_elem_qp_local_offset;
 
     /*
      * Element patch L2 projection matrices.

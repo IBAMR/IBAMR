@@ -231,8 +231,12 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        Pointer<IBFEPatchRecoveryPostProcessor> ib_post_processor = new IBFEPatchRecoveryPostProcessor(&mesh, fe_data_manager);
+        System* sigma_system = ib_post_processor->initializeCauchyStressSystem();
+        ib_method_ops->registerIBFEPostProcessor(ib_post_processor);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
@@ -291,7 +295,7 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFESystems();
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+        EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
         for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
         {
             System& system = equation_systems->get_system(k);
@@ -394,6 +398,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->reconstructCauchyStress(*sigma_system);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

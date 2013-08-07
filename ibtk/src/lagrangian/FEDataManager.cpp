@@ -1535,7 +1535,7 @@ FEDataManager::updateFEInterpQuadratureRule(
     {
         const double hmax = get_elem_hmax(elem, X_node);
         const int min_pts = elem->default_order() == FIRST ? 1 : 2;
-        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_factor*hmax/dx_min)));
+        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_density*hmax/dx_min)));
         switch (type)
         {
             case QGAUSS:
@@ -1577,7 +1577,7 @@ FEDataManager::updateFESpreadQuadratureRule(
     {
         const double hmax = get_elem_hmax(elem, X_node);
         const int min_pts = elem->default_order() == FIRST ? 1 : 2;
-        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_factor*hmax/dx_min)));
+        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_density*hmax/dx_min)));
         switch (type)
         {
             case QGAUSS:
