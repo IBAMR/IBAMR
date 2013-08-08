@@ -811,7 +811,7 @@ LEInteractor::interpolate(
 #else
     NULL_USE(X_depth);
 #endif
-    if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
+    if (NDIM != 3 || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
@@ -1578,7 +1578,7 @@ LEInteractor::spread(
 #else
     NULL_USE(X_depth);
 #endif
-    if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
+    if (NDIM != 3 || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
@@ -1915,7 +1915,7 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-    if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
+    if (NDIM != 3 || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
