@@ -213,3 +213,53 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes W = curl u = du1/dx0 - du0/dx1.
+c
+c     Uses centered differences to compute the node centered curl of a
+c     side centered vector field u=(u0,u1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stoncurl2d(
+     &     W,W_gcw,
+     &     U0,U1,U_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER W_gcw,U_gcw
+
+      REAL U0(SIDE2d0(ilower,iupper,U_gcw))
+      REAL U1(SIDE2d1(ilower,iupper,U_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL W(NODE2d(ilower,iupper,W_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the node centered curl of U.
+c
+
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            W(i0,i1) = (U1(i0,i1) - U1(i0-1,i1))/dx(0) -
+     &                 (U0(i0,i1) - U0(i0,i1-1))/dx(1) 
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

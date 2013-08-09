@@ -310,6 +310,126 @@ public:
         int src_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > src_var,
         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);   
+
+    /*!
+     * \brief Compute the node-centered curl of a side-centered vector field
+     * using centered differences.
+     *
+     * Sets dst = curl src.
+     *
+     * Compute the curl of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    curl(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the edge-centered curl of a side-centered vector field
+     * using centered differences.
+     *
+     * Sets dst = curl src.
+     *
+     * Compute the curl of a vector field using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    curl(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the side-centered rot of a node-centered scalar field
+     * using centered differences. 
+     *
+     * Sets dst = rot src.
+     *
+     * Compute the rot of a 2d scalar field defined on nodes using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    rot(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the side-centered rot of a node-centered scalar field
+     * using centered differences. 
+     *
+     * Sets dst = rot src.
+     *
+     * Compute the rot of a 2d scalar field defined on nodes using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    rot(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the side-centered rot of a edge-centered vector field
+     * using centered differences. 
+     *
+     * Sets dst = rot src.
+     *
+     * Compute the rot of a 3d vector field defined on edges using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    rot(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+        double src_ghost_fill_time);
+
+    /*!
+     * \brief Compute the side-centered rot of a side-centered vector field
+     * using centered differences. 
+     *
+     * Sets dst = rot src.
+     *
+     * Compute the rot of a 3d vector field defined on sides using centered differences.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void
+    rot(
+        int dst_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > dst_var,
+        int src_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > src_var,
+        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
         double src_ghost_fill_time);
 
     /*!

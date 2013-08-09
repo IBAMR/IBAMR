@@ -899,6 +899,245 @@ HierarchyMathOps::curl(
     return;
 }// curl
 
+
+void
+HierarchyMathOps::curl(
+    const int dst_idx,
+    const Pointer<NodeVariable<NDIM,double> > /*dst_var*/,
+    const int src_idx,
+    const Pointer<SideVariable<NDIM,double> > /*src_var*/,
+    const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    const double src_ghost_fill_time)
+{
+#if (NDIM != 2)
+    TBOX_ERROR("HierarchyMathOps::curl():\n"
+               << "  not implemented for NDIM != 2" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete curl.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<NodeData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<SideData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.curl(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// curl
+
+void
+HierarchyMathOps::curl(
+    const int dst_idx,
+    const Pointer<EdgeVariable<NDIM,double> > /*dst_var*/,
+    const int src_idx,
+    const Pointer<SideVariable<NDIM,double> > /*src_var*/,
+    const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    const double src_ghost_fill_time)
+{
+#if (NDIM != 3)
+    TBOX_ERROR("HierarchyMathOps::curl():\n"
+               << "  not implemented for NDIM != 3" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete curl.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<EdgeData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<SideData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.curl(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// curl
+
+void
+HierarchyMathOps::rot(
+    int dst_idx,
+    Pointer<SideVariable<NDIM,double> > /*dst_var*/,
+    int src_idx,
+    Pointer<NodeVariable<NDIM,double> > /*src_var*/,
+    Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    double src_ghost_fill_time)
+{
+#if (NDIM != 2)
+    TBOX_ERROR("HierarchyMathOps::rot():\n"
+               << "  not implemented for NDIM != 2" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete rot.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<NodeData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.rot(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// rot
+
+void
+HierarchyMathOps::rot(
+    int dst_idx,
+    Pointer<SideVariable<NDIM,double> > /*dst_var*/,
+    int src_idx,
+    Pointer<CellVariable<NDIM,double> > /*src_var*/,
+    Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    double src_ghost_fill_time)
+{
+#if (NDIM != 2)
+    TBOX_ERROR("HierarchyMathOps::rot():\n"
+               << "  not implemented for NDIM != 2" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete rot.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.rot(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// rot
+
+void
+HierarchyMathOps::rot(
+    int dst_idx,
+    Pointer<SideVariable<NDIM,double> > /*dst_var*/,
+    int src_idx,
+    Pointer<EdgeVariable<NDIM,double> > /*src_var*/,
+    Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    double src_ghost_fill_time)
+{
+#if (NDIM != 3)
+    TBOX_ERROR("HierarchyMathOps::rot():\n"
+               << "  not implemented for NDIM != 3" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete rot.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<EdgeData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.rot(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// rot
+
+void
+HierarchyMathOps::rot(
+    int dst_idx,
+    Pointer<SideVariable<NDIM,double> > /*dst_var*/,
+    int src_idx,
+    Pointer<SideVariable<NDIM,double> > /*src_var*/,
+    Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+    double src_ghost_fill_time)
+{
+#if (NDIM != 3)
+    TBOX_ERROR("HierarchyMathOps::rot():\n"
+               << "  not implemented for NDIM != 3" << std::endl);
+    NULL_USE(dst_idx);
+    NULL_USE(src_idx);
+    NULL_USE(src_ghost_fill);
+    NULL_USE(src_ghost_fill_time);
+#endif
+
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Compute the discrete rot.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM,double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<SideData<NDIM,double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.rot(
+                dst_data, src_data,
+                patch);
+        }
+    }
+    return;
+}// rot
+
 void
 HierarchyMathOps::div(
     const int dst_idx,

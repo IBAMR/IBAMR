@@ -46,6 +46,7 @@ namespace pdat {
 template <int DIM, class TYPE> class CellData;
 template <int DIM, class TYPE> class FaceData;
 template <int DIM, class TYPE> class NodeData;
+template <int DIM, class TYPE> class EdgeData;
 template <int DIM, class TYPE> class SideData;
 }  // namespace pdat
 }  // namespace SAMRAI
@@ -131,6 +132,72 @@ public:
      */
     void
     curl(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = curl src.
+     *
+     * Uses centered differences.
+     */
+    void
+    curl(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = curl src.
+     *
+     * Uses centered differences.
+     */
+    void
+    curl(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = rot src.
+     *
+     * Uses centered differences.
+     */
+    void
+    rot(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = rot src.
+     *
+     * Uses centered differences.
+     */
+    void
+    rot(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = rot src.
+     *
+     * Uses centered differences.
+     */
+    void
+    rot(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > src,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * \brief Computes dst = rot src.
+     *
+     * Uses centered differences.
+     */
+    void
+    rot(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > src,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
