@@ -181,7 +181,6 @@
 #define S_TO_E_CURL_FC IBTK_FC_FUNC(stoecurl3d, STOECURL3D)
 
 #define E_TO_S_ROT_FC IBTK_FC_FUNC(etosrot3d, ETOSROT3D)
-#define S_TO_S_ROT_FC IBTK_FC_FUNC(stosrot3d, STOSROT3D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -957,15 +956,6 @@ extern "C"
 #if (NDIM == 3)
     void
     E_TO_S_ROT_FC(
-        double* w0, double* w1, double* w2, const int& w_ghosts,
-        const double* u0, const double* u1, const double* u2, const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const double* dx);
-
-    void
-    S_TO_S_ROT_FC(
         double* w0, double* w1, double* w2, const int& w_ghosts,
         const double* u0, const double* u1, const double* u2, const int& u_ghosts,
         const int& ilower0, const int& iupper0,
