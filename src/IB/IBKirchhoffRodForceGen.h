@@ -71,7 +71,7 @@ namespace IBAMR
  * displacements of IB points.
  */
 class IBKirchhoffRodForceGen
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
