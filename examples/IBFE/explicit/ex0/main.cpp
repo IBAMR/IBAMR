@@ -302,6 +302,7 @@ main(
             system.get_dof_map().add_periodic_boundary(pbc);
         }
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData(sigma_system->get_dof_map().get_periodic_boundaries());
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.

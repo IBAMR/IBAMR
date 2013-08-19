@@ -35,12 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "boost/tuple/tuple.hpp"
 #include "ibtk/FEDataManager.h"
 #include "libmesh/mesh.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/system.h"
 #include "libmesh/vector_value.h"
+#include "libmesh/periodic_boundary.h"
 #include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -66,6 +68,13 @@ public:
      * Destructor.
      */
     ~IBFEPatchRecoveryPostProcessor();
+
+    /*!
+     * Initialize data used by the post processor.
+     */
+    void
+    initializeFEData(
+        const libMesh::PeriodicBoundaries* periodic_boundaries=NULL);
 
     /*!
      * Initialize system to store reconstructed Cauchy stress values.
@@ -150,14 +159,41 @@ private:
      */
     libMesh::MeshBase* d_mesh;
     IBTK::FEDataManager* d_fe_data_manager;
-    PeriodicBoundaries* d_periodic_boundaries;
+    const PeriodicBoundaries* d_periodic_boundaries;
     libMeshEnums::Order d_interp_order, d_quad_order;
 
     /*
      * Map from local nodes to element patches.
      */
-    typedef std::set<const Elem*> ElemPatch;
+    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
+    typedef boost::tuple<const Elem*,CompositePeriodicMapping,CompositePeriodicMapping> ElemPatchItem;
+    struct ElemPatchItemComp
+        : std::binary_function<const ElemPatchItem&, const ElemPatchItem&,bool>
+    {
+        inline bool
+        operator()(
+            const ElemPatchItem& lhs,
+            const ElemPatchItem& rhs)
+            {
+                return lhs.get<0>() < rhs.get<0>();
+            }
+    };
+    typedef std::set<ElemPatchItem,ElemPatchItemComp> ElemPatch;
     std::map<libMesh::dof_id_type,ElemPatch> d_local_elem_patches;
+
+    static inline libMesh::Point
+    apply_composite_periodic_mapping(
+        const CompositePeriodicMapping& mapping,
+        const libMesh::Point& p)
+        {
+            if (mapping.empty()) return p;
+            libMesh::Point periodic_image = p;
+            for (unsigned int k = 0; k < mapping.size(); ++k)
+            {
+                periodic_image = mapping[k]->get_corresponding_pos(periodic_image);
+            }
+            return periodic_image;
+        }// apply_composite_periodic_mapping
 
     /*
      * Interpolation point indexing data for each element.
