@@ -658,7 +658,7 @@ FEDataManager::prolongData(
     VecGetArray(X_local_vec, &X_local_soln);
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
-    // the points of the Eulerian grid.
+    // points of the Eulerian grid.
     TensorValue<double> dX_ds;
     boost::multi_array<double,2> F_node, X_node;
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
