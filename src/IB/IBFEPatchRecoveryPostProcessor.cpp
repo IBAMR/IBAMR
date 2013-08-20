@@ -278,13 +278,19 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(
                                     }
                                     if (neighbor->contains_point(periodic_image))
                                     {
-                                        if (elem_patch.find(neighbor) == elem_patch.end() && periodic_neighbors.find(neighbor) == periodic_neighbors.end())
+                                        std::set<const Elem*> elems;
+                                        neighbor->find_point_neighbors(periodic_image, elems);
+                                        for (std::set<const Elem*>::const_iterator k = elems.begin(); k != elems.end(); ++k)
                                         {
-                                            CompositePeriodicMapping forward = forward_mapping;
-                                            CompositePeriodicMapping inverse = inverse_mapping;
-                                            forward.insert(forward.end()  , periodic_boundary->clone(PeriodicBoundaryBase::FORWARD).release());
-                                            inverse.insert(inverse.begin(), periodic_boundary->clone(PeriodicBoundaryBase::INVERSE).release());
-                                            periodic_neighbors.insert(boost::make_tuple(neighbor, forward, inverse));
+                                            const Elem* const elem = *k;
+                                            if (elem_patch.find(elem) == elem_patch.end() && periodic_neighbors.find(elem) == periodic_neighbors.end())
+                                            {
+                                                CompositePeriodicMapping forward = forward_mapping;
+                                                CompositePeriodicMapping inverse = inverse_mapping;
+                                                forward.insert(forward.end()  , periodic_boundary->clone(PeriodicBoundaryBase::FORWARD).release());
+                                                inverse.insert(inverse.begin(), periodic_boundary->clone(PeriodicBoundaryBase::INVERSE).release());
+                                                periodic_neighbors.insert(boost::make_tuple(elem, forward, inverse));
+                                            }
                                         }
                                     }
                                 }
@@ -293,6 +299,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(
                     }
                 }
                 elem_patch.insert(periodic_neighbors.begin(), periodic_neighbors.end());
+                periodic_neighbors.clear();
                 done = periodic_neighbors.empty();
             }
         }
