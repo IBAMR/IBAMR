@@ -994,7 +994,6 @@ FEDataManager::interp(
             qp_offset += n_qp;
         }
     }
-    F_rhs_vec.
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
