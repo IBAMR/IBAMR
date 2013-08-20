@@ -47,6 +47,7 @@ ENABLE_LOGGING             = TRUE
 // model parameters
 USE_CONSTRAINT_METHOD = TRUE
 CONSTRAINT_OMEGA = 2.0
+IMPOSE_CONSTRAINED_VELOCITY = FALSE
 KAPPA_S = 6.25e1*DX/DT^2
 
 // collocated solver parameters
@@ -102,15 +103,16 @@ IBHierarchyIntegrator {
 }
 
 IBFEMethod {
-   use_IB_spread_operator     = USE_IB_DELTA_FUNCTIONS
-   use_IB_interp_operator     = USE_IB_DELTA_FUNCTIONS
-   delta_fcn                  = DELTA_FUNCTION
-   split_forces               = SPLIT_FORCES
-   use_jump_conditions        = USE_JUMP_CONDITIONS
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
-   use_Fbar_projection        = USE_FBAR_PROJECTION
-   IB_point_density           = IB_POINT_DENSITY
-   constraint_omega           = CONSTRAINT_OMEGA
+   use_IB_spread_operator      = USE_IB_DELTA_FUNCTIONS
+   use_IB_interp_operator      = USE_IB_DELTA_FUNCTIONS
+   delta_fcn                   = DELTA_FUNCTION
+   split_forces                = SPLIT_FORCES
+   use_jump_conditions         = USE_JUMP_CONDITIONS
+   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
+   use_Fbar_projection         = USE_FBAR_PROJECTION
+   IB_point_density            = IB_POINT_DENSITY
+   constraint_omega            = CONSTRAINT_OMEGA
+   impose_constrained_velocity = IMPOSE_CONSTRAINED_VELOCITY
 }
 
 INSCollocatedHierarchyIntegrator {

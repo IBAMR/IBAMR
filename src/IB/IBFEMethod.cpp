@@ -556,6 +556,34 @@ IBFEMethod::spreadForce(
 }// spreadForce
 
 void
+IBFEMethod::postprocessSolveFluidEquations(
+    const double /*current_time*/,
+    const double /*new_time*/,
+    const int /*cycle_num*/)
+{
+    if (d_has_constrained_parts && d_impose_constrained_velocity)
+    {
+        INSHierarchyIntegrator* ins_hier_integrator = getINSHierarchyIntegrator();
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getVelocityVariable(), ins_hier_integrator->getNewContext());
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            if (d_constrained_part[part])
+            {
+                PetscVector<double>* X_vec = d_X_new_vecs[part];
+                PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+                PetscVector<double>* F_vec = d_U_b_vecs[part];
+                PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+                X_vec->localize(*X_ghost_vec);
+                F_vec->localize(*F_ghost_vec);
+                d_fe_data_managers[part]->prolongData(u_new_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, /*is_density*/ false, /*accumulate_on_grid*/ false);
+            }
+        }
+    }
+    return;
+}// postprocessSolveFluidEquations
+
+void
 IBFEMethod::initializeFESystems()
 {
     if (d_fe_systems_initialized) return;
@@ -1470,8 +1498,8 @@ IBFEMethod::imposeJumpConditions(
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SideData<NDIM,int> spread_values_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_values_at_loc.fillAll(0);
+        SideData<NDIM,bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_value_at_loc.fillAll(false);
 
         // Loop over the elements.
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1586,9 +1614,12 @@ IBFEMethod::imposeJumpConditions(
                             libMesh::Point X = r+intersections[k].first*q;
                             SideIndex<NDIM> i_s(i_c,axis,0);
                             i_s(axis) = std::floor((X(axis)-x_lower[axis])/dx[axis]+0.5) + patch_lower[axis];
-                            intersection_ref_coords.push_back(intersections[k].second);
-                            intersection_indices.push_back(i_s);
-                            spread_values_at_loc(i_s) += 1;
+                            if (spread_value_at_loc(i_s))
+                            {
+                                intersection_ref_coords.push_back(intersections[k].second);
+                                intersection_indices.push_back(i_s);
+                                spread_value_at_loc(i_s) = true;
+                            }
                         }
                     }
                 }
@@ -1698,7 +1729,7 @@ IBFEMethod::imposeJumpConditions(
                     const double x_cell_bdry = x_lower[axis]+static_cast<double>(i_s(axis)-patch_lower[axis])*dx[axis];
                     const double h = x_cell_bdry + (X > x_cell_bdry ? +0.5 : -0.5)*dx[axis] - X;
                     const double C_p = F*n - h*F_qp(axis);
-                    (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0)*(C_p/dx[axis])/static_cast<double>(spread_values_at_loc(i_s));
+                    (*f_data)(i_s) += (n(axis) > 0.0 ? +1.0 : -1.0)*(C_p/dx[axis]);
                 }
             }
         }
@@ -1828,6 +1859,7 @@ IBFEMethod::commonConstructor(
     d_constrained_part_velocity_fcns.resize(d_num_parts,NULL);
     d_constrained_part_velocity_fcn_ctxs.resize(d_num_parts,NULL);
     d_constraint_omega = 2.0;
+    d_impose_constrained_velocity = false;
 
     // Initialize function pointers to NULL.
     d_coordinate_mapping_fcns.resize(d_num_parts,NULL);
@@ -1994,6 +2026,7 @@ IBFEMethod::getFromInput(
     else if (db->keyExists("enable_logging")) d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
+    if (db->isBool("impose_constrained_velocity")) d_impose_constrained_velocity = db->getBool("impose_constrained_velocity");
     return;
 }// getFromInput
 

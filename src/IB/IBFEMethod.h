@@ -362,6 +362,15 @@ public:
         double data_time);
 
     /*!
+     * Execute user-defined routines just after solving the fluid equations.
+     */
+    void
+    postprocessSolveFluidEquations(
+        double current_time,
+        double new_time,
+        int cycle_num);
+
+    /*!
      * Initialize FE systems.  This method is automatically called by
      * initializeFEData(), and must be called prior to calling
      * IBHierarchyIntegrator::initializePatchHierarchy().
@@ -607,6 +616,7 @@ protected:
     std::vector<ConstrainedPartVelocityFcnPtr> d_constrained_part_velocity_fcns;
     std::vector<void*> d_constrained_part_velocity_fcn_ctxs;
     double d_constraint_omega;
+    bool d_impose_constrained_velocity;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

@@ -676,7 +676,6 @@ FEDataManager::prolongData(
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        if (!accumulate_on_grid) f_data->fillAll(0.0);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -691,8 +690,8 @@ FEDataManager::prolongData(
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         }
 
-        SideData<NDIM,int> spread_values_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_values_at_loc.fillAll(0);
+        SideData<NDIM,bool> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_value_at_loc.fillAll(false);
 
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -738,7 +737,7 @@ FEDataManager::prolongData(
                 for (SideIterator<NDIM> b(box,axis); b; b++)
                 {
                     const SideIndex<NDIM>& i_s = b();
-                    if (side_boxes[axis].contains(i_s))
+                    if (!spread_value_at_loc(i_s) && side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -751,7 +750,7 @@ FEDataManager::prolongData(
                         {
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
-                            spread_values_at_loc(i_s) += 1;
+                            spread_value_at_loc(i_s) = true;
                         }
                     }
                 }
@@ -787,7 +786,14 @@ FEDataManager::prolongData(
                     jacobian(dX_ds,qp,X_node,dphi);
                     F_qp /= std::abs(dX_ds.det());
                 }
-                (*f_data)(i_s) += F_qp/static_cast<double>(spread_values_at_loc(i_s));
+                if (accumulate_on_grid)
+                {
+                    (*f_data)(i_s) += F_qp;
+                }
+                else
+                {
+                    (*f_data)(i_s)  = F_qp;
+                }
             }
         }
     }
