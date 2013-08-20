@@ -465,7 +465,7 @@ FEDataManager::spread(
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    if (!F_vec.closed()) F_vec.close();
+    /*if (!F_vec.closed())*/ F_vec.close();
     PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
@@ -473,7 +473,7 @@ FEDataManager::spread(
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    if (!X_vec.closed()) X_vec.close();
+    /*if (!X_vec.closed())*/ X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -641,7 +641,7 @@ FEDataManager::prolongData(
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    if (!F_vec.closed()) F_vec.close();
+    /*if (!F_vec.closed())*/ F_vec.close();
     PetscVector<double>* F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
@@ -649,7 +649,7 @@ FEDataManager::prolongData(
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    if (!X_vec.closed()) X_vec.close();
+    /*if (!X_vec.closed())*/ X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -846,7 +846,7 @@ FEDataManager::interp(
         if (f_refine_scheds[k]) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
-    if (!X_vec.closed()) X_vec.close();
+    /*if (!X_vec.closed())*/ X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -994,6 +994,7 @@ FEDataManager::interp(
             qp_offset += n_qp;
         }
     }
+    F_rhs_vec.
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
@@ -1049,7 +1050,7 @@ FEDataManager::restrictData(
 
     // Communicate any unsynchronized ghost data and extract the underlying
     // solution data.
-    if (!X_vec.closed()) X_vec.close();
+    /*if (!X_vec.closed())*/ X_vec.close();
     PetscVector<double>* X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
@@ -1490,7 +1491,7 @@ FEDataManager::computeL2Projection(
     int ierr;
     bool converged = false;
 
-    if (!F_vec.closed()) F_vec.close();
+    /*if (!F_vec.closed())*/ F_vec.close();
     const System& system = d_es->get_system(system_name);
     const DofMap& dof_map = system.get_dof_map();
     if (consistent_mass_matrix)
