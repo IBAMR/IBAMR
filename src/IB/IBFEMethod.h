@@ -362,15 +362,6 @@ public:
         double data_time);
 
     /*!
-     * Execute user-defined routines just after solving the fluid equations.
-     */
-    void
-    postprocessSolveFluidEquations(
-        double current_time,
-        double new_time,
-        int cycle_num);
-
-    /*!
      * Initialize FE systems.  This method is automatically called by
      * initializeFEData(), and must be called prior to calling
      * IBHierarchyIntegrator::initializePatchHierarchy().
@@ -589,7 +580,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
     bool d_fe_systems_initialized, d_fe_data_initialized;
 
