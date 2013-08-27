@@ -369,9 +369,9 @@ IBFEMethod::postprocessIntegrateData(
         *d_X_current_vecs[part] = *d_X_new_vecs[part];
         *d_U_current_vecs[part] = *d_U_new_vecs[part];
 
-        d_X_systems[part]->solution = *d_X_systems[part]->current_local_solution;
-        d_U_systems[part]->solution = *d_U_systems[part]->current_local_solution;
-        d_F_systems[part]->solution = *d_F_systems[part]->current_local_solution;
+        *d_X_systems[part]->solution = *d_X_current_vecs[part];
+        *d_U_systems[part]->solution = *d_U_current_vecs[part];
+        *d_F_systems[part]->solution = *d_F_current_vecs[part];
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
@@ -385,7 +385,7 @@ IBFEMethod::postprocessIntegrateData(
         if (d_constrained_part[part])
         {
             *d_U_b_current_vecs[part] = *d_U_b_new_vecs[part];
-            d_U_b_systems[part]->solution = *d_U_b_systems[part]->current_local_solution;
+            *d_U_b_systems[part]->solution = *d_U_b_current_vecs[part];
             delete d_U_b_new_vecs [part];
             delete d_U_b_half_vecs[part];
         }
