@@ -371,7 +371,7 @@ IBFEMethod::postprocessIntegrateData(
 
         *d_X_systems[part]->solution = *d_X_current_vecs[part];
         *d_U_systems[part]->solution = *d_U_current_vecs[part];
-        *d_F_systems[part]->solution = *d_F_current_vecs[part];
+        *d_F_systems[part]->solution = *d_F_half_vecs[part];
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
