@@ -632,29 +632,27 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Determine the CFL number.
     if (!d_parent_integrator)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         double cfl_max = 0.0;
-        PatchCellDataOpsReal<NDIM,double> patch_cc_ops;
-        PatchFaceDataOpsReal<NDIM,double> patch_fc_ops;
-        PatchSideDataOpsReal<NDIM,double> patch_sc_ops;
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        for (unsigned int k = 0; k < d_u_var.size(); ++k)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+            PatchFaceDataOpsReal<NDIM,double> patch_fc_ops;
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const double* const dx = pgeom->getDx();
-                const double dx_min = *(std::min_element(dx,dx+NDIM));
-                Pointer<CellData<NDIM,double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-                Pointer<FaceData<NDIM,double> > u_fc_new_data = patch->getPatchData(u_new_idx);
-                Pointer<SideData<NDIM,double> > u_sc_new_data = patch->getPatchData(u_new_idx);
-                double u_max = 0.0;
-                if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-                if (u_fc_new_data) u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
-                if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
-                cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    const Box<NDIM>& patch_box = patch->getBox();
+                    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                    const double* const dx = pgeom->getDx();
+                    const double dx_min = *(std::min_element(dx,dx+NDIM));
+                    Pointer<FaceData<NDIM,double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                    double u_max = 0.0;
+                    u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
+                    cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+                }
             }
         }
         cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
