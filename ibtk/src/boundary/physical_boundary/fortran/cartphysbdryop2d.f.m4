@@ -47,23 +47,49 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     For cell centered values, we follow a similar approach as that
-c     implemented in class SAMRAI::solv::CartesianRobinBcHelper.
-c     Namely, with u_i denoting the interior cell, u_o denoting the
-c     ghost cell, and u_b and u_n denoting the value and normal
-c     derivative of u at the boundary,
+c     For cell-centered values, we follow a similar approach as that
+c     implemented in class SAMRAI::solv::CartesianRobinBcHelper.  Let
+c     u_g denote the ghost cell value and let u_i denote the
+c     mirror-image interior cell value, and let n be the number of cell
+c     widths separating the ghost cell center and the interior cell
+c     center.  We define
 c
-c          u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+c          u_b = (u_g + u_i)/2
+c          u_n = (u_g - u_i)/(n*h)
 c
-c     Now, if
+c     If
 c
 c          a*u_b + b*u_n = g
 c
 c     then
 c
-c          u_o = u_i*(-(a*h - 2*b)/(a*h + 2*b)) + g*(2*h/(a*h + 2*b))
+c          u_g = (-(a*n*h-2*b)/(a*n*h+2*b))*u_i + (2*n*h/(a*n*h+2*b))*g
+c              = f_i*u_i + f_g*g
 c
-c     For side centered values, we follow a similar approach.
+c     with
+c
+c          f_i = -(a*n*h-2*b)/(a*n*h+2*b)
+c          f_g = 2*n*h/(a*n*h+2*b)
+c
+c     For side-centered values, we follow a similar approach.  In this
+c     case, however, u_b can be a degree of freedom of the problem, so
+c     that
+c
+c          u_g = u_i + (-a*n*h/b)*u_b + (n*h/b)*g
+c              = f_i*u_i + f_b*u_b + f_g*g
+c
+c     with
+c
+c          f_i = 1
+c          f_b = -a*n*h/b
+c          f_g = n*h/b
+c
+c     For Dirichlet boundary conditions, b=0, and the foregoing
+c     expressions are ill defined.  Consequently, in this case, we
+c     eliminate u_b and simply set
+c
+c          u_b = g/a
+c          u_g = 2*u_b - u_i
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -113,7 +139,8 @@ c
       INTEGER i,i_g,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,g
+      REAL    f_g,f_i,n,u_i
 c
 c     Set values along the upper/lower x side of the patch.
 c
@@ -134,13 +161,12 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-
-            u_i = U(i_i,j)
-            u_b = (2.d0*b*u_i+g*dx(0))/(a*dx(0)+2.d0*b)
-
             do i = 0,U_gcw-1
+               n = 1.d0+2.d0*i
+               f_i = -(a*n*dx(0)-2.d0*b)/(a*n*dx(0)+2.d0*b)
+               f_g = 2.d0*n*dx(0)/(a*n*dx(0)+2.d0*b)
                u_i = U(i_i-sgn*i,j)
-               U(i_g+sgn*i,j) = 2.d0*u_b-u_i
+               U(i_g+sgn*i,j) = f_i*u_i + f_g*g
             enddo
          enddo
 
@@ -193,7 +219,8 @@ c
       INTEGER i
       INTEGER j,j_g,j_i
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,g
+      REAL    f_g,f_i,n,u_i
 c
 c     Set values along the upper/lower y side of the patch.
 c
@@ -214,13 +241,164 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-
-            u_i = U(i,j_i)
-            u_b = (2.d0*b*u_i+g*dx(1))/(a*dx(1)+2.d0*b)
-
             do j = 0,U_gcw-1
+               n = 1.d0+2.d0*j
+               f_i = -(a*n*dx(1)-2.d0*b)/(a*n*dx(1)+2.d0*b)
+               f_g = 2.d0*n*dx(1)/(a*n*dx(1)+2.d0*b)
                u_i = U(i,j_i-sgn*j)
-               U(i,j_g+sgn*j) = 2.d0*u_b-u_i
+               U(i,j_g+sgn*j) = f_i*u_i + f_g*g
+            enddo
+         enddo
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Accumulate data from the ghost cell region using the adjoint of
+c     the operator used to fill ghost cell values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ccrobinphysbdryadjop1x2d(
+     &     U,U_gcw,
+     &     acoef,bcoef,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower1,bupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower1,bupper1
+
+      REAL acoef(blower1:bupper1)
+      REAL bcoef(blower1:bupper1)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i,i_g,i_i
+      INTEGER j
+      INTEGER sgn
+      REAL    a,b,f_i,n,u_g
+c
+c     Set values along the upper/lower x side of the patch.
+c
+      if ( (location_index .eq. 0) .or.
+     &     (location_index .eq. 1) ) then
+
+         if (location_index .eq. 0) then
+            sgn = -1
+            i_g = ilower0-1     ! ghost    index
+            i_i = ilower0       ! interior index
+         else
+            sgn = +1
+            i_g = iupper0+1     ! ghost    index
+            i_i = iupper0       ! interior index
+         endif
+
+         do j = blower1,bupper1
+            a = acoef(j)
+            b = bcoef(j)
+            do i = 0,U_gcw-1
+               n = 1.d0+2.d0*i
+               f_i = -(a*n*dx(0)-2.d0*b)/(a*n*dx(0)+2.d0*b)
+               u_g = U(i_g+sgn*i,j)
+               U(i_i-sgn*i,j) = U(i_i-sgn*i,j) + f_i*u_g
+            enddo
+         enddo
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Accumulate data from the ghost cell region using the adjoint of
+c     the operator used to fill ghost cell values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ccrobinphysbdryadjop1y2d(
+     &     U,U_gcw,
+     &     acoef,bcoef,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower0,bupper0,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower0,bupper0
+
+      REAL acoef(blower0:bupper0)
+      REAL bcoef(blower0:bupper0)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i
+      INTEGER j,j_g,j_i
+      INTEGER sgn
+      REAL    a,b,f_i,n,u_g
+c
+c     Set values along the upper/lower y side of the patch.
+c
+      if ( (location_index .eq. 2) .or.
+     &     (location_index .eq. 3) ) then
+
+         if (location_index .eq. 2) then
+            sgn = -1
+            j_g = ilower1-1     ! ghost    index
+            j_i = ilower1       ! interior index
+         else
+            sgn = +1
+            j_g = iupper1+1     ! ghost    index
+            j_i = iupper1       ! interior index
+         endif
+
+         do i = blower0,bupper0
+            a = acoef(i)
+            b = bcoef(i)
+            do j = 0,U_gcw-1
+               n = 1.d0+2.d0*j
+               f_i = -(a*n*dx(1)-2.d0*b)/(a*n*dx(1)+2.d0*b)
+               u_g = U(i,j_g+sgn*j)
+               U(i,j_i-sgn*j) = U(i,j_i-sgn*j) + f_i*u_g
             enddo
          enddo
 
@@ -361,7 +539,7 @@ c
       INTEGER i,i_b,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,g,f_b,f_g,f_i,n,u_b,u_i
 c
 c     Set values along the upper/lower x side of the patch.
 c
@@ -382,21 +560,26 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-
             if (abs(b) .lt. 1.d-12) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
                do i = 1,u_gcw
+                  f_i = -1.d0
+                  f_b = 2.d0
                   u_i = u0(i_b-sgn*i,j)
-                  u0(i_b+sgn*i,j) = 2.d0*u_b-u_i
+                  u0(i_b+sgn*i,j) = f_i*u_i + f_b*u_b
                enddo
             else
 c     Robin boundary conditions
                u_b = u0(i_b,j)
                do i = 1,u_gcw
+                  n = 2.d0*i
+                  f_i = 1.d0
+                  f_b = -a*n*dx(0)/b
+                  f_g = n*dx(0)/b
                   u_i = u0(i_b-sgn*i,j)
-                  u0(i_b+sgn*i,j) = u_i+(2.d0*dble(i)*dx(0)*(g-a*u_b))/b
+                  u0(i_b+sgn*i,j) = f_i*u_i + f_b*u_b + f_g*g
                enddo
             endif
          enddo
@@ -450,7 +633,7 @@ c
       INTEGER i
       INTEGER j,j_b,j_i
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,g,f_b,f_g,f_i,n,u_b,u_i
 c
 c     Set values along the upper/lower y side of the patch.
 c
@@ -471,21 +654,206 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-
             if (abs(b) .lt. 1.d-12) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b
                do j = 1,u_gcw
+                  f_i = -1.d0
+                  f_b = 2.d0
                   u_i = u1(i,j_b-sgn*j)
-                  u1(i,j_b+sgn*j) = 2.d0*u_b-u_i
+                  u1(i,j_b+sgn*j) = f_i*u_i + f_b*u_b
                enddo
             else
 c     Robin boundary conditions
                u_b = u1(i,j_b)
                do j = 1,u_gcw
+                  n = 2.d0*j
+                  f_i = 1.d0
+                  f_b = -a*n*dx(1)/b
+                  f_g = n*dx(1)/b
                   u_i = u1(i,j_b-sgn*j)
-                  u1(i,j_b+sgn*j) = u_i+(2.d0*dble(j)*dx(1)*(g-a*u_b))/b
+                  u1(i,j_b+sgn*j) = f_i*u_i + f_b*u_b + f_g*g
+               enddo
+            endif
+         enddo
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Accumulate data from the ghost cell region using the adjoint of
+c     the operator used to fill ghost cell values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine scrobinphysbdryadjop1x2d(
+     &     u0,u_gcw,
+     &     acoef,bcoef,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower1,bupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower1,bupper1
+
+      REAL acoef(blower1:bupper1)
+      REAL bcoef(blower1:bupper1)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i,i_b,i_i
+      INTEGER j
+      INTEGER sgn
+      REAL    a,b,f_b,f_i,n,u_g
+c
+c     Set values along the upper/lower x side of the patch.
+c
+      if ( (location_index .eq. 0) .or.
+     &     (location_index .eq. 1) ) then
+
+         if (location_index .eq. 0) then
+            sgn = -1
+            i_b = ilower0       ! boundary index
+            i_i = ilower0+1     ! interior index
+         else
+            sgn = +1
+            i_b = iupper0+1     ! boundary index
+            i_i = iupper0       ! interior index
+         endif
+
+         do j = blower1,bupper1
+            a = acoef(j)
+            b = bcoef(j)
+            if (abs(b) .lt. 1.d-12) then
+c     Dirichlet boundary conditions
+               do i = 1,u_gcw
+                  f_i = -1.d0
+                  f_b = 2.d0
+                  u_g = u0(i_b+sgn*i,j)
+                  u0(i_b-sgn*i,j) = u0(i_b-sgn*i,j) + f_i*u_g
+                  u0(i_b      ,j) = u0(i_b      ,j) + f_b*u_g
+               enddo
+            else
+c     Robin boundary conditions
+               do i = 1,u_gcw
+                  n = 2.d0*i
+                  f_i = 1.d0
+                  f_b = -a*n*dx(0)/b
+                  u_g = u0(i_b+sgn*i,j)
+                  u0(i_b-sgn*i,j) = u0(i_b-sgn*i,j) + f_i*u_g
+                  u0(i_b      ,j) = u0(i_b      ,j) + f_b*u_g
+               enddo
+            endif
+         enddo
+
+      endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Accumulate data from the ghost cell region using the adjoint of
+c     the operator used to fill ghost cell values.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine scrobinphysbdryadjop1y2d(
+     &     u1,u_gcw,
+     &     acoef,bcoef,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower0,bupper0,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower0,bupper0
+
+      REAL acoef(blower0:bupper0)
+      REAL bcoef(blower0:bupper0)
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i
+      INTEGER j,j_b,j_i
+      INTEGER sgn
+      REAL    a,b,f_b,f_i,n,u_g
+c
+c     Set values along the upper/lower y side of the patch.
+c
+      if ( (location_index .eq. 2) .or.
+     &     (location_index .eq. 3) ) then
+
+         if (location_index .eq. 2) then
+            sgn = -1
+            j_b = ilower1       ! boundary index
+            j_i = ilower1+1     ! interior index
+         else
+            sgn = +1
+            j_b = iupper1+1     ! boundary index
+            j_i = iupper1       ! interior index
+         endif
+
+         do i = blower0,bupper0
+            a = acoef(i)
+            b = bcoef(i)
+            if (abs(b) .lt. 1.d-12) then
+c     Dirichlet boundary conditions
+               do j = 1,u_gcw
+                  f_i = -1.d0
+                  f_b = 2.d0
+                  u_g = u1(i,j_b+sgn*j)
+                  u1(i,j_b-sgn*j) = u1(i,j_b+sgn*j) + f_i*u_g
+                  u1(i,j_b      ) = u1(i,j_b      ) + f_b*u_g
+               enddo
+            else
+c     Robin boundary conditions
+               do j = 1,u_gcw
+                  n = 2.d0*j
+                  f_i = 1.d0
+                  f_b = -a*n*dx(1)/b
+                  u_g = u1(i,j_b+sgn*j)
+                  u1(i,j_b-sgn*j) = u1(i,j_b-sgn*j) + f_i*u_g
+                  u1(i,j_b      ) = u1(i,j_b      ) + f_b*u_g
                enddo
             endif
          enddo
