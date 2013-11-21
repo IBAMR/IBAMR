@@ -104,6 +104,7 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex5/Makefile
   examples/IBFE/explicit/ex6/Makefile
   examples/IBFE/explicit/ex7/Makefile
+  examples/IBFE/explicit/ex8/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
