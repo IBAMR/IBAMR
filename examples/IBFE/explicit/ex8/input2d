@@ -1,20 +1,23 @@
 // physical parameters
-L     = 2.0                                        // width  of computational domain
-H     = 1.5                                        // height of computational domain
+L_X   = 2.0                                        // width  of computational domain
+L_Y   = 1.5                                        // height of computational domain
 RHO   = 1.0
 MU    = 0.04
-U_MAX = 40
+U_MAX = 3.0
 
 // grid spacing parameters
 MAX_LEVELS = 2                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
 N = 32                                             // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
-DX0 = L/N                                          // mesh width on coarsest grid level
-DX  = L/NFINEST                                    // mesh width on finest   grid level
-MFAC = 0.5                                         // ratio of Lagrangian mesh width to Cartesian mesh width
-BLOCK_ELEM_TYPE = "QUAD4"                          // type of element to use for discretization of the circular block
-BEAM_ELEM_TYPE  = "QUAD4"                          // type of element to use for discretization of the thin beam
+DX0 = L_X/N                                        // mesh width on coarsest grid level
+DX  = L_X/NFINEST                                  // mesh width on finest   grid level
+BLOCK_MFAC = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular blocks
+BEAM_MFAC  = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
+BLOCK_ELEM_TYPE = "QUAD9"                          // type of element to use for discretization of the rectangular blocks
+BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
+N_X = N
+N_Y = N_X * (L_Y / L_X)
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                  // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -24,7 +27,7 @@ USE_JUMP_CONDITIONS        = FALSE                 // whether to impose pressure
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 2.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 START_TIME                 = 0.0e0                 // initial simulation time
-END_TIME                   = 2.0                   // final simulation time
+END_TIME                   = 20.0                  // final simulation time
 GROW_DT                    = 2.0e0                 // growth factor for timesteps
 NUM_CYCLES                 = 1                     // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"     // convective time stepping type
@@ -32,7 +35,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                 // convective differencing di
 CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.125                 // maximum CFL number
-DT                         = 0.3*CFL_MAX*DX/U_MAX  // maximum timestep size
+DT                         = CFL_MAX*DX/U_MAX      // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
@@ -45,24 +48,24 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // model parameters
-MU_S = 1.0e7 // 1.0e9
-P_MAX = 8.0
+MU_S = 1.0e3
+P_MAX = 80.0
 T_END = 2.0
 
 // penalty parameters
 KAPPA_S = 1.0e2 * DX / DT^2
-KAPPA_T = 1.0e2 * DX / DT^2
+KAPPA_T = 1.0e5 * DX / DT^2
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
    acoef_function_1 = "if((X_1 < 0.5), 1.0 , 0.0)"
-   acoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 0.0 , 1.0)"
-   acoef_function_3 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "if((X_1 < 0.5), 0.0 , 1.0)"
    bcoef_function_1 = "if((X_1 < 0.5), 0.0 , 1.0)"
-   bcoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 1.0 , 0.0)"
-   bcoef_function_3 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
@@ -74,13 +77,13 @@ VelocityBcCoefs_1 {
    p_max = P_MAX
    t_end = T_END
 
-   acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
-   acoef_function_1 = "if((X_1 < 0.5), 1.0 , 0.0)"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 0.0 , 1.0)"
    acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "if((X_1 < 0.5), 0.0 , 1.0)"
-   bcoef_function_1 = "if((X_1 < 0.5), 0.0 , 1.0)"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "if((X_0 > 0.5) && (X_0 < 1.5), 1.0 , 0.0)"
    bcoef_function_3 = "1.0"
 
@@ -141,7 +144,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = 4*NFINEST
+   viz_dump_interval           = NFINEST/4
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -158,9 +161,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(int((L/H)*N) - 1,N - 1) ]
+   domain_boxes = [ (0 , 0) , (N_X - 1 , N_Y - 1) ]
    x_lo = 0,0
-   x_up = L,H
+   x_up = L_X,L_Y
    periodic_dimension = 0,0
 }
 

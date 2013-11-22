@@ -184,27 +184,28 @@ main(
 
         // Create a simple FE mesh.
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
+        const double ds_block = input_db->getDouble("BLOCK_MFAC")*dx;
+        const double ds_beam  = input_db->getDouble("BEAM_MFAC" )*dx;
 
         string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
         string  beam_elem_type = input_db->getString("BEAM_ELEM_TYPE" );
 
         Mesh block1_mesh(NDIM);
         MeshTools::Generation::build_square(block1_mesh,
-                                            ceil(0.5/ds), ceil(0.5/ds),
+                                            ceil(0.5/ds_block), ceil(0.5/ds_block),
                                             0.0, 0.5,
                                             0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
         Mesh block2_mesh(NDIM);
         MeshTools::Generation::build_square(block2_mesh,
-                                            ceil(0.5/ds), ceil(0.5/ds),
+                                            ceil(0.5/ds_block), ceil(0.5/ds_block),
                                             1.5, 2.0,
                                             0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
 
         Mesh beam_mesh(NDIM);
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(1.0/ds), max(ceil(0.016/ds),4.0),
+                                            ceil(1.0/ds_beam), max(ceil(0.016/ds_beam),4.0),
                                             0.5, 1.5,
                                             0.5-0.008, 0.5+0.008,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
