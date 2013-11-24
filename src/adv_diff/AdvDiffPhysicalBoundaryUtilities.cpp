@@ -143,10 +143,13 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
                         i_g(bdry_normal_axis) = patch_box.upper(bdry_normal_axis)+1;
                         i_i(bdry_normal_axis) = patch_box.upper(bdry_normal_axis);
                     }
-                    const double Q_b = (2.0*b*(*Q_data)(i_i,depth)+g*h)/(a*h+2.0*b);
                     for (int k = 0; k < gcw(bdry_normal_axis); ++k)
                     {
-                        (*Q_data)(i_g,depth) = 2.0*Q_b-(*Q_data)(i_i,depth);
+                        const double n = 1.0+2.0*k;
+                        const double f_i = -(a*n*h-2.0*b)/(a*n*h+2.0*b);
+                        const double f_g = 2.0*n*h/(a*n*h+2.0*b);
+                        const double Q_i = (*Q_data)(i_i,depth);
+                        (*Q_data)(i_g,depth) = f_i*Q_i + f_g*g;
                         i_g(bdry_normal_axis) += sgn;
                         i_i(bdry_normal_axis) -= sgn;
                     }
