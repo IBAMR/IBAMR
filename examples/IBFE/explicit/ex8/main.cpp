@@ -64,8 +64,8 @@
 // Elasticity model data.
 namespace ModelData
 {
-static double kappa_s = 1.0e6;
-static double kappa_t = 1.0e6;
+static double block_kappa_s = 1.0e6;
+static double beam_kappa_s  = 1.0e6;
 
 // Tether (penalty) force function for the solid blocks.
 void
@@ -80,7 +80,7 @@ block_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa_s*(s-X);
+    F = block_kappa_s*(s-X);
     return;
 }// block_tether_force_function
 
@@ -97,25 +97,12 @@ beam_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F.zero();
-    static const libMesh::Point s0(0.5,0.5);
-    static const libMesh::Point s1(1.5,0.5);
-    static const double h = 0.004;
-    double d0 = (s-s0).size();
-    double d1 = (s-s1).size();
-    if (d0 < h)
-    {
-        F = kappa_t*(1.0-d0/h)*(s-X);
-    }
-    else if (d1 < h)
-    {
-        F = kappa_t*(1.0-d1/h)*(s-X);
-    }
+    F = beam_kappa_s*(s-X);
     return;
 }// beam_tether_force_function
 
 // Stress tensor function for the thin beam.
-static double mu_s;
+static double mu_s, beta_s;
 void
 beam_PK1_stress_function(
     TensorValue<double>& PP,
@@ -129,10 +116,118 @@ beam_PK1_stress_function(
     void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    const TensorValue<double> CC = FF.transpose()*FF;
     PP = mu_s*(FF-FF_inv_trans);
+    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    {
+        const TensorValue<double> CC = FF.transpose()*FF;
+        PP += beta_s*log(CC.det())*FF_inv_trans;
+    }
     return;
 }// beam_PK1_stress_function
+
+struct node_x_comp
+    : std::binary_function<const libMesh::Node*,const libMesh::Node*,bool>
+{
+    inline bool
+    operator()(
+        const libMesh::Node* const a,
+        const libMesh::Node* const b)
+        {
+            return (*a)(0) < (*b)(0);
+        }
+};
+
+template<class node_set>
+double
+compute_displaced_area(
+    node_set& nodes,
+    EquationSystems* equation_systems)
+{
+    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    NumericVector<double>* X_vec = X_system.solution.get();
+    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    X_serial_vec->init(X_vec->size(), true, SERIAL);
+    X_vec->localize(*X_serial_vec);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    vector<unsigned int> vars(2);
+    vars[0] = 0; vars[1] = 1;
+    MeshFunction X_fcn(*equation_systems, *X_serial_vec, X_dof_map, vars);
+    X_fcn.init();
+    DenseVector<double> n0(2), n1(2);
+    X_fcn(**nodes.rbegin(), 0.0, n0);
+    double A2 = 0.0;
+    for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
+    {
+        X_fcn(**it, 0.0, n1);
+        A2 += n0(0)*n1(1) - n0(1)*n1(0);
+        n0 = n1;
+    }
+    return 0.5*abs(A2);
+}
+
+double
+compute_inflow_flux(
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int U_idx,
+    const int wgt_sc_idx)
+{
+    double Q_in = 0.0;
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            if (pgeom->getTouchesRegularBoundary())
+            {
+                Pointer<SideData<NDIM,double> >      U_data = patch->getPatchData(     U_idx);
+                Pointer<SideData<NDIM,double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                const Box<NDIM>& patch_box = patch->getBox();
+                const double* const x_lower = pgeom->getXLower();
+                const double* const dx = pgeom->getDx();
+                double dV = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    dV *= dx[d];
+                }
+                double X[NDIM];
+                static const int axis = NDIM-1;
+                static const int side = 0;
+                if (pgeom->getTouchesRegularBoundary(axis,side))
+                {
+                    Vector n;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        n[d] = axis == d ? +1.0 : 0.0;
+                    }
+                    Box<NDIM> side_box = patch_box;
+                    side_box.lower(axis) = patch_box.lower(axis);
+                    side_box.upper(axis) = patch_box.lower(axis);
+                    for (Box<NDIM>::Iterator b(side_box); b; b++)
+                    {
+                        const Index<NDIM>& i = b();
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            X[d] = x_lower[d] + dx[d]*(double(i(d)-patch_box.lower(d))+(d == axis ? 0.0 : 0.5));
+                        }
+                        if (X[0] >= 0.5 && X[0] <= 1.5)
+                        {
+                            const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                            if ((*wgt_sc_data)(i_s) > std::numeric_limits<double>::epsilon())
+                            {
+                                double dA = n[axis]*dV/dx[axis];
+                                Q_in += (*U_data)(i_s)*dA;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    SAMRAI_MPI::sumReduction(&Q_in,1);
+    return Q_in;
+}
 }
 using namespace ModelData;
 
@@ -205,7 +300,7 @@ main(
 
         Mesh beam_mesh(NDIM);
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(1.0/ds_beam), max(ceil(0.016/ds_beam),4.0),
+                                            ceil(1.0/ds_beam), max(2*static_cast<int>(ceil(0.016/ds_beam)/2.0),4),
                                             0.5, 1.5,
                                             0.5-0.008, 0.5+0.008,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
@@ -213,14 +308,33 @@ main(
         block2_mesh.prepare_for_use();
         beam_mesh  .prepare_for_use();
 
+        // Make an ordered list of the nodes along the bottom edge of the beam.
+        typedef std::set<libMesh::Node*,node_x_comp> node_set;
+        node_set centerline_node_set;
+        std::set<libMesh::dof_id_type> tethered_node_ids;
+        for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != beam_mesh.nodes_end(); ++n_it)
+        {
+            const libMesh::Node& n = **n_it;
+            if (abs(n(1) - 0.5) < 1.0e-8)
+            {
+                centerline_node_set.insert(*n_it);
+                if (abs(n(0) - 0.5) < 1.0e-8 || abs(n(0) - 1.5) < 1.0e-8)
+                {
+                    tethered_node_ids.insert(n.id());
+                }
+            }
+        }
+
         vector<Mesh*> meshes(3);
         meshes[0] = &block1_mesh;
         meshes[1] = &block2_mesh;
         meshes[2] = &  beam_mesh;
 
-        mu_s    = input_db->getDouble("MU_S");
-        kappa_s = input_db->getDouble("KAPPA_S");
-        kappa_t = input_db->getDouble("KAPPA_T");
+        mu_s = input_db->getDouble("MU_S");
+        beta_s = input_db->getDouble("BETA_S");
+        block_kappa_s = input_db->getDouble("BLOCK_KAPPA_S");
+        beam_kappa_s  = input_db->getDouble("BEAM_KAPPA_S" );
+        double beam_kappa_t = input_db->getDouble("BEAM_KAPPA_T");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -248,6 +362,7 @@ main(
         ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerLagBodyForceFunction(& beam_tether_force_function, std::vector<unsigned int>(), NULL, 2);
         ib_method_ops->registerPK1StressTensorFunction(&beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 2);
+        ib_method_ops->registerTetheredNodes(tethered_node_ids, beam_kappa_t, 2);
         EquationSystems* block1_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* block2_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
         EquationSystems*   beam_equation_systems = ib_method_ops->getFEDataManager(2)->getEquationSystems();
@@ -343,6 +458,9 @@ main(
             }
         }
 
+        // Inflow volumes (areas).
+        double A_in_current = 0.0;
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -358,8 +476,33 @@ main(
             pout << "Simulation time is " << loop_time              << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
+
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int U_current_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
+            const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
+            const double Q_in_current   = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
+            const double A_disp_current = compute_displaced_area(centerline_node_set, beam_equation_systems);
+
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            const double Q_in_new    = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
+            const double Q_in_half   = (Q_in_new+Q_in_current)/2.0;
+            const double A_in_new    = A_in_current + dt*Q_in_half;
+            const double A_in_half   = (A_in_new+A_in_current)/2.0;
+            const double A_disp_new  = compute_displaced_area(centerline_node_set, beam_equation_systems);
+            const double A_disp_half = (A_disp_new+A_disp_current)/2.0;
+            const double Q_disp_half = (A_disp_new-A_disp_current)/dt;
+
+            pout << "t      = " << loop_time - 0.5*dt << "\n"
+                 << "A_in   = " << A_in_half   << "\n"
+                 << "A_disp = " << A_disp_half << "\n"
+                 << "A_diff = " << A_in_half - A_disp_half << "\n"
+                 << "Q_in   = " << Q_in_half   << "\n"
+                 << "Q_disp = " << Q_disp_half << "\n"
+                 << "Q_diff = " << Q_in_half - Q_disp_half << "\n";
+
+            A_in_current = A_in_new;
 
             pout <<                                                    "\n";
             pout << "At end       of timestep # " <<  iteration_num << "\n";

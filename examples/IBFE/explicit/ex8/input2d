@@ -13,7 +13,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid c
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 BLOCK_MFAC = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular blocks
-BEAM_MFAC  = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
+BEAM_MFAC  = 3.0                                 // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
 BLOCK_ELEM_TYPE = "QUAD9"                          // type of element to use for discretization of the rectangular blocks
 BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
 N_X = N
@@ -27,7 +27,7 @@ USE_JUMP_CONDITIONS        = FALSE                 // whether to impose pressure
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 2.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 START_TIME                 = 0.0e0                 // initial simulation time
-END_TIME                   = 20.0                  // final simulation time
+END_TIME                   = 1.80                  // final simulation time
 GROW_DT                    = 2.0e0                 // growth factor for timesteps
 NUM_CYCLES                 = 1                     // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"     // convective time stepping type
@@ -49,12 +49,14 @@ ENABLE_LOGGING             = TRUE
 
 // model parameters
 MU_S = 1.0e3
+BETA_S = MU_S
 P_MAX = 80.0
 T_END = 2.0
 
 // penalty parameters
-KAPPA_S = 1.0e2 * DX / DT^2
-KAPPA_T = 1.0e5 * DX / DT^2
+BLOCK_KAPPA_S = 1.0e2 * DX / DT^2
+BEAM_KAPPA_S  = 0.0 // KAPPA_S
+BEAM_KAPPA_T  = 3.0e1 / DT
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
