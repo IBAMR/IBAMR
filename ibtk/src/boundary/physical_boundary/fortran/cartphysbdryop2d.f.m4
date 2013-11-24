@@ -139,13 +139,15 @@ c
       INTEGER i,i_g,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,g
+      REAL    a,b,g,h
       REAL    f_g,f_i,n,u_i
 c
 c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -163,8 +165,8 @@ c
             g = gcoef(j)
             do i = 0,U_gcw-1
                n = 1.d0+2.d0*i
-               f_i = -(a*n*dx(0)-2.d0*b)/(a*n*dx(0)+2.d0*b)
-               f_g = 2.d0*n*dx(0)/(a*n*dx(0)+2.d0*b)
+               f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
+               f_g = 2.d0*n*h/(a*n*h+2.d0*b)
                u_i = U(i_i-sgn*i,j)
                U(i_g+sgn*i,j) = f_i*u_i + f_g*g
             enddo
@@ -219,13 +221,15 @@ c
       INTEGER i
       INTEGER j,j_g,j_i
       INTEGER sgn
-      REAL    a,b,g
+      REAL    a,b,g,h
       REAL    f_g,f_i,n,u_i
 c
 c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -243,8 +247,8 @@ c
             g = gcoef(i)
             do j = 0,U_gcw-1
                n = 1.d0+2.d0*j
-               f_i = -(a*n*dx(1)-2.d0*b)/(a*n*dx(1)+2.d0*b)
-               f_g = 2.d0*n*dx(1)/(a*n*dx(1)+2.d0*b)
+               f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
+               f_g = 2.d0*n*h/(a*n*h+2.d0*b)
                u_i = U(i,j_i-sgn*j)
                U(i,j_g+sgn*j) = f_i*u_i + f_g*g
             enddo
@@ -298,12 +302,14 @@ c
       INTEGER i,i_g,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,f_i,n,u_g
+      REAL    a,b,h,f_i,n,u_g
 c
 c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -320,7 +326,7 @@ c
             b = bcoef(j)
             do i = 0,U_gcw-1
                n = 1.d0+2.d0*i
-               f_i = -(a*n*dx(0)-2.d0*b)/(a*n*dx(0)+2.d0*b)
+               f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
                u_g = U(i_g+sgn*i,j)
                U(i_i-sgn*i,j) = U(i_i-sgn*i,j) + f_i*u_g
             enddo
@@ -374,12 +380,14 @@ c
       INTEGER i
       INTEGER j,j_g,j_i
       INTEGER sgn
-      REAL    a,b,f_i,n,u_g
+      REAL    a,b,h,f_i,n,u_g
 c
 c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -396,7 +404,7 @@ c
             b = bcoef(i)
             do j = 0,U_gcw-1
                n = 1.d0+2.d0*j
-               f_i = -(a*n*dx(1)-2.d0*b)/(a*n*dx(1)+2.d0*b)
+               f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
                u_g = U(i,j_g+sgn*j)
                U(i,j_i-sgn*j) = U(i,j_i-sgn*j) + f_i*u_g
             enddo
@@ -539,12 +547,14 @@ c
       INTEGER i,i_b,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,g,f_b,f_g,f_i,n,u_b,u_i
+      REAL    a,b,g,h,f_b,f_g,f_i,n,u_b,u_i
 c
 c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -576,8 +586,8 @@ c     Robin boundary conditions
                do i = 1,u_gcw
                   n = 2.d0*i
                   f_i = 1.d0
-                  f_b = -a*n*dx(0)/b
-                  f_g = n*dx(0)/b
+                  f_b = -a*n*h/b
+                  f_g = n*h/b
                   u_i = u0(i_b-sgn*i,j)
                   u0(i_b+sgn*i,j) = f_i*u_i + f_b*u_b + f_g*g
                enddo
@@ -633,12 +643,14 @@ c
       INTEGER i
       INTEGER j,j_b,j_i
       INTEGER sgn
-      REAL    a,b,g,f_b,f_g,f_i,n,u_b,u_i
+      REAL    a,b,g,h,f_b,f_g,f_i,n,u_b,u_i
 c
 c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -670,8 +682,8 @@ c     Robin boundary conditions
                do j = 1,u_gcw
                   n = 2.d0*j
                   f_i = 1.d0
-                  f_b = -a*n*dx(1)/b
-                  f_g = n*dx(1)/b
+                  f_b = -a*n*h/b
+                  f_g = n*h/b
                   u_i = u1(i,j_b-sgn*j)
                   u1(i,j_b+sgn*j) = f_i*u_i + f_b*u_b + f_g*g
                enddo
@@ -726,12 +738,14 @@ c
       INTEGER i,i_b,i_i
       INTEGER j
       INTEGER sgn
-      REAL    a,b,f_b,f_i,n,u_g
+      REAL    a,b,h,f_b,f_i,n,u_g
 c
 c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -760,7 +774,7 @@ c     Robin boundary conditions
                do i = 1,u_gcw
                   n = 2.d0*i
                   f_i = 1.d0
-                  f_b = -a*n*dx(0)/b
+                  f_b = -a*n*h/b
                   u_g = u0(i_b+sgn*i,j)
                   u0(i_b-sgn*i,j) = u0(i_b-sgn*i,j) + f_i*u_g
                   u0(i_b      ,j) = u0(i_b      ,j) + f_b*u_g
@@ -816,12 +830,14 @@ c
       INTEGER i
       INTEGER j,j_b,j_i
       INTEGER sgn
-      REAL    a,b,f_b,f_i,n,u_g
+      REAL    a,b,h,f_b,f_i,n,u_g
 c
 c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -850,7 +866,7 @@ c     Robin boundary conditions
                do j = 1,u_gcw
                   n = 2.d0*j
                   f_i = 1.d0
-                  f_b = -a*n*dx(1)/b
+                  f_b = -a*n*h/b
                   u_g = u1(i,j_b+sgn*j)
                   u1(i,j_b-sgn*j) = u1(i,j_b-sgn*j) + f_i*u_g
                   u1(i,j_b      ) = u1(i,j_b      ) + f_b*u_g
