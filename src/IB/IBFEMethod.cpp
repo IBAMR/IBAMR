@@ -142,6 +142,19 @@ IBFEMethod::getFEDataManager(
 }// getFEDataManager
 
 void
+IBFEMethod::registerTetheredNodes(
+    const std::set<libMesh::dof_id_type>& tethered_node_ids,
+    const double kappa,
+    unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_has_tethered_nodes = true;
+    d_tethered_node_ids[part] = tethered_node_ids;
+    d_tethered_kappa   [part] = kappa;
+    return;
+}// registerTetheredNodes
+
+void
 IBFEMethod::registerConstrainedPart(
     unsigned int part)
 {
@@ -602,6 +615,10 @@ IBFEMethod::spreadForce(
                 spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, data_time, part);
             }
         }
+        if (!d_tethered_node_ids[part].empty())
+        {
+            spreadTetherForceDensity(f_data_idx, *X_ghost_vec, data_time, part);
+        }
     }
     return;
 }// spreadForce
@@ -781,6 +798,7 @@ IBFEMethod::initializePatchHierarchy(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->reinitElementMappings();
+        d_reinit_tethered_node_set = true;
     }
 
     d_is_initialized = true;
@@ -834,6 +852,7 @@ IBFEMethod::endDataRedistribution(
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
             d_fe_data_managers[part]->reinitElementMappings();
+            d_reinit_tethered_node_set = true;
         }
     }
     return;
@@ -1410,6 +1429,97 @@ IBFEMethod::spreadTransmissionForceDensity(
 }// spreadTransmissionForceDensity
 
 void
+IBFEMethod::computeLocalTetheredNodes()
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_tethered_nodes_local[part].clear();
+        const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+        const int level_num = d_fe_data_managers[part]->getLevelNumber();
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        d_tethered_nodes_local[part].resize(active_patch_element_map.size());
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        {
+            const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
+            std::set<Node*>& tethered_nodes_patch = d_tethered_nodes_local[part][local_patch_num];
+            const int num_active_patch_elems = patch_elems.size();
+            for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            {
+                Elem* const elem = patch_elems[e_idx];
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    Node* n = elem->get_node(k);
+                    if (d_tethered_node_ids[part].find(n->id()) != d_tethered_node_ids[part].end())
+                    {
+                        tethered_nodes_patch.insert(n);
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// computeLocalTetheredNodes
+
+void
+IBFEMethod::spreadTetherForceDensity(
+    const int f_data_idx,
+    PetscVector<double>& X_ghost_vec,
+    const double /*data_time*/,
+    const unsigned int part)
+{
+    if (d_reinit_tethered_node_set)
+    {
+        computeLocalTetheredNodes();
+        d_reinit_tethered_node_set = false;
+    }
+
+    if (d_tethered_node_ids[part].empty()) return;
+
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    const int level_num = d_fe_data_managers[part]->getLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of nodes.
+        const std::set<Node*>& patch_nodes = d_tethered_nodes_local[part][local_patch_num];
+        const int num_tethered_nodes = patch_nodes.size();
+        if (num_tethered_nodes == 0) continue;
+
+        // Loop over the nodes and compute the values to be spread and the
+        // positions of the nodes.
+        std::vector<double> F_node(NDIM*num_tethered_nodes,0.0);
+        std::vector<double> X_node(NDIM*num_tethered_nodes,0.0);
+        unsigned int k = 0;
+        for (std::set<Node*>::const_iterator cit = patch_nodes.begin(); cit != patch_nodes.end(); ++cit, ++k)
+        {
+            const Node* const n = *cit;
+            TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+            const libMesh::Point& s = *n;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const int X_dof_index = n->dof_number(X_sys_num,d,0);
+                X_node[NDIM*k+d] = X_ghost_vec(X_dof_index);
+                F_node[NDIM*k+d] = d_tethered_kappa[part]*(s(d) - X_node[NDIM*k+d]);
+            }
+        }
+
+        // Spread the boundary forces to the grid.
+        const std::string& spread_weighting_fcn = d_spread_spec.weighting_fcn;
+        const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        LEInteractor::spread(f_data, F_node, NDIM, X_node, NDIM, patch, spread_box, spread_weighting_fcn);
+    }
+
+    return;
+}// spreadTetherForceDensity
+
+void
 IBFEMethod::imposeJumpConditions(
     const int f_data_idx,
     PetscVector<double>& F_ghost_vec,
@@ -1866,6 +1976,13 @@ IBFEMethod::commonConstructor(
     d_quad_order = INVALID_ORDER;
     d_use_consistent_mass_matrix = true;
     d_do_log = false;
+
+    // By default no nodes are tethered in place.
+    d_has_tethered_nodes = false;
+    d_reinit_tethered_node_set = false;
+    d_tethered_node_ids.resize(d_num_parts);
+    d_tethered_nodes_local.resize(d_num_parts);
+    d_tethered_kappa.resize(d_num_parts);
 
     // Indicate that all of the parts are unconstrained by default and set some
     // default values.
