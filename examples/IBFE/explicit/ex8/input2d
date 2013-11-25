@@ -49,7 +49,7 @@ ENABLE_LOGGING             = TRUE
 
 // model parameters
 MU_S = 1.0e3
-BETA_S = MU_S
+BETA_S = 0.0
 P_MAX = 80.0
 T_END = 2.0
 
