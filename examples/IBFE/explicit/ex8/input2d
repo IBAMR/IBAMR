@@ -3,17 +3,17 @@ L_X   = 2.0                                        // width  of computational do
 L_Y   = 1.5                                        // height of computational domain
 RHO   = 1.0
 MU    = 0.04
-U_MAX = 3.0
+U_MAX = 5.0
 
 // grid spacing parameters
-MAX_LEVELS = 2                                     // maximum number of levels in locally refined grid
+MAX_LEVELS = 1                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
-N = 32                                             // actual    number of grid cells on coarsest grid level
+N = 48                                             // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 BLOCK_MFAC = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular blocks
-BEAM_MFAC  = 3.0                                 // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
+BEAM_MFAC  = 3.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
 BLOCK_ELEM_TYPE = "QUAD9"                          // type of element to use for discretization of the rectangular blocks
 BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
 N_X = N
@@ -27,7 +27,7 @@ USE_JUMP_CONDITIONS        = FALSE                 // whether to impose pressure
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 2.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 START_TIME                 = 0.0e0                 // initial simulation time
-END_TIME                   = 1.80                  // final simulation time
+END_TIME                   = 1.75                  // final simulation time
 GROW_DT                    = 2.0e0                 // growth factor for timesteps
 NUM_CYCLES                 = 1                     // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"     // convective time stepping type
@@ -37,7 +37,7 @@ NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly forc
 CFL_MAX                    = 0.125                 // maximum CFL number
 DT                         = CFL_MAX*DX/U_MAX      // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = TRUE                  // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING          = FALSE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5                   // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                   = TRUE
@@ -54,9 +54,9 @@ P_MAX = 80.0
 T_END = 2.0
 
 // penalty parameters
-BLOCK_KAPPA_S = 1.0e2 * DX / DT^2
+BLOCK_KAPPA_S = 7.5e1 * DX / DT^2
 BEAM_KAPPA_S  = 0.0 // KAPPA_S
-BEAM_KAPPA_T  = 3.0e1 / DT
+BEAM_KAPPA_T  = 7.5e1 * DX / DT
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"

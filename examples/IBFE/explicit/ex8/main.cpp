@@ -153,14 +153,32 @@ compute_displaced_area(
     vars[0] = 0; vars[1] = 1;
     MeshFunction X_fcn(*equation_systems, *X_serial_vec, X_dof_map, vars);
     X_fcn.init();
-    DenseVector<double> n0(2), n1(2);
-    X_fcn(**nodes.rbegin(), 0.0, n0);
-    double A2 = 0.0;
+
+    // Get the current positions of the points.
+    std::vector<DenseVector<double> > points;
+    points.reserve(nodes.size()+2);
+    DenseVector<double> p(2);
+    p(0) = 0.5;
+    p(1) = 0.5;
+    points.push_back(p);
     for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-        X_fcn(**it, 0.0, n1);
-        A2 += n0(0)*n1(1) - n0(1)*n1(0);
-        n0 = n1;
+        X_fcn(**it, 0.0, p);
+        points.push_back(p);
+    }
+    p(0) = 1.5;
+    p(1) = 0.5;
+    points.push_back(p);
+
+    // Compute the area of the polygon.
+    DenseVector<double> p0(2), p1(2);
+    double A2 = 0.0;
+    p0 = *points.rbegin();
+    for (std::vector<DenseVector<double> >::iterator it = points.begin(); it != points.end(); ++it)
+    {
+        p1 = *it;
+        A2 += p0(0)*p1(1) - p0(1)*p1(0);
+        p0 = p1;
     }
     return 0.5*abs(A2);
 }

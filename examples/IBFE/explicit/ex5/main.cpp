@@ -128,6 +128,26 @@ tether_force_function(
     F = kappa_s*(s-X);
     return;
 }// tether_force_function
+
+// Stress tensor function.
+static double mu_s;
+void
+PK1_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    const TensorValue<double> CC = FF.transpose()*FF;
+    PP = mu_s*(FF-FF_inv_trans);
+    return;
+}// PK1_stress_function
 }
 using namespace ModelData;
 
@@ -232,7 +252,11 @@ main(
         }
 
         bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
-        if (!use_constraint_method) kappa_s = input_db->getDouble("KAPPA_S");
+        if (!use_constraint_method)
+        {
+            kappa_s = input_db->getDouble("KAPPA_S");
+            mu_s    = input_db->getDouble("MU_S"   );
+        }
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -279,6 +303,7 @@ main(
         else
         {
             ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+            ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
         }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
