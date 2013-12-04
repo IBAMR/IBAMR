@@ -50,9 +50,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBFEPatchRecoveryPostProcessor uses least squares recovery
- * techniques on element patches to evaluate stresses on the nodes of the FE
- * mesh.
+ * \brief Class IBFEPatchRecoveryPostProcessor uses least-squares
+ * reconstructions on element patches to evaluate stresses at the nodes of the
+ * FE mesh.
  */
 class IBFEPatchRecoveryPostProcessor
 {

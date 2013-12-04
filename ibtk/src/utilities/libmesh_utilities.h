@@ -53,6 +53,87 @@
 
 namespace IBTK
 {
+typedef
+void
+(*ScalarMeshFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*VectorMeshFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*TensorMeshFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*ScalarSurfaceFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*VectorSurfaceFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*TensorSurfaceFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    libMesh::NumericVector<double>& X_vec,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
 template<class MultiArray,class Array>
 inline void
 get_values_for_interpolation(

@@ -38,6 +38,7 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 #include "libmesh/mesh.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
@@ -163,18 +164,7 @@ public:
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
      */
-    typedef
-    void
-    (*PK1StressFcnPtr)(
-        libMesh::TensorValue<double>& PP,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double data_time,
-        void* ctx);
+    typedef IBTK::TensorMeshFcnPtr PK1StressFcnPtr;
 
     /*!
      * Register the (optional) function to compute the first Piola-Kirchhoff
@@ -192,18 +182,7 @@ public:
      * Typedef specifying interface for Lagrangian body force distribution
      * function.
      */
-    typedef
-    void
-    (*LagBodyForceFcnPtr)(
-        libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double data_time,
-        void* ctx);
+    typedef IBTK::VectorMeshFcnPtr LagBodyForceFcnPtr;
 
     /*!
      * Register the (optional) function to compute body force distributions on
@@ -220,19 +199,7 @@ public:
      * Typedef specifying interface for Lagrangian pressure force distribution
      * function.
      */
-    typedef
-    void
-    (*LagPressureFcnPtr)(
-        double& P,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        unsigned short int side,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double data_time,
-        void* ctx);
+    typedef IBTK::ScalarSurfaceFcnPtr LagPressureFcnPtr;
 
     /*!
      * Register the (optional) function to compute surface pressure
@@ -249,19 +216,7 @@ public:
      * Typedef specifying interface for Lagrangian surface force distribution
      * function.
      */
-    typedef
-    void
-    (*LagSurfaceForceFcnPtr)(
-        libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        unsigned short int side,
-        libMesh::NumericVector<double>& X_vec,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double data_time,
-        void* ctx);
+    typedef IBTK::VectorSurfaceFcnPtr LagSurfaceForceFcnPtr;
 
     /*!
      * Register the (optional) function to compute surface force distributions
