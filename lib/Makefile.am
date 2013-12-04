@@ -126,8 +126,9 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
+  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp \
   $(top_srcdir)/src/IB/IBFEMethod.cpp \
-  $(top_srcdir)/src/IB/IBFEPatchRecoveryPostProcessor.cpp \
+  $(top_srcdir)/src/IB/IBFEPostProcessor.cpp \
   $(top_srcdir)/src/IB/IMPMethod.cpp \
   $(top_srcdir)/src/IB/IMPInitializer.cpp \
   $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
@@ -217,8 +218,9 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
+  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.h \
   $(top_srcdir)/src/IB/IBFEMethod.h \
-  $(top_srcdir)/src/IB/IBFEPatchRecoveryPostProcessor.h \
+  $(top_srcdir)/src/IB/IBFEPostProcessor.h \
   $(top_srcdir)/src/IB/IMPMethod.h \
   $(top_srcdir)/src/IB/IMPInitializer.h \
   $(top_srcdir)/src/IB/MaterialPointSpec.h

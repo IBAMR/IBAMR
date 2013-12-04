@@ -236,9 +236,6 @@ main(
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-        Pointer<IBFEPatchRecoveryPostProcessor> ib_post_processor = new IBFEPatchRecoveryPostProcessor(&mesh, fe_data_manager);
-        System* sigma_system = ib_post_processor->initializeCauchyStressSystem();
-        ib_method_ops->registerIBFEPostProcessor(ib_post_processor);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -301,7 +298,6 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        ib_post_processor->initializeFEData(sigma_system->get_dof_map().get_periodic_boundaries());
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -367,7 +363,6 @@ main(
                 }
                 if (uses_exodus)
                 {
-                    ib_post_processor->reconstructCauchyStress(*sigma_system);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

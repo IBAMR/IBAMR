@@ -139,6 +139,53 @@ struct node_x_comp
 
 template<class node_set>
 double
+compute_deformed_length(
+    node_set& nodes,
+    EquationSystems* equation_systems)
+{
+    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    NumericVector<double>* X_vec = X_system.solution.get();
+    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
+    X_serial_vec->init(X_vec->size(), true, SERIAL);
+    X_vec->localize(*X_serial_vec);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    vector<unsigned int> vars(2);
+    vars[0] = 0; vars[1] = 1;
+    MeshFunction X_fcn(*equation_systems, *X_serial_vec, X_dof_map, vars);
+    X_fcn.init();
+
+    // Get the current positions of the points.
+    std::vector<DenseVector<double> > points;
+    points.reserve(nodes.size());
+    DenseVector<double> p(2);
+    for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
+    {
+        X_fcn(**it, 0.0, p);
+        points.push_back(p);
+    }
+
+    // Compute the length of the center line.
+    DenseVector<double> p0(2), p1(2);
+    double l = 0.0;
+    std::vector<DenseVector<double> >::iterator it = points.begin();
+    p0 = *it;
+    ++it;
+    for ( ; it != points.end(); ++it)
+    {
+        p1 = *it;
+        double l_segment_sq = 0.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            l_segment_sq += pow(p0(d)-p1(d),2.0);
+        }
+        l += sqrt(l_segment_sq);
+        p0 = p1;
+    }
+    return l;
+}
+
+template<class node_set>
+double
 compute_displaced_area(
     node_set& nodes,
     EquationSystems* equation_systems)
@@ -156,19 +203,13 @@ compute_displaced_area(
 
     // Get the current positions of the points.
     std::vector<DenseVector<double> > points;
-    points.reserve(nodes.size()+2);
+    points.reserve(nodes.size());
     DenseVector<double> p(2);
-    p(0) = 0.5;
-    p(1) = 0.5;
-    points.push_back(p);
     for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
         X_fcn(**it, 0.0, p);
         points.push_back(p);
     }
-    p(0) = 1.5;
-    p(1) = 0.5;
-    points.push_back(p);
 
     // Compute the area of the polygon.
     DenseVector<double> p0(2), p1(2);
@@ -320,7 +361,7 @@ main(
         MeshTools::Generation::build_square(beam_mesh,
                                             ceil(1.0/ds_beam), max(2*static_cast<int>(ceil(0.016/ds_beam)/2.0),4),
                                             0.5, 1.5,
-                                            0.5-0.008, 0.5+0.008,
+                                            0.5, 0.5+0.016,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         block1_mesh.prepare_for_use();
         block2_mesh.prepare_for_use();
@@ -499,7 +540,8 @@ main(
             const int U_current_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
             const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
             const double Q_in_current   = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
-            const double A_disp_current = compute_displaced_area(centerline_node_set, beam_equation_systems);
+            const double A_disp_current = compute_displaced_area( centerline_node_set, beam_equation_systems);
+            const double l_def_current  = compute_deformed_length(centerline_node_set, beam_equation_systems);
 
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
@@ -508,8 +550,10 @@ main(
             const double Q_in_half   = (Q_in_new+Q_in_current)/2.0;
             const double A_in_new    = A_in_current + dt*Q_in_half;
             const double A_in_half   = (A_in_new+A_in_current)/2.0;
-            const double A_disp_new  = compute_displaced_area(centerline_node_set, beam_equation_systems);
+            const double A_disp_new  = compute_displaced_area( centerline_node_set, beam_equation_systems);
+            const double l_def_new   = compute_deformed_length(centerline_node_set, beam_equation_systems);
             const double A_disp_half = (A_disp_new+A_disp_current)/2.0;
+            const double l_def_half  = (l_def_new+l_def_current)/2.0;
             const double Q_disp_half = (A_disp_new-A_disp_current)/dt;
 
             pout << "t      = " << loop_time - 0.5*dt << "\n"
@@ -518,7 +562,8 @@ main(
                  << "A_diff = " << A_in_half - A_disp_half << "\n"
                  << "Q_in   = " << Q_in_half   << "\n"
                  << "Q_disp = " << Q_disp_half << "\n"
-                 << "Q_diff = " << Q_in_half - Q_disp_half << "\n";
+                 << "Q_diff = " << Q_in_half - Q_disp_half << "\n"
+                 << "l_def  = " << l_def_half << "\n";
 
             A_in_current = A_in_new;
 

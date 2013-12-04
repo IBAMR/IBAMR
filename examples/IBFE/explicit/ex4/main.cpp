@@ -51,6 +51,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -268,6 +269,13 @@ main(
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
+        // Set up a post-processor to reconstruct the Cauchy stress.
+        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor(&mesh, ib_method_ops->getFEDataManager());
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_stress_fcn_data(&PK1_stress_function,NULL);
+        ib_post_processor->registerTensorVariable("sigma", MONOMIAL, CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  std::vector<unsigned int>(), &PK1_stress_fcn_data, NDIM);
+
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -329,6 +337,7 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -351,6 +360,7 @@ main(
             }
             if (uses_exodus)
             {
+                ib_post_processor->reconstructVariables(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
             }
         }
@@ -401,6 +411,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->reconstructVariables(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

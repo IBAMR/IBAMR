@@ -240,14 +240,6 @@ IBFEMethod::registerLagSurfaceForceFunction(
     return;
 }// registerLagSurfaceForceFunction
 
-void
-IBFEMethod::registerIBFEPostProcessor(
-    Pointer<IBFEPatchRecoveryPostProcessor> post_processor)
-{
-    d_post_processor = post_processor;
-    return;
-}// registerIBFEPostProcessor
-
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -1085,11 +1077,6 @@ IBFEMethod::computeInteriorForceDensity(
                     {
                         G_rhs_e[i](k) += F_qp(i);
                     }
-                }
-                if (d_post_processor)
-                {
-                    sigma = PP*FF.transpose()/FF.det();
-                    d_post_processor->registerCauchyStressValue(elem, qrule.get(), qp, sigma);
                 }
             }
 
