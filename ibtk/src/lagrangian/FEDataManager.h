@@ -82,65 +82,6 @@ template <typename T> class SparseMatrix;
 namespace IBTK
 {
 /*!
- * \brief Struct FEInterpSpec encapsulates data needed to specify the manner in
- * which Eulerian-to-Lagrangian interpolation is performed when using a FE
- * structural discretization.
- */
-struct FEInterpSpec
-{
-    FEInterpSpec() { }
-
-    FEInterpSpec(
-        const std::string& weighting_fcn,
-        const libMeshEnums::QuadratureType& quad_type,
-        const libMeshEnums::Order& quad_order,
-        bool use_adaptive_quadrature,
-        double point_density,
-        bool use_consistent_mass_matrix)
-        : weighting_fcn(weighting_fcn),
-          quad_type(quad_type),
-          quad_order(quad_order),
-          use_adaptive_quadrature(use_adaptive_quadrature),
-          point_density(point_density),
-          use_consistent_mass_matrix(use_consistent_mass_matrix) { }
-
-    std::string weighting_fcn;
-    libMeshEnums::QuadratureType quad_type;
-    libMeshEnums::Order quad_order;
-    bool use_adaptive_quadrature;
-    double point_density;
-    bool use_consistent_mass_matrix;
-};
-
-/*!
- * \brief Struct FESpreadSpec encapsulates data needed to specify the manner in
- * which Lagrangian-to-Eulerian spreading is performed when using a FE
- * structural discretization.
- */
-struct FESpreadSpec
-{
-    FESpreadSpec() { }
-
-    FESpreadSpec(
-        const std::string& weighting_fcn,
-        const libMeshEnums::QuadratureType& quad_type,
-        const libMeshEnums::Order& quad_order,
-        bool use_adaptive_quadrature,
-        double point_density)
-        : weighting_fcn(weighting_fcn),
-          quad_type(quad_type),
-          quad_order(quad_order),
-          use_adaptive_quadrature(use_adaptive_quadrature),
-          point_density(point_density) { }
-
-    std::string weighting_fcn;
-    libMeshEnums::QuadratureType quad_type;
-    libMeshEnums::Order quad_order;
-    bool use_adaptive_quadrature;
-    double point_density;
-};
-
-/*!
  * \brief Class FEDataManager coordinates data required for Lagrangian-Eulerian
  * interaction between a Lagrangian finite element (FE) mesh.
  *
@@ -151,6 +92,65 @@ class FEDataManager
       public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
+    /*!
+     * \brief Struct InterpSpec encapsulates data needed to specify the manner
+     * in which Eulerian-to-Lagrangian interpolation is performed when using an
+     * FE structural discretization.
+     */
+    struct InterpSpec
+    {
+        InterpSpec() { }
+
+        InterpSpec(
+            const std::string& kernel_fcn,
+            const libMeshEnums::QuadratureType& quad_type,
+            const libMeshEnums::Order& quad_order,
+            bool use_adaptive_quadrature,
+            double point_density,
+            bool use_consistent_mass_matrix)
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density),
+              use_consistent_mass_matrix(use_consistent_mass_matrix) { }
+
+        std::string kernel_fcn;
+        libMeshEnums::QuadratureType quad_type;
+        libMeshEnums::Order quad_order;
+        bool use_adaptive_quadrature;
+        double point_density;
+        bool use_consistent_mass_matrix;
+    };
+
+    /*!
+     * \brief Struct SpreadSpec encapsulates data needed to specify the manner
+     * in which Lagrangian-to-Eulerian spreading is performed when using an FE
+     * structural discretization.
+     */
+    struct SpreadSpec
+    {
+        SpreadSpec() { }
+
+        SpreadSpec(
+            const std::string& kernel_fcn,
+            const libMeshEnums::QuadratureType& quad_type,
+            const libMeshEnums::Order& quad_order,
+            bool use_adaptive_quadrature,
+            double point_density)
+            : kernel_fcn(kernel_fcn),
+              quad_type(quad_type),
+              quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature),
+              point_density(point_density) { }
+
+        std::string kernel_fcn;
+        libMeshEnums::QuadratureType quad_type;
+        libMeshEnums::Order quad_order;
+        bool use_adaptive_quadrature;
+        double point_density;
+    };
+
     /*!
      * \brief The name of the equation system which stores the spatial position
      * data.
@@ -187,8 +187,9 @@ public:
     static FEDataManager*
     getManager(
         const std::string& name,
-        const FEInterpSpec& interp_spec,
-        const FESpreadSpec& spread_spec,
+        const InterpSpec& default_interp_spec,
+        const SpreadSpec& default_spread_spec,
+        const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
         bool register_for_restart=true);
 
     /*!
@@ -209,7 +210,8 @@ public:
         int workload_data_idx);
 
     /*!
-     * \name Methods to set the hierarchy and range of levels.
+     * \name Methods to set and get the patch hierarchy and range of patch
+     * levels associated with this manager class.
      */
     //\{
 
@@ -221,15 +223,29 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
+     * \brief Get the patch hierarchy used by this object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    getPatchHierarchy() const;
+
+    /*!
      * \brief Reset range of patch levels over which operations occur.
      *
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
     void
-    resetLevels(
+    setPatchLevels(
         int coarsest_ln,
         int finest_ln);
+
+    /*!
+     * \brief Get the range of patch levels used by this object.
+     *
+     * \note Returns [coarsest_ln,finest_ln+1).
+     */
+    std::pair<int,int>
+    getPatchLevels() const;
 
     //\}
 
@@ -268,15 +284,15 @@ public:
      * \return The specifications of the scheme used for interpolating from the
      * Cartesian grid to the FE mesh.
      */
-    const FEInterpSpec&
-    getFEInterpSpec() const;
+    const InterpSpec&
+    getDefaultInterpSpec() const;
 
     /*!
      * \return The specifications of the scheme used for spreading densities
      * from the FE mesh to the Cartesian grid
      */
-    const FESpreadSpec&
-    getFESpreadSpec() const;
+    const SpreadSpec&
+    getDefaultSpreadSpec() const;
 
     /*!
      * \return A const reference to the map from local patch number to local
@@ -322,7 +338,8 @@ public:
         bool localize_data=true);
 
     /*!
-     * \brief Spread a density from the FE mesh to the Cartesian grid.
+     * \brief Spread a density from the FE mesh to the Cartesian grid using the
+     * default spreading spec.
      */
     void
     spread(
@@ -330,6 +347,18 @@ public:
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name);
+
+    /*!
+     * \brief Spread a density from the FE mesh to the Cartesian grid using a
+     * specified spreading spec.
+     */
+    void
+    spread(
+        int f_data_idx,
+        libMesh::NumericVector<double>& F,
+        libMesh::NumericVector<double>& X,
+        const std::string& system_name,
+        const SpreadSpec& spread_spec);
 
     /*!
      * \brief Prolong a value or a density from the FE mesh to the Cartesian
@@ -345,7 +374,8 @@ public:
         bool accumulate_on_grid=true);
 
     /*!
-     * \brief Interpolate a value from the Cartesian grid to the FE mesh.
+     * \brief Interpolate a value from the Cartesian grid to the FE mesh using
+     * the default interpolation spec.
      */
     void
     interp(
@@ -357,6 +387,20 @@ public:
         double fill_data_time=0.0);
 
     /*!
+     * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
+     * specified interpolation spec.
+     */
+    void
+    interp(
+        int f_data_idx,
+        libMesh::NumericVector<double>& F,
+        libMesh::NumericVector<double>& X,
+        const std::string& system_name,
+        const InterpSpec& interp_spec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0);
+
+    /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
      */
     void
@@ -364,7 +408,8 @@ public:
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
-        const std::string& system_name);
+        const std::string& system_name,
+        bool use_consistent_mass_matrix=true);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
@@ -407,9 +452,9 @@ public:
      * false otherwise.
      */
     static bool
-    updateFEInterpQuadratureRule(
+    updateInterpQuadratureRule(
         libMesh::AutoPtr<libMesh::QBase>& qrule,
-        const FEInterpSpec& spec,
+        const InterpSpec& spec,
         libMesh::Elem* elem,
         const boost::multi_array<double,2>& X_node,
         double dx_min);
@@ -424,9 +469,9 @@ public:
      * false otherwise.
      */
     static bool
-    updateFESpreadQuadratureRule(
+    updateSpreadQuadratureRule(
         libMesh::AutoPtr<libMesh::QBase>& qrule,
-        const FESpreadSpec& spec,
+        const SpreadSpec& spec,
         libMesh::Elem* elem,
         const boost::multi_array<double,2>& X_node,
         double dx_min);
@@ -537,8 +582,8 @@ protected:
      */
     FEDataManager(
         const std::string& object_name,
-        const FEInterpSpec& interp_spec,
-        const FESpreadSpec& spread_spec,
+        const InterpSpec& default_interp_spec,
+        const SpreadSpec& default_spread_spec,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
 
@@ -684,11 +729,11 @@ private:
     int d_workload_idx;
 
     /*
-     * The weighting functions and quadrature rule used to mediate
+     * The default kernel functions and quadrature rule used to mediate
      * Lagrangian-Eulerian interaction.
      */
-    const FEInterpSpec d_interp_spec;
-    const FESpreadSpec d_spread_spec;
+    const InterpSpec d_default_interp_spec;
+    const SpreadSpec d_default_spread_spec;
 
     /*
      * SAMRAI::hier::IntVector object which determines the ghost cell width used

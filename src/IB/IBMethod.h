@@ -534,7 +534,7 @@ protected:
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
-    std::string d_interp_delta_fcn, d_spread_delta_fcn;
+    std::string d_interp_kernel_fcn, d_spread_kernel_fcn;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*

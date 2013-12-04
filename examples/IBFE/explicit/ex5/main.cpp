@@ -193,10 +193,9 @@ main(
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Setup user-defined delta function.
-        LEInteractor::s_delta_fcn = &kernel;
-        LEInteractor::s_delta_fcn_stencil_size = 8;
-        LEInteractor::s_delta_fcn_C = -1.0;
+        // Setup user-defined kernel function.
+        LEInteractor::s_kernel_fcn = &kernel;
+        LEInteractor::s_kernel_fcn_stencil_size = 8;
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

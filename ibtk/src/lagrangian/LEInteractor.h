@@ -77,12 +77,11 @@ class LEInteractor
 {
 public:
     /*!
-     * \brief Function pointer to user-defined delta function kernel along with
+     * \brief Function pointer to user-defined kernel function along with
      * corresponding stencil size and quadratic constant C.
      */
-    static double (*s_delta_fcn)(double r);
-    static int s_delta_fcn_stencil_size;
-    static double s_delta_fcn_C;
+    static double (*s_kernel_fcn)(double r);
+    static int s_kernel_fcn_stencil_size;
 
     /*!
      * \brief Set configuration options from a user-supplied database.
@@ -100,23 +99,13 @@ public:
 
     /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
-     * specified weighting function.
+     * specified kernel function.
      *
-     * The return value is -1 for any unknown weighting function type.
+     * The return value is -1 for any unknown kernel function type.
      */
     static int
     getStencilSize(
-        const std::string& weighting_fcn);
-
-    /*!
-     * \brief Returns the constant C associated with a particular IB delta
-     * function.
-     *
-     * The return value is -1 for any unknown weighting function type.
-     */
-    static double
-    getC(
-        const std::string& weighting_fcn);
+        const std::string& kernel_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The

@@ -368,7 +368,7 @@ namespace IBTK
 namespace
 {
 inline double
-ib4_delta_fcn(
+ib4_kernel_fcn(
     double r)
 {
     r = std::abs(r);
@@ -388,12 +388,12 @@ ib4_delta_fcn(
     {
         return 0.0;
     }
-}// ib4_delta_fcn
+}// ib4_kernel_fcn
 }
 
-double (*LEInteractor::s_delta_fcn)(double r) = &ib4_delta_fcn;
-int LEInteractor::s_delta_fcn_stencil_size = 4;
-double LEInteractor::s_delta_fcn_C = 3.0/8.0;
+double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
+int LEInteractor::s_kernel_fcn_stencil_size = 4;
+// double LEInteractor::s_kernel_fcn_C = 3.0/8.0;
 
 void
 LEInteractor::setFromDatabase(
@@ -415,42 +415,44 @@ LEInteractor::printClassData(
 
 int
 LEInteractor::getStencilSize(
-    const std::string& weighting_fcn)
+    const std::string& kernel_fcn)
 {
-    if (weighting_fcn == "PIECEWISE_CONSTANT") return 1;
-    if (weighting_fcn == "DISCONTINUOUS_LINEAR") return 2;
-    if (weighting_fcn == "PIECEWISE_LINEAR") return 2;
-    if (weighting_fcn == "PIECEWISE_CUBIC") return 4;
-    if (weighting_fcn == "IB_3") return 4;
-    if (weighting_fcn == "IB_4") return 4;
-    if (weighting_fcn == "IB_6") return 6;
-    if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_stencil_size;
+    if (kernel_fcn == "PIECEWISE_CONSTANT") return 1;
+    if (kernel_fcn == "DISCONTINUOUS_LINEAR") return 2;
+    if (kernel_fcn == "PIECEWISE_LINEAR") return 2;
+    if (kernel_fcn == "PIECEWISE_CUBIC") return 4;
+    if (kernel_fcn == "IB_3") return 4;
+    if (kernel_fcn == "IB_4") return 4;
+    if (kernel_fcn == "IB_6") return 6;
+    if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
-               << "  Unknown weighting function "
-               << weighting_fcn << std::endl);
+               << "  Unknown kernel function "
+               << kernel_fcn << std::endl);
     return -1;
 }// getStencilSize
 
+#if 0
 double
 LEInteractor::getC(
-    const std::string& weighting_fcn)
+    const std::string& kernel_fcn)
 {
-    if (weighting_fcn == "PIECEWISE_CONSTANT") return 1.0;
-    if (weighting_fcn == "DISCONTINUOUS_LINEAR" || weighting_fcn == "PIECEWISE_LINEAR" || weighting_fcn == "PIECEWISE_CUBIC")
+    if (kernel_fcn == "PIECEWISE_CONSTANT") return 1.0;
+    if (kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC")
     {
         TBOX_ERROR("LEInteractor::getC()\n"
-                   << "  Weighting function " << weighting_fcn << " does not satisfy the quadratic (sum-of-squares) condition.\n"
+                   << "  Kernel function " << kernel_fcn << " does not satisfy the quadratic (sum-of-squares) condition.\n"
                    << "  Consequently, the value of C = sum_{j} phi(r-j)^2 is dependent on the value of r." << std::endl);
     }
-    if (weighting_fcn == "IB_3") return 0.5;
-    if (weighting_fcn == "IB_4") return 3.0/8.0;
-    if (weighting_fcn == "IB_6") return 67.0/128.0;
-    if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_C;
+    if (kernel_fcn == "IB_3") return 0.5;
+    if (kernel_fcn == "IB_4") return 3.0/8.0;
+    if (kernel_fcn == "IB_6") return 67.0/128.0;
+    if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_C;
     TBOX_ERROR("LEInteractor::getC()\n"
-               << "  Unknown weighting function "
-               << weighting_fcn << std::endl);
+               << "  Unknown kernel function "
+               << kernel_fcn << std::endl);
     return -1;
 }// getC
+#endif
 
 template<class T>
 void
@@ -2146,7 +2148,7 @@ LEInteractor::interpolate(
     else
     {
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
-                   "  Unknown interpolation weighting function "
+                   "  Unknown interpolation kernel function "
                    << interp_fcn << std::endl);
     }
     return;
@@ -2314,7 +2316,7 @@ LEInteractor::spread(
     else
     {
         TBOX_ERROR("LEInteractor::spread()\n" <<
-                   "  Unknown spreading weighting function "
+                   "  Unknown spreading kernel function "
                    << spread_fcn << std::endl);
     }
     return;
@@ -2472,19 +2474,19 @@ LEInteractor::userDefinedInterpolate(
 
         // Determine the interpolation stencil corresponding to the position of
         // X(s) within the cell.
-        if (s_delta_fcn_stencil_size%2 == 0)
+        if (s_kernel_fcn_stencil_size%2 == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d+s*NDIM] < X_cell[d])
                 {
-                    stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
-                    stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2-1;
+                    stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2;
+                    stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2-1;
                 }
                 else
                 {
-                    stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2+1;
-                    stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
+                    stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2+1;
+                    stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2;
                 }
             }
         }
@@ -2492,8 +2494,8 @@ LEInteractor::userDefinedInterpolate(
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
-                stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
+                stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2;
+                stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2;
             }
         }
 
@@ -2503,23 +2505,23 @@ LEInteractor::userDefinedInterpolate(
             stencil_upper[d] = std::min(std::max(stencil_upper[d],ilower[d]-q_gcw[d]),iupper[d]+q_gcw[d]);
         }
 
-        // Compute the delta function weights.
+        // Compute the kernel function weights.
         boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0[ic0] = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0[ic0] = s_kernel_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
         boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1[ic1] = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1[ic1] = s_kernel_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
         boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2[ic2] = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2[ic2] = s_kernel_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Interpolate u onto V.
@@ -2591,19 +2593,19 @@ LEInteractor::userDefinedSpread(
 
         // Determine the interpolation stencil corresponding to the position of
         // X(s) within the cell.
-        if (s_delta_fcn_stencil_size%2 == 0)
+        if (s_kernel_fcn_stencil_size%2 == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d+s*NDIM] < X_cell[d])
                 {
-                    stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
-                    stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2-1;
+                    stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2;
+                    stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2-1;
                 }
                 else
                 {
-                    stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2+1;
-                    stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
+                    stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2+1;
+                    stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2;
                 }
             }
         }
@@ -2611,8 +2613,8 @@ LEInteractor::userDefinedSpread(
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
-                stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
+                stencil_lower[d] = stencil_center[d]-s_kernel_fcn_stencil_size/2;
+                stencil_upper[d] = stencil_center[d]+s_kernel_fcn_stencil_size/2;
             }
         }
 
@@ -2623,23 +2625,23 @@ LEInteractor::userDefinedSpread(
         }
 
 
-        // Compute the delta function weights.
+        // Compute the kernel function weights.
         boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0[ic0] = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0[ic0] = s_kernel_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
         boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1[ic1] = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1[ic1] = s_kernel_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
         boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2[ic2] = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2[ic2] = s_kernel_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Spread V onto u.

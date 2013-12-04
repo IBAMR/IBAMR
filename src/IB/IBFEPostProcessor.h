@@ -230,6 +230,7 @@ public:
      * Constructor.
      */
     IBFEPostProcessor(
+        const std::string& name,
         libMesh::MeshBase* mesh,
         IBTK::FEDataManager* fe_data_manager);
 
@@ -278,19 +279,64 @@ public:
         unsigned int var_dim=NDIM);
 
     /*!
+     * Register a scalar-valued Eulerian field for reconstruction on the FE
+     * mesh.  The variable is interpolated using the default interp spec
+     * provided by the associated FEDataManager object.
+     */
+    virtual void
+    registerInterpolatedScalarEulerianVariable(
+        const std::string& var_name,
+        libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
+    /*!
+     * Register a scalar-valued Eulerian field for reconstruction on the FE
+     * mesh.  The variable is interpolated using the specified interp spec.
+     */
+    virtual void
+    registerInterpolatedScalarEulerianVariable(
+        const std::string& var_name,
+        libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+        const IBTK::FEDataManager::InterpSpec& interp_spec);
+
+    /*!
      * Initialize data used by the post processor.
      */
     virtual void
     initializeFEData();
 
     /*!
-     * Virtual function to reconstruct the data on the mesh.
+     * Execute all reconstruction and interpolation operations.
+     */
+    virtual void
+    postProcessData(
+        double data_time);
+
+protected:
+    /*!
+     * Virtual function to interpolate Eulerian data to the mesh.
+     */
+    virtual void
+    interpolateVariables(
+        double data_time);
+
+    /*!
+     * Pure virtual function to reconstruct the data on the mesh.
      */
     virtual void
     reconstructVariables(
         double data_time) = 0;
 
-protected:
+    /*!
+     * Name of the post processor object (used for internal variable context).
+     */
+    const std::string d_name;
+
     /*!
      * Mesh data.
      */
@@ -323,6 +369,15 @@ protected:
     std::vector<std::vector<unsigned int> > d_tensor_var_fcn_systems;
     std::vector<void*> d_tensor_var_fcn_ctxs;
     std::vector<unsigned int> d_tensor_var_dims;
+
+    /*!
+     * Eulerian interpolation data.
+     */
+    std::vector<libMesh::System*> d_scalar_interp_var_systems;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scalar_interp_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
+    std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
+    std::vector<IBTK::FEDataManager::InterpSpec> d_scalar_interp_specs;
 
     /*!
      * Collection of all systems managed by this object.

@@ -134,13 +134,13 @@ public:
      * \return A pointer to the data manager instance.
      *
      * \note By default, the ghost cell width is set according to the
-     * interpolation and spreading weighting functions.
+     * interpolation and spreading kernel functions.
      */
     static LDataManager*
     getManager(
         const std::string& name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
+        const std::string& default_interp_kernel_fcn,
+        const std::string& default_spread_kernel_fcn,
         const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
         bool register_for_restart=true);
 
@@ -154,7 +154,8 @@ public:
     freeAllManagers();
 
     /*!
-     * \name Methods to set the hierarchy and range of levels.
+     * \name Methods to set and get the patch hierarchy and range of patch
+     * levels associated with this manager class.
      */
     //\{
 
@@ -166,15 +167,29 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
+     * \brief Get the patch hierarchy used by this object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    getPatchHierarchy() const;
+
+    /*!
      * \brief Reset range of patch levels over which operations occur.
      *
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
     void
-    resetLevels(
+    setPatchLevels(
         int coarsest_ln,
         int finest_ln);
+
+    /*!
+     * \brief Get the range of patch levels used by this object.
+     *
+     * \note Returns [coarsest_ln,finest_ln+1).
+     */
+    std::pair<int,int>
+    getPatchLevels() const;
 
     //\}
 
@@ -186,18 +201,18 @@ public:
     getGhostCellWidth() const;
 
     /*!
-     * \brief Return the weighting function associated with the
+     * \brief Return the default kernel function associated with the
      * Eulerian-to-Lagrangian interpolation scheme.
      */
     const std::string&
-    getInterpWeightingFunction() const;
+    getDefaultInterpKernelFunction() const;
 
     /*!
-     * \brief Return the weighting function associated with the
+     * \brief Return the default kernel function associated with the
      * Lagrangian-to-Eulerian spreading scheme.
      */
     const std::string&
-    getSpreadWeightingFunction() const;
+    getDefaultSpreadKernelFunction() const;
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
@@ -863,8 +878,8 @@ protected:
      */
     LDataManager(
         const std::string& object_name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
+        const std::string& default_interp_kernel_fcn,
+        const std::string& default_spread_kernel_fcn,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
 
@@ -1097,10 +1112,10 @@ private:
     bool d_output_node_count;
 
     /*
-     * The weighting functions used to mediate Lagrangian-Eulerian interaction.
+     * The kernel functions used to mediate Lagrangian-Eulerian interaction.
      */
-    const std::string d_interp_weighting_fcn;
-    const std::string d_spread_weighting_fcn;
+    const std::string d_default_interp_kernel_fcn;
+    const std::string d_default_spread_kernel_fcn;
 
     /*
      * SAMRAI::hier::IntVector object that determines the ghost cell width of

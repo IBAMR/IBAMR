@@ -68,9 +68,10 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFECentroidPostProcessor::IBFECentroidPostProcessor(
+    const std::string& name,
     MeshBase* mesh,
     FEDataManager* fe_data_manager)
-    : IBFEPostProcessor(mesh, fe_data_manager)
+    : IBFEPostProcessor(name, mesh, fe_data_manager)
 {
     // intentionally blank
     return;
@@ -128,6 +129,8 @@ IBFECentroidPostProcessor::registerTensorVariable(
     IBFEPostProcessor::registerTensorVariable(var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx, var_dim);
     return;
 }// registerTensorVariable
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 IBFECentroidPostProcessor::reconstructVariables(
@@ -306,8 +309,6 @@ IBFECentroidPostProcessor::reconstructVariables(
     }
     return;
 }// reconstructVariables
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

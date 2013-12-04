@@ -65,9 +65,9 @@ output_data(
     const double loop_time,
     const string& data_dump_dirname);
 
-// Basic 4-point delta function kernel.
+// Basic 4-point kernel function kernel.
 inline double
-ib4_delta_fcn(
+ib4_kernel_fcn(
     double r)
 {
     r = std::abs(r);
@@ -87,18 +87,18 @@ ib4_delta_fcn(
     {
         return 0.0;
     }
-}// ib4_delta_fcn
+}// ib4_kernel_fcn
 
-// Specified delta-function width.
+// Specified kernel-function width.
 double W = 4.0;
 
-// Re-scaled 4-point delta function kernel
+// Re-scaled 4-point kernel function kernel
 inline double
-scaled_ib4_delta_fcn(
+scaled_ib4_kernel_fcn(
     double r)
 {
-    return ib4_delta_fcn(r/(W/4.0))/(W/4.0);
-}// scaled_ib4_delta_fcn
+    return ib4_kernel_fcn(r/(W/4.0))/(W/4.0);
+}// scaled_ib4_kernel_fcn
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -130,14 +130,10 @@ main(
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Setup user-defined delta function.
+        // Setup user-defined kernel function.
         W = input_db->getDoubleWithDefault("W", W);
-        LEInteractor::s_delta_fcn = &scaled_ib4_delta_fcn;
-        LEInteractor::s_delta_fcn_stencil_size = std::ceil(W);
-        LEInteractor::s_delta_fcn_C = -1.0;  // NOTE: C is not used by the
-                                             // explicit gIB integrator, but we
-                                             // set it to cause an error in case
-                                             // it is used elsewhere.
+        LEInteractor::s_kernel_fcn = &scaled_ib4_kernel_fcn;
+        LEInteractor::s_kernel_fcn_stencil_size = std::ceil(W);
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

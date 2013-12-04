@@ -112,7 +112,7 @@ namespace IBAMR
 namespace
 {
 inline double
-cos_delta(
+cos_kernel(
     const double x,
     const double eps)
 {
@@ -124,7 +124,7 @@ cos_delta(
     {
         return 0.5*(1.0+cos(M_PI*x/eps))/eps;
     }
-}// cos_delta
+}// cos_kernel
 
 // Version of IBMethod restart file data.
 static const int IB_METHOD_VERSION = 1;
@@ -157,9 +157,9 @@ IBMethod::IBMethod(
     d_silo_writer = NULL;
 
     // Set some default values.
-    d_interp_delta_fcn = "IB_4";
-    d_spread_delta_fcn = "IB_4";
-    const int stencil_size = std::max(LEInteractor::getStencilSize(d_interp_delta_fcn),LEInteractor::getStencilSize(d_spread_delta_fcn));
+    d_interp_kernel_fcn = "IB_4";
+    d_spread_kernel_fcn = "IB_4";
+    const int stencil_size = std::max(LEInteractor::getStencilSize(d_interp_kernel_fcn),LEInteractor::getStencilSize(d_spread_kernel_fcn));
     d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
     d_do_log = false;
 
@@ -168,15 +168,15 @@ IBMethod::IBMethod(
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
-    // Check the choices for the delta function.
-    if (d_interp_delta_fcn != d_spread_delta_fcn)
+    // Check the choices for the kernel function.
+    if (d_interp_kernel_fcn != d_spread_kernel_fcn)
     {
-        pout << "WARNING: different delta functions are being used for velocity interpolation and force spreading.\n"
-             << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
+        pout << "WARNING: different kernel functions are being used for velocity interpolation and force spreading.\n"
+             << "         recommended usage is to employ the same kernel functions for both interpolation and spreading.\n";
     }
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", d_interp_delta_fcn, d_spread_delta_fcn, d_ghosts, d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", d_interp_kernel_fcn, d_spread_kernel_fcn, d_ghosts, d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
@@ -812,7 +812,7 @@ IBMethod::spreadFluidSource(
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                        wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
+                        wgt *= cos_kernel(X_center - d_X_src[ln][n][d], r[d]);
                     }
                     (*q_data)(i) += d_Q_src[ln][n]*wgt;
                 }
@@ -1013,7 +1013,7 @@ IBMethod::interpolatePressure(
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                        wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
+                        wgt *= cos_kernel(X_center - d_X_src[ln][n][d], r[d])*dx[d];
                     }
                     d_P_src[ln][n] += (*p_data)(i)*wgt;
                 }
@@ -1230,7 +1230,7 @@ IBMethod::initializeLevelData(
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
-    d_l_data_manager->resetLevels(0, finest_hier_level);
+    d_l_data_manager->setPatchLevels(0, finest_hier_level);
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -1252,7 +1252,7 @@ IBMethod::resetHierarchyConfiguration(
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
-    d_l_data_manager->resetLevels(0, finest_hier_level);
+    d_l_data_manager->setPatchLevels(0, finest_hier_level);
     d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // If we have added or removed a level, resize the anchor point vectors.
@@ -1342,8 +1342,8 @@ IBMethod::putToDatabase(
     Pointer<Database> db)
 {
     db->putInteger("IB_METHOD_VERSION", IB_METHOD_VERSION);
-    db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
-    db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
+    db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
+    db->putString("d_spread_kernel_fcn", d_spread_kernel_fcn);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
     const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
@@ -1668,15 +1668,35 @@ IBMethod::getFromInput(
 {
     if (!is_from_restart)
     {
+        if (db->isString("interp_kernel_fcn") && db->isString("spread_kernel_fcn"))
+        {
+            d_interp_kernel_fcn = db->getString("interp_kernel_fcn");
+            d_spread_kernel_fcn = db->getString("spread_kernel_fcn");
+        }
         if (db->isString("interp_delta_fcn") && db->isString("spread_delta_fcn"))
         {
-            d_interp_delta_fcn = db->getString("interp_delta_fcn");
-            d_spread_delta_fcn = db->getString("spread_delta_fcn");
+            d_interp_kernel_fcn = db->getString("interp_delta_fcn");
+            d_spread_kernel_fcn = db->getString("spread_delta_fcn");
         }
         else if (db->keyExists("delta_fcn"))
         {
-            d_interp_delta_fcn = db->getString("delta_fcn");
-            d_spread_delta_fcn = db->getString("delta_fcn");
+            d_interp_kernel_fcn = db->getString("delta_fcn");
+            d_spread_kernel_fcn = db->getString("delta_fcn");
+        }
+        else if (db->keyExists("kernel_fcn"))
+        {
+            d_interp_kernel_fcn = db->getString("kernel_fcn");
+            d_spread_kernel_fcn = db->getString("kernel_fcn");
+        }
+        else if (db->keyExists("IB_delta_fcn"))
+        {
+            d_interp_kernel_fcn = db->getString("IB_delta_fcn");
+            d_spread_kernel_fcn = db->getString("IB_delta_fcn");
+        }
+        else if (db->keyExists("IB_kernel_fcn"))
+        {
+            d_interp_kernel_fcn = db->getString("IB_kernel_fcn");
+            d_spread_kernel_fcn = db->getString("IB_kernel_fcn");
         }
 
         if (db->isInteger("min_ghost_cell_width"))
@@ -1714,8 +1734,8 @@ IBMethod::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
-    d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
+    d_interp_kernel_fcn = db->getString("d_interp_kernel_fcn");
+    d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     if (db->keyExists("instrument_names"))
     {

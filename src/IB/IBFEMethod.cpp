@@ -864,7 +864,7 @@ IBFEMethod::initializeLevelData(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->resetLevels(0,finest_hier_level);
+        d_fe_data_managers[part]->setPatchLevels(0,finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
         if (d_load_balancer && level_number == d_fe_data_managers[part]->getLevelNumber())
         {
@@ -885,7 +885,7 @@ IBFEMethod::resetHierarchyConfiguration(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->resetLevels(0,hierarchy->getFinestLevelNumber());
+        d_fe_data_managers[part]->setPatchLevels(0,hierarchy->getFinestLevelNumber());
         d_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
     }
     return;
@@ -1344,7 +1344,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                     dof_map.dof_indices(side_elem.get(), side_dof_indices[d], d);
                 }
                 get_values_for_interpolation(X_node_side, *X_petsc_vec, X_local_soln, side_dof_indices);
-                const bool qrule_needs_reinit = d_fe_data_managers[part]->updateFESpreadQuadratureRule(qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
+                const bool qrule_needs_reinit = d_fe_data_managers[part]->updateSpreadQuadratureRule(qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
                 if (qrule_needs_reinit)
                 {
                     fe_face->attach_quadrature_rule(qrule_face.get());
@@ -1403,11 +1403,11 @@ IBFEMethod::spreadTransmissionForceDensity(
         if (qp_offset == 0) continue;
 
         // Spread the boundary forces to the grid.
-        const std::string& spread_weighting_fcn = d_spread_spec.weighting_fcn;
+        const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_weighting_fcn);
+        LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
     }
 
     VecRestoreArray(X_local_vec, &X_local_soln);
@@ -1495,12 +1495,12 @@ IBFEMethod::spreadTetherForceDensity(
         }
 
         // Spread the boundary forces to the grid.
-        const std::string& spread_weighting_fcn = d_spread_spec.weighting_fcn;
+        const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        LEInteractor::spread(f_data, F_node, NDIM, X_node, NDIM, patch, spread_box, spread_weighting_fcn);
+        LEInteractor::spread(f_data, F_node, NDIM, X_node, NDIM, patch, spread_box, spread_kernel_fcn);
     }
 
     return;
@@ -1951,9 +1951,9 @@ IBFEMethod::commonConstructor(
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_use_IB_interp_operator = true;
-    d_interp_spec = FEInterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
+    d_interp_spec = FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
     d_use_IB_spread_operator = true;
-    d_spread_spec = FESpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
@@ -2041,11 +2041,11 @@ IBFEMethod::commonConstructor(
     pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
     pout << "\n";
 
-    // Check the choices for the delta function.
-    if (d_interp_spec.weighting_fcn != d_spread_spec.weighting_fcn)
+    // Check the choices for the kernel function.
+    if (d_interp_spec.kernel_fcn != d_spread_spec.kernel_fcn)
     {
-        pout << "WARNING: different delta functions are being used for velocity interpolation and force spreading.\n"
-             << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
+        pout << "WARNING: different kernel functions are being used for velocity interpolation and force spreading.\n"
+             << "         recommended usage is to employ the same kernel functions for both interpolation and spreading.\n";
     }
 
     // Create the FE data managers that manage mappings between the FE mesh
@@ -2088,8 +2088,10 @@ IBFEMethod::getFromInput(
     if      (db->isBool("use_IB_interp_operator"      )) d_use_IB_interp_operator = db->getBool("use_IB_interp_operator"      );
     else if (db->isBool("use_IB_interaction_operators")) d_use_IB_interp_operator = db->getBool("use_IB_interaction_operators");
 
-    if      (db->isString("interp_delta_fcn")) d_interp_spec.weighting_fcn = db->getString("interp_delta_fcn");
-    else if (db->isString("IB_delta_fcn"    )) d_interp_spec.weighting_fcn = db->getString("IB_delta_fcn"    );
+    if      (db->isString("interp_delta_fcn" )) d_interp_spec.kernel_fcn = db->getString("interp_delta_fcn" );
+    else if (db->isString("IB_delta_fcn"     )) d_interp_spec.kernel_fcn = db->getString("IB_delta_fcn"     );
+    else if (db->isString("interp_kernel_fcn")) d_interp_spec.kernel_fcn = db->getString("interp_kernel_fcn");
+    else if (db->isString("IB_kernel_fcn"    )) d_interp_spec.kernel_fcn = db->getString("IB_kernel_fcn"    );
 
     if      (db->isString("interp_quad_type")) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
     else if (db->isString("IB_quad_type"    )) d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"    ));
@@ -2110,8 +2112,10 @@ IBFEMethod::getFromInput(
     if      (db->isBool("use_IB_spread_operator"      )) d_use_IB_spread_operator = db->getBool("use_IB_spread_operator"     );
     else if (db->isBool("use_IB_interaction_operators")) d_use_IB_spread_operator = db->getBool("use_IB_interaction_operators");
 
-    if      (db->isString("spread_delta_fcn")) d_spread_spec.weighting_fcn = db->getString("spread_delta_fcn");
-    else if (db->isString("IB_delta_fcn"    )) d_spread_spec.weighting_fcn = db->getString("IB_delta_fcn"    );
+    if      (db->isString("spread_delta_fcn" )) d_spread_spec.kernel_fcn = db->getString("spread_delta_fcn" );
+    else if (db->isString("IB_delta_fcn"     )) d_spread_spec.kernel_fcn = db->getString("IB_delta_fcn"     );
+    else if (db->isString("spread_kernel_fcn")) d_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
+    else if (db->isString("IB_kernel_fcn"    )) d_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn"    );
 
     if      (db->isString("spread_quad_type")) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"    )) d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"    ));

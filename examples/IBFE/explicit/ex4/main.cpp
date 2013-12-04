@@ -270,11 +270,16 @@ main(
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up a post-processor to reconstruct the Cauchy stress.
-        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor(&mesh, ib_method_ops->getFEDataManager());
+        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", &mesh, ib_method_ops->getFEDataManager());
         std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_stress_fcn_data(&PK1_stress_function,NULL);
-        ib_post_processor->registerTensorVariable("sigma", MONOMIAL, CONSTANT,
-                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(), &PK1_stress_fcn_data, NDIM);
+        ib_post_processor->registerTensorVariable(
+            "sigma", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_stress_fcn_data, NDIM);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p", MONOMIAL, CONSTANT,
+            navier_stokes_integrator->getPressureVariable(),
+            navier_stokes_integrator->getCurrentContext());
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -360,7 +365,7 @@ main(
             }
             if (uses_exodus)
             {
-                ib_post_processor->reconstructVariables(loop_time);
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
             }
         }
@@ -411,7 +416,7 @@ main(
                 }
                 if (uses_exodus)
                 {
-                    ib_post_processor->reconstructVariables(loop_time);
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

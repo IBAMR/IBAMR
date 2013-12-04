@@ -560,9 +560,9 @@ protected:
      * Method paramters.
      */
     bool d_use_IB_interp_operator;
-    IBTK::FEInterpSpec d_interp_spec;
+    IBTK::FEDataManager::InterpSpec d_interp_spec;
     bool d_use_IB_spread_operator;
-    IBTK::FESpreadSpec d_spread_spec;
+    IBTK::FEDataManager::SpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
     libMeshEnums::FEFamily d_fe_family;

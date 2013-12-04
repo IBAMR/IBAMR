@@ -67,9 +67,11 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEPostProcessor::IBFEPostProcessor(
+    const std::string& name,
     MeshBase* mesh,
     FEDataManager* fe_data_manager)
-    : d_mesh(mesh),
+    : d_name(name),
+      d_mesh(mesh),
       d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)
 {
@@ -167,6 +169,39 @@ IBFEPostProcessor::registerTensorVariable(
 }// registerTensorVariable
 
 void
+IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+    const std::string& var_name,
+    libMeshEnums::FEFamily var_fe_family,
+    libMeshEnums::Order var_fe_order,
+    Pointer<Variable<NDIM> > var,
+    Pointer<VariableContext> ctx)
+{
+    registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, d_fe_data_manager->getDefaultInterpSpec());
+    return;
+}//
+
+void
+IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+    const std::string& var_name,
+    libMeshEnums::FEFamily var_fe_family,
+    libMeshEnums::Order var_fe_order,
+    Pointer<Variable<NDIM> > var,
+    Pointer<VariableContext> ctx,
+    const FEDataManager::InterpSpec& interp_spec)
+{
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    System& system = equation_systems->add_system<System>(var_name + " interpolation system");
+    system.add_variable(var_name, var_fe_order, var_fe_family);
+    d_scalar_interp_var_systems.push_back(&system);
+    d_scalar_interp_vars.push_back(var);
+    d_scalar_interp_ctxs.push_back(ctx);
+    d_scalar_interp_data_idxs.push_back(-1);  // These must be set up just before they are used.
+    d_scalar_interp_scratch_idxs.push_back(-1);
+    d_scalar_interp_specs.push_back(interp_spec);
+    d_var_systems.push_back(&system);
+}// registerInterpolatedEulerianScalarVariable
+
+void
 IBFEPostProcessor::initializeFEData()
 {
     if (d_fe_data_initialized) return;
@@ -180,7 +215,86 @@ IBFEPostProcessor::initializeFEData()
     return;
 }// initializeFEData
 
+void
+IBFEPostProcessor::postProcessData(
+    const double data_time)
+{
+    // First interpolate variables from the Eulerian grid, then reconstruct
+    // variables on the Lagrangian mesh.
+    interpolateVariables(data_time);
+    reconstructVariables(data_time);
+    return;
+}// postProcessData
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+IBFEPostProcessor::interpolateVariables(
+    const double data_time)
+{
+    Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
+    const std::pair<int,int> patch_level_range = d_fe_data_manager->getPatchLevels();
+    const int coarsest_ln = patch_level_range.first;
+    const int finest_ln   = patch_level_range.second-1;
+
+    const unsigned int num_eulerian_vars = d_scalar_interp_var_systems.size();
+
+    // Set up Eulerian scratch space and fill ghost cell values.
+    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    for (unsigned int k = 0; k < num_eulerian_vars; ++k)
+    {
+        int& data_idx = d_scalar_interp_data_idxs[k];
+        int& scratch_idx = d_scalar_interp_scratch_idxs[k];
+        if (data_idx < 0 || scratch_idx < 0)
+        {
+            TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            Pointer<Variable<NDIM> > data_var = d_scalar_interp_vars[k];
+            Pointer<VariableContext> data_ctx = d_scalar_interp_ctxs[k];
+            data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
+            TBOX_ASSERT(data_idx >= 0);
+            Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
+            const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
+            const int stencil_size = LEInteractor::getStencilSize(interp_spec.kernel_fcn);
+            const IntVector<NDIM> ghosts(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1);
+            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghosts);
+        }
+        refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (unsigned int k = 0; k < num_eulerian_vars; ++k)
+        {
+            const int scratch_idx = d_scalar_interp_scratch_idxs[k];
+            if (!level->checkAllocated(scratch_idx)) level->allocatePatchData(scratch_idx, data_time);
+        }
+        refine_alg->createSchedule(level, ln-1, hierarchy, NULL)->fillData(data_time);
+    }
+
+    // Interpolate variables.
+    NumericVector<double>* X_ghost_vec = d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
+    for (unsigned int k = 0; k < num_eulerian_vars; ++k)
+    {
+        System* system = d_scalar_interp_var_systems[k];
+        const std::string& system_name = system->name();
+        const int scratch_idx = d_scalar_interp_scratch_idxs[k];
+        d_fe_data_manager->interp(scratch_idx, *system->solution, *X_ghost_vec, system_name, d_scalar_interp_specs[k]);
+    }
+
+    // Deallocate Eulerian scratch space.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (unsigned int k = 0; k < num_eulerian_vars; ++k)
+        {
+            const int scratch_idx = d_scalar_interp_scratch_idxs[k];
+            level->deallocatePatchData(scratch_idx);
+        }
+    }
+    return;
+}// interpolateVariables
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

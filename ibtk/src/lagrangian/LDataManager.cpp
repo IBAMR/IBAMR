@@ -170,16 +170,16 @@ std::vector<int> LDataManager::s_ao_dummy(1,-1);
 LDataManager*
 LDataManager::getManager(
     const std::string& name,
-    const std::string& interp_weighting_fcn,
-    const std::string& spread_weighting_fcn,
+    const std::string& default_interp_kernel_fcn,
+    const std::string& default_spread_kernel_fcn,
     const IntVector<NDIM>& min_ghost_cell_width,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
+        const int stencil_size = std::max(LEInteractor::getStencilSize(default_interp_kernel_fcn),LEInteractor::getStencilSize(default_spread_kernel_fcn));
         const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),min_ghost_cell_width);
-        s_data_manager_instances[name] = new LDataManager(name, interp_weighting_fcn, spread_weighting_fcn, gcw, register_for_restart);
+        s_data_manager_instances[name] = new LDataManager(name, default_interp_kernel_fcn, default_spread_kernel_fcn, gcw, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -219,8 +219,14 @@ LDataManager::setPatchHierarchy(
     return;
 }// setPatchHierarchy
 
+Pointer<PatchHierarchy<NDIM> >
+LDataManager::getPatchHierarchy() const
+{
+    return d_hierarchy;
+}// getPatchHierarchy
+
 void
-LDataManager::resetLevels(
+LDataManager::setPatchLevels(
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -273,7 +279,13 @@ LDataManager::resetLevels(
     d_local_petsc_indices           .resize(d_finest_ln+1);
     d_nonlocal_petsc_indices        .resize(d_finest_ln+1);
     return;
-}// resetLevels
+}// setPatchLevels
+
+std::pair<int,int>
+LDataManager::getPatchLevels() const
+{
+    return std::make_pair(d_coarsest_ln, d_finest_ln+1);
+}// getPatchLevels
 
 void
 LDataManager::spread(
@@ -468,10 +480,10 @@ LDataManager::spread(
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getGhostBox();
-                if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
             }
         }
 
@@ -574,10 +586,10 @@ LDataManager::interp(
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getBox();
-                if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+                if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+                if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+                if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
             }
         }
 
@@ -2093,7 +2105,7 @@ LDataManager::resetHierarchyConfiguration(
 
     // Reset the patch hierarchy and levels.
     setPatchHierarchy(hierarchy);
-    resetLevels(0,finest_hier_level);
+    setPatchLevels(0,finest_hier_level);
 
     // Reset the Silo data writer.
     if (d_silo_writer)
@@ -2349,8 +2361,8 @@ LDataManager::putToDatabase(
 
 LDataManager::LDataManager(
     const std::string& object_name,
-    const std::string& interp_weighting_fcn,
-    const std::string& spread_weighting_fcn,
+    const std::string& default_interp_kernel_fcn,
+    const std::string& default_spread_kernel_fcn,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
     : d_object_name(object_name),
@@ -2374,8 +2386,8 @@ LDataManager::LDataManager(
       d_node_count_var(NULL),
       d_node_count_idx(-1),
       d_output_node_count(false),
-      d_interp_weighting_fcn(interp_weighting_fcn),
-      d_spread_weighting_fcn(spread_weighting_fcn),
+      d_default_interp_kernel_fcn(default_interp_kernel_fcn),
+      d_default_spread_kernel_fcn(default_spread_kernel_fcn),
       d_ghost_width(ghost_width),
       d_lag_node_index_bdry_fill_alg(NULL),
       d_lag_node_index_bdry_fill_scheds(),
@@ -2531,10 +2543,10 @@ LDataManager::spread_specialized(
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getGhostBox();
-            if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
         }
     }
     return;
@@ -2571,10 +2583,10 @@ LDataManager::interp_specialized(
             Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getBox();
-            if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
         }
     }
 
