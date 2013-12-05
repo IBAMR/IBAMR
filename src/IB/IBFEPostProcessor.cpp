@@ -173,7 +173,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
-    Pointer<Variable<NDIM> > var,
+    Pointer<hier::Variable<NDIM> > var,
     Pointer<VariableContext> ctx)
 {
     registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, d_fe_data_manager->getDefaultInterpSpec());
@@ -185,7 +185,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
-    Pointer<Variable<NDIM> > var,
+    Pointer<hier::Variable<NDIM> > var,
     Pointer<VariableContext> ctx,
     const FEDataManager::InterpSpec& interp_spec)
 {
@@ -250,7 +250,7 @@ IBFEPostProcessor::interpolateVariables(
         {
             TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<Variable<NDIM> > data_var = d_scalar_interp_vars[k];
+            Pointer<hier::Variable<NDIM> > data_var = d_scalar_interp_vars[k];
             Pointer<VariableContext> data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
             TBOX_ASSERT(data_idx >= 0);
