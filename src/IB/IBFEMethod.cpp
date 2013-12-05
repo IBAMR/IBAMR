@@ -1884,14 +1884,8 @@ IBFEMethod::initializeCoordinates(
             }
         }
     }
-    if (X_system.n_constrained_dofs())
-    {
-        X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-    }
-    else
-    {
-        X_coords.close();
-    }
+    X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+    X_coords.close();
     return;
 }// initializeCoordinates
 
