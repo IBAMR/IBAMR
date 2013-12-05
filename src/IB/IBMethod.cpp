@@ -1734,8 +1734,10 @@ IBMethod::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_interp_kernel_fcn = db->getString("d_interp_kernel_fcn");
-    d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
+    if      (db->keyExists("d_interp_kernel_fcn")) d_interp_kernel_fcn = db->getString("d_interp_kernel_fcn");
+    else if (db->keyExists("d_interp_delta_fcn" )) d_interp_kernel_fcn = db->getString("d_interp_delta_fcn" );
+    if      (db->keyExists("d_spread_kernel_fcn")) d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
+    else if (db->keyExists("d_spread_delta_fcn" )) d_spread_kernel_fcn = db->getString("d_spread_delta_fcn" );
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     if (db->keyExists("instrument_names"))
     {
