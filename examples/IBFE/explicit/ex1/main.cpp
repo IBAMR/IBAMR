@@ -90,7 +90,6 @@ PK1_stress_function(
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -294,7 +293,6 @@ main(
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        ib_method_ops->initializeFESystems();
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
         for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
         {

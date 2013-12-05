@@ -75,7 +75,6 @@ block_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -92,7 +91,6 @@ beam_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -110,7 +108,6 @@ beam_PK1_stress_function(
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
