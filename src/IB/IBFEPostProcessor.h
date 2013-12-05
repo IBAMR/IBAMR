@@ -69,7 +69,6 @@ public:
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
         libMesh::Elem* /*elem*/,
-        libMesh::NumericVector<double>& /*X_vec*/,
         const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
         double /*data_time*/,
         void* /*ctx*/)
@@ -89,7 +88,6 @@ public:
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
         libMesh::Elem* /*elem*/,
-        libMesh::NumericVector<double>& /*X_vec*/,
         const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
         double /*data_time*/,
         void* /*ctx*/)
@@ -113,7 +111,6 @@ public:
         const libMesh::Point& X,
         const libMesh::Point& s,
         libMesh::Elem* elem,
-        libMesh::NumericVector<double>& X_vec,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double data_time,
         void* ctx)
@@ -124,7 +121,7 @@ public:
             IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->first;
             void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->second;
             libMesh::TensorValue<double> PP;
-            PK1_stress_fcn(PP, FF, X, s, elem, X_vec, system_data, data_time, PK1_stress_fcn_ctx);
+            PK1_stress_fcn(PP, FF, X, s, elem, system_data, data_time, PK1_stress_fcn_ctx);
             sigma = PP * FF.transpose() / FF.det();
             return;
         }// cauchy_stress_from_PK1_stress_fcn
@@ -143,7 +140,6 @@ public:
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
         libMesh::Elem* elem,
-        libMesh::NumericVector<double>& /*X_vec*/,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double /*data_time*/,
         void* ctx)
@@ -175,7 +171,6 @@ public:
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
         libMesh::Elem* elem,
-        libMesh::NumericVector<double>& /*X_vec*/,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double /*data_time*/,
         void* ctx)
@@ -207,7 +202,6 @@ public:
         const libMesh::Point& /*X*/,
         const libMesh::Point& /*s*/,
         libMesh::Elem* elem,
-        libMesh::NumericVector<double>& /*X_vec*/,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double /*data_time*/,
         void* ctx)

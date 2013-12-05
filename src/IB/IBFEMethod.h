@@ -318,18 +318,6 @@ public:
         double data_time);
 
     /*!
-     * Initialize FE systems.  This method is automatically called by
-     * initializeFEData(), and must be called prior to calling
-     * IBHierarchyIntegrator::initializePatchHierarchy().
-     *
-     * This method allows users to customize the FE Systems objects owned by
-     * class IBFEMethod prior to assembling the systems.  For instance, this is
-     * necessary if users wish to specify periodic boundary constraints.
-     */
-    void
-    initializeFESystems();
-
-    /*!
      * Initialize FE data.  This method must be called prior to calling
      * IBHierarchyIntegrator::initializePatchHierarchy().
      */
@@ -554,7 +542,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
-    bool d_fe_systems_initialized, d_fe_data_initialized;
+    bool d_fe_data_initialized;
 
     /*
      * Method paramters.
