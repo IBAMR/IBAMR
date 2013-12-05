@@ -120,12 +120,9 @@ IBFEPostProcessor::registerVectorVariable(
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
     for (unsigned int i = 0; i < var_dim; ++i)
     {
-        for (unsigned int j = 0; j < var_dim; ++j)
-        {
-            std::ostringstream os;
-            os << var_name << "_" << i << j;
-            system.add_variable(os.str(), var_fe_order, var_fe_family);
-        }
+        std::ostringstream os;
+        os << var_name << "_" << i;
+        system.add_variable(os.str(), var_fe_order, var_fe_family);
     }
     d_vector_var_systems.push_back(&system);
     d_vector_var_fcns.push_back(var_fcn);
