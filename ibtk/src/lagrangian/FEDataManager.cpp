@@ -1610,8 +1610,8 @@ FEDataManager::computeL2Projection(
         ierr = VecPointwiseDivide(U_petsc_vec, F_petsc_vec, M_diag_petsc_vec); IBTK_CHKERRQ(ierr);
         converged = true;
     }
-    if (system.n_constrained_dofs()) dof_map.enforce_constraints_exactly(system, &U_vec);
-    else U_vec.close();
+    dof_map.enforce_constraints_exactly(system, &U_vec);
+    U_vec.close();
 
     IBTK_TIMER_STOP(t_compute_l2_projection);
     return converged;
