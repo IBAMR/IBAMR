@@ -44,9 +44,8 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscerror.h"
 #include "petscmath.h"
+#include "petsc-private/vecimpl.h"
 #include "tbox/Utilities.h"
-// IWYU pragma: no_include "petsc-private/petscimpl.h"
-// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

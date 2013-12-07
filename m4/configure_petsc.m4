@@ -23,18 +23,23 @@ PETSC_WITH_EXTERNAL_LIB=`grep "PETSC_WITH_EXTERNAL_LIB =" $PETSC_DIR/$PETSC_ARCH
 CPPFLAGS_PREPEND($PETSC_CC_INCLUDES)
 AC_CHECK_HEADER([petsc.h],,AC_MSG_ERROR([could not find header file petsc.h]))
 
-AC_MSG_CHECKING([for PETSc version 3.3])
+AC_MSG_CHECKING([for PETSc version 3.3 or 3.4])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <petscversion.h>
+
+#ifndef PETSC_VERSION_GE
+#define PETSC_VERSION_GE(MAJOR,MINOR,SUBMINOR) \
+  (!PETSC_VERSION_LT(MAJOR,MINOR,SUBMINOR))
+#endif
 ]], [[
-#if (PETSC_VERSION_(3,3,0))
+#if (PETSC_VERSION_GE(3,3,0) && PETSC_VERSION_LT(3,5,0))
 #else
 asdf
 #endif
-]])],[PETSC_VERSION_3_3_0=yes],[PETSC_VERSION_3_3_0=no])
-AC_MSG_RESULT([PETSC_VERSION_3_3_0])
-if test "$PETSC_VERSION_3_3_0" = no; then
-  AC_MSG_ERROR([incorrect PETSc version detected: please use PETSc 3.3])
+]])],[PETSC_VERSION_VALID=yes],[PETSC_VERSION_VALID=no])
+AC_MSG_RESULT([${PETSC_VERSION_VALID}])
+if test "$PETSC_VERSION_VALID" = no; then
+  AC_MSG_ERROR([incorrect PETSc version detected: please use PETSc 3.3 or 3.4])
 fi
 
 LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
