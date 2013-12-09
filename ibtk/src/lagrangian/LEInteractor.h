@@ -100,8 +100,6 @@ public:
     /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
      * specified kernel function.
-     *
-     * The return value is -1 for any unknown kernel function type.
      */
     static int
     getStencilSize(

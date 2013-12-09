@@ -89,6 +89,9 @@
 #define LAGRANGIAN_IB_4_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_interp2d, LAGRANGIAN_IB_4_INTERP2D)
 #define LAGRANGIAN_IB_4_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_spread2d, LAGRANGIAN_IB_4_SPREAD2D)
 
+#define LAGRANGIAN_IB_4_W8_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_interp2d, LAGRANGIAN_IB_4_W8_INTERP2D)
+#define LAGRANGIAN_IB_4_W8_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_spread2d, LAGRANGIAN_IB_4_W8_SPREAD2D)
+
 #define LAGRANGIAN_IB_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_6_interp2d, LAGRANGIAN_IB_6_INTERP2D)
 #define LAGRANGIAN_IB_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_6_spread2d, LAGRANGIAN_IB_6_SPREAD2D)
 #endif
@@ -111,6 +114,9 @@
 
 #define LAGRANGIAN_IB_4_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_interp3d, LAGRANGIAN_IB_4_INTERP3D)
 #define LAGRANGIAN_IB_4_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_spread3d, LAGRANGIAN_IB_4_SPREAD3D)
+
+#define LAGRANGIAN_IB_4_W8_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_interp3d, LAGRANGIAN_IB_4_W8_INTERP3D)
+#define LAGRANGIAN_IB_4_W8_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_4_w8_spread3d, LAGRANGIAN_IB_4_W8_SPREAD3D)
 
 #define LAGRANGIAN_IB_6_INTERP_FC IBTK_FC_FUNC_(lagrangian_ib_6_interp3d, LAGRANGIAN_IB_6_INTERP3D)
 #define LAGRANGIAN_IB_6_SPREAD_FC IBTK_FC_FUNC_(lagrangian_ib_6_spread3d, LAGRANGIAN_IB_6_SPREAD3D)
@@ -323,6 +329,38 @@
                                   );
 
         void
+        LAGRANGIAN_IB_4_W8_INTERP_FC(
+            const double* , const double* , const double* , const int& ,
+#if (NDIM == 2)
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
+#endif
+#if (NDIM == 3)
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
+#endif
+            const double* ,
+            const int* , const double* , const int& ,
+            const double* , double*
+                                  );
+
+        void
+        LAGRANGIAN_IB_4_W8_SPREAD_FC(
+            const double* , const double* , const double* , const int& ,
+            const int* , const double* , const int& ,
+            const double* , const double* ,
+#if (NDIM == 2)
+            const int& , const int& , const int& , const int& ,
+            const int& , const int& ,
+#endif
+#if (NDIM == 3)
+            const int& , const int& , const int& , const int& , const int& , const int& ,
+            const int& , const int& , const int& ,
+#endif
+            double*
+                                  );
+
+        void
         LAGRANGIAN_IB_6_INTERP_FC(
             const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
@@ -393,7 +431,6 @@ ib4_kernel_fcn(
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
 int LEInteractor::s_kernel_fcn_stencil_size = 4;
-// double LEInteractor::s_kernel_fcn_C = 3.0/8.0;
 
 void
 LEInteractor::setFromDatabase(
@@ -423,6 +460,7 @@ LEInteractor::getStencilSize(
     if (kernel_fcn == "PIECEWISE_CUBIC") return 4;
     if (kernel_fcn == "IB_3") return 4;
     if (kernel_fcn == "IB_4") return 4;
+    if (kernel_fcn == "IB_4_W8") return 8;
     if (kernel_fcn == "IB_6") return 6;
     if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
@@ -430,29 +468,6 @@ LEInteractor::getStencilSize(
                << kernel_fcn << std::endl);
     return -1;
 }// getStencilSize
-
-#if 0
-double
-LEInteractor::getC(
-    const std::string& kernel_fcn)
-{
-    if (kernel_fcn == "PIECEWISE_CONSTANT") return 1.0;
-    if (kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC")
-    {
-        TBOX_ERROR("LEInteractor::getC()\n"
-                   << "  Kernel function " << kernel_fcn << " does not satisfy the quadratic (sum-of-squares) condition.\n"
-                   << "  Consequently, the value of C = sum_{j} phi(r-j)^2 is dependent on the value of r." << std::endl);
-    }
-    if (kernel_fcn == "IB_3") return 0.5;
-    if (kernel_fcn == "IB_4") return 3.0/8.0;
-    if (kernel_fcn == "IB_6") return 67.0/128.0;
-    if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_C;
-    TBOX_ERROR("LEInteractor::getC()\n"
-               << "  Unknown kernel function "
-               << kernel_fcn << std::endl);
-    return -1;
-}// getC
-#endif
 
 template<class T>
 void
@@ -2117,6 +2132,22 @@ LEInteractor::interpolate(
             &local_indices[0], &periodic_shifts[0], local_indices_size,
             X_data,Q_data);
     }
+    else if (interp_fcn == "IB_4_W8")
+    {
+        LAGRANGIAN_IB_4_W8_INTERP_FC(
+            dx,x_lower,x_upper,q_depth,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
+            X_data,Q_data);
+    }
     else if (interp_fcn == "IB_6")
     {
         LAGRANGIAN_IB_6_INTERP_FC(
@@ -2281,6 +2312,22 @@ LEInteractor::spread(
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             &patch_touches_lower_physical_bdry[0],
             &patch_touches_upper_physical_bdry[0],
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data);
+    }
+    else if (spread_fcn == "IB_4_W8")
+    {
+        LAGRANGIAN_IB_4_W8_SPREAD_FC(
+            dx,x_lower,x_upper,q_depth,
+            &local_indices[0], &periodic_shifts[0], local_indices_size,
+            X_data, Q_data,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
@@ -2453,10 +2500,10 @@ LEInteractor::userDefinedInterpolate(
     const int* const iupper = q_data_box.upper();
     typedef boost::multi_array_types::extent_range range;
     boost::const_multi_array_ref<double,NDIM+1> q_data(q, (boost::extents
-                                                           [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0])]
-                                                           [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1])]
+                                                           [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0]+1)]
+                                                           [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1]+1)]
 #if (NDIM == 3)
-                                                           [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2])]
+                                                           [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2]+1)]
 #endif
                                                            [range(0,q_depth)]), boost::fortran_storage_order());
     boost::array<double,NDIM> X_cell;
@@ -2506,19 +2553,19 @@ LEInteractor::userDefinedInterpolate(
         }
 
         // Compute the kernel function weights.
-        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
+        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0]+1)]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
             w0[ic0] = s_kernel_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
-        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
+        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1]+1)]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
             w1[ic1] = s_kernel_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
-        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
+        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2]+1)]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
             w2[ic2] = s_kernel_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
@@ -2572,10 +2619,10 @@ LEInteractor::userDefinedSpread(
     const int* const iupper = q_data_box.upper();
     typedef boost::multi_array_types::extent_range range;
     boost::multi_array_ref<double,NDIM+1> q_data(q, (boost::extents
-                                                     [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0])]
-                                                     [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1])]
+                                                     [range(ilower[0]-q_gcw[0],iupper[0]+q_gcw[0]+1)]
+                                                     [range(ilower[1]-q_gcw[1],iupper[1]+q_gcw[1]+1)]
 #if (NDIM == 3)
-                                                     [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2])]
+                                                     [range(ilower[2]-q_gcw[2],iupper[2]+q_gcw[2]+1)]
 #endif
                                                      [range(0,q_depth)]), boost::fortran_storage_order());
     boost::array<double,NDIM> X_cell;
@@ -2626,19 +2673,19 @@ LEInteractor::userDefinedSpread(
 
 
         // Compute the kernel function weights.
-        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0])]);
+        boost::multi_array<double,1> w0(boost::extents[range(stencil_lower[0],stencil_upper[0]+1)]);
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
             w0[ic0] = s_kernel_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
-        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1])]);
+        boost::multi_array<double,1> w1(boost::extents[range(stencil_lower[1],stencil_upper[1]+1)]);
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
             w1[ic1] = s_kernel_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
-        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2])]);
+        boost::multi_array<double,1> w2(boost::extents[range(stencil_lower[2],stencil_upper[2]+1)]);
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
             w2[ic2] = s_kernel_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
