@@ -100,10 +100,14 @@ public:
     /*!
      * Indicate that collection of nodes that are tethered to their reference
      * position.
+     *
+     * \note If tethered node IDs have already been registered with the solver
+     * for the specified part, the supplied set of nodes will be inserted into
+     * the collection of tethered nodes.
      */
     void
     registerTetheredNodes(
-        const std::set<libMesh::dof_id_type>& tethered_node_ids,
+        const std::set<libMesh::dof_id_type>& node_ids,
         double kappa,
         unsigned int part=0);
 
@@ -119,7 +123,7 @@ public:
      */
     typedef
     void
-    (*ConstrainedPartVelocityFcnPtr)(
+    (*ConstrainedVelocityFcnPtr)(
         libMesh::NumericVector<double>& U_b,
         libMesh::NumericVector<double>& U,
         libMesh::NumericVector<double>& X,
@@ -128,12 +132,35 @@ public:
         void* ctx);
 
     /*!
+     * Struct encapsulating constrained velocity function data.
+     */
+    struct ConstrainedVelocityFcnData
+    {
+        ConstrainedVelocityFcnData(
+            ConstrainedVelocityFcnPtr fcn=NULL,
+            void* ctx=NULL)
+            : fcn(fcn),
+              ctx(ctx) { }
+
+        ConstrainedVelocityFcnPtr fcn;
+        void* ctx;
+    };
+
+    /*!
      * Register a constrained body velocity function.
      */
     void
-    registerConstrainedPartVelocityFunction(
-        ConstrainedPartVelocityFcnPtr constrained_part_velocity_fcn,
-        void* constrained_part_velocity_fcn_ctx=NULL,
+    registerConstrainedVelocityFunction(
+        ConstrainedVelocityFcnPtr fcn,
+        void* ctx=NULL,
+        unsigned int part=0);
+
+    /*!
+     * Register a constrained body velocity function.
+     */
+    void
+    registerConstrainedVelocityFunction(
+        const ConstrainedVelocityFcnData& data,
         unsigned int part=0);
 
     /*!
@@ -147,6 +174,21 @@ public:
         void* ctx);
 
     /*!
+     * Struct encapsulating coordinate mapping function data.
+     */
+    struct CoordinateMappingFcnData
+    {
+        CoordinateMappingFcnData(
+            CoordinateMappingFcnPtr fcn=NULL,
+            void* ctx=NULL)
+            : fcn(fcn),
+              ctx(ctx) { }
+
+        CoordinateMappingFcnPtr fcn;
+        void* ctx;
+    };
+
+    /*!
      * Register the (optional) function used to initialize the physical
      * coordinates from the Lagrangian coordinates.
      *
@@ -156,8 +198,21 @@ public:
      */
     void
     registerInitialCoordinateMappingFunction(
-        CoordinateMappingFcnPtr coordinate_mapping_fcn,
-        void* coordinate_mapping_fcn_ctx=NULL,
+        CoordinateMappingFcnPtr fcn,
+        void* ctx=NULL,
+        unsigned int part=0);
+
+    /*!
+     * Register the (optional) function used to initialize the physical
+     * coordinates from the Lagrangian coordinates.
+     *
+     * \note If no function is provided, the initial physical coordinates are
+     * taken to be the same as the Lagrangian coordinate system, i.e., the
+     * initial coordinate mapping is assumed to be the identity mapping.
+     */
+    void
+    registerInitialCoordinateMappingFunction(
+        const CoordinateMappingFcnData& data,
         unsigned int part=0);
 
     /*!
@@ -166,15 +221,59 @@ public:
     typedef IBTK::TensorMeshFcnPtr PK1StressFcnPtr;
 
     /*!
+     * Struct encapsulating PK1 stress tensor function data.
+     */
+    struct PK1StressFcnData
+    {
+        PK1StressFcnData(
+            PK1StressFcnPtr fcn=NULL,
+            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+            void* ctx=NULL,
+            libMeshEnums::QuadratureType quad_type=INVALID_Q_RULE,
+            libMeshEnums::Order quad_order=INVALID_ORDER)
+            : fcn(fcn),
+              systems(systems),
+              ctx(ctx),
+              quad_type(quad_type),
+              quad_order(quad_order) { }
+
+        PK1StressFcnPtr fcn;
+        std::vector<unsigned int> systems;
+        void* ctx;
+        libMeshEnums::QuadratureType quad_type;
+        libMeshEnums::Order quad_order;
+    };
+
+    /*!
      * Register the (optional) function to compute the first Piola-Kirchhoff
      * stress tensor, used to compute the forces on the Lagrangian finite
      * element mesh.
+     *
+     * \note It is possible to register multiple PK1 stress functions with this
+     * class.  This is intended to be used to implement selective reduced
+     * integration.
      */
     void
-    registerPK1StressTensorFunction(
-        PK1StressFcnPtr PK1_stress_fcn,
-        std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
-        void* PK1_stress_fcn_ctx=NULL,
+    registerPK1StressFunction(
+        PK1StressFcnPtr fcn,
+        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+        void* ctx=NULL,
+        libMeshEnums::QuadratureType quad_type=INVALID_Q_RULE,
+        libMeshEnums::Order quad_order=INVALID_ORDER,
+        unsigned int part=0);
+
+    /*!
+     * Register the (optional) function to compute the first Piola-Kirchhoff
+     * stress tensor, used to compute the forces on the Lagrangian finite
+     * element mesh.
+     *
+     * \note It is possible to register multiple PK1 stress functions with this
+     * class.  This is intended to be used to implement selective reduced
+     * integration.
+     */
+    void
+    registerPK1StressFunction(
+        const PK1StressFcnData& data,
         unsigned int part=0);
 
     /*!
@@ -184,31 +283,97 @@ public:
     typedef IBTK::VectorMeshFcnPtr LagBodyForceFcnPtr;
 
     /*!
+     * Struct encapsulating Lagrangian body force distribution data.
+     */
+    struct LagBodyForceFcnData
+    {
+        LagBodyForceFcnData(
+            LagBodyForceFcnPtr fcn=NULL,
+            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+            void* ctx=NULL)
+            : fcn(fcn),
+              systems(systems),
+              ctx(ctx) { }
+
+        LagBodyForceFcnPtr fcn;
+        std::vector<unsigned int> systems;
+        void* ctx;
+    };
+
+    /*!
      * Register the (optional) function to compute body force distributions on
      * the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple body force functions
+     * with this class.
      */
     void
     registerLagBodyForceFunction(
-        LagBodyForceFcnPtr lag_body_force_fcn,
-        std::vector<unsigned int> lag_body_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_body_force_fcn_ctx=NULL,
+        LagBodyForceFcnPtr fcn,
+        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+        void* ctx=NULL,
+        unsigned int part=0);
+
+    /*!
+     * Register the (optional) function to compute body force distributions on
+     * the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple body force functions
+     * with this class.
+     */
+    void
+    registerLagBodyForceFunction(
+        const LagBodyForceFcnData& data,
         unsigned int part=0);
 
     /*!
      * Typedef specifying interface for Lagrangian pressure force distribution
      * function.
      */
-    typedef IBTK::ScalarSurfaceFcnPtr LagPressureFcnPtr;
+    typedef IBTK::ScalarSurfaceFcnPtr LagSurfacePressureFcnPtr;
+
+    /*!
+     * Struct encapsulating Lagrangian surface pressure distribution data.
+     */
+    struct LagSurfacePressureFcnData
+    {
+        LagSurfacePressureFcnData(
+            LagSurfacePressureFcnPtr fcn=NULL,
+            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+            void* ctx=NULL)
+            : fcn(fcn),
+              systems(systems),
+              ctx(ctx) { }
+
+        LagSurfacePressureFcnPtr fcn;
+        std::vector<unsigned int> systems;
+        void* ctx;
+    };
 
     /*!
      * Register the (optional) function to compute surface pressure
      * distributions on the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple pressure functions with
+     * this class.
      */
     void
-    registerLagPressureFunction(
-        LagPressureFcnPtr lag_pressure_fcn,
-        std::vector<unsigned int> lag_pressure_fcn_systems=std::vector<unsigned int>(),
-        void* lag_pressure_fcn_ctx=NULL,
+    registerLagSurfacePressureFunction(
+        LagSurfacePressureFcnPtr fcn,
+        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+        void* ctx=NULL,
+        unsigned int part=0);
+
+    /*!
+     * Register the (optional) function to compute surface pressure
+     * distributions on the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple pressure functions with
+     * this class.
+     */
+    void
+    registerLagSurfacePressureFunction(
+        const LagSurfacePressureFcnData& data,
         unsigned int part=0);
 
     /*!
@@ -218,14 +383,47 @@ public:
     typedef IBTK::VectorSurfaceFcnPtr LagSurfaceForceFcnPtr;
 
     /*!
+     * Struct encapsulating Lagrangian surface force distribution data.
+     */
+    struct LagSurfaceForceFcnData
+    {
+        LagSurfaceForceFcnData(
+            LagSurfaceForceFcnPtr fcn=NULL,
+            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+            void* ctx=NULL)
+            : fcn(fcn),
+              systems(systems),
+              ctx(ctx) { }
+
+        LagSurfaceForceFcnPtr fcn;
+        std::vector<unsigned int> systems;
+        void* ctx;
+    };
+
+    /*!
      * Register the (optional) function to compute surface force distributions
      * on the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple surface force functions
+     * with this class.
      */
     void
     registerLagSurfaceForceFunction(
-        LagSurfaceForceFcnPtr lag_surface_force_fcn,
-        std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_surface_force_fcn_ctx=NULL,
+        LagSurfaceForceFcnPtr fcn,
+        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
+        void* ctx=NULL,
+        unsigned int part=0);
+
+    /*!
+     * Register the (optional) function to compute surface force distributions
+     * on the Lagrangian finite element mesh.
+     *
+     * \note It is \em NOT possible to register multiple surface force functions
+     * with this class.
+     */
+    void
+    registerLagSurfaceForceFunction(
+        const LagSurfaceForceFcnData& data,
         unsigned int part=0);
 
     /*!
@@ -564,47 +762,39 @@ protected:
      */
     bool d_has_tethered_nodes, d_reinit_tethered_node_set;
     std::vector<std::set<libMesh::dof_id_type> > d_tethered_node_ids;
+    std::vector<std::map<libMesh::dof_id_type,double> > d_tethered_node_kappas;
     std::vector<std::vector<std::set<libMesh::Node*> > > d_tethered_nodes_local;
-    std::vector<double> d_tethered_kappa;
 
     /*
      * Data related to handling constrained body constraints.
      */
     bool d_has_constrained_parts;
     std::vector<bool> d_constrained_part;
-    std::vector<ConstrainedPartVelocityFcnPtr> d_constrained_part_velocity_fcns;
-    std::vector<void*> d_constrained_part_velocity_fcn_ctxs;
+    std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
     double d_constraint_omega;
-    bool d_impose_constrained_velocity;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
-    std::vector<CoordinateMappingFcnPtr> d_coordinate_mapping_fcns;
-    std::vector<void*> d_coordinate_mapping_fcn_ctxs;
+    std::vector<CoordinateMappingFcnData> d_coordinate_mapping_fcn_data;
 
     /*
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
-    std::vector<PK1StressFcnPtr> d_PK1_stress_fcns;
-    std::vector<std::vector<unsigned int> > d_PK1_stress_fcn_systems;
-    std::vector<void*> d_PK1_stress_fcn_ctxs;
+    std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
 
     /*
      * Functions used to compute additional body and surface forces on the
      * Lagrangian mesh.
      */
-    std::vector<LagBodyForceFcnPtr> d_lag_body_force_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_body_force_fcn_systems;
-    std::vector<void*> d_lag_body_force_fcn_ctxs;
+    std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
+    std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
+    std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
 
-    std::vector<LagPressureFcnPtr> d_lag_pressure_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_pressure_fcn_systems;
-    std::vector<void*> d_lag_pressure_fcn_ctxs;
-
-    std::vector<LagSurfaceForceFcnPtr> d_lag_surface_force_fcns;
-    std::vector<std::vector<unsigned int> > d_lag_surface_force_fcn_systems;
-    std::vector<void*> d_lag_surface_force_fcn_ctxs;
+    /*
+     * Collection of all systems required to evaluate various quantities.
+     */
+    std::vector<std::set<unsigned int> > d_fcn_systems, d_body_fcn_systems, d_surface_fcn_systems;
 
     /*
      * Nonuniform load balancing data structures.

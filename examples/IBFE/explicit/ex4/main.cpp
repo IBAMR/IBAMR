@@ -264,13 +264,13 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Set up a post-processor to reconstruct the Cauchy stress.
         Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", &mesh, ib_method_ops->getFEDataManager());
-        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_stress_fcn_data(&PK1_stress_function,NULL);
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_stress_fcn_data(PK1_stress_function,NULL);
         ib_post_processor->registerTensorVariable(
             "sigma", MONOMIAL, CONSTANT,
             IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,

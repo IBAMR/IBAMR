@@ -232,7 +232,7 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
 

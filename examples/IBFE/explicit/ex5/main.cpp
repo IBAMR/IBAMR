@@ -295,12 +295,12 @@ main(
         if (use_constraint_method)
         {
             ib_method_ops->registerConstrainedPart();
-            ib_method_ops->registerConstrainedPartVelocityFunction(body_velocity_fcn);
+            ib_method_ops->registerConstrainedVelocityFunction(body_velocity_fcn);
         }
         else
         {
-            ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
-            ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
+            ib_method_ops->registerPK1StressFunction(PK1_stress_function);
         }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 

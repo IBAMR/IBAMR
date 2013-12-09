@@ -414,11 +414,16 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 1);
-        ib_method_ops->registerLagBodyForceFunction(& beam_tether_force_function, std::vector<unsigned int>(), NULL, 2);
-        ib_method_ops->registerPK1StressTensorFunction(&beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 2);
+        IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
+        ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
+        ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 1);
+
+        IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
+        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function);
+        ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 2);
+        ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 2);
         ib_method_ops->registerTetheredNodes(tethered_node_ids, beam_kappa_t, 2);
+
         EquationSystems* block1_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* block2_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
         EquationSystems*   beam_equation_systems = ib_method_ops->getFEDataManager(2)->getEquationSystems();
