@@ -863,10 +863,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard interpolation weights.
 c
@@ -991,10 +991,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard spreading weights.
 c
@@ -1112,10 +1112,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard interpolation weights.
 c
@@ -1235,10 +1235,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard spreading weights.
 c
@@ -1337,8 +1337,8 @@ c     Compute the extents of the ghost box.
 c
       ig_lower(0) = ilower0-nugc0
       ig_lower(1) = ilower1-nugc1
-      ig_upper(0) = iupper0 +nugc0
-      ig_upper(1) = iupper1 +nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
 c
 c     Determine if we need to account for physical boundaries.
 c
@@ -1531,8 +1531,8 @@ c     Compute the extents of the ghost box.
 c
       ig_lower(0) = ilower0-nugc0
       ig_lower(1) = ilower1-nugc1
-      ig_upper(0) = iupper0 +nugc0
-      ig_upper(1) = iupper1 +nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
 c
 c     Determine if we need to account for physical boundaries.
 c
@@ -1664,6 +1664,300 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Interpolate u onto V at the positions specified by X using the IB
+c     4-point delta function that has been broadened to have a support
+c     of 8 meshwidths.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_ib_4_w8_interp2d(
+     &     dx,x_lower,x_upper,depth,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,ic0,ic1
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
+      INTEGER d,l,s
+
+      REAL X_o_dx,q0,q1,r0,r1
+      REAL w0(0:7),w1(0:7)
+      REAL w(0:7,0:7),wy
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+c
+c     Use a broadened version of the IB 4-point delta function to
+c     interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell and compute the interpolation
+c     weights.
+c
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ilower0-4
+         ic_upper(0) = ic_lower(0) + 7
+         r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(1) = 0.0625d0*(3.d0-2.d0*r0-q0)
+         w0(3) = 0.0625d0*(3.d0-2.d0*r0+q0)
+         w0(5) = 0.0625d0*(1.d0+2.d0*r0+q0)
+         w0(7) = 0.0625d0*(1.d0+2.d0*r0-q0)
+         r0 = r0+0.5d0
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(0) = 0.0625d0*(3.d0-2.d0*r0-q0)
+         w0(2) = 0.0625d0*(3.d0-2.d0*r0+q0)
+         w0(4) = 0.0625d0*(1.d0+2.d0*r0+q0)
+         w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
+
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ilower1-4
+         ic_upper(1) = ic_lower(1) + 7
+         r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(1) = 0.0625d0*(3.d0-2.d0*r1-q1)
+         w1(3) = 0.0625d0*(3.d0-2.d0*r1+q1)
+         w1(5) = 0.0625d0*(1.d0+2.d0*r1+q1)
+         w1(7) = 0.0625d0*(1.d0+2.d0*r1-q1)
+         r1 = r1+0.5d0
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(0) = 0.0625d0*(3.d0-2.d0*r1-q1)
+         w1(2) = 0.0625d0*(3.d0-2.d0*r1+q1)
+         w1(4) = 0.0625d0*(1.d0+2.d0*r1+q1)
+         w1(6) = 0.0625d0*(1.d0+2.d0*r1-q1)
+c
+c     Compute the tensor product of the interpolation weights.
+c
+         do i1 = 0,7
+            wy = w1(i1)
+            do i0 = 0,7
+               w(i0,i1) = w0(i0)*wy
+            enddo
+         enddo
+c
+c     Interpolate u onto V.
+c
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                  enddo
+               enddo
+            enddo
+         else
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i1 = 0,7
+                  ic1 = ic_lower(1)+i1
+                  do i0 = 0,7
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                  enddo
+               enddo
+            enddo
+         endif
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the IB
+c     4-point delta function that has been broadened to have a support
+c     of 8 meshwidths.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_ib_4_w8_spread2d(
+     &     dx,x_lower,x_upper,depth,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,ic0,ic1
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
+      INTEGER d,l,s
+
+      REAL X_o_dx,q0,q1,r0,r1
+      REAL w0(0:7),w1(0:7)
+      REAL w(0:7,0:7),wy
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+c
+c     Use a broadened version of the IB 4-point delta function to spread
+c     V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell and compute the interpolation
+c     weights.
+c
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ilower0-4
+         ic_upper(0) = ic_lower(0) + 7
+         r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(1) = 0.0625d0*(3.d0-2.d0*r0-q0)
+         w0(3) = 0.0625d0*(3.d0-2.d0*r0+q0)
+         w0(5) = 0.0625d0*(1.d0+2.d0*r0+q0)
+         w0(7) = 0.0625d0*(1.d0+2.d0*r0-q0)
+         r0 = r0+0.5d0
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(0) = 0.0625d0*(3.d0-2.d0*r0-q0)
+         w0(2) = 0.0625d0*(3.d0-2.d0*r0+q0)
+         w0(4) = 0.0625d0*(1.d0+2.d0*r0+q0)
+         w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
+
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ilower1-4
+         ic_upper(1) = ic_lower(1) + 7
+         r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(1) = 0.0625d0*(3.d0-2.d0*r1-q1)
+         w1(3) = 0.0625d0*(3.d0-2.d0*r1+q1)
+         w1(5) = 0.0625d0*(1.d0+2.d0*r1+q1)
+         w1(7) = 0.0625d0*(1.d0+2.d0*r1-q1)
+         r1 = r1+0.5d0
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(0) = 0.0625d0*(3.d0-2.d0*r1-q1)
+         w1(2) = 0.0625d0*(3.d0-2.d0*r1+q1)
+         w1(4) = 0.0625d0*(1.d0+2.d0*r1+q1)
+         w1(6) = 0.0625d0*(1.d0+2.d0*r1-q1)
+c
+c     Compute the tensor product of the scaled interpolation weights.
+c
+         do i1 = 0,7
+            wy = w1(i1)/(dx(0)*dx(1))
+            do i0 = 0,7
+               w(i0,i1) = w0(i0)*wy
+            enddo
+         enddo
+c
+c     Spread V onto u.
+c
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
+            do d = 0,depth-1
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                  enddo
+               enddo
+            enddo
+         else
+            do d = 0,depth-1
+               do i1 = 0,7
+                  ic1 = ic_lower(1)+i1
+                  do i0 = 0,7
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                  enddo
+               enddo
+            enddo
+         endif
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the IB
 c     6-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1750,10 +2044,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard interpolation weights.
 c
@@ -1933,10 +2227,10 @@ c
          enddo
 
          ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0 +nugc0)
+         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
 
          ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1 +nugc1)
+         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the standard spreading weights.
 c
