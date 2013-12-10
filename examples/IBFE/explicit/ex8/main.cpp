@@ -99,10 +99,25 @@ beam_tether_force_function(
     return;
 }// beam_tether_force_function
 
-// Stress tensor function for the thin beam.
+// Stress tensor functions for the thin beam.
 static double mu_s, beta_s;
 void
-beam_PK1_stress_function(
+beam_PK1_dev_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = mu_s*FF;
+    return;
+}// beam_PK1_dev_stress_function
+
+void
+beam_PK1_dil_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
@@ -113,14 +128,13 @@ beam_PK1_stress_function(
     void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = mu_s*(FF-FF_inv_trans);
+    PP = -mu_s*FF_inv_trans;
     if (!MathUtilities<double>::equalEps(beta_s, 0.0))
     {
-        const TensorValue<double> CC = FF.transpose()*FF;
-        PP += beta_s*log(CC.det())*FF_inv_trans;
+        PP += 2.0*beta_s*log(FF.det())*FF_inv_trans;
     }
     return;
-}// beam_PK1_stress_function
+}// beam_PK1_dil_stress_function
 
 struct node_x_comp
     : std::binary_function<const libMesh::Node*,const libMesh::Node*,bool>
@@ -419,9 +433,13 @@ main(
         ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 1);
 
         IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
-        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function);
+        IBFEMethod::PK1StressFcnData beam_PK1_dev_stress_data(beam_PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData beam_PK1_dil_stress_data(beam_PK1_dil_stress_function);
+        beam_PK1_dev_stress_data.quad_order = FIFTH;
+        beam_PK1_dil_stress_data.quad_order = THIRD;
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 2);
-        ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 2);
+        ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
+        ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);
         ib_method_ops->registerTetheredNodes(tethered_node_ids, beam_kappa_t, 2);
 
         EquationSystems* block1_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
