@@ -1127,8 +1127,8 @@ IBFEMethod::computeInteriorForceDensity(
 
                     // If we are imposing jump conditions, then we keep only the
                     // normal part of the force.  This has the effect of
-                    // projecting the tangential part of the surface force onto
-                    // the interior force density.
+                    // projecting the tangential part of the surface force (but
+                    // not the normal part) onto the interior force density.
                     if (d_split_forces && d_use_jump_conditions && !at_dirichlet_bdry)
                     {
                         tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
@@ -1287,8 +1287,8 @@ IBFEMethod::computeInteriorForceDensity(
 
                     // If we are imposing jump conditions, then we keep only the
                     // normal part of the force.  This has the effect of
-                    // projecting the tangential part of the surface force onto
-                    // the interior force density.
+                    // projecting the tangential part of the surface force (but
+                    // not the normal part) onto the interior force density.
                     if (d_split_forces && d_use_jump_conditions && !at_dirichlet_bdry)
                     {
                         n = (FF_inv_trans*normal_face[qp]).unit();
