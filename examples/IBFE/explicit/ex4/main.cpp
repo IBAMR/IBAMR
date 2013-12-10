@@ -276,7 +276,7 @@ main(
             IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
             std::vector<unsigned int>(), &PK1_stress_fcn_data, NDIM);
         ib_post_processor->registerInterpolatedScalarEulerianVariable(
-            "p", MONOMIAL, CONSTANT,
+            "p", LAGRANGE, FIRST,
             navier_stokes_integrator->getPressureVariable(),
             navier_stokes_integrator->getCurrentContext());
 
