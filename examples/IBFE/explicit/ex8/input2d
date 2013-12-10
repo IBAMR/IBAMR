@@ -34,8 +34,8 @@ CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"     // convective time stepping t
 CONVECTIVE_OP_TYPE         = "PPM"                 // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.125                 // maximum CFL number
-DT                         = CFL_MAX*DX/U_MAX      // maximum timestep size
+CFL_MAX                    = 0.2                   // maximum CFL number
+DT                         = 0.625*CFL_MAX*DX/U_MAX*(48.0/NFINEST)      // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = FALSE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
@@ -56,7 +56,7 @@ T_END = 2.0
 // penalty parameters
 BLOCK_KAPPA_S = 7.5e1 * DX / DT^2
 BEAM_KAPPA_S  = 0.0 // KAPPA_S
-BEAM_KAPPA_T  = 7.5e1 * DX / DT
+BEAM_KAPPA_T  = 1.25e3 * DX / DT
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
@@ -146,7 +146,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = NFINEST/4
+   viz_dump_interval           = (NFINEST/48)*(NFINEST/4)
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
