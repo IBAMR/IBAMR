@@ -62,12 +62,12 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Stress tensor function.
+// Stress tensor functions.
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
 void
-PK1_stress_function(
+PK1_dev_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
@@ -77,19 +77,24 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    const TensorValue<double> CC = FF.transpose()*FF;
     PP = 2.0*c1_s*FF;
-    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
-    {
-        PP -= 2.0*p0_s*FF_inv_trans;
-    }
-    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
-    {
-        PP += beta_s*log(CC.det())*FF_inv_trans;
-    }
     return;
-}// PK1_stress_function
+}// PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = 2.0*(-p0_s + beta_s*log(FF.det()))*tensor_inverse_transpose(FF, NDIM);
+    return;
+}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -232,7 +237,12 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+        PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
+        PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+        ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+        ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
 

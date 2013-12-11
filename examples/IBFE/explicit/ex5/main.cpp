@@ -128,24 +128,37 @@ tether_force_function(
     return;
 }// tether_force_function
 
-// Stress tensor function.
+// Stress tensor functions.
 static double mu_s;
 void
-PK1_stress_function(
+PK1_dev_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    const TensorValue<double> CC = FF.transpose()*FF;
-    PP = mu_s*(FF-FF_inv_trans);
+    PP = mu_s*FF;
     return;
-}// PK1_stress_function
+}// PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = -mu_s*tensor_inverse_transpose(FF, NDIM);
+    return;
+}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -300,7 +313,12 @@ main(
         else
         {
             ib_method_ops->registerLagBodyForceFunction(tether_force_function);
-            ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+            IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+            IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+            PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
+            PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+            ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+            ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
