@@ -372,7 +372,7 @@ main(
         MeshTools::Generation::build_square(beam_mesh,
                                             ceil(1.0/ds_beam), max(2*static_cast<int>(ceil(0.016/ds_beam)/2.0),4),
                                             0.5, 1.5,
-                                            0.5, 0.5+0.016,
+                                            0.5-0.016, 0.5,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         block1_mesh.prepare_for_use();
         block2_mesh.prepare_for_use();
@@ -388,10 +388,10 @@ main(
             if (abs(n(1) - 0.5) < 1.0e-8)
             {
                 centerline_node_set.insert(*n_it);
-                if (abs(n(0) - 0.5) < 1.0e-8 || abs(n(0) - 1.5) < 1.0e-8)
-                {
-                    tethered_node_ids.insert(n.id());
-                }
+            }
+            if (abs(n(0) - 0.5) < 1.0e-8 || abs(n(0) - 1.5) < 1.0e-8)
+            {
+                tethered_node_ids.insert(n.id());
             }
         }
 
