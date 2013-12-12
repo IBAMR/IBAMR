@@ -2213,8 +2213,6 @@ c
       subroutine lagrangian_ib_6_interp3d(
      &     dx,x_lower,x_upper,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u,
      &     indices,Xshift,nindices,
@@ -2222,21 +2220,12 @@ c
 c
       implicit none
 c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_ib_6_delta
-c
 c     Input.
 c
       INTEGER depth
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -2252,168 +2241,188 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,k,l,s
+      INTEGER i0,i1,i2,ic0,ic1,ic2
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1,istart2,istop2
+      INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),f(0:5),w0(0:5),w1(0:5),w2(0:5)
+      REAL X_o_dx,r,alpha,beta,gamma,discr,K
+      REAL pm3,pm2,pm1,p,pp1,pp2
+      REAL w0(0:5),w1(0:5),w2(0:5)
+      REAL w(0:5,0:5,0:5),wyz,wz
 
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
+      PARAMETER (K = (59.d0/60.d0)*(1.d0-sqrt(1.d0-(3220.d0/3481.d0))))
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_lower(2) = ilower2-nugc2
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+      ig_upper(2) = iupper2+nugc2
 c
 c     Use the IB 6-point delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
-c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
 c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell.
+c     position of X(s) within the cell and compute the interpolation
+c     weights.
 c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
-         enddo
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ilower0-3
+         ic_upper(0) = ic_lower(0) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
 
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
 
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
 
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
-c
-c     Compute the standard interpolation weights.
-c
-CDEC$ LOOP COUNT(6)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-CDEC$ LOOP COUNT(6)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-CDEC$ LOOP COUNT(6)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Determine whether special interpolation weights are needed to
-c     handle physical boundary conditions.
-c
-         do d = 0,NDIM-1
-            if ( (patch_touches_lower_physical_bdry(d).eq.1).and.
-     &           (X(d,s) - x_lower(d) .lt. 2.5d0*dx(d)) ) then
-               touches_lower_bdry(d) = .true.
-            else
-               touches_lower_bdry(d) = .false.
-            endif
-            if ( (patch_touches_upper_physical_bdry(d).eq.1).and.
-     &           (x_upper(d) - X(d,s) .lt. 2.5d0*dx(d)) ) then
-               touches_upper_bdry(d) = .true.
-            else
-               touches_upper_bdry(d) = .false.
-            endif
-         enddo
-c
-c     Modify the interpolation stencil and weights near physical
-c     boundaries.
-c
-         if (touches_lower_bdry(0)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w0,(X(0,s)-x_lower(0))/dx(0))
-            ic_lower(0) = ilower0
-            ic_upper(0) = ilower0+5
-         elseif (touches_upper_bdry(0)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(0)-X(0,s))/dx(0))
-            do k = 0,5
-               w0(5-k) = f(k)
-            enddo
-            ic_lower(0) = iupper0-5
-            ic_upper(0) = iupper0
-         endif
+         w0(0) = pm3
+         w0(1) = pm2
+         w0(2) = pm1
+         w0(3) = p
+         w0(4) = pp1
+         w0(5) = pp2
 
-         if (touches_lower_bdry(1)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w1,(X(1,s)-x_lower(1))/dx(1))
-            ic_lower(1) = ilower1
-            ic_upper(1) = ilower1+5
-         elseif (touches_upper_bdry(1)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(1)-X(1,s))/dx(1))
-            do k = 0,5
-               w1(5-k) = f(k)
-            enddo
-            ic_lower(1) = iupper1-5
-            ic_upper(1) = iupper1
-         endif
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ilower1-3
+         ic_upper(1) = ic_lower(1) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
 
-         if (touches_lower_bdry(2)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w2,(X(2,s)-x_lower(2))/dx(2))
-            ic_lower(2) = ilower2
-            ic_upper(2) = ilower2+5
-         elseif (touches_upper_bdry(2)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(2)-X(2,s))/dx(2))
-            do k = 0,5
-               w2(5-k) = f(k)
-            enddo
-            ic_lower(2) = iupper2-5
-            ic_upper(2) = iupper2
-         endif
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
+
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
+
+         w1(0) = pm3
+         w1(1) = pm2
+         w1(2) = pm1
+         w1(3) = p
+         w1(4) = pp1
+         w1(5) = pp2
+
+         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
+         ic_lower(2) = NINT(X_o_dx)+ilower2-3
+         ic_upper(2) = ic_lower(2) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(2)+2-ilower2)+0.5d0)
+
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
+
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
+
+         w2(0) = pm3
+         w2(1) = pm2
+         w2(2) = pm1
+         w2(3) = p
+         w2(4) = pp1
+         w2(5) = pp2
 c
-c     Interpolate u onto V.
+c     Compute the tensor product of the interpolation weights.
 c
-         do d = 0,depth-1
-            V(d,s) = 0.d0
-CDEC$ LOOP COUNT(6)
-            do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(6)
-               do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
-CDEC$ NOVECTOR
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
-                  enddo
+         do i2 = 0,5
+            wz = w2(i2)
+            do i1 = 0,5
+               wyz = w1(i1)*wz
+               do i0 = 0,5
+                  w(i0,i1,i2) = w0(i0)*wyz
                enddo
             enddo
          enddo
+c
+c     Interpolate u onto V.
+c
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_lower(2).lt.ig_lower(2) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) .or.
+     &        ic_upper(2).gt.ig_upper(2) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
+            istart2 =   max(ig_lower(2)-ic_lower(2),0)
+            istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i2 = istart2,istop2
+                  ic2 = ic_lower(2)+i2
+                  do i1 = istart1,istop1
+                     ic1 = ic_lower(1)+i1
+                     do i0 = istart0,istop0
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         else
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i2 = 0,5
+                  ic2 = ic_lower(2)+i2
+                  do i1 = 0,5
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,5
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         endif
       enddo
 c
       return
@@ -2422,8 +2431,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Spread V onto u at the positions specified by X using the IB
-c     6-point delta function using standard (double) precision
-c     accumulation on the Cartesian grid.
+c     6-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -2432,18 +2440,10 @@ c
      &     indices,Xshift,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u)
 c
       implicit none
-c
-c     Functions.
-c
-      EXTERNAL lagrangian_floor
-      INTEGER lagrangian_floor
-      REAL lagrangian_ib_6_delta
 c
 c     Input.
 c
@@ -2453,9 +2453,6 @@ c
       INTEGER nugc0,nugc1,nugc2
 
       INTEGER indices(0:nindices-1)
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2469,166 +2466,189 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1,ic2
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,k,l,s
+      INTEGER i0,i1,i2,ic0,ic1,ic2
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1,istart2,istop2
+      INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),f(0:5),w0(0:5),w1(0:5),w2(0:5)
+      REAL X_o_dx,r,alpha,beta,gamma,discr,K
+      REAL pm3,pm2,pm1,p,pp1,pp2
+      REAL w0(0:5),w1(0:5),w2(0:5)
+      REAL w(0:5,0:5,0:5),wyz,wz
 
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
+      PARAMETER (K = (59.d0/60.d0)*(1.d0-sqrt(1.d0-(3220.d0/3481.d0))))
 c
-c     Use the IB 6-point delta function to spread V onto u.
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_lower(2) = ilower2-nugc2
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+      ig_upper(2) = iupper2+nugc2
+c
+c     Use a broadened version of the IB 4-point delta function to spread
+c     V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell and compute the standard
+c     interpolation weights.
 c
-         ic_center(0) =
-     &        lagrangian_floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        lagrangian_floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-         ic_center(2) =
-     &        lagrangian_floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))
-     &        + ilower2
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ilower0-3
+         ic_upper(0) = ic_lower(0) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
 
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
-c
-c     Determine the standard spreading stencil corresponding to the
-c     position of X(s) within the cell.
-c
-         do d = 0,NDIM-1
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
-         enddo
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
 
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
 
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+         w0(0) = pm3
+         w0(1) = pm2
+         w0(2) = pm1
+         w0(3) = p
+         w0(4) = pp1
+         w0(5) = pp2
 
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
-c
-c     Compute the standard spreading weights.
-c
-CDEC$ LOOP COUNT(6)
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w0(ic0-ic_lower(0)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-CDEC$ LOOP COUNT(6)
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w1(ic1-ic_lower(1)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
-         enddo
-CDEC$ LOOP COUNT(6)
-         do ic2 = ic_lower(2),ic_upper(2)
-            X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-            w2(ic2-ic_lower(2)) =
-     &           lagrangian_ib_6_delta(
-     &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
-         enddo
-c
-c     Determine whether special spreading weights are needed to handle
-c     physical boundary conditions.
-c
-         do d = 0,NDIM-1
-            if ( (patch_touches_lower_physical_bdry(d).eq.1).and.
-     &           (X(d,s) - x_lower(d) .lt. 2.5d0*dx(d)) ) then
-               touches_lower_bdry(d) = .true.
-            else
-               touches_lower_bdry(d) = .false.
-            endif
-            if ( (patch_touches_upper_physical_bdry(d).eq.1).and.
-     &           (x_upper(d) - X(d,s) .lt. 2.5d0*dx(d)) ) then
-               touches_upper_bdry(d) = .true.
-            else
-               touches_upper_bdry(d) = .false.
-            endif
-         enddo
-c
-c     Modify the spreading stencil and weights near physical boundaries.
-c
-         if (touches_lower_bdry(0)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w0,(X(0,s)-x_lower(0))/dx(0))
-            ic_lower(0) = ilower0
-            ic_upper(0) = ilower0+5
-         elseif (touches_upper_bdry(0)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(0)-X(0,s))/dx(0))
-            do k = 0,5
-               w0(5-k) = f(k)
-            enddo
-            ic_lower(0) = iupper0-5
-            ic_upper(0) = iupper0
-         endif
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ilower1-3
+         ic_upper(1) = ic_lower(1) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
 
-         if (touches_lower_bdry(1)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w1,(X(1,s)-x_lower(1))/dx(1))
-            ic_lower(1) = ilower1
-            ic_upper(1) = ilower1+5
-         elseif (touches_upper_bdry(1)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(1)-X(1,s))/dx(1))
-            do k = 0,5
-               w1(5-k) = f(k)
-            enddo
-            ic_lower(1) = iupper1-5
-            ic_upper(1) = iupper1
-         endif
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
 
-         if (touches_lower_bdry(2)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           w2,(X(2,s)-x_lower(2))/dx(2))
-            ic_lower(2) = ilower2
-            ic_upper(2) = ilower2+5
-         elseif (touches_upper_bdry(2)) then
-            call lagrangian_one_sided_ib_6_delta(
-     &           f,(x_upper(2)-X(2,s))/dx(2))
-            do k = 0,5
-               w2(5-k) = f(k)
-            enddo
-            ic_lower(2) = iupper2-5
-            ic_upper(2) = iupper2
-         endif
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
+
+         w1(0) = pm3
+         w1(1) = pm2
+         w1(2) = pm1
+         w1(3) = p
+         w1(4) = pp1
+         w1(5) = pp2
+
+         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
+         ic_lower(2) = NINT(X_o_dx)+ilower2-3
+         ic_upper(2) = ic_lower(2) + 5
+         r = 1.d0 - X_o_dx + ((ic_lower(2)+2-ilower2)+0.5d0)
+
+         alpha = 28.d0
+         beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
+     $        -(7.d0/3.d0)*r**3
+         gamma = (1.d0/4.d0)*( ((161.d0/36.d0)-(59.d0/6.d0)*K+5.d0*K**2)
+     $        *(1.d0/2.d0)*r**2 + (-(109.d0/24.d0)+5.d0*K)*(1.d0/3.d0)*r
+     $        **4+ (5.d0/18.d0)*r**6 )
+         discr = beta**2-4.d0*alpha*gamma
+
+         pm3 = (-beta+sign(1.d0,(3.d0/2.d0)-K)*sqrt(discr))/(2.d0*alpha)
+         pm2 =  -3.d0*pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) + (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r + (1.d0/12.d0)*r**3
+         pm1 =   2.d0*pm3 + (1.d0/4.d0) +  (1.d0/6.d0)*(4.d0-3.d0*K)*r -
+     $        (1.d0/6.d0)*r**3
+         p   =   2.d0*pm3 + (5.d0/8.d0)  - (1.d0/4.d0)*(K+r**2)
+         pp1 =  -3.d0*pm3 + (1.d0/4.d0) -  (1.d0/6.d0)*(4.d0-3.d0*K)*r +
+     $        (1.d0/6.d0)*r**3
+         pp2 =        pm3 - (1.d0/16.d0) + (1.d0/8.d0)*(K+r**2) - (1.d0
+     $        /12.d0)*(3.d0*K-1.d0)*r - (1.d0/12.d0)*r**3
+
+         w2(0) = pm3
+         w2(1) = pm2
+         w2(2) = pm1
+         w2(3) = p
+         w2(4) = pp1
+         w2(5) = pp2
 c
-c     Spread V onto u.
+c     Compute the tensor product of the scaled interpolation weights.
 c
-         do d = 0,depth-1
-CDEC$ LOOP COUNT(6)
-            do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(6)
-               do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
-CDEC$ NOVECTOR
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
-     &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
-                  enddo
+         do i2 = 0,5
+            wz = w2(i2)/(dx(0)*dx(1)*dx(2))
+            do i1 = 0,5
+               wyz = w1(i1)*wz
+               do i0 = 0,5
+                  w(i0,i1,i2) = w0(i0)*wyz
                enddo
             enddo
          enddo
+c
+c     Spread V onto u.
+c
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_lower(2).lt.ig_lower(2) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) .or.
+     &        ic_upper(2).gt.ig_upper(2) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
+            istart2 =   max(ig_lower(2)-ic_lower(2),0)
+            istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
+            do d = 0,depth-1
+               do i2 = istart2,istop2
+                  ic2 = ic_lower(2)+i2
+                  do i1 = istart1,istop1
+                     ic1 = ic_lower(1)+i1
+                     do i0 = istart0,istop0
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
+     &                       w(i0,i1,i2)*V(d,s)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         else
+            do d = 0,depth-1
+               do i2 = 0,5
+                  ic2 = ic_lower(2)+i2
+                  do i1 = 0,5
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,5
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
+     &                       w(i0,i1,i2)*V(d,s)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         endif
       enddo
 c
       return

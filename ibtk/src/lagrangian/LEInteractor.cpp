@@ -365,12 +365,10 @@
             const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             const double* ,
@@ -385,12 +383,10 @@
             const double* , const double* ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             double*
@@ -2154,14 +2150,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -2340,14 +2332,10 @@ LEInteractor::spread(
             X_data,Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
