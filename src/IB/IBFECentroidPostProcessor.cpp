@@ -69,9 +69,8 @@ namespace IBAMR
 
 IBFECentroidPostProcessor::IBFECentroidPostProcessor(
     const std::string& name,
-    MeshBase* mesh,
     FEDataManager* fe_data_manager)
-    : IBFEPostProcessor(name, mesh, fe_data_manager)
+    : IBFEPostProcessor(name, fe_data_manager)
 {
     // intentionally blank
     return;

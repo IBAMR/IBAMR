@@ -225,7 +225,6 @@ public:
      */
     IBFEPostProcessor(
         const std::string& name,
-        libMesh::MeshBase* mesh,
         IBTK::FEDataManager* fe_data_manager);
 
     /*!

@@ -55,7 +55,6 @@ public:
      */
     IBFECentroidPostProcessor(
         const std::string& name,
-        libMesh::MeshBase* mesh,
         IBTK::FEDataManager* fe_data_manager);
 
     /*!

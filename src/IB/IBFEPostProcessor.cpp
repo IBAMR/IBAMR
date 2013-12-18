@@ -68,10 +68,9 @@ namespace IBAMR
 
 IBFEPostProcessor::IBFEPostProcessor(
     const std::string& name,
-    MeshBase* mesh,
     FEDataManager* fe_data_manager)
     : d_name(name),
-      d_mesh(mesh),
+      d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
       d_fe_data_manager(fe_data_manager),
       d_fe_data_initialized(false)
 {
