@@ -41,7 +41,7 @@ CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convect
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.2                   // maximum CFL number
 DT                         = 0.625*CFL_MAX*DX/U_MAX*(48.0/NFINEST)      // maximum timestep size
-ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
+ERROR_ON_DT_CHANGE         = FALSE                 // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = FALSE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5                   // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -121,6 +121,9 @@ IBFEMethod {
    IB_point_density           = IB_POINT_DENSITY
    FF_dil_fe_family = "MONOMIAL"
    FF_dil_fe_order  = "FIRST"
+   IB_quad_type                  = "QSIMPSON"
+   IB_use_adaptive_quadrature    = FALSE
+   IB_use_consistent_mass_matrix = FALSE
 }
 
 INSStaggeredHierarchyIntegrator {
