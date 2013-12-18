@@ -63,6 +63,7 @@ public:
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
     static const std::string BODY_VELOCITY_SYSTEM_NAME;
+    static const std::string        FF_DIL_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -640,6 +641,16 @@ protected:
         unsigned int part);
 
     /*
+     * \brief Compute the projected dilational strain FF_dil = J^(1/d).
+     */
+    void
+    computeProjectedDilationalStrain(
+        libMesh::PetscVector<double>& FF_dil_vec,
+        libMesh::PetscVector<double>& X_vec,
+        double data_time,
+        unsigned int part);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -648,6 +659,7 @@ protected:
     computeInteriorForceDensity(
         libMesh::PetscVector<double>& G_vec,
         libMesh::PetscVector<double>& X_vec,
+        libMesh::PetscVector<double>& FF_dil_vec,
         double data_time,
         unsigned int part);
 
@@ -734,10 +746,11 @@ protected:
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_FF_dil_systems, d_U_b_systems;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_FF_dil_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
 
     bool d_fe_data_initialized;
@@ -751,8 +764,8 @@ protected:
     IBTK::FEDataManager::SpreadSpec d_spread_spec;
     bool d_split_forces;
     bool d_use_jump_conditions;
-    libMeshEnums::FEFamily d_fe_family;
-    libMeshEnums::Order d_fe_order;
+    libMeshEnums::FEFamily d_fe_family, d_FF_dil_fe_family;
+    libMeshEnums::Order d_fe_order, d_FF_dil_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
