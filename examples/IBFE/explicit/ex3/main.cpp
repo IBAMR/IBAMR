@@ -50,6 +50,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -246,6 +247,29 @@ main(
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
 
+        // Set up post processor to recover computed stresses.
+        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+
+        ib_post_processor->registerTensorVariable(
+            "FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dev", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dil", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST,
+            navier_stokes_integrator->getPressureVariable(),
+            navier_stokes_integrator->getCurrentContext());
+
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -262,32 +286,21 @@ main(
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
-        if (periodic_shift.min() > 0)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                u_bc_coefs[d] = NULL;
-            }
-        }
-        else
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+            ostringstream bc_coefs_name_stream;
+            bc_coefs_name_stream << "u_bc_coefs_" << d;
+            const string bc_coefs_name = bc_coefs_name_stream.str();
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+            ostringstream bc_coefs_db_name_stream;
+            bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+            const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
-            }
-            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            u_bc_coefs[d] = new muParserRobinBcCoefs(
+                bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
         }
+        navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
 
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
@@ -307,6 +320,7 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -329,6 +343,7 @@ main(
             }
             if (uses_exodus)
             {
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
             }
         }
@@ -372,6 +387,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

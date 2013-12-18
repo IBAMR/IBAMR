@@ -51,6 +51,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -276,6 +277,29 @@ main(
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
+        // Set up post processor to recover computed stresses.
+        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+
+        ib_post_processor->registerTensorVariable(
+            "FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dev", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dil", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST,
+            navier_stokes_integrator->getPressureVariable(),
+            navier_stokes_integrator->getCurrentContext());
+
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -337,6 +361,7 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -359,6 +384,7 @@ main(
             }
             if (uses_exodus)
             {
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
             }
         }
@@ -409,6 +435,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

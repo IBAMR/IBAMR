@@ -352,8 +352,8 @@ main(
         const double ds_block = input_db->getDouble("BLOCK_MFAC")*dx;
         const double ds_beam  = input_db->getDouble("BEAM_MFAC" )*dx;
 
-        string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
-        string  beam_elem_type = input_db->getString("BEAM_ELEM_TYPE" );
+        string block_elem_type = input_db->getStringWithDefault("BLOCK_ELEM_TYPE", "QUAD9");
+        string  beam_elem_type = input_db->getStringWithDefault("BEAM_ELEM_TYPE" , "QUAD9");
 
         Mesh block1_mesh(NDIM);
         MeshTools::Generation::build_square(block1_mesh,
@@ -370,7 +370,8 @@ main(
 
         Mesh beam_mesh(NDIM);
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(1.0/ds_beam), max(2*static_cast<int>(ceil(0.016/ds_beam)/2.0),4),
+                                            ceil(1.0/ds_beam), max(static_cast<int>(ceil(0.016/ds_beam)),4),
+//                                          ceil(1.0/ds_beam), static_cast<int>(ceil(0.016/ds_beam)),
                                             0.5, 1.5,
                                             0.5-0.016, 0.5,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
@@ -435,8 +436,8 @@ main(
         IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
         IBFEMethod::PK1StressFcnData beam_PK1_dev_stress_data(beam_PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData beam_PK1_dil_stress_data(beam_PK1_dil_stress_function);
-        beam_PK1_dev_stress_data.quad_order = FIFTH;
-        beam_PK1_dil_stress_data.quad_order = THIRD;
+        beam_PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","FIFTH"));
+        beam_PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","THIRD"));
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);

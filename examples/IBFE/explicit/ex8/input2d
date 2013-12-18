@@ -16,6 +16,8 @@ BLOCK_MFAC = 1.0                                   // ratio of Lagrangian mesh w
 BEAM_MFAC  = 3.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
 BLOCK_ELEM_TYPE = "QUAD9"                          // type of element to use for discretization of the rectangular blocks
 BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
+PK1_DEV_QUAD_ORDER = "FIFTH"
+PK1_DIL_QUAD_ORDER = "THIRD"
 N_X = N
 N_Y = N_X * (L_Y / L_X)
 

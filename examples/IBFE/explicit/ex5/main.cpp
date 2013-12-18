@@ -97,20 +97,6 @@ kernel(
 // Elasticity model data.
 namespace ModelData
 {
-void
-body_velocity_fcn(
-    NumericVector<double>& U_b,
-    NumericVector<double>& /*U*/,
-    NumericVector<double>& /*X*/,
-    EquationSystems* /*equation_systems*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    U_b = 1.0;
-    U_b.close();
-    return;
-}// body_velocity_fcn
-
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
 void
@@ -308,7 +294,6 @@ main(
         if (use_constraint_method)
         {
             ib_method_ops->registerConstrainedPart();
-            ib_method_ops->registerConstrainedVelocityFunction(body_velocity_fcn);
         }
         else
         {
