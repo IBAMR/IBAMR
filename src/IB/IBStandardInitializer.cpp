@@ -826,14 +826,18 @@ IBStandardInitializer::readVertexFiles(
                         }
                     }
                 }
+
+                // Close the input file.
+                file_stream.close();
+                
+                plog << d_object_name << ":  "
+                     << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
-
-            // Close the input file.
-            file_stream.close();
-
-            plog << d_object_name << ":  "
-                 << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            else
+            {
+                TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex file: " << vertex_filename << std::endl);
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
