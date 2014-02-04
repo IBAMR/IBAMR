@@ -80,6 +80,7 @@
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -298,6 +299,13 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     else if (input_db->keyExists("using_2nd_order_pressure_update"))    d_using_2nd_order_pressure_update = input_db->getBool("using_2nd_order_pressure_update");
     else if (input_db->keyExists("use_second_order_pressure_update"))   d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
     else if (input_db->keyExists("using_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_second_order_pressure_update");
+
+    // Setup physical boundary conditions objects.
+    d_U_bc_coefs.resize(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_U_bc_coefs[d] = new INSCollocatedVelocityBcCoef(d,this,d_bc_coefs);
+    }
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the

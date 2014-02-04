@@ -92,6 +92,7 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -184,6 +185,7 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \

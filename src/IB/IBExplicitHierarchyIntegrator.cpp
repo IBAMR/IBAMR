@@ -176,7 +176,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_ib_method_ops->computeLagrangianForce(current_time);
             if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-            d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
+            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), current_time);
             d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
             break;
         case MIDPOINT_RULE:
@@ -250,7 +250,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             d_ib_method_ops->computeLagrangianForce(half_time);
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-            d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
             break;
         case TRAPEZOIDAL_RULE:
             if (d_current_num_cycles == 1 || cycle_num > 0)
@@ -263,7 +263,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 d_ib_method_ops->computeLagrangianForce(new_time);
                 if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
                 d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-                d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), new_time);
+                d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), new_time);
                 d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
             }
             break;

@@ -444,6 +444,7 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
     stokes_op->apply(x, y);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
+    const Pointer<RobinPhysBdryPatchStrategy>& u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghostfill_scheds = d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->d_object_name+"::u");
     ib_method_ops->interpolateVelocity(u_half_ib_idx, u_coarsen_scheds, u_ghostfill_scheds, half_time);
@@ -456,7 +457,7 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
     ib_method_ops->computeLagrangianForce(half_time);
     hier_velocity_data_ops->scale(f_half_idx, -1.0, f_half_idx);
     const std::vector<Pointer<RefineSchedule<NDIM> > > f_prolong_scheds(u_ghostfill_scheds.size(), Pointer<RefineSchedule<NDIM> >(NULL));
-    ib_method_ops->spreadForce(f_half_idx, f_prolong_scheds, half_time);
+    ib_method_ops->spreadForce(f_half_idx, u_phys_bdry_op, f_prolong_scheds, half_time);
     hier_velocity_data_ops->scale(f_half_idx, -1.0, f_half_idx);
     return;
 }// apply
@@ -547,10 +548,11 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::apply(
     stokes_op->apply(x, y);
 
     // Compute the "structure" part of the operator.
+    const Pointer<RobinPhysBdryPatchStrategy>& u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghostfill_scheds = d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->d_object_name+"::u");
     const std::vector<Pointer<RefineSchedule<NDIM> > > f_prolong_scheds(u_ghostfill_scheds.size(), Pointer<RefineSchedule<NDIM> >(NULL));
-    ib_method_ops->applyLagrangianForceJacobian(f_half_idx, f_prolong_scheds, u_new_ib_idx, u_coarsen_scheds, u_ghostfill_scheds, half_time, d_J_mat);
+    ib_method_ops->applyLagrangianForceJacobian(f_half_idx, u_phys_bdry_op, f_prolong_scheds, u_new_ib_idx, u_coarsen_scheds, u_ghostfill_scheds, half_time, d_J_mat);
     return;
 }// apply
 

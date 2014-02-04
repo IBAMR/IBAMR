@@ -43,6 +43,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
@@ -294,6 +295,7 @@ public:
     virtual void
     spreadForce(
         int f_data_idx,
+        const SAMRAI::tbox::Pointer<IBTK::RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time) = 0;
 
@@ -307,6 +309,7 @@ public:
     virtual void
     applyLagrangianForceJacobian(
         int f_data_idx,
+        const SAMRAI::tbox::Pointer<IBTK::RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,

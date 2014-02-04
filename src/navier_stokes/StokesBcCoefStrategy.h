@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/ibamr_enums.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 namespace IBAMR {
@@ -104,16 +105,39 @@ public:
     virtual void
     clearTargetPressurePatchDataIndex();
 
+    /*!
+     * \brief Set the type of traction boundary conditions.  Supported options
+     * are: TRACTION_BOUNDARY_CONDITIONS and
+     * PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
+     *
+     * The default is TRACTION_BOUNDARY_CONDITIONS.
+     */
+    virtual void
+    setTractionBcType(
+        TractionBcType bc_type);
+
+    /*!
+     * \brief Get the type of traction boundary conditions.
+     */
+    virtual TractionBcType
+    getTractionBcType() const;        
+
 protected:
     /*
      * Problem coefficients.
      */
     const StokesSpecifications* d_problem_coefs;
-
+    
     /*!
      * Patch data indices.
      */
     int d_u_target_data_idx, d_p_target_data_idx;
+
+    /*
+     * The type of traction boundary conditions.  Supported options are:
+     * TRACTION_BOUNDARY_CONDITIONS and PSEUDO_TRACTION_BOUNDARY_CONDITIONS.
+     */
+    TractionBcType d_traction_bc_type;
 
 private:
     /*!

@@ -1,5 +1,5 @@
-// Filename: INSStaggeredVelocityBcCoef.h
-// Created on 22 Jul 2008 by Boyce Griffith
+// Filename: INSCollocatedVelocityBcCoef.h
+// Created on 04 Feb 2014 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredVelocityBcCoef
-#define included_INSStaggeredVelocityBcCoef
+#ifndef included_INSCollocatedVelocityBcCoef
+#define included_INSCollocatedVelocityBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -42,7 +42,7 @@
 #include "tbox/Pointer.h"
 
 namespace IBAMR {
-class INSStaggeredHierarchyIntegrator;
+class INSCollocatedHierarchyIntegrator;
 class StokesSpecifications;
 }  // namespace IBAMR
 namespace SAMRAI {
@@ -64,7 +64,7 @@ template <int DIM> class RobinBcCoefStrategy;
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredVelocityBcCoef is a concrete StokesBcCoefStrategy
+ * \brief Class INSCollocatedVelocityBcCoef is a concrete StokesBcCoefStrategy
  * that is used to specify velocity boundary conditions for the staggered grid
  * incompressible Navier-Stokes solver.
  *
@@ -74,26 +74,26 @@ namespace IBAMR
  * conditions.  These are translated into Dirichlet and generalized Neumann
  * boundary conditions, respectively, for the velocity.
  *
- * Dirichlet, true traction, and pseudo-traction boundary conditions are
- * all supported.
+ * Only Dirichlet and pseudo-traction boundary conditions are supported.  True
+ * traction boundary conditions are not provided.
  */
-class INSStaggeredVelocityBcCoef
+class INSCollocatedVelocityBcCoef
     : public StokesBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    INSStaggeredVelocityBcCoef(
+    INSCollocatedVelocityBcCoef(
         unsigned int comp_idx,
-        const INSStaggeredHierarchyIntegrator* fluid_solver,
+        const INSCollocatedHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredVelocityBcCoef();
+    ~INSCollocatedVelocityBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -267,7 +267,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredVelocityBcCoef();
+    INSCollocatedVelocityBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -276,8 +276,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredVelocityBcCoef(
-        const INSStaggeredVelocityBcCoef& from);
+    INSCollocatedVelocityBcCoef(
+        const INSCollocatedVelocityBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -288,9 +288,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredVelocityBcCoef&
+    INSCollocatedVelocityBcCoef&
     operator=(
-        const INSStaggeredVelocityBcCoef& that);
+        const INSCollocatedVelocityBcCoef& that);
 
     /*
      * Component of the velocity which this boundary condition specification is
@@ -301,7 +301,7 @@ private:
     /*
      * The fluid solver.
      */
-    const INSStaggeredHierarchyIntegrator* d_fluid_solver;
+    const INSCollocatedHierarchyIntegrator* d_fluid_solver;
 
     /*
      * The boundary condition specification objects for the velocity.
@@ -312,4 +312,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredVelocityBcCoef
+#endif //#ifndef included_INSCollocatedVelocityBcCoef

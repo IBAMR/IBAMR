@@ -1,5 +1,5 @@
-// Filename: INSStaggeredPressureBcCoef.cpp
-// Created on 06 Sep 2012 by Boyce Griffith
+// Filename: INSCollocatedVelocityBcCoef.cpp
+// Created on 04 Feb 2014 by Boyce Griffith
 //
 // Copyright (c) 2002-2013, Boyce Griffith
 // All rights reserved.
@@ -41,21 +41,23 @@
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "INSStaggeredPressureBcCoef.h"
+#include "INSCollocatedVelocityBcCoef.h"
 #include "Index.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAI_config.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSCollocatedHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Variable;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -65,27 +67,29 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
-    const INSStaggeredHierarchyIntegrator* fluid_solver,
+INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(
+    const unsigned int comp_idx,
+    const INSCollocatedHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_fluid_solver(fluid_solver),
+    : d_comp_idx(comp_idx),
+      d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-}// INSStaggeredPressureBcCoef
+}// INSCollocatedVelocityBcCoef
 
-INSStaggeredPressureBcCoef::~INSStaggeredPressureBcCoef()
+INSCollocatedVelocityBcCoef::~INSCollocatedVelocityBcCoef()
 {
     // intentionally blank
     return;
-}// ~INSStaggeredPressureBcCoef
+}// ~INSCollocatedVelocityBcCoef
 
 void
-INSStaggeredPressureBcCoef::setStokesSpecifications(
+INSCollocatedVelocityBcCoef::setStokesSpecifications(
     const StokesSpecifications* problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
@@ -98,7 +102,7 @@ INSStaggeredPressureBcCoef::setStokesSpecifications(
 }// setStokesSpecifications
 
 void
-INSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(
+INSCollocatedVelocityBcCoef::setTargetVelocityPatchDataIndex(
     int u_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(u_target_data_idx);
@@ -111,7 +115,7 @@ INSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(
 }// setTargetVelocityPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
+INSCollocatedVelocityBcCoef::clearTargetVelocityPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -123,7 +127,7 @@ INSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
 }// clearTargetVelocityPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(
+INSCollocatedVelocityBcCoef::setTargetPressurePatchDataIndex(
     int p_target_data_idx)
 {
     StokesBcCoefStrategy::setTargetPressurePatchDataIndex(p_target_data_idx);
@@ -136,7 +140,7 @@ INSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(
 }// setTargetPressurePatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
+INSCollocatedVelocityBcCoef::clearTargetPressurePatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPressurePatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -148,7 +152,7 @@ INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 }// clearTargetPressurePatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setPhysicalBcCoefs(
+INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -159,7 +163,7 @@ INSStaggeredPressureBcCoef::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-INSStaggeredPressureBcCoef::setSolutionTime(
+INSCollocatedVelocityBcCoef::setSolutionTime(
     const double /*solution_time*/)
 {
     // intentionally blank
@@ -167,7 +171,7 @@ INSStaggeredPressureBcCoef::setSolutionTime(
 }// setSolutionTime
 
 void
-INSStaggeredPressureBcCoef::setTimeInterval(
+INSCollocatedVelocityBcCoef::setTimeInterval(
     const double /*current_time*/,
     const double /*new_time*/)
 {
@@ -176,7 +180,7 @@ INSStaggeredPressureBcCoef::setTimeInterval(
 }// setTimeInterval
 
 void
-INSStaggeredPressureBcCoef::setTargetPatchDataIndex(
+INSCollocatedVelocityBcCoef::setTargetPatchDataIndex(
     int target_idx)
 {
     StokesBcCoefStrategy::setTargetPatchDataIndex(target_idx);
@@ -189,7 +193,7 @@ INSStaggeredPressureBcCoef::setTargetPatchDataIndex(
 }// setTargetPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
+INSCollocatedVelocityBcCoef::clearTargetPatchDataIndex()
 {
     StokesBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -201,7 +205,7 @@ INSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
 }// clearTargetPatchDataIndex
 
 void
-INSStaggeredPressureBcCoef::setHomogeneousBc(
+INSCollocatedVelocityBcCoef::setHomogeneousBc(
     bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
@@ -214,135 +218,101 @@ INSStaggeredPressureBcCoef::setHomogeneousBc(
 }// setHomogeneousBc
 
 void
-INSStaggeredPressureBcCoef::setBcCoefs(
+INSCollocatedVelocityBcCoef::setBcCoefs(
     Pointer<ArrayData<NDIM,double> >& acoef_data,
     Pointer<ArrayData<NDIM,double> >& bcoef_data,
     Pointer<ArrayData<NDIM,double> >& gcoef_data,
     const Pointer<Variable<NDIM> >& variable,
     const Patch<NDIM>& patch,
     const BoundaryBox<NDIM>& bdry_box,
-    double /*fill_time*/) const
+    double fill_time) const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
+#endif
+    // Set the unmodified velocity bc coefs.
+    d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+
+    // We do not make any further modifications to the values of acoef_data and
+    // bcoef_data beyond this point.
+    if (!gcoef_data) return;
+#if !defined(NDEBUG)
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
-    Box<NDIM> bc_coef_box = acoef_data->getBox();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
-#endif
-    // Set the unmodified velocity bc coefs.
+
+    // Ensure homogeneous boundary conditions are enforced.
+    if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
+
+    // Where appropriate, update boundary condition coefficients.
+    //
+    // Dirichlet boundary conditions are not modified.
+    //
+    // Neumann boundary conditions on the normal component of the velocity are
+    // interpreted as "open" boundary conditions, and we set du/dn = 0.
+    //
+    // Neumann boundary conditions on the tangential component of the velocity
+    // are interpreted as traction (stress) boundary conditions, and we update
+    // the boundary condition coefficients accordingly.
     const unsigned int location_index   = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index/2;
     const bool is_lower                 = location_index%2 == 0;
-    const double half_time = d_fluid_solver->getIntegratorTime() + 0.5*d_fluid_solver->getCurrentTimeStepSize();
-    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, half_time);
-
-    // Ensure homogeneous boundary conditions are enforced.
-    if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
-
-    // Get the target velocity data.
-    Pointer<SideData<NDIM,double> > u_target_data;
-    if      (d_u_target_data_idx >= 0) u_target_data = patch.getPatchData(d_u_target_data_idx);
-    else if (d_target_data_idx   >= 0) u_target_data = patch.getPatchData(d_target_data_idx  );
+    const Box<NDIM>& bc_coef_box        = acoef_data->getBox();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(u_target_data);
+    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    Pointer<SideData<NDIM,double> > u_current_data = patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-#if !defined(NDEBUG)
-    TBOX_ASSERT(u_current_data);
-#endif
-    const Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d != bdry_normal_axis)
-        {
-            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
-            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
-        }
-    }
-
-    // Update the boundary condition coefficients.  Normal velocity boundary
-    // conditions are converted into Neumann conditions for the pressure, and
-    // normal traction boundary conditions are converted into Dirichlet
-    // conditions for the pressure.
-    const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-    const double* const dx = pgeom->getDx();
+    const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
-        double dummy_val;
-        double& alpha = acoef_data ? (*acoef_data)(i,0) : dummy_val;
-        double& beta  = bcoef_data ? (*bcoef_data)(i,0) : dummy_val;
-        double& gamma = gcoef_data ? (*gcoef_data)(i,0) : dummy_val;
+        double& alpha = (*acoef_data)(i,0);
+        double& beta  = (*bcoef_data)(i,0);
+        double& gamma = (*gcoef_data)(i,0);
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
         if (velocity_bc)
-        {           
-            alpha = 0.0;
-            beta  = 1.0;
-            gamma = 0.0;
+        {
+            alpha = 1.0;
+            beta  = 0.0;
         }
         else if (traction_bc)
         {
-            switch (d_traction_bc_type)
+            if (d_comp_idx == bdry_normal_axis)
             {
-                case TRACTION:        // -p + 2*mu*du_n/dx_n = g.
+                // Set du/dn = 0.
+                //
+                // NOTE: We would prefer to determine the ghost cell value of
+                // the normal velocity so that div u = 0 in the ghost cell.
+                // This could be done here, but it is more convenient to do so
+                // as a post-processing step after the tangential velocity ghost
+                // cell values have all been set.
+                alpha = 0.0;
+                beta  = 1.0;
+                gamma = 0.0;
+            }
+            else
+            {
+                switch (d_traction_bc_type)
                 {
-                    // Place i_i in the interior cell abutting the boundary, and
-                    // place i_g in the ghost cell abutting the boundary.
-                    Index<NDIM> i_i(i), i_g(i);
-                    if (is_lower)
+                    case PSEUDO_TRACTION: // mu*du_tan/dx_norm = g.
                     {
-                        i_g(bdry_normal_axis) -= 1;
+                        alpha = 0.0;
+                        beta  = 1.0;
+                        gamma = (is_lower ? -1.0 : +1.0)*(gamma/mu);
+                        break;
                     }
-                    else
+                    default:
                     {
-                        i_i(bdry_normal_axis) -= 1;
+                        TBOX_ERROR("INSCollocatedVelocityBcCoef::setBcCoefs(): unrecognized or unsupported traction boundary condition type: " << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
                     }
-                    
-                    // The boundary condition is -p + 2*mu*du_n/dx_n = g.
-                    //
-                    // Because p is centered about t^{n+1/2}, we compute this
-                    // as:
-                    //
-                    // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
-                    static const int NVALS = 3;
-                    double u_current[NVALS], u_new[NVALS];
-                    SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                    for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
-                    {
-                        u_current[k] = (*u_current_data)(i_s);
-                        u_new    [k] = (*u_target_data )(i_s);
-                    }
-                    const double h = dx[bdry_normal_axis];
-                    const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
-                    const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
-                    alpha = 1.0;
-                    beta  = 0.0;
-                    gamma = (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm - gamma;
-                    break;
-                }
-                case PSEUDO_TRACTION: // -p = g.
-                {
-                    alpha = 1.0;
-                    beta  = 0.0;
-                    gamma = -gamma;
-                    break;
-                }
-                default:
-                {
-                    TBOX_ERROR("INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported traction boundary condition type: " << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
                 }
             }
         }
@@ -355,7 +325,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 }// setBcCoefs
 
 IntVector<NDIM>
-INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
+INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)

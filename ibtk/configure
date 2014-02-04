@@ -26884,11 +26884,11 @@ fi
 
   CPPFLAGS="$HYPRE_CPPFLAGS $CPPFLAGS"
 
-  ac_fn_cxx_check_header_mongrel "$LINENO" "hypre.h" "ac_cv_header_hypre_h" "$ac_includes_default"
-if test "x$ac_cv_header_hypre_h" = xyes; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "HYPRE.h" "ac_cv_header_HYPRE_h" "$ac_includes_default"
+if test "x$ac_cv_header_HYPRE_h" = xyes; then :
 
 else
-  as_fn_error $? "could not find header file hypre.h" "$LINENO" 5
+  as_fn_error $? "could not find header file HYPRE.h" "$LINENO" 5
 fi
 
 

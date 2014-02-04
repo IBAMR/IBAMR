@@ -283,8 +283,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
-        const double& alpha = (*acoef_data)(i,0);
-        const double& beta  = (*bcoef_data)(i,0);
+        double& alpha = (*acoef_data)(i,0);
+        double& beta  = (*bcoef_data)(i,0);
         double& gamma = (*gcoef_data)(i,0);
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
@@ -293,7 +293,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // intentionally blank
+            alpha = 1.0;
+            beta  = 0.0;
         }
         else if (traction_bc)
         {
@@ -306,21 +307,43 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                 // This could be done here, but it is more convenient to do so
                 // as a post-processing step after the tangential velocity ghost
                 // cell values have all been set.
+                alpha = 0.0;
+                beta  = 1.0;
                 gamma = 0.0;
             }
             else
             {
-                // Compute the tangential derivative of the normal component of
-                // the velocity at the boundary.
-                Index<NDIM> i_lower(i), i_upper(i);
-                i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
-                i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)  );
-                const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                const double du_norm_dx_tan = ((*u_target_data)(i_s_upper)-(*u_target_data)(i_s_lower))/dx[d_comp_idx];
-
-                // Correct the boundary condition value.
-                gamma = (is_lower ? -1.0 : +1.0)*(gamma/mu - du_norm_dx_tan);
+                switch (d_traction_bc_type)
+                {
+                    case TRACTION:        // mu*(du_tan/dx_norm + du_norm/dx_tan) = g.
+                    {
+                        // Compute the tangential derivative of the normal
+                        // component of the velocity at the boundary.
+                        Index<NDIM> i_lower(i), i_upper(i);
+                        i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
+                        i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)  );
+                        const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        const double du_norm_dx_tan = ((*u_target_data)(i_s_upper)-(*u_target_data)(i_s_lower))/dx[d_comp_idx];
+                        
+                        // Correct the boundary condition value.
+                        alpha = 0.0;
+                        beta  = 1.0;
+                        gamma = (is_lower ? -1.0 : +1.0)*(gamma/mu - du_norm_dx_tan);
+                        break;
+                    }
+                    case PSEUDO_TRACTION: // mu*du_tan/dx_norm = g.
+                    {
+                        alpha = 0.0;
+                        beta  = 1.0;
+                        gamma = (is_lower ? -1.0 : +1.0)*(gamma/mu);
+                        break;
+                    }
+                    default:
+                    {
+                        TBOX_ERROR("INSStaggeredVelocityBcCoef::setBcCoefs(): unrecognized or unsupported traction boundary condition type: " << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
+                    }
+                }
             }
         }
         else

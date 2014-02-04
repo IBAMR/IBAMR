@@ -145,6 +145,18 @@ INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
     return;
 }// registerPhysicalBoundaryConditions
 
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+INSHierarchyIntegrator::getVelocityBoundaryConditions() const
+{
+    return d_U_bc_coefs;
+}// getVelocityBoundaryConditions
+
+RobinBcCoefStrategy<NDIM>*
+INSHierarchyIntegrator::getPressureBoundaryConditions() const
+{
+    return d_P_bc_coef;
+}// getPressureBoundaryConditions
+
 void
 INSHierarchyIntegrator::registerVelocityInitialConditions(
     Pointer<CartGridFunction> U_init)

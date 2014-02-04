@@ -61,6 +61,7 @@
 #include "ibtk/LNodeSetVariable.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ParallelSet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "petscao.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
@@ -232,8 +233,10 @@ public:
         SAMRAI::tbox::Pointer<LData> F_data,
         SAMRAI::tbox::Pointer<LData> X_data,
         SAMRAI::tbox::Pointer<LData> ds_data,
+        RobinPhysBdryPatchStrategy& f_phys_bdry_op,
         int level_num,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         bool ds_data_ghost_node_update=true);
@@ -256,7 +259,9 @@ public:
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+        RobinPhysBdryPatchStrategy& f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         bool ds_data_ghost_node_update=true,
@@ -280,8 +285,10 @@ public:
         int f_data_idx,
         SAMRAI::tbox::Pointer<LData> F_data,
         SAMRAI::tbox::Pointer<LData> X_data,
+        RobinPhysBdryPatchStrategy& f_phys_bdry_op,
         int level_num,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true);
 
@@ -302,7 +309,9 @@ public:
         int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        RobinPhysBdryPatchStrategy& f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         int coarsest_ln=-1,
@@ -919,34 +928,6 @@ private:
     LDataManager&
     operator=(
         const LDataManager& that);
-
-    /*!
-     * \brief Version of the spreading routine specialized to the case in which
-     * there is Lagrangian data only on finest_ln.
-     */
-    void
-    spread_specialized(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        bool F_data_ghost_node_update,
-        bool X_data_ghost_node_update,
-        int coarsest_ln,
-        int finest_ln);
-
-    /*!
-     * \brief Version of the interpolation routine specialized to the case in
-     * which there is Lagrangian data only on finest_ln.
-     */
-    void
-    interp_specialized(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
-        double fill_data_time,
-        int coarsest_ln,
-        int finest_ln);
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and

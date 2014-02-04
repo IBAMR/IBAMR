@@ -219,6 +219,36 @@ is_multistep_time_stepping_type(
 }// is_multistep_time_stepping_type
 
 /*!
+ * \brief Enumerated type for different types of traction boundary conditions.
+ */
+enum TractionBcType
+{
+    TRACTION,
+    PSEUDO_TRACTION,
+    UNKNOWN_TRACTION_BC_TYPE=-1
+};
+
+template<>
+inline TractionBcType
+string_to_enum<TractionBcType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "TRACTION"       ) == 0) return TRACTION;
+    if (strcasecmp(val.c_str(), "PSEUDO_TRACTION") == 0) return PSEUDO_TRACTION;
+    return UNKNOWN_TRACTION_BC_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<TractionBcType>(
+    TractionBcType val)
+{
+    if (val == TRACTION       ) return "TRACTION";
+    if (val == PSEUDO_TRACTION) return "PSEUDO_TRACTION";
+    return "UNKNOWN_TRACTION_BC_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different pressure update schemes for the
  * projection method.
  */

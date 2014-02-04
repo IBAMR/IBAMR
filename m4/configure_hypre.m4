@@ -31,7 +31,7 @@ else
   fi
 
   CPPFLAGS_PREPEND($HYPRE_CPPFLAGS)
-  AC_CHECK_HEADER([hypre.h],,AC_MSG_ERROR([could not find header file hypre.h]))
+  AC_CHECK_HEADER([HYPRE.h],,AC_MSG_ERROR([could not find header file HYPRE.h]))
 
   LDFLAGS_PREPEND($HYPRE_LDFLAGS)
   AC_LIB_HAVE_LINKFLAGS([HYPRE])

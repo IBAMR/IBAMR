@@ -50,6 +50,7 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/LMarkerSetVariable.h"
@@ -288,6 +289,17 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
     int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ib_context;
+
+    /*
+     * Refine and coarsen algorithm data.
+     */
+    SAMRAI::tbox::Pointer<IBTK::RobinPhysBdryPatchStrategy> d_u_phys_bdry_op, d_p_phys_bdry_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg, d_q_prolong_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op, d_q_prolong_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_u_ghostfill_bdry_op, d_p_ghostfill_bdry_op;
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_u_coarsen_alg, d_p_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_u_coarsen_op, d_p_coarsen_op;
 
     /*
      * Body force functions.

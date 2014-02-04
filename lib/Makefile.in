@@ -197,6 +197,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -303,6 +304,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR2d_a-INSCollocatedVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSProjectionBcCoef.$(OBJEXT) \
@@ -398,6 +400,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -504,6 +507,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR3d_a-INSCollocatedVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSProjectionBcCoef.$(OBJEXT) \
@@ -650,6 +654,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -1036,6 +1041,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -1118,6 +1124,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -1321,6 +1328,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po@am__quote@
@@ -1408,6 +1416,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po@am__quote@
@@ -2176,6 +2185,20 @@ libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_st
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp' object='libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; fi`
+
+libIBAMR2d_a-INSCollocatedVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSCollocatedVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR2d_a-INSCollocatedVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+
+libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
 
 libIBAMR2d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
@@ -3394,6 +3417,20 @@ libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_st
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp' object='libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; fi`
+
+libIBAMR3d_a-INSCollocatedVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSCollocatedVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR3d_a-INSCollocatedVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+
+libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
 
 libIBAMR3d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp

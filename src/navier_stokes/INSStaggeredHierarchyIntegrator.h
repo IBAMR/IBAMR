@@ -103,19 +103,6 @@ public:
     ~INSStaggeredHierarchyIntegrator();
 
     /*!
-     * Get a vector of pointers to the velocity boundary condition specification
-     * objects.
-     */
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
-    getVelocityBoundaryConditions() const;
-
-    /*!
-     * Get a pointer to the pressure boundary condition specification object.
-     */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getPressureBoundaryConditions() const;
-
-    /*!
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
@@ -340,8 +327,6 @@ private:
      * Boundary condition and data synchronization operators.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     /*

@@ -54,6 +54,7 @@
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSCollocatedHierarchyIntegrator.h"
 #include "ibamr/INSCollocatedPPMConvectiveOperator.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"

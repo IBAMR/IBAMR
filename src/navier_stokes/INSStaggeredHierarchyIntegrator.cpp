@@ -466,18 +466,6 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>&
-INSStaggeredHierarchyIntegrator::getVelocityBoundaryConditions() const
-{
-    return d_U_bc_coefs;
-}// getVelocityBoundaryConditions
-
-RobinBcCoefStrategy<NDIM>*
-INSStaggeredHierarchyIntegrator::getPressureBoundaryConditions() const
-{
-    return d_P_bc_coef;
-}// getPressureBoundaryConditions
-
 Pointer<ConvectiveOperator>
 INSStaggeredHierarchyIntegrator::getConvectiveOperator()
 {
@@ -931,7 +919,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, /*P_bc_coef*/ NULL, d_U_scratch_idx, /*P_data_idx*/ -1, /*homogeneous_bc*/ false);
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, /*P_bc_coef*/ NULL);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+//  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     d_hier_math_ops->laplace(U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
@@ -1180,9 +1168,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_stokes_solver->solveSystem(*d_sol_vec,*d_rhs_vec);
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations() << "\n";
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()  << "\n";
-
-    // Enforce Dirichlet boundary conditions.
-    d_bc_helper->enforceNormalVelocityBoundaryConditions(d_sol_vec->getComponentDescriptorIndex(0), d_sol_vec->getComponentDescriptorIndex(1), d_U_bc_coefs, new_time, /*homogeneous_bc*/ false);
 
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
@@ -1718,8 +1703,8 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        d_bc_helper->cacheBcCoefData(d_bc_coefs, d_integrator_time, d_hierarchy);
-        d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+//      d_bc_helper->cacheBcCoefData(d_bc_coefs, d_integrator_time, d_hierarchy);
+//      d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

@@ -57,6 +57,8 @@
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/LMarkerUtilities.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -177,8 +179,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(getVelocityVariable(), hierarchy, true);
-    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(getPressureVariable(), hierarchy, true);
+    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
+    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
     d_hier_cc_data_ops       = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
 
     // Initialize all variables.
@@ -230,60 +232,83 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
     Pointer<Geometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithm<NDIM> > refine_alg;
-    Pointer<RefineOperator<NDIM> > refine_op;
-    RefinePatchStrategy<NDIM>* refine_patch_strategy;
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg;
-    Pointer<CoarsenOperator<NDIM> > coarsen_op;
 
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getNewContext());
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getScratchContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(getPressureVariable(), getNewContext());
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(getPressureVariable(), getScratchContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_u_var, getNewContext());
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_var, getScratchContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = NULL;
-    refine_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, refine_op);
-    registerGhostfillRefineAlgorithm(d_object_name+"::u", refine_alg);
+    Pointer<CellVariable<NDIM,double> > u_cc_var = d_u_var;
+    Pointer<SideVariable<NDIM,double> > u_sc_var = d_u_var;
+    if (u_cc_var)
+    {
+        d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(), /*homogeneous_bc*/ false);
+    }
+    else if (u_sc_var)
+    {
+        d_u_phys_bdry_op = new CartSideRobinPhysBdryOp(u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(), /*homogeneous_bc*/ false);
+    }
+    else
+    {
+        TBOX_ERROR("IBHierarchyIntegrator::initializeHierarchy(): unsupported velocity data centering\n");
+    }
 
-    coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
-    coarsen_alg->registerCoarsen(d_u_idx, d_u_idx, coarsen_op);
-    registerCoarsenAlgorithm(d_object_name+"::u::CONSERVATIVE_COARSEN", coarsen_alg);
+    d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
+    d_u_ghostfill_op = NULL;
+    d_u_ghostfill_bdry_op = d_u_phys_bdry_op;
+    d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
+    registerGhostfillRefineAlgorithm(d_object_name+"::u", d_u_ghostfill_alg, d_u_ghostfill_bdry_op);
 
-    refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
-    refine_alg->registerRefine(d_f_idx, d_f_idx, d_f_idx, refine_op);
-    registerProlongRefineAlgorithm(d_object_name+"::f", refine_alg);
+    d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
+    d_u_coarsen_alg->registerCoarsen(d_u_idx, d_u_idx, d_u_coarsen_op);
+    registerCoarsenAlgorithm(d_object_name+"::u::CONSERVATIVE_COARSEN", d_u_coarsen_alg);
 
-    refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = grid_geom->lookupRefineOperator(getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
+    d_f_prolong_alg = new RefineAlgorithm<NDIM>();
+    d_f_prolong_op = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_f_prolong_alg->registerRefine(d_f_idx, d_f_idx, d_f_idx, d_f_prolong_op);
+    registerProlongRefineAlgorithm(d_object_name+"::f", d_f_prolong_alg);
+
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        Pointer<CellVariable<NDIM,double> > p_cc_var = d_p_var;
+        if (p_cc_var)
+        {
+            d_p_phys_bdry_op = new CartCellRobinPhysBdryOp(p_scratch_idx, d_ins_hier_integrator->getPressureBoundaryConditions(), /*homogeneous_bc*/ false);
+        }
+        else
+        {
+            TBOX_ERROR("IBHierarchyIntegrator::initializeHierarchy(): unsupported pressure data centering\n");
+        }
+
+        d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
+        d_p_ghostfill_op = NULL;
+        d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
+        d_p_ghostfill_bdry_op = NULL;
+        registerGhostfillRefineAlgorithm(d_object_name+"::p", d_p_ghostfill_alg, d_p_ghostfill_bdry_op);
+
+        d_p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
+        d_p_coarsen_alg->registerCoarsen(d_p_idx, d_p_idx, d_p_coarsen_op);
+        registerCoarsenAlgorithm(d_object_name+"::p::CONSERVATIVE_COARSEN", d_p_coarsen_alg);
+
+        d_q_prolong_alg = new RefineAlgorithm<NDIM>();
+        d_q_prolong_op = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_q_prolong_alg->registerRefine(d_q_idx, d_q_idx, d_q_idx, d_q_prolong_op);
+        registerProlongRefineAlgorithm(d_object_name+"::q", d_q_prolong_alg);
+    }
+
+    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> >  refine_op;
+    refine_op = grid_geom->lookupRefineOperator(d_u_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
-    refine_op = grid_geom->lookupRefineOperator(getPressureVariable(), "LINEAR_REFINE");
+    refine_op = grid_geom->lookupRefineOperator(d_p_var, "LINEAR_REFINE");
     refine_alg->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_op);
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    refine_patch_strategy = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
-    registerGhostfillRefineAlgorithm(d_object_name+"::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_strategy);
-
-    if (d_ib_method_ops->hasFluidSources())
-    {
-        refine_alg = new RefineAlgorithm<NDIM>();
-        refine_op = NULL;
-        refine_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, refine_op);
-        registerGhostfillRefineAlgorithm(d_object_name+"::p", refine_alg);
-
-        coarsen_alg = new CoarsenAlgorithm<NDIM>();
-        coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
-        coarsen_alg->registerCoarsen(d_p_idx, d_p_idx, coarsen_op);
-        registerCoarsenAlgorithm(d_object_name+"::p::CONSERVATIVE_COARSEN", coarsen_alg);
-
-        refine_alg = new RefineAlgorithm<NDIM>();
-        refine_op = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
-        refine_alg->registerRefine(d_q_idx, d_q_idx, d_q_idx, refine_op);
-        registerProlongRefineAlgorithm(d_object_name+"::q", refine_alg);
-    }
+    RefinePatchStrategy<NDIM>* refine_patch_bdry_op = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+    registerGhostfillRefineAlgorithm(d_object_name+"::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
 
     // Read in initial marker positions.
     if (!d_mark_file_name.empty())
@@ -333,7 +358,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getCurrentContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_var, getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
