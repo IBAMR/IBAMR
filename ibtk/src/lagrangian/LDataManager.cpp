@@ -293,7 +293,7 @@ LDataManager::spread(
     Pointer<LData>  F_data,
     Pointer<LData>  X_data,
     Pointer<LData> ds_data,
-    RobinPhysBdryPatchStrategy& f_phys_bdry_op,
+    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
     const int level_num,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -322,7 +322,7 @@ LDataManager::spread(
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<LData> >& ds_data,
-    RobinPhysBdryPatchStrategy& f_phys_bdry_op,
+    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
     const bool F_data_ghost_node_update,
@@ -377,7 +377,7 @@ LDataManager::spread(
     const int f_data_idx,
     Pointer<LData> F_data,
     Pointer<LData> X_data,
-    RobinPhysBdryPatchStrategy& f_phys_bdry_op,
+    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
     const int level_num,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -402,7 +402,7 @@ LDataManager::spread(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
-    RobinPhysBdryPatchStrategy& f_phys_bdry_op,
+    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
     const bool F_data_ghost_node_update,
@@ -480,9 +480,11 @@ LDataManager::spread(
             if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
             if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
             if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
-
-            f_phys_bdry_op.setPatchDataIndex(f_data_idx);
-            f_phys_bdry_op.accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+            if (f_phys_bdry_op)
+            {
+                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+            }
         }
     }
 

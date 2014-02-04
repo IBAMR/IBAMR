@@ -681,7 +681,7 @@ IBMethod::spreadForce(
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     resetAnchorPointValues(*F_data, /*coarsest_ln*/ 0, /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
-    d_l_data_manager->spread(f_data_idx, *F_data, *X_LE_data, *f_phys_bdry_op, f_prolongation_scheds, data_time, *F_needs_ghost_fill, *X_LE_needs_ghost_fill);
+    d_l_data_manager->spread(f_data_idx, *F_data, *X_LE_data, f_phys_bdry_op, f_prolongation_scheds, data_time, *F_needs_ghost_fill, *X_LE_needs_ghost_fill);
     *F_needs_ghost_fill    = false;
     *X_LE_needs_ghost_fill = false;
     return;
@@ -727,7 +727,7 @@ IBMethod::applyLagrangianForceJacobian(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         ierr = MatMult(J_mat, d_U_J_data[ln]->getVec(), d_F_J_data[ln]->getVec()); IBTK_CHKERRQ(ierr);
     }
-    d_l_data_manager->spread(f_data_idx, d_F_J_data, *X_LE_data, *f_phys_bdry_op, f_prolongation_scheds, data_time, /* F_J_needs_ghost_fill */ true, *X_LE_needs_ghost_fill);
+    d_l_data_manager->spread(f_data_idx, d_F_J_data, *X_LE_data, f_phys_bdry_op, f_prolongation_scheds, data_time, /* F_J_needs_ghost_fill */ true, *X_LE_needs_ghost_fill);
     *X_LE_needs_ghost_fill = false;
     return;
 }// applyLagrangianForceJacobian

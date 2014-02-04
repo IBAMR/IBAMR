@@ -548,7 +548,7 @@ GeneralizedIBMethod::spreadForce(
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
-    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, *f_phys_bdry_op, std::vector<Pointer<RefineSchedule<NDIM> > >(), data_time, *N_needs_ghost_fill, *X_LE_needs_ghost_fill);
+    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, f_phys_bdry_op, std::vector<Pointer<RefineSchedule<NDIM> > >(), data_time, *N_needs_ghost_fill, *X_LE_needs_ghost_fill);
     *N_needs_ghost_fill    = false;
     *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
