@@ -255,9 +255,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = NULL;
-    d_u_ghostfill_bdry_op = d_u_phys_bdry_op;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    registerGhostfillRefineAlgorithm(d_object_name+"::u", d_u_ghostfill_alg, d_u_ghostfill_bdry_op);
+    registerGhostfillRefineAlgorithm(d_object_name+"::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
@@ -284,8 +283,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
         d_p_ghostfill_op = NULL;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
-        d_p_ghostfill_bdry_op = NULL;
-        registerGhostfillRefineAlgorithm(d_object_name+"::p", d_p_ghostfill_alg, d_p_ghostfill_bdry_op);
+        registerGhostfillRefineAlgorithm(d_object_name+"::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
 
         d_p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
@@ -361,6 +359,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_var, getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

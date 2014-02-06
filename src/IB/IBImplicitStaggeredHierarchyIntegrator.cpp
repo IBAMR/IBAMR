@@ -444,7 +444,7 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
     stokes_op->apply(x, y);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
-    const Pointer<RobinPhysBdryPatchStrategy>& u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
+    RobinPhysBdryPatchStrategy* u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghostfill_scheds = d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->d_object_name+"::u");
     ib_method_ops->interpolateVelocity(u_half_ib_idx, u_coarsen_scheds, u_ghostfill_scheds, half_time);
@@ -548,7 +548,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::apply(
     stokes_op->apply(x, y);
 
     // Compute the "structure" part of the operator.
-    const Pointer<RobinPhysBdryPatchStrategy>& u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
+    RobinPhysBdryPatchStrategy* u_phys_bdry_op = d_ib_solver->d_u_phys_bdry_op;
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghostfill_scheds = d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->d_object_name+"::u");
     const std::vector<Pointer<RefineSchedule<NDIM> > > f_prolong_scheds(u_ghostfill_scheds.size(), Pointer<RefineSchedule<NDIM> >(NULL));

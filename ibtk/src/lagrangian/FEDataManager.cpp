@@ -42,6 +42,7 @@
 #include <ostream>
 #include <set>
 
+#include "HierarchyDataOpsManager.h"
 #include "BasePatchHierarchy.h"
 #include "Box.h"
 #include "BoxArray.h"
@@ -452,9 +453,11 @@ FEDataManager::spread(
     const int f_data_idx,
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
-    const std::string& system_name)
+    const std::string& system_name,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const double fill_data_time)
 {
-    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec);
+    spread(f_data_idx, F_vec, X_vec, system_name, f_phys_bdry_op, fill_data_time, d_default_spread_spec);
     return;
 }// spread
 
@@ -464,9 +467,35 @@ FEDataManager::spread(
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const double fill_data_time,
     const FEDataManager::SpreadSpec& spread_spec)
 {
     IBTK_TIMER_START(t_spread);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+    
+    // Make a copy of the Eulerian data.
+    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(f_copy_data_idx);
+    }
+    Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -617,13 +646,32 @@ FEDataManager::spread(
         // within the ghost cell width of the patch interior.
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-        Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-        Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = f_cc_data;
-        const bool is_sc_data = f_sc_data;
-        if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
-        if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+        if (cc_data)
+        {
+            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+            LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+        }
+        if (sc_data)
+        {
+            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+            LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+        }
+        if (f_phys_bdry_op)
+        {
+            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+        }
     }
+
+    // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(f_copy_data_idx);
+    }
+    var_db->removePatchDataIndex(f_copy_data_idx);
 
     VecRestoreArray(F_local_vec, &F_local_soln);
     VecGhostRestoreLocalForm(F_global_vec, &F_local_vec);
@@ -882,6 +930,17 @@ FEDataManager::interp(
 {
     IBTK_TIMER_START(t_interp);
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    
+    // Determine the type of data centering.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+ 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
@@ -1017,13 +1076,17 @@ FEDataManager::interp(
         // are within the patch interior.
         const Box<NDIM>& interp_box = patch->getBox();
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-        Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-        Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-        const bool is_cc_data = f_cc_data;
-        const bool is_sc_data = f_sc_data;
-        if (is_cc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
-        if (is_sc_data) LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
-
+        if (cc_data)
+        {
+            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
+        }
+        if (sc_data)
+        {
+            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+            LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
+        }
+        
         // Loop over the elements and accumulate the right-hand-side values.
         qrule.reset();
         qp_offset = 0;

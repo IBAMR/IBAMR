@@ -900,7 +900,7 @@ IMPMethod::computeLagrangianForce(
 void
 IMPMethod::spreadForce(
     const int f_data_idx,
-    const Pointer<RobinPhysBdryPatchStrategy>& /*f_phys_bdry_op*/,
+    RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {

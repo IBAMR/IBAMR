@@ -167,9 +167,9 @@ RobinPhysBdryPatchStrategy::postprocessRefine(
 
 void
 RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(
-    Patch<NDIM>& patch,
-    double fill_time,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& /*patch*/,
+    double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     TBOX_ERROR("RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
     return;

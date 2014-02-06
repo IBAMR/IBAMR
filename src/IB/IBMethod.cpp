@@ -672,7 +672,7 @@ IBMethod::computeLagrangianForceJacobian(
 void
 IBMethod::spreadForce(
     const int f_data_idx,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double data_time)
 {
@@ -690,7 +690,7 @@ IBMethod::spreadForce(
 void
 IBMethod::applyLagrangianForceJacobian(
     int f_data_idx,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,

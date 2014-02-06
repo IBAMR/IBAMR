@@ -176,6 +176,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_ib_method_ops->computeLagrangianForce(current_time);
             if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+            d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
             d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), current_time);
             d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
             break;
@@ -250,6 +251,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             d_ib_method_ops->computeLagrangianForce(half_time);
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+            d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
             d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
             break;
         case TRAPEZOIDAL_RULE:
@@ -263,6 +265,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 d_ib_method_ops->computeLagrangianForce(new_time);
                 if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
                 d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+                d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
                 d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), new_time);
                 d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
             }
@@ -313,11 +316,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
         case MIDPOINT_RULE:
             d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
             d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
             break;
         case TRAPEZOIDAL_RULE:
             d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
             d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
             break;
         default:
@@ -361,6 +366,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     {
         if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
+        d_p_phys_bdry_op->setPatchDataIndex(d_p_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
 
@@ -387,6 +393,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
     if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
 
     // Synchronize new state data.

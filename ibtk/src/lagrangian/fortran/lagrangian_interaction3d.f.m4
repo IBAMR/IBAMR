@@ -100,6 +100,9 @@ c
          do d = 0,depth-1
             V(d,s) = u(ic0,ic1,ic2,d)
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -167,6 +170,9 @@ c
             u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)
      &           + V(d,s)/(dx(0)*dx(1)*dx(2))
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -182,8 +188,6 @@ c
       subroutine lagrangian_discontinuous_linear_interp3d(
      &     dx,x_lower,x_upper,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u,
      &     indices,Xshift,nindices,
@@ -197,9 +201,6 @@ c
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -222,8 +223,6 @@ c
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-
-      LOGICAL account_for_phys_bdry
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -242,15 +241,6 @@ c
       nugc(0) = nugc0
       nugc(1) = nugc1
       nugc(2) = nugc2
-c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
 c
 c     Use the discontinuous linear delta function to interpolate u onto V.
 c
@@ -283,23 +273,6 @@ c
                   w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
                   w(d,1) = 1.d0 - w(d,0)
                endif
-
-               if ( account_for_phys_bdry ) then
-                  if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &                 (ic_lower(d) .lt. ilower(d)) ) then
-                     w(d,0) = 1.d0
-                     w(d,1) = 0.d0
-                     ic_lower(d) = ilower(d)
-                     ic_upper(d) = ilower(d)
-                  endif
-                  if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &                 (ic_upper(d) .gt. iupper(d)) ) then
-                     w(d,0) = 1.d0
-                     w(d,1) = 0.d0
-                     ic_lower(d) = iupper(d)
-                     ic_upper(d) = iupper(d)
-                  endif
-               endif
             else
                w(d,0) = 1.d0
                ic_lower(d) = ic_center(d)
@@ -314,11 +287,8 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(2)
             do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
-CDEC$ LOOP COUNT(2)
                do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
-CDEC$ LOOP COUNT(2)
                   do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                      V(d,s) = V(d,s)
      &                    +w(0,ic0-ic_lower(0))
@@ -329,6 +299,9 @@ CDEC$ LOOP COUNT(2)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -347,8 +320,6 @@ c
      &     indices,Xshift,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u)
 c
@@ -360,9 +331,6 @@ c
       INTEGER nindices
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -385,8 +353,6 @@ c
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-
-      LOGICAL account_for_phys_bdry
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -405,15 +371,6 @@ c
       nugc(0) = nugc0
       nugc(1) = nugc1
       nugc(2) = nugc2
-c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
 c
 c     Use the discontinuous linear delta function to interpolate u onto V.
 c
@@ -446,23 +403,6 @@ c
                   w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
                   w(d,1) = 1.d0 - w(d,0)
                endif
-
-               if ( account_for_phys_bdry ) then
-                  if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &                 (ic_lower(d) .lt. ilower(d)) ) then
-                     w(d,0) = 1.d0
-                     w(d,1) = 0.d0
-                     ic_lower(d) = ilower(d)
-                     ic_upper(d) = ilower(d)
-                  endif
-                  if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &                 (ic_upper(d) .gt. iupper(d)) ) then
-                     w(d,0) = 1.d0
-                     w(d,1) = 0.d0
-                     ic_lower(d) = iupper(d)
-                     ic_upper(d) = iupper(d)
-                  endif
-               endif
             else
                w(d,0) = 1.d0
                ic_lower(d) = ic_center(d)
@@ -476,11 +416,8 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(2)
             do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
-CDEC$ LOOP COUNT(2)
                do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
-CDEC$ LOOP COUNT(2)
                   do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w(0,ic0-ic_lower(0))*
@@ -491,6 +428,9 @@ CDEC$ LOOP COUNT(2)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -506,8 +446,6 @@ c
       subroutine lagrangian_piecewise_linear_interp3d(
      &     dx,x_lower,x_upper,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u,
      &     indices,Xshift,nindices,
@@ -521,9 +459,6 @@ c
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -546,8 +481,6 @@ c
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-
-      LOGICAL account_for_phys_bdry
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -566,15 +499,6 @@ c
       nugc(0) = nugc0
       nugc(1) = nugc1
       nugc(2) = nugc2
-c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
 c
 c     Use the piecewise linear delta function to interpolate u onto V.
 c
@@ -607,23 +531,6 @@ c
                w(d,1) = 1.d0 - w(d,0)
             endif
 
-            if ( account_for_phys_bdry ) then
-               if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &              (ic_lower(d) .lt. ilower(d)) ) then
-                  w(d,0) = 1.d0
-                  w(d,1) = 0.d0
-                  ic_lower(d) = ilower(d)
-                  ic_upper(d) = ilower(d)
-               endif
-               if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &              (ic_upper(d) .gt. iupper(d)) ) then
-                  w(d,0) = 1.d0
-                  w(d,1) = 0.d0
-                  ic_lower(d) = iupper(d)
-                  ic_upper(d) = iupper(d)
-               endif
-            endif
-
             ic_trimmed_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_trimmed_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
          enddo
@@ -632,11 +539,8 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(2)
             do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
-CDEC$ LOOP COUNT(2)
                do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
-CDEC$ LOOP COUNT(2)
                   do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                      V(d,s) = V(d,s)
      &                    +w(0,ic0-ic_lower(0))
@@ -647,6 +551,9 @@ CDEC$ LOOP COUNT(2)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -665,8 +572,6 @@ c
      &     indices,Xshift,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u)
 c
@@ -678,9 +583,6 @@ c
       INTEGER nindices
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -703,8 +605,6 @@ c
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-
-      LOGICAL account_for_phys_bdry
 c
 c     Prevent compiler warning about unused variables.
 c
@@ -723,15 +623,6 @@ c
       nugc(0) = nugc0
       nugc(1) = nugc1
       nugc(2) = nugc2
-c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
 c
 c     Use the piecewise linear delta function to interpolate u onto V.
 c
@@ -764,23 +655,6 @@ c
                w(d,1) = 1.d0 - w(d,0)
             endif
 
-            if ( account_for_phys_bdry ) then
-               if ( (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &              (ic_lower(d) .lt. ilower(d)) ) then
-                  w(d,0) = 1.d0
-                  w(d,1) = 0.d0
-                  ic_lower(d) = ilower(d)
-                  ic_upper(d) = ilower(d)
-               endif
-               if ( (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &              (ic_upper(d) .gt. iupper(d)) ) then
-                  w(d,0) = 1.d0
-                  w(d,1) = 0.d0
-                  ic_lower(d) = iupper(d)
-                  ic_upper(d) = iupper(d)
-               endif
-            endif
-
             ic_trimmed_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_trimmed_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
          enddo
@@ -788,11 +662,8 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(2)
             do ic2 = ic_trimmed_lower(2),ic_trimmed_upper(2)
-CDEC$ LOOP COUNT(2)
                do ic1 = ic_trimmed_lower(1),ic_trimmed_upper(1)
-CDEC$ LOOP COUNT(2)
                   do ic0 = ic_trimmed_lower(0),ic_trimmed_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w(0,ic0-ic_lower(0))*
@@ -803,6 +674,9 @@ CDEC$ LOOP COUNT(2)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -883,8 +757,8 @@ c
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
          X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell.
 c
          do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
@@ -905,23 +779,22 @@ c
          ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
          ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
-c     Compute the standard interpolation weights.
+c     Compute the interpolation weights.
 c
-CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
-CDEC$ LOOP COUNT(4)
+
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
             w2(ic2-ic_lower(2)) =
@@ -933,11 +806,8 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(4)
             do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(4)
                do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
                   do ic0 = ic_lower(0),ic_upper(0)
                      V(d,s) = V(d,s)
      &                    +w0(ic0-ic_lower(0))
@@ -948,6 +818,9 @@ CDEC$ LOOP COUNT(4)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -1029,8 +902,8 @@ c
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
          X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
-c     Determine the standard spreading stencil corresponding to the
-c     position of X(s) within the cell.
+c     Determine the spreading stencil corresponding to the position of
+c     X(s) within the cell.
 c
          do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
@@ -1051,23 +924,22 @@ c
          ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
          ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
-c     Compute the standard spreading weights.
+c     Compute the spreading weights.
 c
-CDEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
-CDEC$ LOOP COUNT(4)
+
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
             w2(ic2-ic_lower(2)) =
@@ -1078,11 +950,8 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(4)
             do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(4)
                do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w0(ic0-ic_lower(0))*
@@ -1093,6 +962,9 @@ CDEC$ LOOP COUNT(4)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -1173,8 +1045,8 @@ c
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
          X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell.
 c
          do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
@@ -1190,23 +1062,22 @@ c
          ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
          ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
-c     Compute the standard interpolation weights.
+c     Compute the interpolation weights.
 c
-CDEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(3)
+
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
      &           lagrangian_ib_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
-CDEC$ LOOP COUNT(3)
+
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
             w2(ic2-ic_lower(2)) =
@@ -1218,11 +1089,8 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(3)
             do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(3)
                do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(3)
                   do ic0 = ic_lower(0),ic_upper(0)
                      V(d,s) = V(d,s)
      &                    +w0(ic0-ic_lower(0))
@@ -1233,6 +1101,9 @@ CDEC$ LOOP COUNT(3)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -1314,8 +1185,8 @@ c
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
          X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
-c     Determine the standard spreading stencil corresponding to the
-c     position of X(s) within the cell.
+c     Determine the spreading stencil corresponding to the position of
+c     X(s) within the cell.
 c
          do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
@@ -1331,23 +1202,22 @@ c
          ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
          ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
-c     Compute the standard spreading weights.
+c     Compute the spreading weights.
 c
-CDEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(3)
+
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
      &           lagrangian_ib_3_delta(
      &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
          enddo
-CDEC$ LOOP COUNT(3)
+
          do ic2 = ic_lower(2),ic_upper(2)
             X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
             w2(ic2-ic_lower(2)) =
@@ -1358,11 +1228,8 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(3)
             do ic2 = ic_lower(2),ic_upper(2)
-CDEC$ LOOP COUNT(3)
                do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(3)
                   do ic0 = ic_lower(0),ic_upper(0)
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w0(ic0-ic_lower(0))*
@@ -1373,6 +1240,9 @@ CDEC$ LOOP COUNT(3)
                enddo
             enddo
          enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -1388,8 +1258,6 @@ c
       subroutine lagrangian_ib_4_interp3d(
      &     dx,x_lower,x_upper,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u,
      &     indices,Xshift,nindices,
@@ -1403,9 +1271,6 @@ c
       INTEGER ilower0,iupper0,ilower1,iupper1,ilower2,iupper2
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       INTEGER indices(0:nindices-1)
 
@@ -1430,10 +1295,6 @@ c
       REAL X_o_dx,q0,q1,q2,r0,r1,r2
       REAL w0(0:3),w1(0:3),w2(0:3),f(0:3)
       REAL w(0:3,0:3,0:3),wyz,wz
-
-      LOGICAL account_for_phys_bdry
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1444,24 +1305,13 @@ c
       ig_upper(1) = iupper1+nugc1
       ig_upper(2) = iupper2+nugc2
 c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
-c
-c     Use the IB 4-point delta function to interpolate u onto V, but use
-c     a modified delta function near physical boundaries.
+c     Use the IB 4-point delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-2
@@ -1493,65 +1343,6 @@ c
          w2(2) = 0.125d0*(1.d0+2.d0*r2+q2)
          w2(3) = 0.125d0*(1.d0+2.d0*r2-q2)
 c
-c     When necessary, modify the interpolation stencil and weights near
-c     physical boundaries.
-c
-         if ( account_for_phys_bdry ) then
-            do d = 0,NDIM-1
-               touches_lower_bdry(d) =
-     &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &              (X(d,s) - x_lower(d) .lt. 1.5d0*dx(d))
-               touches_upper_bdry(d) =
-     &              (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &              (x_upper(d) - X(d,s) .lt. 1.5d0*dx(d))
-            enddo
-
-            if (touches_lower_bdry(0)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w0,(X(0,s)-x_lower(0))/dx(0))
-               ic_lower(0) = ilower0
-               ic_upper(0) = ilower0+3
-            elseif (touches_upper_bdry(0)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(0)-X(0,s))/dx(0))
-               ic_lower(0) = iupper0-3
-               ic_upper(0) = iupper0
-               do k = 0,3
-                  w0(3-k) = f(k)
-               enddo
-            endif
-
-            if (touches_lower_bdry(1)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w1,(X(1,s)-x_lower(1))/dx(1))
-               ic_lower(1) = ilower1
-               ic_upper(1) = ilower1+3
-            elseif (touches_upper_bdry(1)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(1)-X(1,s))/dx(1))
-               ic_lower(1) = iupper1-3
-               ic_upper(1) = iupper1
-               do k = 0,3
-                  w1(3-k) = f(k)
-               enddo
-            endif
-
-            if (touches_lower_bdry(2)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w2,(X(2,s)-x_lower(2))/dx(2))
-               ic_lower(2) = ilower2
-               ic_upper(2) = ilower2+3
-            elseif (touches_upper_bdry(2)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(2)-X(2,s))/dx(2))
-               ic_lower(2) = iupper2-3
-               ic_upper(2) = iupper2
-               do k = 0,3
-                  w2(3-k) = f(k)
-               enddo
-            endif
-         endif
-c
 c     Compute the tensor product of the interpolation weights.
 c
          do i2 = 0,3
@@ -1566,46 +1357,28 @@ c
 c
 c     Interpolate u onto V.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 3-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 3-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = 0,3
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -1624,8 +1397,6 @@ c
      &     indices,Xshift,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
      &     nugc0,nugc1,nugc2,
      &     u)
 c
@@ -1639,9 +1410,6 @@ c
       INTEGER nugc0,nugc1,nugc2
 
       INTEGER indices(0:nindices-1)
-
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1664,10 +1432,6 @@ c
       REAL X_o_dx,q0,q1,q2,r0,r1,r2
       REAL w0(0:3),w1(0:3),w2(0:3),f(0:3)
       REAL w(0:3,0:3,0:3),wyz,wz
-
-      LOGICAL account_for_phys_bdry
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1678,24 +1442,13 @@ c
       ig_upper(1) = iupper1+nugc1
       ig_upper(2) = iupper2+nugc2
 c
-c     Determine if we need to account for physical boundaries.
-c
-      account_for_phys_bdry = .false.
-      do d = 0,NDIM-1
-         account_for_phys_bdry = account_for_phys_bdry    .or.
-     &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
-     &        (patch_touches_upper_physical_bdry(d).eq.1)
-      enddo
-c
-c     Use the IB 4-point delta function to spread V onto u, but use
-c     a modified delta function near physical boundaries.
+c     Use the IB 4-point delta function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-2
@@ -1727,65 +1480,6 @@ c
          w2(2) = 0.125d0*(1.d0+2.d0*r2+q2)
          w2(3) = 0.125d0*(1.d0+2.d0*r2-q2)
 c
-c     When necessary, modify the interpolation stencil and weights near
-c     physical boundaries.
-c
-         if ( account_for_phys_bdry ) then
-            do d = 0,NDIM-1
-               touches_lower_bdry(d) =
-     &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
-     &              (X(d,s) - x_lower(d) .lt. 1.5d0*dx(d))
-               touches_upper_bdry(d) =
-     &              (patch_touches_upper_physical_bdry(d).eq.1) .and.
-     &              (x_upper(d) - X(d,s) .lt. 1.5d0*dx(d))
-            enddo
-
-            if (touches_lower_bdry(0)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w0,(X(0,s)-x_lower(0))/dx(0))
-               ic_lower(0) = ilower0
-               ic_upper(0) = ilower0+3
-            elseif (touches_upper_bdry(0)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(0)-X(0,s))/dx(0))
-               ic_lower(0) = iupper0-3
-               ic_upper(0) = iupper0
-               do k = 0,3
-                  w0(3-k) = f(k)
-               enddo
-            endif
-
-            if (touches_lower_bdry(1)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w1,(X(1,s)-x_lower(1))/dx(1))
-               ic_lower(1) = ilower1
-               ic_upper(1) = ilower1+3
-            elseif (touches_upper_bdry(1)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(1)-X(1,s))/dx(1))
-               ic_lower(1) = iupper1-3
-               ic_upper(1) = iupper1
-               do k = 0,3
-                  w1(3-k) = f(k)
-               enddo
-            endif
-
-            if (touches_lower_bdry(2)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              w2,(X(2,s)-x_lower(2))/dx(2))
-               ic_lower(2) = ilower2
-               ic_upper(2) = ilower2+3
-            elseif (touches_upper_bdry(2)) then
-               call lagrangian_one_sided_ib_4_delta(
-     &              f,(x_upper(2)-X(2,s))/dx(2))
-               ic_lower(2) = iupper2-3
-               ic_upper(2) = iupper2
-               do k = 0,3
-                  w2(3-k) = f(k)
-               enddo
-            endif
-         endif
-c
 c     Compute the tensor product of the scaled interpolation weights.
 c
          do i2 = 0,3
@@ -1800,46 +1494,28 @@ c
 c
 c     Spread V onto u.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 3-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 3-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
+     &                    w(i0,i1,i2)*V(d,s)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               do i2 = 0,3
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c         
       enddo
 c
       return
@@ -1913,9 +1589,8 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the interpolation
-c     weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-4
@@ -1979,46 +1654,28 @@ c
 c
 c     Interpolate u onto V.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 7-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 7-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = 0,7
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,7
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,7
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -2092,9 +1749,8 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-4
@@ -2158,46 +1814,28 @@ c
 c
 c     Spread V onto u.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 7-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 7-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 7-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 7-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
+     &                    w(i0,i1,i2)*V(d,s)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               do i2 = 0,7
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,7
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,7
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -2272,9 +1910,8 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the interpolation
-c     weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-3
@@ -2383,46 +2020,28 @@ c
 c
 c     Interpolate u onto V.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i2 = 0,5
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,5
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,5
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1,i2)*u(ic0,ic1,ic2,d)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return
@@ -2498,9 +2117,8 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = NINT(X_o_dx)+ilower0-3
@@ -2609,46 +2227,28 @@ c
 c
 c     Spread V onto u.
 c
-         if ( ic_lower(0).lt.ig_lower(0) .or.
-     &        ic_lower(1).lt.ig_lower(1) .or.
-     &        ic_lower(2).lt.ig_lower(2) .or.
-     &        ic_upper(0).gt.ig_upper(0) .or.
-     &        ic_upper(1).gt.ig_upper(1) .or.
-     &        ic_upper(2).gt.ig_upper(2) ) then
-            istart0 =   max(ig_lower(0)-ic_lower(0),0)
-            istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
-            istart1 =   max(ig_lower(1)-ic_lower(1),0)
-            istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
-            istart2 =   max(ig_lower(2)-ic_lower(2),0)
-            istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
-            do d = 0,depth-1
-               do i2 = istart2,istop2
-                  ic2 = ic_lower(2)+i2
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 5-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 5-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 5-max(ic_upper(2)-ig_upper(2),0)
+         do d = 0,depth-1
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
+     &                    w(i0,i1,i2)*V(d,s)
                   enddo
                enddo
             enddo
-         else
-            do d = 0,depth-1
-               do i2 = 0,5
-                  ic2 = ic_lower(2)+i2
-                  do i1 = 0,5
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,5
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d) +
-     &                       w(i0,i1,i2)*V(d,s)
-                     enddo
-                  enddo
-               enddo
-            enddo
-         endif
+         enddo
+c
+c     End loop over points.
+c
       enddo
 c
       return

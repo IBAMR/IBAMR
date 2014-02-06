@@ -52,6 +52,7 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
+#include "HierarchyDataOpsManager.h"
 
 using namespace libMesh;
 
@@ -644,7 +645,7 @@ IBFEMethod::computeLagrangianForce(
 void
 IBFEMethod::spreadForce(
     const int f_data_idx,
-    const Pointer<RobinPhysBdryPatchStrategy>& /*f_phys_bdry_op*/,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
@@ -659,7 +660,7 @@ IBFEMethod::spreadForce(
         F_vec->localize(*F_ghost_vec);
         if (d_use_IB_spread_operator)
         {
-            d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
+            d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
         }
         else
         {
@@ -673,12 +674,12 @@ IBFEMethod::spreadForce(
             }
             else
             {
-                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, data_time, part);
+                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
             }
         }
         if (!d_tethered_node_ids[part].empty())
         {
-            spreadTetherForceDensity(f_data_idx, *X_ghost_vec, data_time, part);
+            spreadTetherForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
         }
     }
     return;
@@ -1473,10 +1474,28 @@ void
 IBFEMethod::spreadTransmissionForceDensity(
     const int f_data_idx,
     PetscVector<double>& X_ghost_vec,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const double data_time,
     const unsigned int part)
 {
     if (d_constrained_part[part] || !d_split_forces) return;
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Make a copy of the Eulerian data.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(f_copy_data_idx);
+    }
+    Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -1694,7 +1713,22 @@ IBFEMethod::spreadTransmissionForceDensity(
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
+        if (f_phys_bdry_op)
+        {
+            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
     }
+
+    // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(f_copy_data_idx);
+    }
+    var_db->removePatchDataIndex(f_copy_data_idx);
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
@@ -1738,7 +1772,8 @@ void
 IBFEMethod::spreadTetherForceDensity(
     const int f_data_idx,
     PetscVector<double>& X_ghost_vec,
-    const double /*data_time*/,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const double data_time,
     const unsigned int part)
 {
     if (d_reinit_tethered_node_set)
@@ -1748,6 +1783,23 @@ IBFEMethod::spreadTetherForceDensity(
     }
 
     if (d_tethered_node_ids[part].empty()) return;
+    
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Make a copy of the Eulerian data.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(f_copy_data_idx);
+    }
+    Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
@@ -1788,7 +1840,22 @@ IBFEMethod::spreadTetherForceDensity(
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, F_node, NDIM, X_node, NDIM, patch, spread_box, spread_kernel_fcn);
+        if (f_phys_bdry_op)
+        {
+            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
     }
+
+    // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(f_copy_data_idx);
+    }
+    var_db->removePatchDataIndex(f_copy_data_idx);
 
     return;
 }// spreadTetherForceDensity

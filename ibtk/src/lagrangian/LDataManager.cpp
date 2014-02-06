@@ -293,7 +293,7 @@ LDataManager::spread(
     Pointer<LData>  F_data,
     Pointer<LData>  X_data,
     Pointer<LData> ds_data,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const int level_num,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -322,7 +322,7 @@ LDataManager::spread(
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<LData> >& ds_data,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
     const bool F_data_ghost_node_update,
@@ -377,7 +377,7 @@ LDataManager::spread(
     const int f_data_idx,
     Pointer<LData> F_data,
     Pointer<LData> X_data,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const int level_num,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -402,7 +402,7 @@ LDataManager::spread(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
-    const Pointer<RobinPhysBdryPatchStrategy>& f_phys_bdry_op,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
     const bool F_data_ghost_node_update,
@@ -416,9 +416,20 @@ LDataManager::spread(
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Make a copy of the Eulerian data.
+    // Determine the type of data centering.
     Pointer<Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
+    Pointer<EdgeVariable<NDIM,double> > f_ec_var = f_var;
+    Pointer<NodeVariable<NDIM,double> > f_nc_var = f_var;
+    Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool ec_data = f_ec_var;
+    const bool nc_data = f_nc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
+    
+    // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -426,8 +437,8 @@ LDataManager::spread(
         level->allocatePatchData(f_copy_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->resetLevels(coarsest_ln, finest_ln);
-    f_data_ops->copyData(f_copy_data_idx, f_data_idx);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Start filling Lagrangian ghost node values.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -442,21 +453,11 @@ LDataManager::spread(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        // On the coarsest level of the patch hierarchy, initialize the
-        // Eulerian data to equal zero before spreading.
-        //
-        // For each of the finer levels in the patch hierarchy, prolong the
-        // Eulerian data from coarser levels in the patch hierarchy before
-        // spreading.
+        // If there are coarser levels in the patch hierarchy, prolong data from
+        // the coarser levels before spreading data on this level.
         if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && f_prolongation_scheds[ln])
         {
             f_prolongation_scheds[ln]->fillData(fill_data_time);
-        }
-        else
-        {
-            f_data_ops->resetLevels(ln,ln);
-            f_data_ops->setToScalar(f_data_idx, 0.0);
-            f_data_ops->resetLevels(coarsest_ln, finest_ln);
         }
 
         if (!levelContainsLagrangianData(ln)) continue;
@@ -470,16 +471,28 @@ LDataManager::spread(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-            Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-            Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
-            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getGhostBox();
-            if (f_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
-            if (f_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
-            if (f_ec_data) LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
-            if (f_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            }
+            if (ec_data)
+            { 
+                Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
+                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            }
+            if (nc_data)
+            {
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+            }
             if (f_phys_bdry_op)
             {
                 f_phys_bdry_op->setPatchDataIndex(f_data_idx);
@@ -489,6 +502,7 @@ LDataManager::spread(
     }
 
     // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -539,6 +553,20 @@ LDataManager::interp(
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
+    Pointer<EdgeVariable<NDIM,double> > f_ec_var = f_var;
+    Pointer<NodeVariable<NDIM,double> > f_nc_var = f_var;
+    Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool ec_data = f_ec_var;
+    const bool nc_data = f_nc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
 
     // Synchronize Eulerian values.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -565,16 +593,28 @@ LDataManager::interp(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-            Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-            Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
-            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box<NDIM>& box = idx_data->getBox();
-            if (f_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
-            if (f_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
-            if (f_ec_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
-            if (f_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            } 
+            if (ec_data)
+            {
+                Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
+                LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            }
+            if (nc_data)
+            { 
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_default_interp_kernel_fcn);
+            }
         }
     }
 

@@ -858,7 +858,7 @@ c     Dirichlet boundary conditions
                   f_i = -1.d0
                   f_b = 2.d0
                   u_g = u1(i,j_b+sgn*j)
-                  u1(i,j_b-sgn*j) = u1(i,j_b+sgn*j) + f_i*u_g
+                  u1(i,j_b-sgn*j) = u1(i,j_b-sgn*j) + f_i*u_g
                   u1(i,j_b      ) = u1(i,j_b      ) + f_b*u_g
                enddo
             else

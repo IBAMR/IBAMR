@@ -49,6 +49,7 @@
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
@@ -346,7 +347,9 @@ public:
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
-        const std::string& system_name);
+        const std::string& system_name,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        double fill_data_time);
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using a
@@ -358,6 +361,8 @@ public:
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        double fill_data_time,
         const SpreadSpec& spread_spec);
 
     /*!

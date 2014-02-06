@@ -161,12 +161,10 @@
             const double* , const double* , const double* , const int& , const int& ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             const double* ,
@@ -181,12 +179,10 @@
             const double* , const double* ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             double*
@@ -197,12 +193,10 @@
             const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             const double* ,
@@ -217,12 +211,10 @@
             const double* , const double* ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             double*
@@ -297,12 +289,10 @@
             const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             const double* ,
@@ -317,12 +307,10 @@
             const double* , const double* ,
 #if (NDIM == 2)
             const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& ,
 #endif
 #if (NDIM == 3)
             const int& , const int& , const int& , const int& , const int& , const int& ,
-            const int* , const int* ,
             const int& , const int& , const int& ,
 #endif
             double*
@@ -2009,13 +1997,24 @@ LEInteractor::interpolate(
     const double* const x_lower,
     const double* const x_upper,
     const double* const dx,
-    const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
-    const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
+    const boost::array<int,NDIM>& /*patch_touches_lower_physical_bdry*/,
+    const boost::array<int,NDIM>& /*patch_touches_upper_physical_bdry*/,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_shifts,
     const std::string& interp_fcn,
     const int axis)
 {
+    const int stencil_size = getStencilSize(interp_fcn);
+    const int min_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
+    const int q_gcw_min = q_gcw.min();
+    if (q_gcw_min < 0.5*stencil_size+1)
+    {
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cell width for interpolation:"
+                   << "  kernel function          = " << interp_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
     if (local_indices.empty()) return;
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
@@ -2042,14 +2041,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,axis,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -2062,14 +2057,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -2114,14 +2105,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -2189,8 +2176,8 @@ LEInteractor::spread(
     const double* const x_lower,
     const double* const x_upper,
     const double* const dx,
-    const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
-    const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
+    const boost::array<int,NDIM>& /*patch_touches_lower_physical_bdry*/,
+    const boost::array<int,NDIM>& /*patch_touches_upper_physical_bdry*/,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_shifts,
     const std::string& spread_fcn,
@@ -2224,14 +2211,10 @@ LEInteractor::spread(
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
@@ -2244,14 +2227,10 @@ LEInteractor::spread(
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
@@ -2296,14 +2275,10 @@ LEInteractor::spread(
             X_data, Q_data,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data);
