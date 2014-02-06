@@ -430,6 +430,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
       d_P_init(NULL),
       d_default_bc_coefs(d_object_name+"::default_bc_coefs", Pointer<Database>(NULL)),
       d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_traction_bc_type(TRACTION),
       d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
@@ -643,6 +644,7 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("output_Q")) d_output_Q = db->getBool("output_Q");
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
+    if (db->keyExists("traction_bc_type")) d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 
     if (db->keyExists("velocity_solver_type"))
     {

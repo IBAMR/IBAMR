@@ -304,7 +304,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSCollocatedVelocityBcCoef(d,this,d_bc_coefs);
+        d_U_bc_coefs[d] = new INSCollocatedVelocityBcCoef(d,this,d_bc_coefs,d_traction_bc_type);
     }
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid

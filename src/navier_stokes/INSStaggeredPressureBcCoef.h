@@ -84,6 +84,7 @@ public:
     INSStaggeredPressureBcCoef(
         const INSStaggeredHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        TractionBcType traction_bc_type,
         bool homogeneous_bc=false);
 
     /*!

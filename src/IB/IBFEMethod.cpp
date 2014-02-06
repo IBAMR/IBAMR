@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "HierarchyDataOpsManager.h"
 #include "IBAMR_config.h"
 #include "IBFEMethod.h"
 #include "SAMRAI_config.h"
@@ -52,7 +53,6 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
-#include "HierarchyDataOpsManager.h"
 
 using namespace libMesh;
 
@@ -93,7 +93,6 @@ const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping
 const std::string IBFEMethod::        FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::     VELOCITY_SYSTEM_NAME = "IB velocity system";
 const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity system";
-const std::string IBFEMethod::       FF_DIL_SYSTEM_NAME = "IB FF-dil system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -374,9 +373,6 @@ IBFEMethod::preprocessIntegrateData(
     d_F_half_vecs     .resize(d_num_parts);
     d_F_IB_ghost_vecs .resize(d_num_parts);
 
-    d_FF_dil_systems  .resize(d_num_parts);
-    d_FF_dil_half_vecs.resize(d_num_parts);
-
     d_U_b_systems     .resize(d_num_parts);
     d_U_b_current_vecs.resize(d_num_parts);
     d_U_b_new_vecs    .resize(d_num_parts);
@@ -384,23 +380,20 @@ IBFEMethod::preprocessIntegrateData(
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_X_systems       [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
-        d_X_current_vecs  [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->current_local_solution.get());
-        d_X_new_vecs      [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
-        d_X_half_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
-        d_X_IB_ghost_vecs [part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
+        d_X_systems      [part] = &d_equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
+        d_X_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_X_systems       [part]->current_local_solution.get());
+        d_X_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_X_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_X_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
 
-        d_U_systems       [part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
-        d_U_current_vecs  [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
-        d_U_new_vecs      [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
-        d_U_half_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_U_systems      [part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
+        d_U_current_vecs [part] = dynamic_cast<PetscVector<double>*>(d_U_systems       [part]->current_local_solution.get());
+        d_U_new_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
+        d_U_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_U_current_vecs  [part]->clone().release());  // WARNING: must be manually deleted
 
-        d_F_systems       [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
-        d_F_half_vecs     [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->current_local_solution.get());
-        d_F_IB_ghost_vecs [part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
-
-        d_FF_dil_systems  [part] = &d_equation_systems[part]->get_system(  FF_DIL_SYSTEM_NAME);
-        d_FF_dil_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_FF_dil_systems  [part]->current_local_solution.get());
+        d_F_systems      [part] = &d_equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
+        d_F_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_systems       [part]->current_local_solution.get());
+        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
         if (d_constrained_part[part])
         {
@@ -441,8 +434,6 @@ IBFEMethod::postprocessIntegrateData(
         *d_U_systems[part]->solution = *d_U_current_vecs[part];
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
 
-        *d_FF_dil_systems[part]->solution = *d_FF_dil_half_vecs[part];
-
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
 
@@ -475,9 +466,6 @@ IBFEMethod::postprocessIntegrateData(
     d_F_systems       .clear();
     d_F_half_vecs     .clear();
     d_F_IB_ghost_vecs .clear();
-
-    d_FF_dil_systems  .clear();
-    d_FF_dil_half_vecs.clear();
 
     d_U_b_systems     .clear();
     d_U_b_current_vecs.clear();
@@ -635,8 +623,7 @@ IBFEMethod::computeLagrangianForce(
         }
         else
         {
-            computeProjectedDilationalStrain(*d_FF_dil_half_vecs[part], *d_X_half_vecs[part], data_time, part);
-            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_FF_dil_half_vecs[part], data_time, part);
+            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
     }
     return;
@@ -698,11 +685,10 @@ IBFEMethod::initializeFEData()
         updateCoordinateMapping(part);
 
         // Assemble systems.
-        System&      X_system = equation_systems->get_system<System>(       COORDS_SYSTEM_NAME);
-        System&     dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        System&      U_system = equation_systems->get_system<System>(     VELOCITY_SYSTEM_NAME);
-        System&      F_system = equation_systems->add_system<System>(        FORCE_SYSTEM_NAME);
-        System& FF_dil_system = equation_systems->add_system<System>(       FF_DIL_SYSTEM_NAME);
+        System&  X_system = equation_systems->get_system<System>(       COORDS_SYSTEM_NAME);
+        System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+        System&  U_system = equation_systems->get_system<System>(     VELOCITY_SYSTEM_NAME);
+        System&  F_system = equation_systems->add_system<System>(        FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
@@ -715,9 +701,6 @@ IBFEMethod::initializeFEData()
 
         F_system.assemble_before_solve = false;
         F_system.assemble();
-
-        FF_dil_system.assemble_before_solve = false;
-        FF_dil_system.assemble();
 
         if (d_constrained_part[part])
         {
@@ -957,99 +940,9 @@ IBFEMethod::computeConstraintForceDensity(
 }// computeConstraintForceDensity
 
 void
-IBFEMethod::computeProjectedDilationalStrain(
-    PetscVector<double>& FF_dil_vec,
-    PetscVector<double>& X_vec,
-    const double /*data_time*/,
-    const unsigned int part)
-{
-    if (d_constrained_part[part]) return;
-
-    // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
-
-    // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > FF_dil_rhs_vec = FF_dil_vec.zero_clone();
-    DenseVector<double> FF_dil_rhs_e;
-
-    // Extract the underlying solution data.
-    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
-    Vec X_global_vec = X_petsc_vec->vec();
-    Vec X_local_vec;
-    VecGhostGetLocalForm(X_global_vec, &X_local_vec);
-    double* X_local_soln;
-    VecGetArray(X_local_vec, &X_local_soln);
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& FF_dil_system = equation_systems->get_system(FF_DIL_SYSTEM_NAME);
-    const DofMap& FF_dil_dof_map = FF_dil_system.get_dof_map();
-    std::vector<unsigned int> FF_dil_dof_indices;
-    FEType FF_dil_fe_type = FF_dil_dof_map.variable_type(0);
-    AutoPtr<FEBase> FF_dil_fe(FEBase::build(dim, FF_dil_fe_type));
-    FF_dil_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<double>& FF_dil_JxW = FF_dil_fe->get_JxW();
-    const std::vector<std::vector<double> >& FF_dil_phi = FF_dil_fe->get_phi();
-
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-    FEType X_fe_type = X_dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_fe_type));
-    X_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<std::vector<VectorValue<double> > >& X_dphi = X_fe->get_dphi();
-
-    // Loop over the elements to compute the right-hand side vector.
-    TensorValue<double> FF;
-    boost::multi_array<double,2> X_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-    {
-        Elem* const elem = *el_it;
-        FF_dil_fe->reinit(elem);
-        FF_dil_dof_map.dof_indices(elem, FF_dil_dof_indices);
-        FF_dil_rhs_e.resize(FF_dil_dof_indices.size());
-        X_fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-        }
-        const unsigned int n_qp = qrule->n_points();
-        const unsigned int FF_dil_n_basis = FF_dil_dof_indices.size();
-        get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            jacobian(FF,qp,X_node,X_dphi);
-            const double FF_dil = pow(FF.det(),1.0/static_cast<double>(dim));
-            for (unsigned int k = 0; k < FF_dil_n_basis; ++k)
-            {
-                FF_dil_rhs_e(k) += FF_dil*FF_dil_phi[k][qp]*FF_dil_JxW[qp];
-            }
-        }
-
-        // Apply constraints (e.g., enforce periodic boundary conditions) and
-        // add the elemental contributions to the global vector.
-        FF_dil_dof_map.constrain_element_vector(FF_dil_rhs_e, FF_dil_dof_indices);
-        FF_dil_rhs_vec->add_vector(FF_dil_rhs_e, FF_dil_dof_indices);
-    }
-
-    VecRestoreArray(X_local_vec, &X_local_soln);
-    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-
-    // Solve for FF_dil.
-    d_fe_data_managers[part]->computeL2Projection(FF_dil_vec, *FF_dil_rhs_vec, FF_DIL_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
-    return;
-}// computeProjectedDilationalStrain
-
-void
 IBFEMethod::computeInteriorForceDensity(
     PetscVector<double>& G_vec,
     PetscVector<double>& X_vec,
-    PetscVector<double>& FF_dil_vec,
     const double data_time,
     const unsigned int part)
 {
@@ -1115,13 +1008,6 @@ IBFEMethod::computeInteriorForceDensity(
     double* X_local_soln;
     VecGetArray(X_local_vec, &X_local_soln);
 
-    PetscVector<double>* FF_dil_petsc_vec = dynamic_cast<PetscVector<double>*>(&FF_dil_vec);
-    Vec FF_dil_global_vec = FF_dil_petsc_vec->vec();
-    Vec FF_dil_local_vec;
-    VecGhostGetLocalForm(FF_dil_global_vec, &FF_dil_local_vec);
-    double* FF_dil_local_soln;
-    VecGetArray(FF_dil_local_vec, &FF_dil_local_soln);
-
     // First handle the stress contributions.
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
@@ -1154,17 +1040,6 @@ IBFEMethod::computeInteriorForceDensity(
         const DofMap& X_dof_map = X_system.get_dof_map();
         for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
 
-        System& FF_dil_system = equation_systems->get_system(FF_DIL_SYSTEM_NAME);
-        const DofMap& FF_dil_dof_map = FF_dil_system.get_dof_map();
-        std::vector<unsigned int> FF_dil_dof_indices;
-        FEType FF_dil_fe_type = FF_dil_dof_map.variable_type(0);
-        AutoPtr<FEBase> FF_dil_fe(FEBase::build(dim, FF_dil_fe_type));
-        FF_dil_fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& FF_dil_phi = FF_dil_fe->get_phi();
-        AutoPtr<FEBase> FF_dil_fe_face(FEBase::build(dim, FF_dil_fe_type));
-        FF_dil_fe_face->attach_quadrature_rule(qrule_face.get());
-        const std::vector<std::vector<double> >& FF_dil_phi_face = FF_dil_fe_face->get_phi();
-
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
         //
@@ -1175,9 +1050,7 @@ IBFEMethod::computeInteriorForceDensity(
         TensorValue<double> PP, FF, FF_inv_trans;
         VectorValue<double> F, F_qp, n;
         libMesh::Point X_qp;
-        double FF_dil_bar_qp;
         boost::multi_array<double,2> X_node;
-        boost::multi_array<double,1> FF_dil_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1189,21 +1062,14 @@ IBFEMethod::computeInteriorForceDensity(
                 dof_map.dof_indices(elem, dof_indices[d], d);
                 G_rhs_e[d].resize(dof_indices[d].size());
             }
-            FF_dil_fe->reinit(elem);
-            FF_dil_dof_map.dof_indices(elem, FF_dil_dof_indices);
             const unsigned int n_qp = qrule->n_points();
             const unsigned int n_basis = dof_indices[0].size();
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
-            get_values_for_interpolation(FF_dil_node, *FF_dil_petsc_vec, FF_dil_local_soln, FF_dil_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const libMesh::Point& s_qp = q_point[qp];
                 interpolate(X_qp,qp,X_node,phi);
                 jacobian(FF,qp,X_node,dphi);
-                const double FF_dil_qp = pow(FF.det(),1.0/static_cast<double>(dim));
-                interpolate(FF_dil_bar_qp,qp,FF_dil_node,FF_dil_phi);
-                FF *= FF_dil_bar_qp/FF_dil_qp;
-                if (dim == 2) FF(2,2) = 1.0;
 
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
@@ -1242,20 +1108,14 @@ IBFEMethod::computeInteriorForceDensity(
                 if (!compute_transmission_force) continue;
 
                 fe_face->reinit(elem, side);
-                FF_dil_fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
                 const unsigned int n_basis = dof_indices[0].size();
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
-                get_values_for_interpolation(FF_dil_node, *FF_dil_petsc_vec, FF_dil_local_soln, FF_dil_dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     const libMesh::Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(FF,qp,X_node,dphi_face);
-                    const double FF_dil_qp = pow(FF.det(),1.0/static_cast<double>(dim));
-                    interpolate(FF_dil_bar_qp,qp,FF_dil_node,FF_dil_phi_face);
-                    FF *= FF_dil_bar_qp/FF_dil_qp;
-                    if (dim == 2) FF(2,2) = 1.0;
                     F.zero();
 
                     // Compute the value of the first Piola-Kirchhoff stress
@@ -1462,9 +1322,6 @@ IBFEMethod::computeInteriorForceDensity(
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
-    VecRestoreArray(FF_dil_local_vec, &FF_dil_local_soln);
-    VecGhostRestoreLocalForm(FF_dil_global_vec, &FF_dil_local_vec);
-
     // Solve for G.
     d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
@@ -1637,7 +1494,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
                 // Skip Dirichlet and non-physical boundaries.
-                if (at_dirichlet_bdry || !at_physical_bdry) continue;
+                if (!at_dirichlet_bdry || !at_physical_bdry) continue;
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -1783,7 +1640,7 @@ IBFEMethod::spreadTetherForceDensity(
     }
 
     if (d_tethered_node_ids[part].empty()) return;
-    
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -2023,8 +1880,16 @@ IBFEMethod::imposeJumpConditions(
                 }
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
-                // Skip Dirichlet and non-physical boundaries.
-                if (at_dirichlet_bdry || !at_physical_bdry) continue;
+                // Skip non-physical boundaries.
+                if (!at_physical_bdry) continue;
+
+                // Determine whether we need to compute surface forces along
+                // this part of the physical boundary; if not, skip the present
+                // side.
+                const bool compute_transmission_force = (!d_split_forces &&  at_dirichlet_bdry) || (d_split_forces && !at_dirichlet_bdry);
+                const bool compute_pressure           = (!d_split_forces && !at_dirichlet_bdry);
+                const bool compute_surface_force      = (!d_split_forces && !at_dirichlet_bdry);
+                if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -2148,18 +2013,22 @@ IBFEMethod::imposeJumpConditions(
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
                     F.zero();
 
-                    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+                    if (compute_transmission_force)
                     {
-                        if (d_PK1_stress_fcn_data[part][k].fcn)
+                        for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
                         {
-                            // Compute the value of the first Piola-Kirchhoff
-                            // stress tensor at the quadrature point and compute
-                            // the corresponding force.
-                            d_PK1_stress_fcn_data[part][k].fcn(PP,FF,X_qp,s_qp,elem,PK1_stress_fcn_data[k],data_time,d_PK1_stress_fcn_data[part][k].ctx);
-                            F -= PP*normal_face[qp];
+                            if (d_PK1_stress_fcn_data[part][k].fcn)
+                            {
+                                // Compute the value of the first
+                                // Piola-Kirchhoff stress tensor at the
+                                // quadrature point and compute the
+                                // corresponding force.
+                                d_PK1_stress_fcn_data[part][k].fcn(PP,FF,X_qp,s_qp,elem,PK1_stress_fcn_data[k],data_time,d_PK1_stress_fcn_data[part][k].ctx);
+                                F -= PP*normal_face[qp];
+                            }
                         }
                     }
-                    if (d_lag_surface_pressure_fcn_data[part].fcn)
+                    if (compute_pressure && d_lag_surface_pressure_fcn_data[part].fcn)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
@@ -2167,7 +2036,7 @@ IBFEMethod::imposeJumpConditions(
                         F -= P*J*FF_inv_trans*normal_face[qp];
                     }
 
-                    if (d_lag_surface_force_fcn_data[part].fcn)
+                    if (compute_surface_force && d_lag_surface_force_fcn_data[part].fcn)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
@@ -2321,8 +2190,6 @@ IBFEMethod::commonConstructor(
     d_use_jump_conditions = false;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
-    d_FF_dil_fe_family = MONOMIAL;
-    d_FF_dil_fe_order = CONSTANT;
     d_quad_type = QGAUSS;
     d_quad_order = INVALID_ORDER;
     d_use_consistent_mass_matrix = true;
@@ -2455,9 +2322,6 @@ IBFEMethod::commonConstructor(
             os << "F_" << d;
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
-
-        System& FF_dil_system = equation_systems->add_system<System>(FF_DIL_SYSTEM_NAME);
-        FF_dil_system.add_variable("FF_dil", d_FF_dil_fe_order, d_FF_dil_fe_family);
     }
 
     // Reset the current time step interval.
@@ -2527,9 +2391,6 @@ IBFEMethod::getFromInput(
     if (db->isString("quad_type")) d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("quad_type"));
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix")) d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
-
-    if (db->isString("FF_dil_fe_family")) d_FF_dil_fe_family = Utility::string_to_enum<FEFamily>(db->getString("FF_dil_fe_family"));
-    if (db->isString("FF_dil_fe_order")) d_FF_dil_fe_order = Utility::string_to_enum<Order>(db->getString("FF_dil_fe_order"));
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))
