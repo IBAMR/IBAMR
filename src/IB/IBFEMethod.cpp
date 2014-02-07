@@ -143,23 +143,6 @@ IBFEMethod::getFEDataManager(
 }// getFEDataManager
 
 void
-IBFEMethod::registerTetheredNodes(
-    const std::set<libMesh::dof_id_type>& node_ids,
-    const double kappa,
-    unsigned int part)
-{
-    TBOX_ASSERT(part < d_num_parts);
-    d_has_tethered_nodes = true;
-    d_tethered_node_ids[part].insert(node_ids.begin(),node_ids.end());
-    for (std::set<libMesh::dof_id_type>::const_iterator cit = node_ids.begin();
-         cit != node_ids.end(); ++cit)
-    {
-        d_tethered_node_kappas[part][*cit] = kappa;
-    }
-    return;
-}// registerTetheredNodes
-
-void
 IBFEMethod::registerConstrainedPart(
     unsigned int part)
 {
@@ -664,10 +647,6 @@ IBFEMethod::spreadForce(
                 spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
             }
         }
-        if (!d_tethered_node_ids[part].empty())
-        {
-            spreadTetherForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
-        }
     }
     return;
 }// spreadForce
@@ -782,7 +761,6 @@ IBFEMethod::initializePatchHierarchy(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->reinitElementMappings();
-        d_reinit_tethered_node_set = true;
     }
 
     d_is_initialized = true;
@@ -836,7 +814,6 @@ IBFEMethod::endDataRedistribution(
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
             d_fe_data_managers[part]->reinitElementMappings();
-            d_reinit_tethered_node_set = true;
         }
     }
     return;
@@ -1088,9 +1065,11 @@ IBFEMethod::computeInteriorForceDensity(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Determine whether we are at a physical boundary and, if so,
-                // whether it is a Dirichlet boundary.
+                // Skip non-physical boundaries.
                 bool at_physical_bdry = !elem->neighbor(side);
+                if (!at_physical_bdry) continue;
+                
+                // Determine if this is a Dirichlet boundary.
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1098,12 +1077,8 @@ IBFEMethod::computeInteriorForceDensity(
                 }
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
-                // Skip non-physical boundaries.
-                if (!at_physical_bdry) continue;
-
-                // Determine whether we need to compute surface forces along
-                // this part of the physical boundary; if not, skip the present
-                // side.
+                // Determine if we need to compute surface forces along this
+                // part of the physical boundary; if not, skip the present side.
                 const bool compute_transmission_force = (d_split_forces && !at_dirichlet_bdry) || (!d_split_forces && at_dirichlet_bdry);
                 if (!compute_transmission_force) continue;
 
@@ -1131,7 +1106,7 @@ IBFEMethod::computeInteriorForceDensity(
                     // normal part of the force.  This has the effect of
                     // projecting the tangential part of the surface force (but
                     // not the normal part) onto the interior force density.
-                    if (d_split_forces && d_use_jump_conditions && !at_dirichlet_bdry)
+                    if (d_use_jump_conditions && d_split_forces && !at_dirichlet_bdry)
                     {
                         tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
                         n = (FF_inv_trans*normal_face[qp]).unit();
@@ -1236,9 +1211,11 @@ IBFEMethod::computeInteriorForceDensity(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Determine whether we are at a physical boundary and, if so,
-                // whether it is a Dirichlet boundary.
+                // Skip non-physical boundaries.
                 bool at_physical_bdry = !elem->neighbor(side);
+                if (!at_physical_bdry) continue;
+                
+                // Determine if this is a Dirichlet boundary.
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
@@ -1246,15 +1223,10 @@ IBFEMethod::computeInteriorForceDensity(
                 }
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
-                // Skip non-physical boundaries.
-                if (!at_physical_bdry) continue;
-
-                // Determine whether we need to compute surface forces along
-                // this part of the physical boundary; if not, skip the present
-                // side.
-                const bool compute_pressure      = (!d_split_forces && !at_dirichlet_bdry);
-                const bool compute_surface_force = (!d_split_forces && !at_dirichlet_bdry);
-                if (!(compute_pressure || compute_surface_force)) continue;
+                // Determine if we need to compute surface forces along this
+                // part of the physical boundary; if not, skip the present side.
+                const bool compute_transmission_force = (!d_split_forces && !at_dirichlet_bdry);
+                if (!compute_transmission_force) continue;
 
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
@@ -1269,7 +1241,7 @@ IBFEMethod::computeInteriorForceDensity(
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
                     F.zero();
 
-                    if (compute_pressure && d_lag_surface_pressure_fcn_data[part].fcn)
+                    if (d_lag_surface_pressure_fcn_data[part].fcn)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and add the corresponding force to the
@@ -1278,7 +1250,7 @@ IBFEMethod::computeInteriorForceDensity(
                         F -= P*J*FF_inv_trans*normal_face[qp];
                     }
 
-                    if (compute_surface_force && d_lag_surface_force_fcn_data[part].fcn)
+                    if (d_lag_surface_force_fcn_data[part].fcn)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and add the corresponding force to
@@ -1291,7 +1263,7 @@ IBFEMethod::computeInteriorForceDensity(
                     // normal part of the force.  This has the effect of
                     // projecting the tangential part of the surface force (but
                     // not the normal part) onto the interior force density.
-                    if (d_split_forces && d_use_jump_conditions && !at_dirichlet_bdry)
+                    if (d_use_jump_conditions && d_split_forces && !at_dirichlet_bdry)
                     {
                         n = (FF_inv_trans*normal_face[qp]).unit();
                         F = (F*n)*n;
@@ -1483,18 +1455,18 @@ IBFEMethod::spreadTransmissionForceDensity(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Determine whether we are at a physical boundary and, if so,
-                // whether it is a Dirichlet boundary.
+                // Skip non-physical boundaries.
                 bool at_physical_bdry = !elem->neighbor(side);
+                if (!at_physical_bdry) continue;
+                
+                // Skip Dirichlet boundaries.
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
                     at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
-
-                // Skip Dirichlet and non-physical boundaries.
-                if (!at_dirichlet_bdry || !at_physical_bdry) continue;
+                if (at_dirichlet_bdry) continue;
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -1548,7 +1520,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                         d_lag_surface_force_fcn_data[part].fcn(F_s,FF,X_qp,s_qp,elem,side,lag_surface_force_fcn_data,data_time,d_lag_surface_force_fcn_data[part].ctx);
                         F += F_s*JxW_face[qp];
                     }
-
+                    
                     const int idx = NDIM*qp_offset;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1591,131 +1563,6 @@ IBFEMethod::spreadTransmissionForceDensity(
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
 }// spreadTransmissionForceDensity
-
-void
-IBFEMethod::computeLocalTetheredNodes()
-{
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_tethered_nodes_local[part].clear();
-        const std::vector<std::vector<Elem*> >& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
-        const int level_num = d_fe_data_managers[part]->getLevelNumber();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-        d_tethered_nodes_local[part].resize(active_patch_element_map.size());
-        int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-        {
-            const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
-            std::set<Node*>& tethered_nodes_patch = d_tethered_nodes_local[part][local_patch_num];
-            const int num_active_patch_elems = patch_elems.size();
-            for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            {
-                Elem* const elem = patch_elems[e_idx];
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    Node* n = elem->get_node(k);
-                    if (d_tethered_node_ids[part].find(n->id()) != d_tethered_node_ids[part].end())
-                    {
-                        tethered_nodes_patch.insert(n);
-                    }
-                }
-            }
-        }
-    }
-    return;
-}// computeLocalTetheredNodes
-
-void
-IBFEMethod::spreadTetherForceDensity(
-    const int f_data_idx,
-    PetscVector<double>& X_ghost_vec,
-    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const double data_time,
-    const unsigned int part)
-{
-    if (d_reinit_tethered_node_set)
-    {
-        computeLocalTetheredNodes();
-        d_reinit_tethered_node_set = false;
-    }
-
-    if (d_tethered_node_ids[part].empty()) return;
-
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    // Make a copy of the Eulerian data.
-    Pointer<Variable<NDIM> > f_var;
-    var_db->mapIndexToVariable(f_data_idx, f_var);
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
-    Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
-
-    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    const unsigned int X_sys_num = X_system.number();
-    const int level_num = d_fe_data_managers[part]->getLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-    {
-        // The relevant collection of nodes.
-        const std::set<Node*>& patch_nodes = d_tethered_nodes_local[part][local_patch_num];
-        const int num_tethered_nodes = patch_nodes.size();
-        if (num_tethered_nodes == 0) continue;
-
-        // Loop over the nodes and compute the values to be spread and the
-        // positions of the nodes.
-        std::vector<double> F_node(NDIM*num_tethered_nodes,0.0);
-        std::vector<double> X_node(NDIM*num_tethered_nodes,0.0);
-        unsigned int k = 0;
-        for (std::set<Node*>::const_iterator cit = patch_nodes.begin(); cit != patch_nodes.end(); ++cit, ++k)
-        {
-            const Node* const n = *cit;
-            TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
-            const libMesh::Point& s = *n;
-            const double kappa = d_tethered_node_kappas[part][n->id()];
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const int X_dof_index = n->dof_number(X_sys_num,d,0);
-                X_node[NDIM*k+d] = X_ghost_vec(X_dof_index);
-                F_node[NDIM*k+d] = kappa*(s(d) - X_node[NDIM*k+d]);
-            }
-        }
-
-        // Spread the boundary forces to the grid.
-        const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
-        const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        LEInteractor::spread(f_data, F_node, NDIM, X_node, NDIM, patch, spread_box, spread_kernel_fcn);
-        if (f_phys_bdry_op)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-        }
-    }
-
-    // Accumulate data.
-    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
-
-    return;
-}// spreadTetherForceDensity
 
 void
 IBFEMethod::imposeJumpConditions(
@@ -1870,27 +1717,19 @@ IBFEMethod::imposeJumpConditions(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Determine whether we are at a physical boundary and, if so,
-                // whether it is a Dirichlet boundary.
+                // Skip non-physical boundaries.
                 bool at_physical_bdry = !elem->neighbor(side);
+                if (!at_physical_bdry) continue;
+                
+                // Skip Dirichlet boundaries.
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
                     at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
                 const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
-
-                // Skip non-physical boundaries.
-                if (!at_physical_bdry) continue;
-
-                // Determine whether we need to compute surface forces along
-                // this part of the physical boundary; if not, skip the present
-                // side.
-                const bool compute_transmission_force = (!d_split_forces &&  at_dirichlet_bdry) || (d_split_forces && !at_dirichlet_bdry);
-                const bool compute_pressure           = (!d_split_forces && !at_dirichlet_bdry);
-                const bool compute_surface_force      = (!d_split_forces && !at_dirichlet_bdry);
-                if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
-
+                if (at_dirichlet_bdry) continue;
+                
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);
                 const unsigned int n_node_side = side_elem->n_nodes();
@@ -1975,7 +1814,9 @@ IBFEMethod::imposeJumpConditions(
 
                 // If there are no intersection points, then continue to the
                 // next side.
+                pout << "looking for intersection point...\n";
                 if (intersection_ref_coords.empty()) continue;
+                pout << "found intersection point!\n";
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
@@ -2013,22 +1854,18 @@ IBFEMethod::imposeJumpConditions(
                     tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
                     F.zero();
 
-                    if (compute_transmission_force)
+                    for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
                     {
-                        for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
+                        if (d_PK1_stress_fcn_data[part][k].fcn)
                         {
-                            if (d_PK1_stress_fcn_data[part][k].fcn)
-                            {
-                                // Compute the value of the first
-                                // Piola-Kirchhoff stress tensor at the
-                                // quadrature point and compute the
-                                // corresponding force.
-                                d_PK1_stress_fcn_data[part][k].fcn(PP,FF,X_qp,s_qp,elem,PK1_stress_fcn_data[k],data_time,d_PK1_stress_fcn_data[part][k].ctx);
-                                F -= PP*normal_face[qp];
-                            }
+                            // Compute the value of the first Piola-Kirchhoff
+                            // stress tensor at the quadrature point and compute
+                            // the corresponding force.
+                            d_PK1_stress_fcn_data[part][k].fcn(PP,FF,X_qp,s_qp,elem,PK1_stress_fcn_data[k],data_time,d_PK1_stress_fcn_data[part][k].ctx);
+                            F -= PP*normal_face[qp];
                         }
-                    }
-                    if (compute_pressure && d_lag_surface_pressure_fcn_data[part].fcn)
+                    }                    
+                    if (d_lag_surface_pressure_fcn_data[part].fcn)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
@@ -2036,7 +1873,7 @@ IBFEMethod::imposeJumpConditions(
                         F -= P*J*FF_inv_trans*normal_face[qp];
                     }
 
-                    if (compute_surface_force && d_lag_surface_force_fcn_data[part].fcn)
+                    if (d_lag_surface_force_fcn_data[part].fcn)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
@@ -2194,13 +2031,6 @@ IBFEMethod::commonConstructor(
     d_quad_order = INVALID_ORDER;
     d_use_consistent_mass_matrix = true;
     d_do_log = false;
-
-    // By default no nodes are tethered in place.
-    d_has_tethered_nodes = false;
-    d_reinit_tethered_node_set = false;
-    d_tethered_node_ids.resize(d_num_parts);
-    d_tethered_nodes_local.resize(d_num_parts);
-    d_tethered_node_kappas.resize(d_num_parts);
 
     // Indicate that all of the parts are unconstrained by default and set some
     // default values.

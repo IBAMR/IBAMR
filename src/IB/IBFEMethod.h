@@ -98,20 +98,6 @@ public:
         unsigned int part=0) const;
 
     /*!
-     * Indicate that collection of nodes that are tethered to their reference
-     * position.
-     *
-     * \note If tethered node IDs have already been registered with the solver
-     * for the specified part, the supplied set of nodes will be inserted into
-     * the collection of tethered nodes.
-     */
-    void
-    registerTetheredNodes(
-        const std::set<libMesh::dof_id_type>& node_ids,
-        double kappa,
-        unsigned int part=0);
-
-    /*!
      * Indicate that a part is constrained.
      */
     void
@@ -665,23 +651,6 @@ protected:
         unsigned int part);
 
     /*!
-     * \brief Get the local tethered nodes.
-     */
-    void
-    computeLocalTetheredNodes();
-
-    /*!
-     * \brief Spread the tether point force density.
-     */
-    void
-    spreadTetherForceDensity(
-        int f_data_idx,
-        libMesh::PetscVector<double>& X_ghost_vec,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        double data_time,
-        unsigned int part);
-
-    /*!
      * \brief Impose jump conditions determined from the interior and
      * transmission force densities along the physical boundary of the
      * Lagrangian structure.
@@ -759,14 +728,6 @@ protected:
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
     bool d_use_consistent_mass_matrix;
-
-    /*
-     * Data related to tethered nodes.
-     */
-    bool d_has_tethered_nodes, d_reinit_tethered_node_set;
-    std::vector<std::set<libMesh::dof_id_type> > d_tethered_node_ids;
-    std::vector<std::map<libMesh::dof_id_type,double> > d_tethered_node_kappas;
-    std::vector<std::vector<std::set<libMesh::Node*> > > d_tethered_nodes_local;
 
     /*
      * Data related to handling constrained body constraints.

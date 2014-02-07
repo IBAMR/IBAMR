@@ -57,13 +57,12 @@
 
 // Function prototypes
 void
-output_data(
+postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
-    const int iteration_num,
     const double loop_time,
-    const string& data_dump_dirname);
+    ostream& C_D_stream,
+    ostream& C_L_stream);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -103,14 +102,6 @@ main(
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
-        const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
-        const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
-        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
-        {
-            Utilities::recursiveMkdir(postproc_data_dump_dirname);
-        }
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -227,6 +218,14 @@ main(
             silo_data_writer->writePlotData(iteration_num, loop_time);
         }
 
+        // Streams to write-out data.
+        std::ofstream C_D_stream, C_L_stream;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            C_D_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
+            C_L_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+        }
+        
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -273,12 +272,15 @@ main(
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator, ib_method_ops->getLDataManager(),
-                            iteration_num, loop_time, postproc_data_dump_dirname);
-            }
+            postprocess_data(patch_hierarchy, ib_method_ops->getLDataManager(), loop_time, C_D_stream, C_L_stream);
+
+        }
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            C_D_stream.close();
+            C_L_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -293,47 +295,35 @@ main(
 }// main
 
 void
-output_data(
+postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
-    const int iteration_num,
     const double loop_time,
-    const string& data_dump_dirname)
+    ostream& C_D_stream,
+    ostream& C_L_stream)
 {
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
+    // Compute lift and drag forces.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getVec();
-    Vec X_lag_vec;
-    VecDuplicate(X_petsc_vec, &X_lag_vec);
-    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-    file_name = data_dump_dirname + "/" + "X.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-    VecView(X_lag_vec, viewer);
-    PetscViewerDestroy(&viewer);
-    VecDestroy(&X_lag_vec);
+    Pointer<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+    const boost::multi_array_ref<double,2>& F_arr = *F_data->getLocalFormVecArray();
+    double F[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d) F[d] = 0.0;
+    for (unsigned int k = 0; k < F_data->getLocalNodeCount(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            F[d] += F_arr[k][d];
+        }
+    }
+    SAMRAI_MPI::sumReduction(F,NDIM);
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+        C_D_stream.precision(12);
+        C_D_stream.setf(ios::fixed,ios::floatfield);
+        C_D_stream << loop_time << " " << -F[0] << endl;
+        C_L_stream.precision(12);
+        C_L_stream.setf(ios::fixed,ios::floatfield);
+        C_L_stream << loop_time << " " << -F[1] << endl;
+    }
     return;
-}// output_data
+}// postprocess_data
