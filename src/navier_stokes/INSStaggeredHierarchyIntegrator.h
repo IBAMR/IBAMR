@@ -211,6 +211,31 @@ public:
     void
     regridHierarchy();
 
+    /*!
+     * Setup solution and RHS vectors using state data maintained by the
+     * integrator.
+     */
+    void
+    setupSolverVectors(
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& sol_vec,
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& rhs_vec,
+        double current_time,
+        double new_time,
+        int cycle_num);
+
+    /*!
+     * Reset solution and RHS vectors using state data maintained by the
+     * integrator, and copy the solution data into the state data maintained by
+     * the integrator.
+     */
+    void
+    resetSolverVectors(
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& sol_vec,
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& rhs_vec,
+        double current_time,
+        double new_time,
+        int cycle_num);
+    
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -316,6 +341,14 @@ private:
     void
     regridProjection();
 
+    /*!
+     * Determine the convective time stepping type for the current time step and
+     * cycle number.
+     */
+    TimeSteppingType
+    getConvectiveTimeSteppingType(
+        int cycle_num);
+    
     /*!
      * Hierarchy operations objects.
      */

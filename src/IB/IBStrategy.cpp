@@ -146,6 +146,44 @@ IBStrategy::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
+IBStrategy::createSolverVecs(
+    Vec& /*X_vec*/,
+    Vec& /*F_vec*/,
+    int /*level_num*/)
+{
+    TBOX_ERROR("IBStrategy::createSolverVecs(): unimplemented\n");
+    return;
+}// createSolverVecs
+
+void
+IBStrategy::setupSolverVecs(
+    Vec& /*X_vec*/,
+    Vec& /*F_vec*/,
+    int /*level_num*/)
+{
+    TBOX_ERROR("IBStrategy::setupSolverVecs(): unimplemented\n");
+    return;
+}// setupSolverVecs
+
+void
+IBStrategy::setSolution(
+    Vec& /*X_vec*/,
+    int /*level_num*/)
+{
+    TBOX_ERROR("IBStrategy::setSolution(): unimplemented\n");
+    return;
+}// setSolution
+
+void
+IBStrategy::computeResidual(
+    Vec& /*F_vec*/,
+    int /*level_num*/)
+{
+    TBOX_ERROR("IBStrategy::computeResidual(): unimplemented\n");
+    return;
+}// computeResidual
+
+void
 IBStrategy::setUseFixedLEOperators(
     bool use_fixed_coupling_ops)
 {
@@ -161,14 +199,14 @@ IBStrategy::updateFixedLEOperators()
 }// updateFixedLEOperators
 
 void
-IBStrategy::getLEOperatorPositions(
+IBStrategy::getLEOperatorPositionVec(
     Vec& /*X_vec*/,
     int /*level_num*/,
     double /*data_time*/)
 {
-    TBOX_ERROR("IBStrategy::getLEOperatorPositions(): unimplemented\n");
+    TBOX_ERROR("IBStrategy::getLEOperatorPositionVec(): unimplemented\n");
     return;
-}// getLEOperatorPositions
+}// getLEOperatorPositionVec
 
 void
 IBStrategy::computeLagrangianForceJacobianNonzeroStructure(

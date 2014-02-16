@@ -355,6 +355,16 @@ public:
         int cycle_num=0) = 0;
 
     /*!
+     * Method to skip a cycle of the time integration scheme (e.g. for cases in
+     * which time integration is handled by another class).
+     */
+    void
+    skipCycle(
+        double current_time,
+        double new_time,
+        int cycle_num=0);
+
+    /*!
      * Virtual method to clean up data following call(s) to
      * integrateHierarchy().
      *

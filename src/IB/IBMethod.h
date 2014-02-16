@@ -185,6 +185,43 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+    
+    /*!
+     * Create solution and rhs data on the specified level of the patch
+     * hierarchy.
+     */
+    void
+    createSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec,
+        int level_num);
+
+    /*!
+     * Setup solution and rhs data on the specified level of the patch
+     * hierarchy.
+     */
+    void
+    setupSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec,
+        int level_num);
+
+    /*!
+     * Set the current value of the solution vector on the specified level of
+     * the patch hierarchy.
+     */
+    void
+    setSolution(
+        Vec& X_vec,
+        int level_num);
+
+    /*!
+     * Compute the residual on the specified level of the patch hierarchy.
+     */
+    void
+    computeResidual(
+        Vec& F_vec,
+        int level_num);
 
     /*!
      * Update the positions used for the "fixed" interpolation and spreading

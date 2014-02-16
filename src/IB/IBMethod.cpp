@@ -471,6 +471,75 @@ IBMethod::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
+IBMethod::createSolverVecs(
+    Vec& X_vec,
+    Vec& F_vec,
+    const int level_num)
+{
+#if !defined(NDEBUG)
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    PetscErrorCode ierr;
+    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &X_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &F_vec);  IBTK_CHKERRQ(ierr);
+    return;
+}// createSolverVecs
+
+void
+IBMethod::setupSolverVecs(
+    Vec& X_vec,
+    Vec& F_vec,
+    const int level_num)
+{
+#if !defined(NDEBUG)
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    PetscErrorCode ierr;
+    ierr = VecCopy(d_X_new_data[level_num]->getVec(), X_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecZeroEntries(F_vec);  IBTK_CHKERRQ(ierr);
+    return;
+}// setupSolverVecs
+
+void
+IBMethod::setSolution(
+    Vec& X_vec,
+    int level_num)
+{
+#if !defined(NDEBUG)
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    PetscErrorCode ierr;
+    ierr = VecCopy(X_vec, d_X_new_data[level_num]->getVec());  IBTK_CHKERRQ(ierr);
+    d_X_new_needs_ghost_fill = true;
+    d_X_half_needs_ghost_fill = true;
+    d_X_half_needs_reinit = true;
+    return;
+}// setSolution
+
+void
+IBMethod::computeResidual(
+    Vec& F_vec,
+    int level_num)
+{
+#if !defined(NDEBUG)
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    const double dt = d_new_time-d_current_time;
+    PetscErrorCode ierr;    
+    ierr = VecCopy(d_U_half_data[level_num]->getVec(), F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAXPBYPCZ(F_vec, 1.0, -1.0, dt, d_X_new_data[level_num]->getVec(), d_X_current_data[level_num]->getVec());  IBTK_CHKERRQ(ierr);
+    return;
+}// computeResidual
+    
+void
 IBMethod::updateFixedLEOperators()
 {
     if (!d_use_fixed_coupling_ops) return;

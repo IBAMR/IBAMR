@@ -183,6 +183,55 @@ public:
         int num_cycles);
 
     /*!
+     * Create solution and rhs data on the specified level of the patch
+     * hierarchy.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    createSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec,
+        int level_num);
+
+    /*!
+     * Setup solution and rhs data on the specified level of the patch
+     * hierarchy.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    setupSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec,
+        int level_num);
+
+    /*!
+     * Set the current value of the solution vector on the specified level of
+     * the patch hierarchy.
+     * 
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    setSolution(
+        Vec& X_vec,
+        int level_num);
+
+    /*!
+     * Compute the residual on the specified level of the patch hierarchy.
+     * 
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    computeResidual(
+        Vec& F_vec,
+        int level_num);
+
+    /*!
      * Indicate whether "fixed" interpolation and spreading operators should be
      * used during Lagrangian-Eulerian interaction.
      */
@@ -208,7 +257,7 @@ public:
      * exception.
      */
     virtual void
-    getLEOperatorPositions(
+    getLEOperatorPositionVec(
         Vec& X_vec,
         int level_num,
         double data_time);
