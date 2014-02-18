@@ -53,7 +53,7 @@ $(top_srcdir)/src/IB/IBEulerianSourceFunction.cpp \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
-$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+$(top_srcdir)/src/IB/IBImplicitStrategy.cpp \
 $(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
@@ -145,7 +145,7 @@ $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
-$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
+$(top_srcdir)/src/IB/IBImplicitStrategy.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec-inl.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \

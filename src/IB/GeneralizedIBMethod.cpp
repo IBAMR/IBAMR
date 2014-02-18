@@ -496,27 +496,6 @@ GeneralizedIBMethod::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
-GeneralizedIBMethod::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& /*d_nnz*/,
-    std::vector<int>& /*o_nnz*/)
-{
-    TBOX_ERROR("GeneralizedIBMethod::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
-    return;
-}// computeLagrangianForceJacobianNonzeroStructure
-
-void
-GeneralizedIBMethod::computeLagrangianForceJacobian(
-    Mat& /*J_mat*/,
-    MatAssemblyType /*assembly_type*/,
-    double /*X_coef*/,
-    double /*U_coef*/,
-    double /*data_time*/)
-{
-    TBOX_ERROR("GeneralizedIBMethod::computeLagrangianForceJacobian(): unimplemented\n");
-    return;
-}// computeLagrangianForceJacobian
-
-void
 GeneralizedIBMethod::spreadForce(
     const int f_data_idx,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -582,21 +561,6 @@ GeneralizedIBMethod::spreadForce(
     getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
 }// spreadForce
-
-void
-GeneralizedIBMethod::applyLagrangianForceJacobian(
-    int /*f_data_idx*/,
-    RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-    int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    double /*data_time*/,
-    Mat& /*J_mat*/)
-{
-    TBOX_ERROR("GeneralizedIBMethod::applyLagrangianForceJacobian(): unimplemented\n");
-    return;
-}// applyLagrangianForceJacobian
 
 void
 GeneralizedIBMethod::initializePatchHierarchy(

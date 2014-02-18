@@ -61,8 +61,7 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBImplicitStaggeredPETScLevelSolver.h"
-#include "ibamr/IBStrategy.h"
+#include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/ibamr_enums.h"
@@ -105,14 +104,15 @@ static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<IBStrategy> ib_method_ops,
+    Pointer<IBImplicitStrategy> ib_implicit_ops,
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
-    : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
+    : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
+      d_ib_implicit_ops(ib_implicit_ops)
 {
     // Setup IB ops object to use "fixed" Lagrangian-Eulerian coupling
     // operators.
-    d_ib_method_ops->setUseFixedLEOperators(true);
+    d_ib_implicit_ops->setUseFixedLEOperators(true);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -150,7 +150,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     }
 
     // Initialize IB data.
-    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
+    d_ib_implicit_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Initialize the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
@@ -170,7 +170,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // NOTE: The velocity should already have been interpolated to the
     // curvilinear mesh and should not need to be re-interpolated.
     if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-    d_ib_method_ops->eulerStep(current_time, new_time);
+    d_ib_implicit_ops->eulerStep(current_time, new_time);
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -189,23 +189,24 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
+    int n_local;
     
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double half_time = current_time+0.5*(new_time-current_time);
+//  const double half_time = current_time+0.5*(new_time-current_time);
     
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
     Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
     Pointer<VariableContext> new_ctx     = ins_hier_integrator->getNewContext();
 
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();  // XXXX: This should be made more generic.
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     
     Pointer<Variable<NDIM> > u_var = ins_hier_integrator->getVelocityVariable();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
+//  const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, new_ctx);
+//  const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, new_ctx);
 
     Pointer<Variable<NDIM> > p_var = ins_hier_integrator->getPressureVariable();
 //  const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, current_ctx);
@@ -233,10 +234,12 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Setup Lagrangian vectors used in solving the implicit IB equations.
     Vec lag_sol_petsc_vec, lag_rhs_petsc_vec;
-    d_ib_method_ops->createSolverVecs(lag_sol_petsc_vec, lag_rhs_petsc_vec, d_hierarchy->getFinestLevelNumber());
-    d_ib_method_ops->setupSolverVecs(lag_sol_petsc_vec, lag_rhs_petsc_vec, d_hierarchy->getFinestLevelNumber());
-    
-    d_ib_method_ops->updateFixedLEOperators();
+    d_ib_implicit_ops->createSolverVecs(lag_sol_petsc_vec, lag_rhs_petsc_vec);
+    d_ib_implicit_ops->setupSolverVecs(lag_sol_petsc_vec, lag_rhs_petsc_vec);
+
+    // Indicate that the current approximation to position of the structure
+    // should be used for Lagrangian-Eulerian coupling.
+    d_ib_implicit_ops->updateFixedLEOperators();
 
     // Setup multi-vec objects to store the composite solution and
     // right-hand-side vectors.
@@ -247,44 +250,73 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     Vec rhs_petsc_vecs[] = { eul_rhs_petsc_vec , lag_rhs_petsc_vec };
 
     Vec composite_sol_petsc_vec, composite_rhs_petsc_vec, composite_res_petsc_vec;
-    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, sol_petsc_vecs, &composite_sol_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, rhs_petsc_vecs, &composite_rhs_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(composite_rhs_petsc_vec, &composite_res_petsc_vec); IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, sol_petsc_vecs, &composite_sol_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMultiVec(PETSC_COMM_WORLD, 2, rhs_petsc_vecs, &composite_rhs_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(composite_rhs_petsc_vec, &composite_res_petsc_vec);  IBTK_CHKERRQ(ierr);
     
     // Solve the implicit IB equations.
-    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    d_ib_implicit_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
        
     SNES snes;
-    ierr = SNESCreate(PETSC_COMM_WORLD, &snes); IBTK_CHKERRQ(ierr);
-    ierr = SNESSetFunction(snes, composite_res_petsc_vec, SNESFunction_SAMRAI, this); IBTK_CHKERRQ(ierr);
-    ierr = SNESSetOptionsPrefix(snes, "ib_"); IBTK_CHKERRQ(ierr);
-    ierr = SNESSetFromOptions(snes); IBTK_CHKERRQ(ierr);
-    ierr = SNESSolve(snes, composite_rhs_petsc_vec, composite_sol_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = SNESDestroy(&snes); IBTK_CHKERRQ(ierr);
+    ierr = SNESCreate(PETSC_COMM_WORLD, &snes);  IBTK_CHKERRQ(ierr);
+    ierr = SNESSetFunction(snes, composite_res_petsc_vec, compositeIBFunction_SAMRAI, this);  IBTK_CHKERRQ(ierr);
+    ierr = SNESSetOptionsPrefix(snes, "ib_");  IBTK_CHKERRQ(ierr);
 
-    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    Mat jac;    
+    ierr = VecGetLocalSize(composite_sol_petsc_vec, &n_local); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, this, &jac);  IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(jac, MATOP_MULT, reinterpret_cast<void(*)(void)>(compositeIBJacobianApply_SAMRAI)); IBTK_CHKERRQ(ierr);
+    ierr = SNESSetJacobian(snes, jac, jac, compositeIBJacobianSetup_SAMRAI, this); IBTK_CHKERRQ(ierr);
+
+    Mat schur;
+    ierr = VecGetLocalSize(lag_sol_petsc_vec, &n_local); IBTK_CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, this, &schur);  IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(jac, MATOP_MULT, reinterpret_cast<void(*)(void)>(lagrangianSchurApply_SAMRAI)); IBTK_CHKERRQ(ierr);
+    ierr = KSPCreate(PETSC_COMM_WORLD, &d_schur_solver); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetOperators(d_schur_solver, schur, schur, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+
+    KSP snes_ksp;
+    ierr = SNESGetKSP(snes, &snes_ksp);  IBTK_CHKERRQ(ierr);
+    ierr = KSPSetType(snes_ksp, KSPFGMRES);  IBTK_CHKERRQ(ierr);
+    PC snes_pc;
+    ierr = KSPGetPC(snes_ksp, &snes_pc);  IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(snes_pc, PCSHELL); IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetContext(snes_pc, this); IBTK_CHKERRQ(ierr);
+    ierr = PCShellSetApply(snes_pc, compositeIBPCApply_SAMRAI); IBTK_CHKERRQ(ierr);
+
+    ierr = SNESSetFromOptions(snes);  IBTK_CHKERRQ(ierr);
+    ierr = SNESSolve(snes, composite_rhs_petsc_vec, composite_sol_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = SNESDestroy(&snes);  IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&jac);  IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&schur);  IBTK_CHKERRQ(ierr);
+    ierr = KSPDestroy(&d_schur_solver);  IBTK_CHKERRQ(ierr);
+
+    d_ib_implicit_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
     
     // Reset Eulerian solver vectors and Eulerian state data.
     ins_hier_integrator->resetSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
     
     // Interpolate the Eulerian velocity to the curvilinear mesh.
+    d_ib_implicit_ops->setUpdatedPosition(lag_sol_petsc_vec);
+#if 0
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    d_ib_implicit_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
 
-    // Compute an updated prediction of the updated positions of the Lagrangian
+    // Compute the final value of the updated positions of the Lagrangian
     // structure.
-    d_ib_method_ops->midpointStep(current_time, new_time);
+    d_ib_implicit_ops->midpointStep(current_time, new_time);
+#endif
 
     // Deallocate temporary data.
-    ierr = VecDestroy(&composite_sol_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&composite_rhs_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&composite_res_petsc_vec); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&composite_sol_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&composite_rhs_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&composite_res_petsc_vec);  IBTK_CHKERRQ(ierr);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_sol_petsc_vec);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_rhs_petsc_vec);
     eul_rhs_vec->freeVectorComponents();
-    ierr = VecDestroy(&lag_sol_petsc_vec); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&lag_rhs_petsc_vec); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&lag_sol_petsc_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&lag_rhs_petsc_vec);  IBTK_CHKERRQ(ierr);
     
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
@@ -310,7 +342,7 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
     if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
+    d_ib_implicit_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -351,7 +383,7 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Deallocate IB data.
-    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+    d_ib_implicit_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -421,25 +453,23 @@ IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
 }// getFromRestart
 
 PetscErrorCode
-IBImplicitStaggeredHierarchyIntegrator::SNESFunction_SAMRAI(
+IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction_SAMRAI(
     SNES snes,
     Vec x,
     Vec f,
     void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
-    return ib_integrator->SNESFunction(snes, x, f);
-}// SNESFunction_SAMRAI
+    return ib_integrator->compositeIBFunction(snes, x, f);
+}// compositeIBFunction_SAMRAI
 
 PetscErrorCode
-IBImplicitStaggeredHierarchyIntegrator::SNESFunction(
+IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(
     SNES /*snes*/,
     Vec x,
     Vec f)
 {
     PetscErrorCode ierr;
-    const int level_num = d_hierarchy->getFinestLevelNumber();
-
     const double half_time = d_integrator_time+0.5*d_current_dt;
     
     Vec* component_sol_vecs;
@@ -461,30 +491,217 @@ IBImplicitStaggeredHierarchyIntegrator::SNESFunction(
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
     
     Vec X = component_sol_vecs[1];
-    Vec F = component_rhs_vecs[1];
-    d_ib_method_ops->setSolution(X, level_num);
+    Vec R = component_rhs_vecs[1];
 
     // Evaluate the Eulerian terms.
     d_stokes_op->apply(*u, *f_u);
 
-    d_ib_method_ops->computeLagrangianForce(half_time);
+    d_ib_implicit_ops->setUpdatedPosition(X);
+    d_ib_implicit_ops->computeLagrangianForce(half_time);
     if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+    d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0])); CHKERRQ(ierr);
     
     // Evaluate the Lagrangian terms.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
-    d_ib_method_ops->computeResidual(F, level_num);    
+    d_ib_implicit_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    d_ib_implicit_ops->computeResidual(R);    
 
     // Ensure that PETSc sees that the state of the RHS vector has changed.
     // This is a nasty hack.
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f)); CHKERRQ(ierr);
+    return ierr;
+}// compositeIBFunction
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_SAMRAI(
+    SNES snes,
+    Vec x,
+    Mat* A,
+    Mat* B,
+    MatStructure* mat_structure,
+    void* ctx)
+{
+    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    return ib_integrator->compositeIBJacobianSetup(snes, x, A, B, mat_structure);
+}// compositeIBJacobianSetup_SAMRAI
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
+    SNES /*snes*/,
+    Vec x,
+    Mat* A,
+    Mat* /*B*/,
+    MatStructure* /*mat_structure*/)
+{
+    PetscErrorCode ierr;
+    ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    Vec* component_sol_vecs;
+    ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs); IBTK_CHKERRQ(ierr);
+    Vec X = component_sol_vecs[1];
+    d_ib_implicit_ops->setLinearizedPosition(X);
     return 0;
-}// SNESFunction
+}// compositeIBJacobianSetup
+    
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply_SAMRAI(
+    Mat A,
+    Vec x,
+    Vec f)
+{
+    PetscErrorCode ierr;
+    void* ctx;
+    ierr = MatShellGetContext(A, &ctx);  IBTK_CHKERRQ(ierr);
+    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    return ib_integrator->compositeIBJacobianApply(x, f);
+}// compositeIBJacobianApply_SAMRAI
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
+    Vec x,
+    Vec f)
+{
+    PetscErrorCode ierr;
+    const double half_time = d_integrator_time+0.5*d_current_dt;
+    
+    Vec* component_sol_vecs;
+    Vec* component_rhs_vecs;
+    ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs); IBTK_CHKERRQ(ierr);
+    ierr = VecMultiVecGetSubVecs(f, &component_rhs_vecs); IBTK_CHKERRQ(ierr);
+
+    Pointer<SAMRAIVectorReal<NDIM,double> > u   = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
+    Pointer<SAMRAIVectorReal<NDIM,double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
+
+    Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+    const int u_idx   = u  ->getComponentDescriptorIndex(0);
+    const int f_u_idx = f_u->getComponentDescriptorIndex(0);
+    
+    Vec X = component_sol_vecs[1];
+    Vec R = component_rhs_vecs[1];
+
+    // Evaluate the Eulerian terms.
+    d_stokes_op->apply(*u, *f_u);
+
+    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
+    if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+    d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0])); IBTK_CHKERRQ(ierr);
+    
+    // Evaluate the Lagrangian terms.
+    d_hier_velocity_data_ops->scale(d_u_idx, 0.5, u_idx);
+    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+    d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    d_ib_implicit_ops->computeLinearizedResidual(X, R);    
+
+    // Ensure that PETSc sees that the state of the RHS vector has changed.
+    // This is a nasty hack.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f)); IBTK_CHKERRQ(ierr);
+    return ierr;
+}// compositeIBJacobianApply
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply_SAMRAI(
+    PC pc,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    void* ctx;
+    ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
+    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    ierr = ib_integrator->compositeIBPCApply(x,y); IBTK_CHKERRQ(ierr);
+    return ierr;
+}// compositeIBPCApply_SAMRAI
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(
+    Vec x,
+    Vec y)
+{    
+    PetscErrorCode ierr;
+    const double half_time = d_integrator_time+0.5*d_current_dt;
+    
+    Vec* component_x_vecs;
+    Vec* component_y_vecs;
+    ierr = VecMultiVecGetSubVecs(x, &component_x_vecs); IBTK_CHKERRQ(ierr);
+    ierr = VecMultiVecGetSubVecs(y, &component_y_vecs); IBTK_CHKERRQ(ierr);
+
+    Pointer<SAMRAIVectorReal<NDIM,double> > eul_x = PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0]);
+    Pointer<SAMRAIVectorReal<NDIM,double> > eul_y = PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0]);
+
+    Vec lag_x = component_x_vecs[1];
+    Vec lag_y = component_y_vecs[1];
+    
+    // L = Eulerian operator, L >= 0
+    // A = dF/dX = Lagrangian operator, A <= 0
+    // S = spreading operator
+    // J = interpolation operator = S^*
+    //
+    // [L         -S*A/2] [u]
+    // [-dt*J/2   I     ] [X]
+    //
+    // Lagrangian Schur complement:
+    //
+    // (1) = [inv(L)  0]  ==>  [I         -inv(L)*S*A/2]
+    //       [0       I]       [-dt*J/2   I            ]
+    //
+    // (2) = [I        0]  ==>  [I   -inv(L)*S*A/2      ]
+    //       [dt*J/2   I]       [0   I-dt*J*inv(L)*S*A/4]
+    //
+    // S = I-dt*J*inv(L)*S*A/4
+    //
+    // (3) = [I   0     ]  ==>  [I   -inv(L)*S*A/2]
+    //       [0   inv(S)]       [0   I            ]
+    //
+    // (4) = [I   inv(L)*S*A/2]  ==>  [I   0]
+    //       [0   I           ]       [0   I]
+
+    // Step 1.  eul_y := inv(L)*eul_x
+    //          lag_y := lag_x
+    ierr = VecZeroEntries(component_y_vecs[0]);  IBTK_CHKERRQ(ierr);
+    d_stokes_solver->setHomogeneousBc(true);
+    d_stokes_solver->solveSystem(*eul_y, *eul_x);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_y_vecs[0])); IBTK_CHKERRQ(ierr);
+
+    ierr = VecCopy(lag_x, lag_y);
+    
+    // Ensure that PETSc sees that the state of the RHS vector has changed.
+    // This is a nasty hack.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); IBTK_CHKERRQ(ierr);
+    
+    return ierr;
+}// compositeIBPCApply
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(
+    Mat A,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    void* ctx;
+    ierr = MatShellGetContext(A, &ctx); IBTK_CHKERRQ(ierr);
+    IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
+    ierr = ib_integrator->lagrangianSchurApply(x,y);
+    return ierr;
+}// lagrangianSchurApply_SAMRAI
+
+PetscErrorCode
+IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    return 0;
+}// lagrangianSchurApply
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

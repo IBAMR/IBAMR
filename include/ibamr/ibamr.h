@@ -21,7 +21,7 @@
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStaggeredHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStaggeredPETScLevelSolver.h"
+#include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/IBInstrumentationSpec-inl.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/IBInstrumentPanel.h"

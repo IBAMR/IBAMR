@@ -47,7 +47,7 @@
 #include "tbox/Pointer.h"
 
 namespace IBAMR {
-class IBStrategy;
+class IBImplicitStrategy;
 class INSStaggeredHierarchyIntegrator;
 }  // namespace IBAMR
 namespace SAMRAI {
@@ -84,7 +84,7 @@ public:
     IBImplicitStaggeredHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
+        SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart=true);
 
@@ -152,6 +152,8 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
+    
 private:
     /*!
      * \brief Default constructor.
@@ -194,7 +196,7 @@ private:
      * Static function for implicit formulation.
      */
     static PetscErrorCode
-    SNESFunction_SAMRAI(
+    compositeIBFunction_SAMRAI(
         SNES snes,
         Vec x,
         Vec f,
@@ -204,14 +206,88 @@ private:
      * Function for implicit formulation.
      */
     PetscErrorCode
-    SNESFunction(
+    compositeIBFunction(
         SNES snes,
         Vec x,
         Vec f);
 
+    /*!
+     * Static function for setting up implicit formulation composite Jacobian.
+     */
+    static PetscErrorCode
+    compositeIBJacobianSetup_SAMRAI(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure,
+        void* p_ctx);
+
+    /*!
+     * Static function for setting up implicit formulation composite Jacobian.
+     */
+    PetscErrorCode
+    compositeIBJacobianSetup(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure);
+
+    /*!
+     * Static function for implicit formulation composite Jacobian.
+     */
+    static PetscErrorCode
+    compositeIBJacobianApply_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation composite Jacobian.
+     */
+    PetscErrorCode
+    compositeIBJacobianApply(
+        Vec x,
+        Vec y);
+
+    /*!
+     * Static function for implicit formulation composite preconditioner.
+     */
+    static PetscErrorCode
+    compositeIBPCApply_SAMRAI(
+        PC pc,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation composite preconditioner.
+     */
+    PetscErrorCode
+    compositeIBPCApply(
+        Vec x,
+        Vec y);
+
+    /*!
+     * Static function for implicit formulation Lagrangian Schur complement.
+     */
+    static PetscErrorCode
+    lagrangianSchurApply_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation Lagrangian Schur complement.
+     */
+    PetscErrorCode
+    lagrangianSchurApply(
+        Vec x,
+        Vec y);
+
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
-
+    KSP d_schur_solver;
 };
 }// namespace IBAMR
 

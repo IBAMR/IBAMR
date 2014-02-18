@@ -146,44 +146,6 @@ IBStrategy::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
-IBStrategy::createSolverVecs(
-    Vec& /*X_vec*/,
-    Vec& /*F_vec*/,
-    int /*level_num*/)
-{
-    TBOX_ERROR("IBStrategy::createSolverVecs(): unimplemented\n");
-    return;
-}// createSolverVecs
-
-void
-IBStrategy::setupSolverVecs(
-    Vec& /*X_vec*/,
-    Vec& /*F_vec*/,
-    int /*level_num*/)
-{
-    TBOX_ERROR("IBStrategy::setupSolverVecs(): unimplemented\n");
-    return;
-}// setupSolverVecs
-
-void
-IBStrategy::setSolution(
-    Vec& /*X_vec*/,
-    int /*level_num*/)
-{
-    TBOX_ERROR("IBStrategy::setSolution(): unimplemented\n");
-    return;
-}// setSolution
-
-void
-IBStrategy::computeResidual(
-    Vec& /*F_vec*/,
-    int /*level_num*/)
-{
-    TBOX_ERROR("IBStrategy::computeResidual(): unimplemented\n");
-    return;
-}// computeResidual
-
-void
 IBStrategy::setUseFixedLEOperators(
     bool use_fixed_coupling_ops)
 {
@@ -197,52 +159,6 @@ IBStrategy::updateFixedLEOperators()
     TBOX_ERROR("IBStrategy::updateFixedLEOperators(): unimplemented\n");
     return;
 }// updateFixedLEOperators
-
-void
-IBStrategy::getLEOperatorPositionVec(
-    Vec& /*X_vec*/,
-    int /*level_num*/,
-    double /*data_time*/)
-{
-    TBOX_ERROR("IBStrategy::getLEOperatorPositionVec(): unimplemented\n");
-    return;
-}// getLEOperatorPositionVec
-
-void
-IBStrategy::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& /*d_nnz*/,
-    std::vector<int>& /*o_nnz*/)
-{
-    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
-    return;
-}// computeLagrangianForceJacobianNonzeroStructure
-
-void
-IBStrategy::computeLagrangianForceJacobian(
-    Mat& /*J_mat*/,
-    MatAssemblyType /*assembly_type*/,
-    double /*X_coef*/,
-    double /*U_coef*/,
-    double /*data_time*/)
-{
-    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobian(): unimplemented\n");
-    return;
-}// computeLagrangianForceJacobian
-
-void
-IBStrategy::applyLagrangianForceJacobian(
-    int /*f_data_idx*/,
-    RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-    int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    double /*data_time*/,
-    Mat& /*J_mat*/)
-{
-    TBOX_ERROR("IBStrategy::applyLagrangianForceJacobian(): unimplemented\n");
-    return;
-}// applyLagrangianForceJacobian
 
 bool
 IBStrategy::hasFluidSources() const
