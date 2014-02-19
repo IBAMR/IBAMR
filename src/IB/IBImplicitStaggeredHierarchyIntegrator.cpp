@@ -506,6 +506,7 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(
     Vec R = component_rhs_vecs[1];
 
     // Evaluate the Eulerian terms.
+    d_stokes_op->setHomogeneousBc(false);
     d_stokes_op->apply(*u, *f_u);
 
     d_ib_implicit_ops->setUpdatedPosition(X);
@@ -597,6 +598,7 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
     Vec R = component_rhs_vecs[1];
 
     // Evaluate the Eulerian terms.
+    d_stokes_op->setHomogeneousBc(true);
     d_stokes_op->apply(*u, *f_u);
 
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
