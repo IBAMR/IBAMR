@@ -224,6 +224,11 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     Pointer<SAMRAIVectorReal<NDIM,double> > eul_rhs_vec = eul_sol_vec->cloneVector(d_object_name+"::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
+    d_u_scratch_vec = eul_sol_vec->cloneVector(d_object_name+"::u_scratch_vec");
+    d_f_scratch_vec = eul_rhs_vec->cloneVector(d_object_name+"::f_scratch_vec");
+    d_u_scratch_vec->allocateVectorData(current_time);
+    d_f_scratch_vec->allocateVectorData(current_time);
+    
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     d_stokes_solver = ins_hier_integrator->getStokesSolver();
@@ -261,7 +266,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     ierr = SNESCreate(PETSC_COMM_WORLD, &snes);  IBTK_CHKERRQ(ierr);
     ierr = SNESSetFunction(snes, composite_res_petsc_vec, compositeIBFunction_SAMRAI, this);  IBTK_CHKERRQ(ierr);
     ierr = SNESSetOptionsPrefix(snes, "ib_");  IBTK_CHKERRQ(ierr);
-
+    
     Mat jac;    
     ierr = VecGetLocalSize(composite_sol_petsc_vec, &n_local); IBTK_CHKERRQ(ierr);
     ierr = MatCreateShell(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, this, &jac);  IBTK_CHKERRQ(ierr);
@@ -271,9 +276,14 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     Mat schur;
     ierr = VecGetLocalSize(lag_sol_petsc_vec, &n_local); IBTK_CHKERRQ(ierr);
     ierr = MatCreateShell(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, this, &schur);  IBTK_CHKERRQ(ierr);
-    ierr = MatShellSetOperation(jac, MATOP_MULT, reinterpret_cast<void(*)(void)>(lagrangianSchurApply_SAMRAI)); IBTK_CHKERRQ(ierr);
+    ierr = MatShellSetOperation(schur, MATOP_MULT, reinterpret_cast<void(*)(void)>(lagrangianSchurApply_SAMRAI)); IBTK_CHKERRQ(ierr);
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_schur_solver); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(d_schur_solver, "ib_schur_");  IBTK_CHKERRQ(ierr); 
     ierr = KSPSetOperators(d_schur_solver, schur, schur, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+    PC schur_pc;
+    ierr = KSPGetPC(d_schur_solver, &schur_pc); IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(schur_pc, PCNONE); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(d_schur_solver);  IBTK_CHKERRQ(ierr);
 
     KSP snes_ksp;
     ierr = SNESGetKSP(snes, &snes_ksp);  IBTK_CHKERRQ(ierr);
@@ -315,6 +325,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     PETScSAMRAIVectorReal::destroyPETScVector(eul_sol_petsc_vec);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_rhs_petsc_vec);
     eul_rhs_vec->freeVectorComponents();
+    d_u_scratch_vec->freeVectorComponents();
+    d_f_scratch_vec->freeVectorComponents();
     ierr = VecDestroy(&lag_sol_petsc_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&lag_rhs_petsc_vec);  IBTK_CHKERRQ(ierr);
     
@@ -640,15 +652,40 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(
     Vec lag_x = component_x_vecs[1];
     Vec lag_y = component_y_vecs[1];
     
-    // L = Eulerian operator, L >= 0
-    // A = dF/dX = Lagrangian operator, A <= 0
-    // S = spreading operator
-    // J = interpolation operator = S^*
+    // The full (nonlinear) system is:
     //
-    // [L         -S*A/2] [u]
-    // [-dt*J/2   I     ] [X]
+    //   L u(n+1) = S*F[X(n+1/2)] + f
+    //   X(n+1) - X(n) = dt*U(n+1/2)
     //
-    // Lagrangian Schur complement:
+    // where:
+    //
+    //   L = Eulerian operator (i.e. Stokes)
+    //   F = Lagrangian force operator (potentially nonlinear)
+    //   S = spreading operator
+    //   J = interpolation operator = S^*
+    //   X(n+1/2) = (X(n+1)+X(n))/2
+    //   f = explicit right-hand side term
+    //
+    // For simplicity, only "lagged" S and J are considered, i.e., S and J are
+    // not functions of the unknown X(n+1/2), but rather of some lagged
+    // approximation to X(n+1/2).  This does not affect the stability of the
+    // time stepping scheme, and the lagged values can be chosen so that the
+    // overall scheme is second-order accurate.
+    // 
+    // The linearized system is:
+    //
+    //   [L         -S*A/2] [u]
+    //   [-dt*J/2   I     ] [X]
+    //
+    // where:
+    //
+    //   L = Eulerian operator
+    //   A = dF/dX = Lagrangian operator
+    //   S = spreading operator
+    //   J = interpolation operator = S^*
+    //
+    // The Lagrangian Schur complement preconditioner is P = (4)*(3)*(2)*(1),
+    // which is the inverse of the linearized system.
     //
     // (1) = [inv(L)  0]  ==>  [I         -inv(L)*S*A/2]
     //       [0       I]       [-dt*J/2   I            ]
@@ -656,25 +693,42 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(
     // (2) = [I        0]  ==>  [I   -inv(L)*S*A/2      ]
     //       [dt*J/2   I]       [0   I-dt*J*inv(L)*S*A/4]
     //
-    // S = I-dt*J*inv(L)*S*A/4
+    // Sc = Schur complement = I-dt*J*inv(L)*S*A/4
     //
-    // (3) = [I   0     ]  ==>  [I   -inv(L)*S*A/2]
-    //       [0   inv(S)]       [0   I            ]
+    // (3) = [I   0      ]  ==>  [I   -inv(L)*S*A/2]
+    //       [0   inv(Sc)]       [0   I            ]
     //
     // (4) = [I   inv(L)*S*A/2]  ==>  [I   0]
-    //       [0   I           ]       [0   I]
+    //       [0   I           ]       [0   I]    
 
-    // Step 1.  eul_y := inv(L)*eul_x
-    //          lag_y := lag_x
-    ierr = VecZeroEntries(component_y_vecs[0]);  IBTK_CHKERRQ(ierr);
+    // Step 1: eul_y := inv(L)*eul_x
+    eul_y->setToScalar(0.0);
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*eul_y, *eul_x);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_y_vecs[0])); IBTK_CHKERRQ(ierr);
 
-    ierr = VecCopy(lag_x, lag_y);
+    // Step 2: lag_y := lag_x + dt*J*eul_y/2
+    d_hier_velocity_data_ops->scale(d_u_idx, -0.5, eul_y->getComponentDescriptorIndex(0));
+    d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    d_ib_implicit_ops->computeLinearizedResidual(lag_x, lag_y);
+    
+    // Step 3: lag_y := inv(Sc)*lag_y
+    ierr = KSPSolve(d_schur_solver, lag_y, lag_y);  IBTK_CHKERRQ(ierr);
+
+    // Step 4.  eul_y := eul_y + inv(L)*S*A*lag_y/2
+    d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
+    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+    d_u_scratch_vec->setToScalar(0.0);
+    d_f_scratch_vec->setToScalar(0.0);
+    d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);
+    d_stokes_solver->setHomogeneousBc(true);
+    d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);    
+    eul_y->add(eul_y, d_u_scratch_vec);
     
     // Ensure that PETSc sees that the state of the RHS vector has changed.
     // This is a nasty hack.
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_y_vecs[0])); IBTK_CHKERRQ(ierr);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); IBTK_CHKERRQ(ierr);
     
     return ierr;
@@ -696,10 +750,24 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(
 
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(
-    Vec x,
-    Vec y)
+    Vec X,
+    Vec Y)
 {
-    PetscErrorCode ierr;
+    const double half_time = d_integrator_time+0.5*d_current_dt;
+    
+    // The Schur complement is: I-dt*J*inv(L)*S*A/4
+    d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
+    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+    d_u_scratch_vec->setToScalar(0.0);
+    d_f_scratch_vec->setToScalar(0.0);
+    d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);
+    d_stokes_solver->setHomogeneousBc(true);
+    d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);    
+    d_hier_velocity_data_ops->scale(d_u_idx, 0.5, d_u_scratch_vec->getComponentDescriptorIndex(0));
+    d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    d_ib_implicit_ops->computeLinearizedResidual(X, Y);    
     return 0;
 }// lagrangianSchurApply
 
