@@ -716,7 +716,7 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(
     // Step 3: lag_y := inv(Sc)*lag_y
     ierr = KSPSolve(d_schur_solver, lag_y, lag_y);  IBTK_CHKERRQ(ierr);
 
-    // Step 4.  eul_y := eul_y + inv(L)*S*A*lag_y/2
+    // Step 4: eul_y := eul_y + inv(L)*S*A*lag_y/2
     d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
@@ -763,10 +763,13 @@ IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
     d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name+"::f"), half_time);
     d_u_scratch_vec->setToScalar(0.0);
-    d_f_scratch_vec->setToScalar(0.0);
     d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);
+#if 0
     d_stokes_solver->setHomogeneousBc(true);
-    d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);    
+    d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
+#else
+    d_u_scratch_vec->scale(1.0/d_stokes_op->getVelocityPoissonSpecifications().getCConstant(), d_f_scratch_vec);
+#endif
     d_hier_velocity_data_ops->scale(d_u_idx, 0.5, d_u_scratch_vec->getComponentDescriptorIndex(0));
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, Y);    

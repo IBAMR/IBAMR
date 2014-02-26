@@ -149,6 +149,12 @@ StaggeredStokesOperator::setVelocityPoissonSpecifications(
     return;
 }// setVelocityPoissonSpecifications
 
+const PoissonSpecifications&
+StaggeredStokesOperator::getVelocityPoissonSpecifications() const
+{
+    return d_U_problem_coefs;
+}// getVelocityPoissonSpecifications
+
 void
 StaggeredStokesOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
