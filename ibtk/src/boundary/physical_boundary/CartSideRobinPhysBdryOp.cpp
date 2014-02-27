@@ -63,27 +63,17 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryadjop1x2d, CCROBINPHYSBDRYADJOP1X2D)
-#define CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryadjop1y2d, CCROBINPHYSBDRYADJOP1Y2D)
 #define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x2d, CCROBINPHYSBDRYOP1X2D)
 #define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y2d, CCROBINPHYSBDRYOP1Y2D)
-#define SC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryadjop1x2d, SCROBINPHYSBDRYADJOP1X2D)
-#define SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryadjop1y2d, SCROBINPHYSBDRYADJOP1Y2D)
 #define SC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryop1x2d, SCROBINPHYSBDRYOP1X2D)
 #define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryop1y2d, SCROBINPHYSBDRYOP1Y2D)
 #define SC_ROBIN_PHYS_BDRY_OP_2_FC IBTK_FC_FUNC(scrobinphysbdryop22d, SCROBINPHYSBDRYOP22D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
-#define CC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryadjop1x3d, CCROBINPHYSBDRYADJOP1X3D)
-#define CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryadjop1y3d, CCROBINPHYSBDRYADJOP1Y3D)
-#define CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC IBTK_FC_FUNC(ccrobinphysbdryadjop1z3d, CCROBINPHYSBDRYADJOP1Z3D)
 #define CC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(ccrobinphysbdryop1x3d, CCROBINPHYSBDRYOP1X3D)
 #define CC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(ccrobinphysbdryop1y3d, CCROBINPHYSBDRYOP1Y3D)
 #define CC_ROBIN_PHYS_BDRY_OP_1_Z_FC IBTK_FC_FUNC(ccrobinphysbdryop1z3d, CCROBINPHYSBDRYOP1Z3D)
-#define SC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryadjop1x3d, SCROBINPHYSBDRYADJOP1X3D)
-#define SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryadjop1y3d, SCROBINPHYSBDRYADJOP1Y3D)
-#define SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC IBTK_FC_FUNC(scrobinphysbdryadjop1z3d, SCROBINPHYSBDRYADJOP1Z3D)
 #define SC_ROBIN_PHYS_BDRY_OP_1_X_FC IBTK_FC_FUNC(scrobinphysbdryop1x3d, SCROBINPHYSBDRYOP1X3D)
 #define SC_ROBIN_PHYS_BDRY_OP_1_Y_FC IBTK_FC_FUNC(scrobinphysbdryop1y3d, SCROBINPHYSBDRYOP1Y3D)
 #define SC_ROBIN_PHYS_BDRY_OP_1_Z_FC IBTK_FC_FUNC(scrobinphysbdryop1z3d, SCROBINPHYSBDRYOP1Z3D)
@@ -94,52 +84,6 @@
 
 extern "C"
 {
-    void
-    CC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC(
-        double* u, const int& u_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const int& blower1, const int& bupper1,
-#if (NDIM == 3)
-        const int& blower2, const int& bupper2,
-#endif
-        const double* dx);
-
-    void
-    CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC(
-        double* u, const int& u_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const int& blower0, const int& bupper0,
-#if (NDIM == 3)
-        const int& blower2, const int& bupper2,
-#endif
-        const double* dx);
-
-#if (NDIM == 3)
-    void
-    CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC(
-        double* U, const int& U_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const int& blower0, const int& bupper0,
-        const int& blower1, const int& bupper1,
-        const double* dx);
-#endif
-
     void
     CC_ROBIN_PHYS_BDRY_OP_1_X_FC(
         double* u, const int& u_gcw,
@@ -154,7 +98,7 @@ extern "C"
 #if (NDIM == 3)
         const int& blower2, const int& bupper2,
 #endif
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 
     void
     CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
@@ -170,7 +114,7 @@ extern "C"
 #if (NDIM == 3)
         const int& blower2, const int& bupper2,
 #endif
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 
 #if (NDIM == 3)
     void
@@ -183,53 +127,7 @@ extern "C"
         const int& ilower2, const int& iupper2,
         const int& blower0, const int& bupper0,
         const int& blower1, const int& bupper1,
-        const double* dx);
-#endif
-
-    void
-    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC(
-        double* u0, const int& u_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const int& blower1, const int& bupper1,
-#if (NDIM == 3)
-        const int& blower2, const int& bupper2,
-#endif
-        const double* dx);
-
-    void
-    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC(
-        double* u1, const int& u_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const int& blower0, const int& bupper0,
-#if (NDIM == 3)
-        const int& blower2, const int& bupper2,
-#endif
-        const double* dx);
-
-#if (NDIM == 3)
-    void
-    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC(
-        double* u2, const int& u_gcw,
-        const double* acoef, const double* bcoef,
-        const int& location_index,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const int& blower0, const int& bupper0,
-        const int& blower1, const int& bupper1,
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 #endif
 
     void
@@ -246,7 +144,7 @@ extern "C"
 #if (NDIM == 3)
         const int& blower2, const int& bupper2,
 #endif
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 
     void
     SC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
@@ -262,7 +160,7 @@ extern "C"
 #if (NDIM == 3)
         const int& blower2, const int& bupper2,
 #endif
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 
 #if (NDIM == 3)
     void
@@ -275,7 +173,7 @@ extern "C"
         const int& ilower2, const int& iupper2,
         const int& blower0, const int& bupper0,
         const int& blower1, const int& bupper1,
-        const double* dx);
+        const double* dx, const int& adjoint_op);
 #endif
 
     void
@@ -292,11 +190,11 @@ extern "C"
         const int& ilower2, const int& iupper2,
 #endif
         const int& blower0, const int& bupper0,
-        const int& blower1, const int& bupper1
+        const int& blower1, const int& bupper1,
 #if (NDIM == 3)
-        ,const int& blower2,const int& bupper2
+        const int& blower2, const int& bupper2,
 #endif
-                               );
+        const int& adjoint_op);
 
 #if (NDIM == 3)
     void
@@ -308,7 +206,8 @@ extern "C"
         const int& ilower2, const int& iupper2,
         const int& blower0, const int& bupper0,
         const int& blower1, const int& bupper1,
-        const int& blower2, const int& bupper2);
+        const int& blower2, const int& bupper2,
+        const int& adjoint_op);
 
     void
     SC_ROBIN_PHYS_BDRY_OP_3_FC(
@@ -320,7 +219,8 @@ extern "C"
         const int& ilower2, const int& iupper2,
         const int& blower0, const int& bupper0,
         const int& blower1, const int& bupper1,
-        const int& blower2, const int& bupper2);
+        const int& blower2, const int& bupper2,
+        const int& adjoint_op);
 #endif
 
 }
@@ -466,7 +366,7 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
 }// setPhysicalBoundaryConditions
 
 IntVector<NDIM>
-    CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
+CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 }// getRefineOpStencilWidth
@@ -535,13 +435,13 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-    CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(
+CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(
     const int patch_data_idx,
-        const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
-        const double fill_time,
-        const IntVector<NDIM>& ghost_width_to_fill,
-        Patch<NDIM>& patch,
-        const bool adjoint_op)
+    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
+    const double fill_time,
+    const IntVector<NDIM>& ghost_width_to_fill,
+    Patch<NDIM>& patch,
+    const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     if (n_physical_codim1_boxes == 0) return;
@@ -591,107 +491,51 @@ void
             if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
             if (location_index == 0 || location_index == 1)
             {
-                if (adjoint_op)
-                {
-                    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
+                SC_ROBIN_PHYS_BDRY_OP_1_X_FC(
+                    patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
+                    acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                    location_index,
+                    patch_box.lower(0), patch_box.upper(0),
+                    patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                        patch_box.lower(2), patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                        bc_coef_box.lower(1), bc_coef_box.upper(1),
+                    bc_coef_box.lower(1), bc_coef_box.upper(1),
 #if (NDIM == 3)
-                        bc_coef_box.lower(2), bc_coef_box.upper(2),
+                    bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-                        dx);
-                }
-                else
-                {
-                    SC_ROBIN_PHYS_BDRY_OP_1_X_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
-#if (NDIM == 3)
-                        patch_box.lower(2), patch_box.upper(2),
-#endif
-                        bc_coef_box.lower(1), bc_coef_box.upper(1),
-#if (NDIM == 3)
-                        bc_coef_box.lower(2), bc_coef_box.upper(2),
-#endif
-                        dx);
-                }
+                    dx, adjoint_op ? 1 : 0);
             }
             else if (location_index == 2 || location_index == 3)
             {
-                if (adjoint_op)
-                {
-                    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
+                SC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
+                    patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
+                    acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                    location_index,
+                    patch_box.lower(0), patch_box.upper(0),
+                    patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                        patch_box.lower(2), patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                        bc_coef_box.lower(0), bc_coef_box.upper(0),
+                    bc_coef_box.lower(0), bc_coef_box.upper(0),
 #if (NDIM == 3)
-                        bc_coef_box.lower(2), bc_coef_box.upper(2),
+                    bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-                        dx);
-                }
-                else
-                {
-                    SC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
-#if (NDIM == 3)
-                        patch_box.lower(2), patch_box.upper(2),
-#endif
-                        bc_coef_box.lower(0), bc_coef_box.upper(0),
-#if (NDIM == 3)
-                        bc_coef_box.lower(2), bc_coef_box.upper(2),
-#endif
-                        dx);
-                }
+                    dx, adjoint_op ? 1 : 0);
             }
 #if (NDIM == 3)
             else if (location_index == 4 || location_index == 5)
             {
-                if (adjoint_op)
-                {
-                    SC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
-                        patch_box.lower(2), patch_box.upper(2),
-                        bc_coef_box.lower(0), bc_coef_box.upper(0),
-                        bc_coef_box.lower(1), bc_coef_box.upper(1),
-                        dx);
-                }
-                else
-                {
-                    SC_ROBIN_PHYS_BDRY_OP_1_Z_FC(
-                        patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
-                        acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                        location_index,
-                        patch_box.lower(0), patch_box.upper(0),
-                        patch_box.lower(1), patch_box.upper(1),
-                        patch_box.lower(2), patch_box.upper(2),
-                        bc_coef_box.lower(0), bc_coef_box.upper(0),
-                        bc_coef_box.lower(1), bc_coef_box.upper(1),
-                        dx);
-                }
+                SC_ROBIN_PHYS_BDRY_OP_1_Z_FC(
+                    patch_data->getPointer(bdry_normal_axis,d), patch_data_gcw,
+                    acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                    location_index,
+                    patch_box.lower(0), patch_box.upper(0),
+                    patch_box.lower(1), patch_box.upper(1),
+                    patch_box.lower(2), patch_box.upper(2),
+                    bc_coef_box.lower(0), bc_coef_box.upper(0),
+                    bc_coef_box.lower(1), bc_coef_box.upper(1),
+                    dx, adjoint_op ? 1 : 0);
             }
 #endif
         }
@@ -801,108 +645,51 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(
                     // Set the boundary values.
                     if (location_index == 0 || location_index == 1)
                     {
-                        if (adjoint_op)
-                        {
-                            CC_ROBIN_PHYS_BDRY_ADJ_OP_1_X_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
+                        CC_ROBIN_PHYS_BDRY_OP_1_X_FC(
+                            patch_data->getPointer(axis,d), patch_data_gcw,
+                            acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                            location_index,
+                            side_box[axis].lower(0), side_box[axis].upper(0),
+                            side_box[axis].lower(1), side_box[axis].upper(1),
 #if (NDIM == 3)
-                                side_box[axis].lower(2), side_box[axis].upper(2),
+                            side_box[axis].lower(2), side_box[axis].upper(2),
 #endif
-                                bc_coef_box.lower(1), bc_coef_box.upper(1),
+                            bc_coef_box.lower(1), bc_coef_box.upper(1),
 #if (NDIM == 3)
-                                bc_coef_box.lower(2), bc_coef_box.upper(2),
+                            bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-                                dx);
-                        }
-                        else
-                        {
-                            CC_ROBIN_PHYS_BDRY_OP_1_X_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
-#if (NDIM == 3)
-                                side_box[axis].lower(2), side_box[axis].upper(2),
-#endif
-                                bc_coef_box.lower(1), bc_coef_box.upper(1),
-#if (NDIM == 3)
-                                bc_coef_box.lower(2), bc_coef_box.upper(2),
-#endif
-                                dx);
-                        }
+                            dx, adjoint_op ? 1 : 0);
                     }
                     else if (location_index == 2 || location_index == 3)
                     {
-                        if (adjoint_op)
-                        {
-                            CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Y_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
+                        CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
+                            patch_data->getPointer(axis,d), patch_data_gcw,
+                            acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                            location_index,
+                            side_box[axis].lower(0), side_box[axis].upper(0),
+                            side_box[axis].lower(1), side_box[axis].upper(1),
 #if (NDIM == 3)
-                                side_box[axis].lower(2), side_box[axis].upper(2),
+                            side_box[axis].lower(2), side_box[axis].upper(2),
 #endif
-                                bc_coef_box.lower(0), bc_coef_box.upper(0),
+                            bc_coef_box.lower(0), bc_coef_box.upper(0),
 #if (NDIM == 3)
-                                bc_coef_box.lower(2), bc_coef_box.upper(2),
+                            bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-                                dx);
-                        }
-                        else
-                        {
-                            CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
-#if (NDIM == 3)
-                                side_box[axis].lower(2), side_box[axis].upper(2),
-#endif
-                                bc_coef_box.lower(0), bc_coef_box.upper(0),
-#if (NDIM == 3)
-                                bc_coef_box.lower(2), bc_coef_box.upper(2),
-#endif
-                                dx);
-                        }
+                            dx, adjoint_op ? 1 : 0);
                     }
-
 #if (NDIM == 3)
                     else if (location_index == 4 || location_index == 5)
                     {
-                        if (adjoint_op)
-                        {
-                            CC_ROBIN_PHYS_BDRY_ADJ_OP_1_Z_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
-                                side_box[axis].lower(2), side_box[axis].upper(2),
-                                bc_coef_box.lower(0), bc_coef_box.upper(0),
-                                bc_coef_box.lower(1), bc_coef_box.upper(1),
-                                dx);
-                        }
-                        else
-                        {
-                            CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(
-                                patch_data->getPointer(axis,d), patch_data_gcw,
-                                acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
-                                location_index,
-                                side_box[axis].lower(0), side_box[axis].upper(0),
-                                side_box[axis].lower(1), side_box[axis].upper(1),
-                                side_box[axis].lower(2), side_box[axis].upper(2),
-                                bc_coef_box.lower(0), bc_coef_box.upper(0),
-                                bc_coef_box.lower(1), bc_coef_box.upper(1),
-                                dx);
-                        }
+                        CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(
+                            patch_data->getPointer(axis,d), patch_data_gcw,
+                            acoef_data->getPointer(), bcoef_data->getPointer(), gcoef_data->getPointer(),
+                            location_index,
+                            side_box[axis].lower(0), side_box[axis].upper(0),
+                            side_box[axis].lower(1), side_box[axis].upper(1),
+                            side_box[axis].lower(2), side_box[axis].upper(2),
+                            bc_coef_box.lower(0), bc_coef_box.upper(0),
+                            bc_coef_box.lower(1), bc_coef_box.upper(1),
+                            dx, adjoint_op ? 1 : 0);
                     }
 #endif
                 }
@@ -952,73 +739,69 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            if (adjoint_op)
-            {
-                // XXXX: incomplete implementation
-            }
-            else
-            {
-                SC_ROBIN_PHYS_BDRY_OP_2_FC(
-                    patch_data->getPointer(0,d),
-                    patch_data->getPointer(1,d),
+            SC_ROBIN_PHYS_BDRY_OP_2_FC(
+                patch_data->getPointer(0,d),
+                patch_data->getPointer(1,d),
 #if (NDIM == 3)
-                    patch_data->getPointer(2,d),
+                patch_data->getPointer(2,d),
 #endif
-                    patch_data_gcw,
+                patch_data_gcw,
+                location_index,
+                patch_box.lower(0), patch_box.upper(0),
+                patch_box.lower(1), patch_box.upper(1),
+#if (NDIM == 3)
+                patch_box.lower(2), patch_box.upper(2),
+#endif
+                bc_fill_box.lower(0), bc_fill_box.upper(0),
+                bc_fill_box.lower(1), bc_fill_box.upper(1),
+#if (NDIM == 3)
+                bc_fill_box.lower(2), bc_fill_box.upper(2),
+#endif
+                adjoint_op ? 1 : 0);
+#if (NDIM == 3)
+            if (location_index < 4)
+            {
+                static const unsigned int axis = 0;
+                CC_ROBIN_PHYS_BDRY_OP_2_FC(
+                    patch_data->getPointer(axis,d), patch_data_gcw,
                     location_index,
-                    patch_box.lower(0), patch_box.upper(0),
-                    patch_box.lower(1), patch_box.upper(1),
-#if (NDIM == 3)
-                    patch_box.lower(2), patch_box.upper(2),
-#endif
+                    side_box[axis].lower(0), side_box[axis].upper(0),
+                    side_box[axis].lower(1), side_box[axis].upper(1),
+                    side_box[axis].lower(2), side_box[axis].upper(2),
                     bc_fill_box.lower(0), bc_fill_box.upper(0),
-                    bc_fill_box.lower(1), bc_fill_box.upper(1)
-#if (NDIM == 3)
-                    ,bc_fill_box.lower(2),bc_fill_box.upper(2)
-#endif
-                                           );
-#if (NDIM == 3)
-                if (location_index < 4)
-                {
-                    static const unsigned int axis = 0;
-                    CC_ROBIN_PHYS_BDRY_OP_2_FC(
-                        patch_data->getPointer(axis,d), patch_data_gcw,
-                        location_index,
-                        side_box[axis].lower(0), side_box[axis].upper(0),
-                        side_box[axis].lower(1), side_box[axis].upper(1),
-                        side_box[axis].lower(2), side_box[axis].upper(2),
-                        bc_fill_box.lower(0), bc_fill_box.upper(0),
-                        bc_fill_box.lower(1), bc_fill_box.upper(1),
-                        bc_fill_box.lower(2), bc_fill_box.upper(2));
-                }
-                else if (location_index >= 4 && location_index < 8)
-                {
-                    static const unsigned int axis = 1;
-                    CC_ROBIN_PHYS_BDRY_OP_2_FC(
-                        patch_data->getPointer(axis,d), patch_data_gcw,
-                        location_index,
-                        side_box[axis].lower(0), side_box[axis].upper(0),
-                        side_box[axis].lower(1), side_box[axis].upper(1),
-                        side_box[axis].lower(2), side_box[axis].upper(2),
-                        bc_fill_box.lower(0), bc_fill_box.upper(0),
-                        bc_fill_box.lower(1), bc_fill_box.upper(1),
-                        bc_fill_box.lower(2), bc_fill_box.upper(2));
-                }
-                else if (location_index >= 8 && location_index < 12)
-                {
-                    static const unsigned int axis = 2;
-                    CC_ROBIN_PHYS_BDRY_OP_2_FC(
-                        patch_data->getPointer(axis,d), patch_data_gcw,
-                        location_index,
-                        side_box[axis].lower(0), side_box[axis].upper(0),
-                        side_box[axis].lower(1), side_box[axis].upper(1),
-                        side_box[axis].lower(2), side_box[axis].upper(2),
-                        bc_fill_box.lower(0), bc_fill_box.upper(0),
-                        bc_fill_box.lower(1), bc_fill_box.upper(1),
-                        bc_fill_box.lower(2), bc_fill_box.upper(2));
-                }
-#endif
+                    bc_fill_box.lower(1), bc_fill_box.upper(1),
+                    bc_fill_box.lower(2), bc_fill_box.upper(2),
+                    adjoint_op ? 1 : 0);
             }
+            else if (location_index >= 4 && location_index < 8)
+            {
+                static const unsigned int axis = 1;
+                CC_ROBIN_PHYS_BDRY_OP_2_FC(
+                    patch_data->getPointer(axis,d), patch_data_gcw,
+                    location_index,
+                    side_box[axis].lower(0), side_box[axis].upper(0),
+                    side_box[axis].lower(1), side_box[axis].upper(1),
+                    side_box[axis].lower(2), side_box[axis].upper(2),
+                    bc_fill_box.lower(0), bc_fill_box.upper(0),
+                    bc_fill_box.lower(1), bc_fill_box.upper(1),
+                    bc_fill_box.lower(2), bc_fill_box.upper(2),
+                    adjoint_op ? 1 : 0);
+            }
+            else if (location_index >= 8 && location_index < 12)
+            {
+                static const unsigned int axis = 2;
+                CC_ROBIN_PHYS_BDRY_OP_2_FC(
+                    patch_data->getPointer(axis,d), patch_data_gcw,
+                    location_index,
+                    side_box[axis].lower(0), side_box[axis].upper(0),
+                    side_box[axis].lower(1), side_box[axis].upper(1),
+                    side_box[axis].lower(2), side_box[axis].upper(2),
+                    bc_fill_box.lower(0), bc_fill_box.upper(0),
+                    bc_fill_box.lower(1), bc_fill_box.upper(1),
+                    bc_fill_box.lower(2), bc_fill_box.upper(2),
+                    adjoint_op ? 1 : 0);
+            }
+#endif
         }
     }
     return;
@@ -1057,25 +840,19 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            if (adjoint_op)
-            {
-                // XXXX: incomplete implementation
-            }
-            else
-            {
-                SC_ROBIN_PHYS_BDRY_OP_3_FC(
-                    patch_data->getPointer(0,d),
-                    patch_data->getPointer(1,d),
-                    patch_data->getPointer(2,d),
-                    patch_data_gcw,
-                    location_index,
-                    patch_box.lower(0), patch_box.upper(0),
-                    patch_box.lower(1), patch_box.upper(1),
-                    patch_box.lower(2), patch_box.upper(2),
-                    bc_fill_box.lower(0), bc_fill_box.upper(0),
-                    bc_fill_box.lower(1), bc_fill_box.upper(1),
-                    bc_fill_box.lower(2), bc_fill_box.upper(2));
-            }
+            SC_ROBIN_PHYS_BDRY_OP_3_FC(
+                patch_data->getPointer(0,d),
+                patch_data->getPointer(1,d),
+                patch_data->getPointer(2,d),
+                patch_data_gcw,
+                location_index,
+                patch_box.lower(0), patch_box.upper(0),
+                patch_box.lower(1), patch_box.upper(1),
+                patch_box.lower(2), patch_box.upper(2),
+                bc_fill_box.lower(0), bc_fill_box.upper(0),
+                bc_fill_box.lower(1), bc_fill_box.upper(1),
+                bc_fill_box.lower(2), bc_fill_box.upper(2),
+                adjoint_op ? 1 : 0);
         }
     }
     return;

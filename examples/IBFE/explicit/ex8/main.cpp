@@ -405,7 +405,6 @@ main(
         beta_s = input_db->getDouble("BETA_S");
         block_kappa_s = input_db->getDouble("BLOCK_KAPPA_S");
         beam_kappa_s  = input_db->getDouble("BEAM_KAPPA_S" );
-        double beam_kappa_t = input_db->getDouble("BEAM_KAPPA_T");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -441,7 +440,6 @@ main(
         ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);
-        ib_method_ops->registerTetheredNodes(tethered_node_ids, beam_kappa_t, 2);
 
         EquationSystems* block1_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* block2_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();

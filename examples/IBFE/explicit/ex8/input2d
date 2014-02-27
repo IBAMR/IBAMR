@@ -60,8 +60,7 @@ T_END = 2.0
 
 // penalty parameters
 BLOCK_KAPPA_S = 7.5e1 * DX / DT^2
-BEAM_KAPPA_S  = 0.0 // KAPPA_S
-BEAM_KAPPA_T  = 6.25e1 / DT / N_W
+BEAM_KAPPA_S  = KAPPA_S
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
