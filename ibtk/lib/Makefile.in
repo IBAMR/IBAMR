@@ -1044,7 +1044,6 @@ $(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = ../src/utilities/IBTK_CHKERRQ.h \
 	../src/utilities/compiler_hints.h \
-	../src/utilities/efficient_add_or_update.h \
 	../src/utilities/ibtk_enums.h \
 	../src/utilities/ibtk_utilities.h \
 	../src/utilities/app_namespaces.h \
