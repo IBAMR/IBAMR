@@ -1,7 +1,7 @@
 // Filename: PoissonUtilities.cpp
 // Created on 31 Mar 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2013, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
