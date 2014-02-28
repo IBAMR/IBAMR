@@ -1,13 +1,13 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_INIT([IBAMR],[101029],[griffith@cims.nyu.edu],[IBAMR],[https://ibamr.googlecode.com])
+AC_INIT([IBAMR],[140227],[griffith@cims.nyu.edu],[IBAMR],[https://ibamr.googlecode.com])
 AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBAMR_config.h.tmp])
 AX_PREFIX_CONFIG_H([config/IBAMR_config.h],[IBAMR],[config/IBAMR_config.h.tmp])
-AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability])
+AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)

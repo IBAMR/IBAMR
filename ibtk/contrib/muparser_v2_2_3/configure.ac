@@ -4,7 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT([muParser], [2.2.3], [muparser@beltoforion.de])
 AC_CONFIG_AUX_DIR([config])
-AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror dist-bzip2 foreign])
+AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
 AC_LANG(C++)
 
