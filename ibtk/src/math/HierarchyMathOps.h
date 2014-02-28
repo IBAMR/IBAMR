@@ -1,7 +1,7 @@
 // Filename: HierarchyMathOps.h
 // Created on 11 Jun 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2013, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

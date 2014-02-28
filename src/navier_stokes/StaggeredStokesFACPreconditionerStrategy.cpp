@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesFACPreconditionerStrategy.cpp
 // Created on 18 Apr 2012 by Boyce Griffith
 //
-// Copyright (c) 2002-2013, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
