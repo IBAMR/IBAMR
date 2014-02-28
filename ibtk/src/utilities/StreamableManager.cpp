@@ -37,7 +37,6 @@
 
 #include "SAMRAI_config.h"
 #include "StreamableManager.h"
-#include "ibtk/efficient_add_or_update.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
@@ -111,7 +110,7 @@ StreamableManager::registerFactory(
     const int factory_id = createUniqueID();
     SAMRAI_MPI::barrier();
     factory->setStreamableClassID(factory_id);
-    efficient_add_or_update(d_factory_map, factory_id, factory);
+    d_factory_map[factory_id] = factory;
     return factory_id;
 }// registerFactory
 

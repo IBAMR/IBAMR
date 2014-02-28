@@ -72,7 +72,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 1
+#serial 2
 
 AC_DEFUN([AX_PROG_CXX_MPI], [
 AC_PREREQ(2.50)
@@ -87,24 +87,22 @@ AS_IF([test x"$_ax_prog_cxx_mpi_mpi_wanted" = xno],
   [
     AC_LANG_PUSH([C++])
 
-    # test whether MPI::Init is available
+    # test whether MPI_Init() is available
     # We do not use AC_SEARCH_LIBS here, as it caches its outcome and
     # thus disallows corresponding calls in the other AX_PROG_*_MPI
     # macros.
     for lib in NONE mpi mpich; do
       save_LIBS=$LIBS
       if test x"$lib" = xNONE; then
-        AC_MSG_CHECKING([for function MPI::Init])
+        AC_MSG_CHECKING([for function MPI_Init])
       else
-        AC_MSG_CHECKING([for function MPI::Init in -l$lib])
+        AC_MSG_CHECKING([for function MPI_Init in -l$lib])
         LIBS="-l$lib $LIBS"
       fi
       AC_LINK_IFELSE([
         AC_LANG_PROGRAM([
-namespace MPI {
-char Init();
-};
-using MPI::Init;],[MPI::Init;])],
+extern "C" { void MPI_Init(); }
+],[MPI_Init();])],
         [ _ax_prog_cxx_mpi_mpi_found=yes ],
         [ _ax_prog_cxx_mpi_mpi_found=no ])
       AC_MSG_RESULT($_ax_prog_cxx_mpi_mpi_found)
