@@ -39667,6 +39667,49 @@ fi
 
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Silo version >= 4.9.1" >&5
+$as_echo_n "checking for Silo version >= 4.9.1... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <silo.h>
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+#if SILO_VERSION_GE(4,9,1)
+#else
+asdf
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  SILO_VERSION_VALID=yes
+else
+  SILO_VERSION_VALID=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${SILO_VERSION_VALID}" >&5
+$as_echo "${SILO_VERSION_VALID}" >&6; }
+  if test "$SILO_VERSION_VALID" = no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Silo versions prior to 4.9.1 are likely to be usable but are not officially supported" >&5
+$as_echo "$as_me: WARNING: Silo versions prior to 4.9.1 are likely to be usable but are not officially supported" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: suggest upgrading to Silo 4.9.1" >&5
+$as_echo "$as_me: WARNING: suggest upgrading to Silo 4.9.1" >&2;}
+  fi
+
   LDFLAGS="$SILO_LDFLAGS $LDFLAGS"
 
 
