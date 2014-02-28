@@ -51,8 +51,8 @@ subdir = .
 DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/ar-lib \
 	$(top_srcdir)/config/install-sh $(top_srcdir)/config/missing \
-	$(top_srcdir)/configure config/ar-lib config/compile \
-	config/depcomp config/install-sh config/missing
+	$(top_srcdir)/configure config/ar-lib config/depcomp \
+	config/install-sh config/missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
