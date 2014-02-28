@@ -9,13 +9,14 @@ echo "================================="
 PACKAGE_SETUP_ENVIRONMENT
 
 if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
-  AC_MSG_NOTICE([PETSc appears to provide hdf5; using PETSc hdf5 library])
+  AC_MSG_NOTICE([PETSc appears to provide HDF5; using PETSc HDF5 library])
   PETSC_BUNDLES_HDF5=yes
+  CPPFLAGS_PREPEND("-I${PETSC_DIR}/${PETSC_ARCH}/include")
 else
   PETSC_BUNDLES_HDF5=no
 
   AC_ARG_WITH([hdf5],
-    AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation),
+    AS_HELP_STRING(--with-hdf5=PATH,location of required HDF5 installation),
     [if test ! -d "$withval" ; then
        AC_MSG_ERROR([it is necessary to specify an existing directory when using --with-hdf5=PATH])
      fi
@@ -48,6 +49,20 @@ else
   if test "$HAVE_LIBHDF5_HL" = yes ; then
     PACKAGE_LIBS_PREPEND("$LIBHDF5_HL")
   fi
+fi
+
+AC_MSG_CHECKING([for HDF5 version >= 1.8.0])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <hdf5.h>
+]], [[
+#if H5_VERSION_GE(1,8,0)
+#else
+asdf
+#endif
+]])],[HDF5_VERSION_VALID=yes],[HDF5_VERSION_VALID=no])
+AC_MSG_RESULT([${HDF5_VERSION_VALID}])
+if test "$HDF5_VERSION_VALID" = no; then
+  AC_MSG_ERROR([invalid HDF5 version detected: please use HDF5 1.8.0 or later])
 fi
 
 PACKAGE_RESTORE_ENVIRONMENT
