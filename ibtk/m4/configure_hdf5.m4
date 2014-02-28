@@ -62,7 +62,8 @@ asdf
 ]])],[HDF5_VERSION_VALID=yes],[HDF5_VERSION_VALID=no])
 AC_MSG_RESULT([${HDF5_VERSION_VALID}])
 if test "$HDF5_VERSION_VALID" = no; then
-  AC_MSG_ERROR([invalid HDF5 version detected: please use HDF5 1.8.0 or later])
+  AC_MSG_WARN([HDF5 versions prior to 1.8.0 are likely to be usable but are not officially supported])
+  AC_MSG_WARN([suggest upgrading to HDF5 1.8.12])
 fi
 
 PACKAGE_RESTORE_ENVIRONMENT

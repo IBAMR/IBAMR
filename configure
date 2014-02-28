@@ -26939,7 +26939,10 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${HDF5_VERSION_VALID}" >&5
 $as_echo "${HDF5_VERSION_VALID}" >&6; }
 if test "$HDF5_VERSION_VALID" = no; then
-  as_fn_error $? "invalid HDF5 version detected: please use HDF5 1.8.0 or later" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: HDF5 versions prior to 1.8.0 are likely to be usable but are not officially supported" >&5
+$as_echo "$as_me: WARNING: HDF5 versions prior to 1.8.0 are likely to be usable but are not officially supported" >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: suggest upgrading to HDF5 1.8.12" >&5
+$as_echo "$as_me: WARNING: suggest upgrading to HDF5 1.8.12" >&2;}
 fi
 
 
