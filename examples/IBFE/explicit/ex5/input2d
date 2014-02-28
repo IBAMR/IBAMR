@@ -5,34 +5,34 @@ RHO = 1.0
 
 // grid spacing parameters
 L = 16.0                                       // width of computational domain
-MAX_LEVELS = 5                                 // maximum number of levels in locally refined grid
+MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 16                                         // actual    number of grid cells on coarsest grid level
+N = 8                                          // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 1.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI3"                             // type of element to use for structure discretization
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI6"                             // type of element to use for structure discretization
+PK1_DEV_QUAD_ORDER = "FIFTH"
+PK1_DIL_QUAD_ORDER = "THIRD"
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
-DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+IB_DELTA_FUNCTION          = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = FALSE             // whether to split interior and boundary forces
 USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
-USE_FBAR_PROJECTION        = FALSE             // whether to use the F-bar projection method
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0             // initial simulation time
 END_TIME                   = 300.0             // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
-NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
 CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.3               // maximum CFL number
-DT                         = 6.25e-2*DX        // maximum timestep size
+CFL_MAX                    = 0.2               // maximum CFL number
+DT                         = 0.5*CFL_MAX*DX    // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
@@ -45,7 +45,8 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // model parameters
-KAPPA_S = 6.25e1*DX/DT^2
+KAPPA_S = 5.0e1*DX/DT^2
+MU_S    = 1.0e1*DX/DT
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -92,7 +93,6 @@ IBHierarchyIntegrator {
    start_time          = START_TIME
    end_time            = END_TIME
    grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
@@ -100,14 +100,13 @@ IBHierarchyIntegrator {
 }
 
 IBFEMethod {
-   use_IB_spread_operator     = USE_IB_DELTA_FUNCTIONS
-   use_IB_interp_operator     = USE_IB_DELTA_FUNCTIONS
-   delta_fcn                  = DELTA_FUNCTION
-   split_forces               = SPLIT_FORCES
-   use_jump_conditions        = USE_JUMP_CONDITIONS
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
-   use_Fbar_projection        = USE_FBAR_PROJECTION
-   IB_point_density           = IB_POINT_DENSITY
+   use_IB_spread_operator      = USE_IB_DELTA_FUNCTIONS
+   use_IB_interp_operator      = USE_IB_DELTA_FUNCTIONS
+   IB_delta_fcn                = IB_DELTA_FUNCTION
+   split_forces                = SPLIT_FORCES
+   use_jump_conditions         = USE_JUMP_CONDITIONS
+   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density            = IB_POINT_DENSITY
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -123,7 +122,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_abs_thresh          = 0.25,0.5,1,2
+   vorticity_abs_thresh          = 0.125,0.25,0.5,1,2
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -148,7 +147,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_abs_thresh          = 0.25,0.5,1,2
+   vorticity_abs_thresh          = 0.125,0.25,0.5,1,2
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P

@@ -80,6 +80,7 @@
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -298,6 +299,13 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     else if (input_db->keyExists("using_2nd_order_pressure_update"))    d_using_2nd_order_pressure_update = input_db->getBool("using_2nd_order_pressure_update");
     else if (input_db->keyExists("use_second_order_pressure_update"))   d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
     else if (input_db->keyExists("using_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_second_order_pressure_update");
+
+    // Setup physical boundary conditions objects.
+    d_U_bc_coefs.resize(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_U_bc_coefs[d] = new INSCollocatedVelocityBcCoef(d,this,d_bc_coefs,d_traction_bc_type);
+    }
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -1176,11 +1184,40 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
 {
     INSHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
     {
         if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
         synchronizeHierarchyData(NEW_DATA);
+    }
+
+    // Determine the CFL number.
+    if (!d_parent_integrator)
+    {
+        double cfl_max = 0.0;
+        PatchCellDataOpsReal<NDIM,double> patch_cc_ops;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double dx_min = *(std::min_element(dx,dx+NDIM));
+                Pointer<CellData<NDIM,double> > u_cc_new_data = patch->getPatchData(d_U_new_idx);
+                double u_max = 0.0;
+                u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+                cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+            }
+        }
+        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }
 
     // Compute max |Omega|_2.

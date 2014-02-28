@@ -65,22 +65,36 @@ namespace ModelData
 // Problem parameters.
 static const double mu = 10.0;
 
-// Stress tensor function.
+// Stress tensor functions.
 void
-PK1_stress_function(
+PK1_dev_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    PP = mu*(FF-tensor_inverse_transpose(FF,NDIM));
+    PP = mu*FF;
     return;
-}// PK1_stress_function
+}// PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = -mu*tensor_inverse_transpose(FF,NDIM);
+    return;
+}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -147,7 +161,7 @@ main(
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Create a simple FE mesh with periodic boundary conditions.
+        // Create a simple FE mesh with Dirichlet boundary conditions.
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
@@ -233,7 +247,12 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+        PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
+        PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+        ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+        ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.

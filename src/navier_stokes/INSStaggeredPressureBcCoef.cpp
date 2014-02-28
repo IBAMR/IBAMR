@@ -68,12 +68,14 @@ namespace IBAMR
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
     const INSStaggeredHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const TractionBcType traction_bc_type,
     const bool homogeneous_bc)
     : d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
+    setTractionBcType(traction_bc_type);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSStaggeredPressureBcCoef
@@ -288,44 +290,63 @@ INSStaggeredPressureBcCoef::setBcCoefs(
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
         if (velocity_bc)
-        {
+        {           
             alpha = 0.0;
             beta  = 1.0;
             gamma = 0.0;
         }
         else if (traction_bc)
         {
-            // Place i_i in the interior cell abutting the boundary, and place
-            // i_g in the ghost cell abutting the boundary.
-            Index<NDIM> i_i(i), i_g(i);
-            if (is_lower)
+            switch (d_traction_bc_type)
             {
-                i_g(bdry_normal_axis) -= 1;
+                case TRACTION:        // -p + 2*mu*du_n/dx_n = g.
+                {
+                    // Place i_i in the interior cell abutting the boundary, and
+                    // place i_g in the ghost cell abutting the boundary.
+                    Index<NDIM> i_i(i), i_g(i);
+                    if (is_lower)
+                    {
+                        i_g(bdry_normal_axis) -= 1;
+                    }
+                    else
+                    {
+                        i_i(bdry_normal_axis) -= 1;
+                    }
+                    
+                    // The boundary condition is -p + 2*mu*du_n/dx_n = g.
+                    //
+                    // Because p is centered about t^{n+1/2}, we compute this
+                    // as:
+                    //
+                    // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
+                    static const int NVALS = 3;
+                    double u_current[NVALS], u_new[NVALS];
+                    SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                    for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
+                    {
+                        u_current[k] = (*u_current_data)(i_s);
+                        u_new    [k] = (*u_target_data )(i_s);
+                    }
+                    const double h = dx[bdry_normal_axis];
+                    const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
+                    const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
+                    alpha = 1.0;
+                    beta  = 0.0;
+                    gamma = (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm - gamma;
+                    break;
+                }
+                case PSEUDO_TRACTION: // -p = g.
+                {
+                    alpha = 1.0;
+                    beta  = 0.0;
+                    gamma = -gamma;
+                    break;
+                }
+                default:
+                {
+                    TBOX_ERROR("INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported traction boundary condition type: " << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
+                }
             }
-            else
-            {
-                i_i(bdry_normal_axis) -= 1;
-            }
-
-            // The boundary condition is -p + 2*mu*du_n/dx_n = g.
-            //
-            // Because p is centered about t^{n+1/2}, we compute this as:
-            //
-            // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
-            static const int NVALS = 3;
-            double u_current[NVALS], u_new[NVALS];
-            SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-            for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
-            {
-                u_current[k] = (*u_current_data)(i_s);
-                u_new    [k] = (*u_target_data )(i_s);
-            }
-            const double h = dx[bdry_normal_axis];
-            const double du_norm_current_dx_norm = (is_lower ? +1.0 : -1.0)*(2.0*u_current[1]-1.5*u_current[0]-0.5*u_current[2])/h;
-            const double du_norm_new_dx_norm     = (is_lower ? +1.0 : -1.0)*(2.0*u_new    [1]-1.5*u_new    [0]-0.5*u_new    [2])/h;
-            alpha = 1.0;
-            beta  = 0.0;
-            gamma = (d_homogeneous_bc ? 0.0 : mu*du_norm_current_dx_norm) + mu*du_norm_new_dx_norm - gamma;
         }
         else
         {

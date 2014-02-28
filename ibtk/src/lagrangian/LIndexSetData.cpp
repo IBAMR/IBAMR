@@ -69,7 +69,9 @@ LIndexSetData<T>::LIndexSetData(
       d_local_petsc_indices(),
       d_interior_local_petsc_indices(),
       d_ghost_local_petsc_indices(),
-      d_ghost_periodic_offsets()
+      d_periodic_shifts(),
+      d_interior_periodic_shifts(),
+      d_ghost_periodic_shifts()
 {
     // intentionally blank
     return;
@@ -97,7 +99,9 @@ LIndexSetData<T>::cacheLocalIndices(
     d_local_petsc_indices          .clear();
     d_interior_local_petsc_indices .clear();
     d_ghost_local_petsc_indices    .clear();
-    d_ghost_periodic_offsets       .clear();
+    d_periodic_shifts              .clear();
+    d_interior_periodic_shifts     .clear();
+    d_ghost_periodic_shifts        .clear();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -112,10 +116,10 @@ LIndexSetData<T>::cacheLocalIndices(
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
     }
 
-    boost::array<int,NDIM> offset;
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();
+        boost::array<int,NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
@@ -142,20 +146,28 @@ LIndexSetData<T>::cacheLocalIndices(
             d_lag_indices         .push_back(         lag_idx);
             d_global_petsc_indices.push_back(global_petsc_idx);
             d_local_petsc_indices .push_back( local_petsc_idx);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+            }
             if (patch_owns_idx_set)
             {
                 d_interior_lag_indices         .push_back(         lag_idx);
                 d_interior_global_petsc_indices.push_back(global_petsc_idx);
                 d_interior_local_petsc_indices .push_back( local_petsc_idx);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    d_interior_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+                }
             }
             else
             {
-                d_ghost_lag_indices            .push_back(         lag_idx);
-                d_ghost_global_petsc_indices   .push_back(global_petsc_idx);
-                d_ghost_local_petsc_indices    .push_back( local_petsc_idx);
+                d_ghost_lag_indices         .push_back(         lag_idx);
+                d_ghost_global_petsc_indices.push_back(global_petsc_idx);
+                d_ghost_local_petsc_indices .push_back( local_petsc_idx);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_ghost_periodic_offsets.push_back(static_cast<double>(offset[d])*dx[d]);
+                    d_ghost_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
                 }
             }
         }

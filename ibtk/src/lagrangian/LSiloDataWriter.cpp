@@ -1080,7 +1080,6 @@ LSiloDataWriter::registerCoordsData(
     {
         resetLevels(std::min(level_number,d_coarsest_ln),std::max(level_number,d_finest_ln));
     }
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(coords_data);
     TBOX_ASSERT(coords_data->getDepth() == NDIM);
@@ -2233,9 +2232,7 @@ LSiloDataWriter::buildVecScatters(
 void
 LSiloDataWriter::getFromRestart()
 {
-    Pointer<Database> restart_db =
-        RestartManager::getManager()->getRootDatabase();
-
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

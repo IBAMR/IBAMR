@@ -67,10 +67,11 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_muparser.m4 \
 	$(top_srcdir)/m4/configure_petsc.m4 \
 	$(top_srcdir)/m4/configure_samrai.m4 \
-	$(top_srcdir)/m4/configure_silo.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/configure_silo.m4 $(top_srcdir)/m4/lib-ld.m4 \
+	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/package_utilities.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -387,7 +388,8 @@ EXTRA_DIST = \
   interp2d.f.m4     interp3d.f.m4     \
   laplace2d.f.m4    laplace3d.f.m4    \
   miscmath2d.f.m4   miscmath3d.f.m4   \
-  vclaplace2d.f.m4
+  vclaplace2d.f.m4                    \
+  rot2d.f.m4        rot3d.f.m4
 
 BUILT_SOURCES = \
   curl2d.f       curl3d.f       \
@@ -398,7 +400,8 @@ BUILT_SOURCES = \
   interp2d.f     interp3d.f     \
   laplace2d.f    laplace3d.f    \
   miscmath2d.f   miscmath3d.f   \
-  vclaplace2d.f
+  vclaplace2d.f                 \
+  rot2d.f        rot3d.f
 
 CLEANFILES = ${BUILT_SOURCES}
 all: $(BUILT_SOURCES)

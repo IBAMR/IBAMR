@@ -168,6 +168,22 @@ public:
 
     //\}
 
+    /*!
+     * Function to accumulate data near physical boundaries from values set in
+     * the ghost cell region using the adjoint of the operator used to
+     * extrapolate the ghost cell values.  This function can be used to
+     * construct the adjoint of linear operators that use ghost cell data.
+     *
+     * \param patch                Patch on which to fill boundary data.
+     * \param fill_time            Double simulation time for boundary filling.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     */
+    void
+    accumulateFromPhysicalBoundaryData(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+
 protected:
 
 private:
@@ -195,37 +211,53 @@ private:
         const CartSideRobinPhysBdryOp& that);
 
     /*!
-     * \brief Set the boundary conditions along the co-dimension one boundary.
+     * \brief Set the boundary conditions for normal components along the
+     * co-dimension one boundary.
      */
     void
-    setCodimension1BdryValues(
+    fillGhostCellValuesCodim1Normal(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        SAMRAI::hier::Patch<NDIM>& patch);
+        SAMRAI::hier::Patch<NDIM>& patch,
+        bool adjoint_op);
 
-#if (NDIM > 1)
+    /*!
+     * \brief Set the boundary conditions for transverse components along the
+     * co-dimension one boundary.
+     */
+    void
+    fillGhostCellValuesCodim1Transverse(
+        int patch_data_idx,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
+        double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
+        SAMRAI::hier::Patch<NDIM>& patch,
+        bool adjoint_op);
+
     /*!
      * \brief Set the boundary conditions along the co-dimension two boundary.
      */
     void
-    setCodimension2BdryValues(
+    fillGhostCellValuesCodim2(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch);
+        const SAMRAI::hier::Patch<NDIM>& patch,
+        bool adjoint_op);
+
 #if (NDIM > 2)
     /*!
      * \brief Set the boundary conditions along the co-dimension three boundary.
      */
     void
-    setCodimension3BdryValues(
+    fillGhostCellValuesCodim3(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch);
-#endif
+        const SAMRAI::hier::Patch<NDIM>& patch,
+        bool adjoint_op);
 #endif
 };
 }// namespace IBTK

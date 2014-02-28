@@ -53,7 +53,7 @@ $(top_srcdir)/src/IB/IBEulerianSourceFunction.cpp \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
-$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+$(top_srcdir)/src/IB/IBImplicitStrategy.cpp \
 $(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
@@ -92,6 +92,7 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -126,7 +127,9 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
+  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp \
   $(top_srcdir)/src/IB/IBFEMethod.cpp \
+  $(top_srcdir)/src/IB/IBFEPostProcessor.cpp \
   $(top_srcdir)/src/IB/IMPMethod.cpp \
   $(top_srcdir)/src/IB/IMPInitializer.cpp \
   $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
@@ -142,7 +145,7 @@ $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
-$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
+$(top_srcdir)/src/IB/IBImplicitStrategy.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec-inl.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -182,6 +185,7 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -216,7 +220,9 @@ $(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
+  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.h \
   $(top_srcdir)/src/IB/IBFEMethod.h \
+  $(top_srcdir)/src/IB/IBFEPostProcessor.h \
   $(top_srcdir)/src/IB/IMPMethod.h \
   $(top_srcdir)/src/IB/IMPInitializer.h \
   $(top_srcdir)/src/IB/MaterialPointSpec.h

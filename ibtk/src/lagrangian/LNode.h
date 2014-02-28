@@ -70,6 +70,9 @@ class LNode
 public:
     /*!
      * \brief Default constructor.
+     *
+     * \note Any nonzero periodic offset/displacement must already be registered
+     * with any provided node data items.
      */
     LNode(
         int lagrangian_nidx=-1,
@@ -124,6 +127,26 @@ public:
     void
     setNodeData(
         const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data);
+
+    /*!
+     * \brief Append a data item to the collection of data items associated with
+     * this node.  The appended item will appear at the end of the vector of
+     * node data items associated with this node.
+     */
+    void
+    appendNodeDataItem(
+        const SAMRAI::tbox::Pointer<Streamable>& node_data_item);
+
+    /*!
+     * \brief Remove a data item to the collection of data items associated with
+     * this node.  If the argument is not associated with the collection of node
+     * data associated with this node, this method will have no effect.
+     *
+     * \note Removing items is potentially an inefficient operation.
+     */
+    void
+    removeNodeDataItem(
+        const SAMRAI::tbox::Pointer<Streamable>& node_data_item);
 
     /*!
      * \return A pointer to the first data item of type T associated with the
@@ -216,7 +239,7 @@ private:
     // a (possibly empty) collection of data objects that are associated with
     // the node
     std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
-    static const int MAX_SIZE = 8;
+    static const short int MAX_SIZE = 8;
     Streamable* d_node_data_type_arr[MAX_SIZE];
 };
 

@@ -90,7 +90,6 @@ PK1_stress_function(
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -231,14 +230,8 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
-        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
-        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-        {
-            System& system = equation_systems->get_system(k);
-            system.get_dof_map().add_periodic_boundary(pbc);
-        }
+        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -300,6 +293,12 @@ main(
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
+        EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
+        {
+            System& system = equation_systems->get_system(k);
+            system.get_dof_map().add_periodic_boundary(pbc);
+        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 

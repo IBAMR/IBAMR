@@ -149,6 +149,12 @@ StaggeredStokesOperator::setVelocityPoissonSpecifications(
     return;
 }// setVelocityPoissonSpecifications
 
+const PoissonSpecifications&
+StaggeredStokesOperator::getVelocityPoissonSpecifications() const
+{
+    return d_U_problem_coefs;
+}// getVelocityPoissonSpecifications
+
 void
 StaggeredStokesOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
@@ -220,7 +226,7 @@ StaggeredStokesOperator::apply(
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
+//  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:

@@ -304,6 +304,9 @@ namespace mu
                 bOptimized = true;
               }
               break;
+
+        default:
+              break;
               
         } // switch a_Oprt
       }

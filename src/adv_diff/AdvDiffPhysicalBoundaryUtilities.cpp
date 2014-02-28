@@ -130,23 +130,28 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
                     const double& g = (*gcoef_data)(i,0);
                     const double& h = dx[bdry_normal_axis];
                     int sgn;
-                    Index<NDIM> i_intr(i);
+                    Index<NDIM> i_i(i), i_g(i);
                     if (is_lower)
                     {
                         sgn = -1;
+                        i_g(bdry_normal_axis) = patch_box.lower(bdry_normal_axis)-1;
+                        i_i(bdry_normal_axis) = patch_box.lower(bdry_normal_axis);
                     }
                     else
                     {
                         sgn = +1;
-                        i_intr(bdry_normal_axis) -= 1;
+                        i_g(bdry_normal_axis) = patch_box.upper(bdry_normal_axis)+1;
+                        i_i(bdry_normal_axis) = patch_box.upper(bdry_normal_axis);
                     }
-                    Index<NDIM> i_true(i_intr), i_ghost(i_intr);
-                    for (int k = 1; k <= gcw(bdry_normal_axis); ++k)
+                    for (int k = 0; k < gcw(bdry_normal_axis); ++k)
                     {
-                        i_ghost(bdry_normal_axis) = i_intr(bdry_normal_axis) + sgn*k;
-                        i_true (bdry_normal_axis) = i_intr(bdry_normal_axis) - sgn*(k-1);
-                        const double Q_i = (*Q_data)(i_true,depth);
-                        (*Q_data)(i_ghost,depth) = -(-4.0*g*h*k-2.0*g*h+2.0*a*Q_i*h*k+a*Q_i*h-2.0*b*Q_i)/(2.0*a*h*k+a*h+2.0*b);
+                        const double n = 1.0+2.0*k;
+                        const double f_i = -(a*n*h-2.0*b)/(a*n*h+2.0*b);
+                        const double f_g = 2.0*n*h/(a*n*h+2.0*b);
+                        const double Q_i = (*Q_data)(i_i,depth);
+                        (*Q_data)(i_g,depth) = f_i*Q_i + f_g*g;
+                        i_g(bdry_normal_axis) += sgn;
+                        i_i(bdry_normal_axis) -= sgn;
                     }
                 }
             }

@@ -103,19 +103,6 @@ public:
     ~INSStaggeredHierarchyIntegrator();
 
     /*!
-     * Get a vector of pointers to the velocity boundary condition specification
-     * objects.
-     */
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
-    getVelocityBoundaryConditions() const;
-
-    /*!
-     * Get a pointer to the pressure boundary condition specification object.
-     */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getPressureBoundaryConditions() const;
-
-    /*!
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
@@ -224,6 +211,31 @@ public:
     void
     regridHierarchy();
 
+    /*!
+     * Setup solution and RHS vectors using state data maintained by the
+     * integrator.
+     */
+    void
+    setupSolverVectors(
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& sol_vec,
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& rhs_vec,
+        double current_time,
+        double new_time,
+        int cycle_num);
+
+    /*!
+     * Reset solution and RHS vectors using state data maintained by the
+     * integrator, and copy the solution data into the state data maintained by
+     * the integrator.
+     */
+    void
+    resetSolverVectors(
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& sol_vec,
+        const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >& rhs_vec,
+        double current_time,
+        double new_time,
+        int cycle_num);
+    
 protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
@@ -330,6 +342,14 @@ private:
     regridProjection();
 
     /*!
+     * Determine the convective time stepping type for the current time step and
+     * cycle number.
+     */
+    TimeSteppingType
+    getConvectiveTimeSteppingType(
+        int cycle_num);
+    
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
@@ -340,8 +360,6 @@ private:
      * Boundary condition and data synchronization operators.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     /*

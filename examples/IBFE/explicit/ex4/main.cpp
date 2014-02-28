@@ -51,6 +51,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -78,35 +79,39 @@ coordinate_mapping_function(
     return;
 }// coordinate_mapping_function
 
-// Stress tensor function.
+// Stress tensor functions.
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
 void
-PK1_stress_function(
+PK1_dev_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
     const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    const TensorValue<double> CC = FF.transpose()*FF;
     PP = 2.0*c1_s*FF;
-    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
-    {
-        PP -= 2.0*p0_s*FF_inv_trans;
-    }
-    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
-    {
-        PP += beta_s*log(CC.det())*FF_inv_trans;
-    }
     return;
-}// PK1_stress_function
+}// PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = 2.0*(-p0_s + beta_s*log(FF.det()))*tensor_inverse_transpose(FF, NDIM);
+    return;
+}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -264,9 +269,37 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+        PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
+        PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+        ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+        ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+
+        // Set up post processor to recover computed stresses.
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+
+        ib_post_processor->registerTensorVariable(
+            "FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dev", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+
+        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable(
+            "sigma_dil", MONOMIAL, CONSTANT,
+            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+            std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST,
+            navier_stokes_integrator->getPressureVariable(),
+            navier_stokes_integrator->getCurrentContext());
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -329,6 +362,7 @@ main(
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
+        ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
@@ -351,6 +385,7 @@ main(
             }
             if (uses_exodus)
             {
+                ib_post_processor->postProcessData(loop_time);
                 exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
             }
         }
@@ -401,6 +436,7 @@ main(
                 }
                 if (uses_exodus)
                 {
+                    ib_post_processor->postProcessData(loop_time);
                     exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }

@@ -134,7 +134,7 @@ public:
      */
     bool
     getHomogeneousBc() const;
-
+    
     /*!
      * \name Partial implementation of SAMRAI::xfer::RefinePatchStrategy
      * interface.
@@ -192,6 +192,24 @@ public:
         const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //\}
+
+    /*!
+     * Function to accumulate data near physical boundaries from values set in
+     * the ghost cell region using the adjoint of the operator used to
+     * extrapolate the ghost cell values.  This function can be used to
+     * construct the adjoint of linear operators that use ghost cell data.
+     *
+     * \note A default implementation is provided that emits an error message.
+     * 
+     * \param patch                Patch on which to fill boundary data.
+     * \param fill_time            Double simulation time for boundary filling.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     */
+    virtual void
+    accumulateFromPhysicalBoundaryData(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        double fill_time,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:
     /*

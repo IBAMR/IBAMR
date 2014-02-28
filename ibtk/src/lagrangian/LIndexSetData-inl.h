@@ -108,10 +108,24 @@ LIndexSetData<T>::getGhostLocalPETScIndices() const
 
 template<class T>
 const std::vector<double>&
-LIndexSetData<T>::getGhostPeriodicOffsets() const
+LIndexSetData<T>::getPeriodicShifts() const
 {
-    return d_ghost_periodic_offsets;
-}// getGhostPeriodicOffsets
+    return d_periodic_shifts;
+}// getPeriodicShifts
+
+template<class T>
+const std::vector<double>&
+LIndexSetData<T>::getInteriorPeriodicShifts() const
+{
+    return d_interior_periodic_shifts;
+}// getInteriorPeriodicShifts
+
+template<class T>
+const std::vector<double>&
+LIndexSetData<T>::getGhostPeriodicShifts() const
+{
+    return d_ghost_periodic_shifts;
+}// getGhostPeriodicShifts
 
 //////////////////////////////////////////////////////////////////////////////
 

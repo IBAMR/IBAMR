@@ -55,7 +55,8 @@ namespace IBAMR
 StokesBcCoefStrategy::StokesBcCoefStrategy()
     : d_problem_coefs(NULL),
       d_u_target_data_idx(-1),
-      d_p_target_data_idx(-1)
+      d_p_target_data_idx(-1),
+      d_traction_bc_type(TRACTION)
 {
     // intentionally blank
     return;
@@ -107,6 +108,20 @@ StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
     d_p_target_data_idx = -1;
     return;
 }// clearPressurePatchDataIndex
+
+void
+StokesBcCoefStrategy::setTractionBcType(
+    TractionBcType bc_type)
+{
+    d_traction_bc_type = bc_type;
+    return;
+}// setTractionBcType
+
+TractionBcType
+StokesBcCoefStrategy::getTractionBcType() const
+{
+    return d_traction_bc_type;
+}// getTractionBcType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

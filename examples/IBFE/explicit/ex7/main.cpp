@@ -72,7 +72,6 @@ upper_PK1_stress_function(
     const libMesh::Point& /*X*/,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -103,7 +102,6 @@ lower_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -119,7 +117,6 @@ upper_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -306,9 +303,14 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerLagBodyForceFunction( &lower_tether_force_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerLagBodyForceFunction( &upper_tether_force_function, std::vector<unsigned int>(), NULL, 1);
-        ib_method_ops->registerPK1StressTensorFunction(&upper_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
+        IBFEMethod::LagBodyForceFcnData lower_tether_force_data(lower_tether_force_function);
+        ib_method_ops->registerLagBodyForceFunction(lower_tether_force_data, 0);
+
+        IBFEMethod::LagBodyForceFcnData upper_tether_force_data(upper_tether_force_function);
+        IBFEMethod::PK1StressFcnData upper_PK1_stress_data(upper_PK1_stress_function);
+        ib_method_ops->registerLagBodyForceFunction(upper_tether_force_data, 1);
+        ib_method_ops->registerPK1StressFunction(upper_PK1_stress_data, 1);
+
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* upper_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 

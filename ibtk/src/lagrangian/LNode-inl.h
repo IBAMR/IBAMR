@@ -131,6 +131,32 @@ LNode::setNodeData(
     return;
 }// setNodeData
 
+inline void
+LNode::appendNodeDataItem(
+    const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
+{
+    d_node_data.push_back(node_data_item);
+    const int class_id = node_data_item->getStreamableClassID();
+    if (class_id < MAX_SIZE && !d_node_data_type_arr[class_id])
+    {
+        d_node_data_type_arr[class_id] = node_data_item.getPointer();
+    }
+    return;
+}// appendNodeDataItem
+
+inline void
+LNode::removeNodeDataItem(
+    const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
+{
+    std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
+    if (it != d_node_data.end())
+    {
+        d_node_data.erase(it);
+        setupNodeDataTypeArray();
+    }
+    return;
+}// removeNodeDataItem
+
 template<typename T>
 inline T*
 LNode::getNodeDataItem() const

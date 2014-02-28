@@ -52,16 +52,16 @@ LDataManager::getGhostCellWidth() const
 }// getGhostCellWidth
 
 inline const std::string&
-LDataManager::getInterpWeightingFunction() const
+LDataManager::getDefaultInterpKernelFunction() const
 {
-    return d_interp_weighting_fcn;
-}// getInterpWeightingFunction
+    return d_default_interp_kernel_fcn;
+}// getDefaultInterpKernelFunction
 
 inline const std::string&
-LDataManager::getSpreadWeightingFunction() const
+LDataManager::getDefaultSpreadKernelFunction() const
 {
-    return d_spread_weighting_fcn;
-}// getSpreadWeightingFunction
+    return d_default_spread_kernel_fcn;
+}// getDefaultSpreadKernelFunction
 
 inline bool
 LDataManager::levelContainsLagrangianData(
@@ -104,6 +104,18 @@ LDataManager::getNumberOfLocalNodes(
 #endif
     return d_local_lag_indices[level_number].size();
 }// getNumberOfLocalNodes
+
+inline unsigned int
+LDataManager::getNumberOfGhostNodes(
+    const int level_number) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+    return d_nonlocal_lag_indices[level_number].size();
+}// getNumberOfGhostNodes
 
 inline unsigned int
 LDataManager::getGlobalNodeOffset(

@@ -97,20 +97,6 @@ kernel(
 // Elasticity model data.
 namespace ModelData
 {
-void
-body_velocity_fcn(
-    NumericVector<double>& U_b,
-    NumericVector<double>& /*U*/,
-    NumericVector<double>& /*X*/,
-    EquationSystems* /*equation_systems*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    U_b = 1.0;
-    U_b.close();
-    return;
-}// body_velocity_fcn
-
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
 void
@@ -120,7 +106,6 @@ tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -128,6 +113,38 @@ tether_force_function(
     F = kappa_s*(s-X);
     return;
 }// tether_force_function
+
+// Stress tensor functions.
+static double mu_s;
+void
+PK1_dev_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = mu_s*FF;
+    return;
+}// PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    PP = -mu_s*tensor_inverse_transpose(FF, NDIM);
+    return;
+}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -173,10 +190,9 @@ main(
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Setup user-defined delta function.
-        LEInteractor::s_delta_fcn = &kernel;
-        LEInteractor::s_delta_fcn_stencil_size = 8;
-        LEInteractor::s_delta_fcn_C = -1.0;
+        // Setup user-defined kernel function.
+        LEInteractor::s_kernel_fcn = &kernel;
+        LEInteractor::s_kernel_fcn_stencil_size = 8;
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -232,7 +248,11 @@ main(
         }
 
         bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
-        if (!use_constraint_method) kappa_s = input_db->getDouble("KAPPA_S");
+        if (!use_constraint_method)
+        {
+            kappa_s = input_db->getDouble("KAPPA_S");
+            mu_s    = input_db->getDouble("MU_S"   );
+        }
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -274,11 +294,16 @@ main(
         if (use_constraint_method)
         {
             ib_method_ops->registerConstrainedPart();
-            ib_method_ops->registerConstrainedPartVelocityFunction(body_velocity_fcn);
         }
         else
         {
-            ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
+            IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+            IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+            PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
+            PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+            ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+            ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 

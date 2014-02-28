@@ -53,11 +53,87 @@
 
 namespace IBTK
 {
-template<class MultiArray>
+typedef
+void
+(*ScalarMeshFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*VectorMeshFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*TensorMeshFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*ScalarSurfaceFcnPtr)(
+    double& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*VectorSurfaceFcnPtr)(
+    libMesh::VectorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+typedef
+void
+(*TensorSurfaceFcnPtr)(
+    libMesh::TensorValue<double>& F,
+    const libMesh::TensorValue<double>& FF,
+    const libMesh::Point& X,
+    const libMesh::Point& s,
+    libMesh::Elem* elem,
+    unsigned short int side,
+    const std::vector<libMesh::NumericVector<double>*>& system_data,
+    double data_time,
+    void* ctx);
+
+template<class MultiArray,class Array>
 inline void
 get_values_for_interpolation(
     MultiArray& U_node,
-    libMesh::NumericVector<double>& U_vec,
+    const libMesh::PetscVector<double>& U_petsc_vec,
+    const Array& U_local_soln,
     const std::vector<unsigned int>& dof_indices)
 {
     const std::size_t n_nodes = dof_indices.size();
@@ -66,17 +142,53 @@ get_values_for_interpolation(
         typename MultiArray::extent_gen extents;
         U_node.resize(extents[n_nodes]);
     }
+    for (std::size_t k = 0; k < n_nodes; ++k)
+    {
+        U_node[k] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[k])];
+    }
+    return;
+}// get_values_for_interpolation
+
+template<class MultiArray,class Array>
+inline void
+get_values_for_interpolation(
+    MultiArray& U_node,
+    const libMesh::PetscVector<double>& U_petsc_vec,
+    const Array& U_local_soln,
+    const std::vector<std::vector<unsigned int> >& dof_indices)
+{
+    const std::size_t n_vars = dof_indices.size();
+    const std::size_t n_nodes = dof_indices[0].size();
+    if (U_node.shape()[0] != n_nodes || U_node.shape()[1] != n_vars)
+    {
+        typename MultiArray::extent_gen extents;
+        U_node.resize(extents[n_nodes][n_vars]);
+    }
+    for (std::size_t k = 0; k < n_nodes; ++k)
+    {
+        for (std::size_t i = 0; i < n_vars; ++i)
+        {
+            U_node[k][i] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[i][k])];
+        }
+    }
+    return;
+}// get_values_for_interpolation
+
+template<class MultiArray>
+inline void
+get_values_for_interpolation(
+    MultiArray& U_node,
+    libMesh::NumericVector<double>& U_vec,
+    const std::vector<unsigned int>& dof_indices)
+{
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec,&U_local_vec);
-    double* values;
-    VecGetArray(U_local_vec, &values);
-    for (std::size_t k = 0; k < n_nodes; ++k)
-    {
-        U_node[k] = values[U_petsc_vec->map_global_to_local_index(dof_indices[k])];
-    }
-    VecRestoreArray(U_local_vec, &values);
+    double* U_local_soln;
+    VecGetArray(U_local_vec, &U_local_soln);
+    get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
+    VecRestoreArray(U_local_vec, &U_local_soln);
     VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
 }// get_values_for_interpolation
@@ -88,27 +200,14 @@ get_values_for_interpolation(
     libMesh::NumericVector<double>& U_vec,
     const std::vector<std::vector<unsigned int> >& dof_indices)
 {
-    const std::size_t n_vars = dof_indices.size();
-    const std::size_t n_nodes = dof_indices[0].size();
-    if (U_node.shape()[0] != n_nodes || U_node.shape()[1] != n_vars)
-    {
-        typename MultiArray::extent_gen extents;
-        U_node.resize(extents[n_nodes][n_vars]);
-    }
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec,&U_local_vec);
-    double* values;
-    VecGetArray(U_local_vec, &values);
-    for (std::size_t k = 0; k < n_nodes; ++k)
-    {
-        for (std::size_t i = 0; i < n_vars; ++i)
-        {
-            U_node[k][i] = values[U_petsc_vec->map_global_to_local_index(dof_indices[i][k])];
-        }
-    }
-    VecRestoreArray(U_local_vec, &values);
+    double* U_local_soln;
+    VecGetArray(U_local_vec, &U_local_soln);
+    get_values_for_interpolation(U_node, *U_petsc_vec, U_local_soln, dof_indices);
+    VecRestoreArray(U_local_vec, &U_local_soln);
     VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
 }// get_values_for_interpolation
@@ -393,20 +492,21 @@ outer_product(
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline std::vector<std::pair<double,libMesh::Point> >
+inline void
 intersect_line_with_edge(
+    std::vector<std::pair<double,libMesh::Point> >& t_vals,
     libMesh::Edge* elem,
     libMesh::Point r,
     libMesh::VectorValue<double> q)
 {
-    std::vector<std::pair<double,libMesh::Point> > t_vals;
+    t_vals.resize(0);
     switch (elem->type())
     {
         case libMeshEnums::EDGE2:
         {
             // Linear interpolation:
             //
-            //    0.5*(1-u)*p0 + 0.5*(1+u)*p1 = r + t * q
+            //    0.5*(1-u)*p0 + 0.5*(1+u)*p1 = r + t*q
             //
             // Factor the interpolation formula:
             //
@@ -457,11 +557,11 @@ intersect_line_with_edge(
         {
             // Quadratic interpolation:
             //
-            //    0.5*u*(u-1)*p0 + 0.5*u*(u+1)*p1 + (1-u*u)*p2 = r + t * q
+            //    0.5*u*(u-1)*p0 + 0.5*u*(u+1)*p1 + (1-u*u)*p2 = r + t*q
             //
             // Factor the interpolation formula:
             //
-            //    (0.5*p0+0.5*p1-p2)*u^2 + 0.5*(p1-p0)*u + p2 = r + t * q
+            //    (0.5*p0+0.5*p1-p2)*u^2 + 0.5*(p1-p0)*u + p2 = r + t*q
             //
             // Solve for u:
             //
@@ -530,25 +630,26 @@ intersect_line_with_edge(
                        << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
-    return t_vals;
+    return;
 }// intersect_line_with_edge
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
-inline std::vector<std::pair<double,libMesh::Point> >
+inline void
 intersect_line_with_face(
+    std::vector<std::pair<double,libMesh::Point> >& t_vals,
     libMesh::Face* elem,
     libMesh::Point r,
     libMesh::VectorValue<double> q)
 {
-    std::vector<std::pair<double,libMesh::Point> > t_vals;
+    t_vals.resize(0);
     switch (elem->type())
     {
         case libMeshEnums::TRI3:
         {
             // Linear interpolation:
             //
-            //    (1-u-v)*p0 + u*p1 + v*p2 = r + t * q
+            //    (1-u-v)*p0 + u*p1 + v*p2 = r + t*q
             //
             // Factor the interpolation formula:
             //
@@ -730,7 +831,7 @@ intersect_line_with_face(
                        << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
-    return t_vals;
+    return;
 }// intersect_line_with_face
 
 struct DofObjectComp

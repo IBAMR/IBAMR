@@ -73,6 +73,9 @@ namespace IBAMR
  * conditions are interpreted as prescribed traction (stress) boundary
  * conditions.  These are translated into Dirichlet and generalized Neumann
  * boundary conditions, respectively, for the velocity.
+ *
+ * Dirichlet, true traction, and pseudo-traction boundary conditions are
+ * all supported.
  */
 class INSStaggeredVelocityBcCoef
     : public StokesBcCoefStrategy
@@ -85,6 +88,7 @@ public:
         unsigned int comp_idx,
         const INSStaggeredHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        TractionBcType traction_bc_type,
         bool homogeneous_bc=false);
 
     /*!

@@ -625,6 +625,37 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+
+    // Determine the CFL number.
+    double cfl_max = 0.0;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (unsigned int k = 0; k < d_u_var.size(); ++k)
+    {
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        PatchFaceDataOpsReal<NDIM,double> patch_fc_ops;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double dx_min = *(std::min_element(dx,dx+NDIM));
+                Pointer<FaceData<NDIM,double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                double u_max = 0.0;
+                u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
+                cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+            }
+        }
+    }
+    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;

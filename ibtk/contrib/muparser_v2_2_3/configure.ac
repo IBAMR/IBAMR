@@ -16,6 +16,7 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_RANLIB
+AM_PROG_AR
 
 ###########################################################################
 # Output files.

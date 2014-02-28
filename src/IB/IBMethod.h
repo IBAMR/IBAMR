@@ -48,7 +48,7 @@
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibamr/IBMethodPostProcessStrategy.h"
-#include "ibamr/IBStrategy.h"
+#include "ibamr/IBImplicitStrategy.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "petscmat.h"
@@ -80,10 +80,11 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBMethod is an implementation of the abstract base class
- * IBStrategy that provides functionality required by the standard IB method.
+ * IBImplicitStrategy that provides functionality required by the standard IB
+ * method.
  */
 class IBMethod
-    : public IBStrategy
+    : public IBImplicitStrategy
 {
 public:
     /*!
@@ -185,6 +186,55 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+    
+    /*!
+     * Create solution and rhs data on the specified level of the patch
+     * hierarchy.
+     */
+    void
+    createSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec);
+
+    /*!
+     * Setup solution and rhs data on the specified level of the patch
+     * hierarchy.
+     */
+    void
+    setupSolverVecs(
+        Vec& X_vec,
+        Vec& F_vec);
+
+    /*!
+     * Set the value of the updated position vector.
+     */
+    void
+    setUpdatedPosition(
+        Vec& X_new_vec);
+    
+    /*!
+     * Set the value of the intermediate position vector used in evaluating the
+     * linearized problem.
+     */
+    void
+    setLinearizedPosition(
+        Vec& X_vec);
+
+    /*!
+     * Compute the residual on the specified level of the patch hierarchy.
+     */
+    void
+    computeResidual(
+        Vec& R_vec);
+    
+    /*!
+     * Compute the linearized residual for the given intermediate position
+     * vector.
+     */
+    void
+    computeLinearizedResidual(
+        Vec& X_vec,
+        Vec& R_vec);
 
     /*!
      * Update the positions used for the "fixed" interpolation and spreading
@@ -194,21 +244,23 @@ public:
     updateFixedLEOperators();
 
     /*!
-     * Get a pointer to a vector of coupling positions for the specified level
-     * of the patch hierarchy.
-     */
-    void
-    getLEOperatorPositions(
-        Vec& X_vec,
-        int level_num,
-        double data_time);
-
-    /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
     void
     interpolateVelocity(
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time);
+
+    /*!
+     * Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval for use in evaluating the
+     * residual of the linearized problem.
+     */
+    void
+    interpolateLinearizedVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
@@ -250,28 +302,14 @@ public:
         double data_time);
 
     /*!
-     * \brief Compute the non-zero structure of the force Jacobian matrix.
+     * Compute the Lagrangian force of the linearized problem for the specified
+     * configuration of the updated position vector.
      */
     void
-    computeLagrangianForceJacobianNonzeroStructure(
-        std::vector<int>& d_nnz,
-        std::vector<int>& o_nnz);
-
-    /*!
-     * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
-     *
-     * \note The elements of the Jacobian should be accumulated in the provided
-     * matrix.
-     */
-    void
-    computeLagrangianForceJacobian(
-        Mat& J_mat,
-        MatAssemblyType assembly_type,
-        double X_coef,
-        double U_coef,
+    computeLinearizedLagrangianForce(
+        Vec& X_vec,
         double data_time);
-
+ 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
@@ -279,22 +317,20 @@ public:
     void
     spreadForce(
         int f_data_idx,
+        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time);
 
     /*!
-     * \brief Compute the application of the Jacobian of the force at the specified time
-     * within the current time interval.
+     * Spread the Lagrangian force of the linearized problem to the Cartesian
+     * grid at the specified time within the current time interval.
      */
     void
-    applyLagrangianForceJacobian(
+    spreadLinearizedForce(
         int f_data_idx,
+        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time,
-        Mat& J_mat);
+        double data_time);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -458,6 +494,14 @@ protected:
         double data_time);
 
     /*!
+     * Get the linearized structure position data.
+     */
+    void
+    getLinearizedPositionData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
+        bool** X_needs_ghost_fill);
+
+    /*!
      * Get the current interpolation/spreading position data.
      */
     void
@@ -475,6 +519,13 @@ protected:
         double data_time);
 
     /*!
+     * Get the linearized structure velocity data.
+     */
+    void
+    getLinearizedVelocityData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data);
+
+    /*!
      * Get the current structure force data.
      */
     void
@@ -482,6 +533,14 @@ protected:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
         bool** F_needs_ghost_fill,
         double data_time);
+
+    /*!
+     * Get the linearized structure force data.
+     */
+    void
+    getLinearizedForceData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
+        bool** F_needs_ghost_fill);
 
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
@@ -504,6 +563,20 @@ protected:
         int finest_ln);
 
     /*
+     * PETSc function for evaluating Lagrangian force.
+     */
+    static PetscErrorCode
+    computeForce_SAMRAI(
+        void* ctx,
+        Vec X,
+        Vec F);
+
+    PetscErrorCode
+    computeForce(
+        Vec X,
+        Vec F);
+
+    /*
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log;
@@ -524,9 +597,8 @@ protected:
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
-    bool d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
-    bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill;
+    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_jac_needs_ghost_fill, d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
+    bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill, d_F_jac_needs_ghost_fill;
     bool d_X_half_needs_reinit, d_X_LE_half_needs_reinit, d_U_half_needs_reinit;
 
     /*
@@ -534,15 +606,15 @@ protected:
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
-    std::string d_interp_delta_fcn, d_spread_delta_fcn;
+    std::string d_interp_kernel_fcn, d_spread_kernel_fcn;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_LE_new_data, d_X_LE_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_J_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_J_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data, d_X_LE_new_data, d_X_LE_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
 
     /*
      * List of local indices of local anchor points.
@@ -679,6 +751,8 @@ private:
      */
     void
     getFromRestart();
+
+    Mat d_force_jac;
 };
 }// namespace IBAMR
 

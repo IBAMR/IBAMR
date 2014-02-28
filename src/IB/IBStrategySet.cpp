@@ -223,12 +223,13 @@ IBStrategySet::computeLagrangianForce(
 void
 IBStrategySet::spreadForce(
     int f_data_idx,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
     {
-        (*cit)->spreadForce(f_data_idx, f_prolongation_scheds, data_time);
+        (*cit)->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
     }
     return;
 }// spreadForce

@@ -673,7 +673,10 @@ private:
         std::vector<std::pair<int,int> >& point_indices,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         int level_number,
-        bool can_be_refined) const;
+        bool can_be_refined,
+        const double* domain_x_lower,
+        const double* domain_x_upper,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
 
     /*!
      * \return The canonical Lagrangian index of the specified vertex.
@@ -690,6 +693,17 @@ private:
     getVertexPosn(
         const std::pair<int,int>& point_index,
         int level_number) const;
+
+    /*!
+     * \return The initial position of the specified vertex.
+     */
+    IBTK::Point
+    getShiftedVertexPosn(
+        const std::pair<int,int>& point_index,
+        int level_number,
+        const double* domain_x_lower,
+        const double* domain_x_upper,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
 
     /*!
      * \return The target point specifications associated with a particular
@@ -755,7 +769,7 @@ private:
      * \return The specification objects associated with the specified vertex.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
-    initializeSpecs(
+    initializeNodeData(
         const std::pair<int,int>& point_index,
         unsigned int global_index_offset,
         int level_number) const;

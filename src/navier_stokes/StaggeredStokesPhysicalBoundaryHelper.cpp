@@ -144,7 +144,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL);
     return;
 }// enforceNormalVelocityBoundaryConditions
-
+#if 0
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const int u_data_idx,
@@ -231,7 +231,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     }
     return;
 }// enforceDivergenceFreeConditionAtBoundary
-
+#endif
 void
 StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,

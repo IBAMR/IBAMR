@@ -59,14 +59,18 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 @LIBMESH_ENABLED_TRUE@am__append_3 = 
 @LIBMESH_ENABLED_TRUE@am__append_4 = 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
+@LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFEMethod.cpp \
+@LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFEPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/MaterialPointSpec.cpp \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/MaterialPointSpecFactory.cpp
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
+@LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFEMethod.h \
+@LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IBFEPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPMethod.h \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/IMPInitializer.h \
 @LIBMESH_ENABLED_TRUE@  $(top_srcdir)/src/IB/MaterialPointSpec.h
@@ -86,10 +90,11 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/configure_muparser.m4 \
 	$(top_srcdir)/m4/configure_petsc.m4 \
 	$(top_srcdir)/m4/configure_samrai.m4 \
-	$(top_srcdir)/m4/configure_silo.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/m4/configure_silo.m4 $(top_srcdir)/m4/lib-ld.m4 \
+	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/m4/package_utilities.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -153,7 +158,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
-	$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+	$(top_srcdir)/src/IB/IBImplicitStrategy.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
@@ -192,6 +197,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -223,7 +229,9 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.cpp \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.cpp \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.cpp \
+	$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp \
 	$(top_srcdir)/src/IB/IBFEMethod.cpp \
+	$(top_srcdir)/src/IB/IBFEPostProcessor.cpp \
 	$(top_srcdir)/src/IB/IMPMethod.cpp \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
@@ -240,8 +248,9 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_2 =  \
+@LIBMESH_ENABLED_TRUE@am__objects_2 = libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
@@ -256,7 +265,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
-	libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -295,6 +304,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR2d_a-INSCollocatedVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSProjectionBcCoef.$(OBJEXT) \
@@ -351,7 +361,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
-	$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+	$(top_srcdir)/src/IB/IBImplicitStrategy.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
@@ -390,6 +400,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -421,7 +432,9 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.cpp \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.cpp \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.cpp \
+	$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp \
 	$(top_srcdir)/src/IB/IBFEMethod.cpp \
+	$(top_srcdir)/src/IB/IBFEPostProcessor.cpp \
 	$(top_srcdir)/src/IB/IMPMethod.cpp \
 	$(top_srcdir)/src/IB/IMPInitializer.cpp \
 	$(top_srcdir)/src/IB/MaterialPointSpec.cpp \
@@ -438,8 +451,9 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_4 =  \
+@LIBMESH_ENABLED_TRUE@am__objects_4 = libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
@@ -454,7 +468,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
-	libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -493,6 +507,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.$(OBJEXT) \
+	libIBAMR3d_a-INSCollocatedVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSProjectionBcCoef.$(OBJEXT) \
@@ -599,7 +614,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
-	$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
+	$(top_srcdir)/src/IB/IBImplicitStrategy.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec-inl.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -639,6 +654,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -670,7 +686,9 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/StaggeredStokesSolverManager.h \
 	$(top_srcdir)/src/navier_stokes/StokesBcCoefStrategy.h \
 	$(top_srcdir)/src/utilities/ConvectiveOperator.h \
+	$(top_srcdir)/src/IB/IBFECentroidPostProcessor.h \
 	$(top_srcdir)/src/IB/IBFEMethod.h \
+	$(top_srcdir)/src/IB/IBFEPostProcessor.h \
 	$(top_srcdir)/src/IB/IMPMethod.h \
 	$(top_srcdir)/src/IB/IMPInitializer.h \
 	$(top_srcdir)/src/IB/MaterialPointSpec.h
@@ -983,7 +1001,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
-	$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.h \
+	$(top_srcdir)/src/IB/IBImplicitStrategy.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec-inl.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -1023,6 +1041,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -1066,7 +1085,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp \
-	$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp \
+	$(top_srcdir)/src/IB/IBImplicitStrategy.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.cpp \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.cpp \
@@ -1105,6 +1124,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedConvectiveOperatorManager.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp \
+	$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.cpp \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.cpp \
@@ -1274,10 +1294,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1306,6 +1328,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po@am__quote@
@@ -1359,10 +1382,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1391,6 +1416,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po@am__quote@
@@ -1614,19 +1640,19 @@ libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IB
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
 
-libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.o: $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Tpo -c -o libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' object='libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitStrategy.o: $(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Tpo -c -o libIBAMR2d_a-IBImplicitStrategy.o `test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' object='libIBAMR2d_a-IBImplicitStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStrategy.o `test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStrategy.cpp
 
-libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.obj: $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Tpo -c -o libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' object='libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitStrategy.obj: $(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Tpo -c -o libIBAMR2d_a-IBImplicitStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' object='libIBAMR2d_a-IBImplicitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; fi`
 
 libIBAMR2d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Tpo -c -o libIBAMR2d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.cpp
@@ -2160,6 +2186,20 @@ libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_st
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; fi`
 
+libIBAMR2d_a-INSCollocatedVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSCollocatedVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR2d_a-INSCollocatedVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+
+libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+
 libIBAMR2d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po
@@ -2594,6 +2634,20 @@ libIBAMR2d_a-ConvectiveOperator.obj: $(top_srcdir)/src/utilities/ConvectiveOpera
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-ConvectiveOperator.obj `if test -f '$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; fi`
 
+libIBAMR2d_a-IBFECentroidPostProcessor.o: $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFECentroidPostProcessor.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' object='libIBAMR2d_a-IBFECentroidPostProcessor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+
+libIBAMR2d_a-IBFECentroidPostProcessor.obj: $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFECentroidPostProcessor.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o libIBAMR2d_a-IBFECentroidPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo $(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' object='libIBAMR2d_a-IBFECentroidPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFECentroidPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; fi`
+
 libIBAMR2d_a-IBFEMethod.o: $(top_srcdir)/src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFEMethod.Tpo -c -o libIBAMR2d_a-IBFEMethod.o `test -f '$(top_srcdir)/src/IB/IBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBFEMethod.Tpo $(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po
@@ -2607,6 +2661,20 @@ libIBAMR2d_a-IBFEMethod.obj: $(top_srcdir)/src/IB/IBFEMethod.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEMethod.cpp' object='libIBAMR2d_a-IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.cpp'; fi`
+
+libIBAMR2d_a-IBFEPostProcessor.o: $(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFEPostProcessor.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo -c -o libIBAMR2d_a-IBFEPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' object='libIBAMR2d_a-IBFEPostProcessor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+
+libIBAMR2d_a-IBFEPostProcessor.obj: $(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFEPostProcessor.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo -c -o libIBAMR2d_a-IBFEPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Tpo $(DEPDIR)/libIBAMR2d_a-IBFEPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' object='libIBAMR2d_a-IBFEPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; fi`
 
 libIBAMR2d_a-IMPMethod.o: $(top_srcdir)/src/IB/IMPMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IMPMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IMPMethod.Tpo -c -o libIBAMR2d_a-IMPMethod.o `test -f '$(top_srcdir)/src/IB/IMPMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IMPMethod.cpp
@@ -2804,19 +2872,19 @@ libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IB
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.cpp'; fi`
 
-libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.o: $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Tpo -c -o libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' object='libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitStrategy.o: $(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Tpo -c -o libIBAMR3d_a-IBImplicitStrategy.o `test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' object='libIBAMR3d_a-IBImplicitStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStrategy.o `test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStrategy.cpp
 
-libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.obj: $(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Tpo -c -o libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp' object='libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitStrategy.obj: $(top_srcdir)/src/IB/IBImplicitStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Tpo -c -o libIBAMR3d_a-IBImplicitStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBImplicitStrategy.cpp' object='libIBAMR3d_a-IBImplicitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStrategy.cpp'; fi`
 
 libIBAMR3d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Tpo -c -o libIBAMR3d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.cpp
@@ -3350,6 +3418,20 @@ libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.obj: $(top_srcdir)/src/navier_st
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedPPMConvectiveOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.cpp'; fi`
 
+libIBAMR3d_a-INSCollocatedVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSCollocatedVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR3d_a-INSCollocatedVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+
+libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSCollocatedVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp' object='libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSCollocatedVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSCollocatedVelocityBcCoef.cpp'; fi`
+
 libIBAMR3d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po
@@ -3784,6 +3866,20 @@ libIBAMR3d_a-ConvectiveOperator.obj: $(top_srcdir)/src/utilities/ConvectiveOpera
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-ConvectiveOperator.obj `if test -f '$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ConvectiveOperator.cpp'; fi`
 
+libIBAMR3d_a-IBFECentroidPostProcessor.o: $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFECentroidPostProcessor.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' object='libIBAMR3d_a-IBFECentroidPostProcessor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+
+libIBAMR3d_a-IBFECentroidPostProcessor.obj: $(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFECentroidPostProcessor.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o libIBAMR3d_a-IBFECentroidPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo $(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp' object='libIBAMR3d_a-IBFECentroidPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFECentroidPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFECentroidPostProcessor.cpp'; fi`
+
 libIBAMR3d_a-IBFEMethod.o: $(top_srcdir)/src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFEMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFEMethod.Tpo -c -o libIBAMR3d_a-IBFEMethod.o `test -f '$(top_srcdir)/src/IB/IBFEMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBFEMethod.Tpo $(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po
@@ -3797,6 +3893,20 @@ libIBAMR3d_a-IBFEMethod.obj: $(top_srcdir)/src/IB/IBFEMethod.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEMethod.cpp' object='libIBAMR3d_a-IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.cpp'; fi`
+
+libIBAMR3d_a-IBFEPostProcessor.o: $(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFEPostProcessor.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo -c -o libIBAMR3d_a-IBFEPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' object='libIBAMR3d_a-IBFEPostProcessor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEPostProcessor.o `test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+
+libIBAMR3d_a-IBFEPostProcessor.obj: $(top_srcdir)/src/IB/IBFEPostProcessor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFEPostProcessor.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo -c -o libIBAMR3d_a-IBFEPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Tpo $(DEPDIR)/libIBAMR3d_a-IBFEPostProcessor.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$(top_srcdir)/src/IB/IBFEPostProcessor.cpp' object='libIBAMR3d_a-IBFEPostProcessor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEPostProcessor.obj `if test -f '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEPostProcessor.cpp'; fi`
 
 libIBAMR3d_a-IMPMethod.o: $(top_srcdir)/src/IB/IMPMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IMPMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IMPMethod.Tpo -c -o libIBAMR3d_a-IMPMethod.o `test -f '$(top_srcdir)/src/IB/IMPMethod.cpp' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IMPMethod.cpp

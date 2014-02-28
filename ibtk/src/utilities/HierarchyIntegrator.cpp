@@ -105,6 +105,8 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_hierarchy = NULL;
     d_gridding_alg = NULL;
     d_hierarchy_is_initialized = false;
+    d_regridding_hierarchy = false;
+    d_at_regrid_time_step = false;
     d_visit_writer = NULL;
     d_parent_integrator = NULL;
     d_current_num_cycles = -1;
@@ -287,7 +289,10 @@ HierarchyIntegrator::advanceHierarchy(
     if (atRegridPoint())
     {
         if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
+        d_regridding_hierarchy = true;
         regridHierarchy();
+        d_regridding_hierarchy = false;
+        d_at_regrid_time_step = true;
     }
 
     // Determine the number of cycles and the time step size.
@@ -298,7 +303,7 @@ HierarchyIntegrator::advanceHierarchy(
     // recursively execute all preprocessing callbacks registered with the
     // parent and child integrators.
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
-
+    
     // Perform one or more cycles.  In each cycle, execute the integration
     // method of the parent integrator, and recursively execute all integration
     // callbacks registered with the parent and child integrators.
@@ -338,6 +343,9 @@ HierarchyIntegrator::advanceHierarchy(
     // Reset all time dependent data.
     if (d_enable_logging) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierarchyData(new_time);
+
+    // Reset the regrid indicator.
+    d_at_regrid_time_step = false;
     return;
 }// advanceHierarchy
 
@@ -550,6 +558,25 @@ HierarchyIntegrator::integrateHierarchy(
 #endif
     return;
 }// integrateHierarchy
+
+void
+HierarchyIntegrator::skipCycle(
+    const double current_time,
+    const double new_time,
+    const int cycle_num)
+{
+    ++d_current_cycle_num;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time-current_time));
+    TBOX_ASSERT(d_current_cycle_num == cycle_num);
+    TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
+#else
+    NULL_USE(current_time);
+    NULL_USE(new_time);
+    NULL_USE(cycle_num);
+#endif
+    return;
+}// skipCycle
 
 void
 HierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -1463,7 +1490,6 @@ HierarchyIntegrator::getFromInput(
     if (db->keyExists("regrid_interval")) d_regrid_interval = db->getInteger("regrid_interval");
     if (db->keyExists("regrid_mode")) d_regrid_mode = string_to_enum<RegridMode>(db->getString("regrid_mode"));
     if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
-    else if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;

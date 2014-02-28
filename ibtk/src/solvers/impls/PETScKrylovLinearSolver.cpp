@@ -375,7 +375,7 @@ PETScKrylovLinearSolver::initializeSolverState(
 
     // Reset the member state variables to correspond to the values used by the
     // KSP object.  (Command-line options always take precedence.)
-    const KSPType ksp_type;
+    const char* ksp_type;
     ierr = KSPGetType(d_petsc_ksp, &ksp_type); IBTK_CHKERRQ(ierr);
     d_ksp_type = ksp_type;
     PetscBool initial_guess_nonzero;
@@ -521,7 +521,7 @@ PETScKrylovLinearSolver::resetWrappedKSP(
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_ksp), &d_petsc_comm); IBTK_CHKERRQ(ierr);
 
     // Set d_ksp_type to correspond to the KSP type used by the supplied KSP.
-    const KSPType ksp_type;
+    const char* ksp_type;
     ierr = KSPGetType(d_petsc_ksp, &ksp_type); IBTK_CHKERRQ(ierr);
     d_ksp_type = std::string(ksp_type);
 
@@ -598,7 +598,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
     // Create and configure the MatShell object.
     if (d_petsc_mat)
     {
-        const MatType mat_type;
+        const char* mat_type;
         ierr = MatGetType(d_petsc_mat, &mat_type); IBTK_CHKERRQ(ierr);
         if (strcmp(mat_type,MATSHELL))
         {

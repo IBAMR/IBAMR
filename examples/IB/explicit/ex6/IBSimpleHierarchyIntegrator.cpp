@@ -139,7 +139,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
     // Spread the forces to the grid.  We use the "current" Lagrangian position
     // data to define the locations from where the forces are spread.
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, finest_level_num, getProlongRefineSchedules(d_object_name+"::f"), /*F_needs_ghost_fill*/ true, /*X_needs_ghost_fill*/ true);
+    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op, finest_level_num, getProlongRefineSchedules(d_object_name+"::f"), /*F_needs_ghost_fill*/ true, /*X_needs_ghost_fill*/ true);
 
     // NOTE: Any additional Eulerian forcing should be computed here and added
     // to the data associated with d_f_idx.

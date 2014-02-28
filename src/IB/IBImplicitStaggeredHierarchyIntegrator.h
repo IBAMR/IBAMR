@@ -37,18 +37,17 @@
 
 #include <string>
 
+#include "petscsnes.h"
 #include "SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesOperator.h"
-#include "ibtk/GeneralOperator.h"
-#include "ibtk/JacobianOperator.h"
-#include "ibtk/LinearSolver.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
 namespace IBAMR {
-class IBStrategy;
+class IBImplicitStrategy;
 class INSStaggeredHierarchyIntegrator;
 }  // namespace IBAMR
 namespace SAMRAI {
@@ -85,7 +84,7 @@ public:
     IBImplicitStaggeredHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
+        SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart=true);
 
@@ -139,6 +138,12 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
+    /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int
+    getNumberOfCycles() const;
+
 protected:
     /*!
      * Write out specialized object state to the given database.
@@ -147,6 +152,8 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
+    
 private:
     /*!
      * \brief Default constructor.
@@ -185,238 +192,103 @@ private:
     void
     getFromRestart();
 
-    double d_current_time, d_new_time;
+    /*!
+     * Static function for implicit formulation.
+     */
+    static PetscErrorCode
+    compositeIBFunction_SAMRAI(
+        SNES snes,
+        Vec x,
+        Vec f,
+        void* ctx);
+
+    /*!
+     * Function for implicit formulation.
+     */
+    PetscErrorCode
+    compositeIBFunction(
+        SNES snes,
+        Vec x,
+        Vec f);
+
+    /*!
+     * Static function for setting up implicit formulation composite Jacobian.
+     */
+    static PetscErrorCode
+    compositeIBJacobianSetup_SAMRAI(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure,
+        void* p_ctx);
+
+    /*!
+     * Static function for setting up implicit formulation composite Jacobian.
+     */
+    PetscErrorCode
+    compositeIBJacobianSetup(
+        SNES snes,
+        Vec x,
+        Mat* A,
+        Mat* B,
+        MatStructure* mat_structure);
+
+    /*!
+     * Static function for implicit formulation composite Jacobian.
+     */
+    static PetscErrorCode
+    compositeIBJacobianApply_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation composite Jacobian.
+     */
+    PetscErrorCode
+    compositeIBJacobianApply(
+        Vec x,
+        Vec y);
+
+    /*!
+     * Static function for implicit formulation composite preconditioner.
+     */
+    static PetscErrorCode
+    compositeIBPCApply_SAMRAI(
+        PC pc,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation composite preconditioner.
+     */
+    PetscErrorCode
+    compositeIBPCApply(
+        Vec x,
+        Vec y);
+
+    /*!
+     * Static function for implicit formulation Lagrangian Schur complement.
+     */
+    static PetscErrorCode
+    lagrangianSchurApply_SAMRAI(
+        Mat A,
+        Vec x,
+        Vec y);
+
+    /*!
+     * Function for implicit formulation Lagrangian Schur complement.
+     */
+    PetscErrorCode
+    lagrangianSchurApply(
+        Vec x,
+        Vec y);
+
+    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_F_op;
-    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_J_op;
-    Mat d_J_mat;
-    Vec d_X_LE_vec;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_modified_stokes_pc;
-
-    /*!
-     * \brief Implementation of a modified Stokes operator that includes forcing
-     * terms computed via the IB method.
-     */
-    class Operator
-        : public IBTK::GeneralOperator
-    {
-    public:
-        /*!
-         * \brief Constructor.
-         */
-        Operator(
-            const IBImplicitStaggeredHierarchyIntegrator* ib_solver);
-
-        /*!
-         * \brief Destructor.
-         */
-        ~Operator();
-
-        /*!
-         * \name General operator functionality.
-         */
-        //\{
-
-        /*!
-         * \brief Compute \f$y=F[x]\f$.
-         */
-        void
-        apply(
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-        /*!
-         * \brief Compute hierarchy dependent data required for computing y=F[x] and
-         * z=F[x]+y.
-         */
-        void
-        initializeOperatorState(
-            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
-
-        /*!
-         * \brief Remove all hierarchy dependent data allocated by
-         * initializeOperatorState().
-         */
-        void
-        deallocateOperatorState();
-
-        //\}
-
-        /*!
-         * \name Logging functions.
-         */
-        //\{
-
-        /*!
-         * \brief Enable or disable logging.
-         *
-         * \param enabled logging state: true=on, false=off
-         */
-        void
-        enableLogging(
-            bool enabled=true);
-
-        //\}
-
-    private:
-        /*!
-         * \brief Default constructor.
-         *
-         * \note This constructor is not implemented and should not be used.
-         */
-        Operator();
-
-        /*!
-         * \brief Copy constructor.
-         *
-         * \note This constructor is not implemented and should not be used.
-         *
-         * \param from The value to copy to this object.
-         */
-        Operator(
-            const Operator& from);
-
-        /*!
-         * \brief Assignment operator.
-         *
-         * \note This operator is not implemented and should not be used.
-         *
-         * \param that The value to assign to this object.
-         *
-         * \return A reference to this object.
-         */
-        Operator&
-        operator=(
-            const Operator& that);
-
-        const IBImplicitStaggeredHierarchyIntegrator* const d_ib_solver;
-    };
-
-    /*!
-     * \brief Implementation of the Jacobian of a modified Stokes operator that
-     * includes forcing terms computed via the IB method.
-     */
-    class Jacobian
-        : public IBTK::JacobianOperator
-    {
-    public:
-        /*!
-         * \brief Constructor.
-         */
-        Jacobian(
-            IBImplicitStaggeredHierarchyIntegrator* ib_solver);
-
-        /*!
-         * \brief Destructor.
-         */
-        ~Jacobian();
-
-        /*!
-         * \name General Jacobian functionality.
-         */
-        //\{
-
-        /*!
-         * \brief Compute hierarchy dependent data required for evaluating F'[x].
-         *
-         * \param x value where the Jacobian is to be evaluated
-         */
-        void
-        formJacobian(
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
-
-        /*!
-         * \brief Return the vector where the Jacobian is evaluated.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
-        getBaseVector() const;
-
-        //\}
-
-        /*!
-         * \name Linear operator functionality.
-         */
-        //\{
-
-        /*!
-         * \brief Compute \f$y=F[x]\f$.
-         */
-        void
-        apply(
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-        /*!
-         * \brief Compute hierarchy dependent data required for computing y=F[x] and
-         * z=F[x]+y.
-         */
-        void
-        initializeOperatorState(
-            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
-
-        /*!
-         * \brief Remove all hierarchy dependent data allocated by
-         * initializeOperatorState().
-         */
-        void
-        deallocateOperatorState();
-
-        //\}
-
-        /*!
-         * \name Logging functions.
-         */
-        //\{
-
-        /*!
-         * \brief Enable or disable logging.
-         *
-         * \param enabled logging state: true=on, false=off
-         */
-        void
-        enableLogging(
-            bool enabled=true);
-
-        //\}
-
-    private:
-        /*!
-         * \brief Default constructor.
-         *
-         * \note This constructor is not implemented and should not be used.
-         */
-        Jacobian();
-
-        /*!
-         * \brief Copy constructor.
-         *
-         * \note This constructor is not implemented and should not be used.
-         *
-         * \param from The value to copy to this object.
-         */
-        Jacobian(
-            const Jacobian& from);
-
-        /*!
-         * \brief Assignment operator.
-         *
-         * \note This operator is not implemented and should not be used.
-         *
-         * \param that The value to assign to this object.
-         *
-         * \return A reference to this object.
-         */
-        Jacobian&
-        operator=(
-            const Jacobian& that);
-
-        IBImplicitStaggeredHierarchyIntegrator* const d_ib_solver;
-        Mat d_J_mat;
-        bool d_J_is_set;
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_base;
-    };
+    KSP d_schur_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_u_scratch_vec, d_f_scratch_vec;
 };
 }// namespace IBAMR
 

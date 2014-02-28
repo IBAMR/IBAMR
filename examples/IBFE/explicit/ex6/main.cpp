@@ -74,7 +74,6 @@ block_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -91,7 +90,6 @@ beam_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -117,7 +115,6 @@ beam_PK1_stress_function(
     const libMesh::Point& /*X*/,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -300,9 +297,14 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerLagBodyForceFunction( &beam_tether_force_function, std::vector<unsigned int>(), NULL, 1);
-        ib_method_ops->registerPK1StressTensorFunction(&beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
+        IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
+        ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
+
+        IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
+        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function);
+        ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 1);
+        ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 1);
+
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems*  beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
 

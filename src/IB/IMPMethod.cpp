@@ -309,9 +309,8 @@ IMPMethod::IMPMethod(
     if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
-    LEInteractor::s_delta_fcn = &kernel;
-    LEInteractor::s_delta_fcn_stencil_size = 2*kernel_width;
-    LEInteractor::s_delta_fcn_C = std::numeric_limits<double>::quiet_NaN();
+    LEInteractor::s_kernel_fcn = &kernel;
+    LEInteractor::s_kernel_fcn_stencil_size = 2*kernel_width;
     d_l_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", "USER_DEFINED", "USER_DEFINED", d_ghosts, d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
@@ -901,6 +900,7 @@ IMPMethod::computeLagrangianForce(
 void
 IMPMethod::spreadForce(
     const int f_data_idx,
+    RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
@@ -1114,7 +1114,7 @@ IMPMethod::initializeLevelData(
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
-    d_l_data_manager->resetLevels(0, finest_hier_level);
+    d_l_data_manager->setPatchLevels(0, finest_hier_level);
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -1170,7 +1170,7 @@ IMPMethod::resetHierarchyConfiguration(
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
-    d_l_data_manager->resetLevels(0, finest_hier_level);
+    d_l_data_manager->setPatchLevels(0, finest_hier_level);
     d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     return;
 }// resetHierarchyConfiguration

@@ -185,6 +185,7 @@ IBStandardForceGen::initializeLevelData(
     d_target_point_data.resize(new_size);
     d_X_ghost_data     .resize(new_size);
     d_F_ghost_data     .resize(new_size);
+    d_dX_data          .resize(new_size);
     d_is_initialized   .resize(new_size, false);
 
     // Keep track of all of the nonlocal PETSc indices required to compute the
@@ -218,6 +219,25 @@ IBStandardForceGen::initializeLevelData(
     std::ostringstream F_name_stream;
     F_name_stream << "IBStandardForceGen::F_ghost_" << level_number;
     d_F_ghost_data[level_number] = new LData(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+
+    std::ostringstream dX_name_stream;
+    dX_name_stream << "IBStandardForceGen::dX_" << level_number;
+    d_dX_data[level_number] = new LData(dX_name_stream.str(), num_local_nodes, NDIM);
+
+    // Compute periodic displacements.
+    boost::multi_array_ref<double,2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    for (int k = 0; k < num_local_nodes; ++k)
+    {
+        const LNode* const node = local_nodes[k];
+        const Vector& periodic_displacement = node->getPeriodicDisplacement();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            dX_array[k][d] = periodic_displacement[d];
+        }
+    }
+    d_dX_data[level_number]->restoreArrays();
 
     // Transform all of the cached indices to correspond to a data depth of
     // NDIM.
@@ -261,7 +281,8 @@ IBStandardForceGen::computeLagrangianForce(
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);  IBTK_CHKERRQ(ierr);
 
     Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
-    ierr = VecCopy(X_data->getVec(), X_ghost_data->getVec());  IBTK_CHKERRQ(ierr);
+    Pointer<LData> dX_data = d_dX_data[level_number];
+    ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());  IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateEnd(  X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
 
@@ -708,7 +729,7 @@ IBStandardForceGen::initializeSpringLevelData(
             petsc_mastr_node_idxs[current_spring] = petsc_idx;
             force_fcns           [current_spring] = d_spring_force_fcn_map      [fcn[k]];
             force_deriv_fcns     [current_spring] = d_spring_force_deriv_fcn_map[fcn[k]];
-            parameters           [current_spring] = &params[k][0];
+            parameters           [current_spring] = params.empty() ? NULL : &params[k][0];
             ++current_spring;
         }
     }

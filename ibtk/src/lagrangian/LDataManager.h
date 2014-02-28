@@ -61,6 +61,7 @@
 #include "ibtk/LNodeSetVariable.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ParallelSet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "petscao.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
@@ -134,13 +135,13 @@ public:
      * \return A pointer to the data manager instance.
      *
      * \note By default, the ghost cell width is set according to the
-     * interpolation and spreading weighting functions.
+     * interpolation and spreading kernel functions.
      */
     static LDataManager*
     getManager(
         const std::string& name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
+        const std::string& default_interp_kernel_fcn,
+        const std::string& default_spread_kernel_fcn,
         const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
         bool register_for_restart=true);
 
@@ -154,7 +155,8 @@ public:
     freeAllManagers();
 
     /*!
-     * \name Methods to set the hierarchy and range of levels.
+     * \name Methods to set and get the patch hierarchy and range of patch
+     * levels associated with this manager class.
      */
     //\{
 
@@ -166,15 +168,29 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
+     * \brief Get the patch hierarchy used by this object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    getPatchHierarchy() const;
+
+    /*!
      * \brief Reset range of patch levels over which operations occur.
      *
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
     void
-    resetLevels(
+    setPatchLevels(
         int coarsest_ln,
         int finest_ln);
+
+    /*!
+     * \brief Get the range of patch levels used by this object.
+     *
+     * \note Returns [coarsest_ln,finest_ln+1).
+     */
+    std::pair<int,int>
+    getPatchLevels() const;
 
     //\}
 
@@ -186,18 +202,18 @@ public:
     getGhostCellWidth() const;
 
     /*!
-     * \brief Return the weighting function associated with the
+     * \brief Return the default kernel function associated with the
      * Eulerian-to-Lagrangian interpolation scheme.
      */
     const std::string&
-    getInterpWeightingFunction() const;
+    getDefaultInterpKernelFunction() const;
 
     /*!
-     * \brief Return the weighting function associated with the
+     * \brief Return the default kernel function associated with the
      * Lagrangian-to-Eulerian spreading scheme.
      */
     const std::string&
-    getSpreadWeightingFunction() const;
+    getDefaultSpreadKernelFunction() const;
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
@@ -217,8 +233,10 @@ public:
         SAMRAI::tbox::Pointer<LData> F_data,
         SAMRAI::tbox::Pointer<LData> X_data,
         SAMRAI::tbox::Pointer<LData> ds_data,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         int level_num,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         bool ds_data_ghost_node_update=true);
@@ -241,7 +259,9 @@ public:
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         bool ds_data_ghost_node_update=true,
@@ -265,8 +285,10 @@ public:
         int f_data_idx,
         SAMRAI::tbox::Pointer<LData> F_data,
         SAMRAI::tbox::Pointer<LData> X_data,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         int level_num,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true);
 
@@ -287,7 +309,9 @@ public:
         int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
         bool F_data_ghost_node_update=true,
         bool X_data_ghost_node_update=true,
         int coarsest_ln=-1,
@@ -378,14 +402,28 @@ public:
         int level_number) const;
 
     /*!
-     * \return The number of local (i.e., on processor) nodes of the Lagrangian
+     * \return The number of local (i.e., on-processor) nodes of the Lagrangian
      * data for the specified level of the patch hierarchy.
      *
      * \note This count does not include nodes that only lie in ghost cells for
      * the current process.
+     *
+     * \see getNumberOfNodes
+     * \see getNumberOfGhostNodes
      */
     unsigned int
     getNumberOfLocalNodes(
+        int level_number) const;
+
+    /*!
+     * \return The number of ghost (i.e., off-processor) nodes of the Lagrangian
+     * data for the specified level of the patch hierarchy.
+     *
+     * \see getNumberOfNodes
+     * \see getNumberOfLocalNodes
+     */
+    unsigned int
+    getNumberOfGhostNodes(
         int level_number) const;
 
     /*!
@@ -849,8 +887,8 @@ protected:
      */
     LDataManager(
         const std::string& object_name,
-        const std::string& interp_weighting_fcn,
-        const std::string& spread_weighting_fcn,
+        const std::string& default_interp_kernel_fcn,
+        const std::string& default_spread_kernel_fcn,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
 
@@ -890,34 +928,6 @@ private:
     LDataManager&
     operator=(
         const LDataManager& that);
-
-    /*!
-     * \brief Version of the spreading routine specialized to the case in which
-     * there is Lagrangian data only on finest_ln.
-     */
-    void
-    spread_specialized(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        bool F_data_ghost_node_update,
-        bool X_data_ghost_node_update,
-        int coarsest_ln,
-        int finest_ln);
-
-    /*!
-     * \brief Version of the interpolation routine specialized to the case in
-     * which there is Lagrangian data only on finest_ln.
-     */
-    void
-    interp_specialized(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
-        double fill_data_time,
-        int coarsest_ln,
-        int finest_ln);
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
@@ -1061,6 +1071,7 @@ private:
      */
     SAMRAI::tbox::Pointer<LNodeSetVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
+    std::vector<SAMRAI::tbox::Pointer<std::vector<LNode> > > d_local_and_ghost_nodes;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -1082,10 +1093,10 @@ private:
     bool d_output_node_count;
 
     /*
-     * The weighting functions used to mediate Lagrangian-Eulerian interaction.
+     * The kernel functions used to mediate Lagrangian-Eulerian interaction.
      */
-    const std::string d_interp_weighting_fcn;
-    const std::string d_spread_weighting_fcn;
+    const std::string d_default_interp_kernel_fcn;
+    const std::string d_default_spread_kernel_fcn;
 
     /*
      * SAMRAI::hier::IntVector object that determines the ghost cell width of
