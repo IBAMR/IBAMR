@@ -39,7 +39,7 @@ asdf
 ]])],[PETSC_VERSION_VALID=yes],[PETSC_VERSION_VALID=no])
 AC_MSG_RESULT([${PETSC_VERSION_VALID}])
 if test "$PETSC_VERSION_VALID" = no; then
-  AC_MSG_ERROR([incorrect PETSc version detected: please use PETSc 3.3 or 3.4])
+  AC_MSG_ERROR([invalid PETSc version detected: please use PETSc 3.3 or 3.4])
 fi
 
 LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)

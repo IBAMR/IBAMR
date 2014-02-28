@@ -1643,7 +1643,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-boost=DIR        location of required Boost installation
   --with-eigen=PATH       location of required Eigen installation
-  --with-hdf5=PATH        location of required hdf5 installation
+  --with-hdf5=PATH        location of required HDF5 installation
   --with-hypre=PATH       location of required hypre installation
   --with-muparser=PATH    location of required muParser installation
   --with-samrai=PATH      location of required SAMRAI installation
@@ -25653,12 +25653,55 @@ if test x$EIGEN_DIR != x ; then
     EIGEN_CPPFLAGS="-I${EIGEN_DIR}"
   fi
 fi
+CPPFLAGS="$EIGEN_CPPFLAGS $CPPFLAGS"
+
  if test "$USING_BUNDLED_EIGEN" = yes; then
   USING_BUNDLED_EIGEN_TRUE=
   USING_BUNDLED_EIGEN_FALSE='#'
 else
   USING_BUNDLED_EIGEN_TRUE='#'
   USING_BUNDLED_EIGEN_FALSE=
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Eigen version >= 3.1.0" >&5
+$as_echo_n "checking for Eigen version >= 3.1.0... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <Eigen/Core>
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+#if EIGEN_VERSION_AT_LEAST(3,1,0)
+#else
+asdf
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  EIGEN_VERSION_VALID=yes
+else
+  EIGEN_VERSION_VALID=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${EIGEN_VERSION_VALID}" >&5
+$as_echo "${EIGEN_VERSION_VALID}" >&6; }
+if test "$EIGEN_VERSION_VALID" = no; then
+  as_fn_error $? "invalid Eigen version detected: please use Eigen 3.1.0 or later" "$LINENO" 5
 fi
 
 PACKAGE_CPPFLAGS="$EIGEN_CPPFLAGS $PACKAGE_CPPFLAGS"
@@ -25700,9 +25743,11 @@ CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
 
 
 if test `grep -c HDF5 "${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables"` != 0 ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide hdf5; using PETSc hdf5 library" >&5
-$as_echo "$as_me: PETSc appears to provide hdf5; using PETSc hdf5 library" >&6;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: PETSc appears to provide HDF5; using PETSc HDF5 library" >&5
+$as_echo "$as_me: PETSc appears to provide HDF5; using PETSc HDF5 library" >&6;}
   PETSC_BUNDLES_HDF5=yes
+  CPPFLAGS=""-I${PETSC_DIR}/${PETSC_ARCH}/include" $CPPFLAGS"
+
 else
   PETSC_BUNDLES_HDF5=no
 
@@ -26855,6 +26900,46 @@ $as_echo "$LIBHDF5_HL" >&6; }
     PACKAGE_LIBS=""$LIBHDF5_HL" $PACKAGE_LIBS"
 
   fi
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 version >= 1.8.0" >&5
+$as_echo_n "checking for HDF5 version >= 1.8.0... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <hdf5.h>
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+#if H5_VERSION_GE(1,8,0)
+#else
+asdf
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  HDF5_VERSION_VALID=yes
+else
+  HDF5_VERSION_VALID=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${HDF5_VERSION_VALID}" >&5
+$as_echo "${HDF5_VERSION_VALID}" >&6; }
+if test "$HDF5_VERSION_VALID" = no; then
+  as_fn_error $? "invalid HDF5 version detected: please use HDF5 1.8.0 or later" "$LINENO" 5
 fi
 
 
@@ -28293,7 +28378,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_VERSION_VALID}" >&5
 $as_echo "${PETSC_VERSION_VALID}" >&6; }
 if test "$PETSC_VERSION_VALID" = no; then
-  as_fn_error $? "incorrect PETSc version detected: please use PETSc 3.3 or 3.4" "$LINENO" 5
+  as_fn_error $? "invalid PETSc version detected: please use PETSc 3.3 or 3.4" "$LINENO" 5
 fi
 
 LIBS="$PETSC_EXTERNAL_LIB_BASIC $LIBS"
