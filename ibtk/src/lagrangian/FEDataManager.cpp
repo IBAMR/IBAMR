@@ -478,7 +478,7 @@ FEDataManager::spread(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<Variable<NDIM> > f_var;
+    Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
     Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
@@ -933,7 +933,7 @@ FEDataManager::interp(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     
     // Determine the type of data centering.
-    Pointer<Variable<NDIM> > f_var;
+    Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<NDIM,double> > f_cc_var = f_var;
     Pointer<SideVariable<NDIM,double> > f_sc_var = f_var;
@@ -2490,7 +2490,7 @@ FEDataManager::collectGhostDOFIndices(
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
-            const DofConstraintRow& constraint_row = i->second.first;
+            const DofConstraintRow& constraint_row = i->second;
             for (DofConstraintRow::const_iterator j = constraint_row.begin(); j != constraint_row.end(); ++j)
             {
                 const unsigned int constraint_dependency = j->first;

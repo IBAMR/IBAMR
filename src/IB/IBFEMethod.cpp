@@ -1314,7 +1314,7 @@ IBFEMethod::spreadTransmissionForceDensity(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Make a copy of the Eulerian data.
-    Pointer<Variable<NDIM> > f_var;
+    Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
