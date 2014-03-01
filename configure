@@ -22099,6 +22099,45 @@ else
 fi
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh version 0.9.3" >&5
+$as_echo_n "checking for libMesh version 0.9.3... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/libmesh_config.h>
+
+#if ((LIBMESH_MAJOR_VERSION == 0) && (LIBMESH_MINOR_VERSION == 9) && (LIBMESH_MICRO_VERSION == 3))
+#else
+asdf
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_VERSION_VALID=yes
+else
+  LIBMESH_VERSION_VALID=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_VERSION_VALID}" >&5
+$as_echo "${LIBMESH_VERSION_VALID}" >&6; }
+  if test "$LIBMESH_VERSION_VALID" = no; then
+    as_fn_error $? "invalid libMesh version detected: please use libMesh 0.9.3" "$LINENO" 5
+  fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: obtaining libMesh configuration information from libmesh_common.h" >&5
 $as_echo "$as_me: obtaining libMesh configuration information from libmesh_common.h" >&6;}
   if test "$cross_compiling" = yes; then :
