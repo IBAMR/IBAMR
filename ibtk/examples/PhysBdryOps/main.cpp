@@ -171,8 +171,8 @@ main(
                 pout << "checking robin bc handling . . .\n";
 
                 Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const double* const xLower = pgeom->getXLower();
-                const double* const ref_xUpper = grid_geometry->getXUpper();
+                const double* const x_lower = pgeom->getXLower();
+                const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();
                 const double shift = 3.14159;
                 for (Box<NDIM>::Iterator b(patch_box); b; b++)
@@ -181,7 +181,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     (*data)(i) = 2.0*X[NDIM-1] + shift;
                 }
@@ -196,8 +196,8 @@ main(
                     dirichlet_bc_coef.setBoundarySlope(2*d  ,0.0);
                     dirichlet_bc_coef.setBoundarySlope(2*d+1,0.0);
                 }
-                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)  ,                       shift);
-                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)+1,2.0*ref_xUpper[NDIM-1]+shift);
+                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)  ,                    shift);
+                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)+1,2.0*x_upper[NDIM-1]+shift);
 
                 CartCellRobinPhysBdryOp dirichlet_bc_fill_op(idx, &dirichlet_bc_coef);
                 dirichlet_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
@@ -212,7 +212,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     double val = 2.0*X[NDIM-1] + shift;
 
@@ -255,7 +255,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     double val = 2.0*X[NDIM-1] + shift;
 
