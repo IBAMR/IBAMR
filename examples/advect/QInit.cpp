@@ -144,7 +144,7 @@ QInit::setDataOnPatch(
                             X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             r_squared += pow(X[d]-(d_X[d]+static_cast<double>(offset[d])),2.0);
                         }
-                        (*Q_data)(i) += exp(-r_squared/(4.0*d_gaussian_kappa*(1.0+t)))/pow(4.0*M_PI*d_gaussian_kappa*(1.0+t), 0.5*static_cast<double>(NDIM));
+                        (*Q_data)(i) += exp(-r_squared/(4.0*d_gaussian_kappa))/pow(4.0*M_PI*d_gaussian_kappa*(1.0+t), 0.5*static_cast<double>(NDIM));
 #if (NDIM > 2)
                     }
 #endif
