@@ -43,6 +43,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -238,6 +239,7 @@ IBFEPostProcessor::interpolateVariables(
     // Set up Eulerian scratch space and fill ghost cell values.
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
     Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    std::set<int> scratch_idxs;
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         int& data_idx = d_scalar_interp_data_idxs[k];
@@ -255,9 +257,11 @@ IBFEPostProcessor::interpolateVariables(
             const int stencil_size = LEInteractor::getStencilSize(interp_spec.kernel_fcn);
             const IntVector<NDIM> ghosts(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1);
             scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghosts);
+            scratch_idxs.insert(scratch_idx);
         }
         refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);
     }
+    CartExtrapPhysBdryOp refine_phys_bdry_op(scratch_idxs);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -266,7 +270,7 @@ IBFEPostProcessor::interpolateVariables(
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
             if (!level->checkAllocated(scratch_idx)) level->allocatePatchData(scratch_idx, data_time);
         }
-        refine_alg->createSchedule(level, ln-1, hierarchy, NULL)->fillData(data_time);
+        refine_alg->createSchedule(level, ln-1, hierarchy, &refine_phys_bdry_op)->fillData(data_time);
     }
 
     // Interpolate variables.
