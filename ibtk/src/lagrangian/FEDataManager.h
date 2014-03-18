@@ -361,9 +361,9 @@ public:
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
+        const SpreadSpec& spread_spec,
         RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        double fill_data_time,
-        const SpreadSpec& spread_spec);
+        double fill_data_time);
 
     /*!
      * \brief Prolong a value or a density from the FE mesh to the Cartesian

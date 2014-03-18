@@ -301,6 +301,25 @@ LDataManager::spread(
     const bool  X_data_ghost_node_update,
     const bool ds_data_ghost_node_update)
 {
+    spread(f_data_idx, F_data, X_data, ds_data, d_default_spread_kernel_fcn, f_phys_bdry_op, level_num, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, ds_data_ghost_node_update);
+    return;
+}// spread
+    
+void
+LDataManager::spread(
+    const int f_data_idx,
+    Pointer<LData>  F_data,
+    Pointer<LData>  X_data,
+    Pointer<LData> ds_data,
+    const std::string& spread_kernel_fcn,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const int level_num,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const double fill_data_time,
+    const bool  F_data_ghost_node_update,
+    const bool  X_data_ghost_node_update,
+    const bool ds_data_ghost_node_update)
+{
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 #if !defined(NDEBUG)
@@ -312,7 +331,7 @@ LDataManager::spread(
     F_data_vec [level_num] =  F_data;
     X_data_vec [level_num] =  X_data;
     ds_data_vec[level_num] = ds_data;
-    spread(f_data_idx, F_data_vec, X_data_vec, ds_data_vec, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, ds_data_ghost_node_update, coarsest_ln, finest_ln);
+    spread(f_data_idx, F_data_vec, X_data_vec, ds_data_vec, spread_kernel_fcn, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, ds_data_ghost_node_update, coarsest_ln, finest_ln);
     return;
 }// spread
 
@@ -322,6 +341,26 @@ LDataManager::spread(
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<LData> >& ds_data,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const double fill_data_time,
+    const bool F_data_ghost_node_update,
+    const bool X_data_ghost_node_update,
+    const bool ds_data_ghost_node_update,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    spread(f_data_idx, F_data, X_data, ds_data, d_default_spread_kernel_fcn, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, ds_data_ghost_node_update, coarsest_ln, finest_ln);
+    return;
+}// spread
+
+void
+LDataManager::spread(
+    const int f_data_idx,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
+    std::vector<Pointer<LData> >& ds_data,
+    const std::string& spread_kernel_fcn,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -343,10 +382,20 @@ LDataManager::spread(
     }
 
     // Compute F*ds.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if ( F_data_ghost_node_update)  F_data[ln]->beginGhostUpdate();
+        if (ds_data_ghost_node_update) ds_data[ln]->beginGhostUpdate();
+    }
     std::vector<Pointer<LData> > F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
+
+        if ( F_data_ghost_node_update)  F_data[ln]->endGhostUpdate();
+        if (ds_data_ghost_node_update) ds_data[ln]->endGhostUpdate();
 
         const int depth = F_data[ln]->getDepth();
         F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
@@ -368,7 +417,7 @@ LDataManager::spread(
     IBTK_TIMER_STOP(t_spread);
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    spread(f_data_idx, F_ds_data, X_data, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update || ds_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
+    spread(f_data_idx, F_ds_data, X_data, spread_kernel_fcn, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, /*F_data_ghost_node_update*/ false, X_data_ghost_node_update, coarsest_ln, finest_ln);
     return;
 }// spread
 
@@ -377,6 +426,23 @@ LDataManager::spread(
     const int f_data_idx,
     Pointer<LData> F_data,
     Pointer<LData> X_data,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const int level_num,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const double fill_data_time,
+    const bool F_data_ghost_node_update,
+    const bool X_data_ghost_node_update)
+{
+    spread(f_data_idx, F_data, X_data, d_default_spread_kernel_fcn, f_phys_bdry_op, level_num, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update);
+    return;
+}// spread
+
+void
+LDataManager::spread(
+    const int f_data_idx,
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    const std::string& spread_kernel_fcn,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const int level_num,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
@@ -393,7 +459,7 @@ LDataManager::spread(
     std::vector<Pointer<LData> > X_data_vec(finest_ln+1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
-    spread(f_data_idx, F_data_vec, X_data_vec, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
+    spread(f_data_idx, F_data_vec, X_data_vec, spread_kernel_fcn, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
     return;
 }// spread
 
@@ -402,6 +468,24 @@ LDataManager::spread(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const double fill_data_time,
+    const bool F_data_ghost_node_update,
+    const bool X_data_ghost_node_update,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    spread(f_data_idx, F_data, X_data, d_default_spread_kernel_fcn, f_phys_bdry_op, f_prolongation_scheds, fill_data_time, F_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
+    return;
+}// spread
+    
+void
+LDataManager::spread(
+    const int f_data_idx,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
+    const std::string& spread_kernel_fcn,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const double fill_data_time,
@@ -476,22 +560,22 @@ LDataManager::spread(
             if (cc_data)
             {
                 Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (ec_data)
             { 
                 Pointer<EdgeData<NDIM,double> > f_ec_data = f_data;
-                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_default_spread_kernel_fcn);
+                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (f_phys_bdry_op)
             {

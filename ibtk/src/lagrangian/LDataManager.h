@@ -216,7 +216,8 @@ public:
     getDefaultSpreadKernelFunction() const;
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -242,7 +243,36 @@ public:
         bool ds_data_ghost_node_update=true);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using a specified spreading kernel function.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
+     *
+     * This is the standard regularized delta function spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void
+    spread(
+        int f_data_idx,
+        SAMRAI::tbox::Pointer<LData> F_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LData> ds_data,
+        const std::string& spread_kernel_fcn,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        int level_num,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true,
+        bool ds_data_ghost_node_update=true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -269,7 +299,37 @@ public:
         int finest_ln=-1);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using a specified spreading kernel function.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
+     *
+     * This is the standard regularized delta function spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void
+    spread(
+        int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+        const std::string& spread_kernel_fcn,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true,
+        bool ds_data_ghost_node_update=true,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -293,7 +353,34 @@ public:
         bool X_data_ghost_node_update=true);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the specified spreading kernel function.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void
+    spread(
+        int f_data_idx,
+        SAMRAI::tbox::Pointer<LData> F_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        const std::string& spread_kernel_fcn,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        int level_num,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -318,8 +405,35 @@ public:
         int finest_ln=-1);
 
     /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the specified spreading kernel function.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void
+    spread(
+        int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        const std::string& spread_kernel_fcn,
+        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh.
+     * mesh using the default interpolation kernel function.
      */
     void
     interp(
@@ -333,13 +447,44 @@ public:
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh.
+     * mesh using the specified interpolation kernel function.
+     */
+    void
+    interp(
+        int f_data_idx,
+        SAMRAI::tbox::Pointer<LData> F_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        const std::string& interp_kernel_fcn,
+        int level_num,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the default interpolation kernel function.
      */
     void
     interp(
         int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the specified interpolation kernel function.
+     */
+    void
+    interp(
+        int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+        const std::string& interp_kernel_fcn,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         double fill_data_time=0.0,

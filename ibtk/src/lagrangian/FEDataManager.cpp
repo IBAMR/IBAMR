@@ -457,7 +457,7 @@ FEDataManager::spread(
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const double fill_data_time)
 {
-    spread(f_data_idx, F_vec, X_vec, system_name, f_phys_bdry_op, fill_data_time, d_default_spread_spec);
+    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time);
     return;
 }// spread
 
@@ -467,9 +467,9 @@ FEDataManager::spread(
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
+    const FEDataManager::SpreadSpec& spread_spec,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const double fill_data_time,
-    const FEDataManager::SpreadSpec& spread_spec)
+    const double fill_data_time)
 {
     IBTK_TIMER_START(t_spread);
 
