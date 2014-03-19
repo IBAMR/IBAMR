@@ -43,14 +43,18 @@
 #include "boost/array.hpp"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -62,8 +66,7 @@ namespace IBAMR
  * force that approximately imposes a Dirichlet boundary condition at a single
  * node of the Lagrangian mesh).
  */
-class IBTargetPointForceSpec
-    : public IBTK::Streamable
+class IBTargetPointForceSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -75,15 +78,13 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBTargetPointForceSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
 
     /*!
      * The unique class ID for this object type assigned by the
@@ -94,11 +95,10 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBTargetPointForceSpec(
-        int master_idx=-1,
-        double kappa_target=0.0,
-        double eta_target=0.0,
-        const IBTK::Point& X_target=IBTK::Point::Zero());
+    IBTargetPointForceSpec(int master_idx = -1,
+                           double kappa_target = 0.0,
+                           double eta_target = 0.0,
+                           const IBTK::Point& X_target = IBTK::Point::Zero());
 
     /*!
      * \brief Destructor.
@@ -108,78 +108,66 @@ public:
     /*!
      * \return A const reference to the master node index.
      */
-    const int&
-    getMasterNodeIndex() const;
+    const int& getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int&
-    getMasterNodeIndex();
+    int& getMasterNodeIndex();
 
     /*!
      * \return A const reference to the stiffness of the spring attached to the
      * target point.
      */
-    const double&
-    getStiffness() const;
+    const double& getStiffness() const;
 
     /*!
      * \return A non-const reference to the stiffness of the spring attached to
      * the target point.
      */
-    double&
-    getStiffness();
+    double& getStiffness();
 
     /*!
      * \return A const reference to the damping factor of the spring attached to
      * the target point.
      */
-    const double&
-    getDamping() const;
+    const double& getDamping() const;
 
     /*!
      * \return A non-const reference to the damping factor of the spring
      * attached to the target point.
      */
-    double&
-    getDamping();
+    double& getDamping();
 
     /*!
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const IBTK::Point&
-    getTargetPointPosition() const;
+    const IBTK::Point& getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    IBTK::Point&
-    getTargetPointPosition();
+    IBTK::Point& getTargetPointPosition();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -189,8 +177,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetPointForceSpec(
-        const IBTargetPointForceSpec& from);
+    IBTargetPointForceSpec(const IBTargetPointForceSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -201,9 +188,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpec&
-    operator=(
-        const IBTargetPointForceSpec& that);
+    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that);
 
     /*!
      * Data required to define the target point penalty forces.
@@ -216,8 +201,7 @@ private:
      * \brief A factory class to rebuild IBTargetPointForceSpec objects from
      * SAMRAI::tbox::AbstractStream data streams.
      */
-    class Factory
-        : public IBTK::StreamableFactory
+    class Factory : public IBTK::StreamableFactory
     {
     public:
         /*!
@@ -230,26 +214,22 @@ private:
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBTargetPointForceSpec objects from data streams.
          */
-        int
-        getStreamableClassID() const;
+        int getStreamableClassID() const;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBTargetPointForceSpec objects from data streams.
          */
-        void
-        setStreamableClassID(
-            int class_id);
+        void setStreamableClassID(int class_id);
 
         /*!
          * \brief Build an IBTargetPointForceSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(
-            SAMRAI::tbox::AbstractStream& stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset);
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!
@@ -264,8 +244,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(
-            const Factory& from);
+        Factory(const Factory& from);
 
         /*!
          * \brief Assignment operator.
@@ -276,15 +255,13 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory&
-        operator=(
-            const Factory& that);
+        Factory& operator=(const Factory& that);
 
         friend class IBTargetPointForceSpec;
     };
     typedef IBTargetPointForceSpec::Factory IBTargetPointForceSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

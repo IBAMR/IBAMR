@@ -47,10 +47,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-LTransaction<T>::LTransaction(
-    const int src_proc,
-    const int dst_proc)
+template <class T>
+LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
     : d_src_item_set(),
       d_src_proc(src_proc),
       d_outgoing_bytes(0),
@@ -59,13 +57,12 @@ LTransaction<T>::LTransaction(
 {
     // intentionally blank
     return;
-}// LTransaction
+} // LTransaction
 
-template<class T>
-LTransaction<T>::LTransaction(
-    const int src_proc,
-    const int dst_proc,
-    const std::vector<LTransactionComponent>& src_item_set)
+template <class T>
+LTransaction<T>::LTransaction(const int src_proc,
+                              const int dst_proc,
+                              const std::vector<LTransactionComponent>& src_item_set)
     : d_src_item_set(src_item_set),
       d_src_proc(src_proc),
       d_outgoing_bytes(0),
@@ -73,110 +70,106 @@ LTransaction<T>::LTransaction(
       d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
-    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin(); cit != d_src_item_set.end(); ++cit)
+    for (typename std::vector<LTransactionComponent>::const_iterator cit =
+             d_src_item_set.begin();
+         cit != d_src_item_set.end();
+         ++cit)
     {
-        d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
+        d_outgoing_bytes +=
+            cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
     }
     return;
-}// LTransaction
+} // LTransaction
 
-template<class T>
+template <class T>
 LTransaction<T>::~LTransaction()
 {
     // intentionally blank
     return;
-}// ~LTransaction
+} // ~LTransaction
 
-template<class T>
-bool
-LTransaction<T>::canEstimateIncomingMessageSize()
+template <class T>
+bool LTransaction<T>::canEstimateIncomingMessageSize()
 {
     return false;
-}// canEstimateIncomingMessageSize
+} // canEstimateIncomingMessageSize
 
-template<class T>
-int
-LTransaction<T>::computeIncomingMessageSize()
+template <class T>
+int LTransaction<T>::computeIncomingMessageSize()
 {
     return 0;
-}// computeIncomingMessageSize
+} // computeIncomingMessageSize
 
-template<class T>
-int
-LTransaction<T>::computeOutgoingMessageSize()
+template <class T>
+int LTransaction<T>::computeOutgoingMessageSize()
 {
     return d_outgoing_bytes;
-}// computeOutgoingMessageSize
+} // computeOutgoingMessageSize
 
-template<class T>
-int
-LTransaction<T>::getSourceProcessor()
+template <class T>
+int LTransaction<T>::getSourceProcessor()
 {
     return d_src_proc;
-}// getSourceProcessor
+} // getSourceProcessor
 
-template<class T>
-int
-LTransaction<T>::getDestinationProcessor()
+template <class T>
+int LTransaction<T>::getDestinationProcessor()
 {
     return d_dst_proc;
-}// getDestinationProcessor
+} // getDestinationProcessor
 
-template<class T>
-void
-LTransaction<T>::packStream(
-    AbstractStream& stream)
+template <class T>
+void LTransaction<T>::packStream(AbstractStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
-    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end(); ++it)
+    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin();
+         it != d_src_item_set.end();
+         ++it)
     {
         typename LSet<T>::value_type& item = it->item;
         item->packStream(stream);
         const Point& posn = it->posn;
-        stream.pack(posn.data(),NDIM);
+        stream.pack(posn.data(), NDIM);
     }
     return;
-}// packStream
+} // packStream
 
-template<class T>
-void
-LTransaction<T>::unpackStream(
-    AbstractStream& stream)
+template <class T>
+void LTransaction<T>::unpackStream(AbstractStream& stream)
 {
     static const IntVector<NDIM> periodic_offset = 0;
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);
-    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end(); ++it)
+    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin();
+         it != d_dst_item_set.end();
+         ++it)
     {
         it->item->unpackStream(stream, periodic_offset);
         Point& posn = it->posn;
-        stream.unpack(posn.data(),NDIM);
+        stream.unpack(posn.data(), NDIM);
     }
     return;
-}// unpackStream
+} // unpackStream
 
-template<class T>
-void
-LTransaction<T>::copyLocalData()
+template <class T>
+void LTransaction<T>::copyLocalData()
 {
     d_dst_item_set = d_src_item_set;
     return;
-}// copyLocalData
+} // copyLocalData
 
-template<class T>
-void
-LTransaction<T>::printClassData(
-    std::ostream& stream) const
+template <class T>
+void LTransaction<T>::printClassData(std::ostream& stream) const
 {
-    stream << "LNodeIndex Transaction"                                   << std::endl;
+    stream << "LNodeIndex Transaction" << std::endl;
     stream << "   number of outgoing indices: " << d_src_item_set.size() << std::endl;
-    stream << "   outgoing processor rank:    " << d_src_proc            << std::endl;
-    stream << "   outgoing bytes:             " << d_outgoing_bytes      << std::endl;
+    stream << "   outgoing processor rank:    " << d_src_proc << std::endl;
+    stream << "   outgoing bytes:             " << d_outgoing_bytes << std::endl;
     stream << "   number of incoming indices: " << d_dst_item_set.size() << std::endl;
-    stream << "   incoming processor rank:    " << d_dst_proc            << std::endl;
+    stream << "   incoming processor rank:    " << d_dst_proc << std::endl;
     return;
-}// printClassData
+} // printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -184,7 +177,7 @@ LTransaction<T>::printClassData(
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 

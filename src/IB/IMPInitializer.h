@@ -47,22 +47,28 @@
 #include "libmesh/id_types.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
 class LDataManager;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
-namespace libMesh {
+} // namespace tbox
+} // namespace SAMRAI
+namespace libMesh
+{
 class MeshBase;
 class Point;
-}  // namespace libMesh
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -73,18 +79,16 @@ namespace IBAMR
  * configuration of one or more Lagrangian structures that are described using
  * the immersed material point method from FE meshes.
 */
-class IMPInitializer
-    : public IBTK::LInitStrategy
+class IMPInitializer : public IBTK::LInitStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    IMPInitializer(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    IMPInitializer(const std::string& object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * \brief Destructor.
@@ -94,17 +98,12 @@ public:
     /*!
      * \brief Register a Mesh object with the IB initializer object.
      */
-    void
-    registerMesh(
-        libMesh::MeshBase* mesh,
-        int level_number=-1);
+    void registerMesh(libMesh::MeshBase* mesh, int level_number = -1);
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
      */
-    void
-    registerLSiloDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -113,18 +112,14 @@ public:
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    bool
-    getLevelHasLagrangianData(
-        int level_number,
-        bool can_be_refined) const;
+    bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int
-    computeLocalNodeCountOnPatchLevel(
+    unsigned int computeLocalNodeCountOnPatchLevel(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double init_data_time,
@@ -134,10 +129,9 @@ public:
     /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
-    void
-    initializeStructureIndexingOnPatchLevel(
-        std::map<int,std::string>& strct_id_to_strct_name_map,
-        std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
+    void initializeStructureIndexingOnPatchLevel(
+        std::map<int, std::string>& strct_id_to_strct_name_map,
+        std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
         int level_number,
         double init_data_time,
         bool can_be_refined,
@@ -150,8 +144,7 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    unsigned int
-    initializeDataOnPatchLevel(
+    unsigned int initializeDataOnPatchLevel(
         int lag_node_index_idx,
         unsigned int global_index_offset,
         unsigned int local_index_offset,
@@ -173,15 +166,13 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void
-    tagCellsForInitialRefinement(
+    void tagCellsForInitialRefinement(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double error_data_time,
         int tag_index);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -197,8 +188,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IMPInitializer(
-        const IMPInitializer& from);
+    IMPInitializer(const IMPInitializer& from);
 
     /*!
      * \brief Assignment operator.
@@ -209,54 +199,42 @@ private:
      *
      * \return A reference to this object.
      */
-    IMPInitializer&
-    operator=(
-        const IMPInitializer& that);
+    IMPInitializer& operator=(const IMPInitializer& that);
 
     /*!
      * \brief Configure the Lagrangian Silo data writer to plot the data
      * associated with the specified level of the locally refined Cartesian
      * grid.
      */
-    void
-    initializeLSiloDataWriter(
-        int level_number);
+    void initializeLSiloDataWriter(int level_number);
 
     /*!
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
-    void
-    getPatchVertices(
-        std::vector<std::pair<int,int> >& point_indices,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        int level_number,
-        bool can_be_refined) const;
+    void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                          int level_number,
+                          bool can_be_refined) const;
 
     /*!
      * \return The canonical Lagrangian index of the specified vertex.
      */
-    int
-    getCanonicalLagrangianIndex(
-        const std::pair<int,int>& point_index,
-        int level_number) const;
+    int getCanonicalLagrangianIndex(const std::pair<int, int>& point_index,
+                                    int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
      */
-    const libMesh::Point&
-    getVertexPosn(
-        const std::pair<int,int>& point_index,
-        int level_number) const;
+    const libMesh::Point& getVertexPosn(const std::pair<int, int>& point_index,
+                                        int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -290,7 +268,7 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -51,104 +51,88 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool
-IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
+inline bool IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-}// getIsRegisteredWithStreamableManager
+} // getIsRegisteredWithStreamableManager
 
-inline const std::vector<std::string>&
-IBInstrumentationSpec::getInstrumentNames()
+inline const std::vector<std::string>& IBInstrumentationSpec::getInstrumentNames()
 {
     return s_instrument_names;
-}// getInstrumentNames
+} // getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-IBInstrumentationSpec::IBInstrumentationSpec(
-    const int master_idx,
-    const int meter_idx,
-    const int node_idx)
-    : d_master_idx(master_idx),
-      d_meter_idx(meter_idx),
-      d_node_idx(node_idx)
+inline IBInstrumentationSpec::IBInstrumentationSpec(const int master_idx,
+                                                    const int meter_idx,
+                                                    const int node_idx)
+    : d_master_idx(master_idx), d_meter_idx(meter_idx), d_node_idx(node_idx)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
-        TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
-                   << "  creating any IBInstrumentationSpec objects.\n");
+        TBOX_ERROR(
+            "IBInstrumentationSpec::IBInstrumentationSpec():\n"
+            << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
+            << "  creating any IBInstrumentationSpec objects.\n");
     }
 #endif
     return;
-}// IBInstrumentationSpec
+} // IBInstrumentationSpec
 
-inline
-IBInstrumentationSpec::~IBInstrumentationSpec()
+inline IBInstrumentationSpec::~IBInstrumentationSpec()
 {
     // intentionally blank
     return;
-}// ~IBInstrumentationSpec
+} // ~IBInstrumentationSpec
 
-inline const int&
-IBInstrumentationSpec::getMasterNodeIndex() const
+inline const int& IBInstrumentationSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline int&
-IBInstrumentationSpec::getMasterNodeIndex()
+inline int& IBInstrumentationSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline const int&
-IBInstrumentationSpec::getMeterIndex() const
+inline const int& IBInstrumentationSpec::getMeterIndex() const
 {
     return d_meter_idx;
-}// getMeterIndex
+} // getMeterIndex
 
-inline int&
-IBInstrumentationSpec::getMeterIndex()
+inline int& IBInstrumentationSpec::getMeterIndex()
 {
     return d_meter_idx;
-}// getMeterIndex
+} // getMeterIndex
 
-inline const int&
-IBInstrumentationSpec::getNodeIndex() const
+inline const int& IBInstrumentationSpec::getNodeIndex() const
 {
     return d_node_idx;
-}// getNodeIndex
+} // getNodeIndex
 
-inline int&
-IBInstrumentationSpec::getNodeIndex()
+inline int& IBInstrumentationSpec::getNodeIndex()
 {
     return d_node_idx;
-}// getNodeIndex
+} // getNodeIndex
 
-inline int
-IBInstrumentationSpec::getStreamableClassID() const
+inline int IBInstrumentationSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-inline size_t
-IBInstrumentationSpec::getDataStreamSize() const
+inline size_t IBInstrumentationSpec::getDataStreamSize() const
 {
-    return 3*SAMRAI::tbox::AbstractStream::sizeofInt();
-}// getDataStreamSize
+    return 3 * SAMRAI::tbox::AbstractStream::sizeofInt();
+} // getDataStreamSize
 
-inline void
-IBInstrumentationSpec::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    stream.pack(&d_master_idx,1);
-    stream.pack(&d_meter_idx,1);
-    stream.pack(&d_node_idx,1);
+    stream.pack(&d_master_idx, 1);
+    stream.pack(&d_meter_idx, 1);
+    stream.pack(&d_node_idx, 1);
     return;
-}// packStream
+} // packStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

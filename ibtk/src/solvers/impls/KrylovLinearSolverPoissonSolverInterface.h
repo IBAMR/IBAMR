@@ -40,11 +40,14 @@
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonSolver.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,8 +63,7 @@ namespace IBTK
  *
  * \see PETScKrylovPoissonSolver
  */
-class KrylovLinearSolverPoissonSolverInterface
-    : public PoissonSolver
+class KrylovLinearSolverPoissonSolverInterface : public PoissonSolver
 {
 public:
     /*!
@@ -78,9 +80,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -89,11 +89,10 @@ public:
      * \note \a bc_coef may be NULL.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
+     * \param bc_coef  Pointer to an object that can set the Robin boundary condition
+     *coefficients
      */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -103,11 +102,11 @@ public:
      * default boundary conditions (as supplied to the class constructor) are
      * employed for that data depth.
      *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
+     *coefficients
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
 private:
     /*!
@@ -130,10 +129,9 @@ private:
      * \return A reference to this object.
      */
     KrylovLinearSolverPoissonSolverInterface&
-    operator=(
-        const KrylovLinearSolverPoissonSolverInterface& that);
+    operator=(const KrylovLinearSolverPoissonSolverInterface& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

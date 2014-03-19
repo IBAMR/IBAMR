@@ -54,8 +54,7 @@ int StreamableManager::s_current_id_number = 0;
 const int StreamableManager::s_unregistered_id_number = -1;
 unsigned char StreamableManager::s_shutdown_priority = 200;
 
-StreamableManager*
-StreamableManager::getManager()
+StreamableManager* StreamableManager::getManager()
 {
     if (!s_data_manager_instance)
     {
@@ -63,42 +62,35 @@ StreamableManager::getManager()
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(
-            freeManager,s_shutdown_priority);
+        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
         s_registered_callback = true;
     }
     return s_data_manager_instance;
-}// getManager
+} // getManager
 
-void
-StreamableManager::freeManager()
+void StreamableManager::freeManager()
 {
     delete s_data_manager_instance;
     s_data_manager_instance = NULL;
     return;
-}// freeManager
+} // freeManager
 
-int
-StreamableManager::getUnregisteredID()
+int StreamableManager::getUnregisteredID()
 {
     return s_unregistered_id_number;
-}// getUnregisteredID
+} // getUnregisteredID
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool
-StreamableManager::checkFactoryRegistration(
-    Pointer<StreamableFactory> factory)
+bool StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);
 #endif
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
-}// checkFactoryRegistration
+} // checkFactoryRegistration
 
-int
-StreamableManager::registerFactory(
-    Pointer<StreamableFactory> factory)
+int StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(factory);
@@ -112,28 +104,26 @@ StreamableManager::registerFactory(
     factory->setStreamableClassID(factory_id);
     d_factory_map[factory_id] = factory;
     return factory_id;
-}// registerFactory
+} // registerFactory
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-StreamableManager::StreamableManager()
-    : d_factory_map()
+StreamableManager::StreamableManager() : d_factory_map()
 {
     // intentionally blank
     return;
-}// StreamableManager
+} // StreamableManager
 
 StreamableManager::~StreamableManager()
 {
     d_factory_map.clear();
     return;
-}// ~StreamableManager
+} // ~StreamableManager
 
-int
-StreamableManager::createUniqueID()
+int StreamableManager::createUniqueID()
 {
     return s_current_id_number++;
-}// createUniqueID
+} // createUniqueID
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

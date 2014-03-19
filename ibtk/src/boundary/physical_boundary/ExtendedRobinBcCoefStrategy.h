@@ -48,8 +48,7 @@ namespace IBTK
  * data descriptor indices that are required for filling, and the specification
  * of whether homogeneous or inhomogeneous boundary data should be set.
  */
-class ExtendedRobinBcCoefStrategy
-    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class ExtendedRobinBcCoefStrategy : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!
@@ -60,8 +59,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~ExtendedRobinBcCoefStrategy();
+    virtual ~ExtendedRobinBcCoefStrategy();
 
     /*!
      * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -71,23 +69,18 @@ public:
     /*!
      * \brief Set the target data index.
      */
-    virtual void
-    setTargetPatchDataIndex(
-        int target_data_idx);
+    virtual void setTargetPatchDataIndex(int target_data_idx);
 
     /*!
      * \brief Clear the target data index.
      */
-    virtual void
-    clearTargetPatchDataIndex();
+    virtual void clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    virtual void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    virtual void setHomogeneousBc(bool homogeneous_bc);
 
     //\}
 
@@ -110,8 +103,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    ExtendedRobinBcCoefStrategy(
-        const ExtendedRobinBcCoefStrategy& from);
+    ExtendedRobinBcCoefStrategy(const ExtendedRobinBcCoefStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -122,11 +114,9 @@ private:
      *
      * \return A reference to this object.
      */
-    ExtendedRobinBcCoefStrategy&
-    operator=(
-        const ExtendedRobinBcCoefStrategy& that);
+    ExtendedRobinBcCoefStrategy& operator=(const ExtendedRobinBcCoefStrategy& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

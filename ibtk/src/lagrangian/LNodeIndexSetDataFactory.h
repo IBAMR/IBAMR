@@ -43,7 +43,7 @@
 namespace IBTK
 {
 typedef LIndexSetDataFactory<LNodeIndex> LNodeIndexSetDataFactory;
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

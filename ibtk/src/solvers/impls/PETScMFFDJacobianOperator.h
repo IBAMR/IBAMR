@@ -55,16 +55,14 @@ namespace IBTK
  * Jacobian-vector products, i.e., \f$ F'[x]v \f$, via a matrix-free
  * finite-difference approach.
  */
-class PETScMFFDJacobianOperator
-    : public JacobianOperator
+class PETScMFFDJacobianOperator : public JacobianOperator
 {
 public:
     /*!
      * \brief Constructor.
      */
-    PETScMFFDJacobianOperator(
-        const std::string& object_name,
-        const std::string& options_prefix="");
+    PETScMFFDJacobianOperator(const std::string& object_name,
+                              const std::string& options_prefix = "");
 
     /*!
      * \brief Empty destructor.
@@ -75,17 +73,14 @@ public:
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
      */
-    void
-    setOperator(
-        SAMRAI::tbox::Pointer<GeneralOperator> F);
+    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> F);
 
     /*!
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
     void
-    setNewtonKrylovSolver(
-        SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
+    setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.
@@ -97,9 +92,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void
-    formJacobian(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -107,8 +100,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
-    getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
 
     //\}
 
@@ -139,10 +131,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -176,10 +166,8 @@ public:
      *
      * \note The default implementation is empty.
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -193,8 +181,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -213,8 +200,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMFFDJacobianOperator(
-        const PETScMFFDJacobianOperator& from);
+    PETScMFFDJacobianOperator(const PETScMFFDJacobianOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -225,24 +211,19 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMFFDJacobianOperator&
-    operator=(
-        const PETScMFFDJacobianOperator& that);
+    PETScMFFDJacobianOperator& operator=(const PETScMFFDJacobianOperator& that);
 
-    static PetscErrorCode
-    FormFunction_SAMRAI(
-        void* p_ctx,
-        Vec x,
-        Vec f);
+    static PetscErrorCode FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f);
 
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_op_u, d_op_x, d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x,
+        d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

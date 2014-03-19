@@ -43,14 +43,14 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
+template <class T>
 inline typename LSetData<T>::DataIterator
-LSetData<T>::data_begin(
-    const SAMRAI::hier::Box<NDIM>& box)
+LSetData<T>::data_begin(const SAMRAI::hier::Box<NDIM>& box)
 {
     typename LSetData<T>::DataIterator it;
-    it.d_box = box*this->getGhostBox();
-    it.d_index_it = SAMRAI::pdat::IndexIterator<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> >(*this);
+    it.d_box = box * this->getGhostBox();
+    it.d_index_it =
+        SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >(*this);
     if (it.d_index_it)
     {
         it.d_node_set = &(*it.d_index_it);
@@ -77,20 +77,19 @@ LSetData<T>::data_begin(
         it.d_node_set = NULL;
     }
     return it;
-}// data_begin
+} // data_begin
 
-template<class T>
-inline typename LSetData<T>::DataIterator
-LSetData<T>::data_end()
+template <class T>
+inline typename LSetData<T>::DataIterator LSetData<T>::data_end()
 {
     typename LSetData<T>::DataIterator it;
     it.d_node_set = NULL;
     return it;
-}// data_end
+} // data_end
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

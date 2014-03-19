@@ -43,11 +43,14 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -59,44 +62,40 @@ IBRodForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBRodForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBRodForceSpec::Factory::getStreamableClassID() const
+int IBRodForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBRodForceSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
-Pointer<Streamable>
-IBRodForceSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream,
+                                                          const IntVector<NDIM>& /*offset*/)
 {
     int num_rods;
-    stream.unpack(&num_rods,1);
+    stream.unpack(&num_rods, 1);
     Pointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
-    stream.unpack(&ret_val->d_master_idx,1);
-    stream.unpack(&ret_val->d_next_idxs[0],num_rods);
+    stream.unpack(&ret_val->d_master_idx, 1);
+    stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)
     {
-        stream.unpack(ret_val->d_material_params[k].data(),IBRodForceSpec::NUM_MATERIAL_PARAMS);
+        stream.unpack(ret_val->d_material_params[k].data(),
+                      IBRodForceSpec::NUM_MATERIAL_PARAMS);
     }
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

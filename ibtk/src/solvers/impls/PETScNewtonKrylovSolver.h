@@ -47,15 +47,19 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class GeneralOperator;
 class JacobianOperator;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -100,19 +104,17 @@ namespace IBTK
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScNewtonKrylovSolver
-    : public NewtonKrylovSolver
+class PETScNewtonKrylovSolver : public NewtonKrylovSolver
 {
 public:
     /*!
      * \brief Constructor for a concrete NewtonKrylovSolver that employs the
      * PETSc SNES solver framework.
      */
-    PETScNewtonKrylovSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix,
-        MPI_Comm petsc_comm=PETSC_COMM_WORLD);
+    PETScNewtonKrylovSolver(const std::string& object_name,
+                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                            const std::string& default_options_prefix,
+                            MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
      * \brief Constructor for a concrete NewtonKrylovSolver that acts as a
@@ -125,9 +127,7 @@ public:
      * acts as a "wrapper" for the provided SNES object.  Note that memory
      * management of the provided SNES object is \em NOT handled by this class.
      */
-    PETScNewtonKrylovSolver(
-        const std::string& object_name,
-        const SNES& petsc_snes);
+    PETScNewtonKrylovSolver(const std::string& object_name, const SNES& petsc_snes);
 
     /*!
      * \brief Destructor.
@@ -138,20 +138,17 @@ public:
      * \brief Static function to construct a PETScNewtonKrylovSolver.
      */
     static SAMRAI::tbox::Pointer<NewtonKrylovSolver>
-    allocate_solver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix)
-        {
-            return new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix);
-        }// allocate_solver
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \brief Set the options prefix used by this PETSc solver object.
      */
-    void
-    setOptionsPrefix(
-        const std::string& options_prefix);
+    void setOptionsPrefix(const std::string& options_prefix);
 
     /*!
      * \name Functions to access the underlying PETSc objects.
@@ -161,8 +158,7 @@ public:
     /*!
      * \brief Get the PETSc SNES object.
      */
-    const SNES&
-    getPETScSNES() const;
+    const SNES& getPETScSNES() const;
 
     //\}
 
@@ -174,21 +170,19 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    void
-    setOperator(
-        SAMRAI::tbox::Pointer<GeneralOperator> op);
+    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op);
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
     getSolutionVector() const;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
     getFunctionVector() const;
 
     /*!
@@ -198,9 +192,7 @@ public:
      * Jacobian-free inexact Newton-Krylov method is employed to approximate the
      * action of the Jacobian.
      */
-    void
-    setJacobian(
-        SAMRAI::tbox::Pointer<JacobianOperator> J);
+    void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J);
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.
@@ -239,10 +231,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -286,10 +276,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -304,8 +292,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -324,8 +311,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScNewtonKrylovSolver(
-        const PETScNewtonKrylovSolver& from);
+    PETScNewtonKrylovSolver(const PETScNewtonKrylovSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -336,49 +322,38 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScNewtonKrylovSolver&
-    operator=(
-        const PETScNewtonKrylovSolver& that);
+    PETScNewtonKrylovSolver& operator=(const PETScNewtonKrylovSolver& that);
 
     /*!
      * \brief Common routine used by all class constructors.
      */
-    void
-    common_ctor();
+    void common_ctor();
 
     /*!
      * \brief Report the SNESConvergedReason.
      */
-    void
-    reportSNESConvergedReason(
-        const SNESConvergedReason& reason,
-        std::ostream& os) const;
+    void reportSNESConvergedReason(const SNESConvergedReason& reason, std::ostream& os) const;
 
     /*!
      * \brief Reset the SNES wrapped by this solver class.
      */
-    void
-    resetWrappedSNES(
-        SNES& petsc_snes);
+    void resetWrappedSNES(SNES& petsc_snes);
 
     /*!
      * \brief Reset the values of the convergence tolerances for the PETSc SNES
      * object.
      */
-    void
-    resetSNESOptions();
+    void resetSNESOptions();
 
     /*!
      * \brief Reset the function for the PETSc SNES object.
      */
-    void
-    resetSNESFunction();
+    void resetSNESFunction();
 
     /*!
      * \brief Reset the Jacobian for the PETSc SNES object.
      */
-    void
-    resetSNESJacobian();
+    void resetSNESJacobian();
 
     /*!
      * \name Static functions for use by PETSc SNES and MatShell objects.
@@ -388,62 +363,38 @@ private:
     /*!
      * \brief Evaluate f = F[x].
      */
-    static PetscErrorCode
-    FormFunction_SAMRAI(
-        SNES snes,
-        Vec x,
-        Vec f,
-        void* p_ctx);
+    static PetscErrorCode FormFunction_SAMRAI(SNES snes, Vec x, Vec f, void* p_ctx);
 
     /*!
      * \brief Setup F'[x].
      */
-    static PetscErrorCode
-    FormJacobian_SAMRAI(
-        SNES snes,
-        Vec x,
-        Mat* A,
-        Mat* B,
-        MatStructure* mat_structure,
-        void* p_ctx);
+    static PetscErrorCode FormJacobian_SAMRAI(SNES snes,
+                                              Vec x,
+                                              Mat* A,
+                                              Mat* B,
+                                              MatStructure* mat_structure,
+                                              void* p_ctx);
 
     /*!
      * \brief Compute the matrix vector product y = Ax.
      */
-    static PetscErrorCode
-    MatVecMult_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
+    static PetscErrorCode MatVecMult_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * \brief Compute the matrix vector product y = Ax + z.
      */
-    static PetscErrorCode
-    MatVecMultAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
+    static PetscErrorCode MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z);
 
     /*!
      * \brief Get vector(s) compatible with the matrix, i.e., with the same
      * parallel layout.
      */
-    static PetscErrorCode
-    MatGetVecs_SAMRAI(
-        Mat mat,
-        Vec* right,
-        Vec* left);
+    static PetscErrorCode MatGetVecs_SAMRAI(Mat mat, Vec* right, Vec* left);
 
     /*!
      * \brief Apply the preconditioner to x.
      */
-    static PetscErrorCode
-    PCApply_SAMRAI(
-        void* ctx,
-        Vec x,
-        Vec y);
+    static PetscErrorCode PCApply_SAMRAI(void* ctx, Vec x, Vec y);
 
     //\}
 
@@ -454,13 +405,13 @@ private:
     std::string d_options_prefix;
 
     MPI_Comm d_petsc_comm;
-    SNES     d_petsc_snes;
-    Mat      d_petsc_jac;
+    SNES d_petsc_snes;
+    Mat d_petsc_jac;
     bool d_managing_petsc_snes;
     bool d_user_provided_function;
     bool d_user_provided_jacobian;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

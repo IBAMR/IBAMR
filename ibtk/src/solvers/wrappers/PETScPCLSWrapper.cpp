@@ -54,65 +54,57 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScPCLSWrapper::PETScPCLSWrapper(
-    const std::string& object_name,
-    const PC& petsc_pc)
-    : d_petsc_pc(petsc_pc),
-      d_x(NULL),
-      d_b(NULL),
-      d_petsc_x(NULL),
-      d_petsc_b(NULL)
+PETScPCLSWrapper::PETScPCLSWrapper(const std::string& object_name, const PC& petsc_pc)
+    : d_petsc_pc(petsc_pc), d_x(NULL), d_b(NULL), d_petsc_x(NULL), d_petsc_b(NULL)
 {
-    GeneralSolver::init(object_name, /*homogeneous_bc*/true);
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;
-}// PETScPCLSWrapper()
+} // PETScPCLSWrapper()
 
 PETScPCLSWrapper::~PETScPCLSWrapper()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-}// ~PETScPCLSWrapper()
+} // ~PETScPCLSWrapper()
 
-const PC&
-PETScPCLSWrapper::getPETScPC() const
+const PC& PETScPCLSWrapper::getPETScPC() const
 {
     return d_petsc_pc;
-}// getPETScPC
+} // getPETScPC
 
-bool
-PETScPCLSWrapper::solveSystem(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& b)
+bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
+                                   SAMRAIVectorReal<NDIM, double>& b)
 {
-    if (!d_is_initialized) initializeSolverState(x,b);
+    if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(
+        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(
+        d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
 
     // Apply the preconditioner.
-    int ierr = PCApply(d_petsc_pc,d_petsc_x,d_petsc_b); IBTK_CHKERRQ(ierr);
+    int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
+    IBTK_CHKERRQ(ierr);
     return true;
-}// solveSystem
+} // solveSystem
 
-void
-PETScPCLSWrapper::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& b)
+void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                             const SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");
     d_b = b.cloneVector("");
     MPI_Comm comm;
-    int ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_pc), &comm);  IBTK_CHKERRQ(ierr);
+    int ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_pc), &comm);
+    IBTK_CHKERRQ(ierr);
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, comm);
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, comm);
     d_is_initialized = true;
     return;
-}// initializeSolverState
+} // initializeSolverState
 
-void
-PETScPCLSWrapper::deallocateSolverState()
+void PETScPCLSWrapper::deallocateSolverState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
@@ -123,104 +115,80 @@ PETScPCLSWrapper::deallocateSolverState()
     d_b.setNull();
     d_is_initialized = false;
     return;
-}// deallocateSolverState
+} // deallocateSolverState
 
-void
-PETScPCLSWrapper::setInitialGuessNonzero(
-    bool /*initial_guess_nonzero*/)
+void PETScPCLSWrapper::setInitialGuessNonzero(bool /*initial_guess_nonzero*/)
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported" << std::endl);
-                 );
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported"
+                                            << std::endl););
     return;
-}// setInitialGuessNonzero
+} // setInitialGuessNonzero
 
-bool
-PETScPCLSWrapper::getInitialGuessNonzero() const
+bool PETScPCLSWrapper::getInitialGuessNonzero() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported" << std::endl);
-                 );
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported"
+                                            << std::endl););
     return true;
-}// getInitialGuessNonzero
+} // getInitialGuessNonzero
 
-void
-PETScPCLSWrapper::setMaxIterations(
-    int /*max_iterations*/)
+void PETScPCLSWrapper::setMaxIterations(int /*max_iterations*/)
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl););
     return;
-}// setMaxIterations
+} // setMaxIterations
 
-int
-PETScPCLSWrapper::getMaxIterations() const
+int PETScPCLSWrapper::getMaxIterations() const
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl););
     return 0;
-}// getMaxIterations
+} // getMaxIterations
 
-void
-PETScPCLSWrapper::setAbsoluteTolerance(
-    double /*abs_residual_tol*/)
+void PETScPCLSWrapper::setAbsoluteTolerance(double /*abs_residual_tol*/)
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl););
     return;
-}//setAbsoluteTolerance
+} // setAbsoluteTolerance
 
-double
-PETScPCLSWrapper::getAbsoluteTolerance() const
+double PETScPCLSWrapper::getAbsoluteTolerance() const
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl););
     return 0.0;
-}// getAbsoluteTolerance
+} // getAbsoluteTolerance
 
-void
-PETScPCLSWrapper::setRelativeTolerance(
-    double /*rel_residual_tol*/)
+void PETScPCLSWrapper::setRelativeTolerance(double /*rel_residual_tol*/)
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl););
     return;
-}//setRelativeTolerance
+} // setRelativeTolerance
 
-double
-PETScPCLSWrapper::getRelativeTolerance() const
+double PETScPCLSWrapper::getRelativeTolerance() const
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl););
     return 0.0;
-}// getRelativeTolerance
+} // getRelativeTolerance
 
-int
-PETScPCLSWrapper::getNumIterations() const
+int PETScPCLSWrapper::getNumIterations() const
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl););
     return 0;
-}// getNumIterations
+} // getNumIterations
 
-double
-PETScPCLSWrapper::getResidualNorm() const
+double PETScPCLSWrapper::getResidualNorm() const
 {
     IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl);
-                 );
+        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;
-}// getResidualNorm
+} // getResidualNorm
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

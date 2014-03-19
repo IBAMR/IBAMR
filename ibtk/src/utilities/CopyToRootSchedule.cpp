@@ -48,11 +48,14 @@
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -62,24 +65,22 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CopyToRootSchedule::CopyToRootSchedule(
-    const int root_proc,
-    const Pointer<PatchLevel<NDIM> > patch_level,
-    const int src_patch_data_idx)
+CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
+                                       const Pointer<PatchLevel<NDIM> > patch_level,
+                                       const int src_patch_data_idx)
     : d_root_proc(root_proc),
       d_patch_level(patch_level),
-      d_src_patch_data_idxs(1,src_patch_data_idx),
+      d_src_patch_data_idxs(1, src_patch_data_idx),
       d_root_patch_data(),
       d_schedule()
 {
     commonClassCtor();
     return;
-}// CopyToRootSchedule
+} // CopyToRootSchedule
 
-CopyToRootSchedule::CopyToRootSchedule(
-    const int root_proc,
-    const Pointer<PatchLevel<NDIM> > patch_level,
-    const std::vector<int>& src_patch_data_idxs)
+CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
+                                       const Pointer<PatchLevel<NDIM> > patch_level,
+                                       const std::vector<int>& src_patch_data_idxs)
     : d_root_proc(root_proc),
       d_patch_level(patch_level),
       d_src_patch_data_idxs(src_patch_data_idxs),
@@ -88,33 +89,30 @@ CopyToRootSchedule::CopyToRootSchedule(
 {
     commonClassCtor();
     return;
-}// CopyToRootSchedule
+} // CopyToRootSchedule
 
 CopyToRootSchedule::~CopyToRootSchedule()
 {
     // intentionally blank
     return;
-}// CopyToRootSchedule
+} // CopyToRootSchedule
 
-void
-CopyToRootSchedule::communicate()
+void CopyToRootSchedule::communicate()
 {
     d_schedule.communicate();
     return;
-}// communicate
+} // communicate
 
-const std::vector<Pointer<PatchData<NDIM> > >&
-CopyToRootSchedule::getRootPatchData() const
+const std::vector<Pointer<PatchData<NDIM> > >& CopyToRootSchedule::getRootPatchData() const
 {
     return d_root_patch_data;
-}// getRootPatchData
+} // getRootPatchData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-CopyToRootSchedule::commonClassCtor()
+void CopyToRootSchedule::commonClassCtor()
 {
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
@@ -124,12 +122,14 @@ CopyToRootSchedule::commonClassCtor()
 
     const unsigned int num_vars = d_src_patch_data_idxs.size();
 
-    d_root_patch_data.resize(num_vars,Pointer<PatchData<NDIM> >(NULL));
+    d_root_patch_data.resize(num_vars, Pointer<PatchData<NDIM> >(NULL));
     if (SAMRAI_MPI::getRank() == d_root_proc)
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idxs[k]);
+            Pointer<PatchDataFactory<NDIM> > pdat_factory =
+                d_patch_level->getPatchDescriptor()->getPatchDataFactory(
+                    d_src_patch_data_idxs[k]);
             d_root_patch_data[k] = pdat_factory->allocate(domain_box);
         }
     }
@@ -139,14 +139,18 @@ CopyToRootSchedule::commonClassCtor()
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            d_schedule.appendTransaction(new CopyToRootTransaction(src_proc, d_root_proc, d_patch_level, d_src_patch_data_idxs[k], d_root_patch_data[k]));
+            d_schedule.appendTransaction(new CopyToRootTransaction(src_proc,
+                                                                   d_root_proc,
+                                                                   d_patch_level,
+                                                                   d_src_patch_data_idxs[k],
+                                                                   d_root_patch_data[k]));
         }
     }
     return;
-}// commonClassCtor
+} // commonClassCtor
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

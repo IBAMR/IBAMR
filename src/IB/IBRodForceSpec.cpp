@@ -49,8 +49,7 @@ namespace IBAMR
 
 int IBRodForceSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
-void
-IBRodForceSpec::registerWithStreamableManager()
+void IBRodForceSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
@@ -61,11 +60,12 @@ IBRodForceSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBRodForceSpecFactory());
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(new IBRodForceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;
-}// registerWithStreamableManager
+} // registerWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

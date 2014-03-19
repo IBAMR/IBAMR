@@ -49,8 +49,7 @@ namespace IBAMR
 
 int IBSpringForceSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
-void
-IBSpringForceSpec::registerWithStreamableManager()
+void IBSpringForceSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
@@ -61,11 +60,12 @@ IBSpringForceSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBSpringForceSpecFactory());
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(new IBSpringForceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;
-}// registerWithStreamableManager
+} // registerWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

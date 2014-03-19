@@ -43,20 +43,26 @@
 #include "ibtk/FACPreconditioner.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class StaggeredStokesPhysicalBoundaryHelper;
-}  // namespace IBAMR
-namespace IBTK {
+} // namespace IBAMR
+namespace IBTK
+{
 class FACPreconditionerStrategy;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -66,9 +72,8 @@ namespace IBAMR
  * \brief Class StaggeredStokesFACPreconditioner is a FACPreconditioner that has
  * been specialized for Stokes problems.
 */
-class StaggeredStokesFACPreconditioner
-    : public IBTK::FACPreconditioner,
-      public StaggeredStokesSolver
+class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner,
+                                         public StaggeredStokesSolver
 {
 public:
     /*!
@@ -90,8 +95,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void
-    setVelocityPoissonSpecifications(
+    void setVelocityPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
@@ -103,20 +107,21 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
+     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
+     *condition coefficients for the velocity
+     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     *coefficients
+     *for the pressure
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void
-    setPhysicalBoundaryHelper(
+    void setPhysicalBoundaryHelper(
         SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
@@ -134,8 +139,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesFACPreconditioner(
-        const StaggeredStokesFACPreconditioner& from);
+    StaggeredStokesFACPreconditioner(const StaggeredStokesFACPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -146,11 +150,9 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesFACPreconditioner&
-    operator=(
-        const StaggeredStokesFACPreconditioner& that);
+    StaggeredStokesFACPreconditioner& operator=(const StaggeredStokesFACPreconditioner& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

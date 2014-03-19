@@ -42,17 +42,22 @@
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class Streamable;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -82,8 +87,7 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static StreamableManager*
-    getManager();
+    static StreamableManager* getManager();
 
     /*!
      * Deallocate the StreamableManager instance.
@@ -91,16 +95,14 @@ public:
      * It is not necessary to call this function at program termination, since
      * it is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeManager();
+    static void freeManager();
 
     /*!
      * \return A integer value reserved for unregistered StreamableFactory
      * objects.  A concrete StreamableFactory object must use this as its initial
      * streamable ID.
      */
-    static int
-    getUnregisteredID();
+    static int getUnregisteredID();
 
     /*!
      * Check to see if a StreamableFactory has been registered with the manager.
@@ -111,9 +113,7 @@ public:
      * same Streamable ID has been registered with the manager.  Every different
      * Streamable/StreamableFactory type \em must have a unique ID.
      */
-    bool
-    checkFactoryRegistration(
-        SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    bool checkFactoryRegistration(SAMRAI::tbox::Pointer<StreamableFactory> factory);
 
     /*!
      * Register a StreamableFactory with the manager.
@@ -125,58 +125,46 @@ public:
      * streamable class registered with the manager, this method is collective on
      * all MPI processes!
      */
-    int
-    registerFactory(
-        SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    int registerFactory(SAMRAI::tbox::Pointer<StreamableFactory> factory);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * Streamable object to a buffer.
      */
-    size_t
-    getDataStreamSize(
-        SAMRAI::tbox::Pointer<Streamable> data_item) const;
+    size_t getDataStreamSize(SAMRAI::tbox::Pointer<Streamable> data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * vector of Streamable objects to a buffer.
      */
     size_t
-    getDataStreamSize(
-        const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const;
+    getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const;
 
     /*!
      * \brief Pack a Streamable object into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        SAMRAI::tbox::Pointer<Streamable> data_item);
+    void packStream(SAMRAI::tbox::AbstractStream& stream,
+                    SAMRAI::tbox::Pointer<Streamable> data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void packStream(SAMRAI::tbox::AbstractStream& stream,
+                    std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
 
     /*!
      * \brief Unpack a Streamable object from the data stream.
      */
     SAMRAI::tbox::Pointer<Streamable>
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                 const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
      */
-    void
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset,
-        std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                      const SAMRAI::hier::IntVector<NDIM>& offset,
+                      std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
 
 protected:
     /*!
@@ -195,11 +183,10 @@ protected:
      * Every call to createUniqueID() returns a different integer, simplifying
      * the task of generating ID numbers for StreamableFactory objects.
      */
-    static int
-    createUniqueID();
+    static int createUniqueID();
 
 private:
-    typedef std::map<int,SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
+    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
 
     /*!
      * \brief Copy constructor.
@@ -208,8 +195,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StreamableManager(
-        const StreamableManager& from);
+    StreamableManager(const StreamableManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -220,9 +206,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StreamableManager&
-    operator=(
-        const StreamableManager& that);
+    StreamableManager& operator=(const StreamableManager& that);
 
     /*!
      * Static data members used to control access to and destruction of
@@ -244,11 +228,11 @@ private:
      */
     StreamableFactoryMap d_factory_map;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/StreamableManager-inl.h"  // IWYU pragma: keep
+#include "ibtk/StreamableManager-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -38,10 +38,11 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LNode;
 class LNodeIndex;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -51,35 +52,32 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-LIndexSetVariable<T>::LIndexSetVariable(
-    const std::string& name)
+template <class T>
+LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
     : Variable<NDIM>(name, new LIndexSetDataFactory<T>(IntVector<NDIM>(0)))
 {
     // intentionally blank
     return;
-}// LIndexSetVariable
+} // LIndexSetVariable
 
-template<class T>
+template <class T>
 LIndexSetVariable<T>::~LIndexSetVariable()
 {
     // intentionally blank
     return;
-}// ~LIndexSetVariable
+} // ~LIndexSetVariable
 
-template<class T>
-bool
-LIndexSetVariable<T>::dataLivesOnPatchBorder() const
+template <class T>
+bool LIndexSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
-}// dataLivesOnPatchBorder
+} // dataLivesOnPatchBorder
 
-template<class T>
-bool
-LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
+template <class T>
+bool LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
-}// fineBoundaryRepresentsVariable
+} // fineBoundaryRepresentsVariable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -90,7 +88,6 @@ LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
 } // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
 
 template class IBTK::LIndexSetVariable<IBTK::LNode>;
 template class Pointer<IBTK::LIndexSetVariable<IBTK::LNode> >;

@@ -45,25 +45,21 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-const std::vector<LNode*>&
-LMesh::getLocalNodes() const
+inline const std::vector<LNode*>& LMesh::getLocalNodes() const
 {
     return d_local_nodes;
-}// getLocalNodes
+} // getLocalNodes
 
-inline
-const std::vector<LNode*>&
-LMesh::getGhostNodes() const
+inline const std::vector<LNode*>& LMesh::getGhostNodes() const
 {
     return d_ghost_nodes;
-}// getGhostNodes
+} // getGhostNodes
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

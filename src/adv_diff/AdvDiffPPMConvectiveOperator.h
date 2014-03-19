@@ -49,16 +49,23 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -75,8 +82,7 @@ namespace IBAMR
  *
  * \see AdvDiffSemiImplicitHierarchyIntegrator
  */
-class AdvDiffPPMConvectiveOperator
-    : public ConvectiveOperator
+class AdvDiffPPMConvectiveOperator : public ConvectiveOperator
 {
 public:
     /*!
@@ -84,7 +90,7 @@ public:
      */
     AdvDiffPPMConvectiveOperator(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
@@ -98,23 +104,20 @@ public:
      * \brief Static function to construct an AdvDiffPPMConvectiveOperator.
      */
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocate_operator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-        {
-            return new AdvDiffPPMConvectiveOperator(object_name, Q_var, input_db, difference_form, bc_coefs);
-        }// allocate_operator
+    allocate_operator(const std::string& object_name,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      ConvectiveDifferencingType difference_form,
+                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    {
+        return new AdvDiffPPMConvectiveOperator(
+            object_name, Q_var, input_db, difference_form, bc_coefs);
+    } // allocate_operator
 
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void
-    applyConvectiveOperator(
-        int Q_idx,
-        int N_idx);
+    void applyConvectiveOperator(int Q_idx, int N_idx);
 
     /*!
      * \name General operator functionality.
@@ -151,10 +154,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -165,8 +166,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -185,8 +185,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPPMConvectiveOperator(
-        const AdvDiffPPMConvectiveOperator& from);
+    AdvDiffPPMConvectiveOperator(const AdvDiffPPMConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -197,16 +196,15 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPPMConvectiveOperator&
-    operator=(
-        const AdvDiffPPMConvectiveOperator& that);
+    AdvDiffPPMConvectiveOperator& operator=(const AdvDiffPPMConvectiveOperator& that);
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    d_ghostfill_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type;
 
@@ -215,13 +213,14 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     unsigned int d_Q_data_depth;
     int d_Q_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_q_extrap_var, d_q_flux_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_extrap_var,
+        d_q_flux_var;
     int d_q_extrap_idx, d_q_flux_idx;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

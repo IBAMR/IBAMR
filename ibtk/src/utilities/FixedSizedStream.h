@@ -57,22 +57,18 @@ namespace IBTK
  * heterogeneous networks, which require a machine-independent storage format
  * such as XDR.
  */
-class FixedSizedStream
-    : public SAMRAI::tbox::AbstractStream
+class FixedSizedStream : public SAMRAI::tbox::AbstractStream
 {
 public:
     /*!
      * Create a message stream of the specified size in bytes.
      */
-    FixedSizedStream(
-        int bytes);
+    FixedSizedStream(int bytes);
 
     /*!
      * Create a message stream with the specified buffer.
      */
-    FixedSizedStream(
-        const void* buffer,
-        int bytes);
+    FixedSizedStream(const void* buffer, int bytes);
 
     /*!
      * Destructor for a message stream.
@@ -82,41 +78,34 @@ public:
     /*!
      * Return a pointer to the start of the message buffer.
      */
-    void*
-    getBufferStart();
+    void* getBufferStart();
 
     /*!
      * Return a const pointer to the start of the message buffer.
      */
-    const void*
-    getBufferStart() const;
+    const void* getBufferStart() const;
 
     /*!
      * Return the current size of the buffer in bytes.
      */
-    int
-    getCurrentSize() const;
+    int getCurrentSize() const;
 
     /*!
      * Return the current index into the buffer.
      */
-    int
-    getCurrentIndex() const;
+    int getCurrentIndex() const;
 
     /*!
      * Set the current index into the buffer.  Further packing/unpacking will
      * begin at this new location.
      */
-    void
-    setCurrentIndex(
-        int index);
+    void setCurrentIndex(int index);
 
     /*!
      * Reset the index to the beginning of the buffer.  This is the same as
      * setting the buffer index to zero via setCurrentIndex().
      */
-    void
-    resetIndex();
+    void resetIndex();
 
     /*!
      * \name Boolean Stream Primitives
@@ -128,32 +117,22 @@ public:
     /*!
      * Pack a single bool into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const bool& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const bool& data);
 
     /*!
      * Remove a single bool from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        bool& data);
+    SAMRAI::tbox::AbstractStream& operator>>(bool& data);
 
     /*!
      * Pack an array of bools into the message stream.
      */
-    void
-    pack(
-        const bool* data,
-        int n=1);
+    void pack(const bool* data, int n = 1);
 
     /*!
      * Remove an array of bools from the message stream.
      */
-    void
-    unpack(
-        bool* data,
-        int n=1);
+    void unpack(bool* data, int n = 1);
 
     //\}
 
@@ -167,32 +146,22 @@ public:
     /*!
      * Pack a single char into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const char& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const char& data);
 
     /*!
      * Remove a single char from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        char& data);
+    SAMRAI::tbox::AbstractStream& operator>>(char& data);
 
     /*!
      * Pack an array of chars into the message stream.
      */
-    void
-    pack(
-        const char* data,
-        int n=1);
+    void pack(const char* data, int n = 1);
 
     /*!
      * Remove an array of chars from the message stream.
      */
-    void
-    unpack(
-        char* data,
-        int n=1);
+    void unpack(char* data, int n = 1);
 
     //\}
 
@@ -206,32 +175,22 @@ public:
     /*!
      * Pack a single double complex into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const dcomplex& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const dcomplex& data);
 
     /*!
      * Remove a single double complex from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        dcomplex& data);
+    SAMRAI::tbox::AbstractStream& operator>>(dcomplex& data);
 
     /*!
      * Pack an array of double complex into the message stream.
      */
-    void
-    pack(
-        const dcomplex* data,
-        int n=1);
+    void pack(const dcomplex* data, int n = 1);
 
     /*!
      * Remove an array of double complex from the message stream.
      */
-    void
-    unpack(
-        dcomplex* data,
-        int n=1);
+    void unpack(dcomplex* data, int n = 1);
 
     //\}
 
@@ -245,32 +204,22 @@ public:
     /*!
      * Pack a single double into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const double& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const double& data);
 
     /*!
      * Remove a single double from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        double& data);
+    SAMRAI::tbox::AbstractStream& operator>>(double& data);
 
     /*!
      * Pack an array of doubles into the message stream.
      */
-    void
-    pack(
-        const double* data,
-        int n=1);
+    void pack(const double* data, int n = 1);
 
     /*!
      * Remove an array of doubles from the message stream.
      */
-    void
-    unpack(
-        double* data,
-        int n=1);
+    void unpack(double* data, int n = 1);
 
     //\}
 
@@ -284,32 +233,22 @@ public:
     /*!
      * Pack a single float into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const float& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const float& data);
 
     /*!
      * Remove a single float from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        float& data);
+    SAMRAI::tbox::AbstractStream& operator>>(float& data);
 
     /*!
      * Pack an array of floats into the message stream.
      */
-    void
-    pack(
-        const float* data,
-        int n=1);
+    void pack(const float* data, int n = 1);
 
     /*!
      * Remove an array of floats from the message stream.
      */
-    void
-    unpack(
-        float* data,
-        int n=1);
+    void unpack(float* data, int n = 1);
 
     //\}
 
@@ -323,32 +262,22 @@ public:
     /*!
      * Pack a single integer into the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator<<(
-        const int& data);
+    SAMRAI::tbox::AbstractStream& operator<<(const int& data);
 
     /*!
      * Remove a single integer from the message stream.
      */
-    SAMRAI::tbox::AbstractStream&
-    operator>>(
-        int& data);
+    SAMRAI::tbox::AbstractStream& operator>>(int& data);
 
     /*!
      * Pack an array of integers into the message stream.
      */
-    void
-    pack(
-        const int* data,
-        int n=1);
+    void pack(const int* data, int n = 1);
 
     /*!
      * Remove an array of integers from the message stream.
      */
-    void
-    unpack(
-        int* data,
-        int n=1);
+    void unpack(int* data, int n = 1);
 
     //\}
 
@@ -369,8 +298,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FixedSizedStream(
-        const FixedSizedStream& from);
+    FixedSizedStream(const FixedSizedStream& from);
 
     /*!
      * \brief Assignment operator.
@@ -381,35 +309,25 @@ private:
      *
      * \return A reference to this object.
      */
-    FixedSizedStream&
-    operator=(
-        const FixedSizedStream& that);
+    FixedSizedStream& operator=(const FixedSizedStream& that);
 
     /*!
      * \brief Return a pointer to buffer space and advance internal pointers to
      * reflect the allocated buffers space.
      */
-    void*
-    getPointerAndAdvanceCursor(
-        int bytes);
+    void* getPointerAndAdvanceCursor(int bytes);
 
     /*!
      * \brief Pack the specified data to the buffer.
      */
-    template<typename T>
-    void
-    __pack(
-        const T* m_data,
-        unsigned int m_bytes);
+    template <typename T>
+    void __pack(const T* m_data, unsigned int m_bytes);
 
     /*!
      * \brief Unpack the specified data from the buffer.
      */
-    template<typename T>
-    void
-    __unpack(
-        T* m_data,
-        unsigned int m_bytes);
+    template <typename T>
+    void __unpack(T* m_data, unsigned int m_bytes);
 
     /*
      * The size of the buffer.
@@ -432,11 +350,11 @@ private:
      */
     std::vector<char> d_buffer;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/FixedSizedStream-inl.h"  // IWYU pragma: keep
+#include "ibtk/FixedSizedStream-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

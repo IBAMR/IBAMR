@@ -44,7 +44,7 @@
 namespace IBTK
 {
 typedef LSetDataIterator<LNode> LNodeSetDataIterator;
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

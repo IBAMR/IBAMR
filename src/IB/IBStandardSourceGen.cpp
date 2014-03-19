@@ -59,11 +59,14 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -78,111 +81,85 @@ std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardSourceGen::IBStandardSourceGen()
-    : d_n_src(),
-      d_source_names(),
-      d_r_src(),
-      d_num_perimeter_nodes(),
-      d_Q_src(),
-      d_P_src()
+    : d_n_src(), d_source_names(), d_r_src(), d_num_perimeter_nodes(), d_Q_src(), d_P_src()
 {
     RestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
-}// IBStandardSourceGen
+} // IBStandardSourceGen
 
 IBStandardSourceGen::~IBStandardSourceGen()
 {
     // intentionally blank
     return;
-}// ~IBStandardSourceGen
+} // ~IBStandardSourceGen
 
-void
-IBStandardSourceGen::setNumSources(
-    const int ln,
-    const unsigned int num_sources)
+void IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
 {
-    s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()),ln+1),0);
+    s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()), ln + 1), 0);
     s_num_sources[ln] = num_sources;
     return;
-}// getNumSources
+} // getNumSources
 
-unsigned int
-IBStandardSourceGen::getNumSources(
-    const int ln)
+unsigned int IBStandardSourceGen::getNumSources(const int ln)
 {
     return s_num_sources[ln];
-}// getNumSources
+} // getNumSources
 
-const std::vector<std::string>&
-IBStandardSourceGen::getSourceNames(
-    const int ln)
+const std::vector<std::string>& IBStandardSourceGen::getSourceNames(const int ln)
 {
     return s_source_names[ln];
-}// getSourceNames
+} // getSourceNames
 
-void
-IBStandardSourceGen::setSourceNames(
-    const int ln,
-    const std::vector<std::string>& names)
+void IBStandardSourceGen::setSourceNames(const int ln, const std::vector<std::string>& names)
 {
-    s_source_names.resize(std::max(static_cast<int>(s_source_names.size()),ln+1));
+    s_source_names.resize(std::max(static_cast<int>(s_source_names.size()), ln + 1));
     s_source_names[ln] = names;
     return;
-}// getSourceNames
+} // getSourceNames
 
-void
-IBStandardSourceGen::setSourceRadii(
-    const int ln,
-    const std::vector<double>& radii)
+void IBStandardSourceGen::setSourceRadii(const int ln, const std::vector<double>& radii)
 {
-    s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()),ln+1));
+    s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()), ln + 1));
     s_source_radii[ln] = radii;
     return;
-}// getSourceRadii
+} // getSourceRadii
 
-const std::vector<double>&
-IBStandardSourceGen::getSourceRadii(
-    const int ln)
+const std::vector<double>& IBStandardSourceGen::getSourceRadii(const int ln)
 {
     return s_source_radii[ln];
-}// getSourceRadii
+} // getSourceRadii
 
-std::vector<double>&
-IBStandardSourceGen::getSourceStrengths(
-    const int ln)
+std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln)
 {
     return d_Q_src[ln];
-}// getSourceStrengths
+} // getSourceStrengths
 
-const std::vector<double>&
-IBStandardSourceGen::getSourceStrengths(
-    const int ln) const
+const std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln) const
 {
     return d_Q_src[ln];
-}// getSourceStrengths
+} // getSourceStrengths
 
-const std::vector<double>&
-IBStandardSourceGen::getSourcePressures(
-    const int ln) const
+const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln) const
 {
     return d_P_src[ln];
-}// getSourcePressures
+} // getSourcePressures
 
 void
-IBStandardSourceGen::initializeLevelData(
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number,
-    const double /*init_data_time*/,
-    const bool /*initial_time*/,
-    IBTK::LDataManager* const l_data_manager)
+IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                         const int level_number,
+                                         const double /*init_data_time*/,
+                                         const bool /*initial_time*/,
+                                         IBTK::LDataManager* const l_data_manager)
 {
-    d_n_src              .resize(std::max(level_number+1,static_cast<int>(d_n_src.size())),0);
-    d_source_names       .resize(std::max(level_number+1,static_cast<int>(d_source_names.size())));
-    d_r_src              .resize(std::max(level_number+1,static_cast<int>(d_r_src.size())));
-    d_num_perimeter_nodes.resize(std::max(level_number+1,static_cast<int>(d_num_perimeter_nodes.size())));
-    d_Q_src              .resize(std::max(level_number+1,static_cast<int>(d_Q_src.size())));
-    d_P_src              .resize(std::max(level_number+1,static_cast<int>(d_P_src.size())));
+    d_n_src.resize(std::max(level_number + 1, static_cast<int>(d_n_src.size())), 0);
+    d_source_names.resize(std::max(level_number + 1, static_cast<int>(d_source_names.size())));
+    d_r_src.resize(std::max(level_number + 1, static_cast<int>(d_r_src.size())));
+    d_num_perimeter_nodes.resize(
+        std::max(level_number + 1, static_cast<int>(d_num_perimeter_nodes.size())));
+    d_Q_src.resize(std::max(level_number + 1, static_cast<int>(d_Q_src.size())));
+    d_P_src.resize(std::max(level_number + 1, static_cast<int>(d_P_src.size())));
 
     d_n_src[level_number] = getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
@@ -192,14 +169,18 @@ IBStandardSourceGen::initializeLevelData(
     d_source_names[level_number] = getSourceNames(level_number);
     d_r_src[level_number] = getSourceRadii(level_number);
 
-    d_num_perimeter_nodes[level_number].resize(d_n_src[level_number],0);
-    d_Q_src[level_number].resize(d_n_src[level_number],0.0);
-    d_P_src[level_number].resize(d_n_src[level_number],0.0);
+    d_num_perimeter_nodes[level_number].resize(d_n_src[level_number], 0);
+    d_Q_src[level_number].resize(d_n_src[level_number], 0.0);
+    d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
-    std::fill(d_num_perimeter_nodes[level_number].begin(),d_num_perimeter_nodes[level_number].end(),0);
+    std::fill(d_num_perimeter_nodes[level_number].begin(),
+              d_num_perimeter_nodes[level_number].end(),
+              0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
@@ -207,32 +188,31 @@ IBStandardSourceGen::initializeLevelData(
         const int source_idx = spec->getSourceIndex();
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
-    SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],d_num_perimeter_nodes[level_number].size());
+    SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
+                             d_num_perimeter_nodes[level_number].size());
     return;
-}// initializeLevelData
+} // initializeLevelData
 
 unsigned int
-IBStandardSourceGen::getNumSources(
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number,
-    const double /*data_time*/,
-    LDataManager* const /*l_data_manager*/)
+IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                   const int level_number,
+                                   const double /*data_time*/,
+                                   LDataManager* const /*l_data_manager*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
 #endif
     return d_n_src[level_number];
-}// getNumSources
+} // getNumSources
 
 void
-IBStandardSourceGen::getSourceLocations(
-    std::vector<Point>& X_src,
-    std::vector<double>& r_src,
-    Pointer<LData> X_data,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number,
-    const double /*data_time*/,
-    LDataManager* const l_data_manager)
+IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
+                                        std::vector<double>& r_src,
+                                        Pointer<LData> X_data,
+                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const int level_number,
+                                        const double /*data_time*/,
+                                        LDataManager* const l_data_manager)
 {
     if (d_n_src[level_number] == 0) return;
 
@@ -249,72 +229,71 @@ IBStandardSourceGen::getSourceLocations(
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec) continue;
         const int& petsc_idx = node_idx->getLocalPETScIndex();
-        const double* const X = &X_node[NDIM*petsc_idx];
+        const double* const X = &X_node[NDIM * petsc_idx];
         const int source_idx = spec->getSourceIndex();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_src[source_idx][d] += X[d]/static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
+            X_src[source_idx][d] +=
+                X[d] / static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
         }
     }
     X_data->restoreArrays();
 
-    std::vector<double> X_src_flattened(NDIM*X_src.size());
+    std::vector<double> X_src_flattened(NDIM * X_src.size());
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_src_flattened[NDIM*k+d] = X_src[k][d];
+            X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0],X_src_flattened.size());
+    SAMRAI_MPI::sumReduction(&X_src_flattened[0], X_src_flattened.size());
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_src[k][d] = X_src_flattened[NDIM*k+d];
+            X_src[k][d] = X_src_flattened[NDIM * k + d];
         }
     }
     return;
-}// getSourceLocations
+} // getSourceLocations
 
 void
-IBStandardSourceGen::setSourcePressures(
-    const std::vector<double>& P_src,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number,
-    const double /*data_time*/,
-    LDataManager* const /*l_data_manager*/)
+IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
+                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const int level_number,
+                                        const double /*data_time*/,
+                                        LDataManager* const /*l_data_manager*/)
 {
     d_P_src[level_number] = P_src;
     return;
-}// setSourcePressures
+} // setSourcePressures
 
 void
-IBStandardSourceGen::computeSourceStrengths(
-    std::vector<double>& Q_src,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number,
-    const double /*data_time*/,
-    LDataManager* const /*l_data_manager*/)
+IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*data_time*/,
+                                            LDataManager* const /*l_data_manager*/)
 {
     Q_src = d_Q_src[level_number];
     return;
-}// computeSourceStrengths
+} // computeSourceStrengths
 
-void
-IBStandardSourceGen::putToDatabase(
-    Pointer<Database> db)
+void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    db->putInteger("s_num_sources.size()",s_num_sources.size());
+    db->putInteger("s_num_sources.size()", s_num_sources.size());
     db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
@@ -323,12 +302,12 @@ IBStandardSourceGen::putToDatabase(
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            db->putString("s_source_names_"+id_string, s_source_names[ln][n]);
-            db->putDouble("s_source_radii_"+id_string, s_source_radii[ln][n]);
+            db->putString("s_source_names_" + id_string, s_source_names[ln][n]);
+            db->putDouble("s_source_radii_" + id_string, s_source_radii[ln][n]);
         }
     }
 
-    db->putInteger("finest_hier_level", d_n_src.size()-1);
+    db->putInteger("finest_hier_level", d_n_src.size() - 1);
     db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src.size());
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
@@ -337,37 +316,37 @@ IBStandardSourceGen::putToDatabase(
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            db->putString( "d_source_names_"       +id_string, d_source_names       [ln][n]);
-            db->putDouble( "d_r_src_"              +id_string, d_r_src              [ln][n]);
-            db->putInteger("d_num_perimeter_nodes_"+id_string, d_num_perimeter_nodes[ln][n]);
-            db->putDouble( "d_Q_src_"              +id_string, d_Q_src              [ln][n]);
-            db->putDouble( "d_P_src_"              +id_string, d_P_src              [ln][n]);
+            db->putString("d_source_names_" + id_string, d_source_names[ln][n]);
+            db->putDouble("d_r_src_" + id_string, d_r_src[ln][n]);
+            db->putInteger("d_num_perimeter_nodes_" + id_string, d_num_perimeter_nodes[ln][n]);
+            db->putDouble("d_Q_src_" + id_string, d_Q_src[ln][n]);
+            db->putDouble("d_P_src_" + id_string, d_P_src[ln][n]);
         }
     }
     return;
-}// putToDatabase
+} // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-IBStandardSourceGen::getFromRestart()
+void IBStandardSourceGen::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
-    if (restart_db->isDatabase("IBStandardSourceGen"))  // TODO: Make this ID string a variable.
+    if (restart_db->isDatabase("IBStandardSourceGen")) // TODO: Make this ID string a variable.
     {
         db = restart_db->getDatabase("IBStandardSourceGen");
     }
     else
     {
         TBOX_ERROR("Restart database corresponding to "
-                   << "IBStandardSourceGen" << " not found in restart file.");
+                   << "IBStandardSourceGen"
+                   << " not found in restart file.");
     }
 
     const int s_num_sources_size = db->getInteger("s_num_sources.size()");
-    s_num_sources .resize(s_num_sources_size);
+    s_num_sources.resize(s_num_sources_size);
     s_source_names.resize(s_num_sources_size);
     s_source_radii.resize(s_num_sources_size);
     db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
@@ -380,40 +359,41 @@ IBStandardSourceGen::getFromRestart()
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            s_source_names[ln][n] = db->getString("s_source_names_"+id_string);
-            s_source_radii[ln][n] = db->getDouble("s_source_radii_"+id_string);
+            s_source_names[ln][n] = db->getString("s_source_names_" + id_string);
+            s_source_radii[ln][n] = db->getDouble("s_source_radii_" + id_string);
         }
     }
 
     const int finest_hier_level = db->getInteger("finest_hier_level");
-    d_n_src              .resize(finest_hier_level+1,0);
-    d_source_names       .resize(finest_hier_level+1);
-    d_r_src              .resize(finest_hier_level+1);
-    d_num_perimeter_nodes.resize(finest_hier_level+1);
-    d_Q_src              .resize(finest_hier_level+1);
-    d_P_src              .resize(finest_hier_level+1);
-    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
+    d_n_src.resize(finest_hier_level + 1, 0);
+    d_source_names.resize(finest_hier_level + 1);
+    d_r_src.resize(finest_hier_level + 1);
+    d_num_perimeter_nodes.resize(finest_hier_level + 1);
+    d_Q_src.resize(finest_hier_level + 1);
+    d_P_src.resize(finest_hier_level + 1);
+    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level + 1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_source_names       [ln].resize(d_n_src[ln]);
-        d_r_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
-        d_num_perimeter_nodes[ln].resize(d_n_src[ln],-1);
-        d_Q_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
-        d_P_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        d_source_names[ln].resize(d_n_src[ln]);
+        d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
+        d_num_perimeter_nodes[ln].resize(d_n_src[ln], -1);
+        d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
+        d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            d_source_names       [ln][n] = db->getString( "d_source_names_"       +id_string);
-            d_r_src              [ln][n] = db->getDouble( "d_r_src_"              +id_string);
-            d_num_perimeter_nodes[ln][n] = db->getInteger("d_num_perimeter_nodes_"+id_string);
-            d_Q_src              [ln][n] = db->getDouble( "d_Q_src_"              +id_string);
-            d_P_src              [ln][n] = db->getDouble( "d_P_src_"              +id_string);
+            d_source_names[ln][n] = db->getString("d_source_names_" + id_string);
+            d_r_src[ln][n] = db->getDouble("d_r_src_" + id_string);
+            d_num_perimeter_nodes[ln][n] =
+                db->getInteger("d_num_perimeter_nodes_" + id_string);
+            d_Q_src[ln][n] = db->getDouble("d_Q_src_" + id_string);
+            d_P_src[ln][n] = db->getDouble("d_P_src_" + id_string);
         }
     }
     return;
-}// getFromRestart
+} // getFromRestart
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -38,9 +38,10 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class StokesSpecifications;
-}  // namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -51,8 +52,7 @@ namespace IBAMR
  * IBTK::ExtendedRobinBcCoefStrategy to allow for specialization needed to treat
  * physical boundary conditions for coupled Stokes solvers.
  */
-class StokesBcCoefStrategy
-    : public IBTK::ExtendedRobinBcCoefStrategy
+class StokesBcCoefStrategy : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
@@ -71,39 +71,31 @@ public:
      *
      * \param problem_coefs   Problem coefficients
      */
-    virtual void
-    setStokesSpecifications(
-        const StokesSpecifications* problem_coefs);
+    virtual void setStokesSpecifications(const StokesSpecifications* problem_coefs);
 
     /*!
      * \brief Set the target velocity data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    virtual void
-    setTargetVelocityPatchDataIndex(
-        int u_target_data_idx);
+    virtual void setTargetVelocityPatchDataIndex(int u_target_data_idx);
 
     /*!
      * \brief Clear the target velocity data index used when setting physical
      * boundary conditions.
      */
-    virtual void
-    clearTargetVelocityPatchDataIndex();
+    virtual void clearTargetVelocityPatchDataIndex();
 
     /*!
      * \brief Set the target pressure data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    virtual void
-    setTargetPressurePatchDataIndex(
-        int u_target_data_idx);
+    virtual void setTargetPressurePatchDataIndex(int u_target_data_idx);
 
     /*!
      * \brief Clear the target pressure data index used when setting physical
      * boundary conditions.
      */
-    virtual void
-    clearTargetPressurePatchDataIndex();
+    virtual void clearTargetPressurePatchDataIndex();
 
     /*!
      * \brief Set the type of traction boundary conditions.  Supported options
@@ -112,22 +104,19 @@ public:
      *
      * The default is TRACTION_BOUNDARY_CONDITIONS.
      */
-    virtual void
-    setTractionBcType(
-        TractionBcType bc_type);
+    virtual void setTractionBcType(TractionBcType bc_type);
 
     /*!
      * \brief Get the type of traction boundary conditions.
      */
-    virtual TractionBcType
-    getTractionBcType() const;        
+    virtual TractionBcType getTractionBcType() const;
 
 protected:
     /*
      * Problem coefficients.
      */
     const StokesSpecifications* d_problem_coefs;
-    
+
     /*!
      * Patch data indices.
      */
@@ -147,8 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StokesBcCoefStrategy(
-        const StokesBcCoefStrategy& from);
+    StokesBcCoefStrategy(const StokesBcCoefStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -159,11 +147,9 @@ private:
      *
      * \return A reference to this object.
      */
-    StokesBcCoefStrategy&
-    operator=(
-        const StokesBcCoefStrategy& that);
+    StokesBcCoefStrategy& operator=(const StokesBcCoefStrategy& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -39,11 +39,14 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "tbox/Database.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -62,26 +65,24 @@ StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(
 {
     // intentionally blank
     return;
-}// StaggeredStokesFACPreconditioner
+} // StaggeredStokesFACPreconditioner
 
 StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
 {
     // intentionally blank
     return;
-}// ~StaggeredStokesFACPreconditioner
+} // ~StaggeredStokesFACPreconditioner
 
-void
-StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(
+void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
     return;
-}// setVelocityPoissonSpecifications
+} // setVelocityPoissonSpecifications
 
-void
-StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
+void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -89,22 +90,21 @@ StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
+void StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
     return;
-}// setPhysicalBoundaryHelper
+} // setPhysicalBoundaryHelper
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

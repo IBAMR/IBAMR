@@ -46,12 +46,16 @@
 #include "ibtk/PoissonSolver.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,17 +65,14 @@ namespace IBAMR
  * \brief Class StaggeredStokesBlockPreconditioner is an abstract base class for
  * Stokes solvers that are implemented using block (subdomain) solvers.
  */
-class StaggeredStokesBlockPreconditioner
-    : public IBTK::LinearSolver,
-      public StaggeredStokesSolver
+class StaggeredStokesBlockPreconditioner : public IBTK::LinearSolver,
+                                           public StaggeredStokesSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesBlockPreconditioner(
-        bool needs_velocity_solver,
-        bool needs_pressure_solver);
+    StaggeredStokesBlockPreconditioner(bool needs_velocity_solver, bool needs_pressure_solver);
 
     /*!
      * \brief Destructor.
@@ -82,45 +83,39 @@ public:
      * \brief Indicate whether the preconditioner needs a velocity subdomain
      * solver.
      */
-    virtual bool
-    needsVelocitySubdomainSolver() const;
+    virtual bool needsVelocitySubdomainSolver() const;
 
     /*!
      * \brief Provide a velocity subdomain solver.
      */
     virtual void
-    setVelocitySubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void
-    setVelocityPoissonSpecifications(
+    void setVelocityPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Indicate whether the preconditioner needs a pressure subdomain
      * solver.
      */
-    virtual bool
-    needsPressureSubdomainSolver() const;
+    virtual bool needsPressureSubdomainSolver() const;
 
     /*!
      * \brief Provide a pressure subdomain solver.
      */
     virtual void
-    setPressureSubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the pressure-Poisson problem.
      */
-    virtual void
-    setPressurePoissonSpecifications(
+    virtual void setPressurePoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& P_problem_coefs);
 
     /*!
@@ -132,13 +127,15 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
+     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
+     *condition coefficients for the velocity
+     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     *coefficients
+     *for the pressure
      */
     virtual void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -157,10 +154,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -173,17 +168,15 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void
-    deallocateSolverState();
+    void deallocateSolverState();
 
 protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void
-    correctNullspace(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > U_vec,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > P_vec);
+    void correctNullspace(
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -195,7 +188,8 @@ protected:
     // Hierarchy data.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> >
+    d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
@@ -214,8 +208,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBlockPreconditioner(
-        const StaggeredStokesBlockPreconditioner& from);
+    StaggeredStokesBlockPreconditioner(const StaggeredStokesBlockPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -227,10 +220,9 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesBlockPreconditioner&
-    operator=(
-        const StaggeredStokesBlockPreconditioner& that);
+    operator=(const StaggeredStokesBlockPreconditioner& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

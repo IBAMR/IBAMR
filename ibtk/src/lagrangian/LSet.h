@@ -48,15 +48,19 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Index;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Index;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -66,9 +70,8 @@ namespace IBTK
  * \brief Class LSet provides inter-processor communications and database access
  * functionality to a collection of Lagrangian objects.
  */
-template<class T>
-class LSet
-    : public SAMRAI::tbox::DescribedClass
+template <class T>
+class LSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -126,8 +129,7 @@ public:
      *
      * \param from The value to copy to this object.
      */
-    LSet(
-        const LSet& from);
+    LSet(const LSet& from);
 
     /*!
      * \brief Destructor.
@@ -141,112 +143,83 @@ public:
      *
      * \return A reference to this object.
      */
-    LSet&
-    operator=(
-        const LSet& that);
+    LSet& operator=(const LSet& that);
 
     /*!
      * \return A reference to the nth element of the set.
      */
-    reference
-    operator[](
-        size_type n);
+    reference operator[](size_type n);
 
     /*!
      * \return A const reference to the nth element of the set.
      */
-    const_reference
-    operator[](
-        size_type n) const;
+    const_reference operator[](size_type n) const;
 
     /*!
      * \return A const_iterator pointing to the beginning of the set of indices.
      */
-    const_iterator
-    begin() const;
+    const_iterator begin() const;
 
     /*!
      * \return An iterator pointing to the beginning of the set of indices.
      */
-    iterator
-    begin();
+    iterator begin();
 
     /*!
      * \return A const_iterator pointing to the end of the set of indices.
      */
-    const_iterator
-    end() const;
+    const_iterator end() const;
 
     /*!
      * \return An iterator pointing to the end of the set of indices.
      */
-    iterator
-    end();
+    iterator end();
 
     /*!
      * \return The size of the set.
      */
-    size_type
-    size() const;
+    size_type size() const;
 
     /*!
      * \return Whether the set is empty.
      */
-    bool
-    empty() const;
+    bool empty() const;
 
     /*!
      * \brief Insert a new element at the end (of the set).
      */
-    void
-    push_back(
-        const value_type& value);
+    void push_back(const value_type& value);
 
     /*!
      * \brief Inserts x before pos.
      */
-    iterator
-    insert(
-        iterator pos,
-        const typename LSet<T>::value_type& x);
+    iterator insert(iterator pos, const typename LSet<T>::value_type& x);
 
     /*!
      * \brief Inserts the range [first,last) before pos.
      */
     template <class InputIterator>
-    void
-    insert(
-        iterator pos,
-        InputIterator first,
-        InputIterator last);
+    void insert(iterator pos, InputIterator first, InputIterator last);
 
     /*!
      * \brief Inserts n copies of x before pos.
      */
-    void
-    insert(
-        iterator pos,
-        size_type n,
-        const typename LSet<T>::value_type& x);
+    void insert(iterator pos, size_type n, const typename LSet<T>::value_type& x);
 
     /*!
      * \brief Return a const reference to the set of data items.
      */
-    const DataSet&
-    getDataSet() const;
+    const DataSet& getDataSet() const;
 
     /*!
      * \brief Return a non-const reference to the set of data items.
      */
-    DataSet&
-    getDataSet();
+    DataSet& getDataSet();
 
     /*!
      * \brief Reset the set of data items.
      */
-    void
-    setDataSet(
-        const DataSet& set);
+    void setDataSet(const DataSet& set);
 
     /*!
      * \return A const reference to the periodic offset.
@@ -254,8 +227,7 @@ public:
      * \note If the LSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    const SAMRAI::hier::IntVector<NDIM>&
-    getPeriodicOffset() const;
+    const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
 
     /*!
      * \brief Set the value of the periodic offset.
@@ -263,56 +235,43 @@ public:
      * \note If the LSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    void
-    setPeriodicOffset(
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    void setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The index of the destination object is src_index + src_offset.
      */
-    void
-    copySourceItem(
-        const SAMRAI::hier::Index<NDIM>& src_index,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset,
-        const LSet& src_item);
+    void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
+                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                        const LSet& src_item);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    void
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                      const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Pack data into a database.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
     /*!
      * \brief Unpack data from a database.
      */
-    void
-    getFromDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
 private:
     /*!
@@ -325,11 +284,11 @@ private:
      */
     SAMRAI::hier::IntVector<NDIM> d_offset;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LSet-inl.h"  // IWYU pragma: keep
+#include "ibtk/LSet-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

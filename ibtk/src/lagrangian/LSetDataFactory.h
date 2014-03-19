@@ -38,7 +38,7 @@
 #include <stddef.h>
 
 #include "Box.h"
-#include "CellGeometry.h"  // IWYU pragma: keep
+#include "CellGeometry.h" // IWYU pragma: keep
 #include "IndexDataFactory.h"
 #include "IntVector.h"
 #include "ibtk/FixedSizedStream-inl.h"
@@ -52,16 +52,23 @@
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
-template <class T> class LSet;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchData;
-template <int DIM> class PatchDataFactory;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace IBTK
+{
+template <class T>
+class LSet;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchData;
+template <int DIM>
+class PatchDataFactory;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,9 +78,9 @@ namespace IBTK
  * \brief Class LSetPatchDataFactory provides a SAMRAI::hier::PatchDataFactory
  * class corresponding to patch data of type LSetData.
  */
-template<class T>
+template <class T>
 class LSetDataFactory
-    : public SAMRAI::pdat::IndexDataFactory<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> >
+    : public SAMRAI::pdat::IndexDataFactory<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
     /*!
@@ -81,14 +88,12 @@ public:
      * width argument gives the default width for all data objects created with
      * this factory.
      */
-    LSetDataFactory(
-        const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LSetDataFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
      * Virtual destructor for the data factory class.
      */
-    virtual
-    ~LSetDataFactory();
+    virtual ~LSetDataFactory();
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -97,9 +102,8 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(
-        const SAMRAI::hier::Box<NDIM>& box,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
+    allocate(const SAMRAI::hier::Box<NDIM>& box,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -108,17 +112,14 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
+    allocate(const SAMRAI::hier::Patch<NDIM>& patch,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
      * object data but not dynamically allocated data.
      */
-    size_t
-    getSizeOfMemory(
-        const SAMRAI::hier::Box<NDIM>& box) const;
+    size_t getSizeOfMemory(const SAMRAI::hier::Box<NDIM>& box) const;
 
     /*!
      * Virtual function to clone the data factory.  This will return a new
@@ -127,16 +128,14 @@ public:
      * modifying the original.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
-    cloneFactory(
-        const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    cloneFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
      * Return whether it is valid to copy this LSetDataFactory to the supplied
      * destination patch data factory. It will return true if dst_pdf is a
      * LSetDataFactory, false otherwise.
      */
-    bool
-    validCopyTo(
+    bool validCopyTo(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
 
 private:
@@ -154,8 +153,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetDataFactory(
-        const LSetDataFactory<T>& from);
+    LSetDataFactory(const LSetDataFactory<T>& from);
 
     /*!
      * \brief Assignment operator.
@@ -166,11 +164,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetDataFactory&
-    operator=(
-        const LSetDataFactory<T>& that);
+    LSetDataFactory& operator=(const LSetDataFactory<T>& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -48,9 +48,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralOperator::GeneralOperator(
-    const std::string& object_name,
-    bool homogeneous_bc)
+GeneralOperator::GeneralOperator(const std::string& object_name, bool homogeneous_bc)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_homogeneous_bc(homogeneous_bc),
@@ -63,141 +61,115 @@ GeneralOperator::GeneralOperator(
 {
     // intentionally blank
     return;
-}// GeneralOperator()
+} // GeneralOperator()
 
 GeneralOperator::~GeneralOperator()
 {
     deallocateOperatorState();
     return;
-}// ~GeneralOperator()
+} // ~GeneralOperator()
 
-const std::string&
-GeneralOperator::getName() const
+const std::string& GeneralOperator::getName() const
 {
     return d_object_name;
-}// getName
+} // getName
 
-bool
-GeneralOperator::getIsInitialized() const
+bool GeneralOperator::getIsInitialized() const
 {
     return d_is_initialized;
-}// getIsInitialized
+} // getIsInitialized
 
-void
-GeneralOperator::setHomogeneousBc(
-    bool homogeneous_bc)
+void GeneralOperator::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-bool
-GeneralOperator::getHomogeneousBc() const
+bool GeneralOperator::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-}// getHomogeneousBc
+} // getHomogeneousBc
 
-void
-GeneralOperator::setSolutionTime(
-    double solution_time)
+void GeneralOperator::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-double
-GeneralOperator::getSolutionTime() const
+double GeneralOperator::getSolutionTime() const
 {
     return d_solution_time;
-}// getSolutionTime
+} // getSolutionTime
 
-void
-GeneralOperator::setTimeInterval(
-    double current_time,
-    double new_time)
+void GeneralOperator::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-std::pair<double,double>
-GeneralOperator::getTimeInterval() const
+std::pair<double, double> GeneralOperator::getTimeInterval() const
 {
-    return std::make_pair(d_current_time,d_new_time);
-}// getTimeInterval
+    return std::make_pair(d_current_time, d_new_time);
+} // getTimeInterval
 
-double
-GeneralOperator::getDt() const
+double GeneralOperator::getDt() const
 {
-    return d_new_time-d_current_time;
-}// getDt
+    return d_new_time - d_current_time;
+} // getDt
 
-void
-GeneralOperator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
+void GeneralOperator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
-}// setHierarchyMathOps
+} // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
-GeneralOperator::getHierarchyMathOps() const
+Pointer<HierarchyMathOps> GeneralOperator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
-}// getHierarchyMathOps
+} // getHierarchyMathOps
 
-void
-GeneralOperator::applyAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
+void GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
+                               SAMRAIVectorReal<NDIM, double>& y,
+                               SAMRAIVectorReal<NDIM, double>& z)
 {
     // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM,double> > zz = z.cloneVector(z.getName());
+    Pointer<SAMRAIVectorReal<NDIM, double> > zz = z.cloneVector(z.getName());
     zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-    apply(x,*zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false),zz);
+    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
+    apply(x, *zz);
+    z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
     zz->freeVectorComponents();
     zz.setNull();
     return;
-}// applyAdd
+} // applyAdd
 
-void
-GeneralOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& /*in*/,
-    const SAMRAIVectorReal<NDIM,double>& /*out*/)
+void GeneralOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*in*/,
+                                              const SAMRAIVectorReal<NDIM, double>& /*out*/)
 {
     d_is_initialized = true;
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-GeneralOperator::deallocateOperatorState()
+void GeneralOperator::deallocateOperatorState()
 {
     d_is_initialized = false;
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
-void
-GeneralOperator::setLoggingEnabled(
-    bool enable_logging)
+void GeneralOperator::setLoggingEnabled(bool enable_logging)
 {
     d_enable_logging = enable_logging;
     return;
-}// setLoggingEnabled
+} // setLoggingEnabled
 
-bool
-GeneralOperator::getLoggingEnabled() const
+bool GeneralOperator::getLoggingEnabled() const
 {
     return d_enable_logging;
-}// getLoggingEnabled
+} // getLoggingEnabled
 
-void
-GeneralOperator::printClassData(
-    std::ostream& stream)
+void GeneralOperator::printClassData(std::ostream& stream)
 {
     stream << "\n"
            << "object_name = " << d_object_name << "\n"
@@ -210,12 +182,12 @@ GeneralOperator::printClassData(
            << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
            << "enable_logging = " << d_enable_logging << "\n";
     return;
-}// printClassData
+} // printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

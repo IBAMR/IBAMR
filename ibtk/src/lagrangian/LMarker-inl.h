@@ -44,185 +44,145 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-LMarker::LMarker(
-    const int idx,
-    const Point& X,
-    const Vector& U,
-    const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
-    : d_idx(idx),
-      d_X(X),
-      d_U(U),
-      d_offset(periodic_offset)
+inline LMarker::LMarker(const int idx,
+                        const Point& X,
+                        const Vector& U,
+                        const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
+    : d_idx(idx), d_X(X), d_U(U), d_offset(periodic_offset)
 {
     // intentionally blank
     return;
-}// LMarker
+} // LMarker
 
-inline
-LMarker::LMarker(
-    const LMarker& from)
-    : d_idx(from.d_idx),
-      d_X(from.d_X),
-      d_U(from.d_U),
-      d_offset(from.d_offset)
+inline LMarker::LMarker(const LMarker& from)
+    : d_idx(from.d_idx), d_X(from.d_X), d_U(from.d_U), d_offset(from.d_offset)
 {
     // intentionally blank
     return;
-}// LMarker
+} // LMarker
 
-inline
-LMarker::LMarker(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
-    : d_idx(-1),
-      d_X(Point::Zero()),
-      d_U(Vector::Zero()),
-      d_offset(offset)
+inline LMarker::LMarker(SAMRAI::tbox::AbstractStream& stream,
+                        const SAMRAI::hier::IntVector<NDIM>& offset)
+    : d_idx(-1), d_X(Point::Zero()), d_U(Vector::Zero()), d_offset(offset)
 {
-    unpackStream(stream,offset);
+    unpackStream(stream, offset);
     return;
-}// LMarker
+} // LMarker
 
-inline
-LMarker::~LMarker()
+inline LMarker::~LMarker()
 {
     // intentionally blank
     return;
-}// ~LMarker
+} // ~LMarker
 
-inline LMarker&
-LMarker::operator=(
-    const LMarker& that)
+inline LMarker& LMarker::operator=(const LMarker& that)
 {
-    if (this == &that) return *this;  // check for self-assignment
-    d_idx    = that.d_idx;
-    d_X      = that.d_X;
-    d_U      = that.d_U;
+    if (this == &that) return *this; // check for self-assignment
+    d_idx = that.d_idx;
+    d_X = that.d_X;
+    d_U = that.d_U;
     d_offset = that.d_offset;
     return *this;
-}// operator=
+} // operator=
 
-inline const int&
-LMarker::getIndex() const
+inline const int& LMarker::getIndex() const
 {
     return d_idx;
-}// getIndex
+} // getIndex
 
-inline int&
-LMarker::getIndex()
+inline int& LMarker::getIndex()
 {
     return d_idx;
-}// getIndex
+} // getIndex
 
-inline void
-LMarker::setIndex(
-    int idx)
+inline void LMarker::setIndex(int idx)
 {
     d_idx = idx;
     return;
-}// setIndex
+} // setIndex
 
-inline const Point&
-LMarker::getPosition() const
+inline const Point& LMarker::getPosition() const
 {
     return d_X;
-}// getPosition
+} // getPosition
 
-inline Point&
-LMarker::getPosition()
+inline Point& LMarker::getPosition()
 {
     return d_X;
-}// getPosition
+} // getPosition
 
-inline void
-LMarker::setPosition(
-    const Point& X)
+inline void LMarker::setPosition(const Point& X)
 {
     d_X = X;
     return;
-}// setPosition
+} // setPosition
 
-inline const Vector&
-LMarker::getVelocity() const
+inline const Vector& LMarker::getVelocity() const
 {
     return d_U;
-}// getVelocity
+} // getVelocity
 
-inline Vector&
-LMarker::getVelocity()
+inline Vector& LMarker::getVelocity()
 {
     return d_U;
-}// getVelocity
+} // getVelocity
 
-inline void
-LMarker::setVelocity(
-    const Vector& U)
+inline void LMarker::setVelocity(const Vector& U)
 {
     d_U = U;
     return;
-}// setVelocity
+} // setVelocity
 
-inline const SAMRAI::hier::IntVector<NDIM>&
-LMarker::getPeriodicOffset() const
+inline const SAMRAI::hier::IntVector<NDIM>& LMarker::getPeriodicOffset() const
 {
     return d_offset;
-}// getPeriodicOffset
+} // getPeriodicOffset
 
-inline void
-LMarker::setPeriodicOffset(
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+inline void LMarker::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     d_offset = offset;
     return;
-}// setPeriodicOffset
+} // setPeriodicOffset
 
-inline void
-LMarker::copySourceItem(
-    const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-    const SAMRAI::hier::IntVector<NDIM>& src_offset,
-    const LMarker& src_item)
+inline void LMarker::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
+                                    const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                                    const LMarker& src_item)
 {
-    d_idx    = src_item.d_idx;
-    d_X      = src_item.d_X;
-    d_U      = src_item.d_U;
+    d_idx = src_item.d_idx;
+    d_X = src_item.d_X;
+    d_U = src_item.d_U;
     d_offset = src_offset;
     return;
-}// copySourceItem
+} // copySourceItem
 
-inline size_t
-LMarker::getDataStreamSize() const
+inline size_t LMarker::getDataStreamSize() const
 {
-    return (1*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            2*NDIM*SAMRAI::tbox::AbstractStream::sizeofDouble());
-}// getDataStreamSize
+    return (1 * SAMRAI::tbox::AbstractStream::sizeofInt() +
+            2 * NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble());
+} // getDataStreamSize
 
-inline void
-LMarker::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    stream.pack(&d_idx,1);
-    stream.pack(d_X.data(),NDIM);
-    stream.pack(d_U.data(),NDIM);
+    stream.pack(&d_idx, 1);
+    stream.pack(d_X.data(), NDIM);
+    stream.pack(d_U.data(), NDIM);
     return;
-}// packStream
+} // packStream
 
-inline void
-LMarker::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
+inline void LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                  const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
 {
-    stream.unpack(&d_idx,1);
-    stream.unpack(d_X.data(),NDIM);
-    stream.unpack(d_U.data(),NDIM);
+    stream.unpack(&d_idx, 1);
+    stream.unpack(d_X.data(), NDIM);
+    stream.unpack(d_U.data(), NDIM);
     return;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

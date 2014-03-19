@@ -85,37 +85,38 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_u_dof_index_var = new SideVariable<NDIM,int>(object_name + "::u_dof_index");
+    d_u_dof_index_var = new SideVariable<NDIM, int>(object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
-    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
-    d_p_dof_index_var = new CellVariable<NDIM,int>(object_name + "::p_dof_index");
+    d_u_dof_index_idx =
+        var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
+    d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
-    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
+    d_p_dof_index_idx =
+        var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
     return;
-}// StaggeredStokesPETScLevelSolver
+} // StaggeredStokesPETScLevelSolver
 
 StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-}// ~StaggeredStokesPETScLevelSolver
+} // ~StaggeredStokesPETScLevelSolver
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& /*b*/)
+void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& x,
+    const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -124,76 +125,98 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
 
     // Setup PETSc objects.
     int ierr;
-    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
+    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
+        d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     const int mpi_rank = SAMRAI_MPI::getRank();
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs, d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
-    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    ierr = VecCreateMPI(
+        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(
+        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
+    IBTK_CHKERRQ(ierr);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                     d_U_problem_coefs,
+                                                                     d_U_bc_coefs,
+                                                                     d_new_time,
+                                                                     d_num_dofs_per_proc,
+                                                                     d_u_dof_index_idx,
+                                                                     d_p_dof_index_idx,
+                                                                     level);
+    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
+    IBTK_CHKERRQ(ierr);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
+        HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops =
+        hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
-    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL); IBTK_CHKERRQ(ierr);
+    const int min_p_idx = hier_p_dof_index_ops->min(
+        d_p_dof_index_idx); // NOTE: HierarchyDataOpsInteger::max() is broken
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL);
+    IBTK_CHKERRQ(ierr);
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
-    d_ghost_fill_sched = StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, level);
+    d_data_synch_sched =
+        StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
+    d_ghost_fill_sched =
+        StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, level);
     return;
-}// initializeSolverStateSpecialized
+} // initializeSolverStateSpecialized
 
-void
-StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
+void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
-    if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
+    if (level->checkAllocated(d_u_dof_index_idx))
+        level->deallocatePatchData(d_u_dof_index_idx);
+    if (level->checkAllocated(d_p_dof_index_idx))
+        level->deallocatePatchData(d_p_dof_index_idx);
     return;
-}// deallocateSolverStateSpecialized
+} // deallocateSolverStateSpecialized
 
-void
-StaggeredStokesPETScLevelSolver::copyToPETScVec(
-    Vec& petsc_x,
-    SAMRAIVectorReal<NDIM,double>& x,
-    Pointer<PatchLevel<NDIM> > patch_level)
+void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
+                                                     SAMRAIVectorReal<NDIM, double>& x,
+                                                     Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level);
+    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+        petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level);
     return;
-}// copyToPETScVec
+} // copyToPETScVec
 
-void
-StaggeredStokesPETScLevelSolver::copyFromPETScVec(
-    Vec& petsc_x,
-    SAMRAIVectorReal<NDIM,double>& x,
-    Pointer<PatchLevel<NDIM> > patch_level)
+void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
+                                                       SAMRAIVectorReal<NDIM, double>& x,
+                                                       Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(petsc_x,
+                                                            u_idx,
+                                                            d_u_dof_index_idx,
+                                                            p_idx,
+                                                            d_p_dof_index_idx,
+                                                            patch_level,
+                                                            d_data_synch_sched,
+                                                            d_ghost_fill_sched);
     return;
-}// copyFromPETScVec
+} // copyFromPETScVec
 
-void
-StaggeredStokesPETScLevelSolver::setupKSPVecs(
-    Vec& petsc_x,
-    Vec& petsc_b,
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& b,
-    Pointer<PatchLevel<NDIM> > patch_level)
+void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                                   Vec& petsc_b,
+                                                   SAMRAIVectorReal<NDIM, double>& x,
+                                                   SAMRAIVectorReal<NDIM, double>& b,
+                                                   Pointer<PatchLevel<NDIM> > patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     copyToPETScVec(petsc_b, b, patch_level);
     return;
-}// setupKSPVecs
+} // setupKSPVecs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

@@ -40,14 +40,19 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace xfer {
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace xfer
+{
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,20 +76,18 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void
-    copyToPatchLevelVec(
-        Vec& vec,
-        int u_data_idx,
-        int u_dof_index_idx,
-        int p_data_idx,
-        int p_dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    copyToPatchLevelVec(Vec& vec,
+                        int u_data_idx,
+                        int u_dof_index_idx,
+                        int p_data_idx,
+                        int p_dof_index_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Copy data from a parallel PETSc Vec on the provided
      * SAMRAI::hier::PatchLevel.
      */
-    static void
-    copyFromPatchLevelVec(
+    static void copyFromPatchLevelVec(
         Vec& vec,
         int u_data_idx,
         int u_dof_index_idx,
@@ -127,8 +130,7 @@ public:
      * \note DOF indices are \em not assigned to ghost cell values by this
      * method.
      */
-    static void
-    constructPatchLevelDOFIndices(
+    static void constructPatchLevelDOFIndices(
         std::vector<int>& num_dofs_per_proc,
         int u_dof_index_idx,
         int p_dof_index_idx,
@@ -137,7 +139,6 @@ public:
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -153,8 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPETScVecUtilities(
-        const StaggeredStokesPETScVecUtilities& from);
+    StaggeredStokesPETScVecUtilities(const StaggeredStokesPETScVecUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -165,16 +165,13 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPETScVecUtilities&
-    operator=(
-        const StaggeredStokesPETScVecUtilities& that);
+    StaggeredStokesPETScVecUtilities& operator=(const StaggeredStokesPETScVecUtilities& that);
 
     /*!
      * \brief Implementation of copyToPatchLevelVec() for a standard MAC
      * discretization.
      */
-    static void
-    copyToPatchLevelVec_MAC(
+    static void copyToPatchLevelVec_MAC(
         Vec& vec,
         int u_data_idx,
         int u_dof_index_idx,
@@ -186,8 +183,7 @@ private:
      * \brief Implementation of copyFromPatchLevelVec() for a standard MAC
      * discretization.
      */
-    static void
-    copyFromPatchLevelVec_MAC(
+    static void copyFromPatchLevelVec_MAC(
         Vec& vec,
         int u_data_idx,
         int u_dof_index_idx,
@@ -199,14 +195,13 @@ private:
      * \brief Implementation of constructPatchLevelDOFIndices() for a standard
      * MAC discretization.
      */
-    static void
-    constructPatchLevelDOFIndices_MAC(
+    static void constructPatchLevelDOFIndices_MAC(
         std::vector<int>& num_dofs_proc,
         int u_dof_index_idx,
         int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

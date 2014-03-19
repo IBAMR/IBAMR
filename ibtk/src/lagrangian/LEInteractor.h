@@ -44,24 +44,35 @@
 #include "boost/array.hpp"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-template <class T> class LIndexSetData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace pdat {
-template <int DIM, class TYPE> class CellData;
-template <int DIM, class TYPE> class NodeData;
-template <int DIM, class TYPE> class SideData;
-template <int DIM, class TYPE> class EdgeData;
-}  // namespace pdat
-namespace tbox {
+template <class T>
+class LIndexSetData;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class CellData;
+template <int DIM, class TYPE>
+class NodeData;
+template <int DIM, class TYPE>
+class SideData;
+template <int DIM, class TYPE>
+class EdgeData;
+} // namespace pdat
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -86,24 +97,18 @@ public:
     /*!
      * \brief Set configuration options from a user-supplied database.
      */
-    static void
-    setFromDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    static void setFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
      * \brief Output class configuration.
      */
-    static void
-    printClassData(
-        std::ostream& os);
+    static void printClassData(std::ostream& os);
 
     /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
      * specified kernel function.
      */
-    static int
-    getStencilSize(
-        const std::string& kernel_fcn);
+    static int getStencilSize(const std::string& kernel_fcn);
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -120,17 +125,16 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -147,17 +151,16 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -174,18 +177,16 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
-
+    interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -202,17 +203,16 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -229,19 +229,18 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_depth,
+                const double* X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -258,19 +257,18 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_depth,
+                const double* X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -287,19 +285,18 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_depth,
+                const double* X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -316,19 +313,18 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
-    template<class T>
+    template <class T>
     static void
-    interpolate(
-        double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_depth,
+                const double* X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -346,15 +342,14 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -372,15 +367,14 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -398,15 +392,14 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -424,15 +417,14 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(std::vector<double>& Q_data,
+                int Q_depth,
+                const std::vector<double>& X_data,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -450,17 +442,16 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_size,
+                int Q_depth,
+                const double* X_data,
+                int X_size,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -478,17 +469,16 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_size,
+                int Q_depth,
+                const double* X_data,
+                int X_size,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -506,17 +496,16 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_size,
+                int Q_depth,
+                const double* X_data,
+                int X_size,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
@@ -534,17 +523,16 @@ public:
      * \warning This method does \em not support periodic offsets for positions.
      */
     static void
-    interpolate(
-        double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& interp_box,
-        const std::string& interp_fcn="IB_4");
+    interpolate(double* Q_data,
+                int Q_size,
+                int Q_depth,
+                const double* X_data,
+                int X_size,
+                int X_depth,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                const SAMRAI::hier::Box<NDIM>& interp_box,
+                const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -564,17 +552,15 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                       SAMRAI::tbox::Pointer<LData> Q_data,
+                       SAMRAI::tbox::Pointer<LData> X_data,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -594,17 +580,15 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                       SAMRAI::tbox::Pointer<LData> Q_data,
+                       SAMRAI::tbox::Pointer<LData> X_data,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -624,17 +608,15 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                       SAMRAI::tbox::Pointer<LData> Q_data,
+                       SAMRAI::tbox::Pointer<LData> X_data,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -654,17 +636,15 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        SAMRAI::tbox::Pointer<LData> Q_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                       SAMRAI::tbox::Pointer<LData> Q_data,
+                       SAMRAI::tbox::Pointer<LData> X_data,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -684,19 +664,17 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -716,19 +694,17 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -748,19 +724,17 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -780,19 +754,17 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
-    template<class T>
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const std::string& spread_fcn="IB_4");
+    template <class T>
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -812,16 +784,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -841,16 +811,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        const std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -870,16 +838,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -899,16 +865,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        const std::vector<double>& Q_data,
-        int Q_depth,
-        const std::vector<double>& X_data,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                       const std::vector<double>& Q_data,
+                       int Q_depth,
+                       const std::vector<double>& X_data,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -928,18 +892,16 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -959,18 +921,16 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -990,18 +950,16 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
@@ -1021,18 +979,16 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void
-    spread(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM,double> > q_data,
-        const double* Q_data,
-        int Q_size,
-        int Q_depth,
-        const double* X_data,
-        int X_size,
-        int X_depth,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::Box<NDIM>& spread_box,
-        const std::string& spread_fcn="IB_4");
+    static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > q_data,
+                       const double* Q_data,
+                       int Q_size,
+                       int Q_depth,
+                       const double* X_data,
+                       int X_size,
+                       int X_depth,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       const SAMRAI::hier::Box<NDIM>& spread_box,
+                       const std::string& spread_fcn = "IB_4");
 
 private:
     /*!
@@ -1056,8 +1012,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LEInteractor(
-        const LEInteractor& from);
+    LEInteractor(const LEInteractor& from);
 
     /*!
      * \brief Assignment operator.
@@ -1068,123 +1023,108 @@ private:
      *
      * \return A reference to this object.
      */
-    LEInteractor&
-    operator=(
-        const LEInteractor& that);
+    LEInteractor& operator=(const LEInteractor& that);
 
     /*!
      * Implementation of the IB interpolation operation.
      */
-    static void
-    interpolate(
-        double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        const double* q_data,
-        const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const SAMRAI::hier::IntVector<NDIM>& q_gcw,
-        int q_depth,
-        const double* x_lower,
-        const double* x_upper,
-        const double* dx,
-        const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
-        const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
-        const std::vector<int>& local_indices,
-        const std::vector<double>& periodic_shifts,
-        const std::string& interp_fcn,
-        int axis=0);
+    static void interpolate(double* Q_data,
+                            int Q_depth,
+                            const double* X_data,
+                            const double* q_data,
+                            const SAMRAI::hier::Box<NDIM>& q_data_box,
+                            const SAMRAI::hier::IntVector<NDIM>& q_gcw,
+                            int q_depth,
+                            const double* x_lower,
+                            const double* x_upper,
+                            const double* dx,
+                            const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                            const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
+                            const std::vector<int>& local_indices,
+                            const std::vector<double>& periodic_shifts,
+                            const std::string& interp_fcn,
+                            int axis = 0);
 
     /*!
      * Implementation of the IB spreading operation.
      */
-    static void
-    spread(
-        double* q_data,
-        const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const SAMRAI::hier::IntVector<NDIM>& q_gcw,
-        int q_depth,
-        const double* Q_data,
-        int Q_depth,
-        const double* X_data,
-        const double* x_lower,
-        const double* x_upper,
-        const double* dx,
-        const boost::array<int,NDIM>& patch_touches_lower_physical_bdry,
-        const boost::array<int,NDIM>& patch_touches_upper_physical_bdry,
-        const std::vector<int>& local_indices,
-        const std::vector<double>& periodic_shifts,
-        const std::string& spread_fcn,
-        int axis=0);
+    static void spread(double* q_data,
+                       const SAMRAI::hier::Box<NDIM>& q_data_box,
+                       const SAMRAI::hier::IntVector<NDIM>& q_gcw,
+                       int q_depth,
+                       const double* Q_data,
+                       int Q_depth,
+                       const double* X_data,
+                       const double* x_lower,
+                       const double* x_upper,
+                       const double* dx,
+                       const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                       const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
+                       const std::vector<int>& local_indices,
+                       const std::vector<double>& periodic_shifts,
+                       const std::string& spread_fcn,
+                       int axis = 0);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
      * based on the LNodeIndexSetData values.
      */
-    template<class T>
-    static void
-    buildLocalIndices(
-        std::vector<int>& local_indices,
-        std::vector<double>& periodic_shifts,
-        const SAMRAI::hier::Box<NDIM>& box,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data);
+    template <class T>
+    static void buildLocalIndices(std::vector<int>& local_indices,
+                                  std::vector<double>& periodic_shifts,
+                                  const SAMRAI::hier::Box<NDIM>& box,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                  const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                                  SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
      * based on the positions of the Lagrangian mesh nodes.
      */
-    static void
-    buildLocalIndices(
-        std::vector<int>& local_indices,
-        const SAMRAI::hier::Box<NDIM>& box,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double* X_data,
-        int X_size,
-        int X_depth);
+    static void buildLocalIndices(std::vector<int>& local_indices,
+                                  const SAMRAI::hier::Box<NDIM>& box,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                  const double* X_data,
+                                  int X_size,
+                                  int X_depth);
 
     /*!
      * Implementation of the IB interpolation operation for a user-defined
      * kernel.
      */
-    static void
-    userDefinedInterpolate(
-        double* Q,
-        int Q_depth,
-        const double* X,
-        const double* q,
-        const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const int* q_gcw,
-        int q_depth,
-        const double* x_lower,
-        const double* x_upper,
-        const double* dx,
-        const int* local_indices,
-        const double* X_shift,
-        int num_local_indices);
+    static void userDefinedInterpolate(double* Q,
+                                       int Q_depth,
+                                       const double* X,
+                                       const double* q,
+                                       const SAMRAI::hier::Box<NDIM>& q_data_box,
+                                       const int* q_gcw,
+                                       int q_depth,
+                                       const double* x_lower,
+                                       const double* x_upper,
+                                       const double* dx,
+                                       const int* local_indices,
+                                       const double* X_shift,
+                                       int num_local_indices);
 
     /*!
      * Implementation of the IB spreading operation for a user-defined kernel.
      */
-    static void
-    userDefinedSpread(
-        double* q,
-        const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const int* q_gcw,
-        int q_depth,
-        const double* x_lower,
-        const double* x_upper,
-        const double* dx,
-        const double* Q,
-        int Q_depth,
-        const double* X,
-        const int* local_indices,
-        const double* X_shift,
-        int num_local_indices);
+    static void userDefinedSpread(double* q,
+                                  const SAMRAI::hier::Box<NDIM>& q_data_box,
+                                  const int* q_gcw,
+                                  int q_depth,
+                                  const double* x_lower,
+                                  const double* x_upper,
+                                  const double* dx,
+                                  const double* Q,
+                                  int Q_depth,
+                                  const double* X,
+                                  const int* local_indices,
+                                  const double* X_shift,
+                                  int num_local_indices);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
-
 
 #endif //#ifndef included_LEInteractor

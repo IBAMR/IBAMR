@@ -44,18 +44,24 @@
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class INSHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class Variable;
-}  // namespace hier
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,8 +71,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesOpenBoundaryStabilizer provides forcing at
  * physical boundaries that attempts to stabilize flows at open boundaries.
  */
-class StaggeredStokesOpenBoundaryStabilizer
-    : public IBTK::CartGridFunction
+class StaggeredStokesOpenBoundaryStabilizer : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -91,20 +96,18 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * Set the data on the patch interior.
      */
-    void
-    setDataOnPatch(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        double data_time,
-        bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        double data_time,
+                        bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -123,8 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer(
-        const StaggeredStokesOpenBoundaryStabilizer& from);
+    StaggeredStokesOpenBoundaryStabilizer(const StaggeredStokesOpenBoundaryStabilizer& from);
 
     /*!
      * \brief Assignment operator.
@@ -136,15 +138,14 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesOpenBoundaryStabilizer&
-    operator=(
-        const StaggeredStokesOpenBoundaryStabilizer& that);
+    operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
 
-    boost::array<bool,2*NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
-    boost::array<double,2*NDIM> d_width;
+    boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
+    boost::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

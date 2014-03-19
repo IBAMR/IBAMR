@@ -40,11 +40,14 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/GeneralOperator.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,16 +57,14 @@ namespace IBAMR
  * \brief Class ConvectiveOperator is a abstract class for an implementation of
  * a convective differencing operator.
  */
-class ConvectiveOperator
-    : public IBTK::GeneralOperator
+class ConvectiveOperator : public IBTK::GeneralOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    ConvectiveOperator(
-        const std::string& object_name,
-        ConvectiveDifferencingType difference_form);
+    ConvectiveOperator(const std::string& object_name,
+                       ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
@@ -74,37 +75,28 @@ public:
      * \brief Set the patch data index corresponding to the advection velocity
      * to be used when computing the convective derivative.
      */
-    void
-    setAdvectionVelocity(
-        int u_idx);
+    void setAdvectionVelocity(int u_idx);
 
     /*!
      * \brief Get the patch data index corresponding to the advection velocity
      * used when computing the convective derivative.
      */
-    int
-    getAdvectionVelocity() const;
+    int getAdvectionVelocity() const;
 
     /*!
      * \brief Set the convective differencing form to be used by the operator.
      */
-    void
-    setConvectiveDifferencingType(
-        ConvectiveDifferencingType difference_form);
+    void setConvectiveDifferencingType(ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Get the convective differencing form used by the operator.
      */
-    ConvectiveDifferencingType
-    getConvectiveDifferencingType() const;
+    ConvectiveDifferencingType getConvectiveDifferencingType() const;
 
     /*!
      * \brief Compute N = u * grad Q.
      */
-    virtual void
-    applyConvectiveOperator(
-        int Q_idx,
-        int N_idx) = 0;
+    virtual void applyConvectiveOperator(int Q_idx, int N_idx) = 0;
 
     /*!
      * \name General operator functionality.
@@ -132,10 +124,8 @@ public:
      *
      * \see initializeOperatorState
      */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     //\}
 
@@ -165,8 +155,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    ConvectiveOperator(
-        const ConvectiveOperator& from);
+    ConvectiveOperator(const ConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -177,11 +166,9 @@ private:
      *
      * \return A reference to this object.
      */
-    ConvectiveOperator&
-    operator=(
-        const ConvectiveOperator& that);
+    ConvectiveOperator& operator=(const ConvectiveOperator& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

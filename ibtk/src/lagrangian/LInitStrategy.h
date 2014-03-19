@@ -42,14 +42,18 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -66,8 +70,7 @@ namespace IBTK
  * \brief Class LInitStrategy provides a mechanism for specifying the
  * initial configuration of the curvilinear mesh.
  */
-class LInitStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+class LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -78,23 +81,18 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
-    ~LInitStrategy();
+    virtual ~LInitStrategy();
 
     /*!
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    virtual bool
-    getLevelHasLagrangianData(
-        int level_number,
-        bool can_be_refined) const = 0;
+    virtual bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const = 0;
 
     /*!
      * \return The number of local nodes on the patch level.
      */
-    virtual unsigned int
-    computeLocalNodeCountOnPatchLevel(
+    virtual unsigned int computeLocalNodeCountOnPatchLevel(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double init_data_time,
@@ -106,10 +104,9 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
-    initializeStructureIndexingOnPatchLevel(
-        std::map<int,std::string>& strct_id_to_strct_name_map,
-        std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
+    virtual void initializeStructureIndexingOnPatchLevel(
+        std::map<int, std::string>& strct_id_to_strct_name_map,
+        std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
         int level_number,
         double init_data_time,
         bool can_be_refined,
@@ -122,8 +119,7 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual unsigned int
-    initializeDataOnPatchLevel(
+    virtual unsigned int initializeDataOnPatchLevel(
         int lag_node_index_idx,
         unsigned int global_index_offset,
         unsigned int local_index_offset,
@@ -145,8 +141,7 @@ public:
      * \note A default empty implementation is provided when support for massive
      * boundaries is not required.
      */
-    virtual unsigned int
-    initializeMassDataOnPatchLevel(
+    virtual unsigned int initializeMassDataOnPatchLevel(
         unsigned int global_index_offset,
         unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<LData> M_data,
@@ -167,8 +162,7 @@ public:
      * \note A default empty implementation is provided when support for
      * directors is not required.
      */
-    virtual unsigned int
-    initializeDirectorDataOnPatchLevel(
+    virtual unsigned int initializeDirectorDataOnPatchLevel(
         unsigned int global_index_offset,
         unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<LData> D_data,
@@ -192,8 +186,7 @@ public:
      * \note A default empty implementation is provided when support for local
      * mesh refinement is not required.
      */
-    virtual void
-    tagCellsForInitialRefinement(
+    virtual void tagCellsForInitialRefinement(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double error_data_time,
@@ -207,8 +200,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LInitStrategy(
-        const LInitStrategy& from);
+    LInitStrategy(const LInitStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -219,11 +211,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LInitStrategy&
-    operator=(
-        const LInitStrategy& that);
+    LInitStrategy& operator=(const LInitStrategy& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

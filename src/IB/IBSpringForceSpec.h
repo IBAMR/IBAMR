@@ -42,14 +42,18 @@
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -79,8 +83,7 @@ namespace IBAMR
  * that implements the interface required by
  * IBSpringForceGen::registerSpringForceFunction().
  */
-class IBSpringForceSpec
-    : public IBTK::Streamable
+class IBSpringForceSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -92,15 +95,13 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBSpringForceSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
 
     /*!
      * The unique class ID for this object type assigned by the
@@ -111,17 +112,15 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBSpringForceSpec(
-        unsigned int num_springs=0);
+    IBSpringForceSpec(unsigned int num_springs = 0);
 
     /*!
      * \brief Alternative constructor.
      */
-    IBSpringForceSpec(
-        int master_idx,
-        const std::vector<int>& slave_idxs,
-        const std::vector<int>& force_fcn_idxs,
-        const std::vector<std::vector<double> >& parameters);
+    IBSpringForceSpec(int master_idx,
+                      const std::vector<int>& slave_idxs,
+                      const std::vector<int>& force_fcn_idxs,
+                      const std::vector<std::vector<double> >& parameters);
 
     /*!
      * \brief Destructor.
@@ -131,48 +130,41 @@ public:
     /*!
      * \return The number of springs attached to the master node.
      */
-    unsigned int
-    getNumberOfSprings() const;
+    unsigned int getNumberOfSprings() const;
 
     /*!
      * \return A const reference to the master node index.
      */
-    const int&
-    getMasterNodeIndex() const;
+    const int& getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int&
-    getMasterNodeIndex();
+    int& getMasterNodeIndex();
 
     /*!
      * \return A const reference to the slave node indices for the springs
      * attached to the master node.
      */
-    const std::vector<int>&
-    getSlaveNodeIndices() const;
+    const std::vector<int>& getSlaveNodeIndices() const;
 
     /*!
      * \return A non-const reference to the slave node indices for the springs
      * attached to the master node.
      */
-    std::vector<int>&
-    getSlaveNodeIndices();
+    std::vector<int>& getSlaveNodeIndices();
 
     /*!
      * \return A const reference to the force function index of the springs
      * attached to the master node.
      */
-    const std::vector<int>&
-    getForceFunctionIndices() const;
+    const std::vector<int>& getForceFunctionIndices() const;
 
     /*!
      * \return A non-const reference to the force function index of the springs
      * attached to the master node.
      */
-    std::vector<int>&
-    getForceFunctionIndices();
+    std::vector<int>& getForceFunctionIndices();
 
     /*!
      * \return A const reference to the parameters of the springs attached to
@@ -181,8 +173,7 @@ public:
      * \warning Users may change parameter values but \em must \em not resize
      * the parameter vectors.
      */
-    const std::vector<std::vector<double> >&
-    getParameters() const;
+    const std::vector<std::vector<double> >& getParameters() const;
 
     /*!
      * \return A non-const reference to the parameters of the springs attached
@@ -191,30 +182,25 @@ public:
      * \warning Users may change parameter values but \em must \em not resize
      * the parameter vectors.
      */
-    std::vector<std::vector<double> >&
-    getParameters();
+    std::vector<std::vector<double> >& getParameters();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -224,8 +210,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBSpringForceSpec(
-        const IBSpringForceSpec& from);
+    IBSpringForceSpec(const IBSpringForceSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -236,9 +221,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSpringForceSpec&
-    operator=(
-        const IBSpringForceSpec& that);
+    IBSpringForceSpec& operator=(const IBSpringForceSpec& that);
 
     /*!
      * Data required to define the spring forces.
@@ -251,8 +234,7 @@ private:
      * \brief A factory class to rebuild IBSpringForceSpec objects from
      * SAMRAI::tbox::AbstractStream data streams.
      */
-    class Factory
-        : public IBTK::StreamableFactory
+    class Factory : public IBTK::StreamableFactory
     {
     public:
         /*!
@@ -265,26 +247,22 @@ private:
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSpringForceSpec objects from data streams.
          */
-        int
-        getStreamableClassID() const;
+        int getStreamableClassID() const;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSpringForceSpec objects from data streams.
          */
-        void
-        setStreamableClassID(
-            int class_id);
+        void setStreamableClassID(int class_id);
 
         /*!
          * \brief Build an IBSpringForceSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(
-            SAMRAI::tbox::AbstractStream& stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset);
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!
@@ -299,8 +277,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(
-            const Factory& from);
+        Factory(const Factory& from);
 
         /*!
          * \brief Assignment operator.
@@ -311,15 +288,13 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory&
-        operator=(
-            const Factory& that);
+        Factory& operator=(const Factory& that);
 
         friend class IBSpringForceSpec;
     };
     typedef IBSpringForceSpec::Factory IBSpringForceSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

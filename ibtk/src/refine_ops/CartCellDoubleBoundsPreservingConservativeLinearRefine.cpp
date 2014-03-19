@@ -48,11 +48,14 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -60,53 +63,51 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_name = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_name =
+    "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPreservingConservativeLinearRefine()
-    : d_conservative_linear_refine_op(),
-      d_constant_refine_op()
+CartCellDoubleBoundsPreservingConservativeLinearRefine::
+    CartCellDoubleBoundsPreservingConservativeLinearRefine()
+    : d_conservative_linear_refine_op(), d_constant_refine_op()
 {
     // intentionally blank
     return;
-}// CartCellDoubleBoundsPreservingConservativeLinearRefine
+} // CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPreservingConservativeLinearRefine()
+CartCellDoubleBoundsPreservingConservativeLinearRefine::
+    ~CartCellDoubleBoundsPreservingConservativeLinearRefine()
 {
     // intentionally blank
     return;
-}// ~CartCellDoubleBoundsPreservingConservativeLinearRefine
+} // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-bool
-CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(
+bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(
     const Pointer<Variable<NDIM> >& var,
     const std::string& op_name) const
 {
-    const Pointer<CellVariable<NDIM,double> > cc_var = var;
+    const Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
-}// findRefineOperator
+} // findRefineOperator
 
 const std::string&
 CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName() const
 {
     return s_op_name;
-}// getOperatorName
+} // getOperatorName
 
-int
-CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority() const
+int CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority() const
 {
     return d_conservative_linear_refine_op.getOperatorPriority();
-}// getOperatorPriority
+} // getOperatorPriority
 
-IntVector<NDIM>
-CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
+IntVector<NDIM> CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
 {
     return d_conservative_linear_refine_op.getStencilWidth();
-}// getStencilWidth
+} // getStencilWidth
 
-void
-CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
+void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
     Patch<NDIM>& fine,
     const Patch<NDIM>& coarse,
     const int dst_component,
@@ -117,7 +118,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
     // Determine the box over which we can apply the bounds-preserving
     // correction, and construct a list of boxes that will not be corrected.
     bool empty_correction_box = false;
-    Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box,ratio),ratio);
+    Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box, ratio), ratio);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         int& lower = correction_box.lower()(axis);
@@ -147,7 +148,8 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
 
     // Employ limited conservative interpolation to prolong data on the
     // correction box.
-    d_conservative_linear_refine_op.refine(fine, coarse, dst_component, src_component, correction_box, ratio);
+    d_conservative_linear_refine_op.refine(
+        fine, coarse, dst_component, src_component, correction_box, ratio);
 
     // Employ constant interpolation to prolong data on the rest of the fine
     // box.
@@ -160,8 +162,8 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
     if (empty_correction_box) return;
 
     // Correct the data within the correction box.
-    Pointer<CellData<NDIM,double> > fdata = fine.getPatchData(dst_component);
-    Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(src_component);
+    Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(dst_component);
+    Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
@@ -177,41 +179,43 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
         for (Box<NDIM>::Iterator b(coarse_correction_box); b; b++)
         {
             const Index<NDIM>& i_crse = b();
-            const Index<NDIM>  i_fine = i_crse * ratio;
+            const Index<NDIM> i_fine = i_crse * ratio;
 
             // Determine the lower/upper bounds.
-            Box<NDIM> stencil_box_crse(i_crse,i_crse);
+            Box<NDIM> stencil_box_crse(i_crse, i_crse);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis,0))
+                if (i_crse(axis) > patch_lower_crse(axis) ||
+                    !pgeom_crse->getTouchesRegularBoundary(axis, 0))
                 {
-                    stencil_box_crse.growLower(axis,1);
+                    stencil_box_crse.growLower(axis, 1);
                 }
-                if (i_crse(axis) < patch_upper_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis,1))
+                if (i_crse(axis) < patch_upper_crse(axis) ||
+                    !pgeom_crse->getTouchesRegularBoundary(axis, 1))
                 {
-                    stencil_box_crse.growUpper(axis,1);
+                    stencil_box_crse.growUpper(axis, 1);
                 }
             }
 
             double l = std::numeric_limits<double>::max();
-            double u = -(l-std::numeric_limits<double>::epsilon());
+            double u = -(l - std::numeric_limits<double>::epsilon());
             for (Box<NDIM>::Iterator b(stencil_box_crse); b; b++)
             {
                 const double& m = (*cdata)(b(), depth);
-                l = std::min(l,m);
-                u = std::max(u,m);
+                l = std::min(l, m);
+                u = std::max(u, m);
             }
 
             // Force all refined data to lie within the bounds, accumulating the
             // discrepancy.
-            Box<NDIM> stencil_box_fine(i_fine,i_fine);
-            stencil_box_fine.growUpper(ratio-IntVector<NDIM>(1));
+            Box<NDIM> stencil_box_fine(i_fine, i_fine);
+            stencil_box_fine.growUpper(ratio - IntVector<NDIM>(1));
             double Delta = 0.0;
             for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
             {
                 double& m = (*fdata)(b(), depth);
-                Delta += std::max(0.0, m-u) - std::max(0.0, l-m);
-                m = std::max(std::min(m,u),l);
+                Delta += std::max(0.0, m - u) - std::max(0.0, l - m);
+                m = std::max(std::min(m, u), l);
             }
 
             // Distribute the discrepancy to maintain conservation.
@@ -228,7 +232,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
                 {
                     double& m = (*fdata)(b(), depth);
                     double k = u - m;
-                    m += Delta*k/K;
+                    m += Delta * k / K;
                 }
             }
             else if (Delta <= -std::numeric_limits<double>::epsilon())
@@ -244,13 +248,13 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
                 {
                     double& m = (*fdata)(b(), depth);
                     double k = m - l;
-                    m += Delta*k/K;
+                    m += Delta * k / K;
                 }
             }
         }
     }
     return;
-}// refine
+} // refine
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -258,6 +262,6 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

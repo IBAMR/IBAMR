@@ -43,24 +43,34 @@
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-namespace mesh {
-template <int DIM> class GriddingAlgorithm;
-}  // namespace mesh
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace mesh
+{
+template <int DIM>
+class GriddingAlgorithm;
+} // namespace mesh
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+} // namespace tbox
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,17 +81,15 @@ namespace IBAMR
  * IBStrategy that provides functionality required by the penalty IB (pIB)
  * method.
  */
-class PenaltyIBMethod
-    : public IBMethod
+class PenaltyIBMethod : public IBMethod
 {
 public:
     /*!
      * \brief Constructor.
      */
-    PenaltyIBMethod(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        bool register_for_restart=true);
+    PenaltyIBMethod(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
@@ -91,55 +99,36 @@ public:
     /*!
      * Method to prepare to advance data from current_time to new_time.
      */
-    void
-    preprocessIntegrateData(
-        double current_time,
-        double new_time,
-        int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * Method to clean up data following call(s) to integrateHierarchy().
      */
-    void
-    postprocessIntegrateData(
-        double current_time,
-        double new_time,
-        int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void
-    eulerStep(
-        double current_time,
-        double new_time);
+    void eulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void
-    midpointStep(
-        double current_time,
-        double new_time);
+    void midpointStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * trapezoidal rule.
      */
-    void
-    trapezoidalStep(
-        double current_time,
-        double new_time);
+    void trapezoidalStep(double current_time, double new_time);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
-    void
-    computeLagrangianForce(
-        double data_time);
+    void computeLagrangianForce(double data_time);
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -150,13 +139,14 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void
-    initializePatchHierarchy(
+    void initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+            u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+            u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);
@@ -164,9 +154,7 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
     /*
@@ -196,8 +184,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PenaltyIBMethod(
-        const PenaltyIBMethod& from);
+    PenaltyIBMethod(const PenaltyIBMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -208,26 +195,20 @@ private:
      *
      * \return A reference to this object.
      */
-    PenaltyIBMethod&
-    operator=(
-        const PenaltyIBMethod& that);
+    PenaltyIBMethod& operator=(const PenaltyIBMethod& that);
 
     /*!
      * Read input values from a given database.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

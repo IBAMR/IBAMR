@@ -47,20 +47,15 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool
-IBRodForceSpec::getIsRegisteredWithStreamableManager()
+inline bool IBRodForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-}// getIsRegisteredWithStreamableManager
+} // getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-IBRodForceSpec::IBRodForceSpec(
-    const unsigned int num_rods)
-    : d_master_idx(-1),
-      d_next_idxs(num_rods),
-      d_material_params(num_rods)
+inline IBRodForceSpec::IBRodForceSpec(const unsigned int num_rods)
+    : d_master_idx(-1), d_next_idxs(num_rods), d_material_params(num_rods)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -71,16 +66,14 @@ IBRodForceSpec::IBRodForceSpec(
     }
 #endif
     return;
-}// IBRodForceSpec
+} // IBRodForceSpec
 
-inline
-IBRodForceSpec::IBRodForceSpec(
+inline IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
     const std::vector<int>& next_idxs,
-    const std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params)
-    : d_master_idx(master_idx),
-      d_next_idxs(next_idxs),
-      d_material_params(material_params)
+    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
+        material_params)
+    : d_master_idx(master_idx), d_next_idxs(next_idxs), d_material_params(material_params)
 {
 #if !defined(NDEBUG)
     const unsigned int num_rods = d_next_idxs.size();
@@ -93,95 +86,85 @@ IBRodForceSpec::IBRodForceSpec(
     }
 #endif
     return;
-}// IBRodForceSpec
+} // IBRodForceSpec
 
-inline
-IBRodForceSpec::~IBRodForceSpec()
+inline IBRodForceSpec::~IBRodForceSpec()
 {
     // intentionally blank
     return;
-}// ~IBRodForceSpec
+} // ~IBRodForceSpec
 
-inline unsigned int
-IBRodForceSpec::getNumberOfRods() const
+inline unsigned int IBRodForceSpec::getNumberOfRods() const
 {
     const unsigned int num_rods = d_next_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
     return num_rods;
-}// getNumberOfRods
+} // getNumberOfRods
 
-inline const int&
-IBRodForceSpec::getMasterNodeIndex() const
+inline const int& IBRodForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline int&
-IBRodForceSpec::getMasterNodeIndex()
+inline int& IBRodForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline const std::vector<int>&
-IBRodForceSpec::getNextNodeIndices() const
+inline const std::vector<int>& IBRodForceSpec::getNextNodeIndices() const
 {
     return d_next_idxs;
-}// getNextNodeIndices
+} // getNextNodeIndices
 
-inline std::vector<int>&
-IBRodForceSpec::getNextNodeIndices()
+inline std::vector<int>& IBRodForceSpec::getNextNodeIndices()
 {
     return d_next_idxs;
-}// getNextNodeIndices
+} // getNextNodeIndices
 
-inline const std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
+inline const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
 IBRodForceSpec::getMaterialParams() const
 {
     return d_material_params;
-}// getMaterialParams
+} // getMaterialParams
 
-inline std::vector<boost::array<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
+inline std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
 IBRodForceSpec::getMaterialParams()
 {
     return d_material_params;
-}// getMaterialParams
+} // getMaterialParams
 
-inline int
-IBRodForceSpec::getStreamableClassID() const
+inline int IBRodForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-inline size_t
-IBRodForceSpec::getDataStreamSize() const
+inline size_t IBRodForceSpec::getDataStreamSize() const
 {
     const unsigned int num_rods = d_next_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
-    return ((                  2+num_rods)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (NUM_MATERIAL_PARAMS*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble());
-}// getDataStreamSize
+    return ((2 + num_rods) * SAMRAI::tbox::AbstractStream::sizeofInt() +
+            (NUM_MATERIAL_PARAMS * num_rods) * SAMRAI::tbox::AbstractStream::sizeofDouble());
+} // getDataStreamSize
 
-inline void
-IBRodForceSpec::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void IBRodForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_rods = d_next_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
     stream << static_cast<int>(num_rods);
-    stream.pack(&d_master_idx,1);
-    stream.pack(&d_next_idxs[0],num_rods);
+    stream.pack(&d_master_idx, 1);
+    stream.pack(&d_next_idxs[0], num_rods);
     for (unsigned int n = 0; n < num_rods; ++n)
     {
-        stream.pack(d_material_params[n].data(),NUM_MATERIAL_PARAMS);
+        stream.pack(d_material_params[n].data(), NUM_MATERIAL_PARAMS);
     }
     return;
-}// packStream
+} // packStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

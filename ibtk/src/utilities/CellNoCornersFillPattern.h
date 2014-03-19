@@ -42,12 +42,16 @@
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoxGeometry;
-template <int DIM> class BoxOverlap;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoxGeometry;
+template <int DIM>
+class BoxOverlap;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,8 +65,7 @@ namespace IBTK
  * 3D, it is also possible to configure this fill pattern object also to exclude
  * all edges.
  */
-class CellNoCornersFillPattern
-    : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -71,11 +74,10 @@ public:
      * \note Parameters include_edges_on_dst_level and
      * include_edges_on_src_level have no effect for 2D problems.
      */
-    CellNoCornersFillPattern(
-        int stencil_width,
-        bool include_dst_patch_box,
-        bool include_edges_on_dst_level,
-        bool include_edges_on_src_level);
+    CellNoCornersFillPattern(int stencil_width,
+                             bool include_dst_patch_box,
+                             bool include_edges_on_dst_level,
+                             bool include_edges_on_src_level);
 
     /*!
      * \brief Destructor.
@@ -92,20 +94,23 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source box
-     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
-     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
+     * \param src_mask            the source mask, the box resulting from shifting the source
+     *box
+     * \param overwrite_interior  controls whether or not to include the destination box
+     *interior in
+     *the overlap
+     * \param src_offset          the offset between source and destination index space (src +
+     *src_offset = dst)
      *
      * \return                    pointer to the calculated overlap object
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(
-        const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-        const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-        const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-        const SAMRAI::hier::Box<NDIM>& src_mask,
-        bool overwrite_interior,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
+                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
+                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
+                     const SAMRAI::hier::Box<NDIM>& src_mask,
+                     bool overwrite_interior,
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -117,43 +122,44 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source box
-     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
-     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
-     * \param dst_level_num       the level of the patch hierarchy on which the dst boxes are located
-     * \param src_level_num       the level of the patch hierarchy on which the src boxes are located
+     * \param src_mask            the source mask, the box resulting from shifting the source
+     *box
+     * \param overwrite_interior  controls whether or not to include the destination box
+     *interior in
+     *the overlap
+     * \param src_offset          the offset between source and destination index space (src +
+     *src_offset = dst)
+     * \param dst_level_num       the level of the patch hierarchy on which the dst boxes are
+     *located
+     * \param src_level_num       the level of the patch hierarchy on which the src boxes are
+     *located
      *
      * \return                    pointer to the calculated overlap object
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlapOnLevel(
-        const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-        const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-        const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-        const SAMRAI::hier::Box<NDIM>& src_mask,
-        bool overwrite_interior,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset,
-        int dst_level_num,
-        int src_level_num) const;
+    calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
+                            const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
+                            const SAMRAI::hier::Box<NDIM>& dst_patch_box,
+                            const SAMRAI::hier::Box<NDIM>& src_mask,
+                            bool overwrite_interior,
+                            const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                            int dst_level_num,
+                            int src_level_num) const;
 
     /*!
      * Set the target patch level number for the variable fill pattern.
      */
-    void
-    setTargetPatchLevelNumber(
-        int level_num);
+    void setTargetPatchLevelNumber(int level_num);
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>&
-    getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
 
     /*!
      * Returns a string name identifier "CELL_NO_CORNERS_FILL_PATTERN".
      */
-    const std::string&
-    getPatternName() const;
+    const std::string& getPatternName() const;
 
 private:
     /*!
@@ -170,8 +176,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CellNoCornersFillPattern(
-        const CellNoCornersFillPattern& from);
+    CellNoCornersFillPattern(const CellNoCornersFillPattern& from);
 
     /*!
      * \brief Assignment operator.
@@ -182,9 +187,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CellNoCornersFillPattern&
-    operator=(
-        const CellNoCornersFillPattern& that);
+    CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const bool d_include_dst_patch_box;
@@ -192,7 +195,7 @@ private:
     const bool d_include_edges_on_src_level;
     int d_target_level_num;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

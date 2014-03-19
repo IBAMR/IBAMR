@@ -43,7 +43,7 @@
 namespace IBTK
 {
 typedef LIndexSetData<LNodeIndex> LNodeIndexSetData;
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

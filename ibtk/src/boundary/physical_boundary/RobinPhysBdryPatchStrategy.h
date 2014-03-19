@@ -43,14 +43,19 @@
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,8 +69,7 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy that are generally not needed for filling
  * ghost cell values at physical boundaries.
  */
-class RobinPhysBdryPatchStrategy
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RobinPhysBdryPatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!
@@ -81,23 +85,17 @@ public:
     /*!
      * \brief Reset the patch data index operated upon by this class.
      */
-    void
-    setPatchDataIndex(
-        int patch_data_index);
+    void setPatchDataIndex(int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const std::set<int>& patch_data_indices);
+    void setPatchDataIndices(const std::set<int>& patch_data_indices);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices);
+    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -105,9 +103,7 @@ public:
      *
      * \note \a bc_coef cannot be NULL.
      */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -116,8 +112,7 @@ public:
      * \note None of the elements of \a bc_coefs can be NULL.
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
@@ -125,16 +120,13 @@ public:
      *
      * \note By default, inhomogeneous boundary conditions are assumed.
      */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc);
 
     /*!
      * \return Whether boundary filling employs homogeneous boundary conditions.
      */
-    bool
-    getHomogeneousBc() const;
-    
+    bool getHomogeneousBc() const;
+
     /*!
      * \name Partial implementation of SAMRAI::xfer::RefinePatchStrategy
      * interface.
@@ -157,14 +149,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -182,14 +174,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //\}
 
@@ -200,13 +192,14 @@ public:
      * construct the adjoint of linear operators that use ghost cell data.
      *
      * \note A default implementation is provided that emits an error message.
-     * 
+     *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
-    virtual void
-    accumulateFromPhysicalBoundaryData(
+    virtual void accumulateFromPhysicalBoundaryData(
         SAMRAI::hier::Patch<NDIM>& patch,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
@@ -236,8 +229,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RobinPhysBdryPatchStrategy(
-        const RobinPhysBdryPatchStrategy& from);
+    RobinPhysBdryPatchStrategy(const RobinPhysBdryPatchStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -248,11 +240,9 @@ private:
      *
      * \return A reference to this object.
      */
-    RobinPhysBdryPatchStrategy&
-    operator=(
-        const RobinPhysBdryPatchStrategy& that);
+    RobinPhysBdryPatchStrategy& operator=(const RobinPhysBdryPatchStrategy& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

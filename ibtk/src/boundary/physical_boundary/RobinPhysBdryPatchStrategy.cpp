@@ -39,14 +39,19 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,42 +62,35 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
 {
     // intentionally blank
     return;
-}// RobinPhysBdryPatchStrategy
+} // RobinPhysBdryPatchStrategy
 
 RobinPhysBdryPatchStrategy::~RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
-}// ~RobinPhysBdryPatchStrategy
+} // ~RobinPhysBdryPatchStrategy
 
-void
-RobinPhysBdryPatchStrategy::setPatchDataIndex(
-    const int patch_data_index)
+void RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
 {
     std::set<int> patch_data_indices;
     patch_data_indices.insert(patch_data_index);
     setPatchDataIndices(patch_data_indices);
     return;
-}// setPatchDataIndex
+} // setPatchDataIndex
 
-void
-RobinPhysBdryPatchStrategy::setPatchDataIndices(
-    const std::set<int>& patch_data_indices)
+void RobinPhysBdryPatchStrategy::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
-}// setPatchDataIndices
+} // setPatchDataIndices
 
 void
-RobinPhysBdryPatchStrategy::setPatchDataIndices(
-    const ComponentSelector& patch_data_indices)
+RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -105,18 +103,15 @@ RobinPhysBdryPatchStrategy::setPatchDataIndices(
     }
     setPatchDataIndices(patch_data_index_set);
     return;
-}// setPatchDataIndices
+} // setPatchDataIndices
 
-void
-RobinPhysBdryPatchStrategy::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* const bc_coef)
+void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
     return;
-}// setPhysicalBcCoef
+} // setPhysicalBcCoef
 
-void
-RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
+void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -127,53 +122,46 @@ RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-RobinPhysBdryPatchStrategy::setHomogeneousBc(
-    bool homogeneous_bc)
+void RobinPhysBdryPatchStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-bool
-RobinPhysBdryPatchStrategy::getHomogeneousBc() const
+bool RobinPhysBdryPatchStrategy::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-}// getHomogeneousBc
+} // getHomogeneousBc
 
-void
-RobinPhysBdryPatchStrategy::preprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
+void RobinPhysBdryPatchStrategy::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                  const Patch<NDIM>& /*coarse*/,
+                                                  const Box<NDIM>& /*fine_box*/,
+                                                  const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
-}// preprocessRefine
+} // preprocessRefine
 
-void
-RobinPhysBdryPatchStrategy::postprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
+void RobinPhysBdryPatchStrategy::postprocessRefine(Patch<NDIM>& /*fine*/,
+                                                   const Patch<NDIM>& /*coarse*/,
+                                                   const Box<NDIM>& /*fine_box*/,
+                                                   const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
-}// postprocessRefine
+} // postprocessRefine
 
-void
-RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(
+void RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(
     Patch<NDIM>& /*patch*/,
     double /*fill_time*/,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
-    TBOX_ERROR("RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
+    TBOX_ERROR(
+        "RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
     return;
-}// accumulateFromPhysicalBoundaryData
+} // accumulateFromPhysicalBoundaryData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -181,6 +169,6 @@ RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

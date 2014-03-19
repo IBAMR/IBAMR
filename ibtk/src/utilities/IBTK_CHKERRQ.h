@@ -50,15 +50,14 @@ namespace IBTK
  * This is is similar to the PETSc CHKERRQ(ierr) macro and is designed to be
  * invoked after a call to a PETSc library function.
  */
-#define IBTK_CHKERRQ(ierr)                              \
-    if (UNLIKELY(ierr))                                 \
-    {                                                   \
-        std::ostringstream tboxos;                      \
-        CHKERRCONTINUE(ierr);                           \
-        SAMRAI::tbox::Utilities::abort(                 \
-            tboxos.str().c_str(), __FILE__, __LINE__);  \
+#define IBTK_CHKERRQ(ierr)                                                                    \
+    if (UNLIKELY(ierr))                                                                       \
+    {                                                                                         \
+        std::ostringstream tboxos;                                                            \
+        CHKERRCONTINUE(ierr);                                                                 \
+        SAMRAI::tbox::Utilities::abort(tboxos.str().c_str(), __FILE__, __LINE__);             \
     }
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -48,14 +48,18 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Index;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Index;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -66,40 +70,36 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information for a
  * single node of a Lagrangian mesh.
  */
-class LNodeIndex
-    : public SAMRAI::tbox::DescribedClass
+class LNodeIndex : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    LNodeIndex(
-        int lagrangian_nidx=-1,
-        int global_petsc_nidx=-1,
-        int local_petsc_nidx=-1,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const Vector& periodic_displacement=Vector::Zero());
+    LNodeIndex(int lagrangian_nidx = -1,
+               int global_petsc_nidx = -1,
+               int local_petsc_nidx = -1,
+               const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
+                   SAMRAI::hier::IntVector<NDIM>(0),
+               const Vector& periodic_displacement = Vector::Zero());
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    LNodeIndex(
-        const LNodeIndex& from);
+    LNodeIndex(const LNodeIndex& from);
 
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNodeIndex(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNodeIndex(SAMRAI::tbox::AbstractStream& stream,
+               const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~LNodeIndex();
+    virtual ~LNodeIndex();
 
     /*!
      * \brief Assignment operator.
@@ -108,110 +108,86 @@ public:
      *
      * \return A reference to this object.
      */
-    LNodeIndex&
-    operator=(
-        const LNodeIndex& that);
+    LNodeIndex& operator=(const LNodeIndex& that);
 
     /*!
      * \return The Lagrangian index referenced by this LNodeIndex object.
      */
-    int
-    getLagrangianIndex() const;
+    int getLagrangianIndex() const;
 
     /*!
      * \brief Reset the Lagrangian index referenced by this LNodeIndex object.
      */
-    void
-    setLagrangianIndex(
-        int lagrangian_nidx);
+    void setLagrangianIndex(int lagrangian_nidx);
 
     /*!
      * \return The global PETSc index referenced by this LNodeIndex object.
      */
-    int
-    getGlobalPETScIndex() const;
+    int getGlobalPETScIndex() const;
 
     /*!
      * \brief Reset the global PETSc index referenced by this LNodeIndex object.
      */
-    void
-    setGlobalPETScIndex(
-        int global_petsc_nidx);
+    void setGlobalPETScIndex(int global_petsc_nidx);
 
     /*!
      * \return The local PETSc index referenced by this LNodeIndex object.
      */
-    int
-    getLocalPETScIndex() const;
+    int getLocalPETScIndex() const;
 
     /*!
      * \brief Reset the local PETSc index referenced by this LNodeIndex object.
      */
-    void
-    setLocalPETScIndex(
-        int local_petsc_nidx);
+    void setLocalPETScIndex(int local_petsc_nidx);
 
     /*!
      * \brief Indicate that the LNodeIndex object has been shifted across a
      * periodic boundary.
      */
-    virtual void
-    registerPeriodicShift(
-        const SAMRAI::hier::IntVector<NDIM>& offset,
-        const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
+                                       const Vector& displacement);
 
     /*!
      * \brief Get the periodic offset.
      */
-    virtual const SAMRAI::hier::IntVector<NDIM>&
-    getPeriodicOffset() const;
+    virtual const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
 
     /*!
      * \brief Get the periodic displacement.
      */
-    virtual const Vector&
-    getPeriodicDisplacement() const;
+    virtual const Vector& getPeriodicDisplacement() const;
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    virtual void
-    copySourceItem(
-        const SAMRAI::hier::Index<NDIM>& src_index,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset,
-        const LNodeIndex& src_item);
+    virtual void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
+                                const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                                const LNodeIndex& src_item);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t
-    getDataStreamSize() const;
+    virtual size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    virtual void packStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                              const SAMRAI::hier::IntVector<NDIM>& offset);
 
 private:
     /*!
      * Assign that to this.
      */
-    void
-    assignThatToThis(
-        const LNodeIndex& that);
+    void assignThatToThis(const LNodeIndex& that);
 
     int d_lagrangian_nidx;   // the fixed global Lagrangian index
     int d_global_petsc_nidx; // the global PETSc index
@@ -226,66 +202,59 @@ private:
  * \brief Comparison functor to order on the physical location of the Lagrangian
  * node.
  */
-class LNodeIndexPosnComp
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+class LNodeIndexPosnComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                           std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
 public:
-    LNodeIndexPosnComp(
-        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
+    LNodeIndexPosnComp(const boost::multi_array_ref<double, 2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
-        {
-            // intentionally blank
-            return;
-        }
+    {
+        // intentionally blank
+        return;
+    }
 
     ~LNodeIndexPosnComp()
-        {
-            // intentionally blank
-            return;
-        }
+    {
+        // intentionally blank
+        return;
+    }
 
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
-            TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
-                       << NDIM << endl);
+        TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
+                   << NDIM << endl);
 #endif
 #endif
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
-            return
-                ((X_lhs[0]< X_rhs[0])) ||
+        const double* const X_lhs =
+            &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+        const double* const X_rhs =
+            &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+        return ((X_lhs[0] < X_rhs[0])) ||
 #if (NDIM > 1)
-                ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]< X_rhs[1])) ||
+               ((X_lhs[0] == X_rhs[0]) && (X_lhs[1] < X_rhs[1])) ||
 #if (NDIM > 2)
-                ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]==X_rhs[1])&&(X_lhs[2]< X_rhs[2])) ||
+               ((X_lhs[0] == X_rhs[0]) && (X_lhs[1] == X_rhs[1]) && (X_lhs[2] < X_rhs[2])) ||
 #endif
 #endif
-                ((X_lhs[0]==X_rhs[0])&&
+               ((X_lhs[0] == X_rhs[0]) &&
 #if (NDIM > 1)
-                 (X_lhs[1]==X_rhs[1])&&
+                (X_lhs[1] == X_rhs[1]) &&
 #if (NDIM > 2)
-                 (X_lhs[2]==X_rhs[2])&&
+                (X_lhs[2] == X_rhs[2]) &&
 #endif
 #endif
-                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()));
-        }// operator()
+                (lhs.getLagrangianIndex() < rhs.getLagrangianIndex()));
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 
 private:
-    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double, 2>* const d_X_ghosted_local_form_array;
 };
 
 /*!
@@ -293,28 +262,22 @@ private:
  * node.
  */
 struct LNodeIndexLagrangianIndexComp
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
-            TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
+        TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
+        TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
-            return lhs.getLagrangianIndex()<rhs.getLagrangianIndex();
-        }// operator()
+        return lhs.getLagrangianIndex() < rhs.getLagrangianIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
 
 /*!
@@ -322,28 +285,22 @@ struct LNodeIndexLagrangianIndexComp
  * Lagrangian node.
  */
 struct LNodeIndexGlobalPETScIndexComp
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
-            TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
+        TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
+        TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
-            return lhs.getGlobalPETScIndex()<rhs.getGlobalPETScIndex();
-        }// operator()
+        return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
 
 /*!
@@ -351,78 +308,66 @@ struct LNodeIndexGlobalPETScIndexComp
  * Lagrangian node.
  */
 struct LNodeIndexLocalPETScIndexComp
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
-            TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
+        TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
+        TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif
-            return lhs.getLocalPETScIndex()<rhs.getLocalPETScIndex();
-        }// operator()
+        return lhs.getLocalPETScIndex() < rhs.getLocalPETScIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
-
 
 /*!
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their positions.
  */
-class LNodeIndexPosnEqual
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+class LNodeIndexPosnEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                            std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
 public:
-    LNodeIndexPosnEqual(
-        const boost::multi_array_ref<double,2>& X_ghosted_local_form_array)
+    LNodeIndexPosnEqual(const boost::multi_array_ref<double, 2>& X_ghosted_local_form_array)
         : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
-        {
-            // intentionally blank
-            return;
-        }
+    {
+        // intentionally blank
+        return;
+    }
 
     ~LNodeIndexPosnEqual()
+    {
+        // intentionally blank
+        return;
+    }
+
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
+        const double* const X_lhs =
+            &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+        const double* const X_rhs =
+            &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            // intentionally blank
-            return;
+            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d], X_rhs[d]))
+                return false;
         }
+        return true;
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
-            const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
-            const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d],X_rhs[d])) return false;
-            }
-            return true;
-        }// operator()
-
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 
 private:
-    const boost::multi_array_ref<double,2>* const d_X_ghosted_local_form_array;
+    const boost::multi_array_ref<double, 2>* const d_X_ghosted_local_form_array;
 };
 
 /*!
@@ -430,28 +375,22 @@ private:
  * based on their Lagrangian indices.
  */
 struct LNodeIndexLagrangianIndexEqual
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
-            TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
+        TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
+        TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
 #endif
-            return lhs.getLagrangianIndex()==rhs.getLagrangianIndex();
-        }// operator()
+        return lhs.getLagrangianIndex() == rhs.getLagrangianIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
 
 /*!
@@ -459,28 +398,22 @@ struct LNodeIndexLagrangianIndexEqual
  * objects based on their global PETSc indices.
  */
 struct LNodeIndexGlobalPETScIndexEqual
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
-            TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
+        TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
+        TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
 #endif
-            return lhs.getGlobalPETScIndex()==rhs.getGlobalPETScIndex();
-        }// operator()
+        return lhs.getGlobalPETScIndex() == rhs.getGlobalPETScIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
 
 /*!
@@ -488,35 +421,29 @@ struct LNodeIndexGlobalPETScIndexEqual
  * based on their local PETSc indices.
  */
 struct LNodeIndexLocalPETScIndexEqual
-    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
-    inline bool
-    operator()(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs)
-        {
+    inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
+    {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
-            TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
+        TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
+        TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
 #endif
-            return lhs.getLocalPETScIndex()==rhs.getLocalPETScIndex();
-        }// operator()
+        return lhs.getLocalPETScIndex() == rhs.getLocalPETScIndex();
+    } // operator()
 
-    inline bool
-    operator()(
-        const LNodeIndex* lhs,
-        const LNodeIndex* rhs)
-        {
-            return (*this)(*lhs,*rhs);
-        }// operator()
+    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    {
+        return (*this)(*lhs, *rhs);
+    } // operator()
 };
 
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LNodeIndex-inl.h"  // IWYU pragma: keep
+#include "ibtk/LNodeIndex-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

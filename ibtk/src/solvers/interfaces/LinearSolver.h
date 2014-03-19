@@ -50,8 +50,7 @@ namespace IBTK
  * \brief Class LinearSolver provides an abstract interface for the
  * implementation of solvers for linear problems of the form \f$Ax=b\f$.
  */
-class LinearSolver
-    : public virtual GeneralSolver
+class LinearSolver : public virtual GeneralSolver
 {
 public:
     /*!
@@ -62,15 +61,16 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~LinearSolver();
+    virtual ~LinearSolver();
 
     /*!
      * \name Linear solver functionality.
      */
     //\{
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM,double> SAMRAIVectorReal_NDIM_double;  // fix for g++ 4.2
+    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
+                                                                                       // for
+    // g++ 4.2
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -80,21 +80,22 @@ public:
      * vectors are not orthonormal, the solver may normalize them in place.
      */
     virtual void
-    setNullspace(
-        bool nullspace_contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    setNullspace(bool nullspace_contains_constant_vec,
+                 const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >&
+                     nullspace_basis_vecs = std::vector<
+                         SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
 
     /*!
      * \brief Get whether the nullspace of the linear system contains th
      * constant vector.
      */
-    virtual bool
-    getNullspaceContainsConstantVector() const;
+    virtual bool getNullspaceContainsConstantVector() const;
 
     /*!
      * \brief Get the basis vectors for the nullspace of the linear system.
      */
-    virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >&
+    virtual const std::vector<
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
     getNullspaceBasisVectors() const;
 
     //\}
@@ -107,15 +108,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
+    virtual void setInitialGuessNonzero(bool initial_guess_nonzero = true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
      */
-    virtual bool
-    getInitialGuessNonzero() const;
+    virtual bool getInitialGuessNonzero() const;
 
     //\}
 
@@ -127,9 +125,7 @@ public:
     /*!
      * \brief Print class data to stream.
      */
-    virtual void
-    printClassData(
-        std::ostream& stream);
+    virtual void printClassData(std::ostream& stream);
 
     //\}
 
@@ -139,7 +135,8 @@ protected:
 
     // Nullspace data.
     bool d_nullspace_contains_constant_vec;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nullspace_basis_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >
+    d_nullspace_basis_vecs;
 
 private:
     /*!
@@ -149,8 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearSolver(
-        const LinearSolver& from);
+    LinearSolver(const LinearSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -161,11 +157,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearSolver&
-    operator=(
-        const LinearSolver& that);
+    LinearSolver& operator=(const LinearSolver& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

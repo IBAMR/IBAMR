@@ -44,11 +44,14 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -69,89 +72,71 @@ namespace IBTK
  *
  * \see FACPreconditioner
  */
-class FACPreconditionerStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+class FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Constructor.
      */
-    FACPreconditionerStrategy(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    FACPreconditionerStrategy(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual desctructor.
      */
-    virtual
-    ~FACPreconditionerStrategy();
+    virtual ~FACPreconditionerStrategy();
 
     /*!
      * \brief Return the object name.
      */
-    const std::string&
-    getName() const;
+    const std::string& getName() const;
 
     /*!
      * \brief Return whether the operator is initialized.
      */
-    virtual bool
-    getIsInitialized() const;
+    virtual bool getIsInitialized() const;
 
     /*!
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
     virtual void
-    setFACPreconditioner(
-        SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+    setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    virtual void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    virtual void setHomogeneousBc(bool homogeneous_bc);
 
     /*!
      * \brief Return whether the solver is using homogeneous boundary
      * conditions.
      */
-    virtual bool
-    getHomogeneousBc() const;
+    virtual bool getHomogeneousBc() const;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    virtual void
-    setSolutionTime(
-        double solution_time);
+    virtual void setSolutionTime(double solution_time);
 
     /*!
      * \brief Get the time at which the solution is being evaluated.
      */
-    virtual double
-    getSolutionTime() const;
+    virtual double getSolutionTime() const;
 
     /*!
      * \brief Set the current time interval.
      */
-    virtual void
-    setTimeInterval(
-        double current_time,
-        double new_time);
+    virtual void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \brief Get the current time interval.
      */
-    virtual std::pair<double,double>
-    getTimeInterval() const;
+    virtual std::pair<double, double> getTimeInterval() const;
 
     /*!
      * \brief Get the current time step size.
      */
-    virtual double
-    getDt() const;
+    virtual double getDt() const;
 
     /*!
      * \brief Restrict the residual from the source vector to the destination
@@ -160,11 +145,9 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void
-    restrictResidual(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& source,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dest,
-        int dest_level_num) = 0;
+    virtual void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
+                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+                                  int dest_level_num) = 0;
 
     /*!
      * \brief Prolong the error from the source vector to the destination
@@ -173,11 +156,9 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void
-    prolongError(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& source,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dest,
-        int dest_level_num) = 0;
+    virtual void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
+                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+                              int dest_level_num) = 0;
 
     /*!
      * \brief Prolong the error from the source vector to the destination vector
@@ -188,23 +169,20 @@ public:
      * the same vector.
      */
     virtual void
-    prolongErrorAndCorrect(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& source,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dest,
-        int dest_level_num) = 0;
+    prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
+                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+                           int dest_level_num) = 0;
 
     /*!
      * \brief Smooth the error by the specified number of sweeps on the
      * specified level of the patch hierarchy.
      */
-    virtual void
-    smoothError(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int level_num,
-        int num_sweeps,
-        bool performing_pre_sweeps,
-        bool performing_post_sweeps) = 0;
+    virtual void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                             int level_num,
+                             int num_sweeps,
+                             bool performing_pre_sweeps,
+                             bool performing_post_sweeps) = 0;
 
     /*!
      * \brief Solve the system of equations on the coarsest level of the patch
@@ -213,37 +191,32 @@ public:
      * \return true if the solver converged to specified tolerance, false otherwise
      */
     virtual bool
-    solveCoarsestLevel(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int coarsest_level_num) = 0;
+    solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                       int coarsest_level_num) = 0;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    virtual void
-    computeResidual(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int coarsest_level_num,
-        int finest_level_num) = 0;
+    virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                 int coarsest_level_num,
+                                 int finest_level_num) = 0;
 
     /*!
      * \brief Initialize any hierarchy-dependent data.
      */
     virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs);
+    initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
     /*!
      * \brief Deallocate any hierarchy-dependent data initialized by
      * initializeOperatorState().
      */
-    virtual void
-    deallocateOperatorState();
+    virtual void deallocateOperatorState();
 
     /*!
      * \name Logging functions.
@@ -253,9 +226,7 @@ public:
     /*!
      * \brief Print class data to stream.
      */
-    virtual void
-    printClassData(
-        std::ostream& stream);
+    virtual void printClassData(std::ostream& stream);
 
     //\}
 
@@ -264,10 +235,9 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
-    getLevelSAMRAIVectorReal(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& vec,
-        int level_num) const;
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
+    getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec,
+                             int level_num) const;
 
     // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
@@ -298,8 +268,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FACPreconditionerStrategy(
-        const FACPreconditionerStrategy& from);
+    FACPreconditionerStrategy(const FACPreconditionerStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -310,11 +279,9 @@ private:
      *
      * \return A reference to this object.
      */
-    FACPreconditionerStrategy&
-    operator=(
-        const FACPreconditionerStrategy& that);
+    FACPreconditionerStrategy& operator=(const FACPreconditionerStrategy& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

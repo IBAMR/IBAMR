@@ -54,35 +54,32 @@ namespace IBAMR
  * IBStrategy that provides functionality required by the IB method with finite
  * element elasticity.
  */
-class IBFEMethod
-    : public IBStrategy
+class IBFEMethod : public IBStrategy
 {
 public:
-    static const std::string        COORDS_SYSTEM_NAME;
+    static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
-    static const std::string         FORCE_SYSTEM_NAME;
-    static const std::string      VELOCITY_SYSTEM_NAME;
+    static const std::string FORCE_SYSTEM_NAME;
+    static const std::string VELOCITY_SYSTEM_NAME;
     static const std::string BODY_VELOCITY_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
      */
-    IBFEMethod(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        libMesh::Mesh* mesh,
-        int max_level_number,
-        bool register_for_restart=true);
+    IBFEMethod(const std::string& object_name,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               libMesh::Mesh* mesh,
+               int max_level_number,
+               bool register_for_restart = true);
 
     /*!
      * \brief Constructor.
      */
-    IBFEMethod(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::vector<libMesh::Mesh*>& meshes,
-        int max_level_number,
-        bool register_for_restart=true);
+    IBFEMethod(const std::string& object_name,
+               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               const std::vector<libMesh::Mesh*>& meshes,
+               int max_level_number,
+               bool register_for_restart = true);
 
     /*!
      * \brief Destructor.
@@ -93,40 +90,32 @@ public:
      * Return a pointer to the finite element data manager object for the
      * specified part.
      */
-    IBTK::FEDataManager*
-    getFEDataManager(
-        unsigned int part=0) const;
+    IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
 
     /*!
      * Indicate that a part is constrained.
      */
-    void
-    registerConstrainedPart(
-        unsigned int part=0);
+    void registerConstrainedPart(unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for specifying constrained body velocities.
      */
-    typedef
-    void
-    (*ConstrainedVelocityFcnPtr)(
-        libMesh::NumericVector<double>& U_b,
-        libMesh::NumericVector<double>& U,
-        libMesh::NumericVector<double>& X,
-        libMesh::EquationSystems* equation_systems,
-        double data_time,
-        void* ctx);
+    typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
+                                              libMesh::NumericVector<double>& U,
+                                              libMesh::NumericVector<double>& X,
+                                              libMesh::EquationSystems* equation_systems,
+                                              double data_time,
+                                              void* ctx);
 
     /*!
      * Struct encapsulating constrained velocity function data.
      */
     struct ConstrainedVelocityFcnData
     {
-        ConstrainedVelocityFcnData(
-            ConstrainedVelocityFcnPtr fcn=NULL,
-            void* ctx=NULL)
-            : fcn(fcn),
-              ctx(ctx) { }
+        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL, void* ctx = NULL)
+            : fcn(fcn), ctx(ctx)
+        {
+        }
 
         ConstrainedVelocityFcnPtr fcn;
         void* ctx;
@@ -135,40 +124,32 @@ public:
     /*!
      * Register a constrained body velocity function.
      */
-    void
-    registerConstrainedVelocityFunction(
-        ConstrainedVelocityFcnPtr fcn,
-        void* ctx=NULL,
-        unsigned int part=0);
+    void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn,
+                                             void* ctx = NULL,
+                                             unsigned int part = 0);
 
     /*!
      * Register a constrained body velocity function.
      */
-    void
-    registerConstrainedVelocityFunction(
-        const ConstrainedVelocityFcnData& data,
-        unsigned int part=0);
+    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data,
+                                             unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
      */
-    typedef
-    void
-    (*CoordinateMappingFcnPtr)(
-        libMesh::Point& X,
-        const libMesh::Point& s,
-        void* ctx);
+    typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& X,
+                                            const libMesh::Point& s,
+                                            void* ctx);
 
     /*!
      * Struct encapsulating coordinate mapping function data.
      */
     struct CoordinateMappingFcnData
     {
-        CoordinateMappingFcnData(
-            CoordinateMappingFcnPtr fcn=NULL,
-            void* ctx=NULL)
-            : fcn(fcn),
-              ctx(ctx) { }
+        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = NULL, void* ctx = NULL)
+            : fcn(fcn), ctx(ctx)
+        {
+        }
 
         CoordinateMappingFcnPtr fcn;
         void* ctx;
@@ -182,11 +163,9 @@ public:
      * taken to be the same as the Lagrangian coordinate system, i.e., the
      * initial coordinate mapping is assumed to be the identity mapping.
      */
-    void
-    registerInitialCoordinateMappingFunction(
-        CoordinateMappingFcnPtr fcn,
-        void* ctx=NULL,
-        unsigned int part=0);
+    void registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn,
+                                                  void* ctx = NULL,
+                                                  unsigned int part = 0);
 
     /*!
      * Register the (optional) function used to initialize the physical
@@ -196,10 +175,8 @@ public:
      * taken to be the same as the Lagrangian coordinate system, i.e., the
      * initial coordinate mapping is assumed to be the identity mapping.
      */
-    void
-    registerInitialCoordinateMappingFunction(
-        const CoordinateMappingFcnData& data,
-        unsigned int part=0);
+    void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data,
+                                                  unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
@@ -211,17 +188,19 @@ public:
      */
     struct PK1StressFcnData
     {
-        PK1StressFcnData(
-            PK1StressFcnPtr fcn=NULL,
-            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-            void* ctx=NULL,
-            libMeshEnums::QuadratureType quad_type=INVALID_Q_RULE,
-            libMeshEnums::Order quad_order=INVALID_ORDER)
+        PK1StressFcnData(PK1StressFcnPtr fcn = NULL,
+                         const std::vector<unsigned int>& systems =
+                             std::vector<unsigned int>(),
+                         void* ctx = NULL,
+                         libMeshEnums::QuadratureType quad_type = INVALID_Q_RULE,
+                         libMeshEnums::Order quad_order = INVALID_ORDER)
             : fcn(fcn),
               systems(systems),
               ctx(ctx),
               quad_type(quad_type),
-              quad_order(quad_order) { }
+              quad_order(quad_order)
+        {
+        }
 
         PK1StressFcnPtr fcn;
         std::vector<unsigned int> systems;
@@ -239,14 +218,13 @@ public:
      * class.  This is intended to be used to implement selective reduced
      * integration.
      */
-    void
-    registerPK1StressFunction(
-        PK1StressFcnPtr fcn,
-        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-        void* ctx=NULL,
-        libMeshEnums::QuadratureType quad_type=INVALID_Q_RULE,
-        libMeshEnums::Order quad_order=INVALID_ORDER,
-        unsigned int part=0);
+    void registerPK1StressFunction(PK1StressFcnPtr fcn,
+                                   const std::vector<unsigned int>& systems =
+                                       std::vector<unsigned int>(),
+                                   void* ctx = NULL,
+                                   libMeshEnums::QuadratureType quad_type = INVALID_Q_RULE,
+                                   libMeshEnums::Order quad_order = INVALID_ORDER,
+                                   unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute the first Piola-Kirchhoff
@@ -257,10 +235,7 @@ public:
      * class.  This is intended to be used to implement selective reduced
      * integration.
      */
-    void
-    registerPK1StressFunction(
-        const PK1StressFcnData& data,
-        unsigned int part=0);
+    void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for Lagrangian body force distribution
@@ -273,13 +248,13 @@ public:
      */
     struct LagBodyForceFcnData
     {
-        LagBodyForceFcnData(
-            LagBodyForceFcnPtr fcn=NULL,
-            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-            void* ctx=NULL)
-            : fcn(fcn),
-              systems(systems),
-              ctx(ctx) { }
+        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = NULL,
+                            const std::vector<unsigned int>& systems =
+                                std::vector<unsigned int>(),
+                            void* ctx = NULL)
+            : fcn(fcn), systems(systems), ctx(ctx)
+        {
+        }
 
         LagBodyForceFcnPtr fcn;
         std::vector<unsigned int> systems;
@@ -293,12 +268,11 @@ public:
      * \note It is \em NOT possible to register multiple body force functions
      * with this class.
      */
-    void
-    registerLagBodyForceFunction(
-        LagBodyForceFcnPtr fcn,
-        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-        void* ctx=NULL,
-        unsigned int part=0);
+    void registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
+                                      const std::vector<unsigned int>& systems =
+                                          std::vector<unsigned int>(),
+                                      void* ctx = NULL,
+                                      unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute body force distributions on
@@ -307,10 +281,7 @@ public:
      * \note It is \em NOT possible to register multiple body force functions
      * with this class.
      */
-    void
-    registerLagBodyForceFunction(
-        const LagBodyForceFcnData& data,
-        unsigned int part=0);
+    void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for Lagrangian pressure force distribution
@@ -323,13 +294,13 @@ public:
      */
     struct LagSurfacePressureFcnData
     {
-        LagSurfacePressureFcnData(
-            LagSurfacePressureFcnPtr fcn=NULL,
-            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-            void* ctx=NULL)
-            : fcn(fcn),
-              systems(systems),
-              ctx(ctx) { }
+        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = NULL,
+                                  const std::vector<unsigned int>& systems =
+                                      std::vector<unsigned int>(),
+                                  void* ctx = NULL)
+            : fcn(fcn), systems(systems), ctx(ctx)
+        {
+        }
 
         LagSurfacePressureFcnPtr fcn;
         std::vector<unsigned int> systems;
@@ -343,12 +314,11 @@ public:
      * \note It is \em NOT possible to register multiple pressure functions with
      * this class.
      */
-    void
-    registerLagSurfacePressureFunction(
-        LagSurfacePressureFcnPtr fcn,
-        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-        void* ctx=NULL,
-        unsigned int part=0);
+    void registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
+                                            const std::vector<unsigned int>& systems =
+                                                std::vector<unsigned int>(),
+                                            void* ctx = NULL,
+                                            unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute surface pressure
@@ -357,10 +327,8 @@ public:
      * \note It is \em NOT possible to register multiple pressure functions with
      * this class.
      */
-    void
-    registerLagSurfacePressureFunction(
-        const LagSurfacePressureFcnData& data,
-        unsigned int part=0);
+    void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data,
+                                            unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for Lagrangian surface force distribution
@@ -373,13 +341,13 @@ public:
      */
     struct LagSurfaceForceFcnData
     {
-        LagSurfaceForceFcnData(
-            LagSurfaceForceFcnPtr fcn=NULL,
-            const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-            void* ctx=NULL)
-            : fcn(fcn),
-              systems(systems),
-              ctx(ctx) { }
+        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = NULL,
+                               const std::vector<unsigned int>& systems =
+                                   std::vector<unsigned int>(),
+                               void* ctx = NULL)
+            : fcn(fcn), systems(systems), ctx(ctx)
+        {
+        }
 
         LagSurfaceForceFcnPtr fcn;
         std::vector<unsigned int> systems;
@@ -393,12 +361,11 @@ public:
      * \note It is \em NOT possible to register multiple surface force functions
      * with this class.
      */
-    void
-    registerLagSurfaceForceFunction(
-        LagSurfaceForceFcnPtr fcn,
-        const std::vector<unsigned int>& systems=std::vector<unsigned int>(),
-        void* ctx=NULL,
-        unsigned int part=0);
+    void registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
+                                         const std::vector<unsigned int>& systems =
+                                             std::vector<unsigned int>(),
+                                         void* ctx = NULL,
+                                         unsigned int part = 0);
 
     /*!
      * Register the (optional) function to compute surface force distributions
@@ -407,107 +374,84 @@ public:
      * \note It is \em NOT possible to register multiple surface force functions
      * with this class.
      */
-    void
-    registerLagSurfaceForceFunction(
-        const LagSurfaceForceFcnData& data,
-        unsigned int part=0);
+    void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data,
+                                         unsigned int part = 0);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    const SAMRAI::hier::IntVector<NDIM>&
-    getMinimumGhostCellWidth() const;
+    const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const;
 
     /*!
      * Setup the tag buffer.
      */
-    void
-    setupTagBuffer(
+    void setupTagBuffer(
         SAMRAI::tbox::Array<int>& tag_buffer,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
      */
-    void
-    preprocessIntegrateData(
-        double current_time,
-        double new_time,
-        int num_cycles);
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * Method to clean up data following call(s) to integrateHierarchy().
      */
-    void
-    postprocessIntegrateData(
-        double current_time,
-        double new_time,
-        int num_cycles);
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles);
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void
-    interpolateVelocity(
+    void interpolateVelocity(
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+            u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+            u_ghost_fill_scheds,
         double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
-    void
-    eulerStep(
-        double current_time,
-        double new_time);
+    void eulerStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
-    void
-    midpointStep(
-        double current_time,
-        double new_time);
+    void midpointStep(double current_time, double new_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * trapezoidal rule.
      */
-    void
-    trapezoidalStep(
-        double current_time,
-        double new_time);
+    void trapezoidalStep(double current_time, double new_time);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
-    void
-    computeLagrangianForce(
-        double data_time);
+    void computeLagrangianForce(double data_time);
 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
     void
-    spreadForce(
-        int f_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-        double data_time);
+    spreadForce(int f_data_idx,
+                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+                    f_prolongation_scheds,
+                double data_time);
 
     /*!
      * Initialize FE data.  This method must be called prior to calling
      * IBHierarchyIntegrator::initializePatchHierarchy().
      */
-    void
-    initializeFEData();
+    void initializeFEData();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -518,13 +462,14 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void
-    initializePatchHierarchy(
+    void initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+            u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+            u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);
@@ -533,16 +478,14 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void
-    registerLoadBalancer(
+    void registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
         int workload_data_idx);
 
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void
-    updateWorkloadEstimates(
+    void updateWorkloadEstimates(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int workload_data_idx);
 
@@ -550,8 +493,7 @@ public:
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void
-    beginDataRedistribution(
+    void beginDataRedistribution(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
@@ -559,8 +501,7 @@ public:
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void
-    endDataRedistribution(
+    void endDataRedistribution(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
@@ -570,8 +511,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void
-    initializeLevelData(
+    void initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double init_data_time,
@@ -585,8 +525,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void
-    resetHierarchyConfiguration(
+    void resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int coarsest_level,
         int finest_level);
@@ -597,8 +536,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void
-    applyGradientDetector(
+    void applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double error_data_time,
@@ -609,75 +547,61 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
     /*
      * \brief Compute the constraint force density.
      */
-    void
-    computeConstraintForceDensity(
-        libMesh::PetscVector<double>& F_vec,
-        libMesh::PetscVector<double>& X_vec,
-        libMesh::PetscVector<double>& U_vec,
-        libMesh::PetscVector<double>& U_b_vec,
-        double data_time,
-        unsigned int part);
+    void computeConstraintForceDensity(libMesh::PetscVector<double>& F_vec,
+                                       libMesh::PetscVector<double>& X_vec,
+                                       libMesh::PetscVector<double>& U_vec,
+                                       libMesh::PetscVector<double>& U_b_vec,
+                                       double data_time,
+                                       unsigned int part);
 
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
      */
-    void
-    computeInteriorForceDensity(
-        libMesh::PetscVector<double>& G_vec,
-        libMesh::PetscVector<double>& X_vec,
-        double data_time,
-        unsigned int part);
+    void computeInteriorForceDensity(libMesh::PetscVector<double>& G_vec,
+                                     libMesh::PetscVector<double>& X_vec,
+                                     double data_time,
+                                     unsigned int part);
 
     /*!
      * \brief Spread the transmission force density along the physical boundary
      * of the Lagrangian structure.
      */
-    void
-    spreadTransmissionForceDensity(
-        int f_data_idx,
-        libMesh::PetscVector<double>& X_ghost_vec,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        double data_time,
-        unsigned int part);
+    void spreadTransmissionForceDensity(int f_data_idx,
+                                        libMesh::PetscVector<double>& X_ghost_vec,
+                                        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                        double data_time,
+                                        unsigned int part);
 
     /*!
      * \brief Impose jump conditions determined from the interior and
      * transmission force densities along the physical boundary of the
      * Lagrangian structure.
      */
-    void
-    imposeJumpConditions(
-        int f_data_idx,
-        libMesh::PetscVector<double>& F_ghost_vec,
-        libMesh::PetscVector<double>& X_ghost_vec,
-        double data_time,
-        unsigned int part);
+    void imposeJumpConditions(int f_data_idx,
+                              libMesh::PetscVector<double>& F_ghost_vec,
+                              libMesh::PetscVector<double>& X_ghost_vec,
+                              double data_time,
+                              unsigned int part);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
      * are taken to be the Lagrangian coordinates.
      */
-    void
-    initializeCoordinates(
-        unsigned int part);
+    void initializeCoordinates(unsigned int part);
 
     /*!
      * \brief Compute dX = X - s, useful mainly for visualization purposes.
      */
-    void
-    updateCoordinateMapping(
-        unsigned int part);
+    void updateCoordinateMapping(unsigned int part);
 
     /*
      * Indicates whether the integrator should output logging messages.
@@ -707,10 +631,12 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_U_b_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs,
+        d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs, d_U_b_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_b_current_vecs, d_U_b_new_vecs,
+        d_U_b_half_vecs;
 
     bool d_fe_data_initialized;
 
@@ -758,7 +684,8 @@ protected:
     /*
      * Collection of all systems required to evaluate various quantities.
      */
-    std::vector<std::set<unsigned int> > d_fcn_systems, d_body_fcn_systems, d_surface_fcn_systems;
+    std::vector<std::set<unsigned int> > d_fcn_systems, d_body_fcn_systems,
+        d_surface_fcn_systems;
 
     /*
      * Nonuniform load balancing data structures.
@@ -793,8 +720,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEMethod(
-        const IBFEMethod& from);
+    IBFEMethod(const IBFEMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -805,37 +731,29 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEMethod&
-    operator=(
-        const IBFEMethod& that);
+    IBFEMethod& operator=(const IBFEMethod& that);
 
     /*!
      * Implementation of class constructor.
      */
-    void
-    commonConstructor(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::vector<libMesh::Mesh*>& meshes,
-        int max_level_number,
-        bool register_for_restart);
+    void commonConstructor(const std::string& object_name,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           const std::vector<libMesh::Mesh*>& meshes,
+                           int max_level_number,
+                           bool register_for_restart);
 
     /*!
      * Read input values from a given database.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

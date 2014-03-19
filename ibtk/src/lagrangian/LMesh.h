@@ -40,9 +40,10 @@
 
 #include "tbox/DescribedClass.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LNode;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -51,17 +52,15 @@ namespace IBTK
 /*!
  * \brief Class LMesh is a collection of LNode objects.
  */
-class LMesh
-    : public SAMRAI::tbox::DescribedClass
+class LMesh : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Constructor.
      */
-    LMesh(
-        const std::string& object_name,
-        const std::vector<LNode*>& local_nodes,
-        const std::vector<LNode*>& ghost_nodes);
+    LMesh(const std::string& object_name,
+          const std::vector<LNode*>& local_nodes,
+          const std::vector<LNode*>& ghost_nodes);
 
     /*!
      * \brief Destructor.
@@ -71,14 +70,12 @@ public:
     /*!
      * \brief Return a const reference to the set of local LNode objects.
      */
-    const std::vector<LNode*>&
-    getLocalNodes() const;
+    const std::vector<LNode*>& getLocalNodes() const;
 
     /*!
      * \brief Return a const reference to the set of local ghost LNode objects.
      */
-    const std::vector<LNode*>&
-    getGhostNodes() const;
+    const std::vector<LNode*>& getGhostNodes() const;
 
 private:
     /*!
@@ -88,8 +85,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMesh(
-        const LMesh& from);
+    LMesh(const LMesh& from);
 
     /*!
      * \brief Assignment operator.
@@ -100,20 +96,18 @@ private:
      *
      * \return A reference to this object.
      */
-    LMesh&
-    operator=(
-        const LMesh& that);
+    LMesh& operator=(const LMesh& that);
 
     const std::string& d_object_name;
     const std::vector<LNode*> d_local_nodes;
     const std::vector<LNode*> d_ghost_nodes;
 };
 
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LMesh-inl.h"  // IWYU pragma: keep
+#include "ibtk/LMesh-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

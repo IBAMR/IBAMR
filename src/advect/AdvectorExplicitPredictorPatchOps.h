@@ -41,18 +41,25 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace pdat {
-template <int DIM, class TYPE> class CellData;
-template <int DIM, class TYPE> class FaceData;
-}  // namespace pdat
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class CellData;
+template <int DIM, class TYPE>
+class FaceData;
+} // namespace pdat
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -63,7 +70,8 @@ namespace IBAMR
  * implement a second-order Godunov method for the linear advection equation in
  * conservative and non-conservative forms.
  *
- * Class AdvectorExplicitPredictorPatchOps implements the predictors required to use an explicit
+ * Class AdvectorExplicitPredictorPatchOps implements the predictors required to use an
+ *explicit
  * predictor-corrector method to solve the \em non-conservative advection
  * equation, \f[
  *
@@ -92,8 +100,7 @@ namespace IBAMR
  *
  * \see IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvectorExplicitPredictorPatchOps
-    : public SAMRAI::tbox::Serializable
+class AdvectorExplicitPredictorPatchOps : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -106,13 +113,13 @@ public:
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvectorExplicitPredictorPatchOps(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        bool register_for_restart=true);
+    AdvectorExplicitPredictorPatchOps(const std::string& object_name,
+                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      bool register_for_restart = true);
 
     /*!
-     * The destructor for AdvectorExplicitPredictorPatchOps unregisters the predictor object with
+     * The destructor for AdvectorExplicitPredictorPatchOps unregisters the predictor object
+     * with
      * the restart manager when so registered.
      */
     ~AdvectorExplicitPredictorPatchOps();
@@ -120,18 +127,15 @@ public:
     /*!
      * Return the name of the patch operations object.
      */
-    const std::string&
-    getName() const;
+    const std::string& getName() const;
 
     /*!
      * \brief Compute the maximum stable time increment for the patch.
      *
      * \return The maximum stable timestep.
      */
-    double
-    computeStableDtOnPatch(
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::hier::Patch<NDIM>& patch) const;
+    double computeStableDtOnPatch(const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                                  const SAMRAI::hier::Patch<NDIM>& patch) const;
 
     /*!
      * \brief Compute the advective derivative \f$ \vec{N}^{n+\frac{1}{2}} =
@@ -139,12 +143,10 @@ public:
      * q^{n+\frac{1}{2}} \f$ using the specified advection velocity and
      * predicted face-centered values.
      */
-    void
-    computeAdvectiveDerivative(
-        SAMRAI::pdat::CellData<NDIM,double>& N,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::hier::Patch<NDIM>& patch) const;
+    void computeAdvectiveDerivative(SAMRAI::pdat::CellData<NDIM, double>& N,
+                                    const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                                    const SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                                    const SAMRAI::hier::Patch<NDIM>& patch) const;
 
     /*!
      * \brief Compute the time integral of the advective fluxes \f$ \vec{f} \f$
@@ -154,22 +156,26 @@ public:
      * In three spatial dimensions, the face-centered advective fluxes \f$
      * \vec{f} \f$ are defined by \f{eqnarray*}
      *
-     *     f_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} &=& \Delta t \, u_{i+\frac{1}{2},j,k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} \\
-     *     f_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} &=& \Delta t \, v_{i,j+\frac{1}{2},k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} \\
-     *     f_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}} &=& \Delta t \, w_{i,j,k+\frac{1}{2}}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \, q_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}}
+     *     f_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} &=& \Delta t \,
+     *u_{i+\frac{1}{2},j,k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \,
+     *q_{i+\frac{1}{2},j,k}^{n+\frac{1}{2}} \\
+     *     f_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} &=& \Delta t \,
+     *v_{i,j+\frac{1}{2},k}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \,
+     *q_{i,j+\frac{1}{2},k}^{n+\frac{1}{2}} \\
+     *     f_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}} &=& \Delta t \,
+     *w_{i,j,k+\frac{1}{2}}^{\mbox{\scriptsize ADV},n+\frac{1}{2}} \,
+     *q_{i,j,k+\frac{1}{2}}^{n+\frac{1}{2}}
      *
      * \f} where \f$ \vec{u}^{\mbox{\scriptsize ADV}} = (u^{\mbox{\scriptsize
      * ADV}},v^{\mbox{\scriptsize ADV}},w^{\mbox{\scriptsize ADV}}) \f$ is the
      * MAC advection velocity.  Analogous formulae hold in other spatial
      * dimensions.
      */
-    void
-    computeFlux(
-        SAMRAI::pdat::FaceData<NDIM,double>& flux,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void computeFlux(SAMRAI::pdat::FaceData<NDIM, double>& flux,
+                     const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                     const SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                     const SAMRAI::hier::Patch<NDIM>& patch,
+                     double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -192,13 +198,11 @@ public:
      *
      * \see predictValueWithSourceTerm
      */
-    void
-    predictValue(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void predictValue(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                      const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                      const SAMRAI::pdat::CellData<NDIM, double>& Q,
+                      const SAMRAI::hier::Patch<NDIM>& patch,
+                      double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -221,14 +225,12 @@ public:
      *
      * \see predictValue
      */
-    void
-    predictValueWithSourceTerm(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::pdat::CellData<NDIM,double>& F,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void predictValueWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                                    const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                                    const SAMRAI::pdat::CellData<NDIM, double>& Q,
+                                    const SAMRAI::pdat::CellData<NDIM, double>& F,
+                                    const SAMRAI::hier::Patch<NDIM>& patch,
+                                    double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -251,13 +253,11 @@ public:
      *
      * \see predictNormalVelocityWithSourceTerm
      */
-    void
-    predictNormalVelocity(
-        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& V,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void predictNormalVelocity(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
+                               const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                               const SAMRAI::pdat::CellData<NDIM, double>& V,
+                               const SAMRAI::hier::Patch<NDIM>& patch,
+                               double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -267,7 +267,8 @@ public:
      * The predictor assumes that \f$ \vec{V} \f$ satisfies an equation of the
      * form \f[
      *
-     *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} = \vec{F},
+     *      \frac{d\vec{V}}{dt} + (\vec{u}^{\mbox{\scriptsize ADV}} \cdot \nabla)\vec{V} =
+     *\vec{F},
      *
      * \f] i.e., that \f$ \vec{V} \f$ satisfies the \em forced advection
      * equation in \em non-conservative form.
@@ -280,14 +281,12 @@ public:
      *
      * \see predictNormalVelocity
      */
-    void
-    predictNormalVelocityWithSourceTerm(
-        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& V,
-        const SAMRAI::pdat::CellData<NDIM,double>& F,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void predictNormalVelocityWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
+                                             const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                                             const SAMRAI::pdat::CellData<NDIM, double>& V,
+                                             const SAMRAI::pdat::CellData<NDIM, double>& F,
+                                             const SAMRAI::hier::Patch<NDIM>& patch,
+                                             double dt) const;
 
     /*!
      * \brief Subtract the face-centered gradient of a scalar from a predicted
@@ -298,27 +297,23 @@ public:
      * and transverse velocity components at each cell face, i.e., \p v_half
      * must \em NOT be a MAC velocity field.
      */
-    void
-    enforceIncompressibility(
-        SAMRAI::pdat::FaceData<NDIM,double>& v_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
-        const SAMRAI::hier::Patch<NDIM>& patch) const;
+    void enforceIncompressibility(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
+                                  const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                                  const SAMRAI::pdat::FaceData<NDIM, double>& grad_phi,
+                                  const SAMRAI::hier::Patch<NDIM>& patch) const;
 
     /*! \brief Get the number of ghosts cells required by the limiter for cell-centered and
      *  face/side-centered variables.
      *
      *  \see getNumberFluxGhosts.
      */
-    int
-    getNumberCellGhosts() const;
+    int getNumberCellGhosts() const;
 
     /*! \brief Get the number of ghosts cells required by the limiter for face-centered fluxes.
      *
      *  \see getNumberCellGhosts.
      */
-    int
-    getNumberFluxGhosts() const;
+    int getNumberFluxGhosts() const;
 
     /*!
      * \brief Write state of AdvectorExplicitPredictorPatchOps object to the given database for
@@ -327,9 +322,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -346,8 +339,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvectorExplicitPredictorPatchOps(
-        const AdvectorExplicitPredictorPatchOps& from);
+    AdvectorExplicitPredictorPatchOps(const AdvectorExplicitPredictorPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -359,27 +351,22 @@ private:
      * \return A reference to this object.
      */
     AdvectorExplicitPredictorPatchOps&
-    operator=(
-        const AdvectorExplicitPredictorPatchOps& that);
+    operator=(const AdvectorExplicitPredictorPatchOps& that);
 
     /*
      * Private functions used to compute the predicted values/fluxes.
      */
-    void
-    predict(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
-    void
-    predictWithSourceTerm(
-        SAMRAI::pdat::FaceData<NDIM,double>& q_half,
-        const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
-        const SAMRAI::pdat::CellData<NDIM,double>& Q,
-        const SAMRAI::pdat::CellData<NDIM,double>& F,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        double dt) const;
+    void predict(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                 const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                 const SAMRAI::pdat::CellData<NDIM, double>& Q,
+                 const SAMRAI::hier::Patch<NDIM>& patch,
+                 double dt) const;
+    void predictWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
+                               const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
+                               const SAMRAI::pdat::CellData<NDIM, double>& Q,
+                               const SAMRAI::pdat::CellData<NDIM, double>& F,
+                               const SAMRAI::hier::Patch<NDIM>& patch,
+                               double dt) const;
 
     /*
      * These private member functions read data from input and restart.  When
@@ -389,12 +376,8 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
-    void
-    getFromRestart();
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromRestart();
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -417,7 +400,7 @@ private:
     bool d_using_full_ctu;
 #endif
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

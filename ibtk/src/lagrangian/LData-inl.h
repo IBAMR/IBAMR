@@ -44,101 +44,89 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const std::string&
-LData::getName() const
+inline const std::string& LData::getName() const
 {
     return d_name;
-}// getName
+} // getName
 
-inline unsigned int
-LData::getGlobalNodeCount() const
+inline unsigned int LData::getGlobalNodeCount() const
 {
     return d_global_node_count;
-}// getGlobalNodeCount
+} // getGlobalNodeCount
 
-inline unsigned int
-LData::getLocalNodeCount() const
+inline unsigned int LData::getLocalNodeCount() const
 {
     return d_local_node_count;
-}// getLocalNodeCount
+} // getLocalNodeCount
 
-inline unsigned int
-LData::getGhostNodeCount() const
+inline unsigned int LData::getGhostNodeCount() const
 {
     return d_ghost_node_count;
-}// getGhostNodeCount
+} // getGhostNodeCount
 
-inline unsigned int
-LData::getDepth() const
+inline unsigned int LData::getDepth() const
 {
     return d_depth;
-}// getDepth
+} // getDepth
 
-inline Vec
-LData::getVec()
+inline Vec LData::getVec()
 {
     restoreArrays();
     return d_global_vec;
-}// getVec
+} // getVec
 
-inline boost::multi_array_ref<double,1>*
-LData::getArray()
+inline boost::multi_array_ref<double, 1>* LData::getArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
     return d_boost_array;
-}// getArray
+} // getArray
 
-inline boost::multi_array_ref<double,1>*
-LData::getLocalFormArray()
+inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_array) getArrayCommon();
     return d_boost_local_array;
-}// getLocalFormArray
+} // getLocalFormArray
 
-inline boost::multi_array_ref<double,1>*
-LData::getGhostedLocalFormArray()
+inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
 #endif
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_ghosted_local_array;
-}// getGhostedLocalFormArray
+} // getGhostedLocalFormArray
 
-inline boost::multi_array_ref<double,2>*
-LData::getVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_vec_array;
-}// getVecArray
+} // getVecArray
 
-inline boost::multi_array_ref<double,2>*
-LData::getLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getLocalFormVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_local_vec_array;
-}// getLocalFormVecArray
+} // getLocalFormVecArray
 
-inline boost::multi_array_ref<double,2>*
-LData::getGhostedLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getGhostedLocalFormVecArray()
 {
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_vec_ghosted_local_array;
-}// getGhostedLocalFormVecArray
+} // getGhostedLocalFormVecArray
 
-inline void
-LData::restoreArrays()
+inline void LData::restoreArrays()
 {
     int ierr;
     if (d_ghosted_local_array)
     {
-        ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(d_ghosted_local_vec, &d_ghosted_local_array);
+        IBTK_CHKERRQ(ierr);
         d_ghosted_local_array = NULL;
         delete d_boost_ghosted_local_array;
         delete d_boost_vec_ghosted_local_array;
@@ -147,12 +135,14 @@ LData::restoreArrays()
     }
     if (d_ghosted_local_vec)
     {
-        ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(d_global_vec, &d_ghosted_local_vec);
+        IBTK_CHKERRQ(ierr);
         d_ghosted_local_vec = NULL;
     }
     if (d_array)
     {
-        ierr = VecRestoreArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
+        ierr = VecRestoreArray(d_global_vec, &d_array);
+        IBTK_CHKERRQ(ierr);
         d_array = NULL;
         delete d_boost_array;
         delete d_boost_local_array;
@@ -164,72 +154,81 @@ LData::restoreArrays()
         d_boost_local_vec_array = NULL;
     }
     return;
-}// restoreArray
+} // restoreArray
 
-inline void
-LData::beginGhostUpdate()
+inline void LData::beginGhostUpdate()
 {
-    const int ierr = VecGhostUpdateBegin(getVec(),INSERT_VALUES,SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+    const int ierr = VecGhostUpdateBegin(getVec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
     return;
-}// beginGhostUpdate
+} // beginGhostUpdate
 
-inline void
-LData::endGhostUpdate()
+inline void LData::endGhostUpdate()
 {
-    const int ierr = VecGhostUpdateEnd(getVec(),INSERT_VALUES,SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
+    const int ierr = VecGhostUpdateEnd(getVec(), INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
     return;
-}// endGhostUpdate
+} // endGhostUpdate
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline void
-LData::getArrayCommon()
+inline void LData::getArrayCommon()
 {
     if (!d_array)
     {
-        int ierr = VecGetArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
+        int ierr = VecGetArray(d_global_vec, &d_array);
+        IBTK_CHKERRQ(ierr);
         int ilower, iupper;
-        ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
+        ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);
+        IBTK_CHKERRQ(ierr);
         typedef boost::multi_array_types::extent_range range;
         if (d_depth == 1)
         {
             typedef boost::multi_array<double, 1> array_type;
             array_type::extent_gen extents;
-            d_boost_array       = new boost::multi_array_ref<double,1>(d_array, extents[range(ilower,iupper)]);
-            d_boost_local_array = new boost::multi_array_ref<double,1>(d_array, extents[iupper-ilower]);
+            d_boost_array =
+                new boost::multi_array_ref<double, 1>(d_array, extents[range(ilower, iupper)]);
+            d_boost_local_array =
+                new boost::multi_array_ref<double, 1>(d_array, extents[iupper - ilower]);
         }
         typedef boost::multi_array<double, 2> array_type;
         array_type::extent_gen extents;
-        d_boost_vec_array       = new boost::multi_array_ref<double,2>(d_array, extents[range(ilower/d_depth,iupper/d_depth)][d_depth]);
-        d_boost_local_vec_array = new boost::multi_array_ref<double,2>(d_array, extents[(iupper-ilower)/d_depth][d_depth]);
+        d_boost_vec_array = new boost::multi_array_ref<double, 2>(
+            d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);
+        d_boost_local_vec_array = new boost::multi_array_ref<double, 2>(
+            d_array, extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
-}// getArrayCommon
+} // getArrayCommon
 
-inline void
-LData::getGhostedLocalFormArrayCommon()
+inline void LData::getGhostedLocalFormArrayCommon()
 {
     if (!d_ghosted_local_vec)
     {
-        int ierr = VecGhostGetLocalForm(d_global_vec, &d_ghosted_local_vec);  IBTK_CHKERRQ(ierr);
+        int ierr = VecGhostGetLocalForm(d_global_vec, &d_ghosted_local_vec);
+        IBTK_CHKERRQ(ierr);
     }
     if (!d_ghosted_local_array)
     {
-        int ierr = VecGetArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
+        int ierr = VecGetArray(d_ghosted_local_vec, &d_ghosted_local_array);
+        IBTK_CHKERRQ(ierr);
         int ilower, iupper;
-        ierr = VecGetOwnershipRange(d_ghosted_local_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
+        ierr = VecGetOwnershipRange(d_ghosted_local_vec, &ilower, &iupper);
+        IBTK_CHKERRQ(ierr);
         if (d_depth == 1)
         {
-            d_boost_ghosted_local_array = new boost::multi_array_ref<double,1>(d_ghosted_local_array, boost::extents[iupper-ilower]);
+            d_boost_ghosted_local_array = new boost::multi_array_ref<double, 1>(
+                d_ghosted_local_array, boost::extents[iupper - ilower]);
         }
-        d_boost_vec_ghosted_local_array = new boost::multi_array_ref<double,2>(d_ghosted_local_array, boost::extents[(iupper-ilower)/d_depth][d_depth]);
+        d_boost_vec_ghosted_local_array = new boost::multi_array_ref<double, 2>(
+            d_ghosted_local_array, boost::extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
-}// getGhostedLocalFormArrayCommon
+} // getGhostedLocalFormArrayCommon
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

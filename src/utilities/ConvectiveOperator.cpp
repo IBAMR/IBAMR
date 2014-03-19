@@ -44,55 +44,45 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ConvectiveOperator::ConvectiveOperator(
-    const std::string& object_name,
-    const ConvectiveDifferencingType difference_form)
-    : GeneralOperator(object_name),
-      d_difference_form(difference_form),
-      d_u_idx(-1)
+ConvectiveOperator::ConvectiveOperator(const std::string& object_name,
+                                       const ConvectiveDifferencingType difference_form)
+    : GeneralOperator(object_name), d_difference_form(difference_form), d_u_idx(-1)
 {
     // intentionally blank
     return;
-}// ConvectiveOperator
+} // ConvectiveOperator
 
 ConvectiveOperator::~ConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-}// ~ConvectiveOperator
+} // ~ConvectiveOperator
 
-void
-ConvectiveOperator::setAdvectionVelocity(
-    const int u_idx)
+void ConvectiveOperator::setAdvectionVelocity(const int u_idx)
 {
     d_u_idx = u_idx;
     return;
-}// setAdvectionVelocity
+} // setAdvectionVelocity
 
-int
-ConvectiveOperator::getAdvectionVelocity() const
+int ConvectiveOperator::getAdvectionVelocity() const
 {
     return d_u_idx;
-}// getAdvectionVelocity
+} // getAdvectionVelocity
 
-void
-ConvectiveOperator::setConvectiveDifferencingType(
+void ConvectiveOperator::setConvectiveDifferencingType(
     const ConvectiveDifferencingType difference_form)
 {
     d_difference_form = difference_form;
     return;
-}// setConvectiveDifferencingType
+} // setConvectiveDifferencingType
 
-ConvectiveDifferencingType
-ConvectiveOperator::getConvectiveDifferencingType() const
+ConvectiveDifferencingType ConvectiveOperator::getConvectiveDifferencingType() const
 {
     return d_difference_form;
-}// getConvectiveDifferencingType
+} // getConvectiveDifferencingType
 
-void
-ConvectiveOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+void ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
+                               SAMRAIVectorReal<NDIM, double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);
@@ -101,7 +91,7 @@ ConvectiveOperator::apply(
     // Compute the action of the operator.
     applyConvectiveOperator(Q_idx, N_idx);
     return;
-}// apply
+} // apply
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -109,6 +99,6 @@ ConvectiveOperator::apply(
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

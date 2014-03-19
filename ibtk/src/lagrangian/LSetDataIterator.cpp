@@ -36,11 +36,12 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LMarker;
 class LNode;
 class LNodeIndex;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -59,7 +60,6 @@ namespace IBTK
 } // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
 
 template class Pointer<IBTK::LSetDataIterator<IBTK::LMarker> >;
 

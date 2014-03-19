@@ -43,22 +43,16 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-inline
-LSetDataIterator<T>::LSetDataIterator()
-    : d_box(),
-      d_index_it(),
-      d_node_set(),
-      d_node_it()
+template <class T>
+inline LSetDataIterator<T>::LSetDataIterator()
+    : d_box(), d_index_it(), d_node_set(), d_node_it()
 {
     // intentionally blank
     return;
-}// LSetDataIterator
+} // LSetDataIterator
 
-template<class T>
-inline
-LSetDataIterator<T>::LSetDataIterator(
-    const LSetDataIterator<T>& that)
+template <class T>
+inline LSetDataIterator<T>::LSetDataIterator(const LSetDataIterator<T>& that)
     : d_box(that.d_box),
       d_index_it(that.d_index_it),
       d_node_set(that.d_node_set),
@@ -66,54 +60,44 @@ LSetDataIterator<T>::LSetDataIterator(
 {
     // intentionally blank
     return;
-}// LSetDataIterator
+} // LSetDataIterator
 
-template<class T>
-inline
-LSetDataIterator<T>::~LSetDataIterator()
+template <class T>
+inline LSetDataIterator<T>::~LSetDataIterator()
 {
     // intentionally blank
     return;
-}// ~LSetDataIterator
+} // ~LSetDataIterator
 
-template<class T>
-inline LSetDataIterator<T>&
-LSetDataIterator<T>::operator=(
-    const LSetDataIterator<T>& that)
+template <class T>
+inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterator<T>& that)
 {
     if (this != &that)
     {
-        d_box      = that.d_box;
+        d_box = that.d_box;
         d_index_it = that.d_index_it;
         d_node_set = that.d_node_set;
-        d_node_it  = that.d_node_it;
+        d_node_it = that.d_node_it;
     }
     return *this;
-}// operator=
+} // operator=
 
-template<class T>
-inline bool
-LSetDataIterator<T>::operator==(
-    const LSetDataIterator<T>& that)
+template <class T>
+inline bool LSetDataIterator<T>::operator==(const LSetDataIterator<T>& that)
 {
     return ((!d_node_set && !that.d_node_set) ||
-            (d_box      == that.d_box &&
-             d_index_it == that.d_index_it &&
-             d_node_set == that.d_node_set &&
-             d_node_it  == that.d_node_it));
-}// operator==
+            (d_box == that.d_box && d_index_it == that.d_index_it &&
+             d_node_set == that.d_node_set && d_node_it == that.d_node_it));
+} // operator==
 
-template<class T>
-inline bool
-LSetDataIterator<T>::operator!=(
-    const LSetDataIterator<T>& that)
+template <class T>
+inline bool LSetDataIterator<T>::operator!=(const LSetDataIterator<T>& that)
 {
     return !(*this == that);
-}// operator!=
+} // operator!=
 
-template<class T>
-inline LSetDataIterator<T>&
-LSetDataIterator<T>::operator++()
+template <class T>
+inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
 {
     if (!d_node_set) return *this;
     ++d_node_it;
@@ -133,41 +117,36 @@ LSetDataIterator<T>::operator++()
         d_node_it = d_node_set->begin();
     }
     return *this;
-}// operator++
+} // operator++
 
-template<class T>
-inline LSetDataIterator<T>
-LSetDataIterator<T>::operator++(
-    int)
+template <class T>
+inline LSetDataIterator<T> LSetDataIterator<T>::operator++(int)
 {
     LSetDataIterator<T> tmp(*this);
     ++(*this);
     return tmp;
-}// operator++
+} // operator++
 
-template<class T>
-inline typename LSet<T>::value_type&
-LSetDataIterator<T>::operator*() const
+template <class T>
+inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
 {
     return getDataItem();
-}// operator*
+} // operator*
 
-template<class T>
-inline typename LSet<T>::value_type&
-LSetDataIterator<T>::getDataItem() const
+template <class T>
+inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_index_it && d_node_set);
 #endif
     return *d_node_it;
-}// getDataItem
+} // getDataItem
 
-template<class T>
-inline const SAMRAI::hier::Index<NDIM>&
-LSetDataIterator<T>::getCellIndex() const
+template <class T>
+inline const SAMRAI::hier::Index<NDIM>& LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();
-}// getCellIndex
+} // getCellIndex
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -175,7 +154,7 @@ LSetDataIterator<T>::getCellIndex() const
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -45,11 +45,14 @@
 #include "IntVector.h"
 #include "RefinePatchStrategy.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,8 +64,7 @@ namespace IBTK
  * boundaries via constant, linear, or quadratic extrapolation from interior
  * values.
  */
-class CartExtrapPhysBdryOp
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!
@@ -83,31 +85,38 @@ public:
      * \brief Constructor.
      *
      * \param patch_data_index  Patch data index requiring ghost cell filling.
-     * \param extrap_type       Type of extrapolation to perform: \p "CONSTANT" specifies constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies quadratic extrapolation.
+     * \param extrap_type       Type of extrapolation to perform: \p "CONSTANT" specifies
+     *constant
+     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     *quadratic extrapolation.
      */
-    CartExtrapPhysBdryOp(
-        int patch_data_index,
-        const std::string& extrap_type="CONSTANT");
+    CartExtrapPhysBdryOp(int patch_data_index, const std::string& extrap_type = "CONSTANT");
 
     /*!
      * \brief Constructor.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
-     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies quadratic extrapolation.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
+     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies
+     *constant
+     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     *quadratic extrapolation.
      */
-    CartExtrapPhysBdryOp(
-        const std::set<int>& patch_data_indices,
-        const std::string& extrap_type="CONSTANT");
+    CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices,
+                         const std::string& extrap_type = "CONSTANT");
 
     /*!
      * \brief Constructor.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
-     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies quadratic extrapolation.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
+     * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies
+     *constant
+     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     *quadratic extrapolation.
      */
-    CartExtrapPhysBdryOp(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices,
-        const std::string& extrap_type="CONSTANT");
+    CartExtrapPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
+                         const std::string& extrap_type = "CONSTANT");
 
     /*!
      * \brief Destructor.
@@ -117,32 +126,26 @@ public:
     /*!
      * \brief Reset the patch data index operated upon by this class.
      */
-    void
-    setPatchDataIndex(
-        int patch_data_index);
+    void setPatchDataIndex(int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const std::set<int>& patch_data_indices);
+    void setPatchDataIndices(const std::set<int>& patch_data_indices);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices);
+    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
      * \brief Set the extrapolation type employed by this class.
      *
-     * \param extrap_type  Type of extrapolation to perform: \p "CONSTANT" specifies constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies quadratic extrapolation.
+     * \param extrap_type  Type of extrapolation to perform: \p "CONSTANT" specifies constant
+     *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
+     *quadratic extrapolation.
      */
-    void
-    setExtrapolationType(
-        const std::string& extrap_type);
+    void setExtrapolationType(const std::string& extrap_type);
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy interface.
@@ -158,13 +161,14 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
     void
-    setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
+                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -173,8 +177,7 @@ public:
      *
      * Presently, the refine operator stencil width is zero.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -191,14 +194,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -215,19 +218,18 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -236,8 +238,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartExtrapPhysBdryOp(
-        const CartExtrapPhysBdryOp& from);
+    CartExtrapPhysBdryOp(const CartExtrapPhysBdryOp& from);
 
     /*!
      * \brief Assignment operator.
@@ -248,45 +249,43 @@ private:
      *
      * \return A reference to this object.
      */
-    CartExtrapPhysBdryOp&
-    operator=(
-        const CartExtrapPhysBdryOp& that);
+    CartExtrapPhysBdryOp& operator=(const CartExtrapPhysBdryOp& that);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
      * cell-centered quantities.
      */
-    void
-    setPhysicalBoundaryConditions_cell(
+    void setPhysicalBoundaryConditions_cell(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
+            bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
      * face-centered quantities.
      */
-    void
-    setPhysicalBoundaryConditions_face(
+    void setPhysicalBoundaryConditions_face(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
+            bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
      * node-centered quantities.
      */
-    void
-    setPhysicalBoundaryConditions_node(
+    void setPhysicalBoundaryConditions_node(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
+            bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
      * side-centered quantities.
      */
-    void
-    setPhysicalBoundaryConditions_side(
+    void setPhysicalBoundaryConditions_side(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
+            bdry_fill_boxes);
 
     /*
      * The patch data indices corresponding to the "scratch" patch data that
@@ -300,7 +299,7 @@ private:
      */
     std::string d_extrap_type;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

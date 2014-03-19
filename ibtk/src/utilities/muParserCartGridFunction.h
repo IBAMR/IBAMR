@@ -48,15 +48,20 @@
 #include "muParser.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class Variable;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -68,8 +73,7 @@ namespace IBTK
  * (possibly spatially- and temporally-varying) functions which are used to set
  * double precision values on standard SAMRAI SAMRAI::hier::PatchData objects.
  */
-class muParserCartGridFunction
-    : public CartGridFunction
+class muParserCartGridFunction : public CartGridFunction
 {
 public:
     /*!
@@ -94,20 +98,18 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Virtual function to evaluate the function on the patch interior.
      */
-    void
-    setDataOnPatch(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        double data_time,
-        bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        double data_time,
+                        bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -127,8 +129,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserCartGridFunction(
-        const muParserCartGridFunction& from);
+    muParserCartGridFunction(const muParserCartGridFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -139,9 +140,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserCartGridFunction&
-    operator=(
-        const muParserCartGridFunction& that);
+    muParserCartGridFunction& operator=(const muParserCartGridFunction& that);
 
     /*!
      * The Cartesian grid geometry object provides the extents of the
@@ -152,7 +151,7 @@ private:
     /*!
      * User-provided constants specified in the input file.
      */
-    std::map<std::string,double> d_constants;
+    std::map<std::string, double> d_constants;
 
     /*!
      * The strings providing the data-setting functions which are evaluated by the
@@ -171,7 +170,7 @@ private:
     double d_parser_time;
     Point d_parser_posn;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

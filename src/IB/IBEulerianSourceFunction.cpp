@@ -45,12 +45,16 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -62,27 +66,25 @@ namespace IBAMR
 
 IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(
     const IBHierarchyIntegrator* const ib_solver)
-    : CartGridFunction(ib_solver->getName()+"::IBEulerianSourceFunction"),
+    : CartGridFunction(ib_solver->getName() + "::IBEulerianSourceFunction"),
       d_ib_solver(ib_solver)
 {
     // intentionally blank
     return;
-}// IBEulerianSourceFunction
+} // IBEulerianSourceFunction
 
 IBHierarchyIntegrator::IBEulerianSourceFunction::~IBEulerianSourceFunction()
 {
     // intentionally blank
     return;
-}// ~IBEulerianSourceFunction
+} // ~IBEulerianSourceFunction
 
-bool
-IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
+bool IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 {
     return true;
-}// isTimeDependent
+} // isTimeDependent
 
-void
-IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
+void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
     Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
@@ -90,17 +92,17 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
     const bool initial_time,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    Pointer<CellData<NDIM,double> > q_cc_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double> > q_cc_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_cc_data);
 #endif
     q_cc_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellData<NDIM,double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
-    PatchCellDataBasicOps<NDIM,double> patch_ops;
+    Pointer<CellData<NDIM, double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
+    PatchCellDataBasicOps<NDIM, double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;
-}// setDataOnPatch
+} // setDataOnPatch
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

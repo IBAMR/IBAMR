@@ -49,12 +49,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LaplaceOperator::LaplaceOperator(
-    const std::string& object_name,
-    bool homogeneous_bc)
+LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc),
-      d_poisson_spec(d_object_name+"::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
+      d_poisson_spec(d_object_name + "::poisson_spec"),
+      d_default_bc_coef(
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef",
+                                              Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.
@@ -65,45 +65,40 @@ LaplaceOperator::LaplaceOperator(
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
-        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
+        p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
+        p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
     return;
-}// LaplaceOperator()
+} // LaplaceOperator()
 
 LaplaceOperator::~LaplaceOperator()
 {
     delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
-}// ~LaplaceOperator()
+} // ~LaplaceOperator()
 
-void
-LaplaceOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
+void LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
-}// setPoissonSpecifications
+} // setPoissonSpecifications
 
-const PoissonSpecifications&
-LaplaceOperator::getPoissonSpecifications() const
+const PoissonSpecifications& LaplaceOperator::getPoissonSpecifications() const
 {
     return d_poisson_spec;
-}// getPoissonSpecifications
+} // getPoissonSpecifications
 
-void
-LaplaceOperator::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* const bc_coef)
+void LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef));
     return;
-}// setPhysicalBcCoef
+} // setPhysicalBcCoef
 
 void
-LaplaceOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -118,18 +113,17 @@ LaplaceOperator::setPhysicalBcCoefs(
         }
     }
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>&
-LaplaceOperator::getPhysicalBcCoefs() const
+const std::vector<RobinBcCoefStrategy<NDIM>*>& LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;
-}// getPhysicalBcCoefs
+} // getPhysicalBcCoefs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

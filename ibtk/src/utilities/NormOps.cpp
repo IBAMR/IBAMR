@@ -55,12 +55,16 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -71,73 +75,61 @@ namespace IBTK
 namespace
 {
 // WARNING: This function will sort the input vector in ascending order.
-inline double
-accurate_sum(
-    std::vector<double>& vec)
+inline double accurate_sum(std::vector<double>& vec)
 {
     if (vec.size() == 1) return vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::accumulate(vec.begin(), vec.end(), 0.0);
-}// accurate_sum
+} // accurate_sum
 
 // WARNING: This function will sort the input vector in ascending order.
-inline double
-accurate_sum_of_squares(
-    std::vector<double>& vec)
+inline double accurate_sum_of_squares(std::vector<double>& vec)
 {
-    if (vec.size() == 1) return vec[0]*vec[0];
+    if (vec.size() == 1) return vec[0] * vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
-}// accurate_sum_of_squares
+} // accurate_sum_of_squares
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-double
-NormOps::L1Norm(
-    const SAMRAIVectorReal<NDIM,double>* const samrai_vector,
-    const bool local_only)
+double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
+                       const bool local_only)
 {
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
 
     const int nprocs = SAMRAI_MPI::getNodes();
-    std::vector<double> L1_norm_proc(nprocs,0.0);
+    std::vector<double> L1_norm_proc(nprocs, 0.0);
     SAMRAI_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
     const double ret_val = accurate_sum(L1_norm_proc);
     return ret_val;
-}// L1Norm
+} // L1Norm
 
-double
-NormOps::L2Norm(
-    const SAMRAIVectorReal<NDIM,double>* const samrai_vector,
-    const bool local_only)
+double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
+                       const bool local_only)
 {
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
 
     const int nprocs = SAMRAI_MPI::getNodes();
-    std::vector<double> L2_norm_proc(nprocs,0.0);
+    std::vector<double> L2_norm_proc(nprocs, 0.0);
     SAMRAI_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
     const double ret_val = std::sqrt(accurate_sum_of_squares(L2_norm_proc));
     return ret_val;
-}// L2Norm
+} // L2Norm
 
-double
-NormOps::maxNorm(
-    const SAMRAIVectorReal<NDIM,double>* const samrai_vector,
-    const bool local_only)
+double NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
+                        const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
-}// maxNorm
+} // maxNorm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-double
-NormOps::L1Norm_local(
-    const SAMRAIVectorReal<NDIM,double>* const samrai_vector)
+double NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
     Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();
@@ -151,10 +143,10 @@ NormOps::L1Norm_local(
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        Pointer<CellVariable<NDIM,double> > comp_cc_var = comp_var;
+        Pointer<CellVariable<NDIM, double> > comp_cc_var = comp_var;
         if (comp_cc_var)
         {
-            PatchCellDataNormOpsReal<NDIM,double> patch_ops;
+            PatchCellDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -162,17 +154,20 @@ NormOps::L1Norm_local(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM,double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM,double> > cvol_data = (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
-                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
+                    Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
+                    Pointer<CellData<NDIM, double> > cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) :
+                                    Pointer<PatchData<NDIM> >(NULL));
+                    L1_norm_local_patch.push_back(
+                        patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        Pointer<SideVariable<NDIM,double> > comp_sc_var = comp_var;
+        Pointer<SideVariable<NDIM, double> > comp_sc_var = comp_var;
         if (comp_sc_var)
         {
-            PatchSideDataNormOpsReal<NDIM,double> patch_ops;
+            PatchSideDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -180,19 +175,20 @@ NormOps::L1Norm_local(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM,double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM,double> > cvol_data = (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
-                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
+                    Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
+                    Pointer<SideData<NDIM, double> > cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) :
+                                    Pointer<PatchData<NDIM> >(NULL));
+                    L1_norm_local_patch.push_back(
+                        patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
     }
     return accurate_sum(L1_norm_local_patch);
-}// L1Norm_local
+} // L1Norm_local
 
-double
-NormOps::L2Norm_local(
-    const SAMRAIVectorReal<NDIM,double>* const samrai_vector)
+double NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
     Pointer<PatchHierarchy<NDIM> > hierarchy = samrai_vector->getPatchHierarchy();
@@ -206,10 +202,10 @@ NormOps::L2Norm_local(
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        Pointer<CellVariable<NDIM,double> > comp_cc_var = comp_var;
+        Pointer<CellVariable<NDIM, double> > comp_cc_var = comp_var;
         if (comp_cc_var)
         {
-            PatchCellDataNormOpsReal<NDIM,double> patch_ops;
+            PatchCellDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -217,17 +213,20 @@ NormOps::L2Norm_local(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM,double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM,double> > cvol_data = (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
-                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
+                    Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
+                    Pointer<CellData<NDIM, double> > cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) :
+                                    Pointer<PatchData<NDIM> >(NULL));
+                    L2_norm_local_patch.push_back(
+                        patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        Pointer<SideVariable<NDIM,double> > comp_sc_var = comp_var;
+        Pointer<SideVariable<NDIM, double> > comp_sc_var = comp_var;
         if (comp_sc_var)
         {
-            PatchSideDataNormOpsReal<NDIM,double> patch_ops;
+            PatchSideDataNormOpsReal<NDIM, double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -235,18 +234,21 @@ NormOps::L2Norm_local(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM,double> > comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM,double> > cvol_data = (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
-                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
+                    Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
+                    Pointer<SideData<NDIM, double> > cvol_data =
+                        (has_cvol ? patch->getPatchData(cvol_idx) :
+                                    Pointer<PatchData<NDIM> >(NULL));
+                    L2_norm_local_patch.push_back(
+                        patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
     }
     return std::sqrt(accurate_sum_of_squares(L2_norm_local_patch));
-}// L2Norm_local
+} // L2Norm_local
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

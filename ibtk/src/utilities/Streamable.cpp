@@ -35,11 +35,14 @@
 #include "Streamable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -53,22 +56,20 @@ Streamable::Streamable()
 {
     // intentionally blank
     return;
-}// Streamable
+} // Streamable
 
 Streamable::~Streamable()
 {
     // intentionally blank
     return;
-}// ~Streamable
+} // ~Streamable
 
-void
-Streamable::registerPeriodicShift(
-    const IntVector<NDIM>& /*offset*/,
-    const Vector& /*displacement*/)
+void Streamable::registerPeriodicShift(const IntVector<NDIM>& /*offset*/,
+                                       const Vector& /*displacement*/)
 {
     // intentionally blank
     return;
-}// registerPeriodicShift
+} // registerPeriodicShift
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

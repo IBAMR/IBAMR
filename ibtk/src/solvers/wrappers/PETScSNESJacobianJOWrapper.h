@@ -53,8 +53,7 @@ namespace IBTK
  * \brief Class PETScSNESJacobianJOWrapper provides a JacobianOperator interface
  * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES Jacobian.
  */
-class PETScSNESJacobianJOWrapper
-    : public JacobianOperator
+class PETScSNESJacobianJOWrapper : public JacobianOperator
 {
 public:
     /*!
@@ -66,7 +65,7 @@ public:
     PETScSNESJacobianJOWrapper(
         const std::string& object_name,
         const SNES& petsc_snes,
-        PetscErrorCode (*petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
+        PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*),
         void* petsc_snes_jac_ctx);
 
     /*!
@@ -82,22 +81,19 @@ public:
     /*!
      * \brief Get the PETSc SNES object "wrapped" by this object.
      */
-    const SNES&
-    getPETScSNES() const;
+    const SNES& getPETScSNES() const;
 
     /*!
      * \brief Get the function pointer to the PETSc SNES Jacobian "wrapped" by
      * this object.
      */
-    PetscErrorCode
-    (*getPETScSNESFormJacobian())(SNES,Vec,Mat*,Mat*,MatStructure*,void*);
+    PetscErrorCode (*getPETScSNESFormJacobian())(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
 
     /*!
      * \brief Get the PETSc SNES Jacobian context object "wrapped" by this
      * object.
      */
-    void*
-    getPETScSNESJacobianContext() const;
+    void* getPETScSNESJacobianContext() const;
 
     //\}
 
@@ -111,15 +107,12 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void
-    formJacobian(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
-    getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
 
     //\}
 
@@ -150,10 +143,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute z=Ax+y.
@@ -178,11 +169,9 @@ public:
      * \param y input
      * \param z output: z=Ax+y
      */
-    void
-    applyAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
+    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -214,10 +203,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -229,8 +216,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -249,8 +235,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESJacobianJOWrapper(
-        const PETScSNESJacobianJOWrapper& from);
+    PETScSNESJacobianJOWrapper(const PETScSNESJacobianJOWrapper& from);
 
     /*!
      * \brief Assignment operator.
@@ -261,18 +246,16 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESJacobianJOWrapper&
-    operator=(
-        const PETScSNESJacobianJOWrapper& that);
+    PETScSNESJacobianJOWrapper& operator=(const PETScSNESJacobianJOWrapper& that);
 
     const SNES d_petsc_snes;
     Mat d_petsc_snes_jac;
-    PetscErrorCode (* const d_petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*);
+    PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
     void* const d_petsc_snes_jac_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_y, d_z;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

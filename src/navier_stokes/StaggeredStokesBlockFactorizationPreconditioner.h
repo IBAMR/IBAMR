@@ -45,11 +45,14 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -85,13 +88,13 @@ public:
      * StaggeredStokesBlockFactorizationPreconditioner.
      */
     static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocate_solver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix)
-        {
-            return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
-        }// allocate_solver
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new StaggeredStokesBlockFactorizationPreconditioner(
+            object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \name Linear solver functionality.
@@ -101,10 +104,8 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -123,10 +124,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -139,8 +138,7 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -152,16 +150,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void
-    setMaxIterations(
-        int max_iterations);
+    void setMaxIterations(int max_iterations);
 
     //\}
 
@@ -193,19 +187,19 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesBlockFactorizationPreconditioner&
-    operator=(
-        const StaggeredStokesBlockFactorizationPreconditioner& that);
+    operator=(const StaggeredStokesBlockFactorizationPreconditioner& that);
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op,
+        d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
     int d_F_U_mod_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
     int d_P_scratch_idx;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

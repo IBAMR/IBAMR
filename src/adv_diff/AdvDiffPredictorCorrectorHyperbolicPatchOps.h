@@ -40,21 +40,29 @@
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class AdvectorExplicitPredictorPatchOps;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace geom {
-template <int DIM> class CartesianGridGeometry;
-}  // namespace geom
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace geom
+{
+template <int DIM>
+class CartesianGridGeometry;
+} // namespace geom
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -62,7 +70,8 @@ namespace IBAMR
 {
 /*!
  * \brief Class AdvDiffPredictorCorrectorHyperbolicPatchOps is a specialization of class
- * AdvectorPredictorCorrectorHyperbolicPatchOps for use with a linearly-implicit time integrator for
+ * AdvectorPredictorCorrectorHyperbolicPatchOps for use with a linearly-implicit time
+ *integrator for
  * the advection-diffusion equation.
  *
  * \see AdvDiffGodunovHierarchyIntegrator
@@ -73,7 +82,8 @@ class AdvDiffPredictorCorrectorHyperbolicPatchOps
 {
 public:
     /*!
-     * The constructor for AdvDiffPredictorCorrectorHyperbolicPatchOps sets default parameters for
+     * The constructor for AdvDiffPredictorCorrectorHyperbolicPatchOps sets default parameters
+     *for
      * the patch strategy.  The constructor also registers this object for
      * restart with the restart manager using the object name when so requested.
      *
@@ -87,7 +97,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
-        bool register_for_restart=true);
+        bool register_for_restart = true);
 
     /*!
      * The destructor for AdvDiffPredictorCorrectorHyperbolicPatchOps unregisters the patch
@@ -99,12 +109,10 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void
-    conservativeDifferenceOnPatch(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double time,
-        double dt,
-        bool at_synchronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double time,
+                                       double dt,
+                                       bool at_synchronization);
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -118,8 +126,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void
-    preprocessAdvanceLevelState(
+    void preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
@@ -139,15 +146,13 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void
-    postprocessAdvanceLevelState(
+    void postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
         double dt,
         bool first_step,
         bool last_step,
         bool regrid_advance);
-
 
 private:
     /*!
@@ -177,10 +182,9 @@ private:
      * \return A reference to this object.
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps&
-    operator=(
-        const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
+    operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -40,12 +40,16 @@
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -56,24 +60,19 @@ namespace IBTK
  * SAMRAI::xfer::CoarsenPatchStrategy objects to be employed by a single
  * SAMRAI::xfer::CoarsenSchedule.
  */
-class CoarsenPatchStrategySet
-    : public SAMRAI::xfer::CoarsenPatchStrategy<NDIM>
+class CoarsenPatchStrategySet : public SAMRAI::xfer::CoarsenPatchStrategy<NDIM>
 {
 public:
     /*!
      * \brief Constructor.
      */
-    template<typename InputIterator>
-    CoarsenPatchStrategySet(
-        InputIterator first,
-        InputIterator last,
-        bool managed=true)
-        : d_strategy_set(first,last),
-          d_managed(managed)
-        {
-            // intentionally blank
-            return;
-        }// CoarsenPatchStrategySet
+    template <typename InputIterator>
+    CoarsenPatchStrategySet(InputIterator first, InputIterator last, bool managed = true)
+        : d_strategy_set(first, last), d_managed(managed)
+    {
+        // intentionally blank
+        return;
+    } // CoarsenPatchStrategySet
 
     /*!
      * \brief Destructor.
@@ -85,8 +84,7 @@ public:
      * operations.  This is needed to determine the correct coarsening data
      * dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getCoarsenOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -101,14 +99,14 @@ public:
      * \param coarse      Coarse patch containing destination data.
      * \param fine        Fine patch containing source data.
      * \param coarse_box  Box region on coarse patch into which data is coarsened.
-     * \param ratio       Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio       Integer vector containing ratio relating index space between coarse
+     *and
+     *fine patches.
      */
-    void
-    preprocessCoarsen(
-        SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Box<NDIM>& coarse_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Box<NDIM>& coarse_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -125,15 +123,12 @@ public:
      * \param coarse_box  Box region on coarse patch into which data is copied.
      * \param ratio       Integer vector containing ratio
      */
-    void
-    postprocessCoarsen(
-        SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Box<NDIM>& coarse_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
+                            const SAMRAI::hier::Patch<NDIM>& fine,
+                            const SAMRAI::hier::Box<NDIM>& coarse_box,
+                            const SAMRAI::hier::IntVector<NDIM>& ratio);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -149,8 +144,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CoarsenPatchStrategySet(
-        const CoarsenPatchStrategySet& from);
+    CoarsenPatchStrategySet(const CoarsenPatchStrategySet& from);
 
     /*!
      * \brief Assignment operator.
@@ -161,9 +155,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarsenPatchStrategySet&
-    operator=(
-        const CoarsenPatchStrategySet& that);
+    CoarsenPatchStrategySet& operator=(const CoarsenPatchStrategySet& that);
 
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.
@@ -176,7 +168,7 @@ private:
      */
     const bool d_managed;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

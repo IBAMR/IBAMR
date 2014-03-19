@@ -43,7 +43,7 @@
 namespace IBTK
 {
 typedef LSetDataIterator<LMarker> LMarkerSetDataIterator;
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

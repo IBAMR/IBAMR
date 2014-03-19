@@ -41,11 +41,13 @@
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace tbox {
+namespace SAMRAI
+{
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,10 +66,9 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScKrylovStaggeredStokesSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    PETScKrylovStaggeredStokesSolver(const std::string& object_name,
+                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -75,7 +76,6 @@ public:
     ~PETScKrylovStaggeredStokesSolver();
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -91,8 +91,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovStaggeredStokesSolver(
-        const PETScKrylovStaggeredStokesSolver& from);
+    PETScKrylovStaggeredStokesSolver(const PETScKrylovStaggeredStokesSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -103,11 +102,9 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovStaggeredStokesSolver&
-    operator=(
-        const PETScKrylovStaggeredStokesSolver& that);
+    PETScKrylovStaggeredStokesSolver& operator=(const PETScKrylovStaggeredStokesSolver& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

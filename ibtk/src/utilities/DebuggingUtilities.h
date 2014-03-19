@@ -39,14 +39,18 @@
 
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -62,98 +66,87 @@ public:
      * \brief Check a cell-centered variable for NaN or unusually large values.
      */
     static bool
-    checkCellDataForNaNs(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        bool interior_only=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    checkCellDataForNaNs(int patch_data_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                         bool interior_only = true,
+                         int coarsest_ln = -1,
+                         int finest_ln = -1);
 
     /*!
      * \brief Check a face-centered variable for NaN or unusually large values.
      */
     static bool
-    checkFaceDataForNaNs(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        bool interior_only=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    checkFaceDataForNaNs(int patch_data_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                         bool interior_only = true,
+                         int coarsest_ln = -1,
+                         int finest_ln = -1);
 
     /*!
      * \brief Check a node-centered variable for NaN or unusually large values.
      */
     static bool
-    checkNodeDataForNaNs(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        bool interior_only=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    checkNodeDataForNaNs(int patch_data_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                         bool interior_only = true,
+                         int coarsest_ln = -1,
+                         int finest_ln = -1);
 
     /*!
      * \brief Check a side-centered variable for NaN or unusually large values.
      */
     static bool
-    checkSideDataForNaNs(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        bool interior_only=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    checkSideDataForNaNs(int patch_data_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                         bool interior_only = true,
+                         int coarsest_ln = -1,
+                         int finest_ln = -1);
 
     /*!
      * \brief Save the local portion of a cell-centered variable to disk.
      */
     static void
-    saveCellData(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const std::string& filename,
-        const std::string& dirname);
+    saveCellData(int patch_data_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 const std::string& filename,
+                 const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a face-centered variable to disk.
      */
     static void
-    saveFaceData(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const std::string& filename,
-        const std::string& dirname);
+    saveFaceData(int patch_data_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 const std::string& filename,
+                 const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a node-centered variable to disk.
      */
     static void
-    saveNodeData(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const std::string& filename,
-        const std::string& dirname);
+    saveNodeData(int patch_data_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 const std::string& filename,
+                 const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a side-centered variable to disk.
      */
     static void
-    saveSideData(
-        int patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const std::string& filename,
-        const std::string& dirname);
+    saveSideData(int patch_data_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 const std::string& filename,
+                 const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a Lagrangian variable to disk.
      */
-    static void
-    saveLagrangianData(
-        SAMRAI::tbox::Pointer<LData> lag_data,
-        bool save_ghost_nodes,
-        const std::string& filename,
-        const std::string& dirname);
+    static void saveLagrangianData(SAMRAI::tbox::Pointer<LData> lag_data,
+                                   bool save_ghost_nodes,
+                                   const std::string& filename,
+                                   const std::string& dirname);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -169,8 +162,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    DebuggingUtilities(
-        const DebuggingUtilities& from);
+    DebuggingUtilities(const DebuggingUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -181,11 +173,9 @@ private:
      *
      * \return A reference to this object.
      */
-    DebuggingUtilities&
-    operator=(
-        const DebuggingUtilities& that);
+    DebuggingUtilities& operator=(const DebuggingUtilities& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

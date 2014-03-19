@@ -69,9 +69,9 @@ static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE     = "NONE";
-static const bool        USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -88,14 +88,17 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesOperator::StaggeredStokesOperator(
-    const std::string& object_name,
-    bool homogeneous_bc)
+StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
+                                                 bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc),
-      d_U_problem_coefs(d_object_name+"::U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
+      d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
+      d_default_U_bc_coef(
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef",
+                                              Pointer<Database>(NULL))),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
+      d_default_P_bc_coef(
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef",
+                                              Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
       d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL),
@@ -111,25 +114,29 @@ StaggeredStokesOperator::StaggeredStokesOperator(
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
-        p_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
-        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
-        p_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
-        p_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
+        p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
+        p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
+        p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
+        p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef),d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef),
+                       d_default_P_bc_coef);
 
     // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::deallocateOperatorState()");
-                  );
+    IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer(
+                      "IBAMR::StaggeredStokesOperator::apply()");
+                  t_initialize_operator_state = TimerManager::getManager()->getTimer(
+                      "IBAMR::StaggeredStokesOperator::initializeOperatorState()");
+                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+                      "IBAMR::StaggeredStokesOperator::deallocateOperatorState()"););
     return;
-}// StaggeredStokesOperator
+} // StaggeredStokesOperator
 
 StaggeredStokesOperator::~StaggeredStokesOperator()
 {
@@ -139,24 +146,21 @@ StaggeredStokesOperator::~StaggeredStokesOperator()
     delete d_default_P_bc_coef;
     d_default_P_bc_coef = NULL;
     return;
-}// ~StaggeredStokesOperator
+} // ~StaggeredStokesOperator
 
-void
-StaggeredStokesOperator::setVelocityPoissonSpecifications(
+void StaggeredStokesOperator::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
-}// setVelocityPoissonSpecifications
+} // setVelocityPoissonSpecifications
 
-const PoissonSpecifications&
-StaggeredStokesOperator::getVelocityPoissonSpecifications() const
+const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecifications() const
 {
     return d_U_problem_coefs;
-}// getVelocityPoissonSpecifications
+} // getVelocityPoissonSpecifications
 
-void
-StaggeredStokesOperator::setPhysicalBcCoefs(
+void StaggeredStokesOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -184,10 +188,9 @@ StaggeredStokesOperator::setPhysicalBcCoefs(
         d_P_bc_coef = d_default_P_bc_coef;
     }
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-StaggeredStokesOperator::setPhysicalBoundaryHelper(
+void StaggeredStokesOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -195,56 +198,93 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(
 #endif
     d_bc_helper = bc_helper;
     return;
-}// setPhysicalBoundaryHelper
+} // setPhysicalBoundaryHelper
 
-void
-StaggeredStokesOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
+                                    SAMRAIVectorReal<NDIM, double>& y)
 {
     IBAMR_TIMER_START(t_apply);
 
     // Get the vector components.
-    const int   U_idx = x.getComponentDescriptorIndex(0);
-    const int   P_idx = x.getComponentDescriptorIndex(1);
+    const int U_idx = x.getComponentDescriptorIndex(0);
+    const int P_idx = x.getComponentDescriptorIndex(1);
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<NDIM,double> >   U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM,double> >   P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM,double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM,double> > A_P_cc_var = y.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
+    Pointer<SideVariable<NDIM, double> > A_U_sc_var = y.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx, U_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    transaction_comps[1] = InterpolationTransactionComponent(P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
+    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
+                                                             U_idx,
+                                                             DATA_REFINE_TYPE,
+                                                             USE_CF_INTERPOLATION,
+                                                             DATA_COARSEN_TYPE,
+                                                             BDRY_EXTRAP_TYPE,
+                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_U_bc_coefs,
+                                                             d_U_fill_pattern);
+    transaction_comps[1] = InterpolationTransactionComponent(P_idx,
+                                                             DATA_REFINE_TYPE,
+                                                             USE_CF_INTERPOLATION,
+                                                             DATA_COARSEN_TYPE,
+                                                             BDRY_EXTRAP_TYPE,
+                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_P_bc_coef,
+                                                             d_P_fill_pattern);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
-//  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
+    //  d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
     //
     // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
-    d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(A_U_idx, A_U_sc_var, d_U_problem_coefs, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
-    d_hier_math_ops->div(A_P_idx, A_P_cc_var, -1.0, U_scratch_idx, U_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
+    d_hier_math_ops->grad(A_U_idx,
+                          A_U_sc_var,
+                          /*cf_bdry_synch*/ false,
+                          1.0,
+                          P_idx,
+                          P_cc_var,
+                          d_no_fill,
+                          d_new_time);
+    d_hier_math_ops->laplace(A_U_idx,
+                             A_U_sc_var,
+                             d_U_problem_coefs,
+                             U_scratch_idx,
+                             U_sc_var,
+                             d_no_fill,
+                             d_new_time,
+                             1.0,
+                             A_U_idx,
+                             A_U_sc_var);
+    d_hier_math_ops->div(A_P_idx,
+                         A_P_cc_var,
+                         -1.0,
+                         U_scratch_idx,
+                         U_sc_var,
+                         d_no_fill,
+                         d_new_time,
+                         /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
     return;
-}// apply
+} // apply
 
 void
-StaggeredStokesOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                 const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -252,17 +292,35 @@ StaggeredStokesOperator::initializeOperatorState(
     if (d_is_initialized) deallocateOperatorState();
 
     // Setup solution and rhs vectors.
-    d_x = in .cloneVector(in .getName());
+    d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
     d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0), in.getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, d_U_fill_pattern);
-    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , d_P_fill_pattern);
+    d_transaction_comps[0] =
+        InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
+                                          in.getComponentDescriptorIndex(0),
+                                          DATA_REFINE_TYPE,
+                                          USE_CF_INTERPOLATION,
+                                          DATA_COARSEN_TYPE,
+                                          BDRY_EXTRAP_TYPE,
+                                          CONSISTENT_TYPE_2_BDRY,
+                                          d_U_bc_coefs,
+                                          d_U_fill_pattern);
+    d_transaction_comps[1] =
+        InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
+                                          DATA_REFINE_TYPE,
+                                          USE_CF_INTERPOLATION,
+                                          DATA_COARSEN_TYPE,
+                                          BDRY_EXTRAP_TYPE,
+                                          CONSISTENT_TYPE_2_BDRY,
+                                          d_P_bc_coef,
+                                          d_P_fill_pattern);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -271,7 +329,10 @@ StaggeredStokesOperator::initializeOperatorState(
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
+        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+                                               in.getPatchHierarchy(),
+                                               in.getCoarsestLevelNumber(),
+                                               in.getFinestLevelNumber());
     }
 #if !defined(NDEBUG)
     else
@@ -285,10 +346,9 @@ StaggeredStokesOperator::initializeOperatorState(
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-StaggeredStokesOperator::deallocateOperatorState()
+void StaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -305,10 +365,14 @@ StaggeredStokesOperator::deallocateOperatorState()
     d_P_fill_pattern.setNull();
 
     // Delete the solution and rhs vectors.
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_x->getPatchHierarchy()->getFinestLevelNumber()));
+    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
+                     std::min(d_x->getFinestLevelNumber(),
+                              d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
 
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_b->getPatchHierarchy()->getFinestLevelNumber()));
+    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
+                     std::min(d_b->getFinestLevelNumber(),
+                              d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
 
     d_x.setNull();
@@ -319,7 +383,7 @@ StaggeredStokesOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -327,6 +391,6 @@ StaggeredStokesOperator::deallocateOperatorState()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

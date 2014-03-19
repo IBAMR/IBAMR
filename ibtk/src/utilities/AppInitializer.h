@@ -52,18 +52,16 @@ namespace IBTK
  * \brief Class AppInitializer provides functionality to simplify the
  * initialization code in an application code.
  */
-class AppInitializer
-    : public SAMRAI::tbox::DescribedClass
+class AppInitializer : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * Constructor for class AppInitializer parses command line arguments, sets
      * up input and restart databases, and enables SAMRAI logging.
      */
-    AppInitializer(
-        int argc,
-        char* argv[],
-        const std::string& default_log_file_name="IBAMR.log");
+    AppInitializer(int argc,
+                   char* argv[],
+                   const std::string& default_log_file_name = "IBAMR.log");
 
     /*!
      * Destructor for class AppInitializer frees the SAMRAI manager objects
@@ -74,23 +72,20 @@ public:
     /*!
      * Return a pointer to the input database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-    getInputDatabase();
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getInputDatabase();
 
     /*!
      * Return a boolean value indicating whether this is a restarted run.
      */
-    bool
-    isFromRestart() const;
+    bool isFromRestart() const;
 
     /*!
      * Return a pointer to the restart database.  If there is no restart
      * database for the application, this method emits a warning message and
      * returns a NullDatabse.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-    getRestartDatabase(
-        bool suppress_warning=false);
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getRestartDatabase(bool suppress_warning =
+                                                                         false);
 
     /*!
      * Return initialization database for the requested solver component.  This
@@ -101,33 +96,27 @@ public:
      * method emits a warning message and returns a NullDatabse.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-    getComponentDatabase(
-        const std::string& component_name,
-        bool suppress_warning=false);
+    getComponentDatabase(const std::string& component_name, bool suppress_warning = false);
 
     /*!
      * Return a boolean value indicating whether to write visualization data.
      */
-    bool
-    dumpVizData() const;
+    bool dumpVizData() const;
 
     /*!
      * Return the visualization dump interval.
      */
-    int
-    getVizDumpInterval() const;
+    int getVizDumpInterval() const;
 
     /*!
      * Return the visualization dump directory name.
      */
-    std::string
-    getVizDumpDirectory() const;
+    std::string getVizDumpDirectory() const;
 
     /*!
      * Return the visualization writers to be used in the simulation.
      */
-    std::vector<std::string>
-    getVizWriters() const;
+    std::vector<std::string> getVizWriters() const;
 
     /*!
      * Return a VisIt data writer object to be used to output Cartesian grid
@@ -136,8 +125,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> >
-    getVisItDataWriter() const;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > getVisItDataWriter() const;
 
     /*!
      * Return a VisIt data writer object to be used to output Lagrangian data.
@@ -145,8 +133,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    SAMRAI::tbox::Pointer<LSiloDataWriter>
-    getLSiloDataWriter() const;
+    SAMRAI::tbox::Pointer<LSiloDataWriter> getLSiloDataWriter() const;
 
     /*!
      * Return the ExodusII visualization file name.
@@ -154,57 +141,47 @@ public:
      * If the application is not configured to use ExodusII, an empty string
      * will be returned.
      */
-    std::string
-    getExodusIIFilename(
-        const std::string& prefix="") const;
+    std::string getExodusIIFilename(const std::string& prefix = "") const;
 
     /*!
      * Return a boolean value indicating whether to write restart data.
      */
-    bool
-    dumpRestartData() const;
+    bool dumpRestartData() const;
 
     /*!
      * Return the restart dump interval.
      */
-    int
-    getRestartDumpInterval() const;
+    int getRestartDumpInterval() const;
 
     /*!
      * Return the restart dump directory name.
      */
-    std::string
-    getRestartDumpDirectory() const;
+    std::string getRestartDumpDirectory() const;
 
     /*!
      * Return a boolean value indicating whether to write post processing data.
      */
-    bool
-    dumpPostProcessingData() const;
+    bool dumpPostProcessingData() const;
 
     /*!
      * Return the post processing data dump interval.
      */
-    int
-    getPostProcessingDataDumpInterval() const;
+    int getPostProcessingDataDumpInterval() const;
 
     /*!
      * Return the post processing data dump directory name.
      */
-    std::string
-    getPostProcessingDataDumpDirectory() const;
+    std::string getPostProcessingDataDumpDirectory() const;
 
     /*!
      * Return a boolean value indicating whether to write timer data.
      */
-    bool
-    dumpTimerData() const;
+    bool dumpTimerData() const;
 
     /*!
      * Return the timer dump interval.
      */
-    int
-    getTimerDumpInterval() const;
+    int getTimerDumpInterval() const;
 
 private:
     /*!
@@ -214,8 +191,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AppInitializer(
-        const AppInitializer& from);
+    AppInitializer(const AppInitializer& from);
 
     /*!
      * \brief Assignment operator.
@@ -226,9 +202,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AppInitializer&
-    operator=(
-        const AppInitializer& that);
+    AppInitializer& operator=(const AppInitializer& that);
 
     /*!
      * The input database.
@@ -267,7 +241,7 @@ private:
      */
     int d_timer_dump_interval;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

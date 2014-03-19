@@ -46,16 +46,13 @@ namespace IBAMR
  * reconstructs piecewise constant field data by direct evaluation at element
  * centroids.
  */
-class IBFECentroidPostProcessor
-    : public IBFEPostProcessor
+class IBFECentroidPostProcessor : public IBFEPostProcessor
 {
 public:
     /*!
      * Constructor.
      */
-    IBFECentroidPostProcessor(
-        const std::string& name,
-        IBTK::FEDataManager* fe_data_manager);
+    IBFECentroidPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Destructor.
@@ -69,14 +66,13 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void
-    registerScalarVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::ScalarMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL);
+    void registerScalarVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::ScalarMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems =
+                                    std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL);
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -85,15 +81,14 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void
-    registerVectorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::VectorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL,
-        unsigned int var_dim=NDIM);
+    void registerVectorVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::VectorMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems =
+                                    std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL,
+                                unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
@@ -102,22 +97,19 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void
-    registerTensorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::TensorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL,
-        unsigned int var_dim=NDIM);
+    void registerTensorVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::TensorMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems =
+                                    std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL,
+                                unsigned int var_dim = NDIM);
 
     /*!
      * Reconstruct the data on the mesh.
      */
-    void
-    reconstructVariables(
-        double data_time);
+    void reconstructVariables(double data_time);
 
 private:
     /*!
@@ -134,8 +126,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFECentroidPostProcessor(
-        const IBFECentroidPostProcessor& from);
+    IBFECentroidPostProcessor(const IBFECentroidPostProcessor& from);
 
     /*!
      * \brief Assignment operator.
@@ -146,11 +137,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFECentroidPostProcessor&
-    operator=(
-        const IBFECentroidPostProcessor& that);
+    IBFECentroidPostProcessor& operator=(const IBFECentroidPostProcessor& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

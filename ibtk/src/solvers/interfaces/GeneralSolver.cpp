@@ -39,11 +39,14 @@
 #include "GeneralSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -71,179 +74,143 @@ GeneralSolver::GeneralSolver()
 {
     // intentionally blank
     return;
-}// GeneralSolver()
+} // GeneralSolver()
 
 GeneralSolver::~GeneralSolver()
 {
     // intentionally blank
     return;
-}// ~GeneralSolver()
+} // ~GeneralSolver()
 
-const std::string&
-GeneralSolver::getName() const
+const std::string& GeneralSolver::getName() const
 {
     return d_object_name;
-}// getName
+} // getName
 
-bool
-GeneralSolver::getIsInitialized() const
+bool GeneralSolver::getIsInitialized() const
 {
     return d_is_initialized;
-}// getIsInitialized
+} // getIsInitialized
 
-void
-GeneralSolver::setHomogeneousBc(
-    bool homogeneous_bc)
+void GeneralSolver::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-bool
-GeneralSolver::getHomogeneousBc() const
+bool GeneralSolver::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-}// getHomogeneousBc
+} // getHomogeneousBc
 
-void
-GeneralSolver::setSolutionTime(
-    double solution_time)
+void GeneralSolver::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-double
-GeneralSolver::getSolutionTime() const
+double GeneralSolver::getSolutionTime() const
 {
     return d_solution_time;
-}// getSolutionTime
+} // getSolutionTime
 
-void
-GeneralSolver::setTimeInterval(
-    double current_time,
-    double new_time)
+void GeneralSolver::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-std::pair<double,double>
-GeneralSolver::getTimeInterval() const
+std::pair<double, double> GeneralSolver::getTimeInterval() const
 {
-    return std::make_pair(d_current_time,d_new_time);
-}// getTimeInterval
+    return std::make_pair(d_current_time, d_new_time);
+} // getTimeInterval
 
-double
-GeneralSolver::getDt() const
+double GeneralSolver::getDt() const
 {
-    return d_new_time-d_current_time;
-}// getDt
+    return d_new_time - d_current_time;
+} // getDt
 
-void
-GeneralSolver::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
+void GeneralSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
-}// setHierarchyMathOps
+} // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
-GeneralSolver::getHierarchyMathOps() const
+Pointer<HierarchyMathOps> GeneralSolver::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
-}// getHierarchyMathOps
+} // getHierarchyMathOps
 
-void
-GeneralSolver::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& /*u*/,
-    const SAMRAIVectorReal<NDIM,double>& /*r*/)
+void GeneralSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& /*u*/,
+                                          const SAMRAIVectorReal<NDIM, double>& /*r*/)
 {
     d_is_initialized = true;
     return;
-}// initializeSolverState
+} // initializeSolverState
 
-void
-GeneralSolver::deallocateSolverState()
+void GeneralSolver::deallocateSolverState()
 {
     d_is_initialized = false;
     return;
-}// deallocateSolverState
+} // deallocateSolverState
 
-
-void
-GeneralSolver::setMaxIterations(
-    int max_iterations)
+void GeneralSolver::setMaxIterations(int max_iterations)
 {
     d_max_iterations = max_iterations;
     return;
-}// setMaxIterations
+} // setMaxIterations
 
-int
-GeneralSolver::getMaxIterations() const
+int GeneralSolver::getMaxIterations() const
 {
     return d_max_iterations;
-}// getMaxIterations
+} // getMaxIterations
 
-void
-GeneralSolver::setAbsoluteTolerance(
-    double abs_residual_tol)
+void GeneralSolver::setAbsoluteTolerance(double abs_residual_tol)
 {
     d_abs_residual_tol = abs_residual_tol;
     return;
-}// setAbsoluteTolerance
+} // setAbsoluteTolerance
 
-double
-GeneralSolver::getAbsoluteTolerance() const
+double GeneralSolver::getAbsoluteTolerance() const
 {
     return d_abs_residual_tol;
-}// getAbsoluteTolerance
+} // getAbsoluteTolerance
 
-void
-GeneralSolver::setRelativeTolerance(
-    double rel_residual_tol)
+void GeneralSolver::setRelativeTolerance(double rel_residual_tol)
 {
     d_rel_residual_tol = rel_residual_tol;
     return;
-}// setRelativeTolerance
+} // setRelativeTolerance
 
-double
-GeneralSolver::getRelativeTolerance() const
+double GeneralSolver::getRelativeTolerance() const
 {
     return d_rel_residual_tol;
-}// getRelativeTolerance
+} // getRelativeTolerance
 
-int
-GeneralSolver::getNumIterations() const
+int GeneralSolver::getNumIterations() const
 {
     return d_current_iterations;
-}// getNumIterations
+} // getNumIterations
 
-double
-GeneralSolver::getResidualNorm() const
+double GeneralSolver::getResidualNorm() const
 {
     return d_current_residual_norm;
-}// getResidualNorm
+} // getResidualNorm
 
-void
-GeneralSolver::setLoggingEnabled(
-    bool enable_logging)
+void GeneralSolver::setLoggingEnabled(bool enable_logging)
 {
     d_enable_logging = enable_logging;
     return;
-}// setLoggingEnabled
+} // setLoggingEnabled
 
-bool
-GeneralSolver::getLoggingEnabled() const
+bool GeneralSolver::getLoggingEnabled() const
 {
     return d_enable_logging;
-}// getLoggingEnabled
+} // getLoggingEnabled
 
-void
-GeneralSolver::printClassData(
-    std::ostream& stream)
+void GeneralSolver::printClassData(std::ostream& stream)
 {
     stream << "\n"
            << "object_name = " << d_object_name << "\n"
@@ -261,24 +228,21 @@ GeneralSolver::printClassData(
            << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
            << "enable_logging = " << d_enable_logging << "\n";
     return;
-}// printClassData
+} // printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-GeneralSolver::init(
-    const std::string& object_name,
-    bool homogeneous_bc)
+void GeneralSolver::init(const std::string& object_name, bool homogeneous_bc)
 {
-    d_object_name    = object_name;
+    d_object_name = object_name;
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// init
+} // init
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

@@ -72,8 +72,7 @@ public:
      *
      * \return A pointer to the solver manager instance.
      */
-    static NewtonKrylovSolverManager*
-    getManager();
+    static NewtonKrylovSolverManager* getManager();
 
     /*!
      * Deallocate the NewtonKrylovSolverManager instance.
@@ -81,24 +80,21 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeManager();
+    static void freeManager();
 
     /*!
      * Allocate a new NewtonKrylovSolver object of the specified type.
      */
     SAMRAI::tbox::Pointer<NewtonKrylovSolver>
-    allocateSolver(
-        const std::string& solver_type,
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix) const;
+    allocateSolver(const std::string& solver_type,
+                   const std::string& solver_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   const std::string& solver_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct NewtonKrylovSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<NewtonKrylovSolver>
-    (*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<NewtonKrylovSolver>(*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);
@@ -106,10 +102,8 @@ public:
     /*!
      * Register a solver factory function with the solver manager class.
      */
-    void
-    registerSolverFactoryFunction(
-        const std::string& solver_type,
-        SolverMaker solver_maker);
+    void registerSolverFactoryFunction(const std::string& solver_type,
+                                       SolverMaker solver_maker);
 
 protected:
     /*!
@@ -130,8 +124,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NewtonKrylovSolverManager(
-        const NewtonKrylovSolverManager& from);
+    NewtonKrylovSolverManager(const NewtonKrylovSolverManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -142,9 +135,7 @@ private:
      *
      * \return A reference to this object.
      */
-    NewtonKrylovSolverManager&
-    operator=(
-        const NewtonKrylovSolverManager& that);
+    NewtonKrylovSolverManager& operator=(const NewtonKrylovSolverManager& that);
 
     /*!
      * Static data members used to control access to and destruction of
@@ -157,9 +148,9 @@ private:
     /*!
      * Mapping from solver type names to solver maker functions.
      */
-    std::map<std::string,SolverMaker> d_solver_maker_map;
+    std::map<std::string, SolverMaker> d_solver_maker_map;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

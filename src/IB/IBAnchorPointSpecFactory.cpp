@@ -40,11 +40,14 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,37 +60,32 @@ IBAnchorPointSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBAnchorPointSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBAnchorPointSpec::Factory::getStreamableClassID() const
+int IBAnchorPointSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBAnchorPointSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
-Pointer<Streamable>
-IBAnchorPointSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream,
+                                                             const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
-    stream.unpack(&ret_val->d_node_idx,1);
+    stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

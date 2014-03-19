@@ -52,7 +52,7 @@ namespace IBTK
 PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     const std::string& object_name,
     const SNES& petsc_snes,
-    PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
+    PetscErrorCode (*const petsc_snes_form_func)(SNES, Vec, Vec, void*),
     void* const petsc_snes_func_ctx)
     : GeneralOperator(object_name),
       d_petsc_snes(petsc_snes),
@@ -65,66 +65,64 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
 {
     // intentionally blank
     return;
-}// PETScSNESFunctionGOWrapper()
+} // PETScSNESFunctionGOWrapper()
 
 PETScSNESFunctionGOWrapper::~PETScSNESFunctionGOWrapper()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~PETScSNESFunctionGOWrapper()
+} // ~PETScSNESFunctionGOWrapper()
 
-const SNES&
-PETScSNESFunctionGOWrapper::getPETScSNES() const
+const SNES& PETScSNESFunctionGOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;
-}// getPETScSNES
+} // getPETScSNES
 
-PetscErrorCode
-(*PETScSNESFunctionGOWrapper::getPETScSNESFormFunction())(SNES,Vec,Vec,void*)
+PetscErrorCode (*PETScSNESFunctionGOWrapper::getPETScSNESFormFunction())(SNES, Vec, Vec, void*)
 {
     return d_petsc_snes_form_func;
-}// getPETScSNESFormFunction
+} // getPETScSNESFormFunction
 
-void*
-PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
+void* PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
 {
     return d_petsc_snes_func_ctx;
-}// getPETScSNESFunctionContext
+} // getPETScSNESFunctionContext
 
-void
-PETScSNESFunctionGOWrapper::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x,
+                                       SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_is_initialized) initializeOperatorState(x,y);
+    if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(
+        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(
+        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
 
     // Apply the operator.
-    int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx); IBTK_CHKERRQ(ierr);
+    int ierr =
+        d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
+    IBTK_CHKERRQ(ierr);
     return;
-}// apply
+} // apply
 
 void
-PETScSNESFunctionGOWrapper::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                    const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
-    d_x = in .cloneVector("");
+    d_x = in.cloneVector("");
     d_y = out.cloneVector("");
     MPI_Comm comm;
-    int ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_snes), &comm);  IBTK_CHKERRQ(ierr);
+    int ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(d_petsc_snes), &comm);
+    IBTK_CHKERRQ(ierr);
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, comm);
     d_petsc_y = PETScSAMRAIVectorReal::createPETScVector(d_y, comm);
     d_is_initialized = true;
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-PETScSNESFunctionGOWrapper::deallocateOperatorState()
+void PETScSNESFunctionGOWrapper::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
@@ -135,10 +133,10 @@ PETScSNESFunctionGOWrapper::deallocateOperatorState()
     d_y.setNull();
     d_is_initialized = false;
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

@@ -41,14 +41,18 @@
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,8 +65,7 @@ namespace IBAMR
  * \note Anchored curvilinear mesh nodes are fixed in space and are not allowed
  * to spread force to the Cartesian grid.
  */
-class IBAnchorPointSpec
-    : public IBTK::Streamable
+class IBAnchorPointSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -74,15 +77,13 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBAnchorPointSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
 
     /*!
      * The unique class ID for this object type assigned by the
@@ -93,8 +94,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBAnchorPointSpec(
-        int node_idx=-1);
+    IBAnchorPointSpec(int node_idx = -1);
 
     /*!
      * \brief Destructor.
@@ -104,36 +104,30 @@ public:
     /*!
      * \return A const reference to the node index.
      */
-    const int&
-    getNodeIndex() const;
+    const int& getNodeIndex() const;
 
     /*!
      * \return A non-const reference to the node index.
      */
-    int&
-    getNodeIndex();
+    int& getNodeIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -143,8 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBAnchorPointSpec(
-        const IBAnchorPointSpec& from);
+    IBAnchorPointSpec(const IBAnchorPointSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -155,9 +148,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBAnchorPointSpec&
-    operator=(
-        const IBAnchorPointSpec& that);
+    IBAnchorPointSpec& operator=(const IBAnchorPointSpec& that);
 
     /*!
      * The Lagrangian index of the anchored curvilinear mesh node.
@@ -168,8 +159,7 @@ private:
      * \brief A factory class to rebuild IBAnchorPointSpec objects from
      * SAMRAI::tbox::AbstractStream data streams.
      */
-    class Factory
-        : public IBTK::StreamableFactory
+    class Factory : public IBTK::StreamableFactory
     {
     public:
         /*!
@@ -182,26 +172,22 @@ private:
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBAnchorPointSpec objects from data streams.
          */
-        int
-        getStreamableClassID() const;
+        int getStreamableClassID() const;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBAnchorPointSpec objects from data streams.
          */
-        void
-        setStreamableClassID(
-            int class_id);
+        void setStreamableClassID(int class_id);
 
         /*!
          * \brief Build an IBAnchorPointSpec object by unpacking data from the data
          * stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(
-            SAMRAI::tbox::AbstractStream& stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset);
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!
@@ -216,8 +202,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(
-            const Factory& from);
+        Factory(const Factory& from);
 
         /*!
          * \brief Assignment operator.
@@ -228,15 +213,13 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory&
-        operator=(
-            const Factory& that);
+        Factory& operator=(const Factory& that);
 
         friend class IBAnchorPointSpec;
     };
     typedef IBAnchorPointSpec::Factory IBAnchorPointSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

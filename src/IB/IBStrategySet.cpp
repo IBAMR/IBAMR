@@ -42,18 +42,25 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class IBHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace tbox {
-template <class TYPE> class Array;
-}  // namespace tbox
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace tbox
+{
+template <class TYPE>
+class Array;
+} // namespace tbox
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -67,260 +74,267 @@ IBStrategySet::~IBStrategySet()
 {
     // intentionally blank
     return;
-}// ~IBStrategySet
+} // ~IBStrategySet
 
-void
-IBStrategySet::registerIBHierarchyIntegrator(
-    IBHierarchyIntegrator* ib_solver)
+void IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->registerIBHierarchyIntegrator(ib_solver);
     }
     return;
-}// registerIBHierarchyIntegrator
+} // registerIBHierarchyIntegrator
 
-void
-IBStrategySet::registerEulerianVariables()
+void IBStrategySet::registerEulerianVariables()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->registerEulerianVariables();
     }
     return;
-}// registerEulerianVariables
+} // registerEulerianVariables
 
-void
-IBStrategySet::registerEulerianCommunicationAlgorithms()
+void IBStrategySet::registerEulerianCommunicationAlgorithms()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->registerEulerianCommunicationAlgorithms();
     }
     return;
-}// registerEulerianCommunicationAlgorithms
+} // registerEulerianCommunicationAlgorithms
 
-const IntVector<NDIM>&
-IBStrategySet::getMinimumGhostCellWidth() const
+const IntVector<NDIM>& IBStrategySet::getMinimumGhostCellWidth() const
 {
     static IntVector<NDIM> ghost_cell_width = 0;
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        ghost_cell_width = IntVector<NDIM>::max(ghost_cell_width,(*cit)->getMinimumGhostCellWidth());
+        ghost_cell_width =
+            IntVector<NDIM>::max(ghost_cell_width, (*cit)->getMinimumGhostCellWidth());
     }
     return ghost_cell_width;
-}// getMinimumGhostCellWidth
+} // getMinimumGhostCellWidth
 
-void
-IBStrategySet::setupTagBuffer(
-    Array<int>& tag_buffer,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer,
+                                   Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->setupTagBuffer(tag_buffer, gridding_alg);
     }
     return;
-}// setupTagBuffer
+} // setupTagBuffer
 
 void
-IBStrategySet::preprocessIntegrateData(
-    double current_time,
-    double new_time,
-    int num_cycles)
+IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->preprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
-}// preprocessIntegrateData
+} // preprocessIntegrateData
 
 void
-IBStrategySet::postprocessIntegrateData(
-    double current_time,
-    double new_time,
-    int num_cycles)
+IBStrategySet::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->postprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
-}// postprocessIntegrateData
+} // postprocessIntegrateData
 
-void
-IBStrategySet::updateFixedLEOperators()
+void IBStrategySet::updateFixedLEOperators()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->updateFixedLEOperators();
     }
     return;
-}// updateFixedLEOperators
+} // updateFixedLEOperators
 
-void
-IBStrategySet::interpolateVelocity(
+void IBStrategySet::interpolateVelocity(
     int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
     double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
+        (*cit)
+            ->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
     }
     return;
-}// interpolateVelocity
+} // interpolateVelocity
 
-void
-IBStrategySet::IBStrategySet::eulerStep(
-    double current_time,
-    double new_time)
+void IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->eulerStep(current_time, new_time);
     }
     return;
-}// eulerStep
+} // eulerStep
 
-void
-IBStrategySet::midpointStep(
-    double current_time,
-    double new_time)
+void IBStrategySet::midpointStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->midpointStep(current_time, new_time);
     }
     return;
-}// midpointStep
+} // midpointStep
 
-void
-IBStrategySet::trapezoidalStep(
-    double current_time,
-    double new_time)
+void IBStrategySet::trapezoidalStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->trapezoidalStep(current_time, new_time);
     }
     return;
-}// trapezoidalStep
+} // trapezoidalStep
 
-void
-IBStrategySet::computeLagrangianForce(
-    double data_time)
+void IBStrategySet::computeLagrangianForce(double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->computeLagrangianForce(data_time);
     }
     return;
-}// computeLagrangianForce
+} // computeLagrangianForce
 
-void
-IBStrategySet::spreadForce(
+void IBStrategySet::spreadForce(
     int f_data_idx,
     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
     }
     return;
-}// spreadForce
+} // spreadForce
 
-bool
-IBStrategySet::hasFluidSources() const
+bool IBStrategySet::hasFluidSources() const
 {
     bool has_fluid_sources = false;
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         has_fluid_sources = has_fluid_sources || (*cit)->hasFluidSources();
     }
     return has_fluid_sources;
-}// hasFluidSources
+} // hasFluidSources
 
-void
-IBStrategySet::computeLagrangianFluidSource(
-    double data_time)
+void IBStrategySet::computeLagrangianFluidSource(double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->computeLagrangianFluidSource(data_time);
     }
     return;
-}// computeLagrangianFluidSource
+} // computeLagrangianFluidSource
 
-void
-IBStrategySet::spreadFluidSource(
+void IBStrategySet::spreadFluidSource(
     int q_data_idx,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& q_prolongation_scheds,
     double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->spreadFluidSource(q_data_idx, q_prolongation_scheds, data_time);
     }
     return;
-}// spreadFluidSource
+} // spreadFluidSource
 
-void
-IBStrategySet::interpolatePressure(
+void IBStrategySet::interpolatePressure(
     int p_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& p_synch_scheds,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
     double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
+        (*cit)
+            ->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
     }
     return;
-}// interpolatePressure
+} // interpolatePressure
 
-void
-IBStrategySet::preprocessSolveFluidEquations(
-    double current_time,
-    double new_time,
-    int cycle_num)
+void IBStrategySet::preprocessSolveFluidEquations(double current_time,
+                                                  double new_time,
+                                                  int cycle_num)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
-}// preprocessSolveFluidEquations
+} // preprocessSolveFluidEquations
 
-void
-IBStrategySet::postprocessSolveFluidEquations(
-    double current_time,
-    double new_time,
-    int cycle_num)
+void IBStrategySet::postprocessSolveFluidEquations(double current_time,
+                                                   double new_time,
+                                                   int cycle_num)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
-}// postprocessSolveFluidEquations
+} // postprocessSolveFluidEquations
 
-void
-IBStrategySet::postprocessData()
+void IBStrategySet::postprocessData()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->postprocessData();
     }
     return;
-}// postprocessData
+} // postprocessData
 
-void
-IBStrategySet::initializePatchHierarchy(
+void IBStrategySet::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
     int u_data_idx,
@@ -330,117 +344,137 @@ IBStrategySet::initializePatchHierarchy(
     double init_data_time,
     bool initial_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds, integrator_step, init_data_time, initial_time);
+        (*cit)->initializePatchHierarchy(hierarchy,
+                                         gridding_alg,
+                                         u_data_idx,
+                                         u_synch_scheds,
+                                         u_ghost_fill_scheds,
+                                         integrator_step,
+                                         init_data_time,
+                                         initial_time);
     }
     return;
-}// initializePatchHierarchy
+} // initializePatchHierarchy
 
-void
-IBStrategySet::registerLoadBalancer(
-    Pointer<LoadBalancer<NDIM> > load_balancer,
-    int workload_data_idx)
+void IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
+                                         int workload_data_idx)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->registerLoadBalancer(load_balancer, workload_data_idx);
     }
     return;
-}// registerLoadBalancer
+} // registerLoadBalancer
 
-void
-IBStrategySet::updateWorkloadEstimates(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    int workload_data_idx)
+void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                            int workload_data_idx)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->updateWorkloadEstimates(hierarchy, workload_data_idx);
     }
     return;
-}// updateWorkloadEstimates
+} // updateWorkloadEstimates
 
-void
-IBStrategySet::beginDataRedistribution(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->beginDataRedistribution(hierarchy, gridding_alg);
     }
     return;
-}// beginDataRedistribution
+} // beginDataRedistribution
 
-void
-IBStrategySet::endDataRedistribution(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->endDataRedistribution(hierarchy, gridding_alg);
     }
     return;
-}// endDataRedistribution
+} // endDataRedistribution
 
-void
-IBStrategySet::initializeLevelData(
-    Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    int level_number,
-    double init_data_time,
-    bool can_be_refined,
-    bool initial_time,
-    Pointer<BasePatchLevel<NDIM> > old_level,
-    bool allocate_data)
+void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                        int level_number,
+                                        double init_data_time,
+                                        bool can_be_refined,
+                                        bool initial_time,
+                                        Pointer<BasePatchLevel<NDIM> > old_level,
+                                        bool allocate_data)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        (*cit)->initializeLevelData(hierarchy,
+                                    level_number,
+                                    init_data_time,
+                                    can_be_refined,
+                                    initial_time,
+                                    old_level,
+                                    allocate_data);
     }
     return;
-}// initializeLevelData
+} // initializeLevelData
 
-void
-IBStrategySet::resetHierarchyConfiguration(
-    Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    int coarsest_level,
-    int finest_level)
+void IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                int coarsest_level,
+                                                int finest_level)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
-}// resetHierarchyConfiguration
+} // resetHierarchyConfiguration
 
-void
-IBStrategySet::applyGradientDetector(
-    Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    int level_number,
-    double error_data_time,
-    int tag_index,
-    bool initial_time,
-    bool uses_richardson_extrapolation_too)
+void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                          int level_number,
+                                          double error_data_time,
+                                          int tag_index,
+                                          bool initial_time,
+                                          bool uses_richardson_extrapolation_too)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        (*cit)->applyGradientDetector(hierarchy,
+                                      level_number,
+                                      error_data_time,
+                                      tag_index,
+                                      initial_time,
+                                      uses_richardson_extrapolation_too);
     }
     return;
-}// applyGradientDetector
+} // applyGradientDetector
 
-void
-IBStrategySet::putToDatabase(
-    Pointer<Database> db)
+void IBStrategySet::putToDatabase(Pointer<Database> db)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->putToDatabase(db);
     }
     return;
-}// putToDatabase
+} // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

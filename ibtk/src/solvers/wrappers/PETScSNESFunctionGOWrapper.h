@@ -53,8 +53,7 @@ namespace IBTK
  * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
  * function.
  */
-class PETScSNESFunctionGOWrapper
-    : public GeneralOperator
+class PETScSNESFunctionGOWrapper : public GeneralOperator
 {
 public:
     /*!
@@ -63,11 +62,10 @@ public:
      * Construct a general operator wrapper corresponding to the provided PETSc
      * SNES function object.
      */
-    PETScSNESFunctionGOWrapper(
-        const std::string& object_name,
-        const SNES& petsc_snes,
-        PetscErrorCode (*petsc_snes_form_func)(SNES,Vec,Vec,void*),
-        void* petsc_snes_func_ctx);
+    PETScSNESFunctionGOWrapper(const std::string& object_name,
+                               const SNES& petsc_snes,
+                               PetscErrorCode (*petsc_snes_form_func)(SNES, Vec, Vec, void*),
+                               void* petsc_snes_func_ctx);
 
     /*!
      * \brief Destructor.
@@ -82,22 +80,19 @@ public:
     /*!
      * \brief Get the PETSc SNES object "wrapped" by this object.
      */
-    const SNES&
-    getPETScSNES() const;
+    const SNES& getPETScSNES() const;
 
     /*!
      * \brief Get the function pointer to the PETSc SNES function "wrapped" by
      * this object.
      */
-    PetscErrorCode
-    (*getPETScSNESFormFunction())(SNES,Vec,Vec,void*);
+    PetscErrorCode (*getPETScSNESFormFunction())(SNES, Vec, Vec, void*);
 
     /*!
      * \brief Get the PETSc SNES function context object "wrapped" by this
      * object.
      */
-    void*
-    getPETScSNESFunctionContext() const;
+    void* getPETScSNESFunctionContext() const;
 
     //\}
 
@@ -128,10 +123,8 @@ public:
      * \param x input
      * \param y output: y=F[x]
      */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x].
@@ -162,10 +155,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -177,8 +168,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -197,8 +187,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESFunctionGOWrapper(
-        const PETScSNESFunctionGOWrapper& from);
+    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from);
 
     /*!
      * \brief Assignment operator.
@@ -209,17 +198,15 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESFunctionGOWrapper&
-    operator=(
-        const PETScSNESFunctionGOWrapper& that);
+    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that);
 
     const SNES d_petsc_snes;
-    PetscErrorCode (* const d_petsc_snes_form_func)(SNES,Vec,Vec,void*);
+    PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);
     void* const d_petsc_snes_func_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y;
     Vec d_petsc_x, d_petsc_y;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

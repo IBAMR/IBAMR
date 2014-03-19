@@ -45,8 +45,7 @@ namespace IBAMR
  * \brief Class IBImplicitStrategy provides a generic interface for specifying
  * the implementation details of a particular implicit version of the IB method.
  */
-class IBImplicitStrategy
-    : public IBStrategy
+class IBImplicitStrategy : public IBStrategy
 {
 public:
     /*!
@@ -57,90 +56,71 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~IBImplicitStrategy();
+    virtual ~IBImplicitStrategy();
 
     /*!
      * Create solution and rhs data.
      */
-    virtual void
-    createSolverVecs(
-        Vec& X_vec,
-        Vec& F_vec) = 0;
+    virtual void createSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
 
     /*!
      * Setup solution and rhs data.
      */
-    virtual void
-    setupSolverVecs(
-        Vec& X_vec,
-        Vec& F_vec) = 0;
-    
+    virtual void setupSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
+
     /*!
      * Set the value of the updated position vector.
      */
-    virtual void
-    setUpdatedPosition(
-        Vec& X_new_vec) = 0;
-    
+    virtual void setUpdatedPosition(Vec& X_new_vec) = 0;
+
     /*!
      * Set the value of the intermediate position vector used in evaluating the
      * linearized problem.
      */
-    virtual void
-    setLinearizedPosition(
-        Vec& X_vec) = 0;
+    virtual void setLinearizedPosition(Vec& X_vec) = 0;
 
     /*!
      * Compute the nonlinear residual.
      */
-    virtual void
-    computeResidual(
-        Vec& R_vec) = 0;
+    virtual void computeResidual(Vec& R_vec) = 0;
 
     /*!
      * Compute the linearized residual for the given intermediate position
      * vector.
      */
-    virtual void
-    computeLinearizedResidual(
-        Vec& X_vec,
-        Vec& R_vec) = 0;
+    virtual void computeLinearizedResidual(Vec& X_vec, Vec& R_vec) = 0;
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval for use in evaluating the
      * residual of the linearized problem.
      */
-    virtual void
-    interpolateLinearizedVelocity(
+    virtual void interpolateLinearizedVelocity(
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+            u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+            u_ghost_fill_scheds,
         double data_time) = 0;
 
     /*!
      * Compute the Lagrangian force of the linearized problem for the specified
      * configuration of the updated position vector.
      */
-    virtual void
-    computeLinearizedLagrangianForce(
-        Vec& X_vec,
-        double data_time) = 0;
+    virtual void computeLinearizedLagrangianForce(Vec& X_vec, double data_time) = 0;
 
     /*!
      * Spread the Lagrangian force of the linearized problem to the Cartesian
      * grid at the specified time within the current time interval.
      */
-    virtual void
-    spreadLinearizedForce(
+    virtual void spreadLinearizedForce(
         int f_data_idx,
         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+            f_prolongation_scheds,
         double data_time) = 0;
-    
-protected:
 
+protected:
 private:
     /*!
      * \brief Copy constructor.
@@ -149,8 +129,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitStrategy(
-        const IBImplicitStrategy& from);
+    IBImplicitStrategy(const IBImplicitStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -161,11 +140,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitStrategy&
-    operator=(
-        const IBImplicitStrategy& that);
+    IBImplicitStrategy& operator=(const IBImplicitStrategy& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

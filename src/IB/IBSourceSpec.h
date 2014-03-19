@@ -41,14 +41,18 @@
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,8 +62,7 @@ namespace IBAMR
  * \brief Class IBSourceSpec encapsulates the data required to initialize
  * distributed internal sources and sinks.
  */
-class IBSourceSpec
-    : public IBTK::Streamable
+class IBSourceSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -71,15 +74,13 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBSourceSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
 
     /*!
      * The unique class ID for this object type assigned by the
@@ -90,9 +91,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBSourceSpec(
-        int master_idx=-1,
-        int source_idx=-1);
+    IBSourceSpec(int master_idx = -1, int source_idx = -1);
 
     /*!
      * \brief Destructor.
@@ -102,50 +101,42 @@ public:
     /*!
      * \return A const reference to the master node index.
      */
-    const int&
-    getMasterNodeIndex() const;
+    const int& getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int&
-    getMasterNodeIndex();
+    int& getMasterNodeIndex();
 
     /*!
      * \return A const reference to the source index associated with the master
      * node.
      */
-    const int&
-    getSourceIndex() const;
+    const int& getSourceIndex() const;
 
     /*!
      * \return A non-const reference to the source index associated with the
      * master node.
      */
-    int&
-    getSourceIndex();
+    int& getSourceIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -155,8 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBSourceSpec(
-        const IBSourceSpec& from);
+    IBSourceSpec(const IBSourceSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -167,9 +157,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSourceSpec&
-    operator=(
-        const IBSourceSpec& that);
+    IBSourceSpec& operator=(const IBSourceSpec& that);
 
     /*!
      * Data required to define the source.
@@ -180,8 +168,7 @@ private:
      * \brief A factory class to rebuild IBSourceSpec objects from
      * SAMRAI::tbox::AbstractStream data streams.
      */
-    class Factory
-        : public IBTK::StreamableFactory
+    class Factory : public IBTK::StreamableFactory
     {
     public:
         /*!
@@ -194,26 +181,22 @@ private:
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSourceSpec objects from data streams.
          */
-        int
-        getStreamableClassID() const;
+        int getStreamableClassID() const;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBSourceSpec objects from data streams.
          */
-        void
-        setStreamableClassID(
-            int class_id);
+        void setStreamableClassID(int class_id);
 
         /*!
          * \brief Build an IBSourceSpec object by unpacking data from the
          * data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(
-            SAMRAI::tbox::AbstractStream& stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset);
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!
@@ -228,8 +211,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(
-            const Factory& from);
+        Factory(const Factory& from);
 
         /*!
          * \brief Assignment operator.
@@ -240,15 +222,13 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory&
-        operator=(
-            const Factory& that);
+        Factory& operator=(const Factory& that);
 
         friend class IBSourceSpec;
     };
     typedef IBSourceSpec::Factory IBSourceSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

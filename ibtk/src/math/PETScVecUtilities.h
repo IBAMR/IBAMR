@@ -40,14 +40,19 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace xfer {
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace xfer
+{
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,18 +76,16 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void
-    copyToPatchLevelVec(
-        Vec& vec,
-        int data_idx,
-        int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    copyToPatchLevelVec(Vec& vec,
+                        int data_idx,
+                        int dof_index_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Copy data from a parallel PETSc Vec on the provided
      * SAMRAI::hier::PatchLevel.
      */
-    static void
-    copyFromPatchLevelVec(
+    static void copyFromPatchLevelVec(
         Vec& vec,
         int data_idx,
         int dof_index_idx,
@@ -121,8 +124,7 @@ public:
      * \note DOF indices are \em not assigned to ghost cell values by this
      * method.
      */
-    static void
-    constructPatchLevelDOFIndices(
+    static void constructPatchLevelDOFIndices(
         std::vector<int>& num_dofs_per_proc,
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
@@ -130,7 +132,6 @@ public:
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -146,8 +147,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScVecUtilities(
-        const PETScVecUtilities& from);
+    PETScVecUtilities(const PETScVecUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -158,15 +158,12 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScVecUtilities&
-    operator=(
-        const PETScVecUtilities& that);
+    PETScVecUtilities& operator=(const PETScVecUtilities& that);
 
     /*!
      * \brief Implementation of copyToPatchLevelVec() for cell-centered data.
      */
-    static void
-    copyToPatchLevelVec_cell(
+    static void copyToPatchLevelVec_cell(
         Vec& vec,
         int data_idx,
         int dof_index_idx,
@@ -175,8 +172,7 @@ private:
     /*!
      * \brief Implementation of copyToPatchLevelVec() for side-centered data.
      */
-    static void
-    copyToPatchLevelVec_side(
+    static void copyToPatchLevelVec_side(
         Vec& vec,
         int data_idx,
         int dof_index_idx,
@@ -185,8 +181,7 @@ private:
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for cell-centered data.
      */
-    static void
-    copyFromPatchLevelVec_cell(
+    static void copyFromPatchLevelVec_cell(
         Vec& vec,
         int data_idx,
         int dof_index_idx,
@@ -195,8 +190,7 @@ private:
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for side-centered data.
      */
-    static void
-    copyFromPatchLevelVec_side(
+    static void copyFromPatchLevelVec_side(
         Vec& vec,
         int data_idx,
         int dof_index_idx,
@@ -206,8 +200,7 @@ private:
      * \brief Implementation of constructPatchLevelDOFIndices() for
      * cell-centered data.
      */
-    static void
-    constructPatchLevelDOFIndices_cell(
+    static void constructPatchLevelDOFIndices_cell(
         std::vector<int>& num_dofs_proc,
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
@@ -216,13 +209,12 @@ private:
      * \brief Implementation of constructPatchLevelDOFIndices() for
      * side-centered data.
      */
-    static void
-    constructPatchLevelDOFIndices_side(
+    static void constructPatchLevelDOFIndices_side(
         std::vector<int>& num_dofs_proc,
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -81,14 +81,20 @@
 #define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd2d, CTOCGRADADD2D)
 
 #define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace2d, CTOCANISOFLAPLACE2D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC                                                         \
+    IBTK_FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC                                                      \
+    IBTK_FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC                                                  \
+    IBTK_FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
 
 #define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace2d, CTOCANISOSLAPLACE2D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC                                                         \
+    IBTK_FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC                                                      \
+    IBTK_FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC                                                  \
+    IBTK_FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
 
 #define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad2d, CTOFGRAD2D)
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux2d, CTOFFLUX2D)
@@ -143,14 +149,20 @@
 #define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd3d, CTOCGRADADD3D)
 
 #define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace3d, CTOCANISOFLAPLACE3D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC                                                         \
+    IBTK_FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC                                                      \
+    IBTK_FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC                                                  \
+    IBTK_FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
 
 #define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace3d, CTOCANISOSLAPLACE3D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC                                                         \
+    IBTK_FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC                                                      \
+    IBTK_FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC                                                  \
+    IBTK_FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
 
 #define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad3d, CTOFGRAD3D)
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux3d, CTOFFLUX3D)
@@ -183,794 +195,989 @@
 #define E_TO_S_ROT_FC IBTK_FC_FUNC(etosrot3d, ETOSROT3D)
 #endif // if (NDIM == 3)
 
-extern "C"
-{
-    void
-    LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+extern "C" {
+void LAPLACE_FC(double* F,
+                const int& F_gcw,
+                const double& alpha,
+                const double* U,
+                const int& U_gcw,
+                const int& ilower0,
+                const int& iupper0,
+                const int& ilower1,
+                const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                const int& ilower2,
+                const int& iupper2,
 #endif
-        const double* dx);
+                const double* dx);
 
-    void
-    LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void LAPLACE_ADD_FC(double* F,
+                    const int& F_gcw,
+                    const double& alpha,
+                    const double* U,
+                    const int& U_gcw,
+                    const double& beta,
+                    const double* V,
+                    const int& V_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    DAMPED_LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double& alpha, const double& beta,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void DAMPED_LAPLACE_FC(double* F,
+                       const int& F_gcw,
+                       const double& alpha,
+                       const double& beta,
+                       const double* U,
+                       const int& U_gcw,
+                       const int& ilower0,
+                       const int& iupper0,
+                       const int& ilower1,
+                       const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                       const int& ilower2,
+                       const int& iupper2,
 #endif
-        const double* dx);
+                       const double* dx);
 
-    void
-    DAMPED_LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double& alpha, const double& beta,
-        const double* U, const int& U_gcw,
-        const double& gamma,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void DAMPED_LAPLACE_ADD_FC(double* F,
+                           const int& F_gcw,
+                           const double& alpha,
+                           const double& beta,
+                           const double* U,
+                           const int& U_gcw,
+                           const double& gamma,
+                           const double* V,
+                           const int& V_gcw,
+                           const int& ilower0,
+                           const int& iupper0,
+                           const int& ilower1,
+                           const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                           const int& ilower2,
+                           const int& iupper2,
 #endif
-        const double* dx);
+                           const double* dx);
 
-
-
-    void
-    C_TO_C_CURL_FC(
-        double* W, const int& W_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void C_TO_C_CURL_FC(double* W,
+                    const int& W_gcw,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    C_TO_C_DIV_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void C_TO_C_DIV_FC(double* D,
+                   const int& D_gcw,
+                   const double& alpha,
+                   const double* U,
+                   const int& U_gcw,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                   const int& ilower2,
+                   const int& iupper2,
 #endif
-        const double* dx);
+                   const double* dx);
 
-    void
-    C_TO_C_DIV_ADD_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void C_TO_C_DIV_ADD_FC(double* D,
+                       const int& D_gcw,
+                       const double& alpha,
+                       const double* U,
+                       const int& U_gcw,
+                       const double& beta,
+                       const double* V,
+                       const int& V_gcw,
+                       const int& ilower0,
+                       const int& iupper0,
+                       const int& ilower1,
+                       const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                       const int& ilower2,
+                       const int& iupper2,
 #endif
-        const double* dx);
+                       const double* dx);
 
-    void
-    C_TO_C_GRAD_FC(
-        double* G, const int& G_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void C_TO_C_GRAD_FC(double* G,
+                    const int& G_gcw,
+                    const double& alpha,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    C_TO_C_GRAD_ADD_FC(
-        double* G, const int& G_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void C_TO_C_GRAD_ADD_FC(double* G,
+                        const int& G_gcw,
+                        const double& alpha,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* V,
+                        const int& V_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                        const int& ilower2,
+                        const int& iupper2,
 #endif
-        const double* dx);
+                        const double* dx);
 
-
-
-    void
-    MULTIPLY1_FC(
-        double* U, const int& U_gcw,
-        const double& alpha,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
+void MULTIPLY1_FC(double* U,
+                  const int& U_gcw,
+                  const double& alpha,
+                  const double* V,
+                  const int& V_gcw,
+                  const int& ilower0,
+                  const int& iupper0,
+                  const int& ilower1,
+                  const int& iupper1
 #if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                 );
-
-    void
-    MULTIPLY_ADD1_FC(
-        double* U, const int& U_gcw,
-        const double& alpha,
-        const double* V, const int& V_gcw,
-        const double& beta,
-        const double* W, const int& W_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-    void
-    MULTIPLY2_FC(
-        double* U, const int& U_gcw,
-        const double* A, const int& A_gcw,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                 );
-
-    void
-    MULTIPLY_ADD2_FC(
-        double* U, const int& U_gcw,
-        const double* A, const int& A_gcw,
-        const double* V, const int& V_gcw,
-        const double& beta,
-        const double* W, const int& W_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-    void
-    MULTIPLY_ADD3_FC(
-        double* U, const int& U_gcw,
-        const double* A, const int& A_gcw,
-        const double* V, const int& V_gcw,
-        const double* B, const int& B_gcw,
-        const double* W, const int& W_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-
-
-    void
-    PW_L1_NORM_FC(
-        double* U, const int& U_gcw,
-        const double* V, const int& V_gcw, const int& V_depth,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
+                  ,
+                  const int& ilower2,
+                  const int& iupper2
 #endif
                   );
 
-    void
-    PW_L2_NORM_FC(
-        double* U, const int& U_gcw,
-        const double* V, const int& V_gcw, const int& V_depth,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
+void MULTIPLY_ADD1_FC(double* U,
+                      const int& U_gcw,
+                      const double& alpha,
+                      const double* V,
+                      const int& V_gcw,
+                      const double& beta,
+                      const double* W,
+                      const int& W_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
 #if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
+#endif
+                      );
+
+void MULTIPLY2_FC(double* U,
+                  const int& U_gcw,
+                  const double* A,
+                  const int& A_gcw,
+                  const double* V,
+                  const int& V_gcw,
+                  const int& ilower0,
+                  const int& iupper0,
+                  const int& ilower1,
+                  const int& iupper1
+#if (NDIM == 3)
+                  ,
+                  const int& ilower2,
+                  const int& iupper2
 #endif
                   );
 
-    void
-    PW_MAX_NORM_FC(
-        double* U, const int& U_gcw,
-        const double* V, const int& V_gcw, const int& V_depth,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
+void MULTIPLY_ADD2_FC(double* U,
+                      const int& U_gcw,
+                      const double* A,
+                      const int& A_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const double& beta,
+                      const double* W,
+                      const int& W_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
 #if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
+#endif
+                      );
+
+void MULTIPLY_ADD3_FC(double* U,
+                      const int& U_gcw,
+                      const double* A,
+                      const int& A_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const double* B,
+                      const int& B_gcw,
+                      const double* W,
+                      const int& W_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
+#if (NDIM == 3)
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
+#endif
+                      );
+
+void PW_L1_NORM_FC(double* U,
+                   const int& U_gcw,
+                   const double* V,
+                   const int& V_gcw,
+                   const int& V_depth,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1
+#if (NDIM == 3)
+                   ,
+                   const int& ilower2,
+                   const int& iupper2
 #endif
                    );
 
+void PW_L2_NORM_FC(double* U,
+                   const int& U_gcw,
+                   const double* V,
+                   const int& V_gcw,
+                   const int& V_depth,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1
+#if (NDIM == 3)
+                   ,
+                   const int& ilower2,
+                   const int& iupper2
+#endif
+                   );
 
+void PW_MAX_NORM_FC(double* U,
+                    const int& U_gcw,
+                    const double* V,
+                    const int& V_gcw,
+                    const int& V_depth,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1
+#if (NDIM == 3)
+                    ,
+                    const int& ilower2,
+                    const int& iupper2
+#endif
+                    );
 
-    void
-    C_TO_C_ANISO_F_LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_F_LAPLACE_FC(double* F,
+                               const int& F_gcw,
+                               const double* alpha0,
+                               const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                               const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                               const int& alpha_gcw,
+                               const double* U,
+                               const int& U_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                               const int& ilower2,
+                               const int& iupper2,
 #endif
-        const double* dx);
+                               const double* dx);
 
-    void
-    C_TO_C_ANISO_F_LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_F_LAPLACE_ADD_FC(double* F,
+                                   const int& F_gcw,
+                                   const double* alpha0,
+                                   const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                                   const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                                   const int& alpha_gcw,
+                                   const double* U,
+                                   const int& U_gcw,
+                                   const double& beta,
+                                   const double* V,
+                                   const int& V_gcw,
+                                   const int& ilower0,
+                                   const int& iupper0,
+                                   const int& ilower1,
+                                   const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                                   const int& ilower2,
+                                   const int& iupper2,
 #endif
-        const double* dx);
+                                   const double* dx);
 
-    void
-    C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(double* F,
+                                      const int& F_gcw,
+                                      const double* alpha0,
+                                      const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                                      const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double& beta,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                                      const int& alpha_gcw,
+                                      const double& beta,
+                                      const double* U,
+                                      const int& U_gcw,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-        const double* dx);
+                                      const double* dx);
 
-    void
-    C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(double* F,
+                                          const int& F_gcw,
+                                          const double* alpha0,
+                                          const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                                          const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double& beta,
-        const double* U, const int& U_gcw,
-        const double& gamma,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                                          const int& alpha_gcw,
+                                          const double& beta,
+                                          const double* U,
+                                          const int& U_gcw,
+                                          const double& gamma,
+                                          const double* V,
+                                          const int& V_gcw,
+                                          const int& ilower0,
+                                          const int& iupper0,
+                                          const int& ilower1,
+                                          const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                                          const int& ilower2,
+                                          const int& iupper2,
 #endif
-        const double* dx);
+                                          const double* dx);
 
+void C_TO_C_ANISO_S_LAPLACE_FC(double* F,
+                               const int& F_gcw,
+                               const double* alpha0,
+                               const double* alpha1,
+#if (NDIM == 3)
+                               const double* alpha2,
+#endif
+                               const int& alpha_gcw,
+                               const double* U,
+                               const int& U_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
+#if (NDIM == 3)
+                               const int& ilower2,
+                               const int& iupper2,
+#endif
+                               const double* dx);
 
+void C_TO_C_ANISO_S_LAPLACE_ADD_FC(double* F,
+                                   const int& F_gcw,
+                                   const double* alpha0,
+                                   const double* alpha1,
+#if (NDIM == 3)
+                                   const double* alpha2,
+#endif
+                                   const int& alpha_gcw,
+                                   const double* U,
+                                   const int& U_gcw,
+                                   const double& beta,
+                                   const double* V,
+                                   const int& V_gcw,
+                                   const int& ilower0,
+                                   const int& iupper0,
+                                   const int& ilower1,
+                                   const int& iupper1,
+#if (NDIM == 3)
+                                   const int& ilower2,
+                                   const int& iupper2,
+#endif
+                                   const double* dx);
 
-    void
-    C_TO_C_ANISO_S_LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(double* F,
+                                      const int& F_gcw,
+                                      const double* alpha0,
+                                      const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                                      const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                                      const int& alpha_gcw,
+                                      const double& beta,
+                                      const double* U,
+                                      const int& U_gcw,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                                      const int& ilower2,
+                                      const int& iupper2,
 #endif
-        const double* dx);
+                                      const double* dx);
 
-    void
-    C_TO_C_ANISO_S_LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(double* F,
+                                          const int& F_gcw,
+                                          const double* alpha0,
+                                          const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                                          const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                                          const int& alpha_gcw,
+                                          const double& beta,
+                                          const double* U,
+                                          const int& U_gcw,
+                                          const double& gamma,
+                                          const double* V,
+                                          const int& V_gcw,
+                                          const int& ilower0,
+                                          const int& iupper0,
+                                          const int& ilower1,
+                                          const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                                          const int& ilower2,
+                                          const int& iupper2,
 #endif
-        const double* dx);
+                                          const double* dx);
 
-    void
-    C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_F_GRAD_FC(double* g0,
+                    double* g1,
 #if (NDIM == 3)
-        const double* alpha2,
+                    double* g2,
 #endif
-        const int& alpha_gcw,
-        const double& beta,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                    const int& g_gcw,
+                    const double& alpha,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(
-        double* F, const int& F_gcw,
-        const double* alpha0, const double* alpha1,
+void C_TO_F_FLUX_FC(double* g0,
+                    double* g1,
 #if (NDIM == 3)
-        const double* alpha2,
+                    double* g2,
 #endif
-        const int& alpha_gcw,
-        const double& beta,
-        const double* U, const int& U_gcw,
-        const double& gamma,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                    const int& g_gcw,
+                    const double* alpha0,
+                    const double* alpha1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const double* alpha2,
 #endif
-        const double* dx);
+                    const int& alpha_gcw,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+#if (NDIM == 3)
+                    const int& ilower2,
+                    const int& iupper2,
+#endif
+                    const double* dx);
 
+void C_TO_F_ANISO_FLUX_FC(double* g0,
+                          double* g1,
+#if (NDIM == 3)
+                          double* g2,
+#endif
+                          const int& g_gcw,
+                          const double* alpha0,
+                          const double* alpha1,
+#if (NDIM == 3)
+                          const double* alpha2,
+#endif
+                          const int& alpha_gcw,
+                          const double* U,
+                          const int& U_gcw,
+                          const int& ilower0,
+                          const int& iupper0,
+                          const int& ilower1,
+                          const int& iupper1,
+#if (NDIM == 3)
+                          const int& ilower2,
+                          const int& iupper2,
+#endif
+                          const double* dx);
 
+void C_TO_F_GRAD_ADD_FC(double* g0,
+                        double* g1,
+#if (NDIM == 3)
+                        double* g2,
+#endif
+                        const int& g_gcw,
+                        const double& alpha,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
+#if (NDIM == 3)
+                        const double* v2,
+#endif
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
 
-    void
-    C_TO_F_GRAD_FC(
-        double* g0, double* g1,
+void C_TO_F_INTERP_FC(double* u0,
+                      double* u1,
 #if (NDIM == 3)
-        double* g2,
+                      double* u2,
 #endif
-        const int& g_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                      const int& u_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
 #endif
-        const double* dx);
+                      );
 
-    void
-    C_TO_F_FLUX_FC(
-        double* g0, double* g1,
+void C_TO_S_GRAD_FC(double* g0,
+                    double* g1,
 #if (NDIM == 3)
-        double* g2,
+                    double* g2,
 #endif
-        const int& g_gcw,
-        const double* alpha0, const double* alpha1,
+                    const int& g_gcw,
+                    const double& alpha,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const double* alpha2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    C_TO_F_ANISO_FLUX_FC(
-        double* g0, double* g1,
+void C_TO_S_FLUX_FC(double* g0,
+                    double* g1,
 #if (NDIM == 3)
-        double* g2,
+                    double* g2,
 #endif
-        const int& g_gcw,
-        const double* alpha0, const double* alpha1,
+                    const int& g_gcw,
+                    const double* alpha0,
+                    const double* alpha1,
 #if (NDIM == 3)
-        const double* alpha2,
+                    const double* alpha2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                    const int& alpha_gcw,
+                    const double* U,
+                    const int& U_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                    const int& ilower2,
+                    const int& iupper2,
 #endif
-        const double* dx);
+                    const double* dx);
 
-    void
-    C_TO_F_GRAD_ADD_FC(
-        double* g0, double* g1,
+void C_TO_S_ANISO_FLUX_FC(double* g0,
+                          double* g1,
 #if (NDIM == 3)
-        double* g2,
+                          double* g2,
 #endif
-        const int& g_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* v0, const double* v1,
+                          const int& g_gcw,
+                          const double* alpha0,
+                          const double* alpha1,
 #if (NDIM == 3)
-        const double* v2,
+                          const double* alpha2,
 #endif
-        const int& v_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                          const int& alpha_gcw,
+                          const double* U,
+                          const int& U_gcw,
+                          const int& ilower0,
+                          const int& iupper0,
+                          const int& ilower1,
+                          const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                          const int& ilower2,
+                          const int& iupper2,
 #endif
-        const double* dx);
+                          const double* dx);
 
-    void
-    C_TO_F_INTERP_FC(
-        double* u0, double* u1,
+void C_TO_S_GRAD_ADD_FC(double* g0,
+                        double* g1,
 #if (NDIM == 3)
-        double* u2,
+                        double* g2,
 #endif
-        const int& u_gcw,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
+                        const int& g_gcw,
+                        const double& alpha,
+                        const double* U,
+                        const int& U_gcw,
+                        const double& beta,
+                        const double* v0,
+                        const double* v1,
 #if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
+                        const double* v2,
 #endif
-                     );
+                        const int& v_gcw,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
 
+void C_TO_S_INTERP_FC(double* u0,
+                      double* u1,
+#if (NDIM == 3)
+                      double* u2,
+#endif
+                      const int& u_gcw,
+                      const double* V,
+                      const int& V_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
+#if (NDIM == 3)
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
+#endif
+                      );
 
+void F_TO_C_CURL_FC(double* W,
+                    const int& W_gcw,
+                    const double* u0,
+                    const double* u1,
+#if (NDIM == 3)
+                    const double* u2,
+#endif
+                    const int& u_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+#if (NDIM == 3)
+                    const int& ilower2,
+                    const int& iupper2,
+#endif
+                    const double* dx);
 
-    void
-    C_TO_S_GRAD_FC(
-        double* g0, double* g1,
+void F_TO_C_DIV_FC(double* D,
+                   const int& D_gcw,
+                   const double& alpha,
+                   const double* u0,
+                   const double* u1,
 #if (NDIM == 3)
-        double* g2,
+                   const double* u2,
 #endif
-        const int& g_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                   const int& u_gcw,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                   const int& ilower2,
+                   const int& iupper2,
 #endif
-        const double* dx);
+                   const double* dx);
 
-    void
-    C_TO_S_FLUX_FC(
-        double* g0, double* g1,
+void F_TO_C_DIV_ADD_FC(double* D,
+                       const int& D_gcw,
+                       const double& alpha,
+                       const double* u0,
+                       const double* u1,
 #if (NDIM == 3)
-        double* g2,
+                       const double* u2,
 #endif
-        const int& g_gcw,
-        const double* alpha0, const double* alpha1,
+                       const int& u_gcw,
+                       const double& beta,
+                       const double* V,
+                       const int& V_gcw,
+                       const int& ilower0,
+                       const int& iupper0,
+                       const int& ilower1,
+                       const int& iupper1,
 #if (NDIM == 3)
-        const double* alpha2,
+                       const int& ilower2,
+                       const int& iupper2,
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
+                       const double* dx);
 
-    void
-    C_TO_S_ANISO_FLUX_FC(
-        double* g0, double* g1,
+void F_TO_C_INTERP_FC(double* U,
+                      const int& U_gcw,
+                      const double* v0,
+                      const double* v1,
 #if (NDIM == 3)
-        double* g2,
+                      const double* v2,
 #endif
-        const int& g_gcw,
-        const double* alpha0, const double* alpha1,
+                      const int& v_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
 #if (NDIM == 3)
-        const double* alpha2,
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
 #endif
-        const int& alpha_gcw,
-        const double* U, const int& U_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    C_TO_S_GRAD_ADD_FC(
-        double* g0, double* g1,
-#if (NDIM == 3)
-        double* g2,
-#endif
-        const int& g_gcw,
-        const double& alpha,
-        const double* U, const int& U_gcw,
-        const double& beta,
-        const double* v0, const double* v1,
-#if (NDIM == 3)
-        const double* v2,
-#endif
-        const int& v_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    C_TO_S_INTERP_FC(
-        double* u0, double* u1,
-#if (NDIM == 3)
-        double* u2,
-#endif
-        const int& u_gcw,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-
-
-    void
-    F_TO_C_CURL_FC(
-        double* W, const int& W_gcw,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    F_TO_C_DIV_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    F_TO_C_DIV_ADD_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    F_TO_C_INTERP_FC(
-        double* U, const int& U_gcw,
-        const double* v0, const double* v1,
-#if (NDIM == 3)
-        const double* v2,
-#endif
-        const int& v_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-
-
-#if (NDIM == 3)
-    void
-    F_TO_F_CURL_FC(
-        double* w0, double* w1, double* w2, const int& w_gcw,
-        const double* u0, const double* u1,
-        const double* u2, const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const double* dx);
-#endif
-
-
-
-    void
-    S_TO_C_CURL_FC(
-        double* W, const int& W_gcw,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    S_TO_C_DIV_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    S_TO_C_DIV_ADD_FC(
-        double* D, const int& D_gcw,
-        const double& alpha,
-        const double* u0, const double* u1,
-#if (NDIM == 3)
-        const double* u2,
-#endif
-        const int& u_gcw,
-        const double& beta,
-        const double* V, const int& V_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-#if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
-#endif
-        const double* dx);
-
-    void
-    S_TO_C_INTERP_FC(
-        double* U, const int& U_gcw,
-        const double* v0, const double* v1,
-#if (NDIM == 3)
-        const double* v2,
-#endif
-        const int& v_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1
-#if (NDIM == 3)
-        ,const int& ilower2,const int& iupper2
-#endif
-                     );
-
-
+                      );
 
 #if (NDIM == 3)
-    void
-    S_TO_S_CURL_FC(
-        double* w0, double* w1, double* w2, const int& w_gcw,
-        const double* u0, const double* u1,
-        const double* u2, const int& u_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const double* dx);
+void F_TO_F_CURL_FC(double* w0,
+                    double* w1,
+                    double* w2,
+                    const int& w_gcw,
+                    const double* u0,
+                    const double* u1,
+                    const double* u2,
+                    const int& u_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+                    const int& ilower2,
+                    const int& iupper2,
+                    const double* dx);
+#endif
+
+void S_TO_C_CURL_FC(double* W,
+                    const int& W_gcw,
+                    const double* u0,
+                    const double* u1,
+#if (NDIM == 3)
+                    const double* u2,
+#endif
+                    const int& u_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+#if (NDIM == 3)
+                    const int& ilower2,
+                    const int& iupper2,
+#endif
+                    const double* dx);
+
+void S_TO_C_DIV_FC(double* D,
+                   const int& D_gcw,
+                   const double& alpha,
+                   const double* u0,
+                   const double* u1,
+#if (NDIM == 3)
+                   const double* u2,
+#endif
+                   const int& u_gcw,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
+#if (NDIM == 3)
+                   const int& ilower2,
+                   const int& iupper2,
+#endif
+                   const double* dx);
+
+void S_TO_C_DIV_ADD_FC(double* D,
+                       const int& D_gcw,
+                       const double& alpha,
+                       const double* u0,
+                       const double* u1,
+#if (NDIM == 3)
+                       const double* u2,
+#endif
+                       const int& u_gcw,
+                       const double& beta,
+                       const double* V,
+                       const int& V_gcw,
+                       const int& ilower0,
+                       const int& iupper0,
+                       const int& ilower1,
+                       const int& iupper1,
+#if (NDIM == 3)
+                       const int& ilower2,
+                       const int& iupper2,
+#endif
+                       const double* dx);
+
+void S_TO_C_INTERP_FC(double* U,
+                      const int& U_gcw,
+                      const double* v0,
+                      const double* v1,
+#if (NDIM == 3)
+                      const double* v2,
+#endif
+                      const int& v_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1
+#if (NDIM == 3)
+                      ,
+                      const int& ilower2,
+                      const int& iupper2
+#endif
+                      );
+
+#if (NDIM == 3)
+void S_TO_S_CURL_FC(double* w0,
+                    double* w1,
+                    double* w2,
+                    const int& w_gcw,
+                    const double* u0,
+                    const double* u1,
+                    const double* u2,
+                    const int& u_gcw,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+                    const int& ilower2,
+                    const int& iupper2,
+                    const double* dx);
 #endif
 #if (NDIM == 2)
-    void
-    S_TO_S_VC_LAPLACE_FC(
-        double* f0, double* f1,
+void S_TO_S_VC_LAPLACE_FC(double* f0,
+                          double* f1,
 #if (NDIM == 3)
-        double* f2,
+                          double* f2,
 #endif
-        const int& f_gcw,
-        const double& alpha, const double& beta,
-        const double* mu, const int& mu_gcw,
-        const double* u0, const double* u1,
+                          const int& f_gcw,
+                          const double& alpha,
+                          const double& beta,
+                          const double* mu,
+                          const int& mu_gcw,
+                          const double* u0,
+                          const double* u1,
 #if (NDIM == 3)
-        const double* u2,
+                          const double* u2,
 #endif
-        const int& u_gcw,
-        const double& gamma,
-        const double* v0, const double* v1,
+                          const int& u_gcw,
+                          const double& gamma,
+                          const double* v0,
+                          const double* v1,
 #if (NDIM == 3)
-        const double* v2,
+                          const double* v2,
 #endif
-        const int& v_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+                          const int& v_gcw,
+                          const int& ilower0,
+                          const int& iupper0,
+                          const int& ilower1,
+                          const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                          const int& ilower2,
+                          const int& iupper2,
 #endif
-        const double* dx);
+                          const double* dx);
 #endif
 
 #if (NDIM == 2)
-    void
-    N_TO_S_ROT_FC(
-        double* w0, double* w1, const int& w_ghosts,
-        const double* u0,   const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const double* dx); 
+void N_TO_S_ROT_FC(double* w0,
+                   double* w1,
+                   const int& w_ghosts,
+                   const double* u0,
+                   const int& u_ghosts,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
+                   const double* dx);
 
-    void
-    C_TO_S_ROT_FC(
-        double* w0, double* w1, const int& w_ghosts,
-        const double* u0,   const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const double* dx); 
-    
-    void
-    S_TO_N_CURL_FC(
-        double* w0, const int& w_ghosts,
-	const double* u0, const double* u1, const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const double* dx);	
+void C_TO_S_ROT_FC(double* w0,
+                   double* w1,
+                   const int& w_ghosts,
+                   const double* u0,
+                   const int& u_ghosts,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
+                   const double* dx);
+
+void S_TO_N_CURL_FC(double* w0,
+                    const int& w_ghosts,
+                    const double* u0,
+                    const double* u1,
+                    const int& u_ghosts,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+                    const double* dx);
 #endif
 
 #if (NDIM == 3)
-    void
-    E_TO_S_ROT_FC(
-        double* w0, double* w1, double* w2, const int& w_ghosts,
-        const double* u0, const double* u1, const double* u2, const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const double* dx);
+void E_TO_S_ROT_FC(double* w0,
+                   double* w1,
+                   double* w2,
+                   const int& w_ghosts,
+                   const double* u0,
+                   const double* u1,
+                   const double* u2,
+                   const int& u_ghosts,
+                   const int& ilower0,
+                   const int& iupper0,
+                   const int& ilower1,
+                   const int& iupper1,
+                   const int& ilower2,
+                   const int& iupper2,
+                   const double* dx);
 
-    void
-    S_TO_E_CURL_FC(
-        double* w0, double* w1, double* w2, const int& w_ghosts,
-        const double* u0, const double* u1, const double* u2, const int& u_ghosts,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
-        const int& ilower2, const int& iupper2,
-        const double* dx);        
+void S_TO_E_CURL_FC(double* w0,
+                    double* w1,
+                    double* w2,
+                    const int& w_ghosts,
+                    const double* u0,
+                    const double* u1,
+                    const double* u2,
+                    const int& u_ghosts,
+                    const int& ilower0,
+                    const int& iupper0,
+                    const int& ilower1,
+                    const int& iupper1,
+                    const int& ilower2,
+                    const int& iupper2,
+                    const double* dx);
 #endif
 }
 
@@ -986,28 +1193,26 @@ PatchMathOps::PatchMathOps()
 {
     // intentionally blank
     return;
-}// PatchMathOps
+} // PatchMathOps
 
 PatchMathOps::~PatchMathOps()
 {
     // intentionally blank
     return;
-}// ~PatchMathOps
+} // ~PatchMathOps
 
-void
-PatchMathOps::curl(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
+                        const Pointer<CellData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const W    = dst->getPointer();
+    double* const W = dst->getPointer();
     const int W_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src->getPointer();
-    const int U_ghosts    = (src->getGhostCellWidth()).max();
+    const int U_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1044,12 +1249,12 @@ PatchMathOps::curl(
 
     if (
 #if (NDIM == 2)
-        (W_depth != 1)
+            (W_depth != 1)
 #endif
 #if (NDIM == 3)
-        (W_depth != NDIM)
+            (W_depth != NDIM)
 #endif
-        )
+            )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1076,28 +1281,30 @@ PatchMathOps::curl(
     }
 #endif
 
-    C_TO_C_CURL_FC(
-        W, W_ghosts,
-        U, U_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
+    C_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   U,
+                   U_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
 #if (NDIM == 3)
-        patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
-        dx);
+                   dx);
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
+                        const Pointer<FaceData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const W    = dst->getPointer();
+    double* const W = dst->getPointer();
     const int W_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
@@ -1105,7 +1312,7 @@ PatchMathOps::curl(
 #if (NDIM == 3)
     const double* const u2 = src->getPointer(2);
 #endif
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1142,12 +1349,12 @@ PatchMathOps::curl(
 
     if (
 #if (NDIM == 2)
-        (W_depth != 1)
+            (W_depth != 1)
 #endif
 #if (NDIM == 3)
-        (W_depth != NDIM)
+            (W_depth != NDIM)
 #endif
-        )
+            )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1166,27 +1373,29 @@ PatchMathOps::curl(
     }
 #endif
 
-    F_TO_C_CURL_FC(
-        W, W_ghosts,
-        u0, u1,
+    F_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   u0,
+                   u1,
 #if (NDIM == 3)
-        u2,
+                   u2,
 #endif
-        u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
 #if (NDIM == 3)
-        patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
-        dx);
+                   dx);
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<FaceData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
+                        const Pointer<FaceData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1199,15 +1408,15 @@ PatchMathOps::curl(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
-    double* const w2   = dst->getPointer(2);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
+    double* const w2 = dst->getPointer(2);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
     const double* const u2 = src->getPointer(2);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1253,27 +1462,33 @@ PatchMathOps::curl(
     }
 #endif
 
-    F_TO_F_CURL_FC(
-        w0, w1, w2, w_ghosts,
-        u0, u1, u2, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        patch_box.lower(2), patch_box.upper(2),
-        dx);
+    F_TO_F_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
+                        const Pointer<SideData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const W    = dst->getPointer();
+    double* const W = dst->getPointer();
     const int W_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
@@ -1281,7 +1496,7 @@ PatchMathOps::curl(
 #if (NDIM == 3)
     const double* const u2 = src->getPointer(2);
 #endif
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1318,12 +1533,12 @@ PatchMathOps::curl(
 
     if (
 #if (NDIM == 2)
-        (W_depth != 1)
+            (W_depth != 1)
 #endif
 #if (NDIM == 3)
-        (W_depth != NDIM)
+            (W_depth != NDIM)
 #endif
-        )
+            )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1342,27 +1557,29 @@ PatchMathOps::curl(
     }
 #endif
 
-    S_TO_C_CURL_FC(
-        W, W_ghosts,
-        u0, u1,
+    S_TO_C_CURL_FC(W,
+                   W_ghosts,
+                   u0,
+                   u1,
 #if (NDIM == 3)
-        u2,
+                   u2,
 #endif
-        u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
 #if (NDIM == 3)
-        patch_box.lower(2), patch_box.upper(2),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
-        dx);
+                   dx);
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
+                        const Pointer<SideData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1375,15 +1592,15 @@ PatchMathOps::curl(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
-    double* const w2   = dst->getPointer(2);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
+    double* const w2 = dst->getPointer(2);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
     const double* const u2 = src->getPointer(2);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1429,22 +1646,28 @@ PatchMathOps::curl(
     }
 #endif
 
-    S_TO_S_CURL_FC(
-        w0, w1, w2, w_ghosts,
-        u0, u1, u2, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        patch_box.lower(2), patch_box.upper(2),
-        dx);
+    S_TO_S_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
+                        const Pointer<SideData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1457,12 +1680,12 @@ PatchMathOps::curl(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
+    double* const w0 = dst->getPointer(0);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1508,21 +1731,23 @@ PatchMathOps::curl(
     }
 #endif
 
-    S_TO_N_CURL_FC(
-        w0, w_ghosts,
-        u0, u1, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        dx);
+    S_TO_N_CURL_FC(w0,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   dx);
 #endif
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::curl(
-    Pointer<EdgeData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
+                        const Pointer<SideData<NDIM, double> > src,
+                        const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1535,15 +1760,15 @@ PatchMathOps::curl(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
-    double* const w2   = dst->getPointer(2);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
+    double* const w2 = dst->getPointer(2);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
     const double* const u2 = src->getPointer(2);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1589,22 +1814,28 @@ PatchMathOps::curl(
     }
 #endif
 
-    S_TO_E_CURL_FC(
-        w0, w1, w2, w_ghosts,
-        u0, u1, u2, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        patch_box.lower(2), patch_box.upper(2),
-        dx);
+    S_TO_E_CURL_FC(w0,
+                   w1,
+                   w2,
+                   w_ghosts,
+                   u0,
+                   u1,
+                   u2,
+                   u_ghosts,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1),
+                   patch_box.lower(2),
+                   patch_box.upper(2),
+                   dx);
 #endif
     return;
-}// curl
+} // curl
 
-void
-PatchMathOps::rot(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
+                       const Pointer<NodeData<NDIM, double> > src,
+                       const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1617,12 +1848,12 @@ PatchMathOps::rot(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1658,21 +1889,23 @@ PatchMathOps::rot(
     }
 #endif
 
-    N_TO_S_ROT_FC(
-        w0, w1, w_ghosts,
-        u0, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        dx);
+    N_TO_S_ROT_FC(w0,
+                  w1,
+                  w_ghosts,
+                  u0,
+                  u_ghosts,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
+                  patch_box.upper(1),
+                  dx);
 #endif
     return;
-}// rot
+} // rot
 
-void
-PatchMathOps::rot(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
+                       const Pointer<CellData<NDIM, double> > src,
+                       const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1685,12 +1918,12 @@ PatchMathOps::rot(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1736,21 +1969,23 @@ PatchMathOps::rot(
     }
 #endif
 
-    C_TO_S_ROT_FC(
-        w0, w1, w_ghosts,
-        u0, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        dx);
+    C_TO_S_ROT_FC(w0,
+                  w1,
+                  w_ghosts,
+                  u0,
+                  u_ghosts,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
+                  patch_box.upper(1),
+                  dx);
 #endif
     return;
-}// rot
+} // rot
 
-void
-PatchMathOps::rot(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<EdgeData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
+                       const Pointer<EdgeData<NDIM, double> > src,
+                       const Pointer<Patch<NDIM> > patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1763,15 +1998,15 @@ PatchMathOps::rot(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0   = dst->getPointer(0);
-    double* const w1   = dst->getPointer(1);
-    double* const w2   = dst->getPointer(2);
+    double* const w0 = dst->getPointer(0);
+    double* const w1 = dst->getPointer(1);
+    double* const w2 = dst->getPointer(2);
     const int w_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
     const double* const u2 = src->getPointer(2);
-    const int u_ghosts     = (src->getGhostCellWidth()).max();
+    const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1808,46 +2043,50 @@ PatchMathOps::rot(
 
 #endif
 
-    E_TO_S_ROT_FC(
-        w0, w1, w2, w_ghosts,
-        u0, u1, u2, u_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
-        patch_box.lower(2), patch_box.upper(2),
-        dx);
+    E_TO_S_ROT_FC(w0,
+                  w1,
+                  w2,
+                  w_ghosts,
+                  u0,
+                  u1,
+                  u2,
+                  u_ghosts,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
+                  patch_box.upper(1),
+                  patch_box.lower(2),
+                  patch_box.upper(2),
+                  dx);
 #endif
     return;
-}// rot
+} // rot
 
-void
-PatchMathOps::rot(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
+                       const Pointer<SideData<NDIM, double> > src,
+                       const Pointer<Patch<NDIM> > patch) const
 {
-    this->curl(dst,src,patch);
+    this->curl(dst, src, patch);
     return;
-}// rot
+} // rot
 
-void
-PatchMathOps::div(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m) const
+void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+                       const double alpha,
+                       const Pointer<CellData<NDIM, double> > src1,
+                       const double beta,
+                       const Pointer<CellData<NDIM, double> > src2,
+                       const Pointer<Patch<NDIM> > patch,
+                       const int l,
+                       const int m) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const D    = dst->getPointer(l);
+    double* const D = dst->getPointer(l);
     const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer();
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -1909,21 +2148,25 @@ PatchMathOps::div(
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_C_DIV_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      U,
+                      U_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
-            dx);
+                      dx);
     }
     else
     {
         const double* const V = src2->getPointer(m);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -1935,40 +2178,44 @@ PatchMathOps::div(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_C_DIV_ADD_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          U,
+                          U_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
+                          patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
-            dx);
+                          dx);
     }
     return;
-}// div
+} // div
 
-void
-PatchMathOps::div(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<FaceData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m) const
+void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+                       const double alpha,
+                       const Pointer<FaceData<NDIM, double> > src1,
+                       const double beta,
+                       const Pointer<CellData<NDIM, double> > src2,
+                       const Pointer<Patch<NDIM> > patch,
+                       const int l,
+                       const int m) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const D    = dst->getPointer(l);
+    double* const D = dst->getPointer(l);
     const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src1->getPointer(0);
@@ -2008,25 +2255,29 @@ PatchMathOps::div(
 
     if (!src2 || (beta == 0.0))
     {
-        F_TO_C_DIV_FC(
-            D, D_ghosts,
-            alpha,
-            u0, u1,
+        F_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      u0,
+                      u1,
 #if (NDIM == 3)
-            u2,
+                      u2,
 #endif
-            u_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
-            dx);
+                      dx);
     }
     else
     {
         const double* const V = src2->getPointer(m);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -2038,44 +2289,48 @@ PatchMathOps::div(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        F_TO_C_DIV_ADD_FC(
-            D, D_ghosts,
-            alpha,
-            u0, u1,
+        F_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          u0,
+                          u1,
 #if (NDIM == 3)
-            u2,
+                          u2,
 #endif
-            u_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                          u_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
+                          patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
-            dx);
+                          dx);
     }
     return;
-}// div
+} // div
 
-void
-PatchMathOps::div(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<SideData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m) const
+void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
+                       const double alpha,
+                       const Pointer<SideData<NDIM, double> > src1,
+                       const double beta,
+                       const Pointer<CellData<NDIM, double> > src2,
+                       const Pointer<Patch<NDIM> > patch,
+                       const int l,
+                       const int m) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const D    = dst->getPointer(l);
+    double* const D = dst->getPointer(l);
     const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src1->getPointer(0);
@@ -2115,25 +2370,29 @@ PatchMathOps::div(
 
     if (!src2 || (beta == 0.0))
     {
-        S_TO_C_DIV_FC(
-            D, D_ghosts,
-            alpha,
-            u0, u1,
+        S_TO_C_DIV_FC(D,
+                      D_ghosts,
+                      alpha,
+                      u0,
+                      u1,
 #if (NDIM == 3)
-            u2,
+                      u2,
 #endif
-            u_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                      u_ghosts,
+                      patch_box.lower(0),
+                      patch_box.upper(0),
+                      patch_box.lower(1),
+                      patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                      patch_box.lower(2),
+                      patch_box.upper(2),
 #endif
-            dx);
+                      dx);
     }
     else
     {
         const double* const V = src2->getPointer(m);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -2145,47 +2404,51 @@ PatchMathOps::div(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        S_TO_C_DIV_ADD_FC(
-            D, D_ghosts,
-            alpha,
-            u0, u1,
+        S_TO_C_DIV_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          u0,
+                          u1,
 #if (NDIM == 3)
-            u2,
+                          u2,
 #endif
-            u_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                          u_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
+                          patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                          patch_box.lower(2),
+                          patch_box.upper(2),
 #endif
-            dx);
+                          dx);
     }
     return;
-}// div
+} // div
 
-void
-PatchMathOps::grad(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l) const
+void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
+                        const double alpha,
+                        const Pointer<CellData<NDIM, double> > src1,
+                        const double beta,
+                        const Pointer<CellData<NDIM, double> > src2,
+                        const Pointer<Patch<NDIM> > patch,
+                        const int l) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const G    = dst->getPointer();
+    double* const G = dst->getPointer();
     const int G_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(l);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -2247,21 +2510,25 @@ PatchMathOps::grad(
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_C_GRAD_FC(
-            G, G_ghosts,
-            alpha,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_GRAD_FC(G,
+                       G_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-            dx);
+                       dx);
     }
     else
     {
         const double* const V = src2->getPointer();
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -2281,34 +2548,38 @@ PatchMathOps::grad(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_C_GRAD_ADD_FC(
-            G, G_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+        C_TO_C_GRAD_ADD_FC(G,
+                           G_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           V,
+                           V_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
-            dx);
+                           dx);
     }
     return;
-}// grad
+} // grad
 
-void
-PatchMathOps::grad(
-    Pointer<FaceData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<FaceData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l) const
+void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
+                        const double alpha,
+                        const Pointer<CellData<NDIM, double> > src1,
+                        const double beta,
+                        const Pointer<FaceData<NDIM, double> > src2,
+                        const Pointer<Patch<NDIM> > patch,
+                        const int l) const
 {
     // Compute the gradient.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -2322,7 +2593,7 @@ PatchMathOps::grad(
     const int g_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(l);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -2364,20 +2635,24 @@ PatchMathOps::grad(
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_F_GRAD_FC(
-            g0, g1,
+        C_TO_F_GRAD_FC(g0,
+                       g1,
 #if (NDIM == 3)
-            g2,
+                       g2,
 #endif
-            g_ghosts,
-            alpha,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                       g_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-            dx);
+                       dx);
     }
     else
     {
@@ -2398,42 +2673,46 @@ PatchMathOps::grad(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_F_GRAD_ADD_FC(
-            g0, g1,
+        C_TO_F_GRAD_ADD_FC(g0,
+                           g1,
 #if (NDIM == 3)
-            g2,
+                           g2,
 #endif
-            g_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            v0, v1,
+                           g_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           v0,
+                           v1,
 #if (NDIM == 3)
-            v2,
+                           v2,
 #endif
-            v_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                           v_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
-            dx);
+                           dx);
     }
     return;
-}// grad
+} // grad
 
-void
-PatchMathOps::grad(
-    Pointer<SideData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l) const
+void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
+                        const double alpha,
+                        const Pointer<CellData<NDIM, double> > src1,
+                        const double beta,
+                        const Pointer<SideData<NDIM, double> > src2,
+                        const Pointer<Patch<NDIM> > patch,
+                        const int l) const
 {
     // Compute the gradient.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -2447,7 +2726,7 @@ PatchMathOps::grad(
     const int g_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(l);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -2489,20 +2768,24 @@ PatchMathOps::grad(
 
     if (!src2 || (beta == 0.0))
     {
-        C_TO_S_GRAD_FC(
-            g0, g1,
+        C_TO_S_GRAD_FC(g0,
+                       g1,
 #if (NDIM == 3)
-            g2,
+                       g2,
 #endif
-            g_ghosts,
-            alpha,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                       g_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-            dx);
+                       dx);
     }
     else
     {
@@ -2523,42 +2806,46 @@ PatchMathOps::grad(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        C_TO_S_GRAD_ADD_FC(
-            g0, g1,
+        C_TO_S_GRAD_ADD_FC(g0,
+                           g1,
 #if (NDIM == 3)
-            g2,
+                           g2,
 #endif
-            g_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            v0, v1,
+                           g_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           beta,
+                           v0,
+                           v1,
 #if (NDIM == 3)
-            v2,
+                           v2,
 #endif
-            v_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                           v_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
-            dx);
+                           dx);
     }
     return;
-}// grad
+} // grad
 
-void
-PatchMathOps::grad(
-    Pointer<FaceData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<FaceData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l) const
+void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
+                        const Pointer<FaceData<NDIM, double> > alpha,
+                        const Pointer<CellData<NDIM, double> > src1,
+                        const double beta,
+                        const Pointer<FaceData<NDIM, double> > src2,
+                        const Pointer<Patch<NDIM> > patch,
+                        const int l) const
 {
     // Compute the gradient.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -2579,7 +2866,7 @@ PatchMathOps::grad(
     const int alpha_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(l);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -2631,41 +2918,49 @@ PatchMathOps::grad(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_F_FLUX_FC(
-            g0, g1,
+        C_TO_F_FLUX_FC(g0,
+                       g1,
 #if (NDIM == 3)
-            g2,
+                       g2,
 #endif
-            g_ghosts,
-            alpha0, alpha1,
+                       g_ghosts,
+                       alpha0,
+                       alpha1,
 #if (NDIM == 3)
-            alpha2,
+                       alpha2,
 #endif
-            alpha_ghosts,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                       alpha_ghosts,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-            dx);
+                       dx);
 
         if (src2 && (beta != 0.0))
         {
@@ -2689,33 +2984,39 @@ PatchMathOps::grad(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM,double> patch_fc_data_ops;
+            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
             patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
         }
     }
     else
     {
-        C_TO_F_ANISO_FLUX_FC(
-            g0, g1,
+        C_TO_F_ANISO_FLUX_FC(g0,
+                             g1,
 #if (NDIM == 3)
-            g2,
+                             g2,
 #endif
-            g_ghosts,
-            alpha0, alpha1,
+                             g_ghosts,
+                             alpha0,
+                             alpha1,
 #if (NDIM == 3)
-            alpha2,
+                             alpha2,
 #endif
-            alpha_ghosts,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                             alpha_ghosts,
+                             U,
+                             U_ghosts,
+                             patch_box.lower(0),
+                             patch_box.upper(0),
+                             patch_box.lower(1),
+                             patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                             patch_box.lower(2),
+                             patch_box.upper(2),
 #endif
-            dx);
+                             dx);
 
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
@@ -2740,25 +3041,24 @@ PatchMathOps::grad(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            PatchFaceDataOpsReal<NDIM,double> patch_fc_data_ops;
+            PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
             patch_fc_data_ops.axpy(dst, beta, src2, dst, patch_box);
         }
     }
     return;
-}// grad
+} // grad
 
-void
-PatchMathOps::grad(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l) const
+void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
+                        const Pointer<SideData<NDIM, double> > alpha,
+                        const Pointer<CellData<NDIM, double> > src1,
+                        const double beta,
+                        const Pointer<SideData<NDIM, double> > src2,
+                        const Pointer<Patch<NDIM> > patch,
+                        const int l) const
 {
     // Compute the gradient.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -2779,7 +3079,7 @@ PatchMathOps::grad(
     const int alpha_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(l);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -2823,41 +3123,49 @@ PatchMathOps::grad(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
     {
-        C_TO_S_FLUX_FC(
-            g0, g1,
+        C_TO_S_FLUX_FC(g0,
+                       g1,
 #if (NDIM == 3)
-            g2,
+                       g2,
 #endif
-            g_ghosts,
-            alpha0, alpha1,
+                       g_ghosts,
+                       alpha0,
+                       alpha1,
 #if (NDIM == 3)
-            alpha2,
+                       alpha2,
 #endif
-            alpha_ghosts,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                       alpha_ghosts,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-            dx);
+                       dx);
 
         if (src2 && (beta != 0.0))
         {
@@ -2881,33 +3189,39 @@ PatchMathOps::grad(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM,double> patch_sc_data_ops;
+            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
             patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
         }
     }
     else
     {
-        C_TO_S_ANISO_FLUX_FC(
-            g0, g1,
+        C_TO_S_ANISO_FLUX_FC(g0,
+                             g1,
 #if (NDIM == 3)
-            g2,
+                             g2,
 #endif
-            g_ghosts,
-            alpha0, alpha1,
+                             g_ghosts,
+                             alpha0,
+                             alpha1,
 #if (NDIM == 3)
-            alpha2,
+                             alpha2,
 #endif
-            alpha_ghosts,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1),
+                             alpha_ghosts,
+                             U,
+                             U_ghosts,
+                             patch_box.lower(0),
+                             patch_box.upper(0),
+                             patch_box.lower(1),
+                             patch_box.upper(1),
 #if (NDIM == 3)
-            patch_box.lower(2), patch_box.upper(2),
+                             patch_box.lower(2),
+                             patch_box.upper(2),
 #endif
-            dx);
+                             dx);
 
         // Account for non-zero beta.
         if (src2 && (beta != 0.0))
@@ -2932,21 +3246,20 @@ PatchMathOps::grad(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            PatchSideDataOpsReal<NDIM,double> patch_sc_data_ops;
+            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
             patch_sc_data_ops.axpy(dst, beta, src2, dst, patch_box);
         }
     }
     return;
-}// grad
+} // grad
 
-void
-PatchMathOps::interp(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
+                          const Pointer<FaceData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -2954,7 +3267,7 @@ PatchMathOps::interp(
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (dst->getDepth() != NDIM*src->getDepth())
+    if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -2988,36 +3301,39 @@ PatchMathOps::interp(
     for (int depth = 0; depth < src->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const U = dst->getPointer(NDIM*depth);
+        double* const U = dst->getPointer(NDIM * depth);
 
-        const double* const v0 = src->getPointer(0,depth);
-        const double* const v1 = src->getPointer(1,depth);
+        const double* const v0 = src->getPointer(0, depth);
+        const double* const v1 = src->getPointer(1, depth);
 #if (NDIM == 3)
-        const double* const v2 = src->getPointer(2,depth);
+        const double* const v2 = src->getPointer(2, depth);
 #endif
 
-        F_TO_C_INTERP_FC(
-            U, U_ghosts,
-            v0, v1,
+        F_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         v0,
+                         v1,
 #if (NDIM == 3)
-            v2,
+                         v2,
 #endif
-            v_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// interp
+} // interp
 
-void
-PatchMathOps::interp(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
+                          const Pointer<SideData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -3025,7 +3341,7 @@ PatchMathOps::interp(
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (dst->getDepth() != NDIM*src->getDepth())
+    if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -3059,36 +3375,39 @@ PatchMathOps::interp(
     for (int depth = 0; depth < src->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const U = dst->getPointer(NDIM*depth);
+        double* const U = dst->getPointer(NDIM * depth);
 
-        const double* const v0 = src->getPointer(0,depth);
-        const double* const v1 = src->getPointer(1,depth);
+        const double* const v0 = src->getPointer(0, depth);
+        const double* const v1 = src->getPointer(1, depth);
 #if (NDIM == 3)
-        const double* const v2 = src->getPointer(2,depth);
+        const double* const v2 = src->getPointer(2, depth);
 #endif
 
-        S_TO_C_INTERP_FC(
-            U, U_ghosts,
-            v0, v1,
+        S_TO_C_INTERP_FC(U,
+                         U_ghosts,
+                         v0,
+                         v1,
 #if (NDIM == 3)
-            v2,
+                         v2,
 #endif
-            v_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// interp
+} // interp
 
-void
-PatchMathOps::interp(
-    Pointer<FaceData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
+                          const Pointer<CellData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3096,7 +3415,7 @@ PatchMathOps::interp(
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (NDIM*dst->getDepth() != src->getDepth())
+    if (NDIM * dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -3140,35 +3459,38 @@ PatchMathOps::interp(
     for (int depth = 0; depth < dst->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const u0 = dst->getPointer(0,depth);
-        double* const u1 = dst->getPointer(1,depth);
+        double* const u0 = dst->getPointer(0, depth);
+        double* const u1 = dst->getPointer(1, depth);
 #if (NDIM == 3)
-        double* const u2 = dst->getPointer(2,depth);
+        double* const u2 = dst->getPointer(2, depth);
 #endif
-        const double* const V = src->getPointer(NDIM*depth);
+        const double* const V = src->getPointer(NDIM * depth);
 
-        C_TO_F_INTERP_FC(
-            u0, u1,
+        C_TO_F_INTERP_FC(u0,
+                         u1,
 #if (NDIM == 3)
-            u2,
+                         u2,
 #endif
-            u_ghosts,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+                         u_ghosts,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// interp
+} // interp
 
-void
-PatchMathOps::interp(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
+                          const Pointer<CellData<NDIM, double> > src,
+                          const Pointer<Patch<NDIM> > patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3176,7 +3498,7 @@ PatchMathOps::interp(
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (NDIM*dst->getDepth() != src->getDepth())
+    if (NDIM * dst->getDepth() != src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -3220,51 +3542,54 @@ PatchMathOps::interp(
     for (int depth = 0; depth < dst->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const u0 = dst->getPointer(0,depth);
-        double* const u1 = dst->getPointer(1,depth);
+        double* const u0 = dst->getPointer(0, depth);
+        double* const u1 = dst->getPointer(1, depth);
 #if (NDIM == 3)
-        double* const u2 = dst->getPointer(2,depth);
+        double* const u2 = dst->getPointer(2, depth);
 #endif
-        const double* const V = src->getPointer(NDIM*depth);
+        const double* const V = src->getPointer(NDIM * depth);
 
-        C_TO_S_INTERP_FC(
-            u0, u1,
+        C_TO_S_INTERP_FC(u0,
+                         u1,
 #if (NDIM == 3)
-            u2,
+                         u2,
 #endif
-            u_ghosts,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+                         u_ghosts,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// interp
+} // interp
 
-void
-PatchMathOps::laplace(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double gamma,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m,
-    const int n) const
+void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
+                           const double alpha,
+                           const double beta,
+                           const Pointer<CellData<NDIM, double> > src1,
+                           const double gamma,
+                           const Pointer<CellData<NDIM, double> > src2,
+                           const Pointer<Patch<NDIM> > patch,
+                           const int l,
+                           const int m,
+                           const int n) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const F    = dst->getPointer(l);
+    double* const F = dst->getPointer(l);
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(m);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -3320,35 +3645,44 @@ PatchMathOps::laplace(
     {
         if (beta == 0.0)
         {
-            LAPLACE_FC(
-                F, F_ghosts,
-                alpha,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+            LAPLACE_FC(F,
+                       F_ghosts,
+                       alpha,
+                       U,
+                       U_ghosts,
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
 #endif
-                dx);
+                       dx);
         }
         else
         {
-            DAMPED_LAPLACE_FC(
-                F, F_ghosts,
-                alpha, beta,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+            DAMPED_LAPLACE_FC(F,
+                              F_ghosts,
+                              alpha,
+                              beta,
+                              U,
+                              U_ghosts,
+                              patch_box.lower(0),
+                              patch_box.upper(0),
+                              patch_box.lower(1),
+                              patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                              patch_box.lower(2),
+                              patch_box.upper(2),
 #endif
-                dx);
+                              dx);
         }
     }
     else
     {
         const double* const V = src2->getPointer(n);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -3360,70 +3694,80 @@ PatchMathOps::laplace(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+            LAPLACE_ADD_FC(F,
+                           F_ghosts,
+                           alpha,
+                           U,
+                           U_ghosts,
+                           gamma,
+                           V,
+                           V_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                           patch_box.lower(2),
+                           patch_box.upper(2),
 #endif
-                dx);
+                           dx);
         }
         else
         {
-            DAMPED_LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha, beta,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+            DAMPED_LAPLACE_ADD_FC(F,
+                                  F_ghosts,
+                                  alpha,
+                                  beta,
+                                  U,
+                                  U_ghosts,
+                                  gamma,
+                                  V,
+                                  V_ghosts,
+                                  patch_box.lower(0),
+                                  patch_box.upper(0),
+                                  patch_box.lower(1),
+                                  patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                  patch_box.lower(2),
+                                  patch_box.upper(2),
 #endif
-                dx);
+                                  dx);
         }
     }
     return;
-}// laplace
+} // laplace
 
-void
-PatchMathOps::laplace(
-    Pointer<SideData<NDIM,double> > dst,
-    const double alpha,
-    const double beta,
-    const Pointer<SideData<NDIM,double> > src1,
-    const double gamma,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m,
-    const int n) const
+void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
+                           const double alpha,
+                           const double beta,
+                           const Pointer<SideData<NDIM, double> > src1,
+                           const double gamma,
+                           const Pointer<SideData<NDIM, double> > src2,
+                           const Pointer<Patch<NDIM> > patch,
+                           const int l,
+                           const int m,
+                           const int n) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    boost::array<double*,NDIM> F;
+    boost::array<double*, NDIM> F;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F[d] = dst->getPointer(d,l);
+        F[d] = dst->getPointer(d, l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    boost::array<const double*,NDIM> U;
+    boost::array<const double*, NDIM> U;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        U[d] = src1->getPointer(d,m);
+        U[d] = src1->getPointer(d, m);
     }
     const int U_ghosts = (src1->getGhostCellWidth()).max();
 
@@ -3479,7 +3823,7 @@ PatchMathOps::laplace(
 
     if (!src2 || (gamma == 0.0))
     {
-        boost::array<int,NDIM> ilower, iupper;
+        boost::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3491,38 +3835,47 @@ PatchMathOps::laplace(
 
             if (beta == 0.0)
             {
-                LAPLACE_FC(
-                    F[d], F_ghosts,
-                    alpha,
-                    U[d], U_ghosts,
-                    ilower[0], iupper[0],
-                    ilower[1], iupper[1],
+                LAPLACE_FC(F[d],
+                           F_ghosts,
+                           alpha,
+                           U[d],
+                           U_ghosts,
+                           ilower[0],
+                           iupper[0],
+                           ilower[1],
+                           iupper[1],
 #if (NDIM == 3)
-                    ilower[2], iupper[2],
+                           ilower[2],
+                           iupper[2],
 #endif
-                    dx);
+                           dx);
             }
             else
             {
-                DAMPED_LAPLACE_FC(
-                    F[d], F_ghosts,
-                    alpha, beta,
-                    U[d], U_ghosts,
-                    ilower[0], iupper[0],
-                    ilower[1], iupper[1],
+                DAMPED_LAPLACE_FC(F[d],
+                                  F_ghosts,
+                                  alpha,
+                                  beta,
+                                  U[d],
+                                  U_ghosts,
+                                  ilower[0],
+                                  iupper[0],
+                                  ilower[1],
+                                  iupper[1],
 #if (NDIM == 3)
-                    ilower[2], iupper[2],
+                                  ilower[2],
+                                  iupper[2],
 #endif
-                    dx);
+                                  dx);
             }
         }
     }
     else
     {
-        boost::array<const double*,NDIM> V;
+        boost::array<const double*, NDIM> V;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            V[d] = src2->getPointer(d,n);
+            V[d] = src2->getPointer(d, n);
         }
         const int V_ghosts = (src2->getGhostCellWidth()).max();
 
@@ -3536,10 +3889,11 @@ PatchMathOps::laplace(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        boost::array<int,NDIM> ilower, iupper;
+        boost::array<int, NDIM> ilower, iupper;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             for (unsigned int dd = 0; dd < NDIM; ++dd)
@@ -3551,56 +3905,65 @@ PatchMathOps::laplace(
 
             if (beta == 0.0)
             {
-                LAPLACE_ADD_FC(
-                    F[d], F_ghosts,
-                    alpha,
-                    U[d], U_ghosts,
-                    gamma,
-                    V[d], V_ghosts,
-                    ilower[0], iupper[0],
-                    ilower[1], iupper[1],
+                LAPLACE_ADD_FC(F[d],
+                               F_ghosts,
+                               alpha,
+                               U[d],
+                               U_ghosts,
+                               gamma,
+                               V[d],
+                               V_ghosts,
+                               ilower[0],
+                               iupper[0],
+                               ilower[1],
+                               iupper[1],
 #if (NDIM == 3)
-                    ilower[2], iupper[2],
+                               ilower[2],
+                               iupper[2],
 #endif
-                    dx);
+                               dx);
             }
             else
             {
-                DAMPED_LAPLACE_ADD_FC(
-                    F[d], F_ghosts,
-                    alpha, beta,
-                    U[d], U_ghosts,
-                    gamma,
-                    V[d], V_ghosts,
-                    ilower[0], iupper[0],
-                    ilower[1], iupper[1],
+                DAMPED_LAPLACE_ADD_FC(F[d],
+                                      F_ghosts,
+                                      alpha,
+                                      beta,
+                                      U[d],
+                                      U_ghosts,
+                                      gamma,
+                                      V[d],
+                                      V_ghosts,
+                                      ilower[0],
+                                      iupper[0],
+                                      ilower[1],
+                                      iupper[1],
 #if (NDIM == 3)
-                    ilower[2], iupper[2],
+                                      ilower[2],
+                                      iupper[2],
 #endif
-                    dx);
+                                      dx);
             }
         }
     }
     return;
-}// laplace
+} // laplace
 
-void
-PatchMathOps::laplace(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > alpha,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double gamma,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m,
-    const int n) const
+void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
+                           const Pointer<FaceData<NDIM, double> > alpha,
+                           const double beta,
+                           const Pointer<CellData<NDIM, double> > src1,
+                           const double gamma,
+                           const Pointer<CellData<NDIM, double> > src2,
+                           const Pointer<Patch<NDIM> > patch,
+                           const int l,
+                           const int m,
+                           const int n) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const F    = dst->getPointer(l);
+    double* const F = dst->getPointer(l);
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const alpha0 = alpha->getPointer(0);
@@ -3611,7 +3974,7 @@ PatchMathOps::laplace(
     const int alpha_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(m);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -3659,19 +4022,22 @@ PatchMathOps::laplace(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (alpha->getDepth() != 1)
@@ -3685,44 +4051,54 @@ PatchMathOps::laplace(
     {
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_F_LAPLACE_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_F_LAPLACE_FC(F,
+                                      F_ghosts,
+                                      alpha0,
+                                      alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                      alpha2,
 #endif
-                alpha_ghosts,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                      alpha_ghosts,
+                                      U,
+                                      U_ghosts,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
 #endif
-                dx);
+                                      dx);
         }
         else
         {
-            C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_F_DAMPED_LAPLACE_FC(F,
+                                             F_ghosts,
+                                             alpha0,
+                                             alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                             alpha2,
 #endif
-                alpha_ghosts,
-                beta,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                             alpha_ghosts,
+                                             beta,
+                                             U,
+                                             U_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
-                dx);
+                                             dx);
         }
     }
     else
     {
         const double* const V = src2->getPointer(n);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -3734,69 +4110,80 @@ PatchMathOps::laplace(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_F_LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_F_LAPLACE_ADD_FC(F,
+                                          F_ghosts,
+                                          alpha0,
+                                          alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                          alpha2,
 #endif
-                alpha_ghosts,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                          alpha_ghosts,
+                                          U,
+                                          U_ghosts,
+                                          gamma,
+                                          V,
+                                          V_ghosts,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
 #endif
-                dx);
+                                          dx);
         }
         else
         {
-            C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC(F,
+                                                 F_ghosts,
+                                                 alpha0,
+                                                 alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                                 alpha2,
 #endif
-                alpha_ghosts,
-                beta,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                                 alpha_ghosts,
+                                                 beta,
+                                                 U,
+                                                 U_ghosts,
+                                                 gamma,
+                                                 V,
+                                                 V_ghosts,
+                                                 patch_box.lower(0),
+                                                 patch_box.upper(0),
+                                                 patch_box.lower(1),
+                                                 patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                                 patch_box.lower(2),
+                                                 patch_box.upper(2),
 #endif
-                dx);
+                                                 dx);
         }
     }
     return;
-}// laplace
+} // laplace
 
-void
-PatchMathOps::laplace(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > alpha,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double gamma,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m,
-    const int n) const
+void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
+                           const Pointer<SideData<NDIM, double> > alpha,
+                           const double beta,
+                           const Pointer<CellData<NDIM, double> > src1,
+                           const double gamma,
+                           const Pointer<CellData<NDIM, double> > src2,
+                           const Pointer<Patch<NDIM> > patch,
+                           const int l,
+                           const int m,
+                           const int n) const
 {
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const F    = dst->getPointer(l);
+    double* const F = dst->getPointer(l);
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const alpha0 = alpha->getPointer(0);
@@ -3807,7 +4194,7 @@ PatchMathOps::laplace(
     const int alpha_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(m);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -3867,7 +4254,8 @@ PatchMathOps::laplace(
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (alpha->getDepth() != 1)
@@ -3881,44 +4269,54 @@ PatchMathOps::laplace(
     {
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_S_LAPLACE_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_S_LAPLACE_FC(F,
+                                      F_ghosts,
+                                      alpha0,
+                                      alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                      alpha2,
 #endif
-                alpha_ghosts,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                      alpha_ghosts,
+                                      U,
+                                      U_ghosts,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
 #endif
-                dx);
+                                      dx);
         }
         else
         {
-            C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_S_DAMPED_LAPLACE_FC(F,
+                                             F_ghosts,
+                                             alpha0,
+                                             alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                             alpha2,
 #endif
-                alpha_ghosts,
-                beta,
-                U, U_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                             alpha_ghosts,
+                                             beta,
+                                             U,
+                                             U_ghosts,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
 #endif
-                dx);
+                                             dx);
         }
     }
     else
     {
         const double* const V = src2->getPointer(n);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -3930,95 +4328,106 @@ PatchMathOps::laplace(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
         if (beta == 0.0)
         {
-            C_TO_C_ANISO_S_LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_S_LAPLACE_ADD_FC(F,
+                                          F_ghosts,
+                                          alpha0,
+                                          alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                          alpha2,
 #endif
-                alpha_ghosts,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                          alpha_ghosts,
+                                          U,
+                                          U_ghosts,
+                                          gamma,
+                                          V,
+                                          V_ghosts,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
 #endif
-                dx);
+                                          dx);
         }
         else
         {
-            C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(
-                F, F_ghosts,
-                alpha0, alpha1,
+            C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC(F,
+                                                 F_ghosts,
+                                                 alpha0,
+                                                 alpha1,
 #if (NDIM == 3)
-                alpha2,
+                                                 alpha2,
 #endif
-                alpha_ghosts,
-                beta,
-                U, U_ghosts,
-                gamma,
-                V, V_ghosts,
-                patch_box.lower(0), patch_box.upper(0),
-                patch_box.lower(1), patch_box.upper(1),
+                                                 alpha_ghosts,
+                                                 beta,
+                                                 U,
+                                                 U_ghosts,
+                                                 gamma,
+                                                 V,
+                                                 V_ghosts,
+                                                 patch_box.lower(0),
+                                                 patch_box.upper(0),
+                                                 patch_box.lower(1),
+                                                 patch_box.upper(1),
 #if (NDIM == 3)
-                patch_box.lower(2), patch_box.upper(2),
+                                                 patch_box.lower(2),
+                                                 patch_box.upper(2),
 #endif
-                dx);
+                                                 dx);
         }
     }
     return;
-}// laplace
+} // laplace
 
-void
-PatchMathOps::vc_laplace(
-    Pointer<SideData<NDIM,double> > dst,
-    const double alpha,
-    const double beta,
-    const Pointer<NodeData<NDIM,double> > coef,
-    const Pointer<SideData<NDIM,double> > src1,
-    const double gamma_in,
-    const Pointer<SideData<NDIM,double> > src2_in,
-    const Pointer<Patch<NDIM> > patch,
-    const int l,
-    const int m,
-    const int n) const
+void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
+                              const double alpha,
+                              const double beta,
+                              const Pointer<NodeData<NDIM, double> > coef,
+                              const Pointer<SideData<NDIM, double> > src1,
+                              const double gamma_in,
+                              const Pointer<SideData<NDIM, double> > src2_in,
+                              const Pointer<Patch<NDIM> > patch,
+                              const int l,
+                              const int m,
+                              const int n) const
 {
 #if (NDIM == 2)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const f0   = dst->getPointer(0,l);
-    double* const f1   = dst->getPointer(1,l);
+    double* const f0 = dst->getPointer(0, l);
+    double* const f1 = dst->getPointer(1, l);
 #if (NDIM == 3)
-    double* const f2   = dst->getPointer(2,l);
+    double* const f2 = dst->getPointer(2, l);
 #endif
     const int f_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const mu = coef->getPointer();
-    const int mu_ghosts    = (coef->getGhostCellWidth()).max();
+    const int mu_ghosts = (coef->getGhostCellWidth()).max();
 
-    const double* const u0 = src1->getPointer(0,m);
-    const double* const u1 = src1->getPointer(1,m);
+    const double* const u0 = src1->getPointer(0, m);
+    const double* const u1 = src1->getPointer(1, m);
 #if (NDIM == 3)
-    const double* const u2 = src1->getPointer(2,m);
+    const double* const u2 = src1->getPointer(2, m);
 #endif
-    const int u_ghosts     = (src1->getGhostCellWidth()).max();
+    const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideData<NDIM,double> > src2 = (src2_in ? src2_in : src1);
-    const double* const v0 = src2->getPointer(0,n);
-    const double* const v1 = src2->getPointer(1,n);
+    const Pointer<SideData<NDIM, double> > src2 = (src2_in ? src2_in : src1);
+    const double* const v0 = src2->getPointer(0, n);
+    const double* const v1 = src2->getPointer(1, n);
 #if (NDIM == 3)
-    const double* const v2 = src2->getPointer(2,n);
+    const double* const v2 = src2->getPointer(2, n);
 #endif
-    const int v_ghosts     = (src2->getGhostCellWidth()).max();
+    const int v_ghosts = (src2->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -4082,53 +4491,64 @@ PatchMathOps::vc_laplace(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != coef->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    S_TO_S_VC_LAPLACE_FC(
-        f0, f1,
+    S_TO_S_VC_LAPLACE_FC(f0,
+                         f1,
 #if (NDIM == 3)
-        f2,
+                         f2,
 #endif
-        f_ghosts,
-        alpha, beta,
-        mu, mu_ghosts,
-        u0, u1,
+                         f_ghosts,
+                         alpha,
+                         beta,
+                         mu,
+                         mu_ghosts,
+                         u0,
+                         u1,
 #if (NDIM == 3)
-        u2,
+                         u2,
 #endif
-        u_ghosts,
-        gamma,
-        v0, v1,
+                         u_ghosts,
+                         gamma,
+                         v0,
+                         v1,
 #if (NDIM == 3)
-        v2,
+                         v2,
 #endif
-        v_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1),
+                         v_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
 #if (NDIM == 3)
-        patch_box.lower(2), patch_box.upper(2),
+                         patch_box.lower(2),
+                         patch_box.upper(2),
 #endif
-        dx);
+                         dx);
 #endif
 #if (NDIM == 3)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
@@ -4146,25 +4566,23 @@ PatchMathOps::vc_laplace(
     NULL_USE(n);
 #endif
     return;
-}// vc_laplace
+} // vc_laplace
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<CellData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k) const
+void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
+                                     const double alpha,
+                                     const Pointer<CellData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<CellData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k) const
 {
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -4196,21 +4614,26 @@ PatchMathOps::pointwiseMultiply(
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY1_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY1_FC(D,
+                     D_ghosts,
+                     alpha,
+                     U,
+                     U_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                     ,
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                      );
     }
     else
     {
         const double* const V = src2->getPointer(k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4222,46 +4645,51 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD1_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY_ADD1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l) const
+void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
+                                     const Pointer<CellData<NDIM, double> > alpha,
+                                     const Pointer<CellData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<CellData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l) const
 {
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const double* const A = alpha->getPointer(l);
-    const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+    const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -4287,39 +4715,48 @@ PatchMathOps::pointwiseMultiply(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY2_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY2_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                     ,
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                      );
     }
     else
     {
         const double* const V = src2->getPointer(k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4331,60 +4768,66 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD2_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            patch_box.lower(0), patch_box.upper(0),
-            patch_box.lower(1), patch_box.upper(1)
+        MULTIPLY_ADD2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1)
 #if (NDIM == 3)
-            ,patch_box.lower(2),patch_box.upper(2)
+                         ,
+                         patch_box.lower(2),
+                         patch_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > alpha,
-    const Pointer<CellData<NDIM,double> > src1,
-    const Pointer<CellData<NDIM,double> > beta,
-    const Pointer<CellData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l,
-    const int m) const
+void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
+                                     const Pointer<CellData<NDIM, double> > alpha,
+                                     const Pointer<CellData<NDIM, double> > src1,
+                                     const Pointer<CellData<NDIM, double> > beta,
+                                     const Pointer<CellData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l,
+                                     const int m) const
 {
     if (!src2)
     {
         const double zero = 0.0;
-        pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
+        pointwiseMultiply(dst, alpha, src1, zero, src2, patch, i, j, k, l);
         return;
     }
 
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const double* const V = src2->getPointer(k);
-    const int V_ghosts    = (src2->getGhostCellWidth()).max();
+    const int V_ghosts = (src2->getGhostCellWidth()).max();
 
     const double* const A = alpha->getPointer(l);
-    const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+    const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const B = beta->getPointer(m);
-    const int B_ghosts    = (beta->getGhostCellWidth()).max();
+    const int B_ghosts = (beta->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -4422,71 +4865,82 @@ PatchMathOps::pointwiseMultiply(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    MULTIPLY_ADD3_FC(
-        D, D_ghosts,
-        A, A_ghosts,
-        U, U_ghosts,
-        B, B_ghosts,
-        V, V_ghosts,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1)
+    MULTIPLY_ADD3_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     B,
+                     B_ghosts,
+                     V,
+                     V_ghosts,
+                     patch_box.lower(0),
+                     patch_box.upper(0),
+                     patch_box.lower(1),
+                     patch_box.upper(1)
 #if (NDIM == 3)
-        ,patch_box.lower(2),patch_box.upper(2)
+                     ,
+                     patch_box.lower(2),
+                     patch_box.upper(2)
 #endif
                      );
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<FaceData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<FaceData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<FaceData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k) const
+void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
+                                     const double alpha,
+                                     const Pointer<FaceData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<FaceData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k) const
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
+        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -4504,33 +4958,40 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY1_FC(
-                D, D_ghosts,
-                alpha,
-                U, U_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
         }
         else
         {
-            const double* const V = src2->getPointer(axis,k);
-            const int V_ghosts    = (src2->getGhostCellWidth()).max();
+            const double* const V = src2->getPointer(axis, k);
+            const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4542,52 +5003,57 @@ PatchMathOps::pointwiseMultiply(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD1_FC(
-                D, D_ghosts,
-                alpha,
-                U, U_ghosts,
-                beta,
-                V, V_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD1_FC(D,
+                             D_ghosts,
+                             alpha,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                             ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                              );
         }
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<FaceData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > alpha,
-    const Pointer<FaceData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<FaceData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l) const
+void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
+                                     const Pointer<FaceData<NDIM, double> > alpha,
+                                     const Pointer<FaceData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<FaceData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l) const
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const double* const A = alpha->getPointer(axis,l);
-        const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+        const double* const A = alpha->getPointer(axis, l);
+        const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
+        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -4611,39 +5077,48 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY2_FC(
-                D, D_ghosts,
-                A, A_ghosts,
-                U, U_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
         }
         else
         {
-            const double* const V = src2->getPointer(axis,k);
-            const int V_ghosts    = (src2->getGhostCellWidth()).max();
+            const double* const V = src2->getPointer(axis, k);
+            const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4655,66 +5130,72 @@ PatchMathOps::pointwiseMultiply(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD2_FC(
-                D, D_ghosts,
-                A, A_ghosts,
-                U, U_ghosts,
-                beta,
-                V, V_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD2_FC(D,
+                             D_ghosts,
+                             A,
+                             A_ghosts,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                             ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                              );
         }
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<FaceData<NDIM,double> > dst,
-    const Pointer<FaceData<NDIM,double> > alpha,
-    const Pointer<FaceData<NDIM,double> > src1,
-    const Pointer<FaceData<NDIM,double> > beta,
-    const Pointer<FaceData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l,
-    const int m) const
+void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
+                                     const Pointer<FaceData<NDIM, double> > alpha,
+                                     const Pointer<FaceData<NDIM, double> > src1,
+                                     const Pointer<FaceData<NDIM, double> > beta,
+                                     const Pointer<FaceData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l,
+                                     const int m) const
 {
     if (!src2)
     {
         const double zero = 0.0;
-        pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
+        pointwiseMultiply(dst, alpha, src1, zero, src2, patch, i, j, k, l);
         return;
     }
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const double* const V = src2->getPointer(axis,k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const double* const V = src2->getPointer(axis, k);
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
-        const double* const A = alpha->getPointer(axis,l);
-        const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+        const double* const A = alpha->getPointer(axis, l);
+        const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-        const double* const B = beta->getPointer(axis,m);
-        const int B_ghosts    = (beta->getGhostCellWidth()).max();
+        const double* const B = beta->getPointer(axis, m);
+        const int B_ghosts = (beta->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box,axis);
+        const Box<NDIM> data_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -4750,67 +5231,78 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
-        MULTIPLY_ADD3_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            B, B_ghosts,
-            V, V_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD3_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         B,
+                         B_ghosts,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<NodeData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<NodeData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<NodeData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k) const
+void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
+                                     const double alpha,
+                                     const Pointer<NodeData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<NodeData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k) const
 {
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -4843,21 +5335,26 @@ PatchMathOps::pointwiseMultiply(
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY1_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY1_FC(D,
+                     D_ghosts,
+                     alpha,
+                     U,
+                     U_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
+                     data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                     ,
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                      );
     }
     else
     {
         const double* const V = src2->getPointer(k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4869,46 +5366,51 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD1_FC(
-            D, D_ghosts,
-            alpha,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > alpha,
-    const Pointer<NodeData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<NodeData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l) const
+void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
+                                     const Pointer<NodeData<NDIM, double> > alpha,
+                                     const Pointer<NodeData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<NodeData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l) const
 {
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const double* const A = alpha->getPointer(l);
-    const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+    const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -4935,39 +5437,48 @@ PatchMathOps::pointwiseMultiply(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
     if (!src2 || (beta == 0.0))
     {
-        MULTIPLY2_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY2_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
+                     data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                     ,
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                      );
     }
     else
     {
         const double* const V = src2->getPointer(k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
         if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -4979,60 +5490,66 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
-        MULTIPLY_ADD2_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            beta,
-            V, V_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         beta,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > alpha,
-    const Pointer<NodeData<NDIM,double> > src1,
-    const Pointer<NodeData<NDIM,double> > beta,
-    const Pointer<NodeData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l,
-    const int m) const
+void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
+                                     const Pointer<NodeData<NDIM, double> > alpha,
+                                     const Pointer<NodeData<NDIM, double> > src1,
+                                     const Pointer<NodeData<NDIM, double> > beta,
+                                     const Pointer<NodeData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l,
+                                     const int m) const
 {
     if (!src2)
     {
         const double zero = 0.0;
-        pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
+        pointwiseMultiply(dst, alpha, src1, zero, src2, patch, i, j, k, l);
         return;
     }
 
-    double* const D       = dst->getPointer(i);
-    const int D_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const D = dst->getPointer(i);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const U = src1->getPointer(j);
-    const int U_ghosts    = (src1->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
 
     const double* const V = src2->getPointer(k);
-    const int V_ghosts    = (src2->getGhostCellWidth()).max();
+    const int V_ghosts = (src2->getGhostCellWidth()).max();
 
     const double* const A = alpha->getPointer(l);
-    const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+    const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
     const double* const B = beta->getPointer(m);
-    const int B_ghosts    = (beta->getGhostCellWidth()).max();
+    const int B_ghosts = (beta->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -5071,71 +5588,82 @@ PatchMathOps::pointwiseMultiply(
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                   << std::endl);
     }
 #endif
 
-    MULTIPLY_ADD3_FC(
-        D, D_ghosts,
-        A, A_ghosts,
-        U, U_ghosts,
-        B, B_ghosts,
-        V, V_ghosts,
-        data_box.lower(0), data_box.upper(0),
-        data_box.lower(1), data_box.upper(1)
+    MULTIPLY_ADD3_FC(D,
+                     D_ghosts,
+                     A,
+                     A_ghosts,
+                     U,
+                     U_ghosts,
+                     B,
+                     B_ghosts,
+                     V,
+                     V_ghosts,
+                     data_box.lower(0),
+                     data_box.upper(0),
+                     data_box.lower(1),
+                     data_box.upper(1)
 #if (NDIM == 3)
-        ,data_box.lower(2),data_box.upper(2)
+                     ,
+                     data_box.lower(2),
+                     data_box.upper(2)
 #endif
                      );
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<SideData<NDIM,double> > dst,
-    const double alpha,
-    const Pointer<SideData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k) const
+void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
+                                     const double alpha,
+                                     const Pointer<SideData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<SideData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k) const
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -5153,33 +5681,40 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY1_FC(
-                D, D_ghosts,
-                alpha,
-                U, U_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY1_FC(D,
+                         D_ghosts,
+                         alpha,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
         }
         else
         {
-            const double* const V = src2->getPointer(axis,k);
-            const int V_ghosts    = (src2->getGhostCellWidth()).max();
+            const double* const V = src2->getPointer(axis, k);
+            const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -5191,52 +5726,57 @@ PatchMathOps::pointwiseMultiply(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD1_FC(
-                D, D_ghosts,
-                alpha,
-                U, U_ghosts,
-                beta,
-                V, V_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD1_FC(D,
+                             D_ghosts,
+                             alpha,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                             ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                              );
         }
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > alpha,
-    const Pointer<SideData<NDIM,double> > src1,
-    const double beta,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l) const
+void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
+                                     const Pointer<SideData<NDIM, double> > alpha,
+                                     const Pointer<SideData<NDIM, double> > src1,
+                                     const double beta,
+                                     const Pointer<SideData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l) const
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const double* const A = alpha->getPointer(axis,l);
-        const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+        const double* const A = alpha->getPointer(axis, l);
+        const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -5260,39 +5800,48 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
         if (!src2 || (beta == 0.0))
         {
-            MULTIPLY2_FC(
-                D, D_ghosts,
-                A, A_ghosts,
-                U, U_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY2_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
         }
         else
         {
-            const double* const V = src2->getPointer(axis,k);
-            const int V_ghosts    = (src2->getGhostCellWidth()).max();
+            const double* const V = src2->getPointer(axis, k);
+            const int V_ghosts = (src2->getGhostCellWidth()).max();
 
 #if !defined(NDEBUG)
             if (V_ghosts != (src2->getGhostCellWidth()).min())
@@ -5304,66 +5853,72 @@ PatchMathOps::pointwiseMultiply(
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch"
+                           << std::endl);
             }
 #endif
-            MULTIPLY_ADD2_FC(
-                D, D_ghosts,
-                A, A_ghosts,
-                U, U_ghosts,
-                beta,
-                V, V_ghosts,
-                data_box.lower(0), data_box.upper(0),
-                data_box.lower(1), data_box.upper(1)
+            MULTIPLY_ADD2_FC(D,
+                             D_ghosts,
+                             A,
+                             A_ghosts,
+                             U,
+                             U_ghosts,
+                             beta,
+                             V,
+                             V_ghosts,
+                             data_box.lower(0),
+                             data_box.upper(0),
+                             data_box.lower(1),
+                             data_box.upper(1)
 #if (NDIM == 3)
-                ,data_box.lower(2),data_box.upper(2)
+                             ,
+                             data_box.lower(2),
+                             data_box.upper(2)
 #endif
                              );
         }
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseMultiply(
-    Pointer<SideData<NDIM,double> > dst,
-    const Pointer<SideData<NDIM,double> > alpha,
-    const Pointer<SideData<NDIM,double> > src1,
-    const Pointer<SideData<NDIM,double> > beta,
-    const Pointer<SideData<NDIM,double> > src2,
-    const Pointer<Patch<NDIM> > patch,
-    const int i,
-    const int j,
-    const int k,
-    const int l,
-    const int m) const
+void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
+                                     const Pointer<SideData<NDIM, double> > alpha,
+                                     const Pointer<SideData<NDIM, double> > src1,
+                                     const Pointer<SideData<NDIM, double> > beta,
+                                     const Pointer<SideData<NDIM, double> > src2,
+                                     const Pointer<Patch<NDIM> > patch,
+                                     const int i,
+                                     const int j,
+                                     const int k,
+                                     const int l,
+                                     const int m) const
 {
     if (!src2)
     {
         const double zero = 0.0;
-        pointwiseMultiply(dst,alpha,src1,zero,src2,patch,i,j,k,l);
+        pointwiseMultiply(dst, alpha, src1, zero, src2, patch, i, j, k, l);
         return;
     }
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        double* const D       = dst->getPointer(axis,i);
-        const int D_ghosts    = (dst->getGhostCellWidth()).max();
+        double* const D = dst->getPointer(axis, i);
+        const int D_ghosts = (dst->getGhostCellWidth()).max();
 
-        const double* const U = src1->getPointer(axis,j);
-        const int U_ghosts    = (src1->getGhostCellWidth()).max();
+        const double* const U = src1->getPointer(axis, j);
+        const int U_ghosts = (src1->getGhostCellWidth()).max();
 
-        const double* const V = src2->getPointer(axis,k);
-        const int V_ghosts    = (src2->getGhostCellWidth()).max();
+        const double* const V = src2->getPointer(axis, k);
+        const int V_ghosts = (src2->getGhostCellWidth()).max();
 
-        const double* const A = alpha->getPointer(axis,l);
-        const int A_ghosts    = (alpha->getGhostCellWidth()).max();
+        const double* const A = alpha->getPointer(axis, l);
+        const int A_ghosts = (alpha->getGhostCellWidth()).max();
 
-        const double* const B = beta->getPointer(axis,m);
-        const int B_ghosts    = (beta->getGhostCellWidth()).max();
+        const double* const B = beta->getPointer(axis, m);
+        const int B_ghosts = (beta->getGhostCellWidth()).max();
 
         const Box<NDIM>& patch_box = patch->getBox();
-        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+        const Box<NDIM> data_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
 
 #if !defined(NDEBUG)
         if (D_ghosts != (dst->getGhostCellWidth()).min())
@@ -5399,62 +5954,73 @@ PatchMathOps::pointwiseMultiply(
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
+                       << std::endl);
         }
 #endif
 
-        MULTIPLY_ADD3_FC(
-            D, D_ghosts,
-            A, A_ghosts,
-            U, U_ghosts,
-            B, B_ghosts,
-            V, V_ghosts,
-            data_box.lower(0), data_box.upper(0),
-            data_box.lower(1), data_box.upper(1)
+        MULTIPLY_ADD3_FC(D,
+                         D_ghosts,
+                         A,
+                         A_ghosts,
+                         U,
+                         U_ghosts,
+                         B,
+                         B_ghosts,
+                         V,
+                         V_ghosts,
+                         data_box.lower(0),
+                         data_box.upper(0),
+                         data_box.lower(1),
+                         data_box.upper(1)
 #if (NDIM == 3)
-            ,data_box.lower(2),data_box.upper(2)
+                         ,
+                         data_box.lower(2),
+                         data_box.upper(2)
 #endif
                          );
     }
     return;
-}// pointwiseMultiply
+} // pointwiseMultiply
 
-void
-PatchMathOps::pointwiseL1Norm(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
+                                   const Pointer<CellData<NDIM, double> > src,
+                                   const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -5491,30 +6057,34 @@ PatchMathOps::pointwiseL1Norm(
     }
 #endif
 
-    PW_L1_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1)
+    PW_L1_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
+                  patch_box.upper(1)
 #if (NDIM == 3)
-        ,patch_box.lower(2),patch_box.upper(2)
+                  ,
+                  patch_box.lower(2),
+                  patch_box.upper(2)
 #endif
                   );
     return;
-}// pointwiseL1Norm
+} // pointwiseL1Norm
 
-void
-PatchMathOps::pointwiseL2Norm(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
+                                   const Pointer<CellData<NDIM, double> > src,
+                                   const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -5551,30 +6121,34 @@ PatchMathOps::pointwiseL2Norm(
     }
 #endif
 
-    PW_L2_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1)
+    PW_L2_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  patch_box.lower(0),
+                  patch_box.upper(0),
+                  patch_box.lower(1),
+                  patch_box.upper(1)
 #if (NDIM == 3)
-        ,patch_box.lower(2),patch_box.upper(2)
+                  ,
+                  patch_box.lower(2),
+                  patch_box.upper(2)
 #endif
                   );
     return;
-}// pointwiseL2Norm
+} // pointwiseL2Norm
 
-void
-PatchMathOps::pointwiseMaxNorm(
-    Pointer<CellData<NDIM,double> > dst,
-    const Pointer<CellData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
+                                    const Pointer<CellData<NDIM, double> > src,
+                                    const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -5611,30 +6185,34 @@ PatchMathOps::pointwiseMaxNorm(
     }
 #endif
 
-    PW_MAX_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        patch_box.lower(0), patch_box.upper(0),
-        patch_box.lower(1), patch_box.upper(1)
+    PW_MAX_NORM_FC(U,
+                   U_ghosts,
+                   V,
+                   V_ghosts,
+                   V_depth,
+                   patch_box.lower(0),
+                   patch_box.upper(0),
+                   patch_box.lower(1),
+                   patch_box.upper(1)
 #if (NDIM == 3)
-        ,patch_box.lower(2),patch_box.upper(2)
+                   ,
+                   patch_box.lower(2),
+                   patch_box.upper(2)
 #endif
                    );
     return;
-}// pointwiseMaxNorm
+} // pointwiseMaxNorm
 
-void
-PatchMathOps::pointwiseL1Norm(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
+                                   const Pointer<NodeData<NDIM, double> > src,
+                                   const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -5672,30 +6250,34 @@ PatchMathOps::pointwiseL1Norm(
     }
 #endif
 
-    PW_L1_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        data_box.lower(0), data_box.upper(0),
-        data_box.lower(1), data_box.upper(1)
+    PW_L1_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  data_box.lower(0),
+                  data_box.upper(0),
+                  data_box.lower(1),
+                  data_box.upper(1)
 #if (NDIM == 3)
-        ,data_box.lower(2),data_box.upper(2)
+                  ,
+                  data_box.lower(2),
+                  data_box.upper(2)
 #endif
                   );
     return;
-}// pointwiseL1Norm
+} // pointwiseL1Norm
 
-void
-PatchMathOps::pointwiseL2Norm(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
+                                   const Pointer<NodeData<NDIM, double> > src,
+                                   const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -5733,30 +6315,34 @@ PatchMathOps::pointwiseL2Norm(
     }
 #endif
 
-    PW_L2_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        data_box.lower(0), data_box.upper(0),
-        data_box.lower(1), data_box.upper(1)
+    PW_L2_NORM_FC(U,
+                  U_ghosts,
+                  V,
+                  V_ghosts,
+                  V_depth,
+                  data_box.lower(0),
+                  data_box.upper(0),
+                  data_box.lower(1),
+                  data_box.upper(1)
 #if (NDIM == 3)
-        ,data_box.lower(2),data_box.upper(2)
+                  ,
+                  data_box.lower(2),
+                  data_box.upper(2)
 #endif
                   );
     return;
-}// pointwiseL2Norm
+} // pointwiseL2Norm
 
-void
-PatchMathOps::pointwiseMaxNorm(
-    Pointer<NodeData<NDIM,double> > dst,
-    const Pointer<NodeData<NDIM,double> > src,
-    const Pointer<Patch<NDIM> > patch) const
+void PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
+                                    const Pointer<NodeData<NDIM, double> > src,
+                                    const Pointer<Patch<NDIM> > patch) const
 {
-    double* const U       = dst->getPointer();
-    const int U_ghosts    = (dst->getGhostCellWidth()).max();
+    double* const U = dst->getPointer();
+    const int U_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const V = src->getPointer();
-    const int V_ghosts    = (src->getGhostCellWidth()).max();
-    const int V_depth     = src->getDepth();
+    const int V_ghosts = (src->getGhostCellWidth()).max();
+    const int V_depth = src->getDepth();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Box<NDIM> data_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
@@ -5794,17 +6380,23 @@ PatchMathOps::pointwiseMaxNorm(
     }
 #endif
 
-    PW_MAX_NORM_FC(
-        U, U_ghosts,
-        V, V_ghosts, V_depth,
-        data_box.lower(0), data_box.upper(0),
-        data_box.lower(1), data_box.upper(1)
+    PW_MAX_NORM_FC(U,
+                   U_ghosts,
+                   V,
+                   V_ghosts,
+                   V_depth,
+                   data_box.lower(0),
+                   data_box.upper(0),
+                   data_box.lower(1),
+                   data_box.upper(1)
 #if (NDIM == 3)
-        ,data_box.lower(2),data_box.upper(2)
+                   ,
+                   data_box.lower(2),
+                   data_box.upper(2)
 #endif
                    );
     return;
-}// pointwiseMaxNorm
+} // pointwiseMaxNorm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -5812,6 +6404,6 @@ PatchMathOps::pointwiseMaxNorm(
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

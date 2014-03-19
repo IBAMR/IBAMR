@@ -35,11 +35,14 @@
 #include "RefinePatchStrategySet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -54,99 +57,98 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
     if (d_managed)
     {
         typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-        for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (refine_strategy_set::iterator it = d_strategy_set.begin();
+             it != d_strategy_set.end();
+             ++it)
         {
             delete (*it);
         }
     }
     return;
-}// ~RefinePatchStrategySet
+} // ~RefinePatchStrategySet
 
-void
-RefinePatchStrategySet::setPhysicalBoundaryConditions(
+void RefinePatchStrategySet::setPhysicalBoundaryConditions(
     Patch<NDIM>& patch,
     const double fill_time,
     const IntVector<NDIM>& ghost_width_to_fill)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
+         ++it)
     {
         (*it)->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     }
     return;
-}// setPhysicalBoundaryConditions
+} // setPhysicalBoundaryConditions
 
-IntVector<NDIM>
-RefinePatchStrategySet::getRefineOpStencilWidth() const
+IntVector<NDIM> RefinePatchStrategySet::getRefineOpStencilWidth() const
 {
     IntVector<NDIM> width = 0;
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::const_iterator it = d_strategy_set.begin();
+         it != d_strategy_set.end();
+         ++it)
     {
         width = IntVector<NDIM>::max(width, (*it)->getRefineOpStencilWidth());
     }
     return width;
-}// getRefineOpStencilWidth()
+} // getRefineOpStencilWidth()
 
-void
-RefinePatchStrategySet::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+void RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
+                                              const Patch<NDIM>& coarse,
+                                              const Box<NDIM>& fine_box,
+                                              const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
+         ++it)
     {
         (*it)->preprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
-}// preprocessRefine
+} // preprocessRefine
 
-void
-RefinePatchStrategySet::postprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+void RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine,
+                                               const Patch<NDIM>& coarse,
+                                               const Box<NDIM>& fine_box,
+                                               const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
+         ++it)
     {
         (*it)->postprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
-}// postprocessRefine
+} // postprocessRefine
 
-void
-RefinePatchStrategySet::preprocessRefineBoxes(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const BoxList<NDIM>& fine_boxes,
-    const IntVector<NDIM>& ratio)
+void RefinePatchStrategySet::preprocessRefineBoxes(Patch<NDIM>& fine,
+                                                   const Patch<NDIM>& coarse,
+                                                   const BoxList<NDIM>& fine_boxes,
+                                                   const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
+         ++it)
     {
         (*it)->preprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
-}// preprocessRefineBoxes
+} // preprocessRefineBoxes
 
-void
-RefinePatchStrategySet::postprocessRefineBoxes(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const BoxList<NDIM>& fine_boxes,
-    const IntVector<NDIM>& ratio)
+void RefinePatchStrategySet::postprocessRefineBoxes(Patch<NDIM>& fine,
+                                                    const Patch<NDIM>& coarse,
+                                                    const BoxList<NDIM>& fine_boxes,
+                                                    const IntVector<NDIM>& ratio)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
+         ++it)
     {
         (*it)->postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
-}// postprocessRefineBoxes
+} // postprocessRefineBoxes
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -154,6 +156,6 @@ RefinePatchStrategySet::postprocessRefineBoxes(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

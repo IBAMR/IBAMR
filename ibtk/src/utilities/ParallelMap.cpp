@@ -57,34 +57,28 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelMap::ParallelMap()
-    : d_map(),
-      d_pending_additions(),
-      d_pending_removals()
+ParallelMap::ParallelMap() : d_map(), d_pending_additions(), d_pending_removals()
 {
     // intentionally blank
     return;
-}// ParallelMap
+} // ParallelMap
 
-ParallelMap::ParallelMap(
-    const ParallelMap& from)
+ParallelMap::ParallelMap(const ParallelMap& from)
     : d_map(from.d_map),
       d_pending_additions(from.d_pending_additions),
       d_pending_removals(from.d_pending_removals)
 {
     // intentionally blank
     return;
-}// ParallelMap
+} // ParallelMap
 
 ParallelMap::~ParallelMap()
 {
     // intentionally blank
     return;
-}// ~ParallelMap
+} // ~ParallelMap
 
-ParallelMap&
-ParallelMap::operator=(
-    const ParallelMap& that)
+ParallelMap& ParallelMap::operator=(const ParallelMap& that)
 {
     if (this != &that)
     {
@@ -93,27 +87,21 @@ ParallelMap::operator=(
         d_pending_removals = that.d_pending_removals;
     }
     return *this;
-}// operator=
+} // operator=
 
-void
-ParallelMap::addItem(
-    const int key,
-    const tbox::Pointer<Streamable> item)
+void ParallelMap::addItem(const int key, const tbox::Pointer<Streamable> item)
 {
-    d_pending_additions.insert(std::make_pair(key,item));
+    d_pending_additions.insert(std::make_pair(key, item));
     return;
-}// addItem
+} // addItem
 
-void
-ParallelMap::removeItem(
-    const int key)
+void ParallelMap::removeItem(const int key)
 {
     d_pending_removals.push_back(key);
     return;
-}// removeItem
+} // removeItem
 
-void
-ParallelMap::communicateData()
+void ParallelMap::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -125,7 +113,7 @@ ParallelMap::communicateData()
 
         // Determine how many keys have been registered for addition on each
         // process.
-        std::vector<int> num_additions(size,0);
+        std::vector<int> num_additions(size, 0);
         num_additions[rank] = d_pending_additions.size();
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
@@ -133,13 +121,17 @@ ParallelMap::communicateData()
         // broadcast by each process.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
-        for (std::map<int,tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin(); cit != d_pending_additions.end(); ++cit)
+        for (std::map<int, tbox::Pointer<Streamable> >::const_iterator cit =
+                 d_pending_additions.begin();
+             cit != d_pending_additions.end();
+             ++cit)
         {
             keys_to_send.push_back(cit->first);
             data_items_to_send.push_back(cit->second);
         }
-        std::vector<int> data_sz(size,0);
-        data_sz[rank] = tbox::AbstractStream::sizeofInt()*keys_to_send.size() + streamable_manager->getDataStreamSize(data_items_to_send);
+        std::vector<int> data_sz(size, 0);
+        data_sz[rank] = tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
+                        streamable_manager->getDataStreamSize(data_items_to_send);
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
 
         // Broadcast data from each process.
@@ -158,7 +150,8 @@ ParallelMap::communicateData()
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
+                SAMRAI_MPI::bcast(
+                    static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_to_send[k]] = data_items_to_send[k];
@@ -198,7 +191,7 @@ ParallelMap::communicateData()
     {
         // Determine how many keys have been registered for removal on each
         // process.
-        std::vector<int> num_removals(size,0);
+        std::vector<int> num_removals(size, 0);
         num_removals[rank] = d_pending_removals.size();
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
@@ -209,7 +202,7 @@ ParallelMap::communicateData()
             if (num_keys == 0) continue;
             if (sending_proc == rank)
             {
-                // Pack and broadcast data on process sending_proc.
+// Pack and broadcast data on process sending_proc.
 #if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
@@ -235,13 +228,12 @@ ParallelMap::communicateData()
         d_pending_removals.clear();
     }
     return;
-}// communicateData
+} // communicateData
 
-const std::map<int,SAMRAI::tbox::Pointer<Streamable> >&
-ParallelMap::getMap() const
+const std::map<int, SAMRAI::tbox::Pointer<Streamable> >& ParallelMap::getMap() const
 {
     return d_map;
-}// getMap
+} // getMap
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

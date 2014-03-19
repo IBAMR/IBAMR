@@ -85,8 +85,7 @@ public:
      *
      * \return A pointer to the solver manager instance.
      */
-    static CCPoissonSolverManager*
-    getManager();
+    static CCPoissonSolverManager* getManager();
 
     /*!
      * Deallocate the CCPoissonSolverManager instance.
@@ -94,18 +93,16 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeManager();
+    static void freeManager();
 
     /*!
      * Allocate a new CCPoissonSolver object of the specified type.
      */
     SAMRAI::tbox::Pointer<PoissonSolver>
-    allocateSolver(
-        const std::string& solver_type,
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix) const;
+    allocateSolver(const std::string& solver_type,
+                   const std::string& solver_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   const std::string& solver_default_options_prefix) const;
 
     /*!
      * Allocate a new CCPoissonSolver object of the specified type with a
@@ -115,21 +112,19 @@ public:
      * is a KrylovLinearSolver.
      */
     SAMRAI::tbox::Pointer<PoissonSolver>
-    allocateSolver(
-        const std::string& solver_type,
-        const std::string& solver_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix,
-        const std::string& precond_type,
-        const std::string& precond_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
-        const std::string& precond_default_options_prefix) const;
+    allocateSolver(const std::string& solver_type,
+                   const std::string& solver_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   const std::string& solver_default_options_prefix,
+                   const std::string& precond_type,
+                   const std::string& precond_object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
+                   const std::string& precond_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct cell-centered PoissonSolvers.
      */
-    typedef SAMRAI::tbox::Pointer<PoissonSolver>
-    (*SolverMaker)(
+    typedef SAMRAI::tbox::Pointer<PoissonSolver>(*SolverMaker)(
         const std::string& solver_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
         const std::string& solver_default_options_prefix);
@@ -137,10 +132,8 @@ public:
     /*!
      * Register a solver factory function with the solver manager class.
      */
-    void
-    registerSolverFactoryFunction(
-        const std::string& solver_type,
-        SolverMaker solver_maker);
+    void registerSolverFactoryFunction(const std::string& solver_type,
+                                       SolverMaker solver_maker);
 
 protected:
     /*!
@@ -161,8 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonSolverManager(
-        const CCPoissonSolverManager& from);
+    CCPoissonSolverManager(const CCPoissonSolverManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -173,9 +165,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonSolverManager&
-    operator=(
-        const CCPoissonSolverManager& that);
+    CCPoissonSolverManager& operator=(const CCPoissonSolverManager& that);
 
     /*!
      * Static data members used to control access to and destruction of
@@ -188,9 +178,9 @@ private:
     /*!
      * Mapping from solver type names to solver maker functions.
      */
-    std::map<std::string,SolverMaker> d_solver_maker_map;
+    std::map<std::string, SolverMaker> d_solver_maker_map;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
