@@ -145,11 +145,10 @@ public:
     {
         SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
             new CCPoissonPointRelaxationFACOperator(
-                object_name + "::CCPoissonPointRelaxationFACOperator",
-                input_db,
+                object_name + "::CCPoissonPointRelaxationFACOperator", input_db,
                 default_options_prefix);
-        return new PoissonFACPreconditioner(
-            object_name, fac_operator, input_db, default_options_prefix);
+        return new PoissonFACPreconditioner(object_name, fac_operator, input_db,
+                                            default_options_prefix);
     } // allocate
 
     /*!
@@ -195,9 +194,7 @@ public:
      */
     void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                      const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                     int level_num,
-                     int num_sweeps,
-                     bool performing_pre_sweeps,
+                     int level_num, int num_sweeps, bool performing_pre_sweeps,
                      bool performing_post_sweeps);
 
     /*!
@@ -224,8 +221,7 @@ public:
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-                         int coarsest_level_num,
-                         int finest_level_num);
+                         int coarsest_level_num, int finest_level_num);
 
     //\}
 
@@ -235,8 +231,7 @@ protected:
      */
     void initializeOperatorStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_reset_ln,
         int finest_reset_ln);
 
     /*!
@@ -278,8 +273,7 @@ private:
      * to a single patch.
      */
     static void
-    buildPatchLaplaceOperator(Mat& A,
-                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+    buildPatchLaplaceOperator(Mat& A, const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                               SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                               const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
@@ -288,8 +282,7 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(
-        Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+        Mat& A, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
@@ -299,8 +292,7 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(
-        Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+        Mat& A, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);

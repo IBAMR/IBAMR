@@ -86,16 +86,12 @@ public:
      * \brief Post-process data on the patch hierarchy.
      */
     virtual void
-    postprocessData(int u_idx,
-                    int p_idx,
-                    int f_idx,
+    postprocessData(int u_idx, int p_idx, int f_idx,
                     const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
                     const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
                     const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                    int coarsest_level_number,
-                    int finest_level_number,
-                    double data_time,
+                    int coarsest_level_number, int finest_level_number, double data_time,
                     IBMethod* ib_method) = 0;
 
 private:

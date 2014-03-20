@@ -123,8 +123,7 @@ void ParallelMap::communicateData()
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
         for (std::map<int, tbox::Pointer<Streamable> >::const_iterator cit =
                  d_pending_additions.begin();
-             cit != d_pending_additions.end();
-             ++cit)
+             cit != d_pending_additions.end(); ++cit)
         {
             keys_to_send.push_back(cit->first);
             data_items_to_send.push_back(cit->second);
@@ -150,8 +149,8 @@ void ParallelMap::communicateData()
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                SAMRAI_MPI::bcast(
-                    static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
+                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size,
+                                  sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_to_send[k]] = data_items_to_send[k];

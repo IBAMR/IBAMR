@@ -86,8 +86,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
-                                            const int data_idx,
+void PETScVecUtilities::copyToPatchLevelVec(Vec& vec, const int data_idx,
                                             const int dof_index_idx,
                                             Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -125,8 +124,7 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     return;
 } // copyToPatchLevelVec
 
-void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
-                                              const int data_idx,
+void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec, const int data_idx,
                                               const int dof_index_idx,
                                               Pointer<PatchLevel<NDIM> > patch_level,
                                               Pointer<RefineSchedule<NDIM> > data_synch_sched,
@@ -161,8 +159,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
             Pointer<RefineClasses<NDIM> > data_synch_config =
                 data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
-            data_synch_alg.registerRefine(
-                data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL,
+                                          new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
@@ -207,8 +205,8 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
     else if (data_sc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
-        data_synch_alg.registerRefine(
-            data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL,
+                                      new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
@@ -259,8 +257,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
-                                                 const int data_idx,
+void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec, const int data_idx,
                                                  const int dof_index_idx,
                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -299,8 +296,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     return;
 } // copyToPatchLevelVec_cell
 
-void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
-                                                 const int data_idx,
+void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec, const int data_idx,
                                                  const int dof_index_idx,
                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -322,8 +318,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
         {
             for (Box<NDIM>::Iterator b(
                      SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+                 b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -345,8 +340,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     return;
 } // copyToPatchLevelVec_side
 
-void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
-                                                   const int data_idx,
+void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec, const int data_idx,
                                                    const int dof_index_idx,
                                                    Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -381,8 +375,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     return;
 } // copyFromPatchLevelVec_cell
 
-void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
-                                                   const int data_idx,
+void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec, const int data_idx,
                                                    const int dof_index_idx,
                                                    Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -404,8 +397,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
         {
             for (Box<NDIM>::Iterator b(
                      SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+                 b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -507,8 +499,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         {
             for (Box<NDIM>::Iterator b(
                      SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+                 b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -523,10 +514,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(
-        patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(
-        dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL,
+                                  new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL,
+                                  new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
@@ -545,8 +536,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         {
             for (Box<NDIM>::Iterator b(
                      SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+                 b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 bool mastr_loc = (*patch_num_data)(i) == patch_num;
@@ -614,8 +604,8 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;
-    dof_synch_alg.registerRefine(
-        dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL,
+                                 new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);

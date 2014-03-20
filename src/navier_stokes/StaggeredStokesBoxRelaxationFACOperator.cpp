@@ -81,8 +81,8 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = 1;
 
-inline int
-compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
+inline int compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box,
+                              const unsigned int axis)
 {
     const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
     if (!side_box.contains(i)) return -1;
@@ -105,10 +105,8 @@ inline int compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
     return box.offset(i) + offset;
 } // compute_cell_index
 
-void buildBoxOperator(Mat& A,
-                      const PoissonSpecifications& U_problem_coefs,
-                      const Box<NDIM>& box,
-                      const Box<NDIM>& ghost_box,
+void buildBoxOperator(Mat& A, const PoissonSpecifications& U_problem_coefs,
+                      const Box<NDIM>& box, const Box<NDIM>& ghost_box,
                       const boost::array<double, NDIM>& dx)
 {
     int ierr;
@@ -292,13 +290,10 @@ void buildBoxOperator(Mat& A,
     return;
 } // buildBoxOperator
 
-void modifyRhsForBcs(Vec& v,
-                     const SideData<NDIM, double>& U_data,
+void modifyRhsForBcs(Vec& v, const SideData<NDIM, double>& U_data,
                      const CellData<NDIM, double>& P_data,
-                     const PoissonSpecifications& U_problem_coefs,
-                     const Box<NDIM>& box,
-                     const Box<NDIM>& ghost_box,
-                     const double* const dx)
+                     const PoissonSpecifications& U_problem_coefs, const Box<NDIM>& box,
+                     const Box<NDIM>& ghost_box, const double* const dx)
 {
     int ierr;
 
@@ -320,8 +315,7 @@ void modifyRhsForBcs(Vec& v,
                 if (!side_box.contains(u_left))
                 {
                     ierr = VecSetValue(
-                        v,
-                        idx,
+                        v, idx,
                         +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
                             (dx[d] * dx[d]),
                         ADD_VALUES);
@@ -330,8 +324,7 @@ void modifyRhsForBcs(Vec& v,
                 if (!side_box.contains(u_rght))
                 {
                     ierr = VecSetValue(
-                        v,
-                        idx,
+                        v, idx,
                         +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
                             (dx[d] * dx[d]),
                         ADD_VALUES);
@@ -363,10 +356,8 @@ void modifyRhsForBcs(Vec& v,
     return;
 } // modifyRhsForBcs
 
-inline void copyToVec(Vec& v,
-                      const SideData<NDIM, double>& U_data,
-                      const CellData<NDIM, double>& P_data,
-                      const Box<NDIM>& box,
+inline void copyToVec(Vec& v, const SideData<NDIM, double>& U_data,
+                      const CellData<NDIM, double>& P_data, const Box<NDIM>& box,
                       const Box<NDIM>& ghost_box)
 {
     int ierr;
@@ -399,11 +390,8 @@ inline void copyToVec(Vec& v,
     return;
 } // copyToVec
 
-inline void copyFromVec(Vec& v,
-                        SideData<NDIM, double>& U_data,
-                        CellData<NDIM, double>& P_data,
-                        const Box<NDIM>& box,
-                        const Box<NDIM>& ghost_box)
+inline void copyFromVec(Vec& v, SideData<NDIM, double>& U_data, CellData<NDIM, double>& P_data,
+                        const Box<NDIM>& box, const Box<NDIM>& ghost_box)
 {
     int ierr;
 
@@ -440,12 +428,9 @@ inline void copyFromVec(Vec& v,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator(
-    const std::string& object_name,
-    const Pointer<Database> input_db,
+    const std::string& object_name, const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name,
-                                               GHOSTS,
-                                               input_db,
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db,
                                                default_options_prefix),
       d_box_op(),
       d_box_e(),
@@ -465,11 +450,8 @@ StaggeredStokesBoxRelaxationFACOperator::~StaggeredStokesBoxRelaxationFACOperato
 } // ~StaggeredStokesBoxRelaxationFACOperator
 
 void StaggeredStokesBoxRelaxationFACOperator::smoothError(
-    SAMRAIVectorReal<NDIM, double>& error,
-    const SAMRAIVectorReal<NDIM, double>& residual,
-    int level_num,
-    int num_sweeps,
-    bool /*performing_pre_sweeps*/,
+    SAMRAIVectorReal<NDIM, double>& error, const SAMRAIVectorReal<NDIM, double>& residual,
+    int level_num, int num_sweeps, bool /*performing_pre_sweeps*/,
     bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
@@ -519,8 +501,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
 #endif
             P_scratch_data->getArrayData().copy(
                 P_error_data->getArrayData(),
-                d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                IntVector<NDIM>(0));
+                d_patch_cell_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
         }
     }
 
@@ -636,8 +617,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(
-                    r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box,
+                                dx);
                 ierr = KSPSolve(ksp, r, e);
                 IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);
@@ -654,8 +635,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
 
 void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
     const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
-    const int coarsest_reset_ln,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/, const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
     // Initialize the box relaxation data on each level of the patch hierarchy.
@@ -743,8 +723,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
 } // initializeOperatorStateSpecialized
 
 void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+    const int coarsest_reset_ln, const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)

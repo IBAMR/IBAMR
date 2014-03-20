@@ -97,8 +97,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner(
-    const std::string& object_name,
-    Pointer<Database> /*input_db*/,
+    const std::string& object_name, Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
@@ -204,29 +203,29 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
 
     // Setup the component solver vectors.
     Pointer<SAMRAIVectorReal<NDIM, double> > F_U_vec;
-    F_U_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_U_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_U", d_hierarchy,
+                                                 d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > U_vec;
-    U_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::U", d_hierarchy,
+                                               d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > Phi_scratch_vec;
     Phi_scratch_vec = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    Phi_scratch_vec->addComponent(
-        d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+    Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx,
+                                  d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > F_Phi_vec;
-    F_Phi_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_Phi_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_Phi", d_hierarchy,
+                                                   d_coarsest_ln, d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > P_vec;
-    P_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P", d_hierarchy,
+                                               d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
@@ -273,17 +272,9 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     // in which L_rho = D*(1/rho)*G.
     //
     // Approximate Poisson solvers are used in both cases.
-    d_hier_math_ops->div(d_F_Phi_idx,
-                         d_F_Phi_var,
-                         -1.0,
-                         U_idx,
-                         U_sc_var,
-                         d_no_fill_op,
+    d_hier_math_ops->div(d_F_Phi_idx, d_F_Phi_var, -1.0, U_idx, U_sc_var, d_no_fill_op,
                          d_new_time,
-                         /*cf_bdry_synch*/ true,
-                         -1.0,
-                         F_P_idx,
-                         F_P_cc_var);
+                         /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
     LinearSolver* p_pressure_solver =
         dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
@@ -295,11 +286,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     }
     else
     {
-        d_pressure_data_ops->linearSum(P_idx,
-                                       1.0 / getDt(),
-                                       d_Phi_scratch_idx,
-                                       -d_U_problem_coefs.getDConstant(),
-                                       d_F_Phi_idx);
+        d_pressure_data_ops->linearSum(P_idx, 1.0 / getDt(), d_Phi_scratch_idx,
+                                       -d_U_problem_coefs.getDConstant(), d_F_Phi_idx);
     }
 
     // (3) Evaluate U in terms of U^* and Phi.
@@ -322,16 +310,9 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
     {
         coef = d_P_problem_coefs.getDConstant();
     }
-    d_hier_math_ops->grad(U_idx,
-                          U_sc_var,
-                          /*cf_bdry_synch*/ true,
-                          coef,
-                          d_Phi_scratch_idx,
-                          d_Phi_var,
-                          d_Phi_bdry_fill_op,
-                          d_pressure_solver->getSolutionTime(),
-                          1.0,
-                          U_idx,
+    d_hier_math_ops->grad(U_idx, U_sc_var,
+                          /*cf_bdry_synch*/ true, coef, d_Phi_scratch_idx, d_Phi_var,
+                          d_Phi_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_idx,
                           U_sc_var);
 
     // Account for nullspace vectors.
@@ -345,8 +326,7 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM,
 } // solveSystem
 
 void StaggeredStokesProjectionPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& b)
+    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -360,14 +340,9 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(
         new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(
+        d_Phi_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

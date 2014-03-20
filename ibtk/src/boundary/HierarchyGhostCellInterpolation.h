@@ -106,8 +106,7 @@ public:
          * \brief Default constructor.
          */
         inline InterpolationTransactionComponent(
-            int data_idx = -1,
-            const std::string& refine_op_name = "NONE",
+            int data_idx = -1, const std::string& refine_op_name = "NONE",
             bool use_cf_bdry_interpolation = false,
             const std::string& coarsen_op_name = "NONE",
             const std::string& phys_bdry_extrap_type = "NONE",
@@ -137,11 +136,8 @@ public:
          * \brief Alternate constructor.
          */
         inline InterpolationTransactionComponent(
-            int data_idx,
-            const std::string& refine_op_name,
-            bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
+            int data_idx, const std::string& refine_op_name, bool use_cf_bdry_interpolation,
+            const std::string& coarsen_op_name, const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern =
@@ -165,13 +161,9 @@ public:
          * \brief Alternate constructor.
          */
         inline InterpolationTransactionComponent(
-            int dst_data_idx,
-            int src_data_idx,
-            const std::string& refine_op_name,
-            bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
-            bool consistent_type_2_bdry,
+            int dst_data_idx, int src_data_idx, const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation, const std::string& coarsen_op_name,
+            const std::string& phys_bdry_extrap_type, bool consistent_type_2_bdry,
             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef,
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern =
                 NULL)
@@ -197,13 +189,9 @@ public:
          * \brief Alternate constructor.
          */
         inline InterpolationTransactionComponent(
-            int dst_data_idx,
-            int src_data_idx,
-            const std::string& refine_op_name,
-            bool use_cf_bdry_interpolation,
-            const std::string& coarsen_op_name,
-            const std::string& phys_bdry_extrap_type,
-            bool consistent_type_2_bdry,
+            int dst_data_idx, int src_data_idx, const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation, const std::string& coarsen_op_name,
+            const std::string& phys_bdry_extrap_type, bool consistent_type_2_bdry,
             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern =
                 NULL)
@@ -311,8 +299,7 @@ public:
     void initializeOperatorState(
         InterpolationTransactionComponent transaction_comp,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln = -1,
-        int finest_ln = -1);
+        int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Setup the hierarchy ghost cell interpolation operator to perform
@@ -322,8 +309,7 @@ public:
     void initializeOperatorState(
         const std::vector<InterpolationTransactionComponent>& transaction_comps,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln = -1,
-        int finest_ln = -1);
+        int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Reset transaction component with the interpolation operator.

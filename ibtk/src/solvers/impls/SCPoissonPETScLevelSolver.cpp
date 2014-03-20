@@ -106,8 +106,7 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& /*b*/)
+    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -123,22 +122,18 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
 
     // Setup PETSc objects.
     int ierr;
-    PETScVecUtilities::constructPatchLevelDOFIndices(
-        d_num_dofs_per_proc, d_dof_index_idx, level);
+    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx,
+                                                     level);
     const int mpi_rank = SAMRAI_MPI::getRank();
-    ierr = VecCreateMPI(
-        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE,
+                        &d_petsc_x);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMPI(
-        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE,
+                        &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat,
-                                                      d_poisson_spec,
-                                                      d_bc_coefs,
-                                                      d_solution_time,
-                                                      d_num_dofs_per_proc,
-                                                      d_dof_index_idx,
-                                                      level);
+    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs,
+                                                      d_solution_time, d_num_dofs_per_proc,
+                                                      d_dof_index_idx, level);
     d_petsc_pc = d_petsc_mat;
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
@@ -154,8 +149,7 @@ void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
     return;
 } // deallocateSolverStateSpecialized
 
-void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
-                                               SAMRAIVectorReal<NDIM, double>& x,
+void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<NDIM, double>& x,
                                                Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
@@ -168,13 +162,12 @@ void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
-    PETScVecUtilities::copyFromPatchLevelVec(
-        petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
+    PETScVecUtilities::copyFromPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level,
+                                             d_data_synch_sched, d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
 
-void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                             Vec& petsc_b,
+void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x, Vec& petsc_b,
                                              SAMRAIVectorReal<NDIM, double>& x,
                                              SAMRAIVectorReal<NDIM, double>& b,
                                              Pointer<PatchLevel<NDIM> > patch_level)

@@ -108,11 +108,9 @@ Pointer<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_na
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<PoissonSolver>
-CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                       const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
-                                       const std::string& solver_default_options_prefix) const
+Pointer<PoissonSolver> CCPoissonSolverManager::allocateSolver(
+    const std::string& solver_type, const std::string& solver_object_name,
+    Pointer<Database> solver_input_db, const std::string& solver_default_options_prefix) const
 {
     std::map<std::string, SolverMaker>::const_iterator it =
         d_solver_maker_map.find(solver_type);
@@ -124,23 +122,19 @@ CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-Pointer<PoissonSolver>
-CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                       const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
-                                       const std::string& solver_default_options_prefix,
-                                       const std::string& precond_type,
-                                       const std::string& precond_object_name,
-                                       Pointer<Database> precond_input_db,
-                                       const std::string& precond_default_options_prefix) const
+Pointer<PoissonSolver> CCPoissonSolverManager::allocateSolver(
+    const std::string& solver_type, const std::string& solver_object_name,
+    Pointer<Database> solver_input_db, const std::string& solver_default_options_prefix,
+    const std::string& precond_type, const std::string& precond_object_name,
+    Pointer<Database> precond_input_db,
+    const std::string& precond_default_options_prefix) const
 {
     Pointer<PoissonSolver> solver = allocateSolver(
         solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
     if (p_solver)
     {
-        p_solver->setPreconditioner(allocateSolver(precond_type,
-                                                   precond_object_name,
+        p_solver->setPreconditioner(allocateSolver(precond_type, precond_object_name,
                                                    precond_input_db,
                                                    precond_default_options_prefix));
     }

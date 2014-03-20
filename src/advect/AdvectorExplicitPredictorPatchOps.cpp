@@ -83,118 +83,43 @@
 extern "C" {
 void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          double*
+                          const int&, const int&, const int&, const int&, const int&,
+                          const int&, const int&, const int&, const double*, const double*,
+                          const double*, const double*, const int&, const int&, double*
 #endif
 #if (NDIM == 3)
                           const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
-                          double*
+                          const int&, const int&, const int&, const int&, const int&,
+                          const int&, const int&, const int&, const int&, const int&,
+                          const int&, const double*, const double*, const double*,
+                          const double*, const double*, const double*, const int&, const int&,
+                          const int&, double*
 #endif
                           );
 
 void ADVECT_FLUX_FC(const double&,
 #if (NDIM == 2)
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*
+                    const int&, const int&, const int&, const int&, const int&, const int&,
+                    const int&, const int&, const int&, const int&, const double*,
+                    const double*, const double*, const double*, double*, double*
 #endif
 #if (NDIM == 3)
                     const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const int&,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    const double*,
-                    double*,
-                    double*,
-                    double*
+                    const int&, const int&, const int&, const int&, const int&, const int&,
+                    const int&, const int&, const int&, const int&, const int&, const int&,
+                    const int&, const int&, const double*, const double*, const double*,
+                    const double*, const double*, const double*, double*, double*, double*
 #endif
                     );
 
 void ADVECT_STABLEDT_FC(const double*,
 #if (NDIM == 2)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                        const int&, const int&, const int&, const int&, const int&, const int&,
+                        const double*, const double*,
 #endif
 #if (NDIM == 3)
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const int&,
-                        const double*,
-                        const double*,
+                        const int&, const int&, const int&, const int&, const int&, const int&,
+                        const int&, const int&, const int&, const double*, const double*,
                         const double*,
 #endif
                         double&);
@@ -202,300 +127,98 @@ void ADVECT_STABLEDT_FC(const double*,
 #if ((NDIM == 2) || (NDIM == 3))
 void GODUNOV_INCOMPRESSIBILITY_FIX_FC(const int&,
 #if (NDIM == 2)
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const double*,
-                                      const double*,
-                                      double*,
-                                      double*
+                                      const int&, const int&, const int&, const int&,
+                                      const int&, const int&, const int&, const int&,
+                                      const double*, const double*, double*, double*
 #endif
 #if (NDIM == 3)
                                       const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const int&,
-                                      const double*,
-                                      const double*,
-                                      const double*,
-                                      double*,
-                                      double*,
-                                      double*
+                                      const int&, const int&, const int&, const int&,
+                                      const int&, const int&, const int&, const int&,
+                                      const int&, const int&, const int&, const double*,
+                                      const double*, const double*, double*, double*, double*
 #endif
                                       );
 #endif
 
-void ADVECT_PREDICT_FC(const double*,
-                       const double&,
-                       const int&,
+void ADVECT_PREDICT_FC(const double*, const double&, const int&,
 #if (NDIM == 3)
                        const unsigned int&,
 #endif
 #if (NDIM == 2)
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       double*,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       const double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*
+                       const int&, const int&, const int&, const int&, const int&, const int&,
+                       const double*, double*, const int&, const int&, const int&, const int&,
+                       const double*, const double*, double*, double*, double*, double*
 #endif
 #if (NDIM == 3)
                        const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       double*,
-                       double*,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const int&,
-                       const double*,
-                       const double*,
-                       const double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*,
-                       double*
+                       const int&, const int&, const int&, const int&, const int&, const int&,
+                       const int&, const int&, const double*, double*, double*, const int&,
+                       const int&, const int&, const int&, const int&, const int&,
+                       const double*, const double*, const double*, double*, double*, double*,
+                       double*, double*, double*
 #endif
                        );
 
-void ADVECT_PREDICT_WITH_SOURCE_FC(const double*,
-                                   const double&,
-                                   const int&,
+void ADVECT_PREDICT_WITH_SOURCE_FC(
+    const double*, const double&, const int&,
 #if (NDIM == 3)
-                                   const unsigned int&,
+    const unsigned int&,
 #endif
 #if (NDIM == 2)
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   double*,
-                                   const double*,
-                                   double*,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, double*, const double*, double*, const int&, const int&,
+    const int&, const int&, const double*, const double*, double*, double*, double*, double*
 #endif
 #if (NDIM == 3)
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const int&,
-                                   const double*,
-                                   const double*,
-                                   const double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*,
-                                   double*
+    const int&,
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const int&, const int&, const int&, const double*, double*, double*,
+    const double*, double*, double*, const int&, const int&, const int&, const int&,
+    const int&, const int&, const double*, const double*, const double*, double*, double*,
+    double*, double*, double*, double*
 #endif
-                                   );
-void ADVECT_PREDICT_PPM_FC(const double*,
-                           const double&,
-                           const int&,
+    );
+void ADVECT_PREDICT_PPM_FC(const double*, const double&, const int&,
 #if (NDIM == 3)
                            const unsigned int&,
 #endif
 #if (NDIM == 2)
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*
+                           const int&, const int&, const int&, const int&, const int&,
+                           const int&, const double*, double*, double*, double*, double*,
+                           const int&, const int&, const int&, const int&, const double*,
+                           const double*, double*, double*, double*, double*
 #endif
 #if (NDIM == 3)
                            const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*,
-                           double*
+                           const int&, const int&, const int&, const int&, const int&,
+                           const int&, const int&, const int&, const double*, double*, double*,
+                           double*, double*, double*, const int&, const int&, const int&,
+                           const int&, const int&, const int&, const double*, const double*,
+                           const double*, double*, double*, double*, double*, double*, double*
 #endif
                            );
 
-void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(const double*,
-                                       const double&,
-                                       const int&,
+void ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
+    const double*, const double&, const int&,
 #if (NDIM == 3)
-                                       const unsigned int&,
+    const unsigned int&,
 #endif
 #if (NDIM == 2)
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       const double*,
-                                       double*,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       const double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, double*, double*, double*, double*, const double*, double*,
+    const int&, const int&, const int&, const int&, const double*, const double*, double*,
+    double*, double*, double*
 #endif
 #if (NDIM == 3)
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       const double*,
-                                       double*,
-                                       double*,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const int&,
-                                       const double*,
-                                       const double*,
-                                       const double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*,
-                                       double*
+    const int&,
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const int&, const int&, const int&, const double*, double*, double*, double*,
+    double*, double*, const double*, double*, double*, const int&, const int&, const int&,
+    const int&, const int&, const int&, const double*, const double*, const double*, double*,
+    double*, double*, double*, double*, double*
 #endif
-                                       );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -517,8 +240,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(
-    const std::string& object_name,
-    Pointer<Database> input_db,
+    const std::string& object_name, Pointer<Database> input_db,
     const bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -578,41 +300,21 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
     double stable_dt = std::numeric_limits<double>::max();
 
 #if (NDIM == 2)
-    ADVECT_STABLEDT_FC(dx,
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       u_ghost_cells(0),
-                       u_ghost_cells(1),
-                       u_ADV.getPointer(0),
-                       u_ADV.getPointer(1),
-                       stable_dt);
+    ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), u_ghost_cells(0),
+                       u_ghost_cells(1), u_ADV.getPointer(0), u_ADV.getPointer(1), stable_dt);
 #endif
 #if (NDIM == 3)
-    ADVECT_STABLEDT_FC(dx,
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       ilower(2),
-                       iupper(2),
-                       u_ghost_cells(0),
-                       u_ghost_cells(1),
-                       u_ghost_cells(2),
-                       u_ADV.getPointer(0),
-                       u_ADV.getPointer(1),
-                       u_ADV.getPointer(2),
+    ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                       u_ghost_cells(0), u_ghost_cells(1), u_ghost_cells(2),
+                       u_ADV.getPointer(0), u_ADV.getPointer(1), u_ADV.getPointer(2),
                        stable_dt);
 #endif
     return stable_dt;
 } // computeStableDtOnPatch
 
 void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(
-    CellData<NDIM, double>& N,
-    const FaceData<NDIM, double>& u_ADV,
-    const FaceData<NDIM, double>& q_half,
-    const Patch<NDIM>& patch) const
+    CellData<NDIM, double>& N, const FaceData<NDIM, double>& u_ADV,
+    const FaceData<NDIM, double>& q_half, const Patch<NDIM>& patch) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
@@ -636,47 +338,21 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
 #if (NDIM == 2)
-        ADVECT_DERIVATIVE_FC(dx,
-                             ilower(0),
-                             iupper(0),
-                             ilower(1),
-                             iupper(1),
-                             u_ADV_ghost_cells(0),
-                             u_ADV_ghost_cells(1),
-                             q_half_ghost_cells(0),
-                             q_half_ghost_cells(1),
-                             u_ADV.getPointer(0),
-                             u_ADV.getPointer(1),
-                             q_half.getPointer(0, depth),
-                             q_half.getPointer(1, depth),
-                             N_ghost_cells(0),
-                             N_ghost_cells(1),
-                             N.getPointer(depth));
+        ADVECT_DERIVATIVE_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1),
+                             u_ADV_ghost_cells(0), u_ADV_ghost_cells(1), q_half_ghost_cells(0),
+                             q_half_ghost_cells(1), u_ADV.getPointer(0), u_ADV.getPointer(1),
+                             q_half.getPointer(0, depth), q_half.getPointer(1, depth),
+                             N_ghost_cells(0), N_ghost_cells(1), N.getPointer(depth));
 #endif
 #if (NDIM == 3)
-        ADVECT_DERIVATIVE_FC(dx,
-                             ilower(0),
-                             iupper(0),
-                             ilower(1),
-                             iupper(1),
-                             ilower(2),
-                             iupper(2),
-                             u_ADV_ghost_cells(0),
-                             u_ADV_ghost_cells(1),
-                             u_ADV_ghost_cells(2),
-                             q_half_ghost_cells(0),
-                             q_half_ghost_cells(1),
-                             q_half_ghost_cells(2),
-                             u_ADV.getPointer(0),
-                             u_ADV.getPointer(1),
-                             u_ADV.getPointer(2),
-                             q_half.getPointer(0, depth),
-                             q_half.getPointer(1, depth),
-                             q_half.getPointer(2, depth),
-                             N_ghost_cells(0),
-                             N_ghost_cells(1),
-                             N_ghost_cells(2),
-                             N.getPointer(depth));
+        ADVECT_DERIVATIVE_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2),
+                             iupper(2), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
+                             u_ADV_ghost_cells(2), q_half_ghost_cells(0),
+                             q_half_ghost_cells(1), q_half_ghost_cells(2), u_ADV.getPointer(0),
+                             u_ADV.getPointer(1), u_ADV.getPointer(2),
+                             q_half.getPointer(0, depth), q_half.getPointer(1, depth),
+                             q_half.getPointer(2, depth), N_ghost_cells(0), N_ghost_cells(1),
+                             N_ghost_cells(2), N.getPointer(depth));
 #endif
     }
     return;
@@ -707,50 +383,22 @@ void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
 #if (NDIM == 2)
-        ADVECT_FLUX_FC(dt,
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       u_ADV_ghost_cells(0),
-                       u_ADV_ghost_cells(1),
-                       q_half_ghost_cells(0),
-                       q_half_ghost_cells(1),
-                       flux_ghost_cells(0),
-                       flux_ghost_cells(1),
-                       u_ADV.getPointer(0),
-                       u_ADV.getPointer(1),
-                       q_half.getPointer(0, depth),
-                       q_half.getPointer(1, depth),
-                       flux.getPointer(0, depth),
+        ADVECT_FLUX_FC(dt, ilower(0), iupper(0), ilower(1), iupper(1), u_ADV_ghost_cells(0),
+                       u_ADV_ghost_cells(1), q_half_ghost_cells(0), q_half_ghost_cells(1),
+                       flux_ghost_cells(0), flux_ghost_cells(1), u_ADV.getPointer(0),
+                       u_ADV.getPointer(1), q_half.getPointer(0, depth),
+                       q_half.getPointer(1, depth), flux.getPointer(0, depth),
                        flux.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-        ADVECT_FLUX_FC(dt,
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       ilower(2),
-                       iupper(2),
-                       u_ADV_ghost_cells(0),
-                       u_ADV_ghost_cells(1),
-                       u_ADV_ghost_cells(2),
-                       q_half_ghost_cells(0),
-                       q_half_ghost_cells(1),
-                       q_half_ghost_cells(2),
-                       flux_ghost_cells(0),
-                       flux_ghost_cells(1),
-                       flux_ghost_cells(2),
-                       u_ADV.getPointer(0),
-                       u_ADV.getPointer(1),
-                       u_ADV.getPointer(2),
-                       q_half.getPointer(0, depth),
-                       q_half.getPointer(1, depth),
-                       q_half.getPointer(2, depth),
-                       flux.getPointer(0, depth),
-                       flux.getPointer(1, depth),
-                       flux.getPointer(2, depth));
+        ADVECT_FLUX_FC(dt, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                       u_ADV_ghost_cells(0), u_ADV_ghost_cells(1), u_ADV_ghost_cells(2),
+                       q_half_ghost_cells(0), q_half_ghost_cells(1), q_half_ghost_cells(2),
+                       flux_ghost_cells(0), flux_ghost_cells(1), flux_ghost_cells(2),
+                       u_ADV.getPointer(0), u_ADV.getPointer(1), u_ADV.getPointer(2),
+                       q_half.getPointer(0, depth), q_half.getPointer(1, depth),
+                       q_half.getPointer(2, depth), flux.getPointer(0, depth),
+                       flux.getPointer(1, depth), flux.getPointer(2, depth));
 #endif
     }
     return;
@@ -767,23 +415,17 @@ void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<NDIM, double>& q_h
 } // predictValue
 
 void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(
-    FaceData<NDIM, double>& q_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const CellData<NDIM, double>& Q,
-    const CellData<NDIM, double>& F,
-    const Patch<NDIM>& patch,
+    FaceData<NDIM, double>& q_half, const FaceData<NDIM, double>& u_ADV,
+    const CellData<NDIM, double>& Q, const CellData<NDIM, double>& F, const Patch<NDIM>& patch,
     const double dt) const
 {
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
     return;
 } // predictValueWithSourceTerm
 
-void
-AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>& v_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& V,
-                                                         const Patch<NDIM>& patch,
-                                                         const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(
+    FaceData<NDIM, double>& v_half, const FaceData<NDIM, double>& u_ADV,
+    const CellData<NDIM, double>& V, const Patch<NDIM>& patch, const double dt) const
 {
     FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
@@ -800,11 +442,8 @@ AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>&
 } // predictNormalVelocity
 
 void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(
-    FaceData<NDIM, double>& v_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const CellData<NDIM, double>& V,
-    const CellData<NDIM, double>& F,
-    const Patch<NDIM>& patch,
+    FaceData<NDIM, double>& v_half, const FaceData<NDIM, double>& u_ADV,
+    const CellData<NDIM, double>& V, const CellData<NDIM, double>& F, const Patch<NDIM>& patch,
     const double dt) const
 {
     FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
@@ -822,10 +461,8 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(
 } // predictNormalVelocityWithSourceTerm
 
 void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(
-    FaceData<NDIM, double>& v_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const FaceData<NDIM, double>& grad_phi,
-    const Patch<NDIM>& patch) const
+    FaceData<NDIM, double>& v_half, const FaceData<NDIM, double>& u_ADV,
+    const FaceData<NDIM, double>& grad_phi, const Patch<NDIM>& patch) const
 {
 #if (NDIM != 1)
 
@@ -850,40 +487,20 @@ void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(
     for (unsigned int depth = 0; depth < NDIM; ++depth)
     {
 #if (NDIM == 2)
-        GODUNOV_INCOMPRESSIBILITY_FIX_FC(depth,
-                                         ilower(0),
-                                         iupper(0),
-                                         ilower(1),
-                                         iupper(1),
-                                         grad_phi_ghost_cells(0),
-                                         grad_phi_ghost_cells(1),
-                                         v_half_ghost_cells(0),
-                                         v_half_ghost_cells(1),
-                                         grad_phi.getPointer(0),
-                                         grad_phi.getPointer(1),
-                                         v_half.getPointer(0, depth),
-                                         v_half.getPointer(1, depth));
+        GODUNOV_INCOMPRESSIBILITY_FIX_FC(
+            depth, ilower(0), iupper(0), ilower(1), iupper(1), grad_phi_ghost_cells(0),
+            grad_phi_ghost_cells(1), v_half_ghost_cells(0), v_half_ghost_cells(1),
+            grad_phi.getPointer(0), grad_phi.getPointer(1), v_half.getPointer(0, depth),
+            v_half.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-        GODUNOV_INCOMPRESSIBILITY_FIX_FC(depth,
-                                         ilower(0),
-                                         iupper(0),
-                                         ilower(1),
-                                         iupper(1),
-                                         ilower(2),
-                                         iupper(2),
-                                         grad_phi_ghost_cells(0),
-                                         grad_phi_ghost_cells(1),
-                                         grad_phi_ghost_cells(2),
-                                         v_half_ghost_cells(0),
-                                         v_half_ghost_cells(1),
-                                         v_half_ghost_cells(2),
-                                         grad_phi.getPointer(0),
-                                         grad_phi.getPointer(1),
-                                         grad_phi.getPointer(2),
-                                         v_half.getPointer(0, depth),
-                                         v_half.getPointer(1, depth),
-                                         v_half.getPointer(2, depth));
+        GODUNOV_INCOMPRESSIBILITY_FIX_FC(
+            depth, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+            grad_phi_ghost_cells(0), grad_phi_ghost_cells(1), grad_phi_ghost_cells(2),
+            v_half_ghost_cells(0), v_half_ghost_cells(1), v_half_ghost_cells(2),
+            grad_phi.getPointer(0), grad_phi.getPointer(1), grad_phi.getPointer(2),
+            v_half.getPointer(0, depth), v_half.getPointer(1, depth),
+            v_half.getPointer(2, depth));
 #endif
     }
 
@@ -987,125 +604,51 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
         case SECOND_ORDER:
         case FOURTH_ORDER:
 #if (NDIM == 2)
-            ADVECT_PREDICT_FC(dx,
-                              dt,
-                              d_limiter_type,
-                              ilower(0),
-                              iupper(0),
-                              ilower(1),
-                              iupper(1),
-                              Q_ghost_cells(0),
-                              Q_ghost_cells(1),
-                              Q.getPointer(depth),
-                              Q_temp1.getPointer(0),
-                              u_ADV_ghost_cells(0),
-                              u_ADV_ghost_cells(1),
-                              q_half_ghost_cells(0),
-                              q_half_ghost_cells(1),
-                              u_ADV.getPointer(0),
-                              u_ADV.getPointer(1),
-                              q_half_temp.getPointer(0),
-                              q_half_temp.getPointer(1),
-                              q_half.getPointer(0, depth),
-                              q_half.getPointer(1, depth));
+            ADVECT_PREDICT_FC(dx, dt, d_limiter_type, ilower(0), iupper(0), ilower(1),
+                              iupper(1), Q_ghost_cells(0), Q_ghost_cells(1),
+                              Q.getPointer(depth), Q_temp1.getPointer(0), u_ADV_ghost_cells(0),
+                              u_ADV_ghost_cells(1), q_half_ghost_cells(0),
+                              q_half_ghost_cells(1), u_ADV.getPointer(0), u_ADV.getPointer(1),
+                              q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                              q_half.getPointer(0, depth), q_half.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-            ADVECT_PREDICT_FC(dx,
-                              dt,
-                              d_limiter_type,
-                              static_cast<unsigned int>(d_using_full_ctu),
-                              ilower(0),
-                              iupper(0),
-                              ilower(1),
-                              iupper(1),
-                              ilower(2),
-                              iupper(2),
-                              Q_ghost_cells(0),
-                              Q_ghost_cells(1),
-                              Q_ghost_cells(2),
-                              Q.getPointer(depth),
-                              Q_temp1.getPointer(0),
-                              Q_temp2.getPointer(0),
-                              u_ADV_ghost_cells(0),
-                              u_ADV_ghost_cells(1),
-                              u_ADV_ghost_cells(2),
-                              q_half_ghost_cells(0),
-                              q_half_ghost_cells(1),
-                              q_half_ghost_cells(2),
-                              u_ADV.getPointer(0),
-                              u_ADV.getPointer(1),
-                              u_ADV.getPointer(2),
-                              q_half_temp.getPointer(0),
-                              q_half_temp.getPointer(1),
-                              q_half_temp.getPointer(2),
-                              q_half.getPointer(0, depth),
-                              q_half.getPointer(1, depth),
-                              q_half.getPointer(2, depth));
+            ADVECT_PREDICT_FC(
+                dx, dt, d_limiter_type, static_cast<unsigned int>(d_using_full_ctu), ilower(0),
+                iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), Q_ghost_cells(0),
+                Q_ghost_cells(1), Q_ghost_cells(2), Q.getPointer(depth), Q_temp1.getPointer(0),
+                Q_temp2.getPointer(0), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
+                u_ADV_ghost_cells(2), q_half_ghost_cells(0), q_half_ghost_cells(1),
+                q_half_ghost_cells(2), u_ADV.getPointer(0), u_ADV.getPointer(1),
+                u_ADV.getPointer(2), q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half_temp.getPointer(2), q_half.getPointer(0, depth),
+                q_half.getPointer(1, depth), q_half.getPointer(2, depth));
 #endif
             break;
         case PPM:
         case XSPPM7:
 #if (NDIM == 2)
-            ADVECT_PREDICT_PPM_FC(dx,
-                                  dt,
-                                  d_limiter_type,
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  Q_ghost_cells(0),
-                                  Q_ghost_cells(1),
-                                  Q.getPointer(depth),
-                                  Q_temp1.getPointer(0),
-                                  dQ.getPointer(0),
-                                  Q_L.getPointer(0),
-                                  Q_R.getPointer(0),
-                                  u_ADV_ghost_cells(0),
-                                  u_ADV_ghost_cells(1),
-                                  q_half_ghost_cells(0),
-                                  q_half_ghost_cells(1),
-                                  u_ADV.getPointer(0),
-                                  u_ADV.getPointer(1),
-                                  q_half_temp.getPointer(0),
-                                  q_half_temp.getPointer(1),
-                                  q_half.getPointer(0, depth),
-                                  q_half.getPointer(1, depth));
+            ADVECT_PREDICT_PPM_FC(
+                dx, dt, d_limiter_type, ilower(0), iupper(0), ilower(1), iupper(1),
+                Q_ghost_cells(0), Q_ghost_cells(1), Q.getPointer(depth), Q_temp1.getPointer(0),
+                dQ.getPointer(0), Q_L.getPointer(0), Q_R.getPointer(0), u_ADV_ghost_cells(0),
+                u_ADV_ghost_cells(1), q_half_ghost_cells(0), q_half_ghost_cells(1),
+                u_ADV.getPointer(0), u_ADV.getPointer(1), q_half_temp.getPointer(0),
+                q_half_temp.getPointer(1), q_half.getPointer(0, depth),
+                q_half.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-            ADVECT_PREDICT_PPM_FC(dx,
-                                  dt,
-                                  d_limiter_type,
-                                  static_cast<unsigned int>(d_using_full_ctu),
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  Q_ghost_cells(0),
-                                  Q_ghost_cells(1),
-                                  Q_ghost_cells(2),
-                                  Q.getPointer(depth),
-                                  Q_temp1.getPointer(0),
-                                  Q_temp2.getPointer(0),
-                                  dQ.getPointer(0),
-                                  Q_L.getPointer(0),
-                                  Q_R.getPointer(0),
-                                  u_ADV_ghost_cells(0),
-                                  u_ADV_ghost_cells(1),
-                                  u_ADV_ghost_cells(2),
-                                  q_half_ghost_cells(0),
-                                  q_half_ghost_cells(1),
-                                  q_half_ghost_cells(2),
-                                  u_ADV.getPointer(0),
-                                  u_ADV.getPointer(1),
-                                  u_ADV.getPointer(2),
-                                  q_half_temp.getPointer(0),
-                                  q_half_temp.getPointer(1),
-                                  q_half_temp.getPointer(2),
-                                  q_half.getPointer(0, depth),
-                                  q_half.getPointer(1, depth),
-                                  q_half.getPointer(2, depth));
+            ADVECT_PREDICT_PPM_FC(
+                dx, dt, d_limiter_type, static_cast<unsigned int>(d_using_full_ctu), ilower(0),
+                iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), Q_ghost_cells(0),
+                Q_ghost_cells(1), Q_ghost_cells(2), Q.getPointer(depth), Q_temp1.getPointer(0),
+                Q_temp2.getPointer(0), dQ.getPointer(0), Q_L.getPointer(0), Q_R.getPointer(0),
+                u_ADV_ghost_cells(0), u_ADV_ghost_cells(1), u_ADV_ghost_cells(2),
+                q_half_ghost_cells(0), q_half_ghost_cells(1), q_half_ghost_cells(2),
+                u_ADV.getPointer(0), u_ADV.getPointer(1), u_ADV.getPointer(2),
+                q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half_temp.getPointer(2), q_half.getPointer(0, depth),
+                q_half.getPointer(1, depth), q_half.getPointer(2, depth));
 #endif
             break;
         case UNKNOWN_LIMITER_TYPE:
@@ -1118,13 +661,10 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
     return;
 } // predict
 
-void
-AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& Q,
-                                                         const CellData<NDIM, double>& F,
-                                                         const Patch<NDIM>& patch,
-                                                         const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(
+    FaceData<NDIM, double>& q_half, const FaceData<NDIM, double>& u_ADV,
+    const CellData<NDIM, double>& Q, const CellData<NDIM, double>& F, const Patch<NDIM>& patch,
+    const double dt) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
@@ -1172,145 +712,57 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
         case SECOND_ORDER:
         case FOURTH_ORDER:
 #if (NDIM == 2)
-            ADVECT_PREDICT_WITH_SOURCE_FC(dx,
-                                          dt,
-                                          d_limiter_type,
-                                          ilower(0),
-                                          iupper(0),
-                                          ilower(1),
-                                          iupper(1),
-                                          Q_ghost_cells(0),
-                                          Q_ghost_cells(1),
-                                          F_ghost_cells(0),
-                                          F_ghost_cells(1),
-                                          Q.getPointer(depth),
-                                          Q_temp1.getPointer(0),
-                                          F.getPointer(depth),
-                                          F_temp1.getPointer(0),
-                                          u_ADV_ghost_cells(0),
-                                          u_ADV_ghost_cells(1),
-                                          q_half_ghost_cells(0),
-                                          q_half_ghost_cells(1),
-                                          u_ADV.getPointer(0),
-                                          u_ADV.getPointer(1),
-                                          q_half_temp.getPointer(0),
-                                          q_half_temp.getPointer(1),
-                                          q_half.getPointer(0, depth),
-                                          q_half.getPointer(1, depth));
+            ADVECT_PREDICT_WITH_SOURCE_FC(
+                dx, dt, d_limiter_type, ilower(0), iupper(0), ilower(1), iupper(1),
+                Q_ghost_cells(0), Q_ghost_cells(1), F_ghost_cells(0), F_ghost_cells(1),
+                Q.getPointer(depth), Q_temp1.getPointer(0), F.getPointer(depth),
+                F_temp1.getPointer(0), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
+                q_half_ghost_cells(0), q_half_ghost_cells(1), u_ADV.getPointer(0),
+                u_ADV.getPointer(1), q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half.getPointer(0, depth), q_half.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-            ADVECT_PREDICT_WITH_SOURCE_FC(dx,
-                                          dt,
-                                          d_limiter_type,
-                                          static_cast<unsigned int>(d_using_full_ctu),
-                                          ilower(0),
-                                          iupper(0),
-                                          ilower(1),
-                                          iupper(1),
-                                          ilower(2),
-                                          iupper(2),
-                                          Q_ghost_cells(0),
-                                          Q_ghost_cells(1),
-                                          Q_ghost_cells(2),
-                                          F_ghost_cells(0),
-                                          F_ghost_cells(1),
-                                          F_ghost_cells(2),
-                                          Q.getPointer(depth),
-                                          Q_temp1.getPointer(0),
-                                          Q_temp2.getPointer(0),
-                                          F.getPointer(depth),
-                                          F_temp1.getPointer(0),
-                                          F_temp2.getPointer(0),
-                                          u_ADV_ghost_cells(0),
-                                          u_ADV_ghost_cells(1),
-                                          u_ADV_ghost_cells(2),
-                                          q_half_ghost_cells(0),
-                                          q_half_ghost_cells(1),
-                                          q_half_ghost_cells(2),
-                                          u_ADV.getPointer(0),
-                                          u_ADV.getPointer(1),
-                                          u_ADV.getPointer(2),
-                                          q_half_temp.getPointer(0),
-                                          q_half_temp.getPointer(1),
-                                          q_half_temp.getPointer(2),
-                                          q_half.getPointer(0, depth),
-                                          q_half.getPointer(1, depth),
-                                          q_half.getPointer(2, depth));
+            ADVECT_PREDICT_WITH_SOURCE_FC(
+                dx, dt, d_limiter_type, static_cast<unsigned int>(d_using_full_ctu), ilower(0),
+                iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), Q_ghost_cells(0),
+                Q_ghost_cells(1), Q_ghost_cells(2), F_ghost_cells(0), F_ghost_cells(1),
+                F_ghost_cells(2), Q.getPointer(depth), Q_temp1.getPointer(0),
+                Q_temp2.getPointer(0), F.getPointer(depth), F_temp1.getPointer(0),
+                F_temp2.getPointer(0), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
+                u_ADV_ghost_cells(2), q_half_ghost_cells(0), q_half_ghost_cells(1),
+                q_half_ghost_cells(2), u_ADV.getPointer(0), u_ADV.getPointer(1),
+                u_ADV.getPointer(2), q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half_temp.getPointer(2), q_half.getPointer(0, depth),
+                q_half.getPointer(1, depth), q_half.getPointer(2, depth));
 #endif
             break;
         case PPM:
         case XSPPM7:
 #if (NDIM == 2)
-            ADVECT_PREDICT_PPM_WITH_SOURCE_FC(dx,
-                                              dt,
-                                              d_limiter_type,
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              Q_ghost_cells(0),
-                                              Q_ghost_cells(1),
-                                              F_ghost_cells(0),
-                                              F_ghost_cells(1),
-                                              Q.getPointer(depth),
-                                              Q_temp1.getPointer(0),
-                                              dQ.getPointer(0),
-                                              Q_L.getPointer(0),
-                                              Q_R.getPointer(0),
-                                              F.getPointer(depth),
-                                              F_temp1.getPointer(0),
-                                              u_ADV_ghost_cells(0),
-                                              u_ADV_ghost_cells(1),
-                                              q_half_ghost_cells(0),
-                                              q_half_ghost_cells(1),
-                                              u_ADV.getPointer(0),
-                                              u_ADV.getPointer(1),
-                                              q_half_temp.getPointer(0),
-                                              q_half_temp.getPointer(1),
-                                              q_half.getPointer(0, depth),
-                                              q_half.getPointer(1, depth));
+            ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
+                dx, dt, d_limiter_type, ilower(0), iupper(0), ilower(1), iupper(1),
+                Q_ghost_cells(0), Q_ghost_cells(1), F_ghost_cells(0), F_ghost_cells(1),
+                Q.getPointer(depth), Q_temp1.getPointer(0), dQ.getPointer(0),
+                Q_L.getPointer(0), Q_R.getPointer(0), F.getPointer(depth),
+                F_temp1.getPointer(0), u_ADV_ghost_cells(0), u_ADV_ghost_cells(1),
+                q_half_ghost_cells(0), q_half_ghost_cells(1), u_ADV.getPointer(0),
+                u_ADV.getPointer(1), q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half.getPointer(0, depth), q_half.getPointer(1, depth));
 #endif
 #if (NDIM == 3)
-            ADVECT_PREDICT_PPM_WITH_SOURCE_FC(dx,
-                                              dt,
-                                              d_limiter_type,
-                                              static_cast<unsigned int>(d_using_full_ctu),
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              ilower(2),
-                                              iupper(2),
-                                              Q_ghost_cells(0),
-                                              Q_ghost_cells(1),
-                                              Q_ghost_cells(2),
-                                              F_ghost_cells(0),
-                                              F_ghost_cells(1),
-                                              F_ghost_cells(2),
-                                              Q.getPointer(depth),
-                                              Q_temp1.getPointer(0),
-                                              Q_temp2.getPointer(0),
-                                              dQ.getPointer(0),
-                                              Q_L.getPointer(0),
-                                              Q_R.getPointer(0),
-                                              F.getPointer(depth),
-                                              F_temp1.getPointer(0),
-                                              F_temp2.getPointer(0),
-                                              u_ADV_ghost_cells(0),
-                                              u_ADV_ghost_cells(1),
-                                              u_ADV_ghost_cells(2),
-                                              q_half_ghost_cells(0),
-                                              q_half_ghost_cells(1),
-                                              q_half_ghost_cells(2),
-                                              u_ADV.getPointer(0),
-                                              u_ADV.getPointer(1),
-                                              u_ADV.getPointer(2),
-                                              q_half_temp.getPointer(0),
-                                              q_half_temp.getPointer(1),
-                                              q_half_temp.getPointer(2),
-                                              q_half.getPointer(0, depth),
-                                              q_half.getPointer(1, depth),
-                                              q_half.getPointer(2, depth));
+            ADVECT_PREDICT_PPM_WITH_SOURCE_FC(
+                dx, dt, d_limiter_type, static_cast<unsigned int>(d_using_full_ctu), ilower(0),
+                iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), Q_ghost_cells(0),
+                Q_ghost_cells(1), Q_ghost_cells(2), F_ghost_cells(0), F_ghost_cells(1),
+                F_ghost_cells(2), Q.getPointer(depth), Q_temp1.getPointer(0),
+                Q_temp2.getPointer(0), dQ.getPointer(0), Q_L.getPointer(0), Q_R.getPointer(0),
+                F.getPointer(depth), F_temp1.getPointer(0), F_temp2.getPointer(0),
+                u_ADV_ghost_cells(0), u_ADV_ghost_cells(1), u_ADV_ghost_cells(2),
+                q_half_ghost_cells(0), q_half_ghost_cells(1), q_half_ghost_cells(2),
+                u_ADV.getPointer(0), u_ADV.getPointer(1), u_ADV.getPointer(2),
+                q_half_temp.getPointer(0), q_half_temp.getPointer(1),
+                q_half_temp.getPointer(2), q_half.getPointer(0, depth),
+                q_half.getPointer(1, depth), q_half.getPointer(2, depth));
 #endif
             break;
         case UNKNOWN_LIMITER_TYPE:

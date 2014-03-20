@@ -113,8 +113,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesFACPreconditionerStrategy(
-        const std::string& object_name,
-        int ghost_cell_width,
+        const std::string& object_name, int ghost_cell_width,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::string& default_options_prefix);
 
@@ -253,8 +252,7 @@ public:
      * \param dst_ln destination level number
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                          int dst_ln);
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -265,8 +263,7 @@ public:
      * \param dst_ln destination level number of data transfer
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                      int dst_ln);
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -277,8 +274,7 @@ public:
      * \param dst_ln destination level number of data transfer
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
-                                int dst_ln);
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -299,8 +295,7 @@ public:
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-                         int coarsest_level_num,
-                         int finest_level_num);
+                         int coarsest_level_num, int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -336,8 +331,7 @@ protected:
      */
     virtual void initializeOperatorStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_reset_ln,
         int finest_reset_ln) = 0;
 
     /*!
@@ -356,16 +350,14 @@ protected:
      * \brief Execute a refinement schedule for prolonging data.
      */
     void xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
-                                 const std::pair<int, int>& src_idxs,
-                                 int dst_ln);
+                                 const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
      */
     void xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
-                                const std::pair<int, int>& src_idxs,
-                                int dst_ln);
+                                const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.

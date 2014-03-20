@@ -181,8 +181,8 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time,
+                                      int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -193,8 +193,7 @@ public:
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateHierarchy(double current_time,
-                                       double new_time,
+    void postprocessIntegrateHierarchy(double current_time, double new_time,
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1);
 
@@ -210,9 +209,7 @@ public:
     void setupSolverVectors(
         const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
         const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-        double current_time,
-        double new_time,
-        int cycle_num);
+        double current_time, double new_time, int cycle_num);
 
     /*!
      * Reset solution and RHS vectors using state data maintained by the
@@ -222,9 +219,7 @@ public:
     void resetSolverVectors(
         const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
         const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-        double current_time,
-        double new_time,
-        int cycle_num);
+        double current_time, double new_time, int cycle_num);
 
 protected:
     /*!
@@ -238,10 +233,7 @@ protected:
      */
     void initializeLevelDataSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
+        int level_number, double init_data_time, bool can_be_refined, bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
         bool allocate_data);
 
@@ -250,8 +242,7 @@ protected:
      */
     void resetHierarchyConfigurationSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -259,10 +250,7 @@ protected:
      */
     void applyGradientDetectorSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
+        int level_number, double error_data_time, int tag_index, bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     /*!

@@ -243,8 +243,7 @@ public:
      * \note The index of the destination object is src_index + src_offset.
      */
     void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
-                        const LSet& src_item);
+                        const SAMRAI::hier::IntVector<NDIM>& src_offset, const LSet& src_item);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the

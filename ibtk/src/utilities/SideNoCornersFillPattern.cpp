@@ -80,13 +80,10 @@ SideNoCornersFillPattern::~SideNoCornersFillPattern()
     return;
 } // SideNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM> >
-SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
-                                           const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> > SideNoCornersFillPattern::calculateOverlap(
+    const BoxGeometry<NDIM>& dst_geometry, const BoxGeometry<NDIM>& src_geometry,
+    const Box<NDIM>& /*dst_patch_box*/, const Box<NDIM>& src_mask,
+    const bool overwrite_interior, const IntVector<NDIM>& src_offset) const
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
@@ -152,15 +149,11 @@ SideNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     return new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM> >
-SideNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
-                                                  const BoxGeometry<NDIM>& src_geometry,
-                                                  const Box<NDIM>& dst_patch_box,
-                                                  const Box<NDIM>& src_mask,
-                                                  const bool overwrite_interior,
-                                                  const IntVector<NDIM>& src_offset,
-                                                  const int dst_level_num,
-                                                  const int /*src_level_num*/) const
+Pointer<BoxOverlap<NDIM> > SideNoCornersFillPattern::calculateOverlapOnLevel(
+    const BoxGeometry<NDIM>& dst_geometry, const BoxGeometry<NDIM>& src_geometry,
+    const Box<NDIM>& dst_patch_box, const Box<NDIM>& src_mask, const bool overwrite_interior,
+    const IntVector<NDIM>& src_offset, const int dst_level_num,
+    const int /*src_level_num*/) const
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);

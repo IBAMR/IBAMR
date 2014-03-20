@@ -107,8 +107,7 @@ public:
      * manager when requested.
      */
     AdvDiffSemiImplicitHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart = true);
 
     /*!
@@ -289,8 +288,8 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time,
+                                      int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -301,8 +300,7 @@ public:
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateHierarchy(double current_time,
-                                       double new_time,
+    void postprocessIntegrateHierarchy(double current_time, double new_time,
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1);
 
@@ -312,8 +310,7 @@ protected:
      */
     void resetHierarchyConfigurationSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Write out specialized object state to the given database.

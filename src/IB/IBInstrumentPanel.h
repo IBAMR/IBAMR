@@ -154,21 +154,16 @@ public:
      */
     void initializeHierarchyDependentData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* l_data_manager,
-        int timestep_num,
-        double data_time);
+        IBTK::LDataManager* l_data_manager, int timestep_num, double data_time);
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
      * internal flow meters and pressure gauges.
      */
     void
-    readInstrumentData(int U_data_idx,
-                       int P_data_idx,
+    readInstrumentData(int U_data_idx, int P_data_idx,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                       IBTK::LDataManager* l_data_manager,
-                       int timestep_num,
-                       double data_time);
+                       IBTK::LDataManager* l_data_manager, int timestep_num, double data_time);
 
     /*!
      * \brief Set the directory where plot data is to be written.
@@ -251,8 +246,7 @@ private:
      * meter centroid data.
      */
     struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>,
-                                                           SAMRAI::hier::Index<NDIM>,
-                                                           bool>
+                                                           SAMRAI::hier::Index<NDIM>, bool>
     {
         inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs,
                                const SAMRAI::hier::Index<NDIM>& rhs) const
@@ -260,11 +254,9 @@ private:
 
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );

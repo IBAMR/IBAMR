@@ -157,8 +157,7 @@ LDataManager::getLagrangianStructureNames(const int level_number) const
     std::vector<std::string> ret_val;
     for (std::map<int, std::string>::const_iterator cit(
              d_strct_id_to_strct_name_map[level_number].begin());
-         cit != d_strct_id_to_strct_name_map[level_number].end();
-         ++cit)
+         cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
     {
         ret_val.push_back(cit->second);
     }
@@ -173,8 +172,7 @@ inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_
     std::vector<int> ret_val;
     for (std::map<std::string, int>::const_iterator cit(
              d_strct_name_to_strct_id_map[level_number].begin());
-         cit != d_strct_name_to_strct_id_map[level_number].end();
-         ++cit)
+         cit != d_strct_name_to_strct_id_map[level_number].end(); ++cit)
     {
         ret_val.push_back(cit->second);
     }

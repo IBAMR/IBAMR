@@ -111,12 +111,9 @@ IntVector<NDIM> LMarkerRefine::getStencilWidth() const
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void LMarkerRefine::refine(Patch<NDIM>& fine,
-                           const Patch<NDIM>& coarse,
-                           const int dst_component,
-                           const int src_component,
-                           const Box<NDIM>& fine_box,
-                           const IntVector<NDIM>& ratio) const
+void LMarkerRefine::refine(Patch<NDIM>& fine, const Patch<NDIM>& coarse,
+                           const int dst_component, const int src_component,
+                           const Box<NDIM>& fine_box, const IntVector<NDIM>& ratio) const
 {
     Pointer<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
     Pointer<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
@@ -140,8 +137,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
         {
             const LMarkerSet& coarse_mark_set = it();
             for (LMarkerSet::const_iterator cit = coarse_mark_set.begin();
-                 cit != coarse_mark_set.end();
-                 ++cit)
+                 cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
                 const Point& X = coarse_mark->getPosition();
@@ -152,12 +148,9 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
 
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted,
-                                                                        fine_patchXLower,
-                                                                        fine_patchXUpper,
-                                                                        fine_patchDx,
-                                                                        fine_patch_lower,
-                                                                        fine_patch_upper);
+                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(
+                    X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx,
+                    fine_patch_lower, fine_patch_upper);
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))

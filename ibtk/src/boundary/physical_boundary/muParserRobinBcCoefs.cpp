@@ -219,8 +219,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
     for (std::vector<mu::Parser*>::const_iterator cit = all_parsers.begin();
-         cit != all_parsers.end();
-         ++cit)
+         cit != all_parsers.end(); ++cit)
     {
         // Various names for pi.
         (*cit)->DefineConst("pi", pi);
@@ -289,8 +288,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 
         // User-provided constants.
         for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin();
-             map_cit != d_constants.end();
-             ++map_cit)
+             map_cit != d_constants.end(); ++map_cit)
         {
             (*cit)->DefineConst(map_cit->first, map_cit->second);
         }

@@ -103,8 +103,7 @@ public:
      *registered scratch components.
      */
     void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

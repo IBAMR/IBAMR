@@ -80,22 +80,17 @@ public:
      * text file.  Returns the number of markers read.
      */
     static unsigned int readMarkerPositions(
-        std::vector<Point>& mark_init_posns,
-        const std::string& mark_input_file_name,
+        std::vector<Point>& mark_init_posns, const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
      * Advect all markers by the specified advection velocity using forward
      * Euler.
      */
-    static void eulerStep(int mark_current_idx,
-                          int mark_new_idx,
-                          int u_current_idx,
-                          double dt,
+    static void eulerStep(int mark_current_idx, int mark_new_idx, int u_current_idx, double dt,
                           const std::string& weighting_fcn,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                          int coarsest_ln = -1,
-                          int finest_ln = -1);
+                          int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -105,14 +100,10 @@ public:
      * predicted marker positions.
      */
     static void
-    midpointStep(int mark_current_idx,
-                 int mark_new_idx,
-                 int u_half_idx,
-                 double dt,
+    midpointStep(int mark_current_idx, int mark_new_idx, int u_half_idx, double dt,
                  const std::string& weighting_fcn,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 int coarsest_ln = -1,
-                 int finest_ln = -1);
+                 int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -122,22 +113,17 @@ public:
      * current marker velocities and the predicted marker positions.
      */
     static void
-    trapezoidalStep(int mark_current_idx,
-                    int mark_new_idx,
-                    int u_new_idx,
-                    double dt,
+    trapezoidalStep(int mark_current_idx, int mark_new_idx, int u_new_idx, double dt,
                     const std::string& weighting_fcn,
                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                    int coarsest_ln = -1,
-                    int finest_ln = -1);
+                    int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Collect all marker data onto the coarsest level of the patch hierarchy
      * (to prepare for regridding the patch hierarchy).
      */
     static void collectMarkersOnPatchHierarchy(
-        int mark_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+        int mark_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Initialize marker data on the specified level of the patch hierarchy by
@@ -145,10 +131,8 @@ public:
      * markers from old_level.
      */
     static void initializeMarkersOnLevel(
-        int mark_idx,
-        const std::vector<Point>& mark_init_posns,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
+        int mark_idx, const std::vector<Point>& mark_init_posns,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
         bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level);
 
@@ -159,8 +143,7 @@ public:
     static void
     pruneInvalidMarkers(int mark_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                        int coarsest_ln = -1,
-                        int finest_ln = -1);
+                        int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Count the markers.
@@ -168,8 +151,7 @@ public:
     static unsigned int
     countMarkers(int mark_idx,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 int coarsest_ln = -1,
-                 int finest_ln = -1);
+                 int coarsest_ln = -1, int finest_ln = -1);
 
 private:
     /*!

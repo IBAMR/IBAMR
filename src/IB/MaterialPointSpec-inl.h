@@ -53,8 +53,7 @@ inline bool MaterialPointSpec::getIsRegisteredWithStreamableManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline MaterialPointSpec::MaterialPointSpec(const int point_idx,
-                                            const double weight,
+inline MaterialPointSpec::MaterialPointSpec(const int point_idx, const double weight,
                                             const libMesh::subdomain_id_type subdomain_id,
                                             const std::vector<double>& internal_vars)
     : d_point_idx(point_idx),

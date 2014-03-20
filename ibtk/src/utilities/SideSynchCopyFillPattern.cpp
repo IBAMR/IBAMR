@@ -70,13 +70,10 @@ SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
     return;
 } // SideSynchCopyFillPattern
 
-Pointer<BoxOverlap<NDIM> >
-SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
-                                           const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> > SideSynchCopyFillPattern::calculateOverlap(
+    const BoxGeometry<NDIM>& dst_geometry, const BoxGeometry<NDIM>& src_geometry,
+    const Box<NDIM>& /*dst_patch_box*/, const Box<NDIM>& src_mask,
+    const bool overwrite_interior, const IntVector<NDIM>& src_offset) const
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);

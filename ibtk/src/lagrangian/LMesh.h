@@ -58,8 +58,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LMesh(const std::string& object_name,
-          const std::vector<LNode*>& local_nodes,
+    LMesh(const std::string& object_name, const std::vector<LNode*>& local_nodes,
           const std::vector<LNode*>& ghost_nodes);
 
     /*!

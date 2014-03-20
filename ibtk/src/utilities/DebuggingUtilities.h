@@ -68,9 +68,7 @@ public:
     static bool
     checkCellDataForNaNs(int patch_data_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                         bool interior_only = true,
-                         int coarsest_ln = -1,
-                         int finest_ln = -1);
+                         bool interior_only = true, int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Check a face-centered variable for NaN or unusually large values.
@@ -78,9 +76,7 @@ public:
     static bool
     checkFaceDataForNaNs(int patch_data_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                         bool interior_only = true,
-                         int coarsest_ln = -1,
-                         int finest_ln = -1);
+                         bool interior_only = true, int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Check a node-centered variable for NaN or unusually large values.
@@ -88,9 +84,7 @@ public:
     static bool
     checkNodeDataForNaNs(int patch_data_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                         bool interior_only = true,
-                         int coarsest_ln = -1,
-                         int finest_ln = -1);
+                         bool interior_only = true, int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Check a side-centered variable for NaN or unusually large values.
@@ -98,9 +92,7 @@ public:
     static bool
     checkSideDataForNaNs(int patch_data_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                         bool interior_only = true,
-                         int coarsest_ln = -1,
-                         int finest_ln = -1);
+                         bool interior_only = true, int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Save the local portion of a cell-centered variable to disk.
@@ -108,8 +100,7 @@ public:
     static void
     saveCellData(int patch_data_idx,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 const std::string& filename,
-                 const std::string& dirname);
+                 const std::string& filename, const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a face-centered variable to disk.
@@ -117,8 +108,7 @@ public:
     static void
     saveFaceData(int patch_data_idx,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 const std::string& filename,
-                 const std::string& dirname);
+                 const std::string& filename, const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a node-centered variable to disk.
@@ -126,8 +116,7 @@ public:
     static void
     saveNodeData(int patch_data_idx,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 const std::string& filename,
-                 const std::string& dirname);
+                 const std::string& filename, const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a side-centered variable to disk.
@@ -135,15 +124,13 @@ public:
     static void
     saveSideData(int patch_data_idx,
                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                 const std::string& filename,
-                 const std::string& dirname);
+                 const std::string& filename, const std::string& dirname);
 
     /*!
      * \brief Save the local portion of a Lagrangian variable to disk.
      */
     static void saveLagrangianData(SAMRAI::tbox::Pointer<LData> lag_data,
-                                   bool save_ghost_nodes,
-                                   const std::string& filename,
+                                   bool save_ghost_nodes, const std::string& filename,
                                    const std::string& dirname);
 
 protected:

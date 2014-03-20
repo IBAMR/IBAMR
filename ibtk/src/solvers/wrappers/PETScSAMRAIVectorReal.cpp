@@ -405,8 +405,8 @@ PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
     PetscFunctionReturn(0);
 } // VecWAXPY
 
-PetscErrorCode
-VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
+PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta,
+                                  PetscScalar gamma, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_axpbypcz);
 #if !defined(NDEBUG)
@@ -648,8 +648,7 @@ PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm
 
 PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
     Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
-    bool vector_created_via_duplicate,
-    MPI_Comm comm)
+    bool vector_created_via_duplicate, MPI_Comm comm)
     : d_samrai_vector(samrai_vector),
       d_vector_created_via_duplicate(vector_created_via_duplicate)
 {
@@ -724,39 +723,26 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    IBTK_DO_ONCE(DvOps.duplicate = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
-                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
-                 DvOps.destroyvecs = VecDestroyVecs_Default;
-                 DvOps.dot = VecDot_SAMRAI;
-                 DvOps.mdot = VecMDot_SAMRAI;
-                 DvOps.norm = VecNorm_SAMRAI;
-                 DvOps.tdot = VecTDot_SAMRAI;
-                 DvOps.mtdot = VecMTDot_SAMRAI;
-                 DvOps.scale = VecScale_SAMRAI;
-                 DvOps.copy = VecCopy_SAMRAI;
-                 DvOps.set = VecSet_SAMRAI;
-                 DvOps.swap = VecSwap_SAMRAI;
-                 DvOps.axpy = VecAXPY_SAMRAI;
-                 DvOps.axpby = VecAXPBY_SAMRAI;
-                 DvOps.maxpy = VecMAXPY_SAMRAI;
-                 DvOps.aypx = VecAYPX_SAMRAI;
-                 DvOps.waxpy = VecWAXPY_SAMRAI;
-                 DvOps.axpbypcz = VecAXPBYPCZ_SAMRAI;
-                 DvOps.pointwisemult = VecPointwiseMult_SAMRAI;
-                 DvOps.pointwisedivide = VecPointwiseDivide_SAMRAI;
-                 DvOps.getsize = VecGetSize_SAMRAI;
-                 DvOps.getlocalsize = VecGetLocalSize_SAMRAI;
-                 DvOps.max = VecMax_SAMRAI;
-                 DvOps.min = VecMin_SAMRAI;
-                 DvOps.setrandom = VecSetRandom_SAMRAI;
-                 DvOps.destroy = PETScSAMRAIVectorReal::VecDestroy_SAMRAI;
-                 DvOps.dot_local = VecDot_local_SAMRAI;
-                 DvOps.tdot_local = VecTDot_local_SAMRAI;
-                 DvOps.norm_local = VecNorm_local_SAMRAI;
-                 DvOps.mdot_local = VecMDot_local_SAMRAI;
-                 DvOps.mtdot_local = VecMTDot_local_SAMRAI;
-                 DvOps.maxpointwisedivide = VecMaxPointwiseDivide_SAMRAI;
-                 DvOps.dotnorm2 = VecDotNorm2_SAMRAI;);
+    IBTK_DO_ONCE(
+        DvOps.duplicate = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
+        DvOps.duplicatevecs = VecDuplicateVecs_Default;
+        DvOps.destroyvecs = VecDestroyVecs_Default; DvOps.dot = VecDot_SAMRAI;
+        DvOps.mdot = VecMDot_SAMRAI; DvOps.norm = VecNorm_SAMRAI; DvOps.tdot = VecTDot_SAMRAI;
+        DvOps.mtdot = VecMTDot_SAMRAI; DvOps.scale = VecScale_SAMRAI;
+        DvOps.copy = VecCopy_SAMRAI; DvOps.set = VecSet_SAMRAI; DvOps.swap = VecSwap_SAMRAI;
+        DvOps.axpy = VecAXPY_SAMRAI; DvOps.axpby = VecAXPBY_SAMRAI;
+        DvOps.maxpy = VecMAXPY_SAMRAI; DvOps.aypx = VecAYPX_SAMRAI;
+        DvOps.waxpy = VecWAXPY_SAMRAI; DvOps.axpbypcz = VecAXPBYPCZ_SAMRAI;
+        DvOps.pointwisemult = VecPointwiseMult_SAMRAI;
+        DvOps.pointwisedivide = VecPointwiseDivide_SAMRAI; DvOps.getsize = VecGetSize_SAMRAI;
+        DvOps.getlocalsize = VecGetLocalSize_SAMRAI; DvOps.max = VecMax_SAMRAI;
+        DvOps.min = VecMin_SAMRAI; DvOps.setrandom = VecSetRandom_SAMRAI;
+        DvOps.destroy = PETScSAMRAIVectorReal::VecDestroy_SAMRAI;
+        DvOps.dot_local = VecDot_local_SAMRAI; DvOps.tdot_local = VecTDot_local_SAMRAI;
+        DvOps.norm_local = VecNorm_local_SAMRAI; DvOps.mdot_local = VecMDot_local_SAMRAI;
+        DvOps.mtdot_local = VecMTDot_local_SAMRAI;
+        DvOps.maxpointwisedivide = VecMaxPointwiseDivide_SAMRAI;
+        DvOps.dotnorm2 = VecDotNorm2_SAMRAI;);
     ierr = PetscMemcpy(d_petsc_vector->ops, &DvOps, sizeof(DvOps));
     IBTK_CHKERRQ(ierr);
 
@@ -824,9 +810,8 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {
         PSVR_CAST2(v)->resetLevels(
-            0,
-            std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
-                     PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
+            0, std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
+                        PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
         PSVR_CAST2(v)->freeVectorComponents();
         PSVR_CAST2(v).setNull();
         destroyPETScVector(PSVR_CAST1(v)->d_petsc_vector);

@@ -139,11 +139,9 @@ void CopyToRootSchedule::commonClassCtor()
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            d_schedule.appendTransaction(new CopyToRootTransaction(src_proc,
-                                                                   d_root_proc,
-                                                                   d_patch_level,
-                                                                   d_src_patch_data_idxs[k],
-                                                                   d_root_patch_data[k]));
+            d_schedule.appendTransaction(
+                new CopyToRootTransaction(src_proc, d_root_proc, d_patch_level,
+                                          d_src_patch_data_idxs[k], d_root_patch_data[k]));
         }
     }
     return;

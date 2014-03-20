@@ -176,8 +176,7 @@ void NodeDataSynchronization::initializeOperatorState(
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op,
-                                               fill_pattern);
+                                               refine_op, fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
@@ -285,8 +284,7 @@ void NodeDataSynchronization::resetTransactionComponents(
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
-                                               refine_op,
-                                               fill_pattern);
+                                               refine_op, fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

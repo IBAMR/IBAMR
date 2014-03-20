@@ -74,8 +74,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesBlockFactorizationPreconditioner(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::string& default_options_prefix);
 
     /*!
@@ -92,8 +91,8 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new StaggeredStokesBlockFactorizationPreconditioner(
-            object_name, input_db, default_options_prefix);
+        return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db,
+                                                                   default_options_prefix);
     } // allocate_solver
 
     /*!

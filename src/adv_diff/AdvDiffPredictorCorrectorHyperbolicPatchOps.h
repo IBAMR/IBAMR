@@ -93,8 +93,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart = true);
@@ -109,10 +108,8 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
-                                       double time,
-                                       double dt,
-                                       bool at_synchronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time,
+                                       double dt, bool at_synchronization);
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -128,11 +125,7 @@ public:
      */
     void preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time,
-        double dt,
-        bool first_step,
-        bool last_step,
-        bool regrid_advance);
+        double current_time, double dt, bool first_step, bool last_step, bool regrid_advance);
 
     /*!
      * Add source terms to the updated solution.
@@ -148,11 +141,7 @@ public:
      */
     void postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time,
-        double dt,
-        bool first_step,
-        bool last_step,
-        bool regrid_advance);
+        double current_time, double dt, bool first_step, bool last_step, bool regrid_advance);
 
 private:
     /*!

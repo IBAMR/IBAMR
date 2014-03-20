@@ -96,17 +96,13 @@ static const int LAG_SILO_DATA_WRITER_VERSION = 1;
  * \brief Build a local mesh database entry corresponding to a cloud of marker
  * points.
  */
-void build_local_marker_cloud(DBfile* dbfile,
-                              std::string& dirname,
-                              const int nmarks,
-                              const double* const X,
-                              const int nvars,
+void build_local_marker_cloud(DBfile* dbfile, std::string& dirname, const int nmarks,
+                              const double* const X, const int nvars,
                               const std::vector<std::string>& varnames,
                               const std::vector<int>& varstartdepths,
                               const std::vector<int>& varplotdepths,
                               const std::vector<int>& vardepths,
-                              const std::vector<const double*> varvals,
-                              const int time_step,
+                              const std::vector<const double*> varvals, const int time_step,
                               const double simulation_time)
 {
     std::vector<float> block_X(NDIM * nmarks);
@@ -185,8 +181,8 @@ void build_local_marker_cloud(DBfile* dbfile,
         }
         else
         {
-            DBPutPointvar(
-                dbfile, varname, meshname, varplotdepth, &vars[0], nmarks, DB_FLOAT, optlist);
+            DBPutPointvar(dbfile, varname, meshname, varplotdepth, &vars[0], nmarks, DB_FLOAT,
+                          optlist);
         }
     }
 
@@ -206,18 +202,14 @@ void build_local_marker_cloud(DBfile* dbfile,
  * \brief Build a local mesh database entry corresponding to a quadrilateral
  * curvilinear block.
  */
-void build_local_curv_block(DBfile* dbfile,
-                            std::string& dirname,
-                            const IntVector<NDIM>& nelem_in,
-                            const IntVector<NDIM>& periodic,
-                            const double* const X,
-                            const int nvars,
+void build_local_curv_block(DBfile* dbfile, std::string& dirname,
+                            const IntVector<NDIM>& nelem_in, const IntVector<NDIM>& periodic,
+                            const double* const X, const int nvars,
                             const std::vector<std::string>& varnames,
                             const std::vector<int>& varstartdepths,
                             const std::vector<int>& varplotdepths,
                             const std::vector<int>& vardepths,
-                            const std::vector<const double*> varvals,
-                            const int time_step,
+                            const std::vector<const double*> varvals, const int time_step,
                             const double simulation_time)
 {
     // Check for co-dimension 1 or 2 data.
@@ -336,15 +328,8 @@ void build_local_curv_block(DBfile* dbfile,
         dims[d] = nelem(d) + (periodic(d) ? 1 : 0);
     }
 
-    DBPutQuadmesh(dbfile,
-                  meshname,
-                  const_cast<char**>(coordnames),
-                  &coords[0],
-                  &dims[0],
-                  ndims,
-                  DB_FLOAT,
-                  DB_NONCOLLINEAR,
-                  optlist);
+    DBPutQuadmesh(dbfile, meshname, const_cast<char**>(coordnames), &coords[0], &dims[0],
+                  ndims, DB_FLOAT, DB_NONCOLLINEAR, optlist);
 
     for (int v = 0; v < nvars; ++v)
     {
@@ -367,33 +352,13 @@ void build_local_curv_block(DBfile* dbfile,
 
         if (varplotdepth == 1)
         {
-            DBPutQuadvar1(dbfile,
-                          varname,
-                          meshname,
-                          vars[0],
-                          &dims[0],
-                          ndims,
-                          NULL,
-                          0,
-                          DB_FLOAT,
-                          DB_NODECENT,
-                          optlist);
+            DBPutQuadvar1(dbfile, varname, meshname, vars[0], &dims[0], ndims, NULL, 0,
+                          DB_FLOAT, DB_NODECENT, optlist);
         }
         else
         {
-            DBPutQuadvar(dbfile,
-                         varname,
-                         meshname,
-                         varplotdepth,
-                         &compnames[0],
-                         &vars[0],
-                         &dims[0],
-                         ndims,
-                         NULL,
-                         0,
-                         DB_FLOAT,
-                         DB_NODECENT,
-                         optlist);
+            DBPutQuadvar(dbfile, varname, meshname, varplotdepth, &compnames[0], &vars[0],
+                         &dims[0], ndims, NULL, 0, DB_FLOAT, DB_NODECENT, optlist);
         }
 
         for (int d = 0; d < varplotdepth; ++d)
@@ -418,18 +383,14 @@ void build_local_curv_block(DBfile* dbfile,
  * \brief Build a local mesh database entry corresponding to an unstructured
  * mesh.
  */
-void build_local_ucd_mesh(DBfile* dbfile,
-                          std::string& dirname,
-                          const std::set<int>& vertices,
+void build_local_ucd_mesh(DBfile* dbfile, std::string& dirname, const std::set<int>& vertices,
                           const std::multimap<int, std::pair<int, int> >& edge_map,
-                          const double* const X,
-                          const int nvars,
+                          const double* const X, const int nvars,
                           const std::vector<std::string>& varnames,
                           const std::vector<int>& varstartdepths,
                           const std::vector<int>& varplotdepths,
                           const std::vector<int>& vardepths,
-                          const std::vector<const double*> varvals,
-                          const int time_step,
+                          const std::vector<const double*> varvals, const int time_step,
                           const double simulation_time)
 {
     // Rearrange the data into the format required by Silo.
@@ -476,8 +437,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     // Prune duplicate edges.
     std::set<std::pair<int, int> > local_edge_set;
     for (std::multimap<int, std::pair<int, int> >::const_iterator it = edge_map.begin();
-         it != edge_map.end();
-         ++it)
+         it != edge_map.end(); ++it)
     {
         std::pair<int, int> e = it->second;
 #if !defined(NDEBUG)
@@ -494,8 +454,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     // Create an edge map corresponding to the pruned edge list.
     std::multimap<int, int> local_edge_map;
     for (std::set<std::pair<int, int> >::const_iterator it = local_edge_set.begin();
-         it != local_edge_set.end();
-         ++it)
+         it != local_edge_set.end(); ++it)
     {
         const int e1 = it->first;
         const int e2 = it->second;
@@ -536,8 +495,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     nodelist.reserve(2 * local_edge_map.size());
 
     for (std::multimap<int, int>::const_iterator it = local_edge_map.begin();
-         it != local_edge_map.end();
-         ++it)
+         it != local_edge_map.end(); ++it)
     {
         nodelist.push_back(it->first);
         nodelist.push_back(it->second);
@@ -555,33 +513,13 @@ void build_local_ucd_mesh(DBfile* dbfile,
     const int hi_offset = 0;
 
     // Write out connectivity information.
-    DBPutZonelist2(dbfile,
-                   "zonelist",
-                   nzones,
-                   ndims,
-                   lnodelist > 0 ? &nodelist[0] : NULL,
-                   lnodelist,
-                   origin,
-                   lo_offset,
-                   hi_offset,
-                   shapetype,
-                   shapesize,
-                   shapecnt,
-                   nshapetypes,
-                   optlist);
+    DBPutZonelist2(dbfile, "zonelist", nzones, ndims, lnodelist > 0 ? &nodelist[0] : NULL,
+                   lnodelist, origin, lo_offset, hi_offset, shapetype, shapesize, shapecnt,
+                   nshapetypes, optlist);
 
     // Write an unstructured mesh.
-    DBPutUcdmesh(dbfile,
-                 meshname,
-                 ndims,
-                 const_cast<char**>(coordnames),
-                 &coords[0],
-                 nnodes,
-                 nzones,
-                 "zonelist",
-                 NULL,
-                 DB_FLOAT,
-                 NULL);
+    DBPutUcdmesh(dbfile, meshname, ndims, const_cast<char**>(coordnames), &coords[0], nnodes,
+                 nzones, "zonelist", NULL, DB_FLOAT, NULL);
 
     // Write the variables defined on the unstructured mesh.
     for (int v = 0; v < nvars; ++v)
@@ -605,31 +543,13 @@ void build_local_ucd_mesh(DBfile* dbfile,
 
         if (varplotdepth == 1)
         {
-            DBPutUcdvar1(dbfile,
-                         varname,
-                         meshname,
-                         vars[0],
-                         nnodes,
-                         NULL,
-                         0,
-                         DB_FLOAT,
-                         DB_NODECENT,
-                         optlist);
+            DBPutUcdvar1(dbfile, varname, meshname, vars[0], nnodes, NULL, 0, DB_FLOAT,
+                         DB_NODECENT, optlist);
         }
         else
         {
-            DBPutUcdvar(dbfile,
-                        varname,
-                        meshname,
-                        varplotdepth,
-                        &compnames[0],
-                        &vars[0],
-                        nnodes,
-                        NULL,
-                        0,
-                        DB_FLOAT,
-                        DB_NODECENT,
-                        optlist);
+            DBPutUcdvar(dbfile, varname, meshname, varplotdepth, &compnames[0], &vars[0],
+                        nnodes, NULL, 0, DB_FLOAT, DB_NODECENT, optlist);
         }
 
         for (int d = 0; d < varplotdepth; ++d)
@@ -729,8 +649,7 @@ LSiloDataWriter::~LSiloDataWriter()
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end();
-             ++it)
+             it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -740,8 +659,7 @@ LSiloDataWriter::~LSiloDataWriter()
             }
         }
         for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end();
-             ++it)
+             it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -779,8 +697,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     for (int ln = std::max(d_coarsest_ln, 0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
         for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end();
-             ++it)
+             it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -790,8 +707,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
             }
         }
         for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end();
-             ++it)
+             it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -805,8 +721,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     for (int ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
     {
         for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end();
-             ++it)
+             it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -816,8 +731,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
             }
         }
         for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end();
-             ++it)
+             it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -872,10 +786,8 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     return;
 } // resetLevels
 
-void LSiloDataWriter::registerMarkerCloud(const std::string& name,
-                                          const int nmarks,
-                                          const int first_lag_idx,
-                                          const int level_number)
+void LSiloDataWriter::registerMarkerCloud(const std::string& name, const int nmarks,
+                                          const int first_lag_idx, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -907,8 +819,7 @@ void LSiloDataWriter::registerMarkerCloud(const std::string& name,
                                  << "'' has already been registered.\n");
     }
 
-    if (find(d_ucd_mesh_names[level_number].begin(),
-             d_ucd_mesh_names[level_number].end(),
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
              name) != d_ucd_mesh_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerMarkerCloud()\n"
@@ -976,8 +887,7 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
                                  << "'' has already been registered.\n");
     }
 
-    if (find(d_ucd_mesh_names[level_number].begin(),
-             d_ucd_mesh_names[level_number].end(),
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
              name) != d_ucd_mesh_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianBlock()\n"
@@ -1008,10 +918,8 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
 } // registerLogicallyCartesianBlock
 
 void LSiloDataWriter::registerLogicallyCartesianMultiblock(
-    const std::string& name,
-    const std::vector<IntVector<NDIM> >& nelem,
-    const std::vector<IntVector<NDIM> >& periodic,
-    const std::vector<int>& first_lag_idx,
+    const std::string& name, const std::vector<IntVector<NDIM> >& nelem,
+    const std::vector<IntVector<NDIM> >& periodic, const std::vector<int>& first_lag_idx,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1054,8 +962,7 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(
                                  << "'' has already been registered.\n");
     }
 
-    if (find(d_ucd_mesh_names[level_number].begin(),
-             d_ucd_mesh_names[level_number].end(),
+    if (find(d_ucd_mesh_names[level_number].begin(), d_ucd_mesh_names[level_number].end(),
              name) != d_ucd_mesh_names[level_number].end())
     {
         TBOX_ERROR(d_object_name << "::registerLogicallyCartesianMultiblock()\n"
@@ -1088,8 +995,7 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(
 } // registerLogicallyCartesianMultiblock
 
 void LSiloDataWriter::registerUnstructuredMesh(
-    const std::string& name,
-    const std::multimap<int, std::pair<int, int> >& edge_map,
+    const std::string& name, const std::multimap<int, std::pair<int, int> >& edge_map,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1133,8 +1039,7 @@ void LSiloDataWriter::registerUnstructuredMesh(
     // Extract the list of vertices from the list of edges.
     std::set<int> vertices;
     for (std::multimap<int, std::pair<int, int> >::const_iterator it = edge_map.begin();
-         it != edge_map.end();
-         ++it)
+         it != edge_map.end(); ++it)
     {
         const std::pair<int, int>& e = it->second;
         vertices.insert(e.first);
@@ -1178,8 +1083,7 @@ void LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int l
 } // registerCoordsData
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           Pointer<LData> var_data,
-                                           const int level_number)
+                                           Pointer<LData> var_data, const int level_number)
 {
     const int start_depth = 0;
     const int var_depth = var_data->getDepth();
@@ -1188,10 +1092,8 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name,
 } // registerVariableData
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           Pointer<LData> var_data,
-                                           const int start_depth,
-                                           const int var_depth,
-                                           const int level_number)
+                                           Pointer<LData> var_data, const int start_depth,
+                                           const int var_depth, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1237,8 +1139,7 @@ void LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
     return;
 } // registerLagrangianAO
 
-void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao,
-                                           const int coarsest_ln,
+void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarsest_ln,
                                            const int finest_ln)
 {
 #if !defined(NDEBUG)
@@ -1338,17 +1239,11 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
             IBTK_CHKERRQ(ierr);
 
             Vec global_X_vec = d_coords_data[ln]->getVec();
-            ierr = VecScatterBegin(d_vec_scatter[ln][NDIM],
-                                   global_X_vec,
-                                   local_X_vec,
-                                   INSERT_VALUES,
-                                   SCATTER_FORWARD);
+            ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                   INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
-            ierr = VecScatterEnd(d_vec_scatter[ln][NDIM],
-                                 global_X_vec,
-                                 local_X_vec,
-                                 INSERT_VALUES,
-                                 SCATTER_FORWARD);
+            ierr = VecScatterEnd(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
+                                 INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
 
             double* local_X_arr;
@@ -1366,17 +1261,11 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 IBTK_CHKERRQ(ierr);
 
                 Vec global_v_vec = d_var_data[ln][v]->getVec();
-                ierr = VecScatterBegin(d_vec_scatter[ln][var_depth],
-                                       global_v_vec,
-                                       local_v_vec,
-                                       INSERT_VALUES,
-                                       SCATTER_FORWARD);
+                ierr = VecScatterBegin(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
+                                       INSERT_VALUES, SCATTER_FORWARD);
                 IBTK_CHKERRQ(ierr);
-                ierr = VecScatterEnd(d_vec_scatter[ln][var_depth],
-                                     global_v_vec,
-                                     local_v_vec,
-                                     INSERT_VALUES,
-                                     SCATTER_FORWARD);
+                ierr = VecScatterEnd(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
+                                     INSERT_VALUES, SCATTER_FORWARD);
                 IBTK_CHKERRQ(ierr);
 
                 double* local_v_arr;
@@ -1413,18 +1302,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v] * offset;
                 }
 
-                build_local_marker_cloud(dbfile,
-                                         dirname,
-                                         nmarks,
-                                         X,
-                                         d_nvars[ln],
-                                         d_var_names[ln],
-                                         d_var_start_depths[ln],
-                                         d_var_plot_depths[ln],
-                                         d_var_depths[ln],
-                                         var_vals,
-                                         time_step_number,
-                                         simulation_time);
+                build_local_marker_cloud(dbfile, dirname, nmarks, X, d_nvars[ln],
+                                         d_var_names[ln], d_var_start_depths[ln],
+                                         d_var_plot_depths[ln], d_var_depths[ln], var_vals,
+                                         time_step_number, simulation_time);
 
                 offset += nmarks;
             }
@@ -1454,19 +1335,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v] * offset;
                 }
 
-                build_local_curv_block(dbfile,
-                                       dirname,
-                                       nelem,
-                                       periodic,
-                                       X,
-                                       d_nvars[ln],
-                                       d_var_names[ln],
-                                       d_var_start_depths[ln],
-                                       d_var_plot_depths[ln],
-                                       d_var_depths[ln],
-                                       var_vals,
-                                       time_step_number,
-                                       simulation_time);
+                build_local_curv_block(dbfile, dirname, nelem, periodic, X, d_nvars[ln],
+                                       d_var_names[ln], d_var_start_depths[ln],
+                                       d_var_plot_depths[ln], d_var_depths[ln], var_vals,
+                                       time_step_number, simulation_time);
                 meshtype[ln].push_back(DB_QUAD_CURV);
                 vartype[ln].push_back(DB_QUADVAR);
 
@@ -1502,19 +1374,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v] * offset;
                     }
 
-                    build_local_curv_block(dbfile,
-                                           dirname,
-                                           nelem,
-                                           periodic,
-                                           X,
-                                           d_nvars[ln],
-                                           d_var_names[ln],
-                                           d_var_start_depths[ln],
-                                           d_var_plot_depths[ln],
-                                           d_var_depths[ln],
-                                           var_vals,
-                                           time_step_number,
-                                           simulation_time);
+                    build_local_curv_block(dbfile, dirname, nelem, periodic, X, d_nvars[ln],
+                                           d_var_names[ln], d_var_start_depths[ln],
+                                           d_var_plot_depths[ln], d_var_depths[ln], var_vals,
+                                           time_step_number, simulation_time);
                     multimeshtype[ln][mb].push_back(DB_QUAD_CURV);
                     multivartype[ln][mb].push_back(DB_QUADVAR);
 
@@ -1548,19 +1411,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     var_vals[v] = local_v_arrs[v] + d_var_depths[ln][v] * offset;
                 }
 
-                build_local_ucd_mesh(dbfile,
-                                     dirname,
-                                     vertices,
-                                     edge_map,
-                                     X,
-                                     d_nvars[ln],
-                                     d_var_names[ln],
-                                     d_var_start_depths[ln],
-                                     d_var_plot_depths[ln],
-                                     d_var_depths[ln],
-                                     var_vals,
-                                     time_step_number,
-                                     simulation_time);
+                build_local_ucd_mesh(dbfile, dirname, vertices, edge_map, X, d_nvars[ln],
+                                     d_var_names[ln], d_var_start_depths[ln],
+                                     d_var_plot_depths[ln], d_var_depths[ln], var_vals,
+                                     time_step_number, simulation_time);
 
                 offset += ntot;
             }
@@ -1675,8 +1529,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     num_bytes = (d_cloud_names[ln][cloud].size() + 1) * sizeof(char);
                     SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
                     SAMRAI_MPI::sendBytes(
-                        static_cast<const void*>(d_cloud_names[ln][cloud].c_str()),
-                        num_bytes,
+                        static_cast<const void*>(d_cloud_names[ln][cloud].c_str()), num_bytes,
                         SILO_MPI_ROOT);
                 }
             }
@@ -1716,8 +1569,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     num_bytes = (d_block_names[ln][block].size() + 1) * sizeof(char);
                     SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
                     SAMRAI_MPI::sendBytes(
-                        static_cast<const void*>(d_block_names[ln][block].c_str()),
-                        num_bytes,
+                        static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes,
                         SILO_MPI_ROOT);
                 }
             }
@@ -1727,10 +1579,10 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 vartypes_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
                 block_names_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
 
-                SAMRAI_MPI::recv(
-                    &meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], proc, false);
-                SAMRAI_MPI::recv(
-                    &vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], proc, false);
+                SAMRAI_MPI::recv(&meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc],
+                                 proc, false);
+                SAMRAI_MPI::recv(&vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc],
+                                 proc, false);
 
                 int num_bytes;
                 char* name;
@@ -1760,21 +1612,17 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 int num_bytes;
                 for (int mb = 0; mb < d_nmbs[ln]; ++mb)
                 {
-                    SAMRAI_MPI::send(
-                        &multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
-                    SAMRAI_MPI::send(
-                        &multivartype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
+                    SAMRAI_MPI::send(&multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb],
+                                     SILO_MPI_ROOT, false);
+                    SAMRAI_MPI::send(&multivartype[ln][mb][0], d_mb_nblocks[ln][mb],
+                                     SILO_MPI_ROOT, false);
 
                     num_bytes = d_mb_names[ln][mb].size() + 1;
                     SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
 
                     const void* mb_name_ptr = d_mb_names[ln][mb].c_str();
-                    MPI_Send(const_cast<void*>(mb_name_ptr),
-                             num_bytes,
-                             MPI_CHAR,
-                             SILO_MPI_ROOT,
-                             SILO_MPI_TAG,
-                             SAMRAI_MPI::commWorld);
+                    MPI_Send(const_cast<void*>(mb_name_ptr), num_bytes, MPI_CHAR,
+                             SILO_MPI_ROOT, SILO_MPI_TAG, SAMRAI_MPI::commWorld);
                     const int tree = SAMRAI_MPI::getTreeDepth();
                     SAMRAI_MPI::updateOutgoingStatistics(tree, num_bytes * sizeof(char));
                 }
@@ -1786,8 +1634,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 multivartypes_per_proc[ln][proc].resize(nmbs_per_proc[ln][proc]);
                 mb_names_per_proc[ln][proc].resize(nmbs_per_proc[ln][proc]);
 
-                SAMRAI_MPI::recv(
-                    &mb_nblocks_per_proc[ln][proc][0], nmbs_per_proc[ln][proc], proc, false);
+                SAMRAI_MPI::recv(&mb_nblocks_per_proc[ln][proc][0], nmbs_per_proc[ln][proc],
+                                 proc, false);
 
                 int num_bytes;
                 char* name;
@@ -1799,25 +1647,16 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         .resize(mb_nblocks_per_proc[ln][proc][mb]);
 
                     SAMRAI_MPI::recv(&multimeshtypes_per_proc[ln][proc][mb][0],
-                                     mb_nblocks_per_proc[ln][proc][mb],
-                                     proc,
-                                     false);
+                                     mb_nblocks_per_proc[ln][proc][mb], proc, false);
                     SAMRAI_MPI::recv(&multivartypes_per_proc[ln][proc][mb][0],
-                                     mb_nblocks_per_proc[ln][proc][mb],
-                                     proc,
-                                     false);
+                                     mb_nblocks_per_proc[ln][proc][mb], proc, false);
 
                     SAMRAI_MPI::recv(&num_bytes, one, proc, false);
                     name = new char[num_bytes];
 
                     MPI_Status status;
-                    MPI_Recv(name,
-                             num_bytes,
-                             MPI_CHAR,
-                             proc,
-                             SILO_MPI_TAG,
-                             SAMRAI_MPI::commWorld,
-                             &status);
+                    MPI_Recv(name, num_bytes, MPI_CHAR, proc, SILO_MPI_TAG,
+                             SAMRAI_MPI::commWorld, &status);
                     const int tree = SAMRAI_MPI::getTreeDepth();
                     SAMRAI_MPI::updateIncomingStatistics(tree, num_bytes * sizeof(char));
 
@@ -1844,8 +1683,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
                     SAMRAI_MPI::sendBytes(
                         static_cast<const void*>(d_ucd_mesh_names[ln][mesh].c_str()),
-                        num_bytes,
-                        SILO_MPI_ROOT);
+                        num_bytes, SILO_MPI_ROOT);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nucd_meshes_per_proc[ln][proc] > 0)
@@ -1912,8 +1750,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
                     std::string& cloud_name = cloud_names_per_proc[ln][proc][cloud];
 
-                    DBPutMultimesh(
-                        dbfile, cloud_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
+                    DBPutMultimesh(dbfile, cloud_name.c_str(), 1, &meshname_ptr, &meshtype,
+                                   optlist);
 
                     if (DBMkDir(dbfile, cloud_name.c_str()) == -1)
                     {
@@ -1939,8 +1777,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
                     std::string& block_name = block_names_per_proc[ln][proc][block];
 
-                    DBPutMultimesh(
-                        dbfile, block_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
+                    DBPutMultimesh(dbfile, block_name.c_str(), 1, &meshname_ptr, &meshtype,
+                                   optlist);
 
                     if (DBMkDir(dbfile, block_name.c_str()) == -1)
                     {
@@ -1970,12 +1808,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
                     std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
-                    DBPutMultimesh(dbfile,
-                                   mb_name.c_str(),
-                                   nblocks,
-                                   meshnames,
-                                   &multimeshtypes_per_proc[ln][proc][mb][0],
-                                   optlist);
+                    DBPutMultimesh(dbfile, mb_name.c_str(), nblocks, meshnames,
+                                   &multimeshtypes_per_proc[ln][proc][mb][0], optlist);
 
                     if (DBMkDir(dbfile, mb_name.c_str()) == -1)
                     {
@@ -2007,8 +1841,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
                     std::string& mesh_name = ucd_mesh_names_per_proc[ln][proc][mesh];
 
-                    DBPutMultimesh(
-                        dbfile, mesh_name.c_str(), 1, &meshname_ptr, &meshtype, optlist);
+                    DBPutMultimesh(dbfile, mesh_name.c_str(), 1, &meshname_ptr, &meshtype,
+                                   optlist);
 
                     if (DBMkDir(dbfile, mesh_name.c_str()) == -1)
                     {
@@ -2040,8 +1874,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         stream << cloud_name << "/" << d_var_names[ln][v];
                         std::string var_name = stream.str();
 
-                        DBPutMultivar(
-                            dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
+                        DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype,
+                                      optlist);
                     }
 
                     for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
@@ -2064,8 +1898,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         stream << block_name << "/" << d_var_names[ln][v];
                         std::string var_name = stream.str();
 
-                        DBPutMultivar(
-                            dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
+                        DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype,
+                                      optlist);
                     }
 
                     for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
@@ -2092,12 +1926,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         stream << mb_name << "/" << d_var_names[ln][v];
                         std::string var_name = stream.str();
 
-                        DBPutMultivar(dbfile,
-                                      var_name.c_str(),
-                                      nblocks,
-                                      varnames,
-                                      &multivartypes_per_proc[ln][proc][mb][0],
-                                      optlist);
+                        DBPutMultivar(dbfile, var_name.c_str(), nblocks, varnames,
+                                      &multivartypes_per_proc[ln][proc][mb][0], optlist);
 
                         for (int block = 0; block < nblocks; ++block)
                         {
@@ -2126,8 +1956,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         stream << mesh_name << "/" << d_var_names[ln][v];
                         std::string var_name = stream.str();
 
-                        DBPutMultivar(
-                            dbfile, var_name.c_str(), 1, &varname_ptr, &vartype, optlist);
+                        DBPutMultivar(dbfile, var_name.c_str(), 1, &varname_ptr, &vartype,
+                                      optlist);
                     }
                 }
             }
@@ -2182,10 +2012,9 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
         db->putInteger("d_nclouds" + ln_string, d_nclouds[ln]);
         if (d_nclouds[ln] > 0)
         {
-            db->putStringArray(
-                "d_cloud_names" + ln_string, &d_cloud_names[ln][0], d_cloud_names[ln].size());
-            db->putIntegerArray("d_cloud_nmarks" + ln_string,
-                                &d_cloud_nmarks[ln][0],
+            db->putStringArray("d_cloud_names" + ln_string, &d_cloud_names[ln][0],
+                               d_cloud_names[ln].size());
+            db->putIntegerArray("d_cloud_nmarks" + ln_string, &d_cloud_nmarks[ln][0],
                                 d_cloud_nmarks[ln].size());
             db->putIntegerArray("d_cloud_first_lag_idx" + ln_string,
                                 &d_cloud_first_lag_idx[ln][0],
@@ -2195,36 +2024,32 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
         db->putInteger("d_nblocks" + ln_string, d_nblocks[ln]);
         if (d_nblocks[ln] > 0)
         {
-            db->putStringArray(
-                "d_block_names" + ln_string, &d_block_names[ln][0], d_block_names[ln].size());
+            db->putStringArray("d_block_names" + ln_string, &d_block_names[ln][0],
+                               d_block_names[ln].size());
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM * d_block_nelems.size());
             for (std::vector<IntVector<NDIM> >::const_iterator cit =
                      d_block_nelems[ln].begin();
-                 cit != d_block_nelems[ln].end();
-                 ++cit)
+                 cit != d_block_nelems[ln].end(); ++cit)
             {
-                flattened_block_nelems.insert(
-                    flattened_block_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                flattened_block_nelems.insert(flattened_block_nelems.end(), &(*cit)[0],
+                                              &(*cit)[0] + NDIM);
             }
             db->putIntegerArray("flattened_block_nelems" + ln_string,
-                                &flattened_block_nelems[0],
-                                flattened_block_nelems.size());
+                                &flattened_block_nelems[0], flattened_block_nelems.size());
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM * d_block_periodic.size());
             for (std::vector<IntVector<NDIM> >::const_iterator cit =
                      d_block_periodic[ln].begin();
-                 cit != d_block_periodic[ln].end();
-                 ++cit)
+                 cit != d_block_periodic[ln].end(); ++cit)
             {
-                flattened_block_periodic.insert(
-                    flattened_block_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                flattened_block_periodic.insert(flattened_block_periodic.end(), &(*cit)[0],
+                                                &(*cit)[0] + NDIM);
             }
             db->putIntegerArray("flattened_block_periodic" + ln_string,
-                                &flattened_block_periodic[0],
-                                flattened_block_periodic.size());
+                                &flattened_block_periodic[0], flattened_block_periodic.size());
 
             db->putIntegerArray("d_block_first_lag_idx" + ln_string,
                                 &d_block_first_lag_idx[ln][0],
@@ -2234,8 +2059,8 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
         db->putInteger("d_nmbs" + ln_string, d_nmbs[ln]);
         if (d_nmbs[ln] > 0)
         {
-            db->putStringArray(
-                "d_mb_names" + ln_string, &d_mb_names[ln][0], d_mb_names[ln].size());
+            db->putStringArray("d_mb_names" + ln_string, &d_mb_names[ln][0],
+                               d_mb_names[ln].size());
 
             for (int mb = 0; mb < d_nmbs[ln]; ++mb)
             {
@@ -2250,25 +2075,22 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
                     flattened_mb_nelems.reserve(NDIM * d_mb_nelems.size());
                     for (std::vector<IntVector<NDIM> >::const_iterator cit =
                              d_mb_nelems[ln][mb].begin();
-                         cit != d_mb_nelems[ln][mb].end();
-                         ++cit)
+                         cit != d_mb_nelems[ln][mb].end(); ++cit)
                     {
-                        flattened_mb_nelems.insert(
-                            flattened_mb_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                        flattened_mb_nelems.insert(flattened_mb_nelems.end(), &(*cit)[0],
+                                                   &(*cit)[0] + NDIM);
                     }
                     db->putIntegerArray("flattened_mb_nelems" + ln_string + mb_string,
-                                        &flattened_mb_nelems[0],
-                                        flattened_mb_nelems.size());
+                                        &flattened_mb_nelems[0], flattened_mb_nelems.size());
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM * d_mb_periodic.size());
                     for (std::vector<IntVector<NDIM> >::const_iterator cit =
                              d_mb_periodic[ln][mb].begin();
-                         cit != d_mb_periodic[ln][mb].end();
-                         ++cit)
+                         cit != d_mb_periodic[ln][mb].end(); ++cit)
                     {
-                        flattened_mb_periodic.insert(
-                            flattened_mb_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
+                        flattened_mb_periodic.insert(flattened_mb_periodic.end(), &(*cit)[0],
+                                                     &(*cit)[0] + NDIM);
                     }
                     db->putIntegerArray("flattened_mb_periodic" + ln_string + mb_string,
                                         &flattened_mb_periodic[0],
@@ -2284,8 +2106,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
         db->putInteger("d_nucd_meshes" + ln_string, d_nucd_meshes[ln]);
         if (d_nucd_meshes[ln] > 0)
         {
-            db->putStringArray("d_ucd_mesh_names" + ln_string,
-                               &d_ucd_mesh_names[ln][0],
+            db->putStringArray("d_ucd_mesh_names" + ln_string, &d_ucd_mesh_names[ln][0],
                                d_ucd_mesh_names[ln].size());
 
             for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
@@ -2297,8 +2118,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
                 std::vector<int> ucd_mesh_vertices_vector;
                 ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
                 for (std::set<int>::const_iterator cit = d_ucd_mesh_vertices[ln][mesh].begin();
-                     cit != d_ucd_mesh_vertices[ln][mesh].end();
-                     ++cit)
+                     cit != d_ucd_mesh_vertices[ln][mesh].end(); ++cit)
                 {
                     ucd_mesh_vertices_vector.push_back(*cit);
                 }
@@ -2312,8 +2132,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
                 ucd_mesh_edge_maps_vector.reserve(3 * d_ucd_mesh_edge_maps[ln][mesh].size());
                 for (std::multimap<int, std::pair<int, int> >::const_iterator cit =
                          d_ucd_mesh_edge_maps[ln][mesh].begin();
-                     cit != d_ucd_mesh_edge_maps[ln][mesh].end();
-                     ++cit)
+                     cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
                 {
                     const int i = cit->first;
                     std::pair<int, int> e = cit->second;
@@ -2389,17 +2208,16 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 
     for (int mesh = 0; mesh < d_nucd_meshes[level_number]; ++mesh)
     {
-        ref_is_idxs.insert(ref_is_idxs.end(),
-                           d_ucd_mesh_vertices[level_number][mesh].begin(),
+        ref_is_idxs.insert(ref_is_idxs.end(), d_ucd_mesh_vertices[level_number][mesh].begin(),
                            d_ucd_mesh_vertices[level_number][mesh].end());
     }
 
     // Map Lagrangian indices to PETSc indices.
     std::vector<int> ao_dummy(1, -1);
-    ierr = AOApplicationToPetsc(ao,
-                                (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) :
-                                                        static_cast<int>(ao_dummy.size())),
-                                (!ref_is_idxs.empty() ? &ref_is_idxs[0] : &ao_dummy[0]));
+    ierr =
+        AOApplicationToPetsc(ao, (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) :
+                                                         static_cast<int>(ao_dummy.size())),
+                             (!ref_is_idxs.empty() ? &ref_is_idxs[0] : &ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     // Setup IS indices for all necessary data depths.
@@ -2422,19 +2240,14 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
     for (std::map<int, std::vector<int> >::iterator it = src_is_idxs.begin();
-         it != src_is_idxs.end();
-         ++it)
+         it != src_is_idxs.end(); ++it)
     {
         const int depth = it->first;
         const std::vector<int>& idxs = it->second;
 
         IS src_is;
-        ierr = ISCreateBlock(PETSC_COMM_WORLD,
-                             depth,
-                             idxs.size(),
-                             (idxs.empty() ? NULL : &idxs[0]),
-                             PETSC_COPY_VALUES,
-                             &src_is);
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
+                             (idxs.empty() ? NULL : &idxs[0]), PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
@@ -2497,12 +2310,11 @@ void LSiloDataWriter::getFromRestart()
         if (d_nclouds[ln] > 0)
         {
             d_cloud_names[ln].resize(d_nclouds[ln]);
-            db->getStringArray(
-                "d_cloud_names" + ln_string, &d_cloud_names[ln][0], d_cloud_names[ln].size());
+            db->getStringArray("d_cloud_names" + ln_string, &d_cloud_names[ln][0],
+                               d_cloud_names[ln].size());
 
             d_cloud_nmarks[ln].resize(d_nclouds[ln]);
-            db->getIntegerArray("d_cloud_nmarks" + ln_string,
-                                &d_cloud_nmarks[ln][0],
+            db->getIntegerArray("d_cloud_nmarks" + ln_string, &d_cloud_nmarks[ln][0],
                                 d_cloud_nmarks[ln].size());
 
             d_cloud_first_lag_idx[ln].resize(d_nclouds[ln]);
@@ -2515,15 +2327,14 @@ void LSiloDataWriter::getFromRestart()
         if (d_nblocks[ln] > 0)
         {
             d_block_names[ln].resize(d_nblocks[ln]);
-            db->getStringArray(
-                "d_block_names" + ln_string, &d_block_names[ln][0], d_block_names[ln].size());
+            db->getStringArray("d_block_names" + ln_string, &d_block_names[ln][0],
+                               d_block_names[ln].size());
 
             d_block_nelems[ln].resize(d_nblocks[ln]);
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.resize(NDIM * d_block_nelems[ln].size());
             db->getIntegerArray("flattened_block_nelems" + ln_string,
-                                &flattened_block_nelems[0],
-                                flattened_block_nelems.size());
+                                &flattened_block_nelems[0], flattened_block_nelems.size());
             for (unsigned int l = 0; l < d_block_nelems[ln].size(); ++l)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2536,8 +2347,7 @@ void LSiloDataWriter::getFromRestart()
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.resize(NDIM * d_block_periodic[ln].size());
             db->getIntegerArray("flattened_block_periodic" + ln_string,
-                                &flattened_block_periodic[0],
-                                flattened_block_periodic.size());
+                                &flattened_block_periodic[0], flattened_block_periodic.size());
             for (unsigned int l = 0; l < d_block_periodic[ln].size(); ++l)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2556,8 +2366,8 @@ void LSiloDataWriter::getFromRestart()
         if (d_nmbs[ln] > 0)
         {
             d_mb_names[ln].resize(d_nmbs[ln]);
-            db->getStringArray(
-                "d_mb_names" + ln_string, &d_mb_names[ln][0], d_mb_names[ln].size());
+            db->getStringArray("d_mb_names" + ln_string, &d_mb_names[ln][0],
+                               d_mb_names[ln].size());
 
             d_mb_nblocks.resize(d_nmbs[ln]);
             d_mb_nelems.resize(d_nmbs[ln]);
@@ -2576,8 +2386,7 @@ void LSiloDataWriter::getFromRestart()
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.resize(NDIM * d_mb_nelems[ln][mb].size());
                     db->getIntegerArray("flattened_mb_nelems" + ln_string + mb_string,
-                                        &flattened_mb_nelems[0],
-                                        flattened_mb_nelems.size());
+                                        &flattened_mb_nelems[0], flattened_mb_nelems.size());
                     for (unsigned int l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2612,8 +2421,7 @@ void LSiloDataWriter::getFromRestart()
         if (d_nucd_meshes[ln] > 0)
         {
             d_ucd_mesh_names[ln].resize(d_nucd_meshes[ln]);
-            db->getStringArray("d_ucd_mesh_names" + ln_string,
-                               &d_ucd_mesh_names[ln][0],
+            db->getStringArray("d_ucd_mesh_names" + ln_string, &d_ucd_mesh_names[ln][0],
                                d_ucd_mesh_names[ln].size());
 
             d_ucd_mesh_vertices[ln].resize(d_nucd_meshes[ln]);

@@ -95,8 +95,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBTargetPointForceSpec(int master_idx = -1,
-                           double kappa_target = 0.0,
+    IBTargetPointForceSpec(int master_idx = -1, double kappa_target = 0.0,
                            double eta_target = 0.0,
                            const IBTK::Point& X_target = IBTK::Point::Zero());
 

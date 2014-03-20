@@ -155,14 +155,10 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
-                                                      BDRY_EXTRAP_TYPE,
-                                                      CONSISTENT_TYPE_2_BDRY,
-                                                      d_bc_coefs,
-                                                      d_fill_pattern);
+        InterpolationTransactionComponent x_component(
+            x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+            DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs,
+            d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -179,18 +175,9 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
-            d_hier_math_ops->laplace(y_idx,
-                                     y_cc_var,
-                                     d_poisson_spec,
-                                     x_idx,
-                                     x_cc_var,
-                                     d_no_fill,
-                                     0.0,
-                                     0.0,
-                                     -1,
-                                     Pointer<CellVariable<NDIM, double> >(NULL),
-                                     l,
-                                     l);
+            d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var,
+                                     d_no_fill, 0.0, 0.0, -1,
+                                     Pointer<CellVariable<NDIM, double> >(NULL), l, l);
         }
     }
 
@@ -226,8 +213,8 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+                                               d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -247,21 +234,17 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
-                                                    DATA_REFINE_TYPE,
-                                                    USE_CF_INTERPOLATION,
-                                                    DATA_COARSEN_TYPE,
-                                                    BDRY_EXTRAP_TYPE,
-                                                    CONSISTENT_TYPE_2_BDRY,
-                                                    d_bc_coefs,
-                                                    d_fill_pattern);
+        InterpolationTransactionComponent component(
+            d_x->getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+            DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs,
+            d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(
-        d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln,
+                                              d_finest_ln);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;

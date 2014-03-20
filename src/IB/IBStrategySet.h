@@ -198,8 +198,7 @@ public:
      * within the current time interval.
      */
     void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+    spreadForce(int f_data_idx, IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
                     f_prolongation_scheds,
                 double data_time);
@@ -269,9 +268,7 @@ public:
             u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
             u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+        int integrator_step, double init_data_time, bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
@@ -312,10 +309,7 @@ public:
      */
     void initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
+        int level_number, double init_data_time, bool can_be_refined, bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
         bool allocate_data);
 
@@ -326,8 +320,7 @@ public:
      */
     void resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -337,10 +330,7 @@ public:
      */
     void applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
+        int level_number, double error_data_time, int tag_index, bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     /*!

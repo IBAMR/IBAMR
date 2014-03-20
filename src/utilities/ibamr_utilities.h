@@ -76,8 +76,8 @@
                            << std::endl;                                                      \
     });
 
-#define IBAMR_DEPRECATED_MEMBER_FUNCTION2(                                                    \
-    class_name, deprecated_method_name, new_method_name)                                      \
+#define IBAMR_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name,                 \
+                                          new_method_name)                                    \
     IBAMR_DO_ONCE(                                                                            \
     {                                                                                         \
         SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name           \

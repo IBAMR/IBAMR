@@ -117,9 +117,7 @@ public:
      */
     void
     initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                        int level_number,
-                        double init_data_time,
-                        bool initial_time,
+                        int level_number, double init_data_time, bool initial_time,
                         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -130,13 +128,10 @@ public:
      * vector.
      */
     void computeLagrangianForce(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data, SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the non-zero structure of the force Jacobian matrix.
@@ -144,10 +139,8 @@ public:
      * \note Elements indices must be global PETSc indices.
      */
     void computeLagrangianForceJacobianNonzeroStructure(
-        std::vector<int>& d_nnz,
-        std::vector<int>& o_nnz,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
+        std::vector<int>& d_nnz, std::vector<int>& o_nnz,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -158,28 +151,20 @@ public:
      * provided matrix J.
      */
     void computeLagrangianForceJacobian(
-        Mat& J_mat,
-        MatAssemblyType assembly_type,
-        double X_coef,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        double U_coef,
+        Mat& J_mat, MatAssemblyType assembly_type, double X_coef,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data, double U_coef,
         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
      */
     double computeLagrangianEnergy(
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data, SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
 private:
     /*!
@@ -241,55 +226,37 @@ private:
      */
     void initializeSpringLevelData(
         std::set<int>& nonlocal_petsc_idx_set,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool initial_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double init_data_time, bool initial_time, IBTK::LDataManager* l_data_manager);
     void computeLagrangianSpringForce(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data, SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
     /*!
      * Beam force routines.
      */
     void initializeBeamLevelData(
         std::set<int>& nonlocal_petsc_idx_set,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool initial_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double init_data_time, bool initial_time, IBTK::LDataManager* l_data_manager);
     void computeLagrangianBeamForce(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data, SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
     /*!
      * TargetPoint force routines.
      */
     void initializeTargetPointLevelData(
         std::set<int>& nonlocal_petsc_idx_set,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool initial_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double init_data_time, bool initial_time, IBTK::LDataManager* l_data_manager);
     void computeLagrangianTargetPointForce(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data, SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Spring force functions.

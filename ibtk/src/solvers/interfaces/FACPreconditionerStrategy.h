@@ -179,9 +179,7 @@ public:
      */
     virtual void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                              const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                             int level_num,
-                             int num_sweeps,
-                             bool performing_pre_sweeps,
+                             int level_num, int num_sweeps, bool performing_pre_sweeps,
                              bool performing_post_sweeps) = 0;
 
     /*!
@@ -202,8 +200,7 @@ public:
     virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-                                 int coarsest_level_num,
-                                 int finest_level_num) = 0;
+                                 int coarsest_level_num, int finest_level_num) = 0;
 
     /*!
      * \brief Initialize any hierarchy-dependent data.

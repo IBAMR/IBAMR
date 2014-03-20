@@ -117,8 +117,7 @@ public:
     /*!
      * \brief Alternative constructor.
      */
-    IBSpringForceSpec(int master_idx,
-                      const std::vector<int>& slave_idxs,
+    IBSpringForceSpec(int master_idx, const std::vector<int>& slave_idxs,
                       const std::vector<int>& force_fcn_idxs,
                       const std::vector<std::vector<double> >& parameters);
 

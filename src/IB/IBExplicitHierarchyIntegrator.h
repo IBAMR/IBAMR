@@ -81,8 +81,7 @@ public:
      * when requested.
      */
     IBExplicitHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart = true);
@@ -97,8 +96,8 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time,
+                                      int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -109,8 +108,7 @@ public:
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void postprocessIntegrateHierarchy(double current_time,
-                                       double new_time,
+    void postprocessIntegrateHierarchy(double current_time, double new_time,
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1);
 

@@ -394,8 +394,8 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(
-        d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL,
+                            &d_max_iterations);
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
@@ -600,8 +600,8 @@ void PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
     ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     IBTK_CHKERRQ(ierr);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(
-        d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL,
+                            &d_max_iterations);
     IBTK_CHKERRQ(ierr);
     return;
 } // resetWrappedKSP
@@ -622,8 +622,8 @@ void PETScKrylovLinearSolver::resetKSPOptions()
     PetscBool initial_guess_nonzero = (d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero);
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSetTolerances(
-        d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
+    ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT,
+                            d_max_iterations);
     IBTK_CHKERRQ(ierr);
     return;
 } // resetKSPOptions
@@ -647,28 +647,20 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(d_petsc_comm,
-                              1,
-                              1,
-                              PETSC_DETERMINE,
-                              PETSC_DETERMINE,
-                              static_cast<void*>(this),
-                              &d_petsc_mat);
+        ierr = MatCreateShell(d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE,
+                              static_cast<void*>(this), &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatShellSetOperation(
-        d_petsc_mat,
-        MATOP_MULT,
+        d_petsc_mat, MATOP_MULT,
         reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
     IBTK_CHKERRQ(ierr);
     ierr = MatShellSetOperation(
-        d_petsc_mat,
-        MATOP_MULT_ADD,
+        d_petsc_mat, MATOP_MULT_ADD,
         reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI));
     IBTK_CHKERRQ(ierr);
     ierr = MatShellSetOperation(
-        d_petsc_mat,
-        MATOP_GET_VECS,
+        d_petsc_mat, MATOP_GET_VECS,
         reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatGetVecs_SAMRAI));
     IBTK_CHKERRQ(ierr);
 
@@ -773,11 +765,8 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         }
 
         static const PetscBool has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(d_petsc_comm,
-                                  has_cnst,
-                                  nullspace_vecs.size(),
-                                  &nullspace_vecs[0],
-                                  &d_petsc_nullsp);
+        ierr = MatNullSpaceCreate(d_petsc_comm, has_cnst, nullspace_vecs.size(),
+                                  &nullspace_vecs[0], &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);

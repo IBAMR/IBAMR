@@ -107,8 +107,7 @@ void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
                                                libMeshEnums::Order var_fe_order,
                                                VectorMeshFcnPtr var_fcn,
                                                std::vector<unsigned int> var_fcn_systems,
-                                               void* var_fcn_ctx,
-                                               unsigned int var_dim)
+                                               void* var_fcn_ctx, unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -133,8 +132,7 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
                                                libMeshEnums::Order var_fe_order,
                                                TensorMeshFcnPtr var_fcn,
                                                std::vector<unsigned int> var_fcn_systems,
-                                               void* var_fcn_ctx,
-                                               unsigned int var_dim)
+                                               void* var_fcn_ctx, unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -158,28 +156,19 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
 } // registerTensorVariable
 
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
+    const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
+    libMeshEnums::Order var_fe_order, Pointer<hier::Variable<NDIM> > var,
     Pointer<VariableContext> ctx)
 {
-    registerInterpolatedScalarEulerianVariable(var_name,
-                                               var_fe_family,
-                                               var_fe_order,
-                                               var,
-                                               ctx,
+    registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx,
                                                d_fe_data_manager->getDefaultInterpSpec());
     return;
 } //
 
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx,
-    const FEDataManager::InterpSpec& interp_spec)
+    const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
+    libMeshEnums::Order var_fe_order, Pointer<hier::Variable<NDIM> > var,
+    Pointer<VariableContext> ctx, const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " interpolation system");
@@ -274,10 +263,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         System* system = d_scalar_interp_var_systems[k];
         const std::string& system_name = system->name();
         const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-        d_fe_data_manager->interp(scratch_idx,
-                                  *system->solution,
-                                  *X_ghost_vec,
-                                  system_name,
+        d_fe_data_manager->interp(scratch_idx, *system->solution, *X_ghost_vec, system_name,
                                   d_scalar_interp_specs[k]);
     }
 

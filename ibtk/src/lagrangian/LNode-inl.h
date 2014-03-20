@@ -48,16 +48,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LNode::LNode(const int lagrangian_nidx,
-                    const int global_petsc_nidx,
+inline LNode::LNode(const int lagrangian_nidx, const int global_petsc_nidx,
                     const int local_petsc_nidx,
                     const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
                     const Vector& periodic_displacement,
                     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
-    : LNodeIndex(lagrangian_nidx,
-                 global_petsc_nidx,
-                 local_petsc_nidx,
-                 periodic_offset,
+    : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset,
                  periodic_displacement),
       d_node_data(node_data)
 {
@@ -100,8 +96,7 @@ inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& of
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin();
-         it != d_node_data.end();
-         ++it)
+         it != d_node_data.end(); ++it)
     {
         (*it)->registerPeriodicShift(offset, displacement);
     }
@@ -234,14 +229,13 @@ inline void LNode::assignThatToThis(const LNode& that)
 
 inline void LNode::setupNodeDataTypeArray()
 {
-    std::fill(
-        d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(NULL));
+    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE,
+              static_cast<Streamable*>(NULL));
     Streamable* it_val;
     int class_id;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit =
              d_node_data.begin();
-         cit != d_node_data.end();
-         ++cit)
+         cit != d_node_data.end(); ++cit)
     {
         it_val = *cit;
         class_id = it_val->getStreamableClassID();

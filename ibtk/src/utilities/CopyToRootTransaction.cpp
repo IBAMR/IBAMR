@@ -65,8 +65,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CopyToRootTransaction::CopyToRootTransaction(const int src_proc,
-                                             const int dst_proc,
+CopyToRootTransaction::CopyToRootTransaction(const int src_proc, const int dst_proc,
                                              Pointer<PatchLevel<NDIM> > patch_level,
                                              const int src_patch_data_idx,
                                              Pointer<PatchData<NDIM> > dst_patch_data)

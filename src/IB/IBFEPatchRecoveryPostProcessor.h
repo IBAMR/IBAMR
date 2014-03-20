@@ -87,18 +87,14 @@ public:
      * Register the Cauchy stress associated with an element and quadrature
      * point.
      */
-    void registerCauchyStressValue(const libMesh::Elem* elem,
-                                   const libMesh::QBase* qrule,
-                                   unsigned int qp,
-                                   const libMesh::TensorValue<double>& sigma);
+    void registerCauchyStressValue(const libMesh::Elem* elem, const libMesh::QBase* qrule,
+                                   unsigned int qp, const libMesh::TensorValue<double>& sigma);
 
     /*!
      * Register the pressure associated with an element and quadrature point.
      */
-    void registerPressureValue(const libMesh::Elem* elem,
-                               const libMesh::QBase* qrule,
-                               unsigned int qp,
-                               double p);
+    void registerPressureValue(const libMesh::Elem* elem, const libMesh::QBase* qrule,
+                               unsigned int qp, double p);
 
     /*!
      * Reconstruct the Cauchy stress at the nodes of the mesh.

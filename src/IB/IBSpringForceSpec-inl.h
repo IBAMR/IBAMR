@@ -71,8 +71,7 @@ inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
 } // IBSpringForceSpec
 
 inline IBSpringForceSpec::IBSpringForceSpec(
-    const int master_idx,
-    const std::vector<int>& slave_idxs,
+    const int master_idx, const std::vector<int>& slave_idxs,
     const std::vector<int>& force_fcn_idxs,
     const std::vector<std::vector<double> >& parameters)
     : d_master_idx(master_idx),

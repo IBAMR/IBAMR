@@ -129,9 +129,7 @@ protected:
      */
     PETScSAMRAIVectorReal(
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
-            samrai_vector,
-        bool vector_created_via_duplicate,
-        MPI_Comm comm);
+            samrai_vector, bool vector_created_via_duplicate, MPI_Comm comm);
 
     /*
      * Destructor for PETScSAMRAIVectorReal is protected so that an object of

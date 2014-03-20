@@ -63,14 +63,10 @@ public:
      * dX/ds.
      */
     static inline void
-    FF_fcn(libMesh::TensorValue<double>& FF_out,
-           const libMesh::TensorValue<double>& FF_in,
-           const libMesh::Point& /*X*/,
-           const libMesh::Point& /*s*/,
-           libMesh::Elem* /*elem*/,
+    FF_fcn(libMesh::TensorValue<double>& FF_out, const libMesh::TensorValue<double>& FF_in,
+           const libMesh::Point& /*X*/, const libMesh::Point& /*s*/, libMesh::Elem* /*elem*/,
            const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
-           double /*data_time*/,
-           void* /*ctx*/)
+           double /*data_time*/, void* /*ctx*/)
     {
         FF_out = FF_in;
         return;
@@ -81,18 +77,14 @@ public:
      * = 0.5*(CC - II), with CC = FF^T FF and FF = dX/ds.
      */
     static inline void
-    EE_fcn(libMesh::TensorValue<double>& EE,
-           const libMesh::TensorValue<double>& FF,
-           const libMesh::Point& /*X*/,
-           const libMesh::Point& /*s*/,
-           libMesh::Elem* /*elem*/,
+    EE_fcn(libMesh::TensorValue<double>& EE, const libMesh::TensorValue<double>& FF,
+           const libMesh::Point& /*X*/, const libMesh::Point& /*s*/, libMesh::Elem* /*elem*/,
            const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
-           double /*data_time*/,
-           void* /*ctx*/)
+           double /*data_time*/, void* /*ctx*/)
     {
         const libMesh::TensorValue<double> CC = FF.transpose() * FF;
-        static const libMesh::TensorValue<double> II(
-            1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+        static const libMesh::TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+                                                     1.0);
         EE = 0.5 * (CC - II);
         return;
     } // EE_fcn
@@ -102,13 +94,9 @@ public:
      * using the PK1 stress function data provided by the ctx argument.
      */
     static inline void cauchy_stress_from_PK1_stress_fcn(
-        libMesh::TensorValue<double>& sigma,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& X,
-        const libMesh::Point& s,
-        libMesh::Elem* elem,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double data_time,
+        libMesh::TensorValue<double>& sigma, const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* elem,
+        const std::vector<libMesh::NumericVector<double>*>& system_data, double data_time,
         void* ctx)
     {
         TBOX_ASSERT(ctx);
@@ -130,15 +118,11 @@ public:
      * \note Assumes that the material axis is described by a piecewise constant
      * field.
      */
-    static inline void
-    deformed_material_axis_fcn(libMesh::VectorValue<double>& f,
-                               const libMesh::TensorValue<double>& FF,
-                               const libMesh::Point& /*X*/,
-                               const libMesh::Point& /*s*/,
-                               libMesh::Elem* elem,
-                               const std::vector<libMesh::NumericVector<double>*>& system_data,
-                               double /*data_time*/,
-                               void* ctx)
+    static inline void deformed_material_axis_fcn(
+        libMesh::VectorValue<double>& f, const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& /*X*/, const libMesh::Point& /*s*/, libMesh::Elem* elem,
+        const std::vector<libMesh::NumericVector<double>*>& system_data, double /*data_time*/,
+        void* ctx)
     {
         TBOX_ASSERT(system_data.size() == 1);
         TBOX_ASSERT(ctx);
@@ -161,13 +145,9 @@ public:
      * field.
      */
     static inline void deformed_normalized_material_axis_fcn(
-        libMesh::VectorValue<double>& f,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& /*X*/,
-        const libMesh::Point& /*s*/,
-        libMesh::Elem* elem,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double /*data_time*/,
+        libMesh::VectorValue<double>& f, const libMesh::TensorValue<double>& FF,
+        const libMesh::Point& /*X*/, const libMesh::Point& /*s*/, libMesh::Elem* elem,
+        const std::vector<libMesh::NumericVector<double>*>& system_data, double /*data_time*/,
         void* ctx)
     {
         TBOX_ASSERT(system_data.size() == 1);
@@ -191,14 +171,11 @@ public:
      * field.
      */
     static inline void
-    material_axis_stretch_fcn(double& lambda,
-                              const libMesh::TensorValue<double>& FF,
-                              const libMesh::Point& /*X*/,
-                              const libMesh::Point& /*s*/,
+    material_axis_stretch_fcn(double& lambda, const libMesh::TensorValue<double>& FF,
+                              const libMesh::Point& /*X*/, const libMesh::Point& /*s*/,
                               libMesh::Elem* elem,
                               const std::vector<libMesh::NumericVector<double>*>& system_data,
-                              double /*data_time*/,
-                              void* ctx)
+                              double /*data_time*/, void* ctx)
     {
         TBOX_ASSERT(system_data.size() == 1);
         TBOX_ASSERT(ctx);
@@ -228,10 +205,8 @@ public:
      * Register a scalar-valued variable for reconstruction.
      */
     virtual void registerScalarVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::ScalarMeshFcnPtr var_fcn,
+        const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order, IBTK::ScalarMeshFcnPtr var_fcn,
         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
         void* var_fcn_ctx = NULL);
 
@@ -239,25 +214,19 @@ public:
      * Register a vector-valued variable for reconstruction.
      */
     virtual void registerVectorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::VectorMeshFcnPtr var_fcn,
+        const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order, IBTK::VectorMeshFcnPtr var_fcn,
         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-        void* var_fcn_ctx = NULL,
-        unsigned int var_dim = NDIM);
+        void* var_fcn_ctx = NULL, unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
      */
     virtual void registerTensorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::TensorMeshFcnPtr var_fcn,
+        const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order, IBTK::TensorMeshFcnPtr var_fcn,
         std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-        void* var_fcn_ctx = NULL,
-        unsigned int var_dim = NDIM);
+        void* var_fcn_ctx = NULL, unsigned int var_dim = NDIM);
 
     /*!
      * Register a scalar-valued Eulerian field for reconstruction on the FE
@@ -265,8 +234,7 @@ public:
      * provided by the associated FEDataManager object.
      */
     virtual void registerInterpolatedScalarEulerianVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
+        const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
@@ -276,8 +244,7 @@ public:
      * mesh.  The variable is interpolated using the specified interp spec.
      */
     virtual void registerInterpolatedScalarEulerianVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
+        const std::string& var_name, libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,

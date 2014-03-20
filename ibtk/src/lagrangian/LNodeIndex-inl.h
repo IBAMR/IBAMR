@@ -44,8 +44,7 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
-                              const int global_petsc_nidx,
+inline LNodeIndex::LNodeIndex(const int lagrangian_nidx, const int global_petsc_nidx,
                               const int local_petsc_nidx,
                               const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
                               const Vector& periodic_displacement)

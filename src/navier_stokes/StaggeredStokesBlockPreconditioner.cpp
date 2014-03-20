@@ -65,8 +65,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(
-    bool needs_velocity_solver,
-    bool needs_pressure_solver)
+    bool needs_velocity_solver, bool needs_pressure_solver)
     : d_needs_velocity_solver(needs_velocity_solver),
       d_velocity_solver(),
       d_P_problem_coefs("P_problem_coefs"),
@@ -155,8 +154,7 @@ void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
 } // setPhysicalBcCoefs
 
 void StaggeredStokesBlockPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& b)
+    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
@@ -186,8 +184,8 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(
     d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_pressure_wgt_idx = x.getControlVolumeIndex(1);
 
-    d_hier_math_ops = new HierarchyMathOps(
-        d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy,
+                                           d_coarsest_ln, d_finest_ln);
     return;
 } // initializeSolverState
 

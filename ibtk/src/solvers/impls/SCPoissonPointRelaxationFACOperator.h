@@ -136,11 +136,10 @@ public:
     {
         SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
             new SCPoissonPointRelaxationFACOperator(
-                object_name + "::SCPoissonPointRelaxationFACOperator",
-                input_db,
+                object_name + "::SCPoissonPointRelaxationFACOperator", input_db,
                 default_options_prefix);
-        return new PoissonFACPreconditioner(
-            object_name, fac_operator, input_db, default_options_prefix);
+        return new PoissonFACPreconditioner(object_name, fac_operator, input_db,
+                                            default_options_prefix);
     } // allocate
 
     /*!
@@ -186,9 +185,7 @@ public:
      */
     void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                      const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                     int level_num,
-                     int num_sweeps,
-                     bool performing_pre_sweeps,
+                     int level_num, int num_sweeps, bool performing_pre_sweeps,
                      bool performing_post_sweeps);
 
     /*!
@@ -215,8 +212,7 @@ public:
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-                         int coarsest_level_num,
-                         int finest_level_num);
+                         int coarsest_level_num, int finest_level_num);
 
     //\}
 
@@ -226,8 +222,7 @@ protected:
      */
     void initializeOperatorStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_reset_ln,
         int finest_reset_ln);
 
     /*!

@@ -67,19 +67,14 @@
 #endif
 
 extern "C" {
-void DIV_PRESERVING_CORRECTION_FC(double* u0,
-                                  double* u1,
+void DIV_PRESERVING_CORRECTION_FC(double* u0, double* u1,
 #if (NDIM == 3)
                                   double* u2,
 #endif
-                                  const int& u_gcw,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
+                                  const int& u_gcw, const int& ilower0, const int& iupper0,
+                                  const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
+                                  const int& ilower2, const int& iupper2,
 #endif
                                   const int& correction_box_ilower0,
                                   const int& correction_box_iupper0,
@@ -89,8 +84,7 @@ void DIV_PRESERVING_CORRECTION_FC(double* u0,
                                   const int& correction_box_ilower2,
                                   const int& correction_box_iupper2,
 #endif
-                                  const int* ratio,
-                                  const double* dx_fine);
+                                  const int* ratio, const double* dx_fine);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -102,13 +96,9 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
-    const int u_dst_idx,
-    const int u_src_idx,
-    const int indicator_idx,
-    Pointer<RefineOperator<NDIM> > refine_op,
-    Pointer<CoarsenOperator<NDIM> > coarsen_op,
-    const double fill_time,
-    RefinePatchStrategy<NDIM>* const phys_bdry_op)
+    const int u_dst_idx, const int u_src_idx, const int indicator_idx,
+    Pointer<RefineOperator<NDIM> > refine_op, Pointer<CoarsenOperator<NDIM> > coarsen_op,
+    const double fill_time, RefinePatchStrategy<NDIM>* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx),
       d_u_src_idx(u_src_idx),
       d_indicator_idx(indicator_idx),
@@ -128,9 +118,7 @@ CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
 } // ~CartSideDoubleDivPreservingRefine
 
 void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(
-    Patch<NDIM>& patch,
-    const double fill_time,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& patch, const double fill_time, const IntVector<NDIM>& ghost_width_to_fill)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
@@ -154,11 +142,9 @@ void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch<NDIM>& /*fine*/,
     return;
 } // preprocessRefine
 
-void
-CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
-                                                     const Patch<NDIM>& coarse,
-                                                     const Box<NDIM>& unrestricted_fine_box,
-                                                     const IntVector<NDIM>& ratio)
+void CartSideDoubleDivPreservingRefine::postprocessRefine(
+    Patch<NDIM>& fine, const Patch<NDIM>& coarse, const Box<NDIM>& unrestricted_fine_box,
+    const IntVector<NDIM>& ratio)
 {
     // NOTE: This operator cannot fill the full ghost cell width of the
     // destination data.  We instead restrict the size of the fine box to ensure
@@ -281,30 +267,22 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
-            DIV_PRESERVING_CORRECTION_FC(fdata->getPointer(0, d),
-                                         fdata->getPointer(1, d),
+            DIV_PRESERVING_CORRECTION_FC(
+                fdata->getPointer(0, d), fdata->getPointer(1, d),
 #if (NDIM == 3)
-                                         fdata->getPointer(2, d),
+                fdata->getPointer(2, d),
 #endif
-                                         fdata_ghosts,
-                                         fdata->getBox().lower()(0),
-                                         fdata->getBox().upper()(0),
-                                         fdata->getBox().lower()(1),
-                                         fdata->getBox().upper()(1),
+                fdata_ghosts, fdata->getBox().lower()(0), fdata->getBox().upper()(0),
+                fdata->getBox().lower()(1), fdata->getBox().upper()(1),
 #if (NDIM == 3)
-                                         fdata->getBox().lower()(2),
-                                         fdata->getBox().upper()(2),
+                fdata->getBox().lower()(2), fdata->getBox().upper()(2),
 #endif
-                                         correction_box.lower()(0),
-                                         correction_box.upper()(0),
-                                         correction_box.lower()(1),
-                                         correction_box.upper()(1),
+                correction_box.lower()(0), correction_box.upper()(0),
+                correction_box.lower()(1), correction_box.upper()(1),
 #if (NDIM == 3)
-                                         correction_box.lower()(2),
-                                         correction_box.upper()(2),
+                correction_box.lower()(2), correction_box.upper()(2),
 #endif
-                                         ratio,
-                                         dx_fine);
+                ratio, dx_fine);
         }
     }
     else
@@ -341,13 +319,9 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
             x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
         }
-        intermediate.setPatchGeometry(
-            new CartesianPatchGeometry<NDIM>(ratio_to_level_zero_intermediate,
-                                             touches_regular_bdry,
-                                             touches_periodic_bdry,
-                                             dx_intermediate,
-                                             x_lower_intermediate,
-                                             x_upper_intermediate));
+        intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+            ratio_to_level_zero_intermediate, touches_regular_bdry, touches_periodic_bdry,
+            dx_intermediate, x_lower_intermediate, x_upper_intermediate));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.
@@ -374,14 +348,10 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(
                 Box<NDIM>::refine(intermediate_box, ratio / 2)));
 #endif
-            d_coarsen_op->coarsen(
-                intermediate, fine, d_u_src_idx, d_u_src_idx, intermediate_box, ratio / 2);
-            d_coarsen_op->coarsen(intermediate,
-                                  fine,
-                                  d_indicator_idx,
-                                  d_indicator_idx,
-                                  intermediate_box,
-                                  ratio / 2);
+            d_coarsen_op->coarsen(intermediate, fine, d_u_src_idx, d_u_src_idx,
+                                  intermediate_box, ratio / 2);
+            d_coarsen_op->coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx,
+                                  intermediate_box, ratio / 2);
         }
 
         // Recursively refine from the coarse patch to the fine patch.

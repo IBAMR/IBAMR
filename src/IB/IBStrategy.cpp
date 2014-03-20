@@ -125,16 +125,14 @@ void IBStrategy::setupTagBuffer(Array<int>& tag_buffer,
     return;
 } // setupTagBuffer
 
-void IBStrategy::preprocessIntegrateData(double /*current_time*/,
-                                         double /*new_time*/,
+void IBStrategy::preprocessIntegrateData(double /*current_time*/, double /*new_time*/,
                                          int /*num_cycles*/)
 {
     // intentionally blank
     return;
 } // preprocessIntegrateData
 
-void IBStrategy::postprocessIntegrateData(double /*current_time*/,
-                                          double /*new_time*/,
+void IBStrategy::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
                                           int /*num_cycles*/)
 {
     // intentionally blank
@@ -183,16 +181,14 @@ void IBStrategy::interpolatePressure(
     return;
 } // interpolatePressure
 
-void IBStrategy::preprocessSolveFluidEquations(double /*current_time*/,
-                                               double /*new_time*/,
+void IBStrategy::preprocessSolveFluidEquations(double /*current_time*/, double /*new_time*/,
                                                int /*cycle_num*/)
 {
     // intentionally blank
     return;
 } // preprocessSolveFluidEquations
 
-void IBStrategy::postprocessSolveFluidEquations(double /*current_time*/,
-                                                double /*new_time*/,
+void IBStrategy::postprocessSolveFluidEquations(double /*current_time*/, double /*new_time*/,
                                                 int /*cycle_num*/)
 {
     // intentionally blank
@@ -207,13 +203,10 @@ void IBStrategy::postprocessData()
 
 void IBStrategy::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
-    int /*u_data_idx*/,
+    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/, int /*u_data_idx*/,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    int /*integrator_step*/,
-    double /*init_data_time*/,
-    bool /*initial_time*/)
+    int /*integrator_step*/, double /*init_data_time*/, bool /*initial_time*/)
 {
     // intentionally blank
     return;
@@ -248,10 +241,8 @@ void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 } // endDataRedistribution
 
 void IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-                                     int /*level_number*/,
-                                     double /*init_data_time*/,
-                                     bool /*can_be_refined*/,
-                                     bool /*initial_time*/,
+                                     int /*level_number*/, double /*init_data_time*/,
+                                     bool /*can_be_refined*/, bool /*initial_time*/,
                                      Pointer<BasePatchLevel<NDIM> > /*old_level*/,
                                      bool /*allocate_data*/)
 {
@@ -260,18 +251,15 @@ void IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierar
 } // initializeLevelData
 
 void IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-                                             int /*coarsest_level*/,
-                                             int /*finest_level*/)
+                                             int /*coarsest_level*/, int /*finest_level*/)
 {
     // intentionally blank
     return;
 } // resetHierarchyConfiguration
 
 void IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-                                       int /*level_number*/,
-                                       double /*error_data_time*/,
-                                       int /*tag_index*/,
-                                       bool /*initial_time*/,
+                                       int /*level_number*/, double /*error_data_time*/,
+                                       int /*tag_index*/, bool /*initial_time*/,
                                        bool /*uses_richardson_extrapolation_too*/)
 {
     // intentionally blank
@@ -318,9 +306,7 @@ Pointer<HierarchyMathOps> IBStrategy::getHierarchyMathOps() const
     return d_ib_solver->d_hier_math_ops;
 } // getHierarchyMathOps
 
-void IBStrategy::registerVariable(int& current_idx,
-                                  int& new_idx,
-                                  int& scratch_idx,
+void IBStrategy::registerVariable(int& current_idx, int& new_idx, int& scratch_idx,
                                   Pointer<Variable<NDIM> > variable,
                                   const IntVector<NDIM>& scratch_ghosts,
                                   const std::string& coarsen_name,
@@ -330,21 +316,13 @@ void IBStrategy::registerVariable(int& current_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
-    d_ib_solver->registerVariable(current_idx,
-                                  new_idx,
-                                  scratch_idx,
-                                  variable,
-                                  scratch_ghosts,
-                                  coarsen_name,
-                                  refine_name,
-                                  init_fcn);
+    d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts,
+                                  coarsen_name, refine_name, init_fcn);
     return;
 } // registerVariable
 
-void IBStrategy::registerVariable(int& idx,
-                                  Pointer<Variable<NDIM> > variable,
-                                  const IntVector<NDIM>& ghosts,
-                                  Pointer<VariableContext> ctx)
+void IBStrategy::registerVariable(int& idx, Pointer<Variable<NDIM> > variable,
+                                  const IntVector<NDIM>& ghosts, Pointer<VariableContext> ctx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
@@ -354,12 +332,11 @@ void IBStrategy::registerVariable(int& idx,
 } // registerVariable
 
 void IBStrategy::registerGhostfillRefineAlgorithm(
-    const std::string& name,
-    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    const std::string& name, Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
     RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
 {
-    d_ib_solver->registerGhostfillRefineAlgorithm(
-        name, ghostfill_alg, ghostfill_patch_strategy);
+    d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg,
+                                                  ghostfill_patch_strategy);
 } // registerGhostfillRefineAlgorithm
 
 void

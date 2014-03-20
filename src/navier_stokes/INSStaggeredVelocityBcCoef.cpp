@@ -73,11 +73,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
-    const unsigned int comp_idx,
-    const INSStaggeredHierarchyIntegrator* fluid_solver,
+    const unsigned int comp_idx, const INSStaggeredHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const TractionBcType traction_bc_type,
-    const bool homogeneous_bc)
+    const TractionBcType traction_bc_type, const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
@@ -321,10 +319,10 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& a
                         std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
                     i_upper(d_comp_idx) =
                         std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(
-                        i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(
-                        i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis,
+                                                    SideIndex<NDIM>::Lower);
+                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis,
+                                                    SideIndex<NDIM>::Lower);
                     const double du_norm_dx_tan =
                         ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) /
                         dx[d_comp_idx];

@@ -64,29 +64,18 @@ class Variable;
 
 // Function interfaces
 extern "C" {
-void CC_CUBIC_COARSEN_FC(double* U_coarse,
-                         const int& U_crse_gcw,
-                         const double* U_fine0,
-                         const int& U_fine_gcw,
-                         const int& ilowerc0,
-                         const int& iupperc0,
-                         const int& ilowerc1,
-                         const int& iupperc1,
+void CC_CUBIC_COARSEN_FC(double* U_coarse, const int& U_crse_gcw, const double* U_fine0,
+                         const int& U_fine_gcw, const int& ilowerc0, const int& iupperc0,
+                         const int& ilowerc1, const int& iupperc1,
 #if (NDIM == 3)
-                         const int& ilowerc2,
-                         const int& iupperc2,
+                         const int& ilowerc2, const int& iupperc2,
 #endif
-                         const int& ilowerf0,
-                         const int& iupperf0,
-                         const int& ilowerf1,
+                         const int& ilowerf0, const int& iupperf0, const int& ilowerf1,
                          const int& iupperf1,
 #if (NDIM == 3)
-                         const int& ilowerf2,
-                         const int& iupperf2,
+                         const int& ilowerf2, const int& iupperf2,
 #endif
-                         const int* ratio_to_coarser,
-                         const int* fblower,
-                         const int* fbupper);
+                         const int* ratio_to_coarser, const int* fblower, const int* fbupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -138,10 +127,8 @@ IntVector<NDIM> CartCellDoubleCubicCoarsen::getStencilWidth() const
     return d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
-void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
-                                         const Patch<NDIM>& fine,
-                                         const int dst_component,
-                                         const int src_component,
+void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse, const Patch<NDIM>& fine,
+                                         const int dst_component, const int src_component,
                                          const Box<NDIM>& coarse_box,
                                          const IntVector<NDIM>& ratio) const
 {
@@ -151,8 +138,8 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
             TBOX_WARNING("CartCellDoubleCubicCoarsen::coarsen():\n"
                          << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
                          << "  reverting to weighted averaging." << std::endl););
-        d_weighted_average_coarsen_op.coarsen(
-            coarse, fine, dst_component, src_component, coarse_box, ratio);
+        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component,
+                                              coarse_box, ratio);
         return;
     }
     Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
@@ -192,29 +179,18 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
     {
         double* const U_crse = cdata->getPointer(depth);
         const double* const U_fine = fdata->getPointer(depth);
-        CC_CUBIC_COARSEN_FC(U_crse,
-                            U_crse_ghosts,
-                            U_fine,
-                            U_fine_ghosts,
-                            patch_box_crse.lower(0),
-                            patch_box_crse.upper(0),
-                            patch_box_crse.lower(1),
-                            patch_box_crse.upper(1),
+        CC_CUBIC_COARSEN_FC(U_crse, U_crse_ghosts, U_fine, U_fine_ghosts,
+                            patch_box_crse.lower(0), patch_box_crse.upper(0),
+                            patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                            patch_box_crse.lower(2),
-                            patch_box_crse.upper(2),
+                            patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                            patch_box_fine.lower(0),
-                            patch_box_fine.upper(0),
-                            patch_box_fine.lower(1),
-                            patch_box_fine.upper(1),
+                            patch_box_fine.lower(0), patch_box_fine.upper(0),
+                            patch_box_fine.lower(1), patch_box_fine.upper(1),
 #if (NDIM == 3)
-                            patch_box_fine.lower(2),
-                            patch_box_fine.upper(2),
+                            patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                            ratio,
-                            coarse_box.lower(),
-                            coarse_box.upper());
+                            ratio, coarse_box.lower(), coarse_box.upper());
     }
     return;
 } // coarsen

@@ -103,75 +103,39 @@
 
 // Function interfaces
 extern "C" {
-void GS_SMOOTH_FC(double* U,
-                  const int& U_gcw,
-                  const double& alpha,
-                  const double& beta,
-                  const double* F,
-                  const int& F_gcw,
-                  const int& ilower0,
-                  const int& iupper0,
-                  const int& ilower1,
-                  const int& iupper1,
+void GS_SMOOTH_FC(double* U, const int& U_gcw, const double& alpha, const double& beta,
+                  const double* F, const int& F_gcw, const int& ilower0, const int& iupper0,
+                  const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
-                  const int& ilower2,
-                  const int& iupper2,
+                  const int& ilower2, const int& iupper2,
 #endif
                   const double* dx);
 
-void GS_SMOOTH_MASK_FC(double* U,
-                       const int& U_gcw,
-                       const double& alpha,
-                       const double& beta,
-                       const double* F,
-                       const int& F_gcw,
-                       const int* mask,
-                       const int& mask_gcw,
-                       const int& ilower0,
-                       const int& iupper0,
-                       const int& ilower1,
+void GS_SMOOTH_MASK_FC(double* U, const int& U_gcw, const double& alpha, const double& beta,
+                       const double* F, const int& F_gcw, const int* mask, const int& mask_gcw,
+                       const int& ilower0, const int& iupper0, const int& ilower1,
                        const int& iupper1,
 #if (NDIM == 3)
-                       const int& ilower2,
-                       const int& iupper2,
+                       const int& ilower2, const int& iupper2,
 #endif
                        const double* dx);
 
-void RB_GS_SMOOTH_FC(double* U,
-                     const int& U_gcw,
-                     const double& alpha,
-                     const double& beta,
-                     const double* F,
-                     const int& F_gcw,
-                     const int& ilower0,
-                     const int& iupper0,
-                     const int& ilower1,
-                     const int& iupper1,
+void RB_GS_SMOOTH_FC(double* U, const int& U_gcw, const double& alpha, const double& beta,
+                     const double* F, const int& F_gcw, const int& ilower0, const int& iupper0,
+                     const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
-                     const int& ilower2,
-                     const int& iupper2,
+                     const int& ilower2, const int& iupper2,
 #endif
-                     const double* dx,
-                     const int& red_or_black);
+                     const double* dx, const int& red_or_black);
 
-void RB_GS_SMOOTH_MASK_FC(double* U,
-                          const int& U_gcw,
-                          const double& alpha,
-                          const double& beta,
-                          const double* F,
-                          const int& F_gcw,
-                          const int* mask,
-                          const int& mask_gcw,
-                          const int& ilower0,
-                          const int& iupper0,
-                          const int& ilower1,
-                          const int& iupper1,
+void RB_GS_SMOOTH_MASK_FC(double* U, const int& U_gcw, const double& alpha, const double& beta,
+                          const double* F, const int& F_gcw, const int* mask,
+                          const int& mask_gcw, const int& ilower0, const int& iupper0,
+                          const int& ilower1, const int& iupper1,
 #if (NDIM == 3)
-                          const int& ilower2,
-                          const int& iupper2,
+                          const int& ilower2, const int& iupper2,
 #endif
-                          const double* dx,
-                          const int& red_or_black);
+                          const double* dx, const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -253,15 +217,12 @@ inline bool do_local_data_update(SmootherType smoother_type)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(
-    const std::string& object_name,
-    const Pointer<Database> input_db,
+    const std::string& object_name, const Pointer<Database> input_db,
     const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
           new SideVariable<NDIM, double>(object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
-          SIDEG,
-          input_db,
-          default_options_prefix),
+          SIDEG, input_db, default_options_prefix),
       d_coarse_solver(NULL),
       d_coarse_solver_db(),
       d_patch_bc_box_overlap(),
@@ -375,20 +336,15 @@ SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coar
     if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
     {
         d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(
-            d_coarse_solver_type,
-            d_object_name + "::coarse_solver",
-            d_coarse_solver_db,
+            d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
             d_coarse_solver_default_options_prefix);
     }
     return;
 } // setCoarseSolverType
 
 void SCPoissonPointRelaxationFACOperator::smoothError(
-    SAMRAIVectorReal<NDIM, double>& error,
-    const SAMRAIVectorReal<NDIM, double>& residual,
-    int level_num,
-    int num_sweeps,
-    bool /*performing_pre_sweeps*/,
+    SAMRAIVectorReal<NDIM, double>& error, const SAMRAIVectorReal<NDIM, double>& residual,
+    int level_num, int num_sweeps, bool /*performing_pre_sweeps*/,
     bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
@@ -519,16 +475,15 @@ void SCPoissonPointRelaxationFACOperator::smoothError(
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
                     for (std::map<int, Box<NDIM> >::const_iterator cit =
                              neighbor_overlap.begin();
-                         cit != neighbor_overlap.end();
-                         ++cit)
+                         cit != neighbor_overlap.end(); ++cit)
                     {
                         const int src_patch_num = cit->first;
                         const Box<NDIM>& overlap = cit->second;
                         Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                         Pointer<SideData<NDIM, double> > src_error_data =
                             error.getComponentPatchData(0, *src_patch);
-                        error_data->getArrayData(axis).copy(
-                            src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
+                        error_data->getArrayData(axis).copy(src_error_data->getArrayData(axis),
+                                                            overlap, IntVector<NDIM>(0));
                     }
                 }
             }
@@ -563,42 +518,23 @@ void SCPoissonPointRelaxationFACOperator::smoothError(
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            RB_GS_SMOOTH_MASK_FC(U,
-                                                 U_ghosts,
-                                                 alpha,
-                                                 beta,
-                                                 F,
-                                                 F_ghosts,
-                                                 mask,
-                                                 mask_ghosts,
-                                                 side_patch_box.lower(0),
-                                                 side_patch_box.upper(0),
-                                                 side_patch_box.lower(1),
-                                                 side_patch_box.upper(1),
+                            RB_GS_SMOOTH_MASK_FC(
+                                U, U_ghosts, alpha, beta, F, F_ghosts, mask, mask_ghosts,
+                                side_patch_box.lower(0), side_patch_box.upper(0),
+                                side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                                 side_patch_box.lower(2),
-                                                 side_patch_box.upper(2),
+                                side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
-                                                 dx,
-                                                 red_or_black);
+                                dx, red_or_black);
                         }
                         else
                         {
-                            GS_SMOOTH_MASK_FC(U,
-                                              U_ghosts,
-                                              alpha,
-                                              beta,
-                                              F,
-                                              F_ghosts,
-                                              mask,
-                                              mask_ghosts,
-                                              side_patch_box.lower(0),
-                                              side_patch_box.upper(0),
-                                              side_patch_box.lower(1),
+                            GS_SMOOTH_MASK_FC(U, U_ghosts, alpha, beta, F, F_ghosts, mask,
+                                              mask_ghosts, side_patch_box.lower(0),
+                                              side_patch_box.upper(0), side_patch_box.lower(1),
                                               side_patch_box.upper(1),
 #if (NDIM == 3)
-                                              side_patch_box.lower(2),
-                                              side_patch_box.upper(2),
+                                              side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
                                               dx);
                         }
@@ -608,38 +544,21 @@ void SCPoissonPointRelaxationFACOperator::smoothError(
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            RB_GS_SMOOTH_FC(U,
-                                            U_ghosts,
-                                            alpha,
-                                            beta,
-                                            F,
-                                            F_ghosts,
-                                            side_patch_box.lower(0),
-                                            side_patch_box.upper(0),
-                                            side_patch_box.lower(1),
-                                            side_patch_box.upper(1),
+                            RB_GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts,
+                                            side_patch_box.lower(0), side_patch_box.upper(0),
+                                            side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                            side_patch_box.lower(2),
-                                            side_patch_box.upper(2),
+                                            side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
-                                            dx,
-                                            red_or_black);
+                                            dx, red_or_black);
                         }
                         else
                         {
-                            GS_SMOOTH_FC(U,
-                                         U_ghosts,
-                                         alpha,
-                                         beta,
-                                         F,
-                                         F_ghosts,
-                                         side_patch_box.lower(0),
-                                         side_patch_box.upper(0),
-                                         side_patch_box.lower(1),
-                                         side_patch_box.upper(1),
+                            GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts,
+                                         side_patch_box.lower(0), side_patch_box.upper(0),
+                                         side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                         side_patch_box.lower(2),
-                                         side_patch_box.upper(2),
+                                         side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
                                          dx);
                         }
@@ -656,8 +575,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(
 } // smoothError
 
 bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
-    SAMRAIVectorReal<NDIM, double>& error,
-    const SAMRAIVectorReal<NDIM, double>& residual,
+    SAMRAIVectorReal<NDIM, double>& error, const SAMRAIVectorReal<NDIM, double>& residual,
     int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
@@ -684,19 +602,16 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
 #if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
 #endif
-        smoothError(
-            error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
+        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false,
+                    false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
 } // solveCoarsestLevel
 
 void SCPoissonPointRelaxationFACOperator::computeResidual(
-    SAMRAIVectorReal<NDIM, double>& residual,
-    const SAMRAIVectorReal<NDIM, double>& solution,
-    const SAMRAIVectorReal<NDIM, double>& rhs,
-    int coarsest_level_num,
-    int finest_level_num)
+    SAMRAIVectorReal<NDIM, double>& residual, const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_level_num, int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
@@ -713,14 +628,9 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(
     InterpolationTransactionComponent;
     Pointer<SideNoCornersFillPattern> fill_pattern =
         new SideNoCornersFillPattern(SIDEG, false, false, true);
-    InterpolationTransactionComponent transaction_comp(sol_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       BDRY_EXTRAP_TYPE,
-                                                       CONSISTENT_TYPE_2_BDRY,
-                                                       d_bc_coefs,
-                                                       fill_pattern);
+    InterpolationTransactionComponent transaction_comp(
+        sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+        CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -734,14 +644,8 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(
-        d_solution->getComponentDescriptorIndex(0),
-        DATA_REFINE_TYPE,
-        USE_CF_INTERPOLATION,
-        DATA_COARSEN_TYPE,
-        BDRY_EXTRAP_TYPE,
-        CONSISTENT_TYPE_2_BDRY,
-        d_bc_coefs,
-        fill_pattern);
+        d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+        DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]
         ->resetTransactionComponent(default_transaction_comp);
 
@@ -755,8 +659,8 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(
     }
     d_level_math_ops[finest_level_num]
         ->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(
-        d_hierarchy, coarsest_level_num, finest_level_num);
+    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num,
+                                                            finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
     IBTK_TIMER_STOP(t_compute_residual);
@@ -766,10 +670,8 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& solution,
-    const SAMRAIVectorReal<NDIM, double>& rhs,
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+    const SAMRAIVectorReal<NDIM, double>& solution, const SAMRAIVectorReal<NDIM, double>& rhs,
+    const int coarsest_reset_ln, const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
     Pointer<SideVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
@@ -911,8 +813,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 } // initializeOperatorStateSpecialized
 
 void SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
-    const int /*coarsest_reset_ln*/,
-    const int /*finest_reset_ln*/)
+    const int /*coarsest_reset_ln*/, const int /*finest_reset_ln*/)
 {
     if (!d_is_initialized) return;
 

@@ -84,8 +84,7 @@ static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
-    const std::string& object_name,
-    Pointer<Database> input_db,
+    const std::string& object_name, Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
     : d_hierarchy(),
       d_level_num(-1),
@@ -422,11 +421,8 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
         const Box<NDIM>& patch_box = patch->getBox();
         const int stencil_sz = d_stencil_offsets.size();
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
-        PoissonUtilities::computeSCMatrixCoefficients(patch,
-                                                      matrix_coefs,
-                                                      d_stencil_offsets,
-                                                      d_poisson_spec,
-                                                      d_bc_coefs,
+        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets,
+                                                      d_poisson_spec, d_bc_coefs,
                                                       d_solution_time);
 
         // Copy matrix entries to the hypre matrix structure.
@@ -451,8 +447,8 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
                 // hypre, face-centered values are associated with the cell
                 // index located on the "lower" side of the face.
                 i(axis) -= 1;
-                HYPRE_SStructMatrixSetValues(
-                    d_matrix, PART, i, axis, stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                HYPRE_SStructMatrixSetValues(d_matrix, PART, i, axis, stencil_sz,
+                                             &stencil_indices[0], &mat_vals[0]);
             }
         }
     }
@@ -564,13 +560,13 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructPCGSetRelChange(d_solver, d_rel_change);
         if (d_precond_type == "SysPFMG")
         {
-            HYPRE_SStructPCGSetPrecond(
-                d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
+            HYPRE_SStructPCGSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve,
+                                       HYPRE_SStructSysPFMGSetup, d_precond);
         }
         else if (d_precond_type == "Split")
         {
-            HYPRE_SStructPCGSetPrecond(
-                d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
+            HYPRE_SStructPCGSetPrecond(d_solver, HYPRE_SStructSplitSolve,
+                                       HYPRE_SStructSplitSetup, d_precond);
         }
         else if (d_precond_type == "none")
         {
@@ -592,13 +588,13 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         if (d_precond_type == "SysPFMG")
         {
-            HYPRE_SStructGMRESSetPrecond(
-                d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
+            HYPRE_SStructGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve,
+                                         HYPRE_SStructSysPFMGSetup, d_precond);
         }
         else if (d_precond_type == "Split")
         {
-            HYPRE_SStructGMRESSetPrecond(
-                d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
+            HYPRE_SStructGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve,
+                                         HYPRE_SStructSplitSetup, d_precond);
         }
         else if (d_precond_type == "none")
         {
@@ -620,13 +616,13 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructFlexGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         if (d_precond_type == "SysPFMG")
         {
-            HYPRE_SStructFlexGMRESSetPrecond(
-                d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
+            HYPRE_SStructFlexGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve,
+                                             HYPRE_SStructSysPFMGSetup, d_precond);
         }
         else if (d_precond_type == "Split")
         {
-            HYPRE_SStructFlexGMRESSetPrecond(
-                d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
+            HYPRE_SStructFlexGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve,
+                                             HYPRE_SStructSplitSetup, d_precond);
         }
         else if (d_precond_type == "none")
         {
@@ -648,13 +644,13 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructLGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         if (d_precond_type == "SysPFMG")
         {
-            HYPRE_SStructLGMRESSetPrecond(
-                d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
+            HYPRE_SStructLGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve,
+                                          HYPRE_SStructSysPFMGSetup, d_precond);
         }
         else if (d_precond_type == "Split")
         {
-            HYPRE_SStructLGMRESSetPrecond(
-                d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
+            HYPRE_SStructLGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve,
+                                          HYPRE_SStructSplitSetup, d_precond);
         }
         else if (d_precond_type == "none")
         {
@@ -676,13 +672,13 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructBiCGSTABSetAbsoluteTol(d_solver, d_abs_residual_tol);
         if (d_precond_type == "SysPFMG")
         {
-            HYPRE_SStructBiCGSTABSetPrecond(
-                d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
+            HYPRE_SStructBiCGSTABSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve,
+                                            HYPRE_SStructSysPFMGSetup, d_precond);
         }
         else if (d_precond_type == "Split")
         {
-            HYPRE_SStructBiCGSTABSetPrecond(
-                d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
+            HYPRE_SStructBiCGSTABSetPrecond(d_solver, HYPRE_SStructSplitSolve,
+                                            HYPRE_SStructSplitSetup, d_precond);
         }
         else if (d_precond_type == "none")
         {
@@ -727,17 +723,14 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         Pointer<SideData<NDIM, double> > b_data = patch->getPatchData(b_idx);
         if (pgeom->intersectsPhysicalBoundary())
         {
-            SideData<NDIM, double> b_adj_data(
-                b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            SideData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(),
+                                              b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            PoissonUtilities::adjustSCBoundaryRhsEntries(patch,
-                                                         b_adj_data,
-                                                         d_poisson_spec,
-                                                         d_bc_coefs,
-                                                         d_solution_time,
+            PoissonUtilities::adjustSCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec,
+                                                         d_bc_coefs, d_solution_time,
                                                          d_homogeneous_bc);
-            copyToHypre(
-                d_rhs_vec, Pointer<SideData<NDIM, double> >(&b_adj_data, false), patch_box);
+            copyToHypre(d_rhs_vec, Pointer<SideData<NDIM, double> >(&b_adj_data, false),
+                        patch_box);
         }
         else
         {
@@ -862,15 +855,14 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorSetBoxValues(
-            vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var,
+                                        hypre_data->getPointer(axis));
     }
     return;
 } // copyToHypre
 
 void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<NDIM, double> > dst_data,
-                                              HYPRE_SStructVector vector,
-                                              const Box<NDIM>& box)
+                                              HYPRE_SStructVector vector, const Box<NDIM>& box)
 {
     const bool copy_data = dst_data->getGhostBox() != box;
     Pointer<SideData<NDIM, double> > hypre_data =
@@ -883,8 +875,8 @@ void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<NDIM, double> > d
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorGetBoxValues(
-            vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var,
+                                        hypre_data->getPointer(axis));
     }
     if (copy_data) dst_data->copyOnBox(*hypre_data, box);
     return;

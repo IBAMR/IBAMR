@@ -380,13 +380,10 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
-                                               Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
-                                               Pointer<Variable<NDIM> > P_var,
-                                               Pointer<Variable<NDIM> > F_var,
-                                               Pointer<Variable<NDIM> > Q_var,
-                                               bool register_for_restart)
+INSHierarchyIntegrator::INSHierarchyIntegrator(
+    const std::string& object_name, Pointer<Database> input_db, Pointer<Variable<NDIM> > U_var,
+    Pointer<Variable<NDIM> > P_var, Pointer<Variable<NDIM> > F_var,
+    Pointer<Variable<NDIM> > Q_var, bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_U_var(U_var),
       d_P_var(P_var),

@@ -95,9 +95,7 @@ public:
      */
     void
     initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                        int level_number,
-                        double init_data_time,
-                        bool initial_time,
+                        int level_number, double init_data_time, bool initial_time,
                         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -108,14 +106,10 @@ public:
      * the force and moment vectors.
      */
     void computeLagrangianForceAndTorque(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> N_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double data_time,
-        IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data, SAMRAI::tbox::Pointer<IBTK::LData> N_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data, SAMRAI::tbox::Pointer<IBTK::LData> D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
+        double data_time, IBTK::LDataManager* l_data_manager);
 
 private:
     /*!

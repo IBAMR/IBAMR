@@ -106,8 +106,7 @@ public:
      * Allocate a new StaggeredStokesSolver object of the specified type.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocateSolver(const std::string& solver_type,
-                   const std::string& solver_object_name,
+    allocateSolver(const std::string& solver_type, const std::string& solver_object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
                    const std::string& solver_default_options_prefix) const;
 
@@ -119,12 +118,10 @@ public:
      * is a KrylovLinearSolver.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocateSolver(const std::string& solver_type,
-                   const std::string& solver_object_name,
+    allocateSolver(const std::string& solver_type, const std::string& solver_object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
                    const std::string& solver_default_options_prefix,
-                   const std::string& precond_type,
-                   const std::string& precond_object_name,
+                   const std::string& precond_type, const std::string& precond_object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
                    const std::string& precond_default_options_prefix) const;
 

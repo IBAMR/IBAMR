@@ -80,8 +80,7 @@ inline double smooth_kernel(const double r)
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpongeLayerForceFunction::SpongeLayerForceFunction(
-    const std::string& object_name,
-    const Pointer<Database> input_db,
+    const std::string& object_name, const Pointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name),
@@ -127,12 +126,9 @@ bool SpongeLayerForceFunction::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
-                                              const double /*data_time*/,
-                                              const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*level*/)
+void SpongeLayerForceFunction::setDataOnPatch(
+    const int data_idx, Pointer<Variable<NDIM> > /*var*/, Pointer<Patch<NDIM> > patch,
+    const double /*data_time*/, const bool initial_time, Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -170,8 +166,7 @@ void
 SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_data,
                                              Pointer<CellData<NDIM, double> > U_current_data,
                                              Pointer<CellData<NDIM, double> > U_new_data,
-                                             const double kappa,
-                                             Pointer<Patch<NDIM> > patch)
+                                             const double kappa, Pointer<Patch<NDIM> > patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
@@ -229,8 +224,7 @@ void
 SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
                                              Pointer<SideData<NDIM, double> > U_current_data,
                                              Pointer<SideData<NDIM, double> > U_new_data,
-                                             const double kappa,
-                                             Pointer<Patch<NDIM> > patch)
+                                             const double kappa, Pointer<Patch<NDIM> > patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
@@ -266,8 +260,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_
                 }
                 for (Box<NDIM>::Iterator b(
                          SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d));
-                     b;
-                     b++)
+                     b; b++)
                 {
                     const Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);

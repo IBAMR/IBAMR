@@ -93,10 +93,8 @@ void AdvDiffConvectiveOperatorManager::freeManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 Pointer<ConvectiveOperator> AdvDiffConvectiveOperatorManager::allocateOperator(
-    const std::string& operator_type,
-    const std::string& operator_object_name,
-    Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> input_db,
+    const std::string& operator_type, const std::string& operator_object_name,
+    Pointer<CellVariable<NDIM, double> > Q_var, Pointer<Database> input_db,
     ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
@@ -111,8 +109,7 @@ Pointer<ConvectiveOperator> AdvDiffConvectiveOperatorManager::allocateOperator(
 } // allocateOperator
 
 void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(
-    const std::string& operator_type,
-    OperatorMaker operator_maker)
+    const std::string& operator_type, OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {

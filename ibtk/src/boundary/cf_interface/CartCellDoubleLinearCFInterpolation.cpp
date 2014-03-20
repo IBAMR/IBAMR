@@ -67,20 +67,14 @@
 
 // Function interfaces
 extern "C" {
-void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U,
-                                       const int& U_gcw,
-                                       const int& ilower0,
-                                       const int& iupper0,
-                                       const int& ilower1,
+void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U, const int& U_gcw, const int& ilower0,
+                                       const int& iupper0, const int& ilower1,
                                        const int& iupper1,
 #if (NDIM == 3)
-                                       const int& ilower2,
-                                       const int& iupper2,
+                                       const int& ilower2, const int& iupper2,
 #endif
-                                       const int& loc_index,
-                                       const int& ratio,
-                                       const int* blower,
-                                       const int* bupper);
+                                       const int& loc_index, const int& ratio,
+                                       const int* blower, const int* bupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -116,8 +110,7 @@ CartCellDoubleLinearCFInterpolation::~CartCellDoubleLinearCFInterpolation()
 } // ~CartCellDoubleLinearCFInterpolation
 
 void CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(
-    Patch<NDIM>& /*patch*/,
-    const double /*fill_time*/,
+    Patch<NDIM>& /*patch*/, const double /*fill_time*/,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
@@ -147,8 +140,7 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
                                                             const IntVector<NDIM>& ratio)
 {
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
@@ -232,16 +224,14 @@ void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin();
-         it != d_cf_boundary.end();
-         ++it)
+         it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
         (*it) = NULL;
     }
     d_cf_boundary.clear();
     for (std::vector<BoxArray<NDIM>*>::iterator it = d_domain_boxes.begin();
-         it != d_domain_boxes.end();
-         ++it)
+         it != d_domain_boxes.end(); ++it)
     {
         delete (*it);
         (*it) = NULL;
@@ -252,8 +242,7 @@ void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 } // clearPatchHierarchy
 
 void CartCellDoubleLinearCFInterpolation::computeNormalExtension(
-    Patch<NDIM>& patch,
-    const IntVector<NDIM>& ratio,
+    Patch<NDIM>& patch, const IntVector<NDIM>& ratio,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
@@ -283,8 +272,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(
 
     // Get the patch data.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<CellData<NDIM, double> > data = patch.getPatchData(patch_data_index);
@@ -314,20 +302,13 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(
             {
                 double* const U = data->getPointer(depth);
                 const int r = ratio.min();
-                CC_LINEAR_NORMAL_INTERPOLATION_FC(U,
-                                                  U_ghosts,
-                                                  patch_box.lower(0),
-                                                  patch_box.upper(0),
-                                                  patch_box.lower(1),
-                                                  patch_box.upper(1),
+                CC_LINEAR_NORMAL_INTERPOLATION_FC(
+                    U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1),
+                    patch_box.upper(1),
 #if (NDIM == 3)
-                                                  patch_box.lower(2),
-                                                  patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                  location_index,
-                                                  r,
-                                                  bc_fill_box.lower(),
-                                                  bc_fill_box.upper());
+                    location_index, r, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }

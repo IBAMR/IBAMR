@@ -69,9 +69,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    LMarker(int idx = -1,
-            const Point& X = Point::Zero(),
-            const Vector& U = Vector::Zero(),
+    LMarker(int idx = -1, const Point& X = Point::Zero(), const Vector& U = Vector::Zero(),
             const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
                 SAMRAI::hier::IntVector<NDIM>(0));
 

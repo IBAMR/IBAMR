@@ -80,12 +80,9 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCLaplaceOp(
-        Mat& mat,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        Mat& mat, const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef, double data_time,
+        const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -94,12 +91,9 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCLaplaceOp(
-        Mat& mat,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        Mat& mat, const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        double data_time, const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -108,13 +102,10 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCComplexLaplaceOp(
-        Mat& mat,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+        Mat& mat, const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef, double data_time,
+        const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -123,13 +114,10 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelCCComplexLaplaceOp(
-        Mat& mat,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
+        Mat& mat, const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        double data_time, const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -138,12 +126,9 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelSCLaplaceOp(
-        Mat& mat,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        Mat& mat, const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        double data_time, const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -155,12 +140,8 @@ public:
      * conditions.
      */
     static void constructPatchLevelSCInterpOp(
-        Mat& mat,
-        void (*interp_fcn)(double r_lower, double* w),
-        int interp_stencil,
-        Vec& X_vec,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
+        Mat& mat, void (*interp_fcn)(double r_lower, double* w), int interp_stencil,
+        Vec& X_vec, const std::vector<int>& num_dofs_per_proc, int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     static inline void ib_4_interp_fcn(const double r, double* const w)

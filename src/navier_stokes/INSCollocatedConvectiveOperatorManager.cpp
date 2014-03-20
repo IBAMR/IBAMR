@@ -93,10 +93,8 @@ void INSCollocatedConvectiveOperatorManager::freeManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 Pointer<ConvectiveOperator> INSCollocatedConvectiveOperatorManager::allocateOperator(
-    const std::string& operator_type,
-    const std::string& operator_object_name,
-    Pointer<Database> input_db,
-    const ConvectiveDifferencingType difference_form,
+    const std::string& operator_type, const std::string& operator_object_name,
+    Pointer<Database> input_db, const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
     std::map<std::string, OperatorMaker>::const_iterator it =
@@ -110,8 +108,7 @@ Pointer<ConvectiveOperator> INSCollocatedConvectiveOperatorManager::allocateOper
 } // allocateOperator
 
 void INSCollocatedConvectiveOperatorManager::registerOperatorFactoryFunction(
-    const std::string& operator_type,
-    OperatorMaker operator_maker)
+    const std::string& operator_type, OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {

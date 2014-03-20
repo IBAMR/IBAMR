@@ -59,8 +59,7 @@ public:
      * Constructor for class AppInitializer parses command line arguments, sets
      * up input and restart databases, and enables SAMRAI logging.
      */
-    AppInitializer(int argc,
-                   char* argv[],
+    AppInitializer(int argc, char* argv[],
                    const std::string& default_log_file_name = "IBAMR.log");
 
     /*!

@@ -110,8 +110,7 @@ public:
     /*!
      * \brief Alternative constructor.
      */
-    IBBeamForceSpec(int master_idx,
-                    const std::vector<NeighborIdxs>& neighbor_idxs,
+    IBBeamForceSpec(int master_idx, const std::vector<NeighborIdxs>& neighbor_idxs,
                     const std::vector<double>& bend_rigidities,
                     const std::vector<IBTK::Vector>& mesh_dependent_curvatures);
 

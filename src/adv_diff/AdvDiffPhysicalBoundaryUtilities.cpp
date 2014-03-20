@@ -61,13 +61,9 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-    Pointer<CellData<NDIM, double> > Q_data,
-    Pointer<FaceData<NDIM, double> > u_ADV_data,
-    Pointer<Patch<NDIM> > patch,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const double fill_time,
-    const bool inflow_boundaries_only,
-    const bool homogeneous_bc)
+    Pointer<CellData<NDIM, double> > Q_data, Pointer<FaceData<NDIM, double> > u_ADV_data,
+    Pointer<Patch<NDIM> > patch, const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const double fill_time, const bool inflow_boundaries_only, const bool homogeneous_bc)
 {
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
@@ -123,8 +119,8 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
             new ArrayData<NDIM, double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
-            bc_coefs[depth]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
+            bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
+                                        trimmed_bdry_box, fill_time);
             ExtendedRobinBcCoefStrategy* extended_bc_coef =
                 dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);

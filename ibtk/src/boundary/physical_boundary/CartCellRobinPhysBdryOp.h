@@ -199,8 +199,7 @@ public:
      *registered scratch components.
      */
     void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
@@ -225,8 +224,7 @@ public:
      *registered scratch components.
      */
     void accumulateFromPhysicalBoundaryData(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
+        SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:
@@ -257,10 +255,8 @@ private:
     void fillGhostCellValuesCodim1(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+        double fill_time, const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
+        SAMRAI::hier::Patch<NDIM>& patch, bool adjoint_op);
 
     /*!
      * \brief Set the boundary conditions along the co-dimension two boundary.
@@ -269,8 +265,7 @@ private:
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+        const SAMRAI::hier::Patch<NDIM>& patch, bool adjoint_op);
 
 #if (NDIM > 2)
     /*!
@@ -280,8 +275,7 @@ private:
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+        const SAMRAI::hier::Patch<NDIM>& patch, bool adjoint_op);
 #endif
 };
 } // namespace IBTK

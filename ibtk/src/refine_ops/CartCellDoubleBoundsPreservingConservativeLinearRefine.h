@@ -119,11 +119,8 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    void refine(SAMRAI::hier::Patch<NDIM>& fine,
-                const SAMRAI::hier::Patch<NDIM>& coarse,
-                int dst_component,
-                int src_component,
-                const SAMRAI::hier::Box<NDIM>& fine_box,
+    void refine(SAMRAI::hier::Patch<NDIM>& fine, const SAMRAI::hier::Patch<NDIM>& coarse,
+                int dst_component, int src_component, const SAMRAI::hier::Box<NDIM>& fine_box,
                 const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 
     //\}

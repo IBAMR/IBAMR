@@ -95,13 +95,9 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchHierarchy(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        double data_time,
-        bool initial_time = false,
-        int coarsest_ln = -1,
-        int finest_ln = -1);
+        int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, double data_time,
+        bool initial_time = false, int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -110,21 +106,17 @@ public:
      * \see setDataOnPatch
      */
     virtual void
-    setDataOnPatchLevel(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+    setDataOnPatchLevel(int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                        double data_time,
-                        bool initial_time = false);
+                        double data_time, bool initial_time = false);
 
     /*!
      * \brief Pure virtual function to evaluate the function on the patch
      * interior.
      */
     virtual void setDataOnPatch(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        double data_time,
+        int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch, double data_time,
         bool initial_time = false,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
             patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;

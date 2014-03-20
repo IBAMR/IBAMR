@@ -59,8 +59,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AppInitializer::AppInitializer(int argc,
-                               char* argv[],
+AppInitializer::AppInitializer(int argc, char* argv[],
                                const std::string& default_log_file_name)
     : d_input_db(NULL),
       d_is_from_restart(false),
@@ -108,8 +107,8 @@ AppInitializer::AppInitializer(int argc,
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(
-            restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
+        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num,
+                                                      SAMRAI_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.

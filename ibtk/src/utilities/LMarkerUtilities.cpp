@@ -262,14 +262,11 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
     return num_mark;
 } // readMarkerPositions
 
-void LMarkerUtilities::eulerStep(const int mark_current_idx,
-                                 const int mark_new_idx,
-                                 const int u_current_idx,
-                                 const double dt,
+void LMarkerUtilities::eulerStep(const int mark_current_idx, const int mark_new_idx,
+                                 const int u_current_idx, const double dt,
                                  const std::string& weighting_fcn,
                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                 const int coarsest_ln_in,
-                                 const int finest_ln_in)
+                                 const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -300,23 +297,11 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
             // Compute U_mark(n) = u(X_mark(n),n).
             std::vector<double> U_mark_current(X_mark_current.size());
             if (is_cc_data)
-                LEInteractor::interpolate(U_mark_current,
-                                          NDIM,
-                                          X_mark_current,
-                                          NDIM,
-                                          u_cc_current_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM,
+                                          u_cc_current_data, patch, patch_box, weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(U_mark_current,
-                                          NDIM,
-                                          X_mark_current,
-                                          NDIM,
-                                          u_sc_current_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM,
+                                          u_sc_current_data, patch, patch_box, weighting_fcn);
 
             // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n).
             std::vector<double> X_mark_new(X_mark_current.size());
@@ -338,14 +323,11 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
     return;
 } // eulerStep
 
-void LMarkerUtilities::midpointStep(const int mark_current_idx,
-                                    const int mark_new_idx,
-                                    const int u_half_idx,
-                                    const double dt,
+void LMarkerUtilities::midpointStep(const int mark_current_idx, const int mark_new_idx,
+                                    const int u_half_idx, const double dt,
                                     const std::string& weighting_fcn,
                                     Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    const int coarsest_ln_in,
-                                    const int finest_ln_in)
+                                    const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -386,23 +368,11 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
             // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
             std::vector<double> U_mark_half(X_mark_half.size());
             if (is_cc_data)
-                LEInteractor::interpolate(U_mark_half,
-                                          NDIM,
-                                          X_mark_half,
-                                          NDIM,
-                                          u_cc_half_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_cc_half_data,
+                                          patch, patch_box, weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(U_mark_half,
-                                          NDIM,
-                                          X_mark_half,
-                                          NDIM,
-                                          u_sc_half_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_sc_half_data,
+                                          patch, patch_box, weighting_fcn);
 
             // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
             for (unsigned int k = 0; k < NDIM * num_patch_marks; ++k)
@@ -421,14 +391,11 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
     return;
 } // midpointStep
 
-void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
-                                       const int mark_new_idx,
-                                       const int u_new_idx,
-                                       const double dt,
+void LMarkerUtilities::trapezoidalStep(const int mark_current_idx, const int mark_new_idx,
+                                       const int u_new_idx, const double dt,
                                        const std::string& weighting_fcn,
                                        Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                       const int coarsest_ln_in,
-                                       const int finest_ln_in)
+                                       const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -466,23 +433,11 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
             // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
             std::vector<double> U_mark_new(X_mark_new.size());
             if (is_cc_data)
-                LEInteractor::interpolate(U_mark_new,
-                                          NDIM,
-                                          X_mark_new,
-                                          NDIM,
-                                          u_cc_new_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_cc_new_data,
+                                          patch, patch_box, weighting_fcn);
             if (is_sc_data)
-                LEInteractor::interpolate(U_mark_new,
-                                          NDIM,
-                                          X_mark_new,
-                                          NDIM,
-                                          u_sc_new_data,
-                                          patch,
-                                          patch_box,
-                                          weighting_fcn);
+                LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_sc_new_data,
+                                          patch, patch_box, weighting_fcn);
 
             // Set U(n+1/2) = 0.5*(U(n)+U(n+1)).
             std::vector<double> U_mark_half(NDIM * num_patch_marks);
@@ -554,8 +509,8 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx,
                 }
                 LMarkerSet& dst_mark_set = *(mark_current_data->getItem(i));
                 const LMarkerSet& src_mark_set = it();
-                dst_mark_set.insert(
-                    dst_mark_set.end(), src_mark_set.begin(), src_mark_set.end());
+                dst_mark_set.insert(dst_mark_set.end(), src_mark_set.begin(),
+                                    src_mark_set.end());
             }
         }
 
@@ -619,8 +574,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx,
         Pointer<LMarkerSetData> mark_data_new =
             new LMarkerSetData(mark_data->getBox(), mark_data->getGhostCellWidth());
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
-             it != mark_data->data_end();
-             ++it)
+             it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const Point& X = mark->getPosition();
@@ -749,9 +703,8 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
             for (int ln = 1; ln <= level_number; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
-                refine_mark_alg->createSchedule(
-                                     dst_level, NULL, ln - 1, hierarchy, refine_mark_op)
-                    ->fillData(0.0);
+                refine_mark_alg->createSchedule(dst_level, NULL, ln - 1, hierarchy,
+                                                refine_mark_op)->fillData(0.0);
             }
         }
     }
@@ -760,8 +713,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
 
 void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           const int coarsest_ln_in,
-                                           const int finest_ln_in)
+                                           const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -795,8 +747,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
 
 unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                            const int coarsest_ln_in,
-                                            const int finest_ln_in)
+                                            const int coarsest_ln_in, const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -839,8 +790,7 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end();
-         ++it, ++k)
+         it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Point& X = mark->getPosition();
@@ -857,8 +807,7 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
 {
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end();
-         ++it, ++k)
+         it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Point& X = mark->getPosition();
@@ -876,8 +825,7 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end();
-         ++it, ++k)
+         it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Vector& U = mark->getVelocity();
@@ -894,8 +842,7 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
 {
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end();
-         ++it, ++k)
+         it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Vector& U = mark->getVelocity();

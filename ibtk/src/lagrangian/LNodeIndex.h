@@ -76,9 +76,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    LNodeIndex(int lagrangian_nidx = -1,
-               int global_petsc_nidx = -1,
-               int local_petsc_nidx = -1,
+    LNodeIndex(int lagrangian_nidx = -1, int global_petsc_nidx = -1, int local_petsc_nidx = -1,
                const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
                    SAMRAI::hier::IntVector<NDIM>(0),
                const Vector& periodic_displacement = Vector::Zero());

@@ -321,8 +321,7 @@ void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& 
 } // FACVCycleNoPreSmoothing
 
 void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+                                  SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -369,8 +368,7 @@ void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // FACVCycle
 
 void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+                                  SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -418,8 +416,7 @@ void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // FACWCycle
 
 void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+                                  SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {

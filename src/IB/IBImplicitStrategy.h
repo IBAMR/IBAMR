@@ -114,8 +114,7 @@ public:
      * grid at the specified time within the current time interval.
      */
     virtual void spreadLinearizedForce(
-        int f_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+        int f_data_idx, IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
             f_prolongation_scheds,
         double data_time) = 0;

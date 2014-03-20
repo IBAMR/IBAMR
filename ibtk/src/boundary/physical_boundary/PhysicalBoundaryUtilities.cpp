@@ -240,8 +240,8 @@ PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_b
             trimmed_b_box.upper()[d] = std::min(b_box.upper()[d], patch_box.upper()[d]);
         }
     }
-    const BoundaryBox<NDIM> trimmed_bdry_box(
-        trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+    const BoundaryBox<NDIM> trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(),
+                                             bdry_box.getLocationIndex());
     return trimmed_bdry_box;
 } // trimBoundaryCodim1Box
 

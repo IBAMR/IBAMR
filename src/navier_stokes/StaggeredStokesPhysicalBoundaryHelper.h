@@ -86,13 +86,9 @@ public:
      * boundary conditions at the boundary.
      */
     void enforceNormalVelocityBoundaryConditions(
-        int u_data_idx,
-        int p_data_idx,
+        int u_data_idx, int p_data_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        double fill_time,
-        bool homogeneous_bc,
-        int coarsest_ln = -1,
-        int finest_ln = -1) const;
+        double fill_time, bool homogeneous_bc, int coarsest_ln = -1, int finest_ln = -1) const;
 #if 0
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
@@ -122,9 +118,7 @@ public:
     static void
     setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef,
-                       int u_target_data_idx,
-                       int p_target_data_idx,
-                       bool homogeneous_bc);
+                       int u_target_data_idx, int p_target_data_idx, bool homogeneous_bc);
 
     /*!
      * \brief Reset physical boundary condition specification objects.

@@ -172,8 +172,7 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetFunction(
         d_petsc_jac,
-        reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI),
-        this);
+        reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI), this);
     IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {

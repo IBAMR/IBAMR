@@ -87,8 +87,7 @@ public:
                                 IBTK::VectorMeshFcnPtr var_fcn,
                                 std::vector<unsigned int> var_fcn_systems =
                                     std::vector<unsigned int>(),
-                                void* var_fcn_ctx = NULL,
-                                unsigned int var_dim = NDIM);
+                                void* var_fcn_ctx = NULL, unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
@@ -103,8 +102,7 @@ public:
                                 IBTK::TensorMeshFcnPtr var_fcn,
                                 std::vector<unsigned int> var_fcn_systems =
                                     std::vector<unsigned int>(),
-                                void* var_fcn_ctx = NULL,
-                                unsigned int var_dim = NDIM);
+                                void* var_fcn_ctx = NULL, unsigned int var_dim = NDIM);
 
     /*!
      * Reconstruct the data on the mesh.

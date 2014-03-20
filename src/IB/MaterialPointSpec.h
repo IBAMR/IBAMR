@@ -93,8 +93,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    MaterialPointSpec(int point_idx = -1,
-                      double weight = 0.0,
+    MaterialPointSpec(int point_idx = -1, double weight = 0.0,
                       libMesh::subdomain_id_type subdomain_id = 0,
                       const std::vector<double>& internal_vars = std::vector<double>());
 

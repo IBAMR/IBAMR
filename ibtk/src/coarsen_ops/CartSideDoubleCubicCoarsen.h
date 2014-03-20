@@ -124,10 +124,8 @@ public:
      * patch is guaranteed to contain sufficient data for the stencil width of
      * the coarsening operator.
      */
-    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse,
-                 const SAMRAI::hier::Patch<NDIM>& fine,
-                 int dst_component,
-                 int src_component,
+    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse, const SAMRAI::hier::Patch<NDIM>& fine,
+                 int dst_component, int src_component,
                  const SAMRAI::hier::Box<NDIM>& coarse_box,
                  const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 

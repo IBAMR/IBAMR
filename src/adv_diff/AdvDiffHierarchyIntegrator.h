@@ -279,8 +279,7 @@ public:
      * been registered with the hierarchy integrator.
      */
     void setDiffusionCoefficient(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        double kappa);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, double kappa);
 
     /*!
      * Get the constant scalar diffusion coefficient corresponding to a quantity that has
@@ -342,8 +341,7 @@ public:
      * that has been registered with the hierarchy integrator.
      */
     void setDampingCoefficient(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        double lambda);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, double lambda);
 
     /*!
      * Get the scalar linear damping coefficient corresponding to a quantity
@@ -455,8 +453,7 @@ protected:
      */
     void resetHierarchyConfigurationSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Write out specialized object state to the given database.

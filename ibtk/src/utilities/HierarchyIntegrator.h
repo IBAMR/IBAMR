@@ -313,8 +313,8 @@ public:
      * A default implementation is provided that sets the current values of
      * num_cycles and the time step size.
      */
-    virtual void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    virtual void preprocessIntegrateHierarchy(double current_time, double new_time,
+                                              int num_cycles = 1);
 
     /*!
      * Pure virtual method to advance data from current_time to new_time.
@@ -324,8 +324,8 @@ public:
      * (optionally) in a specialization of the public virtual member function
      * postprocessIntegrateHierarchy().
      */
-    virtual void
-    integrateHierarchy(double current_time, double new_time, int cycle_num = 0) = 0;
+    virtual void integrateHierarchy(double current_time, double new_time,
+                                    int cycle_num = 0) = 0;
 
     /*!
      * Method to skip a cycle of the time integration scheme (e.g. for cases in
@@ -340,8 +340,7 @@ public:
      * A default implementation is provided that resets the current values of
      * num_cycles and the time step size.
      */
-    virtual void postprocessIntegrateHierarchy(double current_time,
-                                               double new_time,
+    virtual void postprocessIntegrateHierarchy(double current_time, double new_time,
                                                bool skip_synchronize_new_state_data,
                                                int num_cycles = 1);
 
@@ -350,8 +349,7 @@ public:
      * preprocessIntegrateHierarchy().
      */
     typedef void (*PreprocessIntegrateHierarchyCallbackFcnPtr)(double current_time,
-                                                               double new_time,
-                                                               int num_cycles,
+                                                               double new_time, int num_cycles,
                                                                void* ctx);
 
     /*!
@@ -359,17 +357,14 @@ public:
      * preprocessIntegrateHierarchy().
      */
     void registerPreprocessIntegrateHierarchyCallback(
-        PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-        void* ctx = NULL);
+        PreprocessIntegrateHierarchyCallbackFcnPtr callback, void* ctx = NULL);
 
     /*!
      * Callback function specification to enable further specialization of
      * integrateHierarchy().
      */
-    typedef void (*IntegrateHierarchyCallbackFcnPtr)(double current_time,
-                                                     double new_time,
-                                                     int cycle_num,
-                                                     void* ctx);
+    typedef void (*IntegrateHierarchyCallbackFcnPtr)(double current_time, double new_time,
+                                                     int cycle_num, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -383,19 +378,15 @@ public:
      * postprocessIntegrateHierarchy().
      */
     typedef void (*PostprocessIntegrateHierarchyCallbackFcnPtr)(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles,
-        void* ctx);
+        double current_time, double new_time, bool skip_synchronize_new_state_data,
+        int num_cycles, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
      * postprocessIntegrateHierarchy().
      */
     void registerPostprocessIntegrateHierarchyCallback(
-        PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-        void* ctx = NULL);
+        PostprocessIntegrateHierarchyCallbackFcnPtr callback, void* ctx = NULL);
 
     /*!
      * Callback function specification to enable further specialization of
@@ -403,12 +394,8 @@ public:
      */
     typedef void (*ApplyGradientDetectorCallbackFcnPtr)(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too,
-        void* ctx);
+        int level_number, double error_data_time, int tag_index, bool initial_time,
+        bool uses_richardson_extrapolation_too, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -434,10 +421,7 @@ public:
      */
     void initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
+        int level_number, double init_data_time, bool can_be_refined, bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
         bool allocate_data = true);
@@ -454,8 +438,7 @@ public:
      */
     void resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -469,10 +452,7 @@ public:
      */
     void applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
+        int level_number, double error_data_time, int tag_index, bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     ///
@@ -522,9 +502,7 @@ public:
      * Allocate a patch data index over the specified range of patch level
      * numbers.
      */
-    void allocatePatchData(int data_idx,
-                           double data_time,
-                           int coarsest_ln = -1,
+    void allocatePatchData(int data_idx, double data_time, int coarsest_ln = -1,
                            int finest_ln = -1) const;
 
     /*!
@@ -620,10 +598,7 @@ protected:
      */
     virtual void initializeLevelDataSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
+        int level_number, double init_data_time, bool can_be_refined, bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
         bool allocate_data);
 
@@ -634,8 +609,7 @@ protected:
      */
     virtual void resetHierarchyConfigurationSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+        int coarsest_level, int finest_level);
 
     /*!
      * Virtual method to perform implementation-specific cell tagging
@@ -645,10 +619,7 @@ protected:
      */
     virtual void applyGradientDetectorSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
+        int level_number, double error_data_time, int tag_index, bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     /*!
@@ -669,16 +640,15 @@ protected:
     /*!
      * Execute any user-specified integrateHierarchy callback functions.
      */
-    virtual void
-    executeIntegrateHierarchyCallbackFcns(double current_time, double new_time, int cycle_num);
+    virtual void executeIntegrateHierarchyCallbackFcns(double current_time, double new_time,
+                                                       int cycle_num);
 
     /*!
      * Execute any user-specified postprocessIntegrateHierarchy callback
      * functions.
      */
     virtual void
-    executePostprocessIntegrateHierarchyCallbackFcns(double current_time,
-                                                     double new_time,
+    executePostprocessIntegrateHierarchyCallbackFcns(double current_time, double new_time,
                                                      bool skip_synchronize_new_state_data,
                                                      int num_cycles);
 
@@ -687,10 +657,7 @@ protected:
      */
     virtual void executeApplyGradientDetectorCallbackFcns(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
+        int level_number, double error_data_time, int tag_index, bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     /*!
@@ -703,9 +670,7 @@ protected:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void registerVariable(int& current_idx,
-                          int& new_idx,
-                          int& scratch_idx,
+    void registerVariable(int& current_idx, int& new_idx, int& scratch_idx,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts =
                               SAMRAI::hier::IntVector<NDIM>(0),

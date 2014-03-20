@@ -174,8 +174,7 @@ public:
     void computeFlux(SAMRAI::pdat::FaceData<NDIM, double>& flux,
                      const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                      const SAMRAI::pdat::FaceData<NDIM, double>& q_half,
-                     const SAMRAI::hier::Patch<NDIM>& patch,
-                     double dt) const;
+                     const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -201,8 +200,7 @@ public:
     void predictValue(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
                       const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                       const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                      const SAMRAI::hier::Patch<NDIM>& patch,
-                      double dt) const;
+                      const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -229,8 +227,7 @@ public:
                                     const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                                     const SAMRAI::pdat::CellData<NDIM, double>& Q,
                                     const SAMRAI::pdat::CellData<NDIM, double>& F,
-                                    const SAMRAI::hier::Patch<NDIM>& patch,
-                                    double dt) const;
+                                    const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -256,8 +253,7 @@ public:
     void predictNormalVelocity(SAMRAI::pdat::FaceData<NDIM, double>& v_half,
                                const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                                const SAMRAI::pdat::CellData<NDIM, double>& V,
-                               const SAMRAI::hier::Patch<NDIM>& patch,
-                               double dt) const;
+                               const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -359,14 +355,12 @@ private:
     void predict(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
                  const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                  const SAMRAI::pdat::CellData<NDIM, double>& Q,
-                 const SAMRAI::hier::Patch<NDIM>& patch,
-                 double dt) const;
+                 const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
     void predictWithSourceTerm(SAMRAI::pdat::FaceData<NDIM, double>& q_half,
                                const SAMRAI::pdat::FaceData<NDIM, double>& u_ADV,
                                const SAMRAI::pdat::CellData<NDIM, double>& Q,
                                const SAMRAI::pdat::CellData<NDIM, double>& F,
-                               const SAMRAI::hier::Patch<NDIM>& patch,
-                               double dt) const;
+                               const SAMRAI::hier::Patch<NDIM>& patch, double dt) const;
 
     /*
      * These private member functions read data from input and restart.  When

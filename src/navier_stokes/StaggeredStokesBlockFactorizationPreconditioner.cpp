@@ -97,8 +97,7 @@ static Timer* t_deallocate_solver_state;
 
 StaggeredStokesBlockFactorizationPreconditioner::
     StaggeredStokesBlockFactorizationPreconditioner(
-        const std::string& object_name,
-        Pointer<Database> /*input_db*/,
+        const std::string& object_name, Pointer<Database> /*input_db*/,
         const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
@@ -207,29 +206,29 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
 
     // Setup the component solver vectors.
     Pointer<SAMRAIVectorReal<NDIM, double> > F_U_mod_vec;
-    F_U_mod_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_U_mod_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_U_mod", d_hierarchy,
+                                                     d_coarsest_ln, d_finest_ln);
     F_U_mod_vec->addComponent(d_U_var, d_F_U_mod_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > U_vec;
-    U_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::U", d_hierarchy,
+                                               d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > P_scratch_vec;
     P_scratch_vec = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    P_scratch_vec->addComponent(
-        d_P_var, d_P_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+    P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_pressure_wgt_idx,
+                                d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > F_P_vec;
-    F_P_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::F_P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_P", d_hierarchy,
+                                                 d_coarsest_ln, d_finest_ln);
     F_P_vec->addComponent(F_P_cc_var, F_P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > P_vec;
-    P_vec = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P", d_hierarchy,
+                                               d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
@@ -237,22 +236,12 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
         new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_transaction_comp(P_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         BDRY_EXTRAP_TYPE,
-                                                         CONSISTENT_TYPE_2_BDRY,
-                                                         d_P_bc_coef,
-                                                         fill_pattern);
-    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx,
-                                                                 DATA_REFINE_TYPE,
-                                                                 USE_CF_INTERPOLATION,
-                                                                 DATA_COARSEN_TYPE,
-                                                                 BDRY_EXTRAP_TYPE,
-                                                                 CONSISTENT_TYPE_2_BDRY,
-                                                                 d_P_bc_coef,
-                                                                 fill_pattern);
+    InterpolationTransactionComponent P_transaction_comp(
+        P_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+        CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
+    InterpolationTransactionComponent P_scratch_transaction_comp(
+        d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
 
     // (1) Solve the pressure sub-problem by applying inv(S^) to F_P, in which
     // S^ is the approximate Schur complement.
@@ -309,8 +298,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(false);
         d_pressure_solver->solveSystem(*P_scratch_vec,
                                        *F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
-        d_pressure_data_ops->linearSum(
-            P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
+        d_pressure_data_ops->linearSum(P_idx, -1.0 / getDt(), d_P_scratch_idx,
+                                       d_U_problem_coefs.getDConstant(), F_P_idx);
     }
     d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
     d_P_bdry_fill_op->fillData(d_pressure_solver->getSolutionTime());
@@ -320,16 +309,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     //
     // U := inv(rho/dt - K*mu*L) * [F_U - G P]
     static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(d_F_U_mod_idx,
-                          d_U_var,
-                          cf_bdry_synch,
-                          -1.0,
-                          P_idx,
-                          P_cc_var,
-                          d_no_fill_op,
-                          d_pressure_solver->getSolutionTime(),
-                          1.0,
-                          F_U_idx,
+    d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var,
+                          d_no_fill_op, d_pressure_solver->getSolutionTime(), 1.0, F_U_idx,
                           F_U_sc_var);
     d_velocity_solver->setHomogeneousBc(true);
     LinearSolver* p_velocity_solver =
@@ -348,8 +329,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
 } // solveSystem
 
 void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& b)
+    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -363,14 +343,9 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(
         new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(
+        d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

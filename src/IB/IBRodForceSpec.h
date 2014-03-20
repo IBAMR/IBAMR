@@ -102,8 +102,7 @@ public:
      * \brief Alternate constructor.
      */
     IBRodForceSpec(
-        int master_idx,
-        const std::vector<int>& next_idxs,
+        int master_idx, const std::vector<int>& next_idxs,
         const std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!

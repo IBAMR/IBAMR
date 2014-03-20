@@ -71,11 +71,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(
-    const unsigned int comp_idx,
-    const INSCollocatedHierarchyIntegrator* fluid_solver,
+    const unsigned int comp_idx, const INSCollocatedHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const TractionBcType traction_bc_type,
-    const bool homogeneous_bc)
+    const TractionBcType traction_bc_type, const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))

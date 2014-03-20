@@ -94,11 +94,9 @@ public:
      * \brief Constructor.
      */
     INSStaggeredVelocityBcCoef(
-        unsigned int comp_idx,
-        const INSStaggeredHierarchyIntegrator* fluid_solver,
+        unsigned int comp_idx, const INSStaggeredHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        TractionBcType traction_bc_type,
-        bool homogeneous_bc = false);
+        TractionBcType traction_bc_type, bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.

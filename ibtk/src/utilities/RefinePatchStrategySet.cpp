@@ -58,8 +58,7 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
     {
         typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
         for (refine_strategy_set::iterator it = d_strategy_set.begin();
-             it != d_strategy_set.end();
-             ++it)
+             it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -68,9 +67,7 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
 } // ~RefinePatchStrategySet
 
 void RefinePatchStrategySet::setPhysicalBoundaryConditions(
-    Patch<NDIM>& patch,
-    const double fill_time,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& patch, const double fill_time, const IntVector<NDIM>& ghost_width_to_fill)
 {
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
     for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end();
@@ -86,16 +83,14 @@ IntVector<NDIM> RefinePatchStrategySet::getRefineOpStencilWidth() const
     IntVector<NDIM> width = 0;
     typedef std::vector<RefinePatchStrategy<NDIM>*> refine_strategy_set;
     for (refine_strategy_set::const_iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end();
-         ++it)
+         it != d_strategy_set.end(); ++it)
     {
         width = IntVector<NDIM>::max(width, (*it)->getRefineOpStencilWidth());
     }
     return width;
 } // getRefineOpStencilWidth()
 
-void RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
-                                              const Patch<NDIM>& coarse,
+void RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine, const Patch<NDIM>& coarse,
                                               const Box<NDIM>& fine_box,
                                               const IntVector<NDIM>& ratio)
 {
@@ -108,8 +103,7 @@ void RefinePatchStrategySet::preprocessRefine(Patch<NDIM>& fine,
     return;
 } // preprocessRefine
 
-void RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine,
-                                               const Patch<NDIM>& coarse,
+void RefinePatchStrategySet::postprocessRefine(Patch<NDIM>& fine, const Patch<NDIM>& coarse,
                                                const Box<NDIM>& fine_box,
                                                const IntVector<NDIM>& ratio)
 {

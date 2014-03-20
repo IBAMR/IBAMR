@@ -80,11 +80,8 @@ namespace
 static const int REFINE_OP_STENCIL_WIDTH = 0;
 
 template <typename D, typename I>
-inline double compute_linear_extrap(D& patch_data,
-                                    const I& i,
-                                    const I& i_intr,
-                                    const IntVector<NDIM>& i_shft,
-                                    const int depth)
+inline double compute_linear_extrap(D& patch_data, const I& i, const I& i_intr,
+                                    const IntVector<NDIM>& i_shft, const int depth)
 {
     double ret_val = patch_data(i_intr, depth);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -108,11 +105,8 @@ inline double compute_linear_extrap(D& patch_data,
 } // compute_linear_extrap
 
 template <typename D, typename I>
-inline double compute_quadratic_extrap(D& patch_data,
-                                       const I& i,
-                                       const I& i_intr,
-                                       const IntVector<NDIM>& i_shft,
-                                       const int depth,
+inline double compute_quadratic_extrap(D& patch_data, const I& i, const I& i_intr,
+                                       const IntVector<NDIM>& i_shft, const int depth,
                                        const int codim)
 {
     if (codim == 1)
@@ -263,10 +257,8 @@ void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
     return;
 } // setExtrapolationType
 
-void
-CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                    const double /*fill_time*/,
-                                                    const IntVector<NDIM>& ghost_width_to_fill)
+void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
+    Patch<NDIM>& patch, const double /*fill_time*/, const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -379,8 +371,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     // Set the physical boundary conditions for the specified patch data
     // indices.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -395,8 +386,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
                  bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -490,8 +480,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     // Set the physical boundary conditions for the specified patch data
     // indices.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -505,8 +494,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
                  bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -610,8 +598,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     // Set the physical boundary conditions for the specified patch data
     // indices.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -625,8 +612,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
                  bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -720,8 +706,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     // Set the physical boundary conditions for the specified patch data
     // indices.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -735,8 +720,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         // Loop over the boundary fill boxes and extrapolate the data.
         for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
                  bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+             it != bdry_fill_boxes.end(); ++it)
         {
             const Box<NDIM>& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;

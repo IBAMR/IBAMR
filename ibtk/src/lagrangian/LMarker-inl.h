@@ -44,9 +44,7 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LMarker::LMarker(const int idx,
-                        const Point& X,
-                        const Vector& U,
+inline LMarker::LMarker(const int idx, const Point& X, const Vector& U,
                         const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
     : d_idx(idx), d_X(X), d_U(U), d_offset(periodic_offset)
 {

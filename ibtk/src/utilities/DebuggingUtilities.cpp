@@ -76,8 +76,7 @@ namespace IBTK
 bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                               const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+                                              const int coarsest_ln_in, const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -125,8 +124,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
 bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                               const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+                                              const int coarsest_ln_in, const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -179,8 +177,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
 bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                               const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+                                              const int coarsest_ln_in, const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -229,8 +226,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
 bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
                                               const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                               const bool interior_only,
-                                              const int coarsest_ln_in,
-                                              const int finest_ln_in)
+                                              const int coarsest_ln_in, const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -282,8 +278,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
 
 void DebuggingUtilities::saveCellData(const int patch_data_idx,
                                       const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+                                      const std::string& filename, const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -327,8 +322,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     for (int d = 0; d < depth; ++d)
                     {
                         for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(patch_box));
-                             it;
-                             it++)
+                             it; it++)
                         {
                             const CellIndex<NDIM> i(it());
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
@@ -346,8 +340,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
 
 void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                                       const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+                                      const std::string& filename, const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -394,8 +387,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                         {
                             for (Box<NDIM>::Iterator it(
                                      FaceGeometry<NDIM>::toFaceBox(patch_box, face));
-                                 it;
-                                 it++)
+                                 it; it++)
                             {
                                 const FaceIndex<NDIM> i(it(), face, FaceIndex<NDIM>::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
@@ -414,8 +406,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
 
 void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                                       const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+                                      const std::string& filename, const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -459,8 +450,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     for (int d = 0; d < depth; ++d)
                     {
                         for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box));
-                             it;
-                             it++)
+                             it; it++)
                         {
                             const NodeIndex<NDIM> i(it(), IntVector<NDIM>(0));
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
@@ -478,8 +468,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
 
 void DebuggingUtilities::saveSideData(const int patch_data_idx,
                                       const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                      const std::string& filename,
-                                      const std::string& dirname)
+                                      const std::string& filename, const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
     while (truncated_dirname[truncated_dirname.size() - 1] == '/')
@@ -526,8 +515,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                         {
                             for (Box<NDIM>::Iterator it(
                                      SideGeometry<NDIM>::toSideBox(patch_box, side));
-                                 it;
-                                 it++)
+                                 it; it++)
                             {
                                 const SideIndex<NDIM> i(it(), side, SideIndex<NDIM>::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)),

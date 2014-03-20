@@ -104,8 +104,7 @@ static const double POINT_FACTOR = 2.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPInitializer::IMPInitializer(const std::string& object_name,
-                               Pointer<Database> input_db,
+IMPInitializer::IMPInitializer(const std::string& object_name, Pointer<Database> input_db,
                                Pointer<PatchHierarchy<NDIM> > hierarchy,
                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
     : d_object_name(object_name),
@@ -255,11 +254,8 @@ bool IMPInitializer::getLevelHasLagrangianData(const int level_number,
 } // getLevelHasLagrangianData
 
 unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double /*init_data_time*/,
-    const bool can_be_refined,
-    const bool /*initial_time*/)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
+    const double /*init_data_time*/, const bool can_be_refined, const bool /*initial_time*/)
 {
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
@@ -280,12 +276,9 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(
 
 void IMPInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
-    const int level_number,
-    const double /*init_data_time*/,
-    const bool /*can_be_refined*/,
-    const bool /*initial_time*/,
-    LDataManager* const /*l_data_manager*/)
+    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map, const int level_number,
+    const double /*init_data_time*/, const bool /*can_be_refined*/,
+    const bool /*initial_time*/, LDataManager* const /*l_data_manager*/)
 {
     int offset = 0;
     for (unsigned int j = 0; j < d_meshes[level_number].size(); ++j)
@@ -300,18 +293,12 @@ void IMPInitializer::initializeStructureIndexingOnPatchLevel(
     return;
 } // initializeStructureIndexingOnPatchLevel
 
-unsigned int
-IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
-                                           const unsigned int global_index_offset,
-                                           const unsigned int local_index_offset,
-                                           Pointer<LData> X_data,
-                                           Pointer<LData> U_data,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           const int level_number,
-                                           const double /*init_data_time*/,
-                                           const bool can_be_refined,
-                                           const bool /*initial_time*/,
-                                           LDataManager* const /*l_data_manager*/)
+unsigned int IMPInitializer::initializeDataOnPatchLevel(
+    const int lag_node_index_idx, const unsigned int global_index_offset,
+    const unsigned int local_index_offset, Pointer<LData> X_data, Pointer<LData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
+    const double /*init_data_time*/, const bool can_be_refined, const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -344,8 +331,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end();
-             ++it)
+             it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx =
@@ -388,16 +374,11 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             static const IntVector<NDIM> periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(
-                lagrangian_idx,
-                d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                 d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
-            node_set->push_back(new LNode(lagrangian_idx,
-                                          global_petsc_idx,
-                                          local_petsc_idx,
-                                          periodic_offset,
-                                          periodic_displacement,
-                                          node_data));
+            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx,
+                                          periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -415,11 +396,9 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     return local_node_count;
 } // initializeDataOnPatchLevel
 
-void
-IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                             const int level_number,
-                                             const double /*error_data_time*/,
-                                             const int tag_index)
+void IMPInitializer::tagCellsForInitialRefinement(
+    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
+    const double /*error_data_time*/, const int tag_index)
 {
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
@@ -448,8 +427,7 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
             for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+                 it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
@@ -485,10 +463,9 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
                 std::ostringstream name_stream;
                 name_stream << "mesh_" << j;
                 const std::string vertices_name = name_stream.str() + "_vertices";
-                d_silo_writer->registerMarkerCloud(vertices_name,
-                                                   d_num_vertex[level_number][j],
-                                                   d_vertex_offset[level_number][j],
-                                                   level_number);
+                d_silo_writer->registerMarkerCloud(
+                    vertices_name, d_num_vertex[level_number][j],
+                    d_vertex_offset[level_number][j], level_number);
             }
         }
     }

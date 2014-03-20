@@ -80,9 +80,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_ADV_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const double fill_time,
-        const bool inflow_boundaries_only,
-        const bool homogeneous_bc);
+        const double fill_time, const bool inflow_boundaries_only, const bool homogeneous_bc);
 
 private:
     /*!

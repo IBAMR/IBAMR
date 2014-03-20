@@ -200,8 +200,7 @@ public:
      *registered scratch components.
      */
     virtual void accumulateFromPhysicalBoundaryData(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
+        SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:

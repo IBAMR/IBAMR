@@ -90,116 +90,47 @@ class RobinBcCoefStrategy;
 #endif
 
 extern "C" {
-void NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(const double*,
+void NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(
+    const double*,
 #if (NDIM == 2)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*
+    const int&, const int&, const int&, const int&, const int&, const int&, const double*,
+    const double*, const int&, const int&, double*, double*
 #endif
 #if (NDIM == 3)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*,
-                                               double*
+    const int&,
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, const double*, const double*, const int&, const int&,
+    const int&, double*, double*, double*
 #endif
-                                               );
+    );
 
-void NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(const double*,
+void NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(
+    const double*,
 #if (NDIM == 2)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*
+    const int&, const int&, const int&, const int&, const int&, const int&, const double*,
+    const double*, const int&, const int&, double*, double*
 #endif
 #if (NDIM == 3)
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               const double*,
-                                               const double*,
-                                               const double*,
-                                               const int&,
-                                               const int&,
-                                               const int&,
-                                               double*,
-                                               double*,
-                                               double*
+    const int&,
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, const double*, const double*, const int&, const int&,
+    const int&, double*, double*, double*
 #endif
-                                               );
+    );
 
-void NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(const double*,
+void NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(
+    const double*,
 #if (NDIM == 2)
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const double*,
-                                                    const double*,
-                                                    const int&,
-                                                    const int&,
-                                                    double*,
-                                                    double*
+    const int&, const int&, const int&, const int&, const int&, const int&, const double*,
+    const double*, const int&, const int&, double*, double*
 #endif
 #if (NDIM == 3)
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    const double*,
-                                                    const double*,
-                                                    const double*,
-                                                    const int&,
-                                                    const int&,
-                                                    const int&,
-                                                    double*,
-                                                    double*,
-                                                    double*
+    const int&,
+    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, const double*, const double*, const int&, const int&,
+    const int&, double*, double*, double*
 #endif
-                                                    );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -223,8 +154,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
+    const std::string& object_name, Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form),
@@ -311,14 +241,9 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
-    transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
-                                                             U_idx,
-                                                             "CONSERVATIVE_LINEAR_REFINE",
-                                                             false,
-                                                             "CONSERVATIVE_COARSEN",
-                                                             d_bdry_extrap_type,
-                                                             false,
-                                                             d_bc_coefs);
+    transaction_comps[0] = InterpolationTransactionComponent(
+        d_U_scratch_idx, U_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN",
+        d_bdry_extrap_type, false, d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -353,118 +278,58 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
             switch (d_difference_form)
             {
             case CONSERVATIVE:
-                NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(dx,
+                NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(
+                    dx,
 #if (NDIM == 2)
-                                                          patch_lower(0),
-                                                          patch_upper(0),
-                                                          patch_lower(1),
-                                                          patch_upper(1),
-                                                          U_data_gcw(0),
-                                                          U_data_gcw(1),
-                                                          U_data->getPointer(0),
-                                                          U_data->getPointer(1),
-                                                          N_data_gcw(0),
-                                                          N_data_gcw(1),
-                                                          N_data->getPointer(0),
-                                                          N_data->getPointer(1)
+                    patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                    U_data_gcw(0), U_data_gcw(1), U_data->getPointer(0), U_data->getPointer(1),
+                    N_data_gcw(0), N_data_gcw(1), N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                                                          patch_lower(0),
-                                                          patch_upper(0),
-                                                          patch_lower(1),
-                                                          patch_upper(1),
-                                                          patch_lower(2),
-                                                          patch_upper(2),
-                                                          U_data_gcw(0),
-                                                          U_data_gcw(1),
-                                                          U_data_gcw(2),
-                                                          U_data->getPointer(0),
-                                                          U_data->getPointer(1),
-                                                          U_data->getPointer(2),
-                                                          N_data_gcw(0),
-                                                          N_data_gcw(1),
-                                                          N_data_gcw(2),
-                                                          N_data->getPointer(0),
-                                                          N_data->getPointer(1),
-                                                          N_data->getPointer(2)
+                                                                         patch_lower(0),
+                    patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
+                    patch_upper(2), U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                    N_data_gcw(0), N_data_gcw(1), N_data_gcw(2), N_data->getPointer(0),
+                    N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                          );
+                    );
                 break;
             case ADVECTIVE:
-                NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(dx,
+                NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(
+                    dx,
 #if (NDIM == 2)
-                                                          patch_lower(0),
-                                                          patch_upper(0),
-                                                          patch_lower(1),
-                                                          patch_upper(1),
-                                                          U_data_gcw(0),
-                                                          U_data_gcw(1),
-                                                          U_data->getPointer(0),
-                                                          U_data->getPointer(1),
-                                                          N_data_gcw(0),
-                                                          N_data_gcw(1),
-                                                          N_data->getPointer(0),
-                                                          N_data->getPointer(1)
+                    patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                    U_data_gcw(0), U_data_gcw(1), U_data->getPointer(0), U_data->getPointer(1),
+                    N_data_gcw(0), N_data_gcw(1), N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                                                          patch_lower(0),
-                                                          patch_upper(0),
-                                                          patch_lower(1),
-                                                          patch_upper(1),
-                                                          patch_lower(2),
-                                                          patch_upper(2),
-                                                          U_data_gcw(0),
-                                                          U_data_gcw(1),
-                                                          U_data_gcw(2),
-                                                          U_data->getPointer(0),
-                                                          U_data->getPointer(1),
-                                                          U_data->getPointer(2),
-                                                          N_data_gcw(0),
-                                                          N_data_gcw(1),
-                                                          N_data_gcw(2),
-                                                          N_data->getPointer(0),
-                                                          N_data->getPointer(1),
-                                                          N_data->getPointer(2)
+                                                                         patch_lower(0),
+                    patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
+                    patch_upper(2), U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                    N_data_gcw(0), N_data_gcw(1), N_data_gcw(2), N_data->getPointer(0),
+                    N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                          );
+                    );
                 break;
             case SKEW_SYMMETRIC:
-                NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(dx,
+                NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(
+                    dx,
 #if (NDIM == 2)
-                                                               patch_lower(0),
-                                                               patch_upper(0),
-                                                               patch_lower(1),
-                                                               patch_upper(1),
-                                                               U_data_gcw(0),
-                                                               U_data_gcw(1),
-                                                               U_data->getPointer(0),
-                                                               U_data->getPointer(1),
-                                                               N_data_gcw(0),
-                                                               N_data_gcw(1),
-                                                               N_data->getPointer(0),
-                                                               N_data->getPointer(1)
+                    patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                    U_data_gcw(0), U_data_gcw(1), U_data->getPointer(0), U_data->getPointer(1),
+                    N_data_gcw(0), N_data_gcw(1), N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                                                               patch_lower(0),
-                                                               patch_upper(0),
-                                                               patch_lower(1),
-                                                               patch_upper(1),
-                                                               patch_lower(2),
-                                                               patch_upper(2),
-                                                               U_data_gcw(0),
-                                                               U_data_gcw(1),
-                                                               U_data_gcw(2),
-                                                               U_data->getPointer(0),
-                                                               U_data->getPointer(1),
-                                                               U_data->getPointer(2),
-                                                               N_data_gcw(0),
-                                                               N_data_gcw(1),
-                                                               N_data_gcw(2),
-                                                               N_data->getPointer(0),
-                                                               N_data->getPointer(1),
-                                                               N_data->getPointer(2)
+                                                                         patch_lower(0),
+                    patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
+                    patch_upper(2), U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                    N_data_gcw(0), N_data_gcw(1), N_data_gcw(2), N_data->getPointer(0),
+                    N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                               );
+                    );
                 break;
             default:
                 TBOX_ERROR(
@@ -481,8 +346,7 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
 } // applyConvectiveOperator
 
 void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM, double>& in,
-    const SAMRAIVectorReal<NDIM, double>& out)
+    const SAMRAIVectorReal<NDIM, double>& in, const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -504,15 +368,9 @@ void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
-    d_transaction_comps[0] =
-        InterpolationTransactionComponent(d_U_scratch_idx,
-                                          in.getComponentDescriptorIndex(0),
-                                          "CONSERVATIVE_LINEAR_REFINE",
-                                          false,
-                                          "CONSERVATIVE_COARSEN",
-                                          d_bdry_extrap_type,
-                                          false,
-                                          d_bc_coefs);
+    d_transaction_comps[0] = InterpolationTransactionComponent(
+        d_U_scratch_idx, in.getComponentDescriptorIndex(0), "CONSERVATIVE_LINEAR_REFINE",
+        false, "CONSERVATIVE_COARSEN", d_bdry_extrap_type, false, d_bc_coefs);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();

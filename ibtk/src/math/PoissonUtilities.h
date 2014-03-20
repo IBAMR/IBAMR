@@ -108,8 +108,7 @@ public:
         const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef, double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
@@ -146,8 +145,7 @@ public:
                                SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-                               double data_time,
-                               bool homogeneous_bc);
+                               double data_time, bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -159,8 +157,7 @@ public:
         SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        bool homogeneous_bc);
+        double data_time, bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -172,8 +169,7 @@ public:
         SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef, double data_time,
         bool homogeneous_bc);
 
     /*!
@@ -187,8 +183,7 @@ public:
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        bool homogeneous_bc);
+        double data_time, bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -200,8 +195,7 @@ public:
         SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        bool homogeneous_bc);
+        double data_time, bool homogeneous_bc);
 
 protected:
 private:

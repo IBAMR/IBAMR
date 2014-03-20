@@ -74,75 +74,51 @@
 
 // Function interfaces
 extern "C" {
-void SC_QUAD_TANGENTIAL_INTERPOLATION_FC(double* U_fine0,
-                                         double* U_fine1,
+void SC_QUAD_TANGENTIAL_INTERPOLATION_FC(
+    double* U_fine0, double* U_fine1,
 #if (NDIM == 3)
-                                         double* U_fine2,
+    double* U_fine2,
 #endif
-                                         const int& U_fine_gcw,
-                                         const double* U_crse0,
-                                         const double* U_crse1,
+    const int& U_fine_gcw, const double* U_crse0, const double* U_crse1,
 #if (NDIM == 3)
-                                         const double* U_crse2,
+    const double* U_crse2,
 #endif
-                                         const int& U_crse_gcw,
-                                         const int* sc_indicator0,
-                                         const int* sc_indicator1,
+    const int& U_crse_gcw, const int* sc_indicator0, const int* sc_indicator1,
 #if (NDIM == 3)
-                                         const int* sc_indicator2,
+    const int* sc_indicator2,
 #endif
-                                         const int& sc_indicator_gcw,
-                                         const int& ilowerf0,
-                                         const int& iupperf0,
-                                         const int& ilowerf1,
-                                         const int& iupperf1,
+    const int& sc_indicator_gcw, const int& ilowerf0, const int& iupperf0, const int& ilowerf1,
+    const int& iupperf1,
 #if (NDIM == 3)
-                                         const int& ilowerf2,
-                                         const int& iupperf2,
+    const int& ilowerf2, const int& iupperf2,
 #endif
-                                         const int& ilowerc0,
-                                         const int& iupperc0,
-                                         const int& ilowerc1,
-                                         const int& iupperc1,
+    const int& ilowerc0, const int& iupperc0, const int& ilowerc1, const int& iupperc1,
 #if (NDIM == 3)
-                                         const int& ilowerc2,
-                                         const int& iupperc2,
+    const int& ilowerc2, const int& iupperc2,
 #endif
-                                         const int& loc_index,
-                                         const int* ratio_to_coarser,
-                                         const int* blower,
-                                         const int* bupper);
+    const int& loc_index, const int* ratio_to_coarser, const int* blower, const int* bupper);
 
-void SC_QUAD_NORMAL_INTERPOLATION_FC(double* U0,
-                                     double* U1,
+void SC_QUAD_NORMAL_INTERPOLATION_FC(double* U0, double* U1,
 #if (NDIM == 3)
                                      double* U2,
 #endif
-                                     const int& U_gcw,
-                                     const double* W0,
-                                     const double* W1,
+                                     const int& U_gcw, const double* W0, const double* W1,
 #if (NDIM == 3)
                                      const double* W2,
 #endif
-                                     const int& W_gcw,
-                                     const int* sc_indicator0,
+                                     const int& W_gcw, const int* sc_indicator0,
                                      const int* sc_indicator1,
 #if (NDIM == 3)
                                      const int* sc_indicator2,
 #endif
-                                     const int& sc_indicator_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
+                                     const int& sc_indicator_gcw, const int& ilower0,
+                                     const int& iupper0, const int& ilower1,
                                      const int& iupper1,
 #if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
+                                     const int& ilower2, const int& iupper2,
 #endif
-                                     const int& loc_index,
-                                     const int* ratio_to_coarser,
-                                     const int* blower,
-                                     const int* bupper);
+                                     const int& loc_index, const int* ratio_to_coarser,
+                                     const int* blower, const int* bupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -179,8 +155,8 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
     }
     else
     {
-        d_sc_indicator_idx = var_db->registerVariableAndContext(
-            d_sc_indicator_var, context, GHOST_WIDTH_TO_FILL);
+        d_sc_indicator_idx = var_db->registerVariableAndContext(d_sc_indicator_var, context,
+                                                                GHOST_WIDTH_TO_FILL);
     }
     return;
 } // CartSideDoubleQuadraticCFInterpolation
@@ -192,8 +168,7 @@ CartSideDoubleQuadraticCFInterpolation::~CartSideDoubleQuadraticCFInterpolation(
 } // ~CartSideDoubleQuadraticCFInterpolation
 
 void CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
-    Patch<NDIM>& /*patch*/,
-    const double /*fill_time*/,
+    Patch<NDIM>& /*patch*/, const double /*fill_time*/,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
@@ -231,12 +206,11 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
     if (!fine.inHierarchy())
     {
         for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-             cit != d_patch_data_indices.end();
-             ++cit)
+             cit != d_patch_data_indices.end(); ++cit)
         {
             const int& patch_data_index = *cit;
-            d_refine_op->refine(
-                fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
+            d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box,
+                                ratio);
         }
         return;
     }
@@ -261,8 +235,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
 
     // Get the patch data.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(patch_data_index);
@@ -321,44 +294,30 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine
 #if (NDIM == 3)
                 const double* const U_crse2 = cdata->getPointer(2, depth);
 #endif
-                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0,
-                                                    U_fine1,
+                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(
+                    U_fine0, U_fine1,
 #if (NDIM == 3)
-                                                    U_fine2,
+                    U_fine2,
 #endif
-                                                    U_fine_ghosts,
-                                                    U_crse0,
-                                                    U_crse1,
+                    U_fine_ghosts, U_crse0, U_crse1,
 #if (NDIM == 3)
-                                                    U_crse2,
+                    U_crse2,
 #endif
-                                                    U_crse_ghosts,
-                                                    indicator0,
-                                                    indicator1,
+                    U_crse_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
-                                                    indicator2,
+                    indicator2,
 #endif
-                                                    indicator_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
+                    indicator_ghosts, patch_box_fine.lower(0), patch_box_fine.upper(0),
+                    patch_box_fine.lower(1), patch_box_fine.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_fine.lower(2),
-                                                    patch_box_fine.upper(2),
+                    patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
+                    patch_box_crse.lower(0), patch_box_crse.upper(0), patch_box_crse.lower(1),
+                    patch_box_crse.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
+                    patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                                                    location_index,
-                                                    ratio,
-                                                    bc_fill_box.lower(),
-                                                    bc_fill_box.upper());
+                    location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }
@@ -455,8 +414,7 @@ void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
     for (std::vector<CoarseFineBoundary<NDIM>*>::iterator it = d_cf_boundary.begin();
-         it != d_cf_boundary.end();
-         ++it)
+         it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
         (*it) = NULL;
@@ -466,8 +424,7 @@ void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 } // clearPatchHierarchy
 
 void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
-    Patch<NDIM>& patch,
-    const IntVector<NDIM>& ratio,
+    Patch<NDIM>& patch, const IntVector<NDIM>& ratio,
     const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
@@ -502,13 +459,12 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
 
     // Get the patch data.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+         cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         Pointer<SideData<NDIM, double> > data = patch.getPatchData(patch_data_index);
-        SideData<NDIM, double> data_copy(
-            data->getBox(), data->getDepth(), data->getGhostCellWidth());
+        SideData<NDIM, double> data_copy(data->getBox(), data->getDepth(),
+                                         data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
         Pointer<SideData<NDIM, int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
@@ -561,36 +517,25 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
 #if (NDIM == 3)
                 const double* const W2 = data_copy.getPointer(2, depth);
 #endif
-                SC_QUAD_NORMAL_INTERPOLATION_FC(U0,
-                                                U1,
+                SC_QUAD_NORMAL_INTERPOLATION_FC(
+                    U0, U1,
 #if (NDIM == 3)
-                                                U2,
+                    U2,
 #endif
-                                                U_ghosts,
-                                                W0,
-                                                W1,
+                    U_ghosts, W0, W1,
 #if (NDIM == 3)
-                                                W2,
+                    W2,
 #endif
-                                                W_ghosts,
-                                                indicator0,
-                                                indicator1,
+                    W_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
-                                                indicator2,
+                    indicator2,
 #endif
-                                                indicator_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                    indicator_ghosts, patch_box.lower(0), patch_box.upper(0),
+                    patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                location_index,
-                                                ratio,
-                                                bc_fill_box.lower(),
-                                                bc_fill_box.upper());
+                    location_index, ratio, bc_fill_box.lower(), bc_fill_box.upper());
             }
         }
     }

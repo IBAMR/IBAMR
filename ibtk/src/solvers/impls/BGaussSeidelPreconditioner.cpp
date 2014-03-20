@@ -58,8 +58,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
-    const std::string& object_name,
-    Pointer<Database> input_db,
+    const std::string& object_name, Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
     : d_pc_map(), d_linear_ops_map(), d_symmetric_preconditioner(false), d_reverse_order(false)
 {
@@ -108,8 +107,7 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> pre
 } // setComponentPreconditioner
 
 void BGaussSeidelPreconditioner::setComponentOperators(
-    const std::vector<Pointer<LinearOperator> >& linear_ops,
-    const unsigned int component)
+    const std::vector<Pointer<LinearOperator> >& linear_ops, const unsigned int component)
 {
 #if !defined(NDEBUG)
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
@@ -289,8 +287,7 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
 
     // Deallocate the component preconditioners.
     for (std::map<unsigned int, Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
-         it != d_pc_map.end();
-         ++it)
+         it != d_pc_map.end(); ++it)
     {
         it->second->deallocateSolverState();
     }
@@ -298,13 +295,11 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     // Deallocate the component operators.
     for (std::map<unsigned int, std::vector<Pointer<LinearOperator> > >::iterator it =
              d_linear_ops_map.begin();
-         it != d_linear_ops_map.end();
-         ++it)
+         it != d_linear_ops_map.end(); ++it)
     {
         std::vector<Pointer<LinearOperator> >& comp_linear_ops = it->second;
         for (std::vector<Pointer<LinearOperator> >::iterator comp_it = comp_linear_ops.begin();
-             comp_it != comp_linear_ops.end();
-             ++comp_it)
+             comp_it != comp_linear_ops.end(); ++comp_it)
         {
             if (*comp_it) (*comp_it)->deallocateOperatorState();
         }
@@ -374,8 +369,8 @@ BGaussSeidelPreconditioner::getComponentVectors(
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] = new SAMRAIVectorReal<NDIM, double>(
-            x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp] = new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(),
+                                                           hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(x->getComponentVariable(comp),
                                     x->getComponentDescriptorIndex(comp),
                                     x->getControlVolumeIndex(comp));

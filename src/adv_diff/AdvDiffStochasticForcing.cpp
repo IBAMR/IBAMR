@@ -94,8 +94,7 @@ void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffStochasticForcing::AdvDiffStochasticForcing(
-    const std::string& object_name,
-    Pointer<Database> input_db,
+    const std::string& object_name, Pointer<Database> input_db,
     Pointer<CellVariable<NDIM, double> > C_var,
     const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
     : d_object_name(object_name),
@@ -175,14 +174,10 @@ bool AdvDiffStochasticForcing::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void
-AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable<NDIM> > var,
-                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                  const double data_time,
-                                                  const bool initial_time,
-                                                  const int coarsest_ln_in,
-                                                  const int finest_ln_in)
+void AdvDiffStochasticForcing::setDataOnPatchHierarchy(
+    const int data_idx, Pointer<Variable<NDIM> > var, Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const double data_time, const bool initial_time, const int coarsest_ln_in,
+    const int finest_ln_in)
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -218,8 +213,8 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         HierarchyDataOpsManager<NDIM>* hier_data_ops_manager =
             HierarchyDataOpsManager<NDIM>::getManager();
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(
-                d_C_cc_var, hierarchy, /*get_unique*/ true);
+            hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
+                                                       /*get_unique*/ true);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(
             d_C_var, d_adv_diff_solver->getCurrentContext());
@@ -306,8 +301,8 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
         const Array<double>& weights = d_weights[cycle_num];
         Pointer<HierarchyDataOpsReal<NDIM, double> > hier_sc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(
-                d_F_sc_var, hierarchy, /*get_unique*/ true);
+            hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
+                                                       /*get_unique*/ true);
         hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
@@ -362,17 +357,11 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (int d = 0; d < C_depth; ++d)
                     {
                         RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
-                        bc_coef->setBcCoefs(acoef_data,
-                                            bcoef_data,
-                                            gcoef_data,
-                                            var,
-                                            *patch,
-                                            trimmed_bdry_box,
-                                            data_time);
+                        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch,
+                                            trimmed_bdry_box, data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box *
                                                     side_boxes[bdry_normal_axis]);
-                             it;
-                             it++)
+                             it; it++)
                         {
                             const Index<NDIM>& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
@@ -406,8 +395,8 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     // Compute div F on each patch level.
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        setDataOnPatchLevel(
-            data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
+        setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time,
+                            initial_time);
     }
     return;
 } // setDataOnPatchHierarchy
