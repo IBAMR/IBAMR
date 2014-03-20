@@ -454,16 +454,22 @@ public:
      * \return The number of local nodes on the specified level.
      */
     unsigned int computeLocalNodeCountOnPatchLevel(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double init_data_time, bool can_be_refined, bool initial_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time);
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
     void initializeStructureIndexingOnPatchLevel(
         std::map<int, std::string>& strct_id_to_strct_name_map,
-        std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map, int level_number,
-        double init_data_time, bool can_be_refined, bool initial_time,
+        std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -473,11 +479,16 @@ public:
      * \return The number of local nodes initialized on the patch level.
      */
     unsigned int initializeDataOnPatchLevel(
-        int lag_node_index_idx, unsigned int global_index_offset,
-        unsigned int local_index_offset, SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        int lag_node_index_idx,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double init_data_time, bool can_be_refined, bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -487,10 +498,15 @@ public:
      * \return The number of local nodes initialized on the patch level.
      */
     unsigned int initializeMassDataOnPatchLevel(
-        unsigned int global_index_offset, unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData> M_data, SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double init_data_time, bool can_be_refined, bool initial_time,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -500,10 +516,14 @@ public:
      * \return The number of local nodes initialized on the patch level.
      */
     unsigned int initializeDirectorDataOnPatchLevel(
-        unsigned int global_index_offset, unsigned int local_index_offset,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double init_data_time, bool can_be_refined, bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -516,8 +536,10 @@ public:
      * hierarchy.
      */
     void tagCellsForInitialRefinement(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double error_data_time, int tag_index);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index);
 
 protected:
 private:
@@ -617,7 +639,9 @@ private:
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                          int level_number, bool can_be_refined, const double* domain_x_lower,
+                          int level_number,
+                          bool can_be_refined,
+                          const double* domain_x_lower,
                           const double* domain_x_upper,
                           const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
 
@@ -636,8 +660,10 @@ private:
      * \return The initial position of the specified vertex.
      */
     IBTK::Point
-    getShiftedVertexPosn(const std::pair<int, int>& point_index, int level_number,
-                         const double* domain_x_lower, const double* domain_x_upper,
+    getShiftedVertexPosn(const std::pair<int, int>& point_index,
+                         int level_number,
+                         const double* domain_x_lower,
+                         const double* domain_x_upper,
                          const SAMRAI::hier::IntVector<NDIM>& periodic_shift) const;
 
     /*!
@@ -692,7 +718,8 @@ private:
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
     initializeNodeData(const std::pair<int, int>& point_index,
-                       unsigned int global_index_offset, int level_number) const;
+                       unsigned int global_index_offset,
+                       int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.

@@ -68,15 +68,11 @@ static const int SIDEG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
-    const std::string& object_name, Pointer<Database> input_db,
+    const std::string& object_name,
+    Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : d_context(NULL),
-      d_u_dof_index_idx(-1),
-      d_p_dof_index_idx(-1),
-      d_u_dof_index_var(NULL),
-      d_p_dof_index_var(NULL),
-      d_data_synch_sched(NULL),
-      d_ghost_fill_sched(NULL)
+    : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1), d_u_dof_index_var(NULL),
+      d_p_dof_index_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
@@ -114,7 +110,8 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& /*b*/)
+    const SAMRAIVectorReal<NDIM, double>& x,
+    const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
@@ -126,15 +123,20 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
         d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     const int mpi_rank = SAMRAI_MPI::getRank();
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE,
-                        &d_petsc_x);
+    ierr = VecCreateMPI(
+        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE,
-                        &d_petsc_b);
+    ierr = VecCreateMPI(
+        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
-        d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs, d_new_time, d_num_dofs_per_proc,
-        d_u_dof_index_idx, d_p_dof_index_idx, level);
+    StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
+                                                                     d_U_problem_coefs,
+                                                                     d_U_bc_coefs,
+                                                                     d_new_time,
+                                                                     d_num_dofs_per_proc,
+                                                                     d_u_dof_index_idx,
+                                                                     d_p_dof_index_idx,
+                                                                     level);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager<NDIM>* hier_ops_manager =
@@ -184,13 +186,19 @@ void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-        petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level,
-        d_data_synch_sched, d_ghost_fill_sched);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(petsc_x,
+                                                            u_idx,
+                                                            d_u_dof_index_idx,
+                                                            p_idx,
+                                                            d_p_dof_index_idx,
+                                                            patch_level,
+                                                            d_data_synch_sched,
+                                                            d_ghost_fill_sched);
     return;
 } // copyFromPETScVec
 
-void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x, Vec& petsc_b,
+void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                                   Vec& petsc_b,
                                                    SAMRAIVectorReal<NDIM, double>& x,
                                                    SAMRAIVectorReal<NDIM, double>& b,
                                                    Pointer<PatchLevel<NDIM> > patch_level)

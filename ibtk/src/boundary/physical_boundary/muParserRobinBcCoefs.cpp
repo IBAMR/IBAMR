@@ -75,15 +75,9 @@ static const int EXTENSIONS_FILLABLE = 128;
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : d_grid_geom(grid_geom),
-      d_constants(),
-      d_acoef_function_strings(),
-      d_bcoef_function_strings(),
-      d_gcoef_function_strings(),
-      d_acoef_parsers(2 * NDIM),
-      d_bcoef_parsers(2 * NDIM),
-      d_gcoef_parsers(2 * NDIM),
-      d_parser_time(new double),
+    : d_grid_geom(grid_geom), d_constants(), d_acoef_function_strings(),
+      d_bcoef_function_strings(), d_gcoef_function_strings(), d_acoef_parsers(2 * NDIM),
+      d_bcoef_parsers(2 * NDIM), d_gcoef_parsers(2 * NDIM), d_parser_time(new double),
       d_parser_posn(new Point)
 {
 #if !defined(NDEBUG)
@@ -219,7 +213,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
     for (std::vector<mu::Parser*>::const_iterator cit = all_parsers.begin();
-         cit != all_parsers.end(); ++cit)
+         cit != all_parsers.end();
+         ++cit)
     {
         // Various names for pi.
         (*cit)->DefineConst("pi", pi);
@@ -288,7 +283,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 
         // User-provided constants.
         for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin();
-             map_cit != d_constants.end(); ++map_cit)
+             map_cit != d_constants.end();
+             ++map_cit)
         {
             (*cit)->DefineConst(map_cit->first, map_cit->second);
         }

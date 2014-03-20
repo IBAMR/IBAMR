@@ -65,20 +65,13 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(
-    bool needs_velocity_solver, bool needs_pressure_solver)
-    : d_needs_velocity_solver(needs_velocity_solver),
-      d_velocity_solver(),
-      d_P_problem_coefs("P_problem_coefs"),
-      d_needs_pressure_solver(needs_pressure_solver),
-      d_pressure_solver(),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_velocity_data_ops(NULL),
-      d_pressure_data_ops(NULL),
-      d_velocity_wgt_idx(-1),
-      d_pressure_wgt_idx(-1),
-      d_hier_math_ops(NULL)
+    bool needs_velocity_solver,
+    bool needs_pressure_solver)
+    : d_needs_velocity_solver(needs_velocity_solver), d_velocity_solver(),
+      d_P_problem_coefs("P_problem_coefs"), d_needs_pressure_solver(needs_pressure_solver),
+      d_pressure_solver(), d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1),
+      d_velocity_data_ops(NULL), d_pressure_data_ops(NULL), d_velocity_wgt_idx(-1),
+      d_pressure_wgt_idx(-1), d_hier_math_ops(NULL)
 {
     // intentionally blank
     return;
@@ -98,11 +91,12 @@ bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(
     Pointer<PoissonSolver> velocity_solver)
 {
-    IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
-    {
-        pout << d_object_name << "::setVelocitySubdomainSolver():\n"
-             << "WARNING: implementation does not require velocity subdomain solver\n";
-    });
+    IBAMR_DO_ONCE(
+        if (!needsVelocitySubdomainSolver())
+        {
+            pout << d_object_name << "::setVelocitySubdomainSolver():\n"
+                 << "WARNING: implementation does not require velocity subdomain solver\n";
+        });
     d_velocity_solver = velocity_solver;
     return;
 } // setVelocitySubdomainSolver
@@ -123,11 +117,12 @@ bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
 void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(
     Pointer<PoissonSolver> pressure_solver)
 {
-    IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
-    {
-        pout << d_object_name << "::setPressureSubdomainSolver():\n"
-             << "WARNING: implementation does not require pressure subdomain solver\n";
-    });
+    IBAMR_DO_ONCE(
+        if (!needsPressureSubdomainSolver())
+        {
+            pout << d_object_name << "::setPressureSubdomainSolver():\n"
+                 << "WARNING: implementation does not require pressure subdomain solver\n";
+        });
     d_pressure_solver = pressure_solver;
     return;
 } // setPressureSubdomainSolver
@@ -154,7 +149,8 @@ void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
 } // setPhysicalBcCoefs
 
 void StaggeredStokesBlockPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM, double>& x, const SAMRAIVectorReal<NDIM, double>& b)
+    const SAMRAIVectorReal<NDIM, double>& x,
+    const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
@@ -184,8 +180,8 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(
     d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_pressure_wgt_idx = x.getControlVolumeIndex(1);
 
-    d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy,
-                                           d_coarsest_ln, d_finest_ln);
+    d_hier_math_ops = new HierarchyMathOps(
+        d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     return;
 } // initializeSolverState
 

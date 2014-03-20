@@ -110,8 +110,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new AdvDiffPPMConvectiveOperator(object_name, Q_var, input_db, difference_form,
-                                                bc_coefs);
+        return new AdvDiffPPMConvectiveOperator(
+            object_name, Q_var, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!

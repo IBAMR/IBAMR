@@ -78,9 +78,12 @@ public:
      * single SAMRAI::hier::PatchLevel.
      */
     static void constructPatchLevelMACStokesOp(
-        Mat& mat, const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        double data_time, const std::vector<int>& num_dofs_per_proc, int u_dof_index_idx,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
         int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 

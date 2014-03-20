@@ -119,9 +119,12 @@ IntVector<NDIM> LMarkerCoarsen::getStencilWidth() const
     return COARSEN_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse, const Patch<NDIM>& fine,
-                             const int dst_component, const int src_component,
-                             const Box<NDIM>& coarse_box, const IntVector<NDIM>& ratio) const
+void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
+                             const Patch<NDIM>& fine,
+                             const int dst_component,
+                             const int src_component,
+                             const Box<NDIM>& coarse_box,
+                             const IntVector<NDIM>& ratio) const
 {
     Pointer<LMarkerSetData> dst_mark_data = coarse.getPatchData(dst_component);
     Pointer<LMarkerSetData> src_mark_data = fine.getPatchData(src_component);
@@ -139,8 +142,8 @@ void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse, const Patch<NDIM>& fine,
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
             }
             LMarkerSet& coarse_mark_set = *(dst_mark_data->getItem(coarse_i));
-            coarse_mark_set.insert(coarse_mark_set.end(), fine_mark_set.begin(),
-                                   fine_mark_set.end());
+            coarse_mark_set.insert(
+                coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
         }
     }
     return;

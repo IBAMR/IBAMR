@@ -87,7 +87,8 @@ public:
      * \brief Constructor.
      */
     SpongeLayerForceFunction(
-        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const INSHierarchyIntegrator* fluid_solver,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
 
@@ -109,9 +110,11 @@ public:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatch(int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                        double data_time, bool initial_time = false,
+                        double data_time,
+                        bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
@@ -151,7 +154,8 @@ private:
     void setDataOnPatchCell(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_current_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_new_data, double kappa,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_new_data,
+        double kappa,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     /*!
@@ -160,7 +164,8 @@ private:
     void setDataOnPatchSide(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_current_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_new_data, double kappa,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_new_data,
+        double kappa,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     boost::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;

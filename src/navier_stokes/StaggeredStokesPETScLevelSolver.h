@@ -97,8 +97,8 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new StaggeredStokesPETScLevelSolver(object_name, input_db,
-                                                   default_options_prefix);
+        return new StaggeredStokesPETScLevelSolver(
+            object_name, input_db, default_options_prefix);
     } // allocate_solver
 
 protected:
@@ -118,13 +118,15 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+    void copyToPETScVec(Vec& petsc_x,
+                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+    void copyFromPETScVec(Vec& petsc_x,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -132,7 +134,8 @@ protected:
      * representation, including any modifications to account for boundary
      * conditions.
      */
-    void setupKSPVecs(Vec& petsc_x, Vec& petsc_b,
+    void setupKSPVecs(Vec& petsc_x,
+                      Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);

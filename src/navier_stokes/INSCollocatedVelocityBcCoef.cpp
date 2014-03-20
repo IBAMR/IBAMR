@@ -71,11 +71,12 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(
-    const unsigned int comp_idx, const INSCollocatedHierarchyIntegrator* fluid_solver,
+    const unsigned int comp_idx,
+    const INSCollocatedHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const TractionBcType traction_bc_type, const bool homogeneous_bc)
-    : d_comp_idx(comp_idx),
-      d_fluid_solver(fluid_solver),
+    const TractionBcType traction_bc_type,
+    const bool homogeneous_bc)
+    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -226,8 +227,8 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& 
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_bc_coefs[d_comp_idx]
-        ->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.

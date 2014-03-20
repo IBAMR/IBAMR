@@ -90,8 +90,10 @@ unsigned int num_polynomial_basis_fcns(const unsigned int dim, const unsigned in
     return num_basis_fcns;
 } // num_polynomial_basis_fcns
 
-void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P, const libMesh::Point& x_center,
-                                    const libMesh::Point& x_eval, const unsigned int dim,
+void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
+                                    const libMesh::Point& x_center,
+                                    const libMesh::Point& x_eval,
+                                    const unsigned int dim,
                                     const unsigned int order)
 {
     TBOX_ASSERT(static_cast<unsigned int>(P.size()) == num_polynomial_basis_fcns(dim, order));
@@ -155,11 +157,8 @@ void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P, const libMesh::Point& x_
 
 IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh,
                                                                FEDataManager* fe_data_manager)
-    : d_mesh(mesh),
-      d_fe_data_manager(fe_data_manager),
-      d_periodic_boundaries(NULL),
-      d_interp_order(INVALID_ORDER),
-      d_quad_order(INVALID_ORDER)
+    : d_mesh(mesh), d_fe_data_manager(fe_data_manager), d_periodic_boundaries(NULL),
+      d_interp_order(INVALID_ORDER), d_quad_order(INVALID_ORDER)
 {
     // Active local elements.
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
@@ -236,8 +235,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             for (std::set<const Elem*>::const_iterator it = elems.begin(); it != elems.end();
                  ++it)
             {
-                elem_patch.insert(boost::make_tuple(*it, CompositePeriodicMapping(),
-                                                    CompositePeriodicMapping()));
+                elem_patch.insert(boost::make_tuple(
+                    *it, CompositePeriodicMapping(), CompositePeriodicMapping()));
             }
 
             // Account for periodic boundaries.
@@ -262,7 +261,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
                                 d_mesh->boundary_info->boundary_ids(elem, i);
                             for (std::vector<boundary_id_type>::const_iterator j =
                                      boundary_ids.begin();
-                                 j != boundary_ids.end(); ++j)
+                                 j != boundary_ids.end();
+                                 ++j)
                             {
                                 const boundary_id_type boundary_id = *j;
                                 const PeriodicBoundaryBase* const periodic_boundary =
@@ -283,7 +283,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
                                         neighbor->find_point_neighbors(periodic_image, elems);
                                         for (std::set<const Elem*>::const_iterator k =
                                                  elems.begin();
-                                             k != elems.end(); ++k)
+                                             k != elems.end();
+                                             ++k)
                                         {
                                             const Elem* const elem = *k;
                                             if (elem_patch.find(elem) == elem_patch.end() &&
@@ -364,8 +365,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
     Parallel::sum(n_qp_per_proc);
     d_qp_global_offset =
         std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
-    d_n_qp_global = std::accumulate(n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(),
-                                    d_qp_global_offset);
+    d_n_qp_global = std::accumulate(
+        n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
@@ -388,7 +389,8 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
     d_local_patch_proj_solver.resize(d_local_elem_patches.size());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end(); ++it, ++k)
+         it != d_local_elem_patches.end();
+         ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -403,8 +405,11 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
                 evaluate_polynomial_basis_fcns(
-                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                    dim, d_interp_order);
+                    P,
+                    node,
+                    apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
+                    dim,
+                    d_interp_order);
                 M += P * P.transpose();
             }
         }
@@ -447,9 +452,11 @@ System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
     return p_system;
 } // initializePressureSystem
 
-void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(
-    const Elem* const elem, const QBase* const qrule, const unsigned int qp,
-    const TensorValue<double>& sigma)
+void
+IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
+                                                          const QBase* const qrule,
+                                                          const unsigned int qp,
+                                                          const TensorValue<double>& sigma)
 {
     if (elem->processor_id() != libMesh::processor_id() || !elem->active())
     {
@@ -523,7 +530,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end(); ++it, ++k)
+         it != d_local_elem_patches.end();
+         ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -535,7 +543,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
             // Solve for the coefficients of the reconstruction.
             f.setZero();
             for (ElemPatch::const_iterator el_it = elem_patch.begin();
-                 el_it != elem_patch.end(); ++el_it)
+                 el_it != elem_patch.end();
+                 ++el_it)
             {
                 const Elem* const elem = el_it->get<0>();
                 const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -544,9 +553,12 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
                 fe->reinit(elem);
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
-                    evaluate_polynomial_basis_fcns(P, node, apply_composite_periodic_mapping(
-                                                                inverse_mapping, q_point[qp]),
-                                                   dim, d_interp_order);
+                    evaluate_polynomial_basis_fcns(
+                        P,
+                        node,
+                        apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
+                        dim,
+                        d_interp_order);
                     f += P * sigma_vals[NVARS * (global_offset + qp) + var];
                 }
             }
@@ -591,7 +603,8 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
     for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end(); ++it, ++k)
+         it != d_local_elem_patches.end();
+         ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
@@ -612,8 +625,11 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
                 evaluate_polynomial_basis_fcns(
-                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                    dim, d_interp_order);
+                    P,
+                    node,
+                    apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
+                    dim,
+                    d_interp_order);
                 f += P * pressure_vals[global_offset + qp];
             }
         }

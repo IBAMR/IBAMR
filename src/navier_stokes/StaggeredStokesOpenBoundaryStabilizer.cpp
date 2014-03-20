@@ -76,15 +76,14 @@ inline double smooth_kernel(const double r)
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
-    const std::string& object_name, Pointer<Database> input_db,
+    const std::string& object_name,
+    Pointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
-    : CartGridFunction(object_name),
-      d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
+    : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_width(array_constant<double, 2 * NDIM>(0.0)),
-      d_fluid_solver(fluid_solver),
+      d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver),
       d_grid_geometry(grid_geometry)
 {
     if (input_db)
@@ -143,9 +142,13 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
-    const int data_idx, Pointer<Variable<NDIM> > /*var*/, Pointer<Patch<NDIM> > patch,
-    const double /*data_time*/, const bool initial_time, Pointer<PatchLevel<NDIM> > /*level*/)
+void
+StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
+                                                      Pointer<Variable<NDIM> > /*var*/,
+                                                      Pointer<Patch<NDIM> > patch,
+                                                      const double /*data_time*/,
+                                                      const bool initial_time,
+                                                      Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -191,7 +194,8 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(
             }
             for (Box<NDIM>::Iterator b(
                      SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis));
-                 b; b++)
+                 b;
+                 b++)
             {
                 const Index<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);

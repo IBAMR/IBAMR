@@ -81,15 +81,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(
-    const std::string& object_name, Pointer<Database> input_db,
+    const std::string& object_name,
+    Pointer<Database> input_db,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : CartGridFunction(object_name),
-      d_grid_geom(grid_geom),
-      d_constants(),
-      d_function_strings(),
-      d_parsers(),
-      d_parser_time(),
-      d_parser_posn()
+    : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(),
+      d_function_strings(), d_parsers(), d_parser_time(), d_parser_posn()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -249,7 +245,8 @@ muParserCartGridFunction::muParserCartGridFunction(
 
         // User-provided constants.
         for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin();
-             map_cit != d_constants.end(); ++map_cit)
+             map_cit != d_constants.end();
+             ++map_cit)
         {
             it->DefineConst(map_cit->first, map_cit->second);
         }
@@ -282,9 +279,12 @@ bool muParserCartGridFunction::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void muParserCartGridFunction::setDataOnPatch(
-    const int data_idx, Pointer<Variable<NDIM> > /*var*/, Pointer<Patch<NDIM> > patch,
-    const double data_time, const bool /*initial_time*/, Pointer<PatchLevel<NDIM> > /*level*/)
+void muParserCartGridFunction::setDataOnPatch(const int data_idx,
+                                              Pointer<Variable<NDIM> > /*var*/,
+                                              Pointer<Patch<NDIM> > patch,
+                                              const double data_time,
+                                              const bool /*initial_time*/,
+                                              Pointer<PatchLevel<NDIM> > /*level*/)
 {
     d_parser_time = data_time;
 

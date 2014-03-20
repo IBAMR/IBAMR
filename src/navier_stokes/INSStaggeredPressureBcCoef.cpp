@@ -68,7 +68,8 @@ namespace IBAMR
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
     const INSStaggeredHierarchyIntegrator* fluid_solver,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const TractionBcType traction_bc_type, const bool homogeneous_bc)
+    const TractionBcType traction_bc_type,
+    const bool homogeneous_bc)
     : d_fluid_solver(fluid_solver),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
@@ -233,8 +234,8 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& a
     const bool is_lower = location_index % 2 == 0;
     const double half_time =
         d_fluid_solver->getIntegratorTime() + 0.5 * d_fluid_solver->getCurrentTimeStepSize();
-    d_bc_coefs[bdry_normal_axis]
-        ->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, half_time);
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, half_time);
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
@@ -314,8 +315,10 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& a
                 // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
                 static const int NVALS = 3;
                 double u_current[NVALS], u_new[NVALS];
-                SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower :
-                                                                      SideIndex<NDIM>::Upper);
+                SideIndex<NDIM> i_s(i_i,
+                                    bdry_normal_axis,
+                                    is_lower ? SideIndex<NDIM>::Lower :
+                                               SideIndex<NDIM>::Upper);
                 for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
                 {
                     u_current[k] = (*u_current_data)(i_s);

@@ -69,17 +69,62 @@ class Variable;
 extern "C" {
 void CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
 #if (NDIM == 2)
-    double*, double*, const int&, const int&, const int&, const int&, const int&,
-    const double*, const double*, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
     const int&,
 #endif
 #if (NDIM == 3)
-    double*, double*, double*, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const double*, const double*, const double*, const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
 #endif
     const int*);
 }
@@ -114,7 +159,8 @@ CartSideDoubleSpecializedConstantRefine::~CartSideDoubleSpecializedConstantRefin
 } // ~CartSideDoubleSpecializedConstantRefine
 
 bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(
-    const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+    const Pointer<Variable<NDIM> >& var,
+    const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
@@ -135,9 +181,12 @@ IntVector<NDIM> CartSideDoubleSpecializedConstantRefine::getStencilWidth() const
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void CartSideDoubleSpecializedConstantRefine::refine(
-    Patch<NDIM>& fine, const Patch<NDIM>& coarse, const int dst_component,
-    const int src_component, const Box<NDIM>& fine_box, const IntVector<NDIM>& ratio) const
+void CartSideDoubleSpecializedConstantRefine::refine(Patch<NDIM>& fine,
+                                                     const Patch<NDIM>& coarse,
+                                                     const int dst_component,
+                                                     const int src_component,
+                                                     const Box<NDIM>& fine_box,
+                                                     const IntVector<NDIM>& ratio) const
 {
     // Get the patch data.
     Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);
@@ -167,25 +216,62 @@ void CartSideDoubleSpecializedConstantRefine::refine(
     {
         CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
 #if (NDIM == 2)
-            fdata->getPointer(0, depth), fdata->getPointer(1, depth), fdata_gcw,
-            fdata_box.lower()(0), fdata_box.upper()(0), fdata_box.lower()(1),
-            fdata_box.upper()(1), cdata->getPointer(0, depth), cdata->getPointer(1, depth),
-            cdata_gcw, cdata_box.lower()(0), cdata_box.upper()(0), cdata_box.lower()(1),
-            cdata_box.upper()(1), fine_box.lower()(0), fine_box.upper()(0),
-            fine_box.lower()(1), fine_box.upper()(1), fill_box.lower()(0), fill_box.upper()(0),
-            fill_box.lower()(1), fill_box.upper()(1),
+            fdata->getPointer(0, depth),
+            fdata->getPointer(1, depth),
+            fdata_gcw,
+            fdata_box.lower()(0),
+            fdata_box.upper()(0),
+            fdata_box.lower()(1),
+            fdata_box.upper()(1),
+            cdata->getPointer(0, depth),
+            cdata->getPointer(1, depth),
+            cdata_gcw,
+            cdata_box.lower()(0),
+            cdata_box.upper()(0),
+            cdata_box.lower()(1),
+            cdata_box.upper()(1),
+            fine_box.lower()(0),
+            fine_box.upper()(0),
+            fine_box.lower()(1),
+            fine_box.upper()(1),
+            fill_box.lower()(0),
+            fill_box.upper()(0),
+            fill_box.lower()(1),
+            fill_box.upper()(1),
 #endif
 #if (NDIM == 3)
-            fdata->getPointer(0, depth), fdata->getPointer(1, depth),
-            fdata->getPointer(2, depth), fdata_gcw, fdata_box.lower()(0), fdata_box.upper()(0),
-            fdata_box.lower()(1), fdata_box.upper()(1), fdata_box.lower()(2),
-            fdata_box.upper()(2), cdata->getPointer(0, depth), cdata->getPointer(1, depth),
-            cdata->getPointer(2, depth), cdata_gcw, cdata_box.lower()(0), cdata_box.upper()(0),
-            cdata_box.lower()(1), cdata_box.upper()(1), cdata_box.lower()(2),
-            cdata_box.upper()(2), fine_box.lower()(0), fine_box.upper()(0),
-            fine_box.lower()(1), fine_box.upper()(1), fine_box.lower()(2), fine_box.upper()(2),
-            fill_box.lower()(0), fill_box.upper()(0), fill_box.lower()(1), fill_box.upper()(1),
-            fill_box.lower()(2), fill_box.upper()(2),
+            fdata->getPointer(0, depth),
+            fdata->getPointer(1, depth),
+            fdata->getPointer(2, depth),
+            fdata_gcw,
+            fdata_box.lower()(0),
+            fdata_box.upper()(0),
+            fdata_box.lower()(1),
+            fdata_box.upper()(1),
+            fdata_box.lower()(2),
+            fdata_box.upper()(2),
+            cdata->getPointer(0, depth),
+            cdata->getPointer(1, depth),
+            cdata->getPointer(2, depth),
+            cdata_gcw,
+            cdata_box.lower()(0),
+            cdata_box.upper()(0),
+            cdata_box.lower()(1),
+            cdata_box.upper()(1),
+            cdata_box.lower()(2),
+            cdata_box.upper()(2),
+            fine_box.lower()(0),
+            fine_box.upper()(0),
+            fine_box.lower()(1),
+            fine_box.upper()(1),
+            fine_box.lower()(2),
+            fine_box.upper()(2),
+            fill_box.lower()(0),
+            fill_box.upper()(0),
+            fill_box.lower()(1),
+            fill_box.upper()(1),
+            fill_box.lower()(2),
+            fill_box.upper()(2),
 #endif
             ratio);
     }

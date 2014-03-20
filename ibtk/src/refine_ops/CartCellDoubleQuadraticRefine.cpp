@@ -123,8 +123,10 @@ IntVector<NDIM> CartCellDoubleQuadraticRefine::getStencilWidth() const
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
-void CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine, const Patch<NDIM>& coarse,
-                                           const int dst_component, const int src_component,
+void CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
+                                           const Patch<NDIM>& coarse,
+                                           const int dst_component,
+                                           const int src_component,
                                            const Box<NDIM>& fine_box,
                                            const IntVector<NDIM>& ratio) const
 {
@@ -174,7 +176,8 @@ void CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine, const Patch<NDIM>&
                     (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
             std::vector<double> X_crse(degree + 1, 0.0);
             for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
-                 i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
+                 i_crse <= stencil_box_crse.upper()(axis);
+                 ++i_crse, ++k)
             {
                 X_crse[k] = XLower_crse[axis] +
                             dx_crse[axis] *

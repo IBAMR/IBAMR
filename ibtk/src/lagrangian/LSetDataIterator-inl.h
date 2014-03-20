@@ -53,9 +53,7 @@ inline LSetDataIterator<T>::LSetDataIterator()
 
 template <class T>
 inline LSetDataIterator<T>::LSetDataIterator(const LSetDataIterator<T>& that)
-    : d_box(that.d_box),
-      d_index_it(that.d_index_it),
-      d_node_set(that.d_node_set),
+    : d_box(that.d_box), d_index_it(that.d_index_it), d_node_set(that.d_node_set),
       d_node_it(that.d_node_it)
 {
     // intentionally blank

@@ -82,7 +82,8 @@ namespace IBAMR
 
 namespace
 {
-void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset,
+void resetLocalPETScIndices(std::vector<int>& inds,
+                            const int global_node_offset,
                             const int num_local_nodes)
 {
 #if defined(NDEBUG)
@@ -99,7 +100,8 @@ void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset
     return;
 } // resetLocalPETScIndices
 
-void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds, const int global_node_offset,
+void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
+                                      const int global_node_offset,
                                       const int num_local_nodes,
                                       const std::vector<int>& nonlocal_petsc_idxs)
 {
@@ -146,7 +148,8 @@ IBStandardForceGen::~IBStandardForceGen()
 } // ~IBStandardForceGen
 
 void IBStandardForceGen::registerSpringForceFunction(
-    const int force_fcn_index, const SpringForceFcnPtr spring_force_fcn_ptr,
+    const int force_fcn_index,
+    const SpringForceFcnPtr spring_force_fcn_ptr,
     const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr)
 {
     d_spring_force_fcn_map[force_fcn_index] = spring_force_fcn_ptr;
@@ -184,12 +187,24 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     std::set<int> nonlocal_petsc_idx_set;
 
     // Setup the cached data.
-    initializeSpringLevelData(nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time,
-                              initial_time, l_data_manager);
-    initializeBeamLevelData(nonlocal_petsc_idx_set, hierarchy, level_number, init_data_time,
-                            initial_time, l_data_manager);
-    initializeTargetPointLevelData(nonlocal_petsc_idx_set, hierarchy, level_number,
-                                   init_data_time, initial_time, l_data_manager);
+    initializeSpringLevelData(nonlocal_petsc_idx_set,
+                              hierarchy,
+                              level_number,
+                              init_data_time,
+                              initial_time,
+                              l_data_manager);
+    initializeBeamLevelData(nonlocal_petsc_idx_set,
+                            hierarchy,
+                            level_number,
+                            init_data_time,
+                            initial_time,
+                            l_data_manager);
+    initializeTargetPointLevelData(nonlocal_petsc_idx_set,
+                                   hierarchy,
+                                   level_number,
+                                   init_data_time,
+                                   initial_time,
+                                   l_data_manager);
 
     // Put the nonlocal PETSc indices into a vector.
     std::vector<int> nonlocal_petsc_idxs(nonlocal_petsc_idx_set.begin(),
@@ -200,18 +215,26 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
 
     resetLocalPETScIndices(d_spring_data[level_number].petsc_mastr_node_idxs,
-                           global_node_offset, num_local_nodes);
-    resetLocalPETScIndices(d_beam_data[level_number].petsc_mastr_node_idxs, global_node_offset,
+                           global_node_offset,
                            num_local_nodes);
+    resetLocalPETScIndices(
+        d_beam_data[level_number].petsc_mastr_node_idxs, global_node_offset, num_local_nodes);
     resetLocalPETScIndices(d_target_point_data[level_number].petsc_node_idxs,
-                           global_node_offset, num_local_nodes);
+                           global_node_offset,
+                           num_local_nodes);
 
     resetLocalOrNonlocalPETScIndices(d_spring_data[level_number].petsc_slave_node_idxs,
-                                     global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
+                                     global_node_offset,
+                                     num_local_nodes,
+                                     nonlocal_petsc_idxs);
     resetLocalOrNonlocalPETScIndices(d_beam_data[level_number].petsc_next_node_idxs,
-                                     global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
+                                     global_node_offset,
+                                     num_local_nodes,
+                                     nonlocal_petsc_idxs);
     resetLocalOrNonlocalPETScIndices(d_beam_data[level_number].petsc_prev_node_idxs,
-                                     global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
+                                     global_node_offset,
+                                     num_local_nodes,
+                                     nonlocal_petsc_idxs);
 
     std::ostringstream X_name_stream;
     X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
@@ -275,10 +298,12 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> 
     return;
 } // initializeLevelData
 
-void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data, Pointer<LData> X_data,
+void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
+                                                Pointer<LData> X_data,
                                                 Pointer<LData> U_data,
                                                 const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                const int level_number, const double data_time,
+                                                const int level_number,
+                                                const double data_time,
                                                 LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -297,8 +322,8 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data, Pointer<L
 
     Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
     Pointer<LData> dX_data = d_dX_data[level_number];
-    ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(),
-                       dX_data->getVec());
+    ierr = VecAXPBYPCZ(
+        X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
@@ -306,12 +331,17 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data, Pointer<L
     IBTK_CHKERRQ(ierr);
 
     // Compute the forces.
-    computeLagrangianSpringForce(F_ghost_data, X_ghost_data, hierarchy, level_number,
-                                 data_time, l_data_manager);
-    computeLagrangianBeamForce(F_ghost_data, X_ghost_data, hierarchy, level_number, data_time,
-                               l_data_manager);
-    computeLagrangianTargetPointForce(F_ghost_data, X_ghost_data, U_data, hierarchy,
-                                      level_number, data_time, l_data_manager);
+    computeLagrangianSpringForce(
+        F_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    computeLagrangianBeamForce(
+        F_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
+    computeLagrangianTargetPointForce(F_ghost_data,
+                                      X_ghost_data,
+                                      U_data,
+                                      hierarchy,
+                                      level_number,
+                                      data_time,
+                                      l_data_manager);
 
     // Add the locally computed forces to the Lagrangian force vector.
     //
@@ -327,8 +357,10 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data, Pointer<L
 } // computeLagrangianForce
 
 void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& d_nnz, std::vector<int>& o_nnz,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -513,10 +545,16 @@ void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 } // computeLagrangianForceJacobianNonzeroStructure
 
 void IBStandardForceGen::computeLagrangianForceJacobian(
-    Mat& J_mat, MatAssemblyType assembly_type, const double X_coef, Pointer<LData> X_data,
-    const double U_coef, Pointer<LData> /*U_data*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*data_time*/, LDataManager* const l_data_manager)
+    Mat& J_mat,
+    MatAssemblyType assembly_type,
+    const double X_coef,
+    Pointer<LData> X_data,
+    const double U_coef,
+    Pointer<LData> /*U_data*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*data_time*/,
+    LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -589,11 +627,11 @@ void IBStandardForceGen::computeLagrangianForceJacobian(
             petsc_slave_idx /= NDIM;
 
             // Accumulate the off-diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_mastr_idx, 1, &petsc_slave_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_mastr_idx, 1, &petsc_slave_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_slave_idx, 1, &petsc_mastr_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_slave_idx, 1, &petsc_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             // Negate dF_dX to obtain the Jacobian of the force applied by the
@@ -602,11 +640,11 @@ void IBStandardForceGen::computeLagrangianForceJacobian(
             dF_dX *= -1.0;
 
             // Accumulate the diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_mastr_idx, 1, &petsc_mastr_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_mastr_idx, 1, &petsc_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_slave_idx, 1, &petsc_slave_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_slave_idx, 1, &petsc_slave_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -632,42 +670,42 @@ void IBStandardForceGen::computeLagrangianForceJacobian(
             {
                 dF_dX(alpha, alpha) = -1.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_prev_idx, 1, &petsc_prev_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_prev_idx, 1, &petsc_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_prev_idx, 1, &petsc_next_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_prev_idx, 1, &petsc_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_next_idx, 1, &petsc_prev_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_next_idx, 1, &petsc_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_next_idx, 1, &petsc_next_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_next_idx, 1, &petsc_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
             {
                 dF_dX(alpha, alpha) = +2.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_prev_idx, 1, &petsc_mastr_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_prev_idx, 1, &petsc_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_next_idx, 1, &petsc_mastr_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_next_idx, 1, &petsc_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_mastr_idx, 1, &petsc_prev_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_mastr_idx, 1, &petsc_prev_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_mastr_idx, 1, &petsc_next_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_mastr_idx, 1, &petsc_next_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
 
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
             {
                 dF_dX(alpha, alpha) = -4.0 * bend * X_coef;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_mastr_idx, 1, &petsc_mastr_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_mastr_idx, 1, &petsc_mastr_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -688,8 +726,8 @@ void IBStandardForceGen::computeLagrangianForceJacobian(
             {
                 dF_dX(alpha, alpha) = -X_coef * K - U_coef * E;
             }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_node_idx, 1, &petsc_node_idx,
-                                       dF_dX.data(), ADD_VALUES);
+            ierr = MatSetValuesBlocked(
+                J_mat, 1, &petsc_node_idx, 1, &petsc_node_idx, dF_dX.data(), ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -702,10 +740,13 @@ void IBStandardForceGen::computeLagrangianForceJacobian(
     return;
 } // computeLagrangianForceJacobian
 
-double IBStandardForceGen::computeLagrangianEnergy(
-    Pointer<LData> /*X_data*/, Pointer<LData> /*U_data*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*data_time*/, LDataManager* const l_data_manager)
+double
+IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
+                                            Pointer<LData> /*U_data*/,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*data_time*/,
+                                            LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
@@ -720,8 +761,11 @@ double IBStandardForceGen::computeLagrangianEnergy(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBStandardForceGen::initializeSpringLevelData(
-    std::set<int>& nonlocal_petsc_idx_set, const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number, const double /*init_data_time*/, const bool /*initial_time*/,
+    std::set<int>& nonlocal_petsc_idx_set,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     std::vector<int>& lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
@@ -757,7 +801,8 @@ void IBStandardForceGen::initializeSpringLevelData(
     // Determine how many springs are associated with the present MPI process.
     unsigned int num_springs = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec =
@@ -780,7 +825,8 @@ void IBStandardForceGen::initializeSpringLevelData(
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec =
@@ -835,9 +881,12 @@ void IBStandardForceGen::initializeSpringLevelData(
 } // initializeSpringLevelData
 
 void IBStandardForceGen::computeLagrangianSpringForce(
-    Pointer<LData> F_data, Pointer<LData> X_data,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*data_time*/, LDataManager* const /*l_data_manager*/)
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_springs = d_spring_data[level_number].lag_mastr_node_idxs.size();
     if (!num_springs) return;
@@ -891,8 +940,8 @@ void IBStandardForceGen::computeLagrangianSpringForce(
             R = sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
 #endif
             if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
-            T_over_R = (force_fcns[k])(R, parameters[k], lag_mastr_node_idxs[k],
-                                       lag_slave_node_idxs[k]) /
+            T_over_R = (force_fcns[k])(
+                           R, parameters[k], lag_mastr_node_idxs[k], lag_slave_node_idxs[k]) /
                        R;
             F[0] = T_over_R * D[0];
             F[1] = T_over_R * D[1];
@@ -955,10 +1004,13 @@ void IBStandardForceGen::computeLagrangianSpringForce(
     return;
 } // computeLagrangianSpringForce
 
-void IBStandardForceGen::initializeBeamLevelData(
-    std::set<int>& nonlocal_petsc_idx_set, const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int level_number, const double /*init_data_time*/, const bool /*initial_time*/,
-    LDataManager* const l_data_manager)
+void
+IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
+                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int level_number,
+                                            const double /*init_data_time*/,
+                                            const bool /*initial_time*/,
+                                            LDataManager* const l_data_manager)
 {
     std::vector<int>& petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
     std::vector<int>& petsc_next_node_idxs = d_beam_data[level_number].petsc_next_node_idxs;
@@ -984,7 +1036,8 @@ void IBStandardForceGen::initializeBeamLevelData(
     // Determine how many beams are associated with the present MPI process.
     unsigned int num_beams = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
@@ -1002,7 +1055,8 @@ void IBStandardForceGen::initializeBeamLevelData(
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
@@ -1047,7 +1101,8 @@ void IBStandardForceGen::initializeBeamLevelData(
     // NOTE: Only neighbor nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
     for (std::vector<int>::const_iterator cit = petsc_next_node_idxs.begin();
-         cit != petsc_next_node_idxs.end(); ++cit)
+         cit != petsc_next_node_idxs.end();
+         ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset + num_local_nodes)
@@ -1056,7 +1111,8 @@ void IBStandardForceGen::initializeBeamLevelData(
         }
     }
     for (std::vector<int>::const_iterator cit = petsc_prev_node_idxs.begin();
-         cit != petsc_prev_node_idxs.end(); ++cit)
+         cit != petsc_prev_node_idxs.end();
+         ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset + num_local_nodes)
@@ -1068,9 +1124,12 @@ void IBStandardForceGen::initializeBeamLevelData(
 } // initializeBeamLevelData
 
 void IBStandardForceGen::computeLagrangianBeamForce(
-    Pointer<LData> F_data, Pointer<LData> X_data,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*data_time*/, LDataManager* const /*l_data_manager*/)
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_beams = d_beam_data[level_number].petsc_mastr_node_idxs.size();
     if (!num_beams) return;
@@ -1186,8 +1245,10 @@ void IBStandardForceGen::computeLagrangianBeamForce(
 
 void IBStandardForceGen::initializeTargetPointLevelData(
     std::set<int>& /*nonlocal_petsc_idx_set*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*init_data_time*/, const bool /*initial_time*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     std::vector<int>& petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
@@ -1214,7 +1275,8 @@ void IBStandardForceGen::initializeTargetPointLevelData(
     // process.
     unsigned int num_target_points = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec =
@@ -1235,7 +1297,8 @@ void IBStandardForceGen::initializeTargetPointLevelData(
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+         cit != local_nodes.end();
+         ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec =
@@ -1251,9 +1314,13 @@ void IBStandardForceGen::initializeTargetPointLevelData(
 } // initializeTargetPointLevelData
 
 void IBStandardForceGen::computeLagrangianTargetPointForce(
-    Pointer<LData> F_data, Pointer<LData> X_data, Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int level_number,
-    const double /*data_time*/, LDataManager* const /*l_data_manager*/)
+    Pointer<LData> F_data,
+    Pointer<LData> X_data,
+    Pointer<LData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int level_number,
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
     if (!num_target_points) return;

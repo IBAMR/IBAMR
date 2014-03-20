@@ -152,7 +152,8 @@ public:
      * overriding those found in the restart file).
      */
     AdvectorPredictorCorrectorHyperbolicPatchOps(
-        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
         bool register_for_restart = true);
@@ -292,14 +293,16 @@ public:
      * concrete IBTK::CartGridFunction objects registered with the patch strategy when
      * provided.  Otherwise, initialize data to zero.
      */
-    virtual void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double data_time,
+    virtual void initializeDataOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double data_time,
                                        bool initial_time);
 
     /*!
      * \brief Compute a stable time increment for patch using an explicit CFL
      * condition and return the computed dt.
      */
-    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch, bool initial_time,
+    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                          bool initial_time,
                                           double dt_time);
 
     /*!
@@ -309,15 +312,17 @@ public:
      * The conservative difference used to update the integrated quantities is
      * implemented in conservativeDifferenceOnPatch().
      */
-    virtual void computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time,
-                                      double dt);
+    virtual void
+    computeFluxesOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt);
 
     /*!
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    virtual void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time,
-                                               double dt, bool at_synchronization);
+    virtual void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
+                                               double time,
+                                               double dt,
+                                               bool at_synchronization);
 
     /*!
      * \brief Compute the values of any time-dependent source terms for use by
@@ -333,7 +338,11 @@ public:
      */
     virtual void preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time, double dt, bool first_step, bool last_step, bool regrid_advance);
+        double current_time,
+        double dt,
+        bool first_step,
+        bool last_step,
+        bool regrid_advance);
 
     /*!
      * \brief Add source terms to the updated solution.
@@ -349,13 +358,19 @@ public:
      */
     virtual void postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time, double dt, bool first_step, bool last_step, bool regrid_advance);
+        double current_time,
+        double dt,
+        bool first_step,
+        bool last_step,
+        bool regrid_advance);
 
     /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
-    virtual void tagGradientDetectorCells(SAMRAI::hier::Patch<NDIM>& patch, double regrid_time,
-                                          bool initial_error, int tag_indexindx,
+    virtual void tagGradientDetectorCells(SAMRAI::hier::Patch<NDIM>& patch,
+                                          double regrid_time,
+                                          bool initial_error,
+                                          int tag_indexindx,
                                           bool uses_richardson_extrapolation_too);
 
     /*!
@@ -363,7 +378,8 @@ public:
      * conditions.
      */
     virtual void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

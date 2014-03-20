@@ -44,14 +44,13 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LNodeIndex::LNodeIndex(const int lagrangian_nidx, const int global_petsc_nidx,
+inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
+                              const int global_petsc_nidx,
                               const int local_petsc_nidx,
                               const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
                               const Vector& periodic_displacement)
-    : d_lagrangian_nidx(lagrangian_nidx),
-      d_global_petsc_nidx(global_petsc_nidx),
-      d_local_petsc_nidx(local_petsc_nidx),
-      d_offset(periodic_offset),
+    : d_lagrangian_nidx(lagrangian_nidx), d_global_petsc_nidx(global_petsc_nidx),
+      d_local_petsc_nidx(local_petsc_nidx), d_offset(periodic_offset),
       d_displacement(periodic_displacement)
 {
     // intentionally blank
@@ -59,10 +58,8 @@ inline LNodeIndex::LNodeIndex(const int lagrangian_nidx, const int global_petsc_
 } // LNodeIndex
 
 inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
-    : d_lagrangian_nidx(from.d_lagrangian_nidx),
-      d_global_petsc_nidx(from.d_global_petsc_nidx),
-      d_local_petsc_nidx(from.d_local_petsc_nidx),
-      d_offset(from.d_offset),
+    : d_lagrangian_nidx(from.d_lagrangian_nidx), d_global_petsc_nidx(from.d_global_petsc_nidx),
+      d_local_petsc_nidx(from.d_local_petsc_nidx), d_offset(from.d_offset),
       d_displacement(from.d_displacement)
 {
     // intentionally blank
@@ -71,10 +68,7 @@ inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
 
 inline LNodeIndex::LNodeIndex(SAMRAI::tbox::AbstractStream& stream,
                               const SAMRAI::hier::IntVector<NDIM>& offset)
-    : d_lagrangian_nidx(-1),
-      d_global_petsc_nidx(-1),
-      d_local_petsc_nidx(-1),
-      d_offset(0),
+    : d_lagrangian_nidx(-1), d_global_petsc_nidx(-1), d_local_petsc_nidx(-1), d_offset(0),
       d_displacement(Vector::Zero())
 {
     unpackStream(stream, offset);

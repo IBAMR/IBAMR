@@ -118,7 +118,8 @@ public:
      */
     PoissonFACPreconditionerStrategy(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var, int ghost_cell_width,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
+        int ghost_cell_width,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::string& default_options_prefix);
 
@@ -254,7 +255,8 @@ public:
      * \param dst_ln destination level number
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                          int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -265,7 +267,8 @@ public:
      * \param dst_ln destination level number of data transfer
      */
     void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                      int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -276,7 +279,8 @@ public:
      * \param dst_ln destination level number of data transfer
      */
     void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst, int dst_ln);
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                                int dst_ln);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -312,7 +316,8 @@ protected:
      */
     virtual void initializeOperatorStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_reset_ln,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+        int coarsest_reset_ln,
         int finest_reset_ln) = 0;
 
     /*!

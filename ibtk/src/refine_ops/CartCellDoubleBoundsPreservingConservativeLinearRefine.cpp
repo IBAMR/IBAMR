@@ -84,14 +84,15 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::
 } // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
 bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(
-    const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+    const Pointer<Variable<NDIM> >& var,
+    const std::string& op_name) const
 {
     const Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string&
-CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName() const
+const std::string& CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName()
+    const
 {
     return s_op_name;
 } // getOperatorName
@@ -106,9 +107,14 @@ IntVector<NDIM> CartCellDoubleBoundsPreservingConservativeLinearRefine::getStenc
     return d_conservative_linear_refine_op.getStencilWidth();
 } // getStencilWidth
 
-void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
-    Patch<NDIM>& fine, const Patch<NDIM>& coarse, const int dst_component,
-    const int src_component, const Box<NDIM>& fine_box, const IntVector<NDIM>& ratio) const
+void
+CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine,
+                                                               const Patch<NDIM>& coarse,
+                                                               const int dst_component,
+                                                               const int src_component,
+                                                               const Box<NDIM>& fine_box,
+                                                               const IntVector<NDIM>& ratio)
+    const
 {
     // Determine the box over which we can apply the bounds-preserving
     // correction, and construct a list of boxes that will not be corrected.
@@ -143,8 +149,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
 
     // Employ limited conservative interpolation to prolong data on the
     // correction box.
-    d_conservative_linear_refine_op.refine(fine, coarse, dst_component, src_component,
-                                           correction_box, ratio);
+    d_conservative_linear_refine_op.refine(
+        fine, coarse, dst_component, src_component, correction_box, ratio);
 
     // Employ constant interpolation to prolong data on the rest of the fine
     // box.

@@ -68,10 +68,13 @@ public:
      * \brief Constructor.
      */
     CartSideDoubleDivPreservingRefine(
-        int u_dst_idx, int u_src_idx, int indicator_idx,
+        int u_dst_idx,
+        int u_src_idx,
+        int indicator_idx,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op,
-        double fill_time, SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op);
+        double fill_time,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op);
 
     /*!
      * \brief Virtual destructor.
@@ -106,7 +109,8 @@ public:
      *registered scratch components.
      */
     virtual void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch, double fill_time,
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

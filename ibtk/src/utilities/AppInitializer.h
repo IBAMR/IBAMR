@@ -59,7 +59,8 @@ public:
      * Constructor for class AppInitializer parses command line arguments, sets
      * up input and restart databases, and enables SAMRAI logging.
      */
-    AppInitializer(int argc, char* argv[],
+    AppInitializer(int argc,
+                   char* argv[],
                    const std::string& default_log_file_name = "IBAMR.log");
 
     /*!
@@ -83,8 +84,8 @@ public:
      * database for the application, this method emits a warning message and
      * returns a NullDatabse.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getRestartDatabase(bool suppress_warning =
-                                                                         false);
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+    getRestartDatabase(bool suppress_warning = false);
 
     /*!
      * Return initialization database for the requested solver component.  This

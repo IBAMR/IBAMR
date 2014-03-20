@@ -72,14 +72,8 @@ static const int CELLG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(),
-      d_level_num(-1),
-      d_ksp_type(KSPGMRES),
-      d_options_prefix(""),
-      d_petsc_ksp(NULL),
-      d_petsc_mat(NULL),
-      d_petsc_x(NULL),
-      d_petsc_b(NULL)
+    : d_hierarchy(), d_level_num(-1), d_ksp_type(KSPGMRES), d_options_prefix(""),
+      d_petsc_ksp(NULL), d_petsc_mat(NULL), d_petsc_x(NULL), d_petsc_b(NULL)
 {
     // Setup default options.
     d_max_iterations = 10000;
@@ -146,8 +140,8 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     if (deallocate_after_solve) initializeSolverState(x, b);
 
     // Configure solver.
-    ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT,
-                            d_max_iterations);
+    ierr = KSPSetTolerances(
+        d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp,
                                      d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
@@ -368,7 +362,8 @@ void PETScLevelSolver::setupNullspace()
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatNullSpaceCreate(
-        PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+        PETSC_COMM_WORLD,
+        d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
         petsc_nullspace_basis_vecs.size(),
         (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
         &d_petsc_nullsp);

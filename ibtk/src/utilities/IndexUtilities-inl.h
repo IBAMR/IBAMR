@@ -66,8 +66,10 @@ IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse,
 
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::getCellIndex(const DoubleArray& X, const double* const x_lower,
-                             const double* const /*x_upper*/, const double* const dx,
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const double* const x_lower,
+                             const double* const /*x_upper*/,
+                             const double* const dx,
                              const SAMRAI::hier::Index<NDIM>& ilower,
                              const SAMRAI::hier::Index<NDIM>& /*iupper*/)
 {

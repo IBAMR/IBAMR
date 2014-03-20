@@ -147,7 +147,9 @@ public:
             u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
             u_ghost_fill_scheds,
-        int integrator_step, double init_data_time, bool initial_time);
+        int integrator_step,
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Write out object state to the given database.

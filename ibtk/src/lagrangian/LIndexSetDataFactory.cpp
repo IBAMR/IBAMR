@@ -103,8 +103,8 @@ size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 } // getSizeOfMemory
 
 template <class T>
-bool
-LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf)
+    const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

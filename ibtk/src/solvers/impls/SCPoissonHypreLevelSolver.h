@@ -289,7 +289,8 @@ private:
                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src_data,
                      const SAMRAI::hier::Box<NDIM>& box);
     void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst_data,
-                       HYPRE_SStructVector vector, const SAMRAI::hier::Box<NDIM>& box);
+                       HYPRE_SStructVector vector,
+                       const SAMRAI::hier::Box<NDIM>& box);
     void destroyHypreSolver();
     void deallocateHypreData();
 

@@ -89,9 +89,13 @@ inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int da
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
-    Mat& mat, const PoissonSpecifications& u_problem_coefs,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs, double data_time,
-    const std::vector<int>& num_dofs_per_proc, int u_dof_index_idx, int p_dof_index_idx,
+    Mat& mat,
+    const PoissonSpecifications& u_problem_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    int u_dof_index_idx,
+    int p_dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -222,8 +226,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE,
-                        PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        nlocal,
+                        nlocal,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -352,9 +364,13 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(
-                    ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx,
-                    shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(
+                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                     touches_regular_bdry,
+                                                     touches_periodic_bdry,
+                                                     dx,
+                                                     shifted_patch_x_lower.data(),
+                                                     shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -365,8 +381,13 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
-                                             trimmed_bdry_box, data_time);
+                u_bc_coefs[axis]->setBcCoefs(acoef_data,
+                                             bcoef_data,
+                                             gcoef_data,
+                                             NULL,
+                                             *patch,
+                                             trimmed_bdry_box,
+                                             data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef)
                     gcoef_data->fillAll(0.0);
 
@@ -450,8 +471,13 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
-                                             trimmed_bdry_box, data_time);
+                u_bc_coefs[axis]->setBcCoefs(acoef_data,
+                                             bcoef_data,
+                                             gcoef_data,
+                                             NULL,
+                                             *patch,
+                                             trimmed_bdry_box,
+                                             data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef)
                     gcoef_data->fillAll(0.0);
 
@@ -512,8 +538,13 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                 }
 
-                ierr = MatSetValues(mat, 1, &u_dof_index, u_stencil_sz, &u_mat_cols[0],
-                                    &u_mat_vals[0], INSERT_VALUES);
+                ierr = MatSetValues(mat,
+                                    1,
+                                    &u_dof_index,
+                                    u_stencil_sz,
+                                    &u_mat_cols[0],
+                                    &u_mat_vals[0],
+                                    INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -540,8 +571,13 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             p_mat_vals[pu_stencil_sz] = 0.0;
             p_mat_cols[pu_stencil_sz] = p_dof_index;
 
-            ierr = MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, &p_mat_cols[0],
-                                &p_mat_vals[0], INSERT_VALUES);
+            ierr = MatSetValues(mat,
+                                1,
+                                &p_dof_index,
+                                p_stencil_sz,
+                                &p_mat_cols[0],
+                                &p_mat_vals[0],
+                                INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }

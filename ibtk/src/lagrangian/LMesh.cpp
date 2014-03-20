@@ -48,7 +48,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LMesh::LMesh(const std::string& object_name, const std::vector<LNode*>& local_nodes,
+LMesh::LMesh(const std::string& object_name,
+             const std::vector<LNode*>& local_nodes,
              const std::vector<LNode*>& ghost_nodes)
     : d_object_name(object_name), d_local_nodes(local_nodes), d_ghost_nodes(ghost_nodes)
 {

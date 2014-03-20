@@ -85,7 +85,8 @@ public:
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
     AdvDiffStochasticForcing(
-        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
         const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
@@ -110,9 +111,12 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(
-        const int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+        const int data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const double data_time, const bool initial_time = false, const int coarsest_ln = -1,
+        const double data_time,
+        const bool initial_time = false,
+        const int coarsest_ln = -1,
         const int finest_ln = -1);
 
     /*!
@@ -121,7 +125,8 @@ public:
     void setDataOnPatch(const int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                        const double data_time, const bool initial_time = false,
+                        const double data_time,
+                        const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 

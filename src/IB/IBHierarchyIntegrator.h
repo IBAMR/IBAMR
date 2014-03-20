@@ -197,7 +197,10 @@ protected:
      */
     void initializeLevelDataSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number, double init_data_time, bool can_be_refined, bool initial_time,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
         bool allocate_data);
 
@@ -206,7 +209,8 @@ protected:
      */
     void resetHierarchyConfigurationSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level, int finest_level);
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -214,7 +218,10 @@ protected:
      */
     void applyGradientDetectorSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number, double error_data_time, int tag_index, bool initial_time,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
         bool uses_richardson_extrapolation_too);
 
     /*!
@@ -341,10 +348,13 @@ protected:
          * the patch hierarchy.
          */
         void setDataOnPatchHierarchy(
-            const int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+            const int data_idx,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-            const double data_time, const bool initial_time = false,
-            const int coarsest_ln = -1, const int finest_ln = -1);
+            const double data_time,
+            const bool initial_time = false,
+            const int coarsest_ln = -1,
+            const int finest_ln = -1);
 
         /*!
          * Set the data on the patch interior.
@@ -352,7 +362,8 @@ protected:
         void setDataOnPatch(int data_idx,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                            double data_time, bool initial_time = false,
+                            double data_time,
+                            bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
@@ -424,7 +435,8 @@ protected:
         void setDataOnPatch(int data_idx,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                            double data_time, bool initial_time = false,
+                            double data_time,
+                            bool initial_time = false,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 

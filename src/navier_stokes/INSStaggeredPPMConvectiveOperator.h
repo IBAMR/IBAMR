@@ -80,7 +80,8 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(
-        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
@@ -98,8 +99,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new INSStaggeredPPMConvectiveOperator(object_name, input_db, difference_form,
-                                                     bc_coefs);
+        return new INSStaggeredPPMConvectiveOperator(
+            object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!

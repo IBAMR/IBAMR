@@ -55,9 +55,11 @@ struct CellIndexFortranOrder
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                 );
@@ -92,8 +94,10 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X, const double* x_lower,
-                                                  const double* x_upper, const double* dx,
+    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
+                                                  const double* x_lower,
+                                                  const double* x_upper,
+                                                  const double* dx,
                                                   const SAMRAI::hier::Index<NDIM>& ilower,
                                                   const SAMRAI::hier::Index<NDIM>& iupper);
 

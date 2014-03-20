@@ -246,9 +246,11 @@ double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
 /*!
  * \brief Build a local mesh database entry corresponding to a meter web.
  */
-void build_meter_web(DBfile* dbfile, std::string& dirname,
+void build_meter_web(DBfile* dbfile,
+                     std::string& dirname,
                      const boost::multi_array<Point, 2>& X_web,
-                     const boost::multi_array<Vector, 2>& dA_web, const int timestep,
+                     const boost::multi_array<Vector, 2>& dA_web,
+                     const int timestep,
                      const double simulation_time)
 {
     const int npoints = X_web.num_elements();
@@ -320,10 +322,15 @@ void build_meter_web(DBfile* dbfile, std::string& dirname,
 } // build_meter_web
 #endif
 
-double linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_cell,
-                     const CellData<NDIM, double>& v, const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/, const double* const /*x_lower*/,
-                     const double* const /*x_upper*/, const double* const dx)
+double linear_interp(const Point& X,
+                     const Index<NDIM>& i_cell,
+                     const Point& X_cell,
+                     const CellData<NDIM, double>& v,
+                     const Index<NDIM>& /*patch_lower*/,
+                     const Index<NDIM>& /*patch_upper*/,
+                     const double* const /*x_lower*/,
+                     const double* const /*x_upper*/,
+                     const double* const dx)
 {
     boost::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -361,7 +368,8 @@ double linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_c
                                      dx[2])
 #endif
                                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
+                const Index<NDIM> i(i_shift0 + i_cell(0),
+                                    i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                     ,
                                     i_shift2 + i_cell(2)
@@ -378,11 +386,15 @@ double linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_c
 } // linear_interp
 
 template <int N>
-Eigen::Matrix<double, N, 1>
-linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_cell,
-              const CellData<NDIM, double>& v, const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/, const double* const /*x_lower*/,
-              const double* const /*x_upper*/, const double* const dx)
+Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
+                                          const Index<NDIM>& i_cell,
+                                          const Point& X_cell,
+                                          const CellData<NDIM, double>& v,
+                                          const Index<NDIM>& /*patch_lower*/,
+                                          const Index<NDIM>& /*patch_upper*/,
+                                          const double* const /*x_lower*/,
+                                          const double* const /*x_upper*/,
+                                          const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
@@ -423,7 +435,8 @@ linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_cell,
                                      dx[2])
 #endif
                                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
+                const Index<NDIM> i(i_shift0 + i_cell(0),
+                                    i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                     ,
                                     i_shift2 + i_cell(2)
@@ -442,10 +455,15 @@ linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_cell,
     return U;
 } // linear_interp
 
-Vector linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_cell,
-                     const SideData<NDIM, double>& v, const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/, const double* const /*x_lower*/,
-                     const double* const /*x_upper*/, const double* const dx)
+Vector linear_interp(const Point& X,
+                     const Index<NDIM>& i_cell,
+                     const Point& X_cell,
+                     const SideData<NDIM, double>& v,
+                     const Index<NDIM>& /*patch_lower*/,
+                     const Index<NDIM>& /*patch_upper*/,
+                     const double* const /*x_lower*/,
+                     const double* const /*x_upper*/,
+                     const double* const dx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == 1);
@@ -500,7 +518,8 @@ Vector linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_c
                                          dx[2])
 #endif
                                         );
-                    const Index<NDIM> i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
+                    const Index<NDIM> i(i_shift0 + i_cell(0),
+                                        i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                         i_shift2 + i_cell(2)
@@ -522,31 +541,15 @@ Vector linear_interp(const Point& X, const Index<NDIM>& i_cell, const Point& X_c
 
 IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name,
                                      Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_initialized(false),
-      d_num_meters(0),
-      d_num_perimeter_nodes(),
-      d_X_centroid(),
-      d_X_perimeter(),
-      d_X_web(),
-      d_dA_web(),
+    : d_object_name(object_name), d_initialized(false), d_num_meters(0),
+      d_num_perimeter_nodes(), d_X_centroid(), d_X_perimeter(), d_X_web(), d_dA_web(),
       d_instrument_read_timestep_num(-1),
       d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()),
-      d_max_instrument_name_len(-1),
-      d_instrument_names(),
-      d_flow_values(),
-      d_mean_pres_values(),
-      d_point_pres_values(),
-      d_web_patch_map(),
-      d_web_centroid_map(),
-      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
-      d_output_log_file(false),
-      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"),
-      d_log_file_stream(),
-      d_flow_conv(1.0),
-      d_pres_conv(1.0),
-      d_flow_units(""),
-      d_pres_units("")
+      d_max_instrument_name_len(-1), d_instrument_names(), d_flow_values(),
+      d_mean_pres_values(), d_point_pres_values(), d_web_patch_map(), d_web_centroid_map(),
+      d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"), d_output_log_file(false),
+      d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log"), d_log_file_stream(),
+      d_flow_conv(1.0), d_pres_conv(1.0), d_flow_units(""), d_pres_units("")
 {
 #if defined(IBAMR_HAVE_SILO)
 // intentionally blank
@@ -620,7 +623,8 @@ bool IBInstrumentPanel::isInstrumented() const
 } // isInstrumented
 
 void IBInstrumentPanel::initializeHierarchyIndependentData(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, LDataManager* const l_data_manager)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
 
@@ -638,7 +642,8 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+                 cit != local_nodes.end();
+                 ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec =
@@ -743,8 +748,10 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(
 } // initializeHierarchyIndependentData
 
 void IBInstrumentPanel::initializeHierarchyDependentData(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, LDataManager* const l_data_manager,
-    const int timestep_num, const double data_time)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    LDataManager* const l_data_manager,
+    const int timestep_num,
+    const double data_time)
 {
     if (!d_initialized)
     {
@@ -786,7 +793,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+                 cit != local_nodes.end();
+                 ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec =
@@ -824,7 +832,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
             std::copy(&X_perimeter_flattened[NDIM * k],
-                      (&X_perimeter_flattened[NDIM * k]) + NDIM, d_X_perimeter[m][n].data());
+                      (&X_perimeter_flattened[NDIM * k]) + NDIM,
+                      d_X_perimeter[m][n].data());
         }
     }
 
@@ -929,12 +938,19 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower,
-                        domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(
-                        X, domainXLower, domainXUpper, finer_dx.data(),
-                        finer_domain_box_level_lower, finer_domain_box_level_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X,
+                                                                       domainXLower,
+                                                                       domainXUpper,
+                                                                       dx.data(),
+                                                                       domain_box_level_lower,
+                                                                       domain_box_level_upper);
+                    const Index<NDIM> finer_i =
+                        IndexUtilities::getCellIndex(X,
+                                                     domainXLower,
+                                                     domainXUpper,
+                                                     finer_dx.data(),
+                                                     finer_domain_box_level_lower,
+                                                     finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -949,12 +965,19 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index<NDIM> i =
-                IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
-                                             domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(
-                X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower,
-                finer_domain_box_level_upper);
+            const Index<NDIM> i = IndexUtilities::getCellIndex(X,
+                                                               domainXLower,
+                                                               domainXUpper,
+                                                               dx.data(),
+                                                               domain_box_level_lower,
+                                                               domain_box_level_upper);
+            const Index<NDIM> finer_i =
+                IndexUtilities::getCellIndex(X,
+                                             domainXLower,
+                                             domainXUpper,
+                                             finer_dx.data(),
+                                             finer_domain_box_level_lower,
+                                             finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) &&
                 (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
@@ -970,10 +993,12 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
     return;
 } // initializeHierarchyDependentData
 
-void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_data_idx,
+void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
+                                           const int P_data_idx,
                                            const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                            LDataManager* const l_data_manager,
-                                           const int timestep_num, const double data_time)
+                                           const int timestep_num,
+                                           const double data_time)
 {
     if (d_num_meters == 0) return;
 
@@ -1046,41 +1071,63 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
                     if (U_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first;
-                             it != patch_range.second; ++it)
+                             it != patch_range.second;
+                             ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
                             const Vector& dA = *(it->second.dA);
-                            const Vector U =
-                                linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower,
-                                                    patch_upper, x_lower, x_upper, dx);
+                            const Vector U = linear_interp<NDIM>(X,
+                                                                 i,
+                                                                 X_cell,
+                                                                 *U_cc_data,
+                                                                 patch_lower,
+                                                                 patch_upper,
+                                                                 x_lower,
+                                                                 x_upper,
+                                                                 dx);
                             d_flow_values[meter_num] += U.dot(dA);
                         }
                     }
                     if (U_sc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first;
-                             it != patch_range.second; ++it)
+                             it != patch_range.second;
+                             ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
                             const Vector& dA = *(it->second.dA);
-                            const Vector U =
-                                linear_interp(X, i, X_cell, *U_sc_data, patch_lower,
-                                              patch_upper, x_lower, x_upper, dx);
+                            const Vector U = linear_interp(X,
+                                                           i,
+                                                           X_cell,
+                                                           *U_sc_data,
+                                                           patch_lower,
+                                                           patch_upper,
+                                                           x_lower,
+                                                           x_upper,
+                                                           dx);
                             d_flow_values[meter_num] += U.dot(dA);
                         }
                     }
                     if (P_cc_data)
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first;
-                             it != patch_range.second; ++it)
+                             it != patch_range.second;
+                             ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
                             const Vector& dA = *(it->second.dA);
-                            double P = linear_interp(X, i, X_cell, *P_cc_data, patch_lower,
-                                                     patch_upper, x_lower, x_upper, dx);
+                            double P = linear_interp(X,
+                                                     i,
+                                                     X_cell,
+                                                     *P_cc_data,
+                                                     patch_lower,
+                                                     patch_upper,
+                                                     x_lower,
+                                                     x_upper,
+                                                     dx);
                             d_mean_pres_values[meter_num] += P * dA.norm();
                             A[meter_num] += dA.norm();
                         }
@@ -1103,13 +1150,20 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
                     if (P_cc_data)
                     {
                         for (WebCentroidMap::const_iterator it = centroid_range.first;
-                             it != centroid_range.second; ++it)
+                             it != centroid_range.second;
+                             ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
-                            const double P =
-                                linear_interp(X, i, X_cell, *P_cc_data, patch_lower,
-                                              patch_upper, x_lower, x_upper, dx);
+                            const double P = linear_interp(X,
+                                                           i,
+                                                           X_cell,
+                                                           *P_cc_data,
+                                                           patch_lower,
+                                                           patch_upper,
+                                                           x_lower,
+                                                           x_upper,
+                                                           dx);
                             d_point_pres_values[meter_num] = P;
                         }
                     }
@@ -1156,7 +1210,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-                 cit != local_nodes.end(); ++cit)
+                 cit != local_nodes.end();
+                 ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec =
@@ -1183,7 +1238,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            U_perimeter_flattened.insert(U_perimeter_flattened.end(), U_perimeter[m][n].data(),
+            U_perimeter_flattened.insert(U_perimeter_flattened.end(),
+                                         U_perimeter[m][n].data(),
                                          U_perimeter[m][n].data() + NDIM);
         }
     }
@@ -1193,7 +1249,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
             std::copy(&U_perimeter_flattened[NDIM * k],
-                      (&U_perimeter_flattened[NDIM * k]) + NDIM, U_perimeter[m][n].data());
+                      (&U_perimeter_flattened[NDIM * k]) + NDIM,
+                      U_perimeter[m][n].data());
         }
     }
 
@@ -1211,8 +1268,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx, const int P_dat
     // Correct for the relative motion of the flow meters.
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
-        d_flow_values[m] -= compute_flow_correction(U_perimeter[m], U_centroid[m],
-                                                    d_X_perimeter[m], d_X_centroid[m]);
+        d_flow_values[m] -= compute_flow_correction(
+            U_perimeter[m], U_centroid[m], d_X_perimeter[m], d_X_centroid[m]);
     }
 
     // Output meter data.
@@ -1308,7 +1365,11 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
                 TBOX_ERROR(d_object_name + "::writePlotData():\n"
                            << "  Could not create directory named " << dirname << std::endl);
             }
-            build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter], timestep_num,
+            build_meter_web(dbfile,
+                            dirname,
+                            d_X_web[meter],
+                            d_dA_web[meter],
+                            timestep_num,
                             simulation_time);
         }
     }

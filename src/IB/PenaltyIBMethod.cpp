@@ -77,7 +77,8 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Database> input_db,
+PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name,
+                                 Pointer<Database> input_db,
                                  bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
@@ -100,8 +101,8 @@ PenaltyIBMethod::~PenaltyIBMethod()
     return;
 } // ~PenaltyIBMethod
 
-void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time,
-                                              int num_cycles)
+void
+PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -135,8 +136,8 @@ void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_ti
     return;
 } // preprocessIntegrateData
 
-void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time,
-                                               int num_cycles)
+void
+PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -359,13 +360,22 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
 } // computeLagrangianForce
 
 void PenaltyIBMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy, Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int u_data_idx, const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+    int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    int integrator_step, double init_data_time, bool initial_time)
+    int integrator_step,
+    double init_data_time,
+    bool initial_time)
 {
-    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds,
-                                       u_ghost_fill_scheds, integrator_step, init_data_time,
+    IBMethod::initializePatchHierarchy(hierarchy,
+                                       gridding_alg,
+                                       u_data_idx,
+                                       u_synch_scheds,
+                                       u_ghost_fill_scheds,
+                                       integrator_step,
+                                       init_data_time,
                                        initial_time);
 
     // Initialize various Lagrangian data objects.
@@ -394,9 +404,16 @@ void PenaltyIBMethod::initializePatchHierarchy(
                 d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
-            d_l_initializer->initializeMassDataOnPatchLevel(
-                global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, ln,
-                init_data_time, can_be_refined, initial_time, d_l_data_manager);
+            d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
+                                                            local_index_offset,
+                                                            M_data,
+                                                            K_data,
+                                                            d_hierarchy,
+                                                            ln,
+                                                            init_data_time,
+                                                            can_be_refined,
+                                                            initial_time,
+                                                            d_l_data_manager);
             if (d_silo_writer)
             {
                 d_silo_writer->registerVariableData("M", M_data, ln);
@@ -433,8 +450,8 @@ void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     {
         if (db->keyExists("gravitational_acceleration"))
         {
-            db->getDoubleArray("gravitational_acceleration", &d_gravitational_acceleration[0],
-                               NDIM);
+            db->getDoubleArray(
+                "gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
         }
         else
         {

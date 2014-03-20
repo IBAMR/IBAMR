@@ -66,7 +66,8 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
-    const int comp_idx, const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const int comp_idx,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
@@ -155,8 +156,8 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_bc_coefs[d_comp_idx]
-        ->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
 } // setBcCoefs

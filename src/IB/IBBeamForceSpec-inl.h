@@ -54,9 +54,7 @@ inline bool IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBBeamForceSpec::IBBeamForceSpec(const unsigned int num_beams)
-    : d_master_idx(-1),
-      d_neighbor_idxs(num_beams),
-      d_bend_rigidities(num_beams),
+    : d_master_idx(-1), d_neighbor_idxs(num_beams), d_bend_rigidities(num_beams),
       d_mesh_dependent_curvatures(num_beams)
 {
 #if !defined(NDEBUG)
@@ -71,11 +69,11 @@ inline IBBeamForceSpec::IBBeamForceSpec(const unsigned int num_beams)
 } // IBBeamForceSpec
 
 inline IBBeamForceSpec::IBBeamForceSpec(
-    const int master_idx, const std::vector<NeighborIdxs>& neighbor_idxs,
+    const int master_idx,
+    const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities,
     const std::vector<IBTK::Vector>& mesh_dependent_curvatures)
-    : d_master_idx(master_idx),
-      d_neighbor_idxs(neighbor_idxs),
+    : d_master_idx(master_idx), d_neighbor_idxs(neighbor_idxs),
       d_bend_rigidities(bend_rigidities),
       d_mesh_dependent_curvatures(mesh_dependent_curvatures)
 {

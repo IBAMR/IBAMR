@@ -142,7 +142,8 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LTransaction(int src_proc, int dst_proc,
+    LTransaction(int src_proc,
+                 int dst_proc,
                  const std::vector<LTransactionComponent>& src_item_set);
 
     /*!

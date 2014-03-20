@@ -80,7 +80,8 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesBoxRelaxationFACOperator(
-        const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::string& default_options_prefix);
 
     /*!
@@ -109,7 +110,9 @@ public:
      */
     void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                      const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                     int level_num, int num_sweeps, bool performing_pre_sweeps,
+                     int level_num,
+                     int num_sweeps,
+                     bool performing_pre_sweeps,
                      bool performing_post_sweeps);
 
     //\}
@@ -120,7 +123,8 @@ protected:
      */
     void initializeOperatorStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs, int coarsest_reset_ln,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+        int coarsest_reset_ln,
         int finest_reset_ln);
 
     /*!

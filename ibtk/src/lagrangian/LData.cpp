@@ -51,40 +51,37 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LData::LData(const std::string& name, const unsigned int num_local_nodes,
-             const unsigned int depth, const std::vector<int>& nonlocal_petsc_indices)
-    : d_name(name),
-      d_global_node_count(0),
-      d_local_node_count(0),
-      d_ghost_node_count(0),
-      d_depth(depth),
-      d_nonlocal_petsc_indices(nonlocal_petsc_indices),
-      d_global_vec(NULL),
-      d_managing_petsc_vec(true),
-      d_array(NULL),
-      d_boost_array(NULL),
-      d_boost_local_array(NULL),
-      d_boost_vec_array(NULL),
-      d_boost_local_vec_array(NULL),
-      d_ghosted_local_vec(NULL),
-      d_ghosted_local_array(NULL),
-      d_boost_ghosted_local_array(NULL),
-      d_boost_vec_ghosted_local_array(NULL)
+LData::LData(const std::string& name,
+             const unsigned int num_local_nodes,
+             const unsigned int depth,
+             const std::vector<int>& nonlocal_petsc_indices)
+    : d_name(name), d_global_node_count(0), d_local_node_count(0), d_ghost_node_count(0),
+      d_depth(depth), d_nonlocal_petsc_indices(nonlocal_petsc_indices), d_global_vec(NULL),
+      d_managing_petsc_vec(true), d_array(NULL), d_boost_array(NULL),
+      d_boost_local_array(NULL), d_boost_vec_array(NULL), d_boost_local_vec_array(NULL),
+      d_ghosted_local_vec(NULL), d_ghosted_local_array(NULL),
+      d_boost_ghosted_local_array(NULL), d_boost_vec_ghosted_local_array(NULL)
 {
     // Create the PETSc Vec that provides storage for the Lagrangian data.
     int ierr;
     if (d_depth == 1)
     {
-        ierr = VecCreateGhost(
-            PETSC_COMM_WORLD, num_local_nodes, PETSC_DECIDE, d_nonlocal_petsc_indices.size(),
-            d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-            &d_global_vec);
+        ierr = VecCreateGhost(PETSC_COMM_WORLD,
+                              num_local_nodes,
+                              PETSC_DECIDE,
+                              d_nonlocal_petsc_indices.size(),
+                              d_nonlocal_petsc_indices.empty() ? NULL :
+                                                                 &d_nonlocal_petsc_indices[0],
+                              &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     else
     {
         ierr = VecCreateGhostBlock(
-            PETSC_COMM_WORLD, d_depth, d_depth * num_local_nodes, PETSC_DECIDE,
+            PETSC_COMM_WORLD,
+            d_depth,
+            d_depth * num_local_nodes,
+            PETSC_DECIDE,
             d_nonlocal_petsc_indices.size(),
             d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
             &d_global_vec);
@@ -103,25 +100,16 @@ LData::LData(const std::string& name, const unsigned int num_local_nodes,
     return;
 } // LData
 
-LData::LData(const std::string& name, Vec vec, const std::vector<int>& nonlocal_petsc_indices,
+LData::LData(const std::string& name,
+             Vec vec,
+             const std::vector<int>& nonlocal_petsc_indices,
              const bool manage_petsc_vec)
-    : d_name(name),
-      d_global_node_count(0),
-      d_local_node_count(0),
-      d_ghost_node_count(0),
-      d_depth(0),
-      d_nonlocal_petsc_indices(nonlocal_petsc_indices),
-      d_global_vec(vec),
-      d_managing_petsc_vec(manage_petsc_vec),
-      d_array(NULL),
-      d_boost_array(NULL),
-      d_boost_local_array(NULL),
-      d_boost_vec_array(NULL),
-      d_boost_local_vec_array(NULL),
-      d_ghosted_local_vec(NULL),
-      d_ghosted_local_array(NULL),
-      d_boost_ghosted_local_array(NULL),
-      d_boost_vec_ghosted_local_array(NULL)
+    : d_name(name), d_global_node_count(0), d_local_node_count(0), d_ghost_node_count(0),
+      d_depth(0), d_nonlocal_petsc_indices(nonlocal_petsc_indices), d_global_vec(vec),
+      d_managing_petsc_vec(manage_petsc_vec), d_array(NULL), d_boost_array(NULL),
+      d_boost_local_array(NULL), d_boost_vec_array(NULL), d_boost_local_vec_array(NULL),
+      d_ghosted_local_vec(NULL), d_ghosted_local_array(NULL),
+      d_boost_ghosted_local_array(NULL), d_boost_vec_ghosted_local_array(NULL)
 {
     int ierr;
     int depth;
@@ -152,21 +140,11 @@ LData::LData(const std::string& name, Vec vec, const std::vector<int>& nonlocal_
 } // LData
 
 LData::LData(Pointer<Database> db)
-    : d_name(db->getString("d_name")),
-      d_global_node_count(0),
-      d_local_node_count(0),
-      d_ghost_node_count(0),
-      d_depth(db->getInteger("d_depth")),
-      d_nonlocal_petsc_indices(),
-      d_global_vec(NULL),
-      d_array(NULL),
-      d_boost_array(NULL),
-      d_boost_local_array(NULL),
-      d_boost_vec_array(NULL),
-      d_boost_local_vec_array(NULL),
-      d_ghosted_local_vec(NULL),
-      d_ghosted_local_array(NULL),
-      d_boost_ghosted_local_array(NULL),
+    : d_name(db->getString("d_name")), d_global_node_count(0), d_local_node_count(0),
+      d_ghost_node_count(0), d_depth(db->getInteger("d_depth")), d_nonlocal_petsc_indices(),
+      d_global_vec(NULL), d_array(NULL), d_boost_array(NULL), d_boost_local_array(NULL),
+      d_boost_vec_array(NULL), d_boost_local_vec_array(NULL), d_ghosted_local_vec(NULL),
+      d_ghosted_local_array(NULL), d_boost_ghosted_local_array(NULL),
       d_boost_vec_ghosted_local_array(NULL)
 {
     int num_local_nodes = db->getInteger("num_local_nodes");
@@ -185,16 +163,22 @@ LData::LData(Pointer<Database> db)
     int ierr;
     if (d_depth == 1)
     {
-        ierr = VecCreateGhost(
-            PETSC_COMM_WORLD, num_local_nodes, PETSC_DECIDE, d_nonlocal_petsc_indices.size(),
-            d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-            &d_global_vec);
+        ierr = VecCreateGhost(PETSC_COMM_WORLD,
+                              num_local_nodes,
+                              PETSC_DECIDE,
+                              d_nonlocal_petsc_indices.size(),
+                              d_nonlocal_petsc_indices.empty() ? NULL :
+                                                                 &d_nonlocal_petsc_indices[0],
+                              &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     else
     {
         ierr = VecCreateGhostBlock(
-            PETSC_COMM_WORLD, d_depth, d_depth * num_local_nodes, PETSC_DECIDE,
+            PETSC_COMM_WORLD,
+            d_depth,
+            d_depth * num_local_nodes,
+            PETSC_DECIDE,
             d_nonlocal_petsc_indices.size(),
             d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
             &d_global_vec);
@@ -215,8 +199,8 @@ LData::LData(Pointer<Database> db)
     double* ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
-        db->getDoubleArray("vals", ghosted_local_vec_array,
-                           d_depth * (num_local_nodes + num_ghost_nodes));
+        db->getDoubleArray(
+            "vals", ghosted_local_vec_array, d_depth * (num_local_nodes + num_ghost_nodes));
     }
     restoreArrays();
     return;
@@ -233,7 +217,8 @@ LData::~LData()
     return;
 } // ~LData
 
-void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices,
+void LData::resetData(Vec vec,
+                      const std::vector<int>& nonlocal_petsc_indices,
                       const bool manage_petsc_vec)
 {
     restoreArrays();
@@ -289,14 +274,14 @@ void LData::putToDatabase(Pointer<Database> db)
     db->putInteger("num_ghost_nodes", num_ghost_nodes);
     if (num_ghost_nodes > 0)
     {
-        db->putIntegerArray("d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[0],
-                            num_ghost_nodes);
+        db->putIntegerArray(
+            "d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[0], num_ghost_nodes);
     }
     const double* const ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
-        db->putDoubleArray("vals", ghosted_local_vec_array,
-                           d_depth * (num_local_nodes + num_ghost_nodes));
+        db->putDoubleArray(
+            "vals", ghosted_local_vec_array, d_depth * (num_local_nodes + num_ghost_nodes));
     }
     restoreArrays();
     return;

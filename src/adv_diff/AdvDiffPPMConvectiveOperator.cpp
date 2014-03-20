@@ -93,69 +93,201 @@ class RobinBcCoefStrategy;
 extern "C" {
 void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                          const int&, const int&, const int&, const int&, const int&,
-                          const int&, const int&, const int&, const double*, const double*,
-                          const double*, const double*, const int&, const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
 #endif
 #if (NDIM == 3)
-                          const int&, const int&, const int&, const int&, const int&,
-                          const int&, const int&, const int&, const int&, const int&,
-                          const int&, const int&, const double*, const double*, const double*,
-                          const double*, const double*, const double*, const int&, const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
                           const int&,
 #endif
                           double*);
 
 void ADVECT_FLUX_FC(const double&,
 #if (NDIM == 2)
-                    const int&, const int&, const int&, const int&, const int&, const int&,
-                    const int&, const int&, const int&, const int&, const double*,
-                    const double*, const double*, const double*, double*, double*
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    double*,
+                    double*
 #endif
 #if (NDIM == 3)
                     const int&,
-                    const int&, const int&, const int&, const int&, const int&, const int&,
-                    const int&, const int&, const int&, const int&, const int&, const int&,
-                    const int&, const int&, const double*, const double*, const double*,
-                    const double*, const double*, const double*, double*, double*, double*
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    double*,
+                    double*,
+                    double*
 #endif
                     );
 
-void F_TO_C_DIV_FC(double*, const int&, const double&,
+void F_TO_C_DIV_FC(double*,
+                   const int&,
+                   const double&,
 #if (NDIM == 2)
-                   const double*, const double*, const int&, const int&, const int&,
-                   const int&, const int&,
+                   const double*,
+                   const double*,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
 #endif
 #if (NDIM == 3)
-                   const double*, const double*, const double*, const int&, const int&,
-                   const int&, const int&, const int&, const int&, const int&,
+                   const double*,
+                   const double*,
+                   const double*,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
 #endif
                    const double*);
 
-void F_TO_C_DIV_ADD_FC(double*, const int&, const double&,
+void F_TO_C_DIV_ADD_FC(double*,
+                       const int&,
+                       const double&,
 #if (NDIM == 2)
-                       const double*, const double*, const int&, const double&, const double*,
-                       const int&, const int&, const int&, const int&, const int&,
+                       const double*,
+                       const double*,
+                       const int&,
+                       const double&,
+                       const double*,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
 #endif
 #if (NDIM == 3)
-                       const double*, const double*, const double*, const int&, const double&,
-                       const double*, const int&, const int&, const int&, const int&,
-                       const int&, const int&, const int&,
+                       const double*,
+                       const double*,
+                       const double*,
+                       const int&,
+                       const double&,
+                       const double*,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
 #endif
                        const double*);
 
 void GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-    const int&, const int&, const int&, const int&, const int&, const int&, const double*,
-    double*, double*, double*, double*, const int&, const int&, const int&, const int&,
-    const double*, const double*, double*, double*
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    double*,
+    double*
 #endif
 #if (NDIM == 3)
     const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const double*, double*, double*, double*, double*, double*, const int&,
-    const int&, const int&, const int&, const int&, const int&, const double*, const double*,
-    const double*, double*, double*, double*
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    double*,
+    double*,
+    double*
 #endif
     );
 }
@@ -184,23 +316,15 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
-    const std::string& object_name, Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> input_db, const ConvectiveDifferencingType difference_form,
+    const std::string& object_name,
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<Database> input_db,
+    const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-    : ConvectiveOperator(object_name, difference_form),
-      d_ghostfill_alg(NULL),
-      d_ghostfill_scheds(),
-      d_bc_coefs(bc_coefs),
-      d_outflow_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_Q_var(Q_var),
-      d_Q_data_depth(0),
-      d_Q_scratch_idx(-1),
-      d_q_extrap_var(NULL),
-      d_q_flux_var(NULL),
-      d_q_extrap_idx(-1),
+    : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(), d_bc_coefs(bc_coefs), d_outflow_bdry_extrap_type("CONSTANT"),
+      d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_Q_var(Q_var), d_Q_data_depth(0),
+      d_Q_scratch_idx(-1), d_q_extrap_var(NULL), d_q_flux_var(NULL), d_q_extrap_idx(-1),
       d_q_flux_idx(-1)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE &&
@@ -339,7 +463,11 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
 
             // Enforce physical boundary conditions at inflow boundaries.
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-                Q_data, u_ADV_data, patch, d_bc_coefs, d_solution_time,
+                Q_data,
+                u_ADV_data,
+                patch,
+                d_bc_coefs,
+                d_solution_time,
                 /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE",
                 d_homogeneous_bc);
 
@@ -348,24 +476,54 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
             {
                 GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
-                    Q_data_gcw(0), Q_data_gcw(1), Q0_data.getPointer(d), Q1_data.getPointer(),
-                    dQ_data.getPointer(), Q_L_data.getPointer(), Q_R_data.getPointer(),
-                    u_ADV_data_gcw(0), u_ADV_data_gcw(1), q_extrap_data_gcw(0),
-                    q_extrap_data_gcw(1), u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                    q_extrap_data->getPointer(0, d), q_extrap_data->getPointer(1, d)
+                    patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    Q_data_gcw(0),
+                    Q_data_gcw(1),
+                    Q0_data.getPointer(d),
+                    Q1_data.getPointer(),
+                    dQ_data.getPointer(),
+                    Q_L_data.getPointer(),
+                    Q_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    q_extrap_data_gcw(0),
+                    q_extrap_data_gcw(1),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    q_extrap_data->getPointer(0, d),
+                    q_extrap_data->getPointer(1, d)
 #endif
 #if (NDIM == 3)
-                                                     patch_lower(0),
-                    patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
-                    patch_upper(2), Q_data_gcw(0), Q_data_gcw(1), Q_data_gcw(2),
-                    Q0_data.getPointer(d), Q1_data.getPointer(), Q2_data.getPointer(),
-                    dQ_data.getPointer(), Q_L_data.getPointer(), Q_R_data.getPointer(),
-                    u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2),
-                    q_extrap_data_gcw(0), q_extrap_data_gcw(1), q_extrap_data_gcw(2),
-                    u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                    u_ADV_data->getPointer(2), q_extrap_data->getPointer(0, d),
-                    q_extrap_data->getPointer(1, d), q_extrap_data->getPointer(2, d)
+                    patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    patch_lower(2),
+                    patch_upper(2),
+                    Q_data_gcw(0),
+                    Q_data_gcw(1),
+                    Q_data_gcw(2),
+                    Q0_data.getPointer(d),
+                    Q1_data.getPointer(),
+                    Q2_data.getPointer(),
+                    dQ_data.getPointer(),
+                    Q_L_data.getPointer(),
+                    Q_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    u_ADV_data_gcw(2),
+                    q_extrap_data_gcw(0),
+                    q_extrap_data_gcw(1),
+                    q_extrap_data_gcw(2),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    u_ADV_data->getPointer(2),
+                    q_extrap_data->getPointer(0, d),
+                    q_extrap_data->getPointer(1, d),
+                    q_extrap_data->getPointer(2, d)
 #endif
                     );
             }
@@ -383,29 +541,52 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     static const double dt = 1.0;
-                    ADVECT_FLUX_FC(
-                        dt,
+                    ADVECT_FLUX_FC(dt,
 #if (NDIM == 2)
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
-                        u_ADV_data_gcw(0), u_ADV_data_gcw(1), q_extrap_data_gcw(0),
-                        q_extrap_data_gcw(1), q_flux_data_gcw(0), q_flux_data_gcw(1),
-                        u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
-                        q_extrap_data->getPointer(0, d), q_extrap_data->getPointer(1, d),
-                        q_flux_data->getPointer(0, d), q_flux_data->getPointer(1, d)
+                                   patch_lower(0),
+                                   patch_upper(0),
+                                   patch_lower(1),
+                                   patch_upper(1),
+                                   u_ADV_data_gcw(0),
+                                   u_ADV_data_gcw(1),
+                                   q_extrap_data_gcw(0),
+                                   q_extrap_data_gcw(1),
+                                   q_flux_data_gcw(0),
+                                   q_flux_data_gcw(1),
+                                   u_ADV_data->getPointer(0),
+                                   u_ADV_data->getPointer(1),
+                                   q_extrap_data->getPointer(0, d),
+                                   q_extrap_data->getPointer(1, d),
+                                   q_flux_data->getPointer(0, d),
+                                   q_flux_data->getPointer(1, d)
 #endif
 #if (NDIM == 3)
-                                                       patch_lower(0),
-                        patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
-                        patch_upper(2), u_ADV_data_gcw(0), u_ADV_data_gcw(1),
-                        u_ADV_data_gcw(2), q_extrap_data_gcw(0), q_extrap_data_gcw(1),
-                        q_extrap_data_gcw(2), q_flux_data_gcw(0), q_flux_data_gcw(1),
-                        q_flux_data_gcw(2), u_ADV_data->getPointer(0),
-                        u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
-                        q_extrap_data->getPointer(0, d), q_extrap_data->getPointer(1, d),
-                        q_extrap_data->getPointer(2, d), q_flux_data->getPointer(0, d),
-                        q_flux_data->getPointer(1, d), q_flux_data->getPointer(2, d)
+                                   patch_lower(0),
+                                   patch_upper(0),
+                                   patch_lower(1),
+                                   patch_upper(1),
+                                   patch_lower(2),
+                                   patch_upper(2),
+                                   u_ADV_data_gcw(0),
+                                   u_ADV_data_gcw(1),
+                                   u_ADV_data_gcw(2),
+                                   q_extrap_data_gcw(0),
+                                   q_extrap_data_gcw(1),
+                                   q_extrap_data_gcw(2),
+                                   q_flux_data_gcw(0),
+                                   q_flux_data_gcw(1),
+                                   q_flux_data_gcw(2),
+                                   u_ADV_data->getPointer(0),
+                                   u_ADV_data->getPointer(1),
+                                   u_ADV_data->getPointer(2),
+                                   q_extrap_data->getPointer(0, d),
+                                   q_extrap_data->getPointer(1, d),
+                                   q_extrap_data->getPointer(2, d),
+                                   q_flux_data->getPointer(0, d),
+                                   q_flux_data->getPointer(1, d),
+                                   q_flux_data->getPointer(2, d)
 #endif
-                        );
+                                   );
                 }
             }
         }
@@ -445,26 +626,47 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
                 const IntVector<NDIM>& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
-                    ADVECT_DERIVATIVE_FC(
-                        dx,
+                    ADVECT_DERIVATIVE_FC(dx,
 #if (NDIM == 2)
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
-                        u_ADV_data_gcw(0), u_ADV_data_gcw(1), q_extrap_data_gcw(0),
-                        q_extrap_data_gcw(1), u_ADV_data->getPointer(0),
-                        u_ADV_data->getPointer(1), q_extrap_data->getPointer(0, d),
-                        q_extrap_data->getPointer(1, d), N_data_gcw(0), N_data_gcw(1),
+                                         patch_lower(0),
+                                         patch_upper(0),
+                                         patch_lower(1),
+                                         patch_upper(1),
+                                         u_ADV_data_gcw(0),
+                                         u_ADV_data_gcw(1),
+                                         q_extrap_data_gcw(0),
+                                         q_extrap_data_gcw(1),
+                                         u_ADV_data->getPointer(0),
+                                         u_ADV_data->getPointer(1),
+                                         q_extrap_data->getPointer(0, d),
+                                         q_extrap_data->getPointer(1, d),
+                                         N_data_gcw(0),
+                                         N_data_gcw(1),
 #endif
 #if (NDIM == 3)
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
-                        patch_lower(2), patch_upper(2), u_ADV_data_gcw(0), u_ADV_data_gcw(1),
-                        u_ADV_data_gcw(2), q_extrap_data_gcw(0), q_extrap_data_gcw(1),
-                        q_extrap_data_gcw(2), u_ADV_data->getPointer(0),
-                        u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
-                        q_extrap_data->getPointer(0, d), q_extrap_data->getPointer(1, d),
-                        q_extrap_data->getPointer(2, d), N_data_gcw(0), N_data_gcw(1),
-                        N_data_gcw(2),
+                                         patch_lower(0),
+                                         patch_upper(0),
+                                         patch_lower(1),
+                                         patch_upper(1),
+                                         patch_lower(2),
+                                         patch_upper(2),
+                                         u_ADV_data_gcw(0),
+                                         u_ADV_data_gcw(1),
+                                         u_ADV_data_gcw(2),
+                                         q_extrap_data_gcw(0),
+                                         q_extrap_data_gcw(1),
+                                         q_extrap_data_gcw(2),
+                                         u_ADV_data->getPointer(0),
+                                         u_ADV_data->getPointer(1),
+                                         u_ADV_data->getPointer(2),
+                                         q_extrap_data->getPointer(0, d),
+                                         q_extrap_data->getPointer(1, d),
+                                         q_extrap_data->getPointer(2, d),
+                                         N_data_gcw(0),
+                                         N_data_gcw(1),
+                                         N_data_gcw(2),
 #endif
-                        N_data->getPointer(d));
+                                         N_data->getPointer(d));
                 }
             }
 
@@ -476,17 +678,29 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     static const double alpha = 1.0;
-                    F_TO_C_DIV_FC(N_data->getPointer(d), N_data_gcw.min(), alpha,
+                    F_TO_C_DIV_FC(N_data->getPointer(d),
+                                  N_data_gcw.min(),
+                                  alpha,
 #if (NDIM == 2)
-                                  q_flux_data->getPointer(0, d), q_flux_data->getPointer(1, d),
-                                  q_flux_data_gcw.min(), patch_lower(0), patch_upper(0),
-                                  patch_lower(1), patch_upper(1),
+                                  q_flux_data->getPointer(0, d),
+                                  q_flux_data->getPointer(1, d),
+                                  q_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
 #endif
 #if (NDIM == 3)
-                                  q_flux_data->getPointer(0, d), q_flux_data->getPointer(1, d),
-                                  q_flux_data->getPointer(2, d), q_flux_data_gcw.min(),
-                                  patch_lower(0), patch_upper(0), patch_lower(1),
-                                  patch_upper(1), patch_lower(2), patch_upper(2),
+                                  q_flux_data->getPointer(0, d),
+                                  q_flux_data->getPointer(1, d),
+                                  q_flux_data->getPointer(2, d),
+                                  q_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
+                                  patch_lower(2),
+                                  patch_upper(2),
 #endif
                                   dx);
                 }
@@ -501,21 +715,37 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
                 {
                     static const double alpha = 0.5;
                     static const double beta = 0.5;
-                    F_TO_C_DIV_ADD_FC(
-                        N_data->getPointer(d), N_data_gcw.min(), alpha,
+                    F_TO_C_DIV_ADD_FC(N_data->getPointer(d),
+                                      N_data_gcw.min(),
+                                      alpha,
 #if (NDIM == 2)
-                        q_flux_data->getPointer(0, d), q_flux_data->getPointer(1, d),
-                        q_flux_data_gcw.min(), beta, N_data->getPointer(d), N_data_gcw.min(),
-                        patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+                                      q_flux_data->getPointer(0, d),
+                                      q_flux_data->getPointer(1, d),
+                                      q_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(d),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
 #endif
 #if (NDIM == 3)
-                        q_flux_data->getPointer(0, d), q_flux_data->getPointer(1, d),
-                        q_flux_data->getPointer(2, d), q_flux_data_gcw.min(), beta,
-                        N_data->getPointer(d), N_data_gcw.min(), patch_lower(0),
-                        patch_upper(0), patch_lower(1), patch_upper(1), patch_lower(2),
-                        patch_upper(2),
+                                      q_flux_data->getPointer(0, d),
+                                      q_flux_data->getPointer(1, d),
+                                      q_flux_data->getPointer(2, d),
+                                      q_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(d),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
+                                      patch_lower(2),
+                                      patch_upper(2),
 #endif
-                        dx);
+                                      dx);
                 }
             }
         }
@@ -525,7 +755,8 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
 } // applyConvectiveOperator
 
 void AdvDiffPPMConvectiveOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM, double>& in, const SAMRAIVectorReal<NDIM, double>& out)
+    const SAMRAIVectorReal<NDIM, double>& in,
+    const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -564,8 +795,8 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(
     Pointer<RefineOperator<NDIM> > refine_op =
         grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0),
-                                    d_Q_scratch_idx, refine_op);
+    d_ghostfill_alg->registerRefine(
+        d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
     if (d_outflow_bdry_extrap_type != "NONE")
         d_ghostfill_strategy =
             new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_outflow_bdry_extrap_type);

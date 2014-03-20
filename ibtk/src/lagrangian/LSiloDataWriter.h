@@ -85,7 +85,8 @@ public:
      * \param register_for_restart  Boolean indicating whether to register this object with the
      *restart manager.
      */
-    LSiloDataWriter(const std::string& object_name, const std::string& dump_directory_name,
+    LSiloDataWriter(const std::string& object_name,
+                    const std::string& dump_directory_name,
                     bool register_for_restart = true);
 
     /*!
@@ -118,7 +119,9 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * cloud of markers must be registered on only \em one MPI process.
      */
-    void registerMarkerCloud(const std::string& name, int nmarks, int first_lag_idx,
+    void registerMarkerCloud(const std::string& name,
+                             int nmarks,
+                             int first_lag_idx,
                              int level_number);
 
     /*!
@@ -131,7 +134,8 @@ public:
     void registerLogicallyCartesianBlock(const std::string& name,
                                          const SAMRAI::hier::IntVector<NDIM>& nelem,
                                          const SAMRAI::hier::IntVector<NDIM>& periodic,
-                                         int first_lag_idx, int level_number);
+                                         int first_lag_idx,
+                                         int level_number);
 
     /*!
      * \brief Register or update several ranges of Lagrangian indices that are
@@ -141,9 +145,11 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(
-        const std::string& name, const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
+        const std::string& name,
+        const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
-        const std::vector<int>& first_lag_idx, int level_number);
+        const std::vector<int>& first_lag_idx,
+        int level_number);
 
     /*!
      * \brief Register or update an unstructured mesh.
@@ -165,15 +171,18 @@ public:
      * \brief Register a variable for plotting with the Silo data writer.
      */
     void registerVariableData(const std::string& var_name,
-                              SAMRAI::tbox::Pointer<LData> var_data, int level_number);
+                              SAMRAI::tbox::Pointer<LData> var_data,
+                              int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a
      * specified starting depth and data depth.
      */
     void registerVariableData(const std::string& var_name,
-                              SAMRAI::tbox::Pointer<LData> var_data, int start_depth,
-                              int var_depth, int level_number);
+                              SAMRAI::tbox::Pointer<LData> var_data,
+                              int start_depth,
+                              int var_depth,
+                              int level_number);
 
     /*!
      * \brief Register or update a single Lagrangian AO (application ordering)

@@ -60,17 +60,9 @@ namespace IBTK
 
 PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name,
                                                      const std::string& options_prefix)
-    : JacobianOperator(object_name),
-      d_F(NULL),
-      d_nonlinear_solver(NULL),
-      d_petsc_jac(NULL),
-      d_op_u(NULL),
-      d_op_x(NULL),
-      d_op_y(NULL),
-      d_petsc_u(NULL),
-      d_petsc_x(NULL),
-      d_petsc_y(NULL),
-      d_options_prefix(options_prefix)
+    : JacobianOperator(object_name), d_F(NULL), d_nonlinear_solver(NULL), d_petsc_jac(NULL),
+      d_op_u(NULL), d_op_x(NULL), d_op_y(NULL), d_petsc_u(NULL), d_petsc_x(NULL),
+      d_petsc_y(NULL), d_options_prefix(options_prefix)
 {
     // intentionally blank
     return;
@@ -172,7 +164,8 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetFunction(
         d_petsc_jac,
-        reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI), this);
+        reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI),
+        this);
     IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {

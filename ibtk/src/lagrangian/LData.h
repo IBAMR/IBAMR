@@ -69,7 +69,9 @@ public:
      * object.  Data management for this PETSc Vec object is handled by the
      * LData object.
      */
-    LData(const std::string& name, unsigned int num_local_nodes, unsigned int depth,
+    LData(const std::string& name,
+          unsigned int num_local_nodes,
+          unsigned int depth,
           const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0));
 
     /*!
@@ -85,7 +87,8 @@ public:
      * appropriately.  Its value is used to determine the data depth (i.e., the
      * number of data components per node).
      */
-    LData(const std::string& name, Vec vec,
+    LData(const std::string& name,
+          Vec vec,
           const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
           const bool manage_petsc_vec = true);
 
@@ -111,7 +114,8 @@ public:
      * number of data components per node).
      */
     virtual void
-    resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+    resetData(Vec vec,
+              const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
               const bool manage_petsc_vec = true);
 
     /*!

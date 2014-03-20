@@ -74,8 +74,10 @@ public:
      * \note Parameters include_edges_on_dst_level and
      * include_edges_on_src_level have no effect for 2D problems.
      */
-    CellNoCornersFillPattern(int stencil_width, bool include_dst_patch_box,
-                             bool include_edges_on_dst_level, bool include_edges_on_src_level);
+    CellNoCornersFillPattern(int stencil_width,
+                             bool include_dst_patch_box,
+                             bool include_edges_on_dst_level,
+                             bool include_edges_on_src_level);
 
     /*!
      * \brief Destructor.
@@ -106,7 +108,8 @@ public:
     calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
                      const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
                      const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                     const SAMRAI::hier::Box<NDIM>& src_mask, bool overwrite_interior,
+                     const SAMRAI::hier::Box<NDIM>& src_mask,
+                     bool overwrite_interior,
                      const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!
@@ -137,8 +140,10 @@ public:
     calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
                             const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
                             const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                            const SAMRAI::hier::Box<NDIM>& src_mask, bool overwrite_interior,
-                            const SAMRAI::hier::IntVector<NDIM>& src_offset, int dst_level_num,
+                            const SAMRAI::hier::Box<NDIM>& src_mask,
+                            bool overwrite_interior,
+                            const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                            int dst_level_num,
                             int src_level_num) const;
 
     /*!

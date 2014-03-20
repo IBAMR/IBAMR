@@ -165,7 +165,8 @@ Pointer<Variable<NDIM> > IBHierarchyIntegrator::getFluidSourceVariable() const
 } // getFluidSourceVariable
 
 void IBHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy, Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -211,8 +212,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_mark_file_name.empty())
     {
         d_mark_var = new LMarkerSetVariable(d_object_name + "::markers");
-        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var,
-                         ghosts);
+        registerVariable(
+            d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
     }
 
     // Initialize the fluid solver.
@@ -242,15 +243,17 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<SideVariable<NDIM, double> > u_sc_var = d_u_var;
     if (u_cc_var)
     {
-        d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(
-            u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(),
-            /*homogeneous_bc*/ false);
+        d_u_phys_bdry_op =
+            new CartCellRobinPhysBdryOp(u_scratch_idx,
+                                        d_ins_hier_integrator->getVelocityBoundaryConditions(),
+                                        /*homogeneous_bc*/ false);
     }
     else if (u_sc_var)
     {
-        d_u_phys_bdry_op = new CartSideRobinPhysBdryOp(
-            u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(),
-            /*homogeneous_bc*/ false);
+        d_u_phys_bdry_op =
+            new CartSideRobinPhysBdryOp(u_scratch_idx,
+                                        d_ins_hier_integrator->getVelocityBoundaryConditions(),
+                                        /*homogeneous_bc*/ false);
     }
     else
     {
@@ -262,8 +265,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = NULL;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg,
-                                     d_u_phys_bdry_op);
+    registerGhostfillRefineAlgorithm(
+        d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
@@ -281,7 +284,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
         if (p_cc_var)
         {
             d_p_phys_bdry_op = new CartCellRobinPhysBdryOp(
-                p_scratch_idx, d_ins_hier_integrator->getPressureBoundaryConditions(),
+                p_scratch_idx,
+                d_ins_hier_integrator->getPressureBoundaryConditions(),
                 /*homogeneous_bc*/ false);
         }
         else
@@ -294,8 +298,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
         d_p_ghostfill_op = NULL;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
-        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg,
-                                         d_p_phys_bdry_op);
+        registerGhostfillRefineAlgorithm(
+            d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
 
         d_p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
@@ -320,14 +324,14 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
     RefinePatchStrategy<NDIM>* refine_patch_bdry_op =
         new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
-    registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg,
-                                     refine_patch_bdry_op);
+    registerGhostfillRefineAlgorithm(
+        d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
 
     // Read in initial marker positions.
     if (!d_mark_file_name.empty())
     {
-        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name,
-                                              hierarchy->getGridGeometry());
+        LMarkerUtilities::readMarkerPositions(
+            d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
     }
 
     // Setup the tag buffer.
@@ -377,10 +381,14 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_ib_method_ops->initializePatchHierarchy(
-        hierarchy, gridding_alg, d_u_idx,
+        hierarchy,
+        gridding_alg,
+        d_u_idx,
         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-        getGhostfillRefineSchedules(d_object_name + "::u"), d_integrator_step,
-        d_integrator_time, initial_time);
+        getGhostfillRefineSchedules(d_object_name + "::u"),
+        d_integrator_step,
+        d_integrator_time,
+        initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -440,8 +448,10 @@ void IBHierarchyIntegrator::regridHierarchy()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(
-    const std::string& object_name, Pointer<Database> input_db,
-    Pointer<IBStrategy> ib_method_ops, Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    Pointer<IBStrategy> ib_method_ops,
+    Pointer<INSHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
@@ -503,9 +513,13 @@ bool IBHierarchyIntegrator::atRegridPointSpecialized() const
 } // atRegridPointSpecialized
 
 void IBHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy, const int level_number,
-    const double init_data_time, const bool can_be_refined, const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level, const bool allocate_data)
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool can_be_refined,
+    const bool initial_time,
+    const Pointer<BasePatchLevel<NDIM> > base_old_level,
+    const bool allocate_data)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -522,8 +536,8 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(
     // Initialize workload data.
     if (d_workload_idx != -1)
     {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(hierarchy, level_number,
-                                                                 level_number);
+        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(
+            hierarchy, level_number, level_number);
         level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
         d_load_balancer->setUniformWorkload(level_number);
     }
@@ -531,20 +545,28 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(
     // Initialize marker data
     if (d_mark_var)
     {
-        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns,
-                                                   hierarchy, level_number, initial_time,
+        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx,
+                                                   d_mark_init_posns,
+                                                   hierarchy,
+                                                   level_number,
+                                                   initial_time,
                                                    old_level);
     }
 
     // Initialize IB data.
-    d_ib_method_ops->initializeLevelData(hierarchy, level_number, init_data_time,
-                                         can_be_refined, initial_time, old_level,
+    d_ib_method_ops->initializeLevelData(hierarchy,
+                                         level_number,
+                                         init_data_time,
+                                         can_be_refined,
+                                         initial_time,
+                                         old_level,
                                          allocate_data);
     return;
 } // initializeLevelDataSpecialized
 
 void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy, const int coarsest_level,
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int coarsest_level,
     const int finest_level)
 {
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
@@ -573,13 +595,20 @@ void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void IBHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy, const int level_number,
-    const double error_data_time, const int tag_index, const bool initial_time,
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double error_data_time,
+    const int tag_index,
+    const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
     // Tag cells for refinement.
-    d_ib_method_ops->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index,
-                                           initial_time, uses_richardson_extrapolation_too);
+    d_ib_method_ops->applyGradientDetector(hierarchy,
+                                           level_number,
+                                           error_data_time,
+                                           tag_index,
+                                           initial_time,
+                                           uses_richardson_extrapolation_too);
     return;
 } // applyGradientDetectorSpecialized
 

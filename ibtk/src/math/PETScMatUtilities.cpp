@@ -80,34 +80,53 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
-    Mat& mat, const PoissonSpecifications& poisson_spec, RobinBcCoefStrategy<NDIM>* bc_coef,
-    double data_time, const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                  double data_time,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM> > patch_level)
 {
-    constructPatchLevelCCLaplaceOp(mat, poisson_spec,
+    constructPatchLevelCCLaplaceOp(mat,
+                                   poisson_spec,
                                    std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef),
-                                   data_time, num_dofs_per_proc, dof_index_idx, patch_level);
+                                   data_time,
+                                   num_dofs_per_proc,
+                                   dof_index_idx,
+                                   patch_level);
     return;
 } // constructPatchLevelCCLaplaceOp
 
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
-    Mat& mat, const PoissonSpecifications& poisson_spec_real,
-    const PoissonSpecifications& poisson_spec_imag, RobinBcCoefStrategy<NDIM>* bc_coef,
-    double data_time, const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
+    const PoissonSpecifications& poisson_spec_imag,
+    RobinBcCoefStrategy<NDIM>* bc_coef,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-    constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag,
+    constructPatchLevelCCComplexLaplaceOp(mat,
+                                          poisson_spec_real,
+                                          poisson_spec_imag,
                                           std::vector<RobinBcCoefStrategy<NDIM>*>(2, bc_coef),
-                                          data_time, num_dofs_per_proc, dof_index_idx,
+                                          data_time,
+                                          num_dofs_per_proc,
+                                          dof_index_idx,
                                           patch_level);
     return;
 } // constructPatchLevelCCComplexLaplaceOp
 
 void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
-    Mat& mat, const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs, double data_time,
-    const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -183,8 +202,16 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE,
-                        PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
@@ -207,8 +234,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz * depth, no_ghosts);
-        PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, stencil,
-                                                      poisson_spec, bc_coefs, data_time);
+        PoissonUtilities::computeCCMatrixCoefficients(
+            patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
@@ -236,8 +263,13 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
                                 (*dof_index_data)(i + stencil[stencil_index], d);
                         }
                     }
-                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0],
-                                        &mat_vals[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat,
+                                        1,
+                                        &dof_index,
+                                        stencil_sz,
+                                        &mat_cols[0],
+                                        &mat_vals[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -253,10 +285,13 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
 } // constructPatchLevelCCLaplaceOp
 
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
-    Mat& mat, const PoissonSpecifications& poisson_spec_real,
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
     const PoissonSpecifications& poisson_spec_imag,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs, double data_time,
-    const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -332,8 +367,16 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE,
-                        PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
@@ -356,9 +399,13 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         CellData<NDIM, double> matrix_coefs(patch_box, 2 * stencil_sz * depth, no_ghosts);
-        PoissonUtilities::computeCCComplexMatrixCoefficients(
-            patch, matrix_coefs, stencil, poisson_spec_real, poisson_spec_imag, bc_coefs,
-            data_time);
+        PoissonUtilities::computeCCComplexMatrixCoefficients(patch,
+                                                             matrix_coefs,
+                                                             stencil,
+                                                             poisson_spec_real,
+                                                             poisson_spec_imag,
+                                                             bc_coefs,
+                                                             data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<CellData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
@@ -415,11 +462,21 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
                                 (*dof_index_data)(i + stencil[stencil_index], d + 1);
                         }
                     }
-                    ierr = MatSetValues(mat, 1, &dof_index_real, 2 * stencil_sz,
-                                        &mat_cols_real[0], &mat_vals_real[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat,
+                                        1,
+                                        &dof_index_real,
+                                        2 * stencil_sz,
+                                        &mat_cols_real[0],
+                                        &mat_vals_real[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
-                    ierr = MatSetValues(mat, 1, &dof_index_imag, 2 * stencil_sz,
-                                        &mat_cols_imag[0], &mat_vals_imag[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat,
+                                        1,
+                                        &dof_index_imag,
+                                        2 * stencil_sz,
+                                        &mat_cols_imag[0],
+                                        &mat_vals_imag[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -435,9 +492,12 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
 } // constructPatchLevelCCComplexLaplaceOp
 
 void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
-    Mat& mat, const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs, double data_time,
-    const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
 #if !defined(NDEBUG)
@@ -515,8 +575,16 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE,
-                        PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -537,8 +605,8 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
-        PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, stencil,
-                                                      poisson_spec, bc_coefs, data_time);
+        PoissonUtilities::computeSCMatrixCoefficients(
+            patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
@@ -565,8 +633,13 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
                                 (*dof_index_data)(i + stencil[stencil_index]);
                         }
                     }
-                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0],
-                                        &mat_vals[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat,
+                                        1,
+                                        &dof_index,
+                                        stencil_sz,
+                                        &mat_cols[0],
+                                        &mat_vals[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -581,10 +654,14 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     return;
 } // constructPatchLevelSCLaplaceOp
 
-void PETScMatUtilities::constructPatchLevelSCInterpOp(
-    Mat& mat, void (*interp_fcn)(double r_lower, double* w), int interp_stencil, Vec& X_vec,
-    const std::vector<int>& num_dofs_per_proc, const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
+void
+PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
+                                                 void (*interp_fcn)(double r_lower, double* w),
+                                                 int interp_stencil,
+                                                 Vec& X_vec,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 const int dof_index_idx,
+                                                 Pointer<PatchLevel<NDIM> > patch_level)
 {
     // \todo Properly support odd stencil sizes.
     if (interp_stencil % 2 != 0) interp_stencil += 1;
@@ -738,8 +815,16 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE,
-                        PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        m_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        PETSC_DEFAULT,
+                        &d_nnz[0],
+                        PETSC_DEFAULT,
+                        &o_nnz[0],
+                        &mat);
     IBTK_CHKERRQ(ierr);
 
 // Set some general matrix options.
@@ -802,8 +887,13 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(
             }
 
             // Set the values for this IB point.
-            ierr = MatSetValues(mat, 1, &stencil_box_row, stencil_box_nvals,
-                                &stencil_box_cols[0], &stencil_box_vals[0], INSERT_VALUES);
+            ierr = MatSetValues(mat,
+                                1,
+                                &stencil_box_row,
+                                stencil_box_nvals,
+                                &stencil_box_cols[0],
+                                &stencil_box_vals[0],
+                                INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }

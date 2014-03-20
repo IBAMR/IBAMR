@@ -59,20 +59,13 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AppInitializer::AppInitializer(int argc, char* argv[],
+AppInitializer::AppInitializer(int argc,
+                               char* argv[],
                                const std::string& default_log_file_name)
-    : d_input_db(NULL),
-      d_is_from_restart(false),
-      d_viz_dump_interval(0),
-      d_viz_dump_dirname(""),
-      d_viz_writers(),
-      d_visit_data_writer(NULL),
-      d_silo_data_writer(NULL),
-      d_exodus_filename("output.ex2"),
-      d_restart_dump_interval(0),
-      d_restart_dump_dirname(""),
-      d_data_dump_interval(0),
-      d_data_dump_dirname(""),
+    : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0),
+      d_viz_dump_dirname(""), d_viz_writers(), d_visit_data_writer(NULL),
+      d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
+      d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""),
       d_timer_dump_interval(0)
 {
     if (argc == 1)
@@ -107,8 +100,8 @@ AppInitializer::AppInitializer(int argc, char* argv[],
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num,
-                                                      SAMRAI_MPI::getNodes());
+        RestartManager::getManager()->openRestartFile(
+            restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.

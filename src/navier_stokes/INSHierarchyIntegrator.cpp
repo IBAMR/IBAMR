@@ -245,8 +245,8 @@ Pointer<Variable<NDIM> > INSHierarchyIntegrator::getFluidSourceVariable() const
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<FaceVariable<NDIM, double> >
-INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+Pointer<FaceVariable<NDIM, double> > INSHierarchyIntegrator::getAdvectionVelocityVariable()
+    const
 {
     return d_U_adv_diff_var;
 } // getAdvectionVelocityVariable
@@ -380,22 +380,18 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(
-    const std::string& object_name, Pointer<Database> input_db, Pointer<Variable<NDIM> > U_var,
-    Pointer<Variable<NDIM> > P_var, Pointer<Variable<NDIM> > F_var,
-    Pointer<Variable<NDIM> > Q_var, bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_U_var(U_var),
-      d_P_var(P_var),
-      d_F_var(F_var),
-      d_Q_var(Q_var),
-      d_U_init(NULL),
-      d_P_init(NULL),
+INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
+                                               Pointer<Database> input_db,
+                                               Pointer<Variable<NDIM> > U_var,
+                                               Pointer<Variable<NDIM> > P_var,
+                                               Pointer<Variable<NDIM> > F_var,
+                                               Pointer<Variable<NDIM> > Q_var,
+                                               bool register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var),
+      d_P_var(P_var), d_F_var(F_var), d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_traction_bc_type(TRACTION),
-      d_F_fcn(NULL),
-      d_Q_fcn(NULL)
+      d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
 {
     // Set some default values.
     d_integrator_is_initialized = false;

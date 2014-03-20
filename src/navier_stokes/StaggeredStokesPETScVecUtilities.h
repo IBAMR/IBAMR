@@ -76,7 +76,10 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void
-    copyToPatchLevelVec(Vec& vec, int u_data_idx, int u_dof_index_idx, int p_data_idx,
+    copyToPatchLevelVec(Vec& vec,
+                        int u_data_idx,
+                        int u_dof_index_idx,
+                        int p_data_idx,
                         int p_dof_index_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -85,7 +88,11 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void copyFromPatchLevelVec(
-        Vec& vec, int u_data_idx, int u_dof_index_idx, int p_data_idx, int p_dof_index_idx,
+        Vec& vec,
+        int u_data_idx,
+        int u_dof_index_idx,
+        int p_data_idx,
+        int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > data_synch_sched,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > ghost_fill_sched);
@@ -99,7 +106,8 @@ public:
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> >
     constructDataSynchSchedule(
-        int u_data_idx, int p_data_idx,
+        int u_data_idx,
+        int p_data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -108,7 +116,8 @@ public:
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> >
     constructGhostFillSchedule(
-        int u_data_idx, int p_data_idx,
+        int u_data_idx,
+        int p_data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -122,7 +131,9 @@ public:
      * method.
      */
     static void constructPatchLevelDOFIndices(
-        std::vector<int>& num_dofs_per_proc, int u_dof_index_idx, int p_dof_index_idx,
+        std::vector<int>& num_dofs_per_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     //\}
@@ -161,7 +172,11 @@ private:
      * discretization.
      */
     static void copyToPatchLevelVec_MAC(
-        Vec& vec, int u_data_idx, int u_dof_index_idx, int p_data_idx, int p_dof_index_idx,
+        Vec& vec,
+        int u_data_idx,
+        int u_dof_index_idx,
+        int p_data_idx,
+        int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -169,7 +184,11 @@ private:
      * discretization.
      */
     static void copyFromPatchLevelVec_MAC(
-        Vec& vec, int u_data_idx, int u_dof_index_idx, int p_data_idx, int p_dof_index_idx,
+        Vec& vec,
+        int u_data_idx,
+        int u_dof_index_idx,
+        int p_data_idx,
+        int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -177,7 +196,9 @@ private:
      * MAC discretization.
      */
     static void constructPatchLevelDOFIndices_MAC(
-        std::vector<int>& num_dofs_proc, int u_dof_index_idx, int p_dof_index_idx,
+        std::vector<int>& num_dofs_proc,
+        int u_dof_index_idx,
+        int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
 } // namespace IBAMR

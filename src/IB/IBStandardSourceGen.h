@@ -150,7 +150,9 @@ public:
      */
     void
     initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                        int level_number, double init_data_time, bool initial_time,
+                        int level_number,
+                        double init_data_time,
+                        bool initial_time,
                         IBTK::LDataManager* l_data_manager);
 
     /*!
@@ -162,7 +164,9 @@ public:
      */
     unsigned int
     getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                  int level_number, double data_time, IBTK::LDataManager* l_data_manager);
+                  int level_number,
+                  double data_time,
+                  IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -173,10 +177,13 @@ public:
      * the location of all of the distributed sources/sinks.
      */
     void
-    getSourceLocations(std::vector<IBTK::Point>& X_src, std::vector<double>& r_src,
+    getSourceLocations(std::vector<IBTK::Point>& X_src,
+                       std::vector<double>& r_src,
                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                       int level_number, double data_time, IBTK::LDataManager* l_data_manager);
+                       int level_number,
+                       double data_time,
+                       IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Set the normalized pressures at the sources.
@@ -184,7 +191,9 @@ public:
     void
     setSourcePressures(const std::vector<double>& P_src,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                       int level_number, double data_time, IBTK::LDataManager* l_data_manager);
+                       int level_number,
+                       double data_time,
+                       IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -196,8 +205,10 @@ public:
      */
     void computeSourceStrengths(
         std::vector<double>& Q_src,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy, int level_number,
-        double data_time, IBTK::LDataManager* l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * Write out object state to the given database.

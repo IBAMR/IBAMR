@@ -70,14 +70,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SideDataSynchronization::SideDataSynchronization()
-    : d_is_initialized(false),
-      d_transaction_comps(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_coarsen_alg(NULL),
-      d_coarsen_scheds(),
-      d_refine_alg(NULL),
-      d_refine_scheds()
+    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1),
+      d_coarsen_alg(NULL), d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -176,7 +170,8 @@ void SideDataSynchronization::initializeOperatorState(
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
@@ -280,7 +275,8 @@ void SideDataSynchronization::resetTransactionComponents(
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
-                                     refine_op, fill_pattern);
+                                     refine_op,
+                                     fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

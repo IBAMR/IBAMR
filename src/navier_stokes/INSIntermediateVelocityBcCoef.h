@@ -102,7 +102,8 @@ public:
      * class constructor.
      */
     INSIntermediateVelocityBcCoef(
-        int comp_idx, const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        int comp_idx,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         bool homogeneous_bc = false);
 
     /*!

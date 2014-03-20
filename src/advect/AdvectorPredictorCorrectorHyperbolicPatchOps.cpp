@@ -98,43 +98,125 @@
 extern "C" {
 void ADVECT_CONSDIFF_FC(const double*,
 #if (NDIM == 2)
-                        const int&, const int&, const int&, const int&, const int&, const int&,
-                        const int&, const int&, const double*, const double*,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
 #endif
 #if (NDIM == 3)
-                        const int&, const int&, const int&, const int&, const int&, const int&,
-                        const int&, const int&, const int&, const int&, const int&, const int&,
-                        const double*, const double*, const double*,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const double*,
+                        const double*,
+                        const double*,
 #endif
                         double*);
 
-void ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-    const double*, const double&,
+void ADVECT_CONSDIFFWITHDIVSOURCE_FC(const double*,
+                                     const double&,
 #if (NDIM == 2)
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const int&, const double*, const double*,
-    const double*, const double*, const double*, const double*,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
 #endif
 #if (NDIM == 3)
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const double*, const double*,
-    const double*, const double*, const double*, const double*, const double*, const double*,
-    const double*,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const int&,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
+                                     const double*,
 #endif
-    double*);
+                                     double*);
 
 void ADVECT_DETECTGRAD_FC(
 #if (NDIM == 2)
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&,
-#endif
-#if (NDIM == 3)
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
     const int&,
 #endif
-    const double*, const double&, const int&, const double*, int*, int*);
+#if (NDIM == 3)
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+#endif
+    const double*,
+    const double&,
+    const int&,
+    const double*,
+    int*,
+    int*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -153,40 +235,20 @@ static const int FALSE_VAL = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbolicPatchOps(
-    const std::string& object_name, Pointer<Database> input_db,
+    const std::string& object_name,
+    Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom, bool register_for_restart)
-    : d_integrator(NULL),
-      d_explicit_predictor(explicit_predictor),
-      d_u_var(),
-      d_u_is_div_free(),
-      d_u_fcn(),
-      d_compute_init_velocity(true),
-      d_compute_half_velocity(true),
-      d_compute_final_velocity(true),
-      d_F_var(),
-      d_F_fcn(),
-      d_Q_var(),
-      d_Q_u_map(),
-      d_Q_F_map(),
-      d_Q_difference_form(),
-      d_Q_init(),
-      d_Q_bc_coef(),
-      d_overwrite_tags(true),
-      d_object_name(object_name),
-      d_registered_for_restart(register_for_restart),
-      d_grid_geometry(grid_geom),
-      d_visit_writer(NULL),
-      d_extrap_bc_helper(),
-      d_extrap_type("CONSTANT"),
-      d_refinement_criteria(),
-      d_dev_tol(),
-      d_dev(),
-      d_dev_time_max(),
-      d_dev_time_min(),
-      d_grad_tol(),
-      d_grad_time_max(),
-      d_grad_time_min()
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+    bool register_for_restart)
+    : d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
+      d_u_is_div_free(), d_u_fcn(), d_compute_init_velocity(true),
+      d_compute_half_velocity(true), d_compute_final_velocity(true), d_F_var(), d_F_fcn(),
+      d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(), d_Q_init(), d_Q_bc_coef(),
+      d_overwrite_tags(true), d_object_name(object_name),
+      d_registered_for_restart(register_for_restart), d_grid_geometry(grid_geom),
+      d_visit_writer(NULL), d_extrap_bc_helper(), d_extrap_type("CONSTANT"),
+      d_refinement_criteria(), d_dev_tol(), d_dev(), d_dev_time_max(), d_dev_time_min(),
+      d_grad_tol(), d_grad_time_max(), d_grad_time_min()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -246,7 +308,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(
 } // registerAdvectionVelocity
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(
-    Pointer<FaceVariable<NDIM, double> > u_var, const bool is_div_free)
+    Pointer<FaceVariable<NDIM, double> > u_var,
+    const bool is_div_free)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -256,7 +319,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDiverge
 } // setAdvectionVelocityIsDivergenceFree
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
-    Pointer<FaceVariable<NDIM, double> > u_var, Pointer<CartGridFunction> u_fcn)
+    Pointer<FaceVariable<NDIM, double> > u_var,
+    Pointer<CartGridFunction> u_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -276,7 +340,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(
 } // registerSourceTerm
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(
-    Pointer<CellVariable<NDIM, double> > F_var, Pointer<CartGridFunction> F_fcn)
+    Pointer<CellVariable<NDIM, double> > F_var,
+    Pointer<CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
@@ -319,7 +384,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
 } // registerTransportedQuantity
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(
-    Pointer<CellVariable<NDIM, double> > Q_var, Pointer<FaceVariable<NDIM, double> > u_var)
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<FaceVariable<NDIM, double> > u_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -330,7 +396,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(
 } // setAdvectionVelocity
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(
-    Pointer<CellVariable<NDIM, double> > Q_var, Pointer<CellVariable<NDIM, double> > F_var)
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<CellVariable<NDIM, double> > F_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -352,7 +419,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType
 } // setConvectiveDifferencingType
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(
-    Pointer<CellVariable<NDIM, double> > Q_var, Pointer<CartGridFunction> Q_init)
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<CartGridFunction> Q_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -362,7 +430,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(
 } // setInitialConditions
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(
-    Pointer<CellVariable<NDIM, double> > Q_var, RobinBcCoefStrategy<NDIM>* Q_bc_coef)
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -397,31 +466,43 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
     d_integrator = integrator;
 
     for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+         cit != d_u_var.end();
+         ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
-        d_integrator->registerVariable(
-            u_var, d_ghosts, HyperbolicLevelIntegrator<NDIM>::TIME_DEP, d_grid_geometry,
-            "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(u_var,
+                                       d_ghosts,
+                                       HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                                       d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN",
+                                       "CONSERVATIVE_LINEAR_REFINE");
     }
 
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+         cit != d_F_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
-        d_integrator->registerVariable(
-            F_var, d_ghosts, HyperbolicLevelIntegrator<NDIM>::TIME_DEP, d_grid_geometry,
-            "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(F_var,
+                                       d_ghosts,
+                                       HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                                       d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN",
+                                       "CONSERVATIVE_LINEAR_REFINE");
     }
 
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
-        d_integrator->registerVariable(
-            Q_var, d_ghosts, HyperbolicLevelIntegrator<NDIM>::TIME_DEP, d_grid_geometry,
-            "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(Q_var,
+                                       d_ghosts,
+                                       HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                                       d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN",
+                                       "CONSERVATIVE_LINEAR_REFINE");
 
         if (d_visit_writer)
         {
@@ -443,8 +524,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
                 {
                     std::ostringstream stream;
                     stream << d;
-                    d_visit_writer->registerPlotQuantity(Q_var->getName() + "_" + stream.str(),
-                                                         "SCALAR", Q_idx, d);
+                    d_visit_writer->registerPlotQuantity(
+                        Q_var->getName() + "_" + stream.str(), "SCALAR", Q_idx, d);
                 }
             }
         }
@@ -455,9 +536,11 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
             d_flux_integral_var[Q_var] = new FaceVariable<NDIM, double>(
                 d_object_name + "::" + Q_var->getName() + " advective flux time integral",
                 Q_factory->getDefaultDepth());
-            d_integrator->registerVariable(d_flux_integral_var[Q_var], d_flux_ghosts,
+            d_integrator->registerVariable(d_flux_integral_var[Q_var],
+                                           d_flux_ghosts,
                                            HyperbolicLevelIntegrator<NDIM>::FLUX,
-                                           d_grid_geometry, "CONSERVATIVE_COARSEN",
+                                           d_grid_geometry,
+                                           "CONSERVATIVE_COARSEN",
                                            "NO_REFINE");
         }
 
@@ -468,16 +551,21 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
             d_q_integral_var[Q_var] = new FaceVariable<NDIM, double>(
                 d_object_name + "::" + Q_var->getName() + " time integral",
                 Q_factory->getDefaultDepth());
-            d_integrator->registerVariable(
-                d_q_integral_var[Q_var], d_flux_ghosts, HyperbolicLevelIntegrator<NDIM>::FLUX,
-                d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
+            d_integrator->registerVariable(d_q_integral_var[Q_var],
+                                           d_flux_ghosts,
+                                           HyperbolicLevelIntegrator<NDIM>::FLUX,
+                                           d_grid_geometry,
+                                           "CONSERVATIVE_COARSEN",
+                                           "NO_REFINE");
             if (u_var && !d_u_integral_var[u_var])
             {
                 d_u_integral_var[u_var] = new FaceVariable<NDIM, double>(
                     d_object_name + "::" + u_var->getName() + " time integral");
-                d_integrator->registerVariable(d_u_integral_var[u_var], d_flux_ghosts,
+                d_integrator->registerVariable(d_u_integral_var[u_var],
+                                               d_flux_ghosts,
                                                HyperbolicLevelIntegrator<NDIM>::FLUX,
-                                               d_grid_geometry, "CONSERVATIVE_COARSEN",
+                                               d_grid_geometry,
+                                               "CONSERVATIVE_COARSEN",
                                                "NO_REFINE");
             }
         }
@@ -485,22 +573,27 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(
     return;
 } // registerModelVariables
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(
-    Patch<NDIM>& patch, const double data_time, const bool initial_time)
+void
+AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch<NDIM>& patch,
+                                                                    const double data_time,
+                                                                    const bool initial_time)
 {
     if (initial_time)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit =
                  d_u_var.begin();
-             cit != d_u_var.end(); ++cit)
+             cit != d_u_var.end();
+             ++cit)
         {
             Pointer<FaceVariable<NDIM, double> > u_var = *cit;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var])
             {
-                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var,
-                                               Pointer<Patch<NDIM> >(&patch, false), data_time,
+                d_u_fcn[u_var]->setDataOnPatch(u_idx,
+                                               u_var,
+                                               Pointer<Patch<NDIM> >(&patch, false),
+                                               data_time,
                                                initial_time);
             }
             else
@@ -512,14 +605,17 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(
 
         for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
                  d_F_var.begin();
-             cit != d_F_var.end(); ++cit)
+             cit != d_F_var.end();
+             ++cit)
         {
             Pointer<CellVariable<NDIM, double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var])
             {
-                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var,
-                                               Pointer<Patch<NDIM> >(&patch, false), data_time,
+                d_F_fcn[F_var]->setDataOnPatch(F_idx,
+                                               F_var,
+                                               Pointer<Patch<NDIM> >(&patch, false),
+                                               data_time,
                                                initial_time);
             }
             else
@@ -531,15 +627,18 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(
 
         for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
                  d_Q_var.begin();
-             cit != d_Q_var.end(); ++cit)
+             cit != d_Q_var.end();
+             ++cit)
         {
             Pointer<CellVariable<NDIM, double> > Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
             if (d_Q_init[Q_var])
             {
-                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var,
+                d_Q_init[Q_var]->setDataOnPatch(Q_idx,
+                                                Q_var,
                                                 Pointer<Patch<NDIM> >(&patch, false),
-                                                data_time, initial_time);
+                                                data_time,
+                                                initial_time);
             }
             else
             {
@@ -553,11 +652,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(
 } // initializeDataOnPatch
 
 double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(
-    Patch<NDIM>& patch, const bool /*initial_time*/, const double /*dt_time*/)
+    Patch<NDIM>& patch,
+    const bool /*initial_time*/,
+    const double /*dt_time*/)
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+         cit != d_u_var.end();
+         ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         Pointer<FaceData<NDIM, double> > u_data = patch.getPatchData(u_var, getDataContext());
@@ -577,7 +679,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
     PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
 
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
@@ -597,8 +700,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
         {
             Pointer<CellData<NDIM, double> > F_data =
                 patch.getPatchData(F_var, getDataContext());
-            d_explicit_predictor->predictValueWithSourceTerm(*q_integral_data, *u_data,
-                                                             *Q_data, *F_data, patch, dt);
+            d_explicit_predictor->predictValueWithSourceTerm(
+                *q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
         {
@@ -619,7 +722,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
     {
         for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit =
                  d_u_var.begin();
-             cit != d_u_var.end(); ++cit)
+             cit != d_u_var.end();
+             ++cit)
         {
             Pointer<FaceVariable<NDIM, double> > u_var = *cit;
             if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -634,7 +738,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
 
     // Compute fluxes and other face-centered quantities.
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
@@ -651,8 +756,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
                 getFluxIntegralData(Q_var, patch, getDataContext());
             Pointer<FaceData<NDIM, double> > q_integral_data =
                 getQIntegralData(Q_var, patch, getDataContext());
-            d_explicit_predictor->computeFlux(*flux_integral_data, *u_data, *q_integral_data,
-                                              patch, dt);
+            d_explicit_predictor->computeFlux(
+                *flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
 
         if (!conservation_form || !u_is_div_free)
@@ -670,7 +775,10 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch<ND
 } // computeFluxesOnPatch
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
-    Patch<NDIM>& patch, const double /*time*/, const double dt, bool /*at_synchronization*/)
+    Patch<NDIM>& patch,
+    const double /*time*/,
+    const double dt,
+    bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -680,7 +788,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
     const double* const dx = patch_geom->getDx();
 
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
@@ -714,56 +823,95 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
                 if (u_is_div_free)
                 {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFF_FC(
-                        dx, ilower(0), iupper(0), ilower(1), iupper(1),
-                        flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
-                        Q_data_ghost_cells(0), Q_data_ghost_cells(1),
-                        flux_integral_data->getPointer(0, depth),
-                        flux_integral_data->getPointer(1, depth), Q_data->getPointer(depth));
+                    ADVECT_CONSDIFF_FC(dx,
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       flux_integral_data_ghost_cells(0),
+                                       flux_integral_data_ghost_cells(1),
+                                       Q_data_ghost_cells(0),
+                                       Q_data_ghost_cells(1),
+                                       flux_integral_data->getPointer(0, depth),
+                                       flux_integral_data->getPointer(1, depth),
+                                       Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFF_FC(
-                        dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
-                        flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
-                        flux_integral_data_ghost_cells(2), Q_data_ghost_cells(0),
-                        Q_data_ghost_cells(1), Q_data_ghost_cells(2),
-                        flux_integral_data->getPointer(0, depth),
-                        flux_integral_data->getPointer(1, depth),
-                        flux_integral_data->getPointer(2, depth), Q_data->getPointer(depth));
+                    ADVECT_CONSDIFF_FC(dx,
+                                       ilower(0),
+                                       iupper(0),
+                                       ilower(1),
+                                       iupper(1),
+                                       ilower(2),
+                                       iupper(2),
+                                       flux_integral_data_ghost_cells(0),
+                                       flux_integral_data_ghost_cells(1),
+                                       flux_integral_data_ghost_cells(2),
+                                       Q_data_ghost_cells(0),
+                                       Q_data_ghost_cells(1),
+                                       Q_data_ghost_cells(2),
+                                       flux_integral_data->getPointer(0, depth),
+                                       flux_integral_data->getPointer(1, depth),
+                                       flux_integral_data->getPointer(2, depth),
+                                       Q_data->getPointer(depth));
 #endif
                 }
                 else
                 {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-                        dx, dt, ilower(0), iupper(0), ilower(1), iupper(1),
-                        flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
-                        q_integral_data_ghost_cells(0), q_integral_data_ghost_cells(1),
-                        u_integral_data_ghost_cells(0), u_integral_data_ghost_cells(1),
-                        Q_data_ghost_cells(0), Q_data_ghost_cells(1),
-                        flux_integral_data->getPointer(0, depth),
-                        flux_integral_data->getPointer(1, depth),
-                        q_integral_data->getPointer(0, depth),
-                        q_integral_data->getPointer(1, depth), u_integral_data->getPointer(0),
-                        u_integral_data->getPointer(1), Q_data->getPointer(depth));
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(dx,
+                                                    dt,
+                                                    ilower(0),
+                                                    iupper(0),
+                                                    ilower(1),
+                                                    iupper(1),
+                                                    flux_integral_data_ghost_cells(0),
+                                                    flux_integral_data_ghost_cells(1),
+                                                    q_integral_data_ghost_cells(0),
+                                                    q_integral_data_ghost_cells(1),
+                                                    u_integral_data_ghost_cells(0),
+                                                    u_integral_data_ghost_cells(1),
+                                                    Q_data_ghost_cells(0),
+                                                    Q_data_ghost_cells(1),
+                                                    flux_integral_data->getPointer(0, depth),
+                                                    flux_integral_data->getPointer(1, depth),
+                                                    q_integral_data->getPointer(0, depth),
+                                                    q_integral_data->getPointer(1, depth),
+                                                    u_integral_data->getPointer(0),
+                                                    u_integral_data->getPointer(1),
+                                                    Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-                        dx, dt, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2),
-                        iupper(2), flux_integral_data_ghost_cells(0),
-                        flux_integral_data_ghost_cells(1), flux_integral_data_ghost_cells(2),
-                        q_integral_data_ghost_cells(0), q_integral_data_ghost_cells(1),
-                        q_integral_data_ghost_cells(2), u_integral_data_ghost_cells(0),
-                        u_integral_data_ghost_cells(1), u_integral_data_ghost_cells(2),
-                        Q_data_ghost_cells(0), Q_data_ghost_cells(1), Q_data_ghost_cells(2),
-                        flux_integral_data->getPointer(0, depth),
-                        flux_integral_data->getPointer(1, depth),
-                        flux_integral_data->getPointer(2, depth),
-                        q_integral_data->getPointer(0, depth),
-                        q_integral_data->getPointer(1, depth),
-                        q_integral_data->getPointer(2, depth), u_integral_data->getPointer(0),
-                        u_integral_data->getPointer(1), u_integral_data->getPointer(2),
-                        Q_data->getPointer(depth));
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(dx,
+                                                    dt,
+                                                    ilower(0),
+                                                    iupper(0),
+                                                    ilower(1),
+                                                    iupper(1),
+                                                    ilower(2),
+                                                    iupper(2),
+                                                    flux_integral_data_ghost_cells(0),
+                                                    flux_integral_data_ghost_cells(1),
+                                                    flux_integral_data_ghost_cells(2),
+                                                    q_integral_data_ghost_cells(0),
+                                                    q_integral_data_ghost_cells(1),
+                                                    q_integral_data_ghost_cells(2),
+                                                    u_integral_data_ghost_cells(0),
+                                                    u_integral_data_ghost_cells(1),
+                                                    u_integral_data_ghost_cells(2),
+                                                    Q_data_ghost_cells(0),
+                                                    Q_data_ghost_cells(1),
+                                                    Q_data_ghost_cells(2),
+                                                    flux_integral_data->getPointer(0, depth),
+                                                    flux_integral_data->getPointer(1, depth),
+                                                    flux_integral_data->getPointer(2, depth),
+                                                    q_integral_data->getPointer(0, depth),
+                                                    q_integral_data->getPointer(1, depth),
+                                                    q_integral_data->getPointer(2, depth),
+                                                    u_integral_data->getPointer(0),
+                                                    u_integral_data->getPointer(1),
+                                                    u_integral_data->getPointer(2),
+                                                    Q_data->getPointer(depth));
 #endif
                 }
             }
@@ -772,11 +920,13 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
         case ADVECTIVE:
         {
             CellData<NDIM, double> N_data(patch_box, Q_data->getDepth(), 0);
-            d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data,
-                                                             *q_integral_data, patch);
+            d_explicit_predictor->computeAdvectiveDerivative(
+                N_data, *u_integral_data, *q_integral_data, patch);
             PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
-            patch_cc_data_ops.axpy(Q_data, -1.0 / dt,
-                                   Pointer<CellData<NDIM, double> >(&N_data, false), Q_data,
+            patch_cc_data_ops.axpy(Q_data,
+                                   -1.0 / dt,
+                                   Pointer<CellData<NDIM, double> >(&N_data, false),
+                                   Q_data,
                                    patch_box);
             break;
         }
@@ -796,14 +946,19 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
 } // conservativeDifferenceOnPatch
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
-    const Pointer<PatchLevel<NDIM> >& level, double current_time, double /*dt*/,
-    bool /*first_step*/, bool /*last_step*/, bool /*regrid_advance*/)
+    const Pointer<PatchLevel<NDIM> >& level,
+    double current_time,
+    double /*dt*/,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Update the source term.
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+         cit != d_F_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
         if (d_F_fcn[F_var] && d_F_fcn[F_var]->isTimeDependent())
@@ -818,7 +973,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
 
     // Update the advection velocity.
     for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+         cit != d_u_var.end();
+         ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -832,8 +988,12 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
 } // preprocessAdvanceLevelState
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
-    const Pointer<PatchLevel<NDIM> >& level, double current_time, double dt,
-    bool /*first_step*/, bool /*last_step*/, bool /*regrid_advance*/)
+    const Pointer<PatchLevel<NDIM> >& level,
+    double current_time,
+    double dt,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -845,7 +1005,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<CellVariable<NDIM, double> > F_var = d_Q_F_map[Q_var];
@@ -884,7 +1045,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
 
     // Update the advection velocity.
     for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+         cit != d_u_var.end();
+         ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -898,8 +1060,11 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
 } // postprocessAdvanceLevelState
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
-    Patch<NDIM>& patch, const double regrid_time, const bool /*initial_error*/,
-    const int tag_indx, const bool /*uses_richardson_extrapolation_too*/)
+    Patch<NDIM>& patch,
+    const double regrid_time,
+    const bool /*initial_error*/,
+    const int tag_indx,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     const int error_level_number = patch.getPatchLevelNumber();
 
@@ -954,7 +1119,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
                 // Check for tags that have already been set in a previous step.
                 for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
                          d_Q_var.begin();
-                     cit != d_Q_var.end(); ++cit)
+                     cit != d_Q_var.end();
+                     ++cit)
                 {
                     Pointer<CellVariable<NDIM, double> > Q_var = *cit;
                     Pointer<CellData<NDIM, double> > Q_data =
@@ -998,7 +1164,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
             {
                 for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
                          d_Q_var.begin();
-                     cit != d_Q_var.end(); ++cit)
+                     cit != d_Q_var.end();
+                     ++cit)
                 {
                     Pointer<CellVariable<NDIM, double> > Q_var = *cit;
                     Pointer<CellData<NDIM, double> > Q_data =
@@ -1008,16 +1175,40 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
                     {
                         ADVECT_DETECTGRAD_FC(
 #if (NDIM == 2)
-                            ilower(0), iupper(0), ilower(1), iupper(1), Q_ghost(0),
-                            tagghost(0), d_ghosts(0), Q_ghost(1), tagghost(1), d_ghosts(1),
+                            ilower(0),
+                            iupper(0),
+                            ilower(1),
+                            iupper(1),
+                            Q_ghost(0),
+                            tagghost(0),
+                            d_ghosts(0),
+                            Q_ghost(1),
+                            tagghost(1),
+                            d_ghosts(1),
 #endif
 #if (NDIM == 3)
-                            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
-                            Q_ghost(0), tagghost(0), d_ghosts(0), Q_ghost(1), tagghost(1),
-                            d_ghosts(1), Q_ghost(2), tagghost(2), d_ghosts(2),
+                            ilower(0),
+                            iupper(0),
+                            ilower(1),
+                            iupper(1),
+                            ilower(2),
+                            iupper(2),
+                            Q_ghost(0),
+                            tagghost(0),
+                            d_ghosts(0),
+                            Q_ghost(1),
+                            tagghost(1),
+                            d_ghosts(1),
+                            Q_ghost(2),
+                            tagghost(2),
+                            d_ghosts(2),
 #endif
-                            dx, tol, refine_tag_val, Q_data->getPointer(depth),
-                            tags->getPointer(), temp_tags.getPointer());
+                            dx,
+                            tol,
+                            refine_tag_val,
+                            Q_data->getPointer(depth),
+                            tags->getPointer(),
+                            temp_tags.getPointer());
                     }
                 }
             }
@@ -1043,7 +1234,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(
 } // tagGradientDetectorCells
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions(
-    Patch<NDIM>& patch, const double fill_time, const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& patch,
+    const double fill_time,
+    const IntVector<NDIM>& ghost_width_to_fill)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1051,7 +1244,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     // variables and for any forcing terms.
     ComponentSelector u_patch_data_indices;
     for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+         cit != d_u_var.end();
+         ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         const int u_data_idx =
@@ -1064,7 +1258,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
 
     ComponentSelector patch_data_indices;
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+         cit != d_F_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
         const int F_data_idx =
@@ -1072,7 +1267,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
         patch_data_indices.setFlag(F_data_idx);
     }
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         const int Q_data_idx =
@@ -1120,7 +1316,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(Pointer<Databas
 
 Pointer<FaceData<NDIM, double> >
 AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(
-    Pointer<CellVariable<NDIM, double> > Q_var, Patch<NDIM>& patch,
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
 #if !defined(NDEBUG)
@@ -1138,7 +1335,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(
 
 Pointer<FaceData<NDIM, double> >
 AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(
-    Pointer<CellVariable<NDIM, double> > Q_var, Patch<NDIM>& patch,
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
 #if !defined(NDEBUG)
@@ -1156,7 +1354,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(
 
 Pointer<FaceData<NDIM, double> >
 AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(
-    Pointer<CellVariable<NDIM, double> > Q_var, Patch<NDIM>& patch,
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
 #if !defined(NDEBUG)
@@ -1176,7 +1375,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(
-    Patch<NDIM>& patch, const double fill_time)
+    Patch<NDIM>& patch,
+    const double fill_time)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1199,7 +1399,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(
     const Box<NDIM>& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
     for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+         cit != d_Q_var.end();
+         ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
@@ -1252,8 +1453,12 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(
                     new ArrayData<NDIM, double>(bc_coef_box, 1);
                 Pointer<ArrayData<NDIM, double> > gcoef_data =
                     new ArrayData<NDIM, double>(bc_coef_box, 1);
-                d_Q_bc_coef[Q_var][depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data,
-                                                      Q_var, patch, trimmed_bdry_box,
+                d_Q_bc_coef[Q_var][depth]->setBcCoefs(acoef_data,
+                                                      bcoef_data,
+                                                      gcoef_data,
+                                                      Q_var,
+                                                      patch,
+                                                      trimmed_bdry_box,
                                                       fill_time);
                 for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
@@ -1280,10 +1485,12 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(
                         }
 
                         const FaceIndex<NDIM> i_f_bdry(
-                            i_intr, bdry_normal_axis,
+                            i_intr,
+                            bdry_normal_axis,
                             (is_lower ? FaceIndex<NDIM>::Lower : FaceIndex<NDIM>::Upper));
                         const FaceIndex<NDIM> i_f_intr(
-                            i_intr, bdry_normal_axis,
+                            i_intr,
+                            bdry_normal_axis,
                             (is_lower ? FaceIndex<NDIM>::Upper : FaceIndex<NDIM>::Lower));
                         const double& q_i = (*q_integral_data)(i_f_intr, depth);
                         const double q_b = (b * q_i + g * h) / (a * h + b);

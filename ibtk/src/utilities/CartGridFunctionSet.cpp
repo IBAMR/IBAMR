@@ -101,11 +101,13 @@ bool CartGridFunctionSet::isTimeDependent() const
     return false;
 } // isTimeDependent
 
-void
-CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx, Pointer<Variable<NDIM> > var,
-                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                             const double data_time, const bool initial_time,
-                                             const int coarsest_ln_in, const int finest_ln_in)
+void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
+                                                  Pointer<Variable<NDIM> > var,
+                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  const double data_time,
+                                                  const bool initial_time,
+                                                  const int coarsest_ln_in,
+                                                  const int finest_ln_in)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -121,7 +123,8 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx, Pointer<Variabl
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
-            var, hierarchy,
+            var,
+            hierarchy,
             /* get_unique */ true);
     if (!hier_data_ops)
     {
@@ -132,12 +135,17 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx, Pointer<Variabl
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_fcns.empty());
 #endif
-    d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time,
-                                       coarsest_ln_in, finest_ln_in);
+    d_fcns[0]->setDataOnPatchHierarchy(
+        data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
-        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx, var, hierarchy, data_time,
-                                           initial_time, coarsest_ln_in, finest_ln_in);
+        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx,
+                                           var,
+                                           hierarchy,
+                                           data_time,
+                                           initial_time,
+                                           coarsest_ln_in,
+                                           finest_ln_in);
         hier_data_ops->add(data_idx, data_idx, cloned_data_idx);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -148,9 +156,11 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx, Pointer<Variabl
     return;
 } // setDataOnPatchHierarchy
 
-void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx, Pointer<Variable<NDIM> > var,
+void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
+                                              Pointer<Variable<NDIM> > var,
                                               Pointer<PatchLevel<NDIM> > level,
-                                              const double data_time, const bool initial_time)
+                                              const double data_time,
+                                              const bool initial_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
@@ -228,8 +238,10 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx, Pointer<Variab
     return;
 } // setDataOnPatchLevel
 
-void CartGridFunctionSet::setDataOnPatch(int data_idx, Pointer<Variable<NDIM> > var,
-                                         Pointer<Patch<NDIM> > patch, double data_time,
+void CartGridFunctionSet::setDataOnPatch(int data_idx,
+                                         Pointer<Variable<NDIM> > var,
+                                         Pointer<Patch<NDIM> > patch,
+                                         double data_time,
                                          bool initial_time,
                                          Pointer<PatchLevel<NDIM> > patch_level)
 {
@@ -249,31 +261,32 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx, Pointer<Variable<NDIM> > 
     if (cc_var)
     {
         Pointer<CellData<NDIM, double> > p_data = data;
-        cloned_data = new CellData<NDIM, double>(p_data->getBox(), p_data->getDepth(),
-                                                 p_data->getGhostCellWidth());
+        cloned_data = new CellData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (ec_var)
     {
         Pointer<EdgeData<NDIM, double> > p_data = data;
-        cloned_data = new EdgeData<NDIM, double>(p_data->getBox(), p_data->getDepth(),
-                                                 p_data->getGhostCellWidth());
+        cloned_data = new EdgeData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (fc_var)
     {
         Pointer<FaceData<NDIM, double> > p_data = data;
-        cloned_data = new FaceData<NDIM, double>(p_data->getBox(), p_data->getDepth(),
-                                                 p_data->getGhostCellWidth());
+        cloned_data = new FaceData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (nc_var)
     {
         Pointer<NodeData<NDIM, double> > p_data = data;
-        cloned_data = new NodeData<NDIM, double>(p_data->getBox(), p_data->getDepth(),
-                                                 p_data->getGhostCellWidth());
+        cloned_data = new NodeData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (sc_var)
     {
         Pointer<SideData<NDIM, double> > p_data = data;
-        cloned_data = new SideData<NDIM, double>(p_data->getBox(), p_data->getDepth(),
+        cloned_data = new SideData<NDIM, double>(p_data->getBox(),
+                                                 p_data->getDepth(),
                                                  p_data->getGhostCellWidth(),
                                                  p_data->getDirectionVector());
     }

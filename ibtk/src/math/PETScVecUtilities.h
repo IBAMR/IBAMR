@@ -76,7 +76,9 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void
-    copyToPatchLevelVec(Vec& vec, int data_idx, int dof_index_idx,
+    copyToPatchLevelVec(Vec& vec,
+                        int data_idx,
+                        int dof_index_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -84,7 +86,9 @@ public:
      * SAMRAI::hier::PatchLevel.
      */
     static void copyFromPatchLevelVec(
-        Vec& vec, int data_idx, int dof_index_idx,
+        Vec& vec,
+        int data_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > data_synch_sched,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > ghost_fill_sched);
@@ -98,7 +102,8 @@ public:
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> >
     constructDataSynchSchedule(
-        int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+        int data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Construct a RefineSchedule to fill ghost cell values that can be
@@ -106,7 +111,8 @@ public:
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> >
     constructGhostFillSchedule(
-        int data_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+        int data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Assign a DOF index to each unique degree of freedom on a
@@ -119,7 +125,8 @@ public:
      * method.
      */
     static void constructPatchLevelDOFIndices(
-        std::vector<int>& num_dofs_per_proc, int dof_index_idx,
+        std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     //\}
@@ -157,28 +164,36 @@ private:
      * \brief Implementation of copyToPatchLevelVec() for cell-centered data.
      */
     static void copyToPatchLevelVec_cell(
-        Vec& vec, int data_idx, int dof_index_idx,
+        Vec& vec,
+        int data_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Implementation of copyToPatchLevelVec() for side-centered data.
      */
     static void copyToPatchLevelVec_side(
-        Vec& vec, int data_idx, int dof_index_idx,
+        Vec& vec,
+        int data_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for cell-centered data.
      */
     static void copyFromPatchLevelVec_cell(
-        Vec& vec, int data_idx, int dof_index_idx,
+        Vec& vec,
+        int data_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for side-centered data.
      */
     static void copyFromPatchLevelVec_side(
-        Vec& vec, int data_idx, int dof_index_idx,
+        Vec& vec,
+        int data_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -186,7 +201,8 @@ private:
      * cell-centered data.
      */
     static void constructPatchLevelDOFIndices_cell(
-        std::vector<int>& num_dofs_proc, int dof_index_idx,
+        std::vector<int>& num_dofs_proc,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
@@ -194,7 +210,8 @@ private:
      * side-centered data.
      */
     static void constructPatchLevelDOFIndices_side(
-        std::vector<int>& num_dofs_proc, int dof_index_idx,
+        std::vector<int>& num_dofs_proc,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 };
 } // namespace IBTK

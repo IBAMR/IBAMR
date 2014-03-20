@@ -139,65 +139,27 @@ inline int round(double x)
 
 IBStandardInitializer::IBStandardInitializer(const std::string& object_name,
                                              Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_use_file_batons(true),
-      d_max_levels(-1),
-      d_level_is_initialized(),
-      d_silo_writer(NULL),
-      d_base_filename(),
-      d_length_scale_factor(1.0),
-      d_posn_shift(Vector::Zero()),
-      d_num_vertex(),
-      d_vertex_offset(),
-      d_vertex_posn(),
-      d_enable_springs(),
-      d_spring_edge_map(),
-      d_spring_spec_data(),
-      d_using_uniform_spring_stiffness(),
-      d_uniform_spring_stiffness(),
-      d_using_uniform_spring_rest_length(),
-      d_uniform_spring_rest_length(),
-      d_using_uniform_spring_force_fcn_idx(),
-      d_uniform_spring_force_fcn_idx(),
-      d_enable_xsprings(),
-      d_xspring_edge_map(),
-      d_xspring_spec_data(),
-      d_using_uniform_xspring_stiffness(),
-      d_uniform_xspring_stiffness(),
-      d_using_uniform_xspring_rest_length(),
-      d_uniform_xspring_rest_length(),
-      d_using_uniform_xspring_force_fcn_idx(),
-      d_uniform_xspring_force_fcn_idx(),
-      d_enable_beams(),
-      d_beam_spec_data(),
-      d_using_uniform_beam_bend_rigidity(),
-      d_uniform_beam_bend_rigidity(),
-      d_using_uniform_beam_curvature(),
-      d_uniform_beam_curvature(),
-      d_enable_rods(),
-      d_rod_edge_map(),
-      d_rod_spec_data(),
-      d_using_uniform_rod_properties(),
-      d_uniform_rod_properties(),
-      d_enable_target_points(),
-      d_target_spec_data(),
-      d_using_uniform_target_stiffness(),
-      d_uniform_target_stiffness(),
-      d_using_uniform_target_damping(),
-      d_uniform_target_damping(),
-      d_enable_anchor_points(),
-      d_anchor_spec_data(),
-      d_enable_bdry_mass(),
-      d_bdry_mass_spec_data(),
-      d_using_uniform_bdry_mass(),
-      d_uniform_bdry_mass(),
-      d_using_uniform_bdry_mass_stiffness(),
-      d_uniform_bdry_mass_stiffness(),
-      d_directors(),
-      d_enable_instrumentation(),
-      d_instrument_idx(),
-      d_enable_sources(),
-      d_source_idx(),
+    : d_object_name(object_name), d_use_file_batons(true), d_max_levels(-1),
+      d_level_is_initialized(), d_silo_writer(NULL), d_base_filename(),
+      d_length_scale_factor(1.0), d_posn_shift(Vector::Zero()), d_num_vertex(),
+      d_vertex_offset(), d_vertex_posn(), d_enable_springs(), d_spring_edge_map(),
+      d_spring_spec_data(), d_using_uniform_spring_stiffness(), d_uniform_spring_stiffness(),
+      d_using_uniform_spring_rest_length(), d_uniform_spring_rest_length(),
+      d_using_uniform_spring_force_fcn_idx(), d_uniform_spring_force_fcn_idx(),
+      d_enable_xsprings(), d_xspring_edge_map(), d_xspring_spec_data(),
+      d_using_uniform_xspring_stiffness(), d_uniform_xspring_stiffness(),
+      d_using_uniform_xspring_rest_length(), d_uniform_xspring_rest_length(),
+      d_using_uniform_xspring_force_fcn_idx(), d_uniform_xspring_force_fcn_idx(),
+      d_enable_beams(), d_beam_spec_data(), d_using_uniform_beam_bend_rigidity(),
+      d_uniform_beam_bend_rigidity(), d_using_uniform_beam_curvature(),
+      d_uniform_beam_curvature(), d_enable_rods(), d_rod_edge_map(), d_rod_spec_data(),
+      d_using_uniform_rod_properties(), d_uniform_rod_properties(), d_enable_target_points(),
+      d_target_spec_data(), d_using_uniform_target_stiffness(), d_uniform_target_stiffness(),
+      d_using_uniform_target_damping(), d_uniform_target_damping(), d_enable_anchor_points(),
+      d_anchor_spec_data(), d_enable_bdry_mass(), d_bdry_mass_spec_data(),
+      d_using_uniform_bdry_mass(), d_uniform_bdry_mass(),
+      d_using_uniform_bdry_mass_stiffness(), d_uniform_bdry_mass_stiffness(), d_directors(),
+      d_enable_instrumentation(), d_instrument_idx(), d_enable_sources(), d_source_idx(),
       d_global_index_offset()
 {
 #if !defined(NDEBUG)
@@ -301,8 +263,11 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number,
 } // getLevelHasLagrangianData
 
 unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
-    const double /*init_data_time*/, const bool can_be_refined, const bool /*initial_time*/)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool can_be_refined,
+    const bool /*initial_time*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -321,8 +286,13 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
         // Count the number of vertices whose initial locations will be within
         // the given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower,
-                         domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices,
+                         patch,
+                         level_number,
+                         can_be_refined,
+                         domain_x_lower,
+                         domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
@@ -330,9 +300,12 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
 
 void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
-    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map, const int level_number,
-    const double /*init_data_time*/, const bool /*can_be_refined*/,
-    const bool /*initial_time*/, LDataManager* const /*l_data_manager*/)
+    std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
@@ -346,10 +319,16 @@ void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
 } // initializeStructureIndexingOnPatchLevel
 
 unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
-    const int lag_node_index_idx, const unsigned int global_index_offset,
-    const unsigned int local_index_offset, Pointer<LData> X_data, Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
-    const double /*init_data_time*/, const bool can_be_refined, const bool /*initial_time*/,
+    const int lag_node_index_idx,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
+    Pointer<LData> X_data,
+    Pointer<LData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool can_be_refined,
+    const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
@@ -390,11 +369,17 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower,
-                         domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices,
+                         patch,
+                         level_number,
+                         can_be_refined,
+                         domain_x_lower,
+                         domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+             it != patch_vertices.end();
+             ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx =
@@ -404,8 +389,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Get the coordinates and periodic shifters of the present vertex.
             Point X_real = getVertexPosn(point_idx, level_number);
-            Point X = getShiftedVertexPosn(point_idx, level_number, domain_x_lower,
-                                           domain_x_upper, periodic_shift);
+            Point X = getShiftedVertexPosn(
+                point_idx, level_number, domain_x_lower, domain_x_upper, periodic_shift);
             Vector periodic_displacement = X_real - X;
             IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
@@ -419,20 +404,20 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
             {
                 if (!periodic_shift[d] && X[d] < domain_x_lower[d])
                 {
-                    TBOX_ERROR(
-                        d_object_name << "::initializeDataOnPatchLevel():\n"
-                                      << "  encountered node below lower physical boundary\n"
-                                      << "  please ensure that all nodes are within the "
-                                         "computational domain." << std::endl);
+                    TBOX_ERROR(d_object_name
+                               << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node below lower physical boundary\n"
+                               << "  please ensure that all nodes are within the "
+                                  "computational domain." << std::endl);
                 }
 
                 if (!periodic_shift[d] && X[d] >= domain_x_upper[d])
                 {
-                    TBOX_ERROR(
-                        d_object_name << "::initializeDataOnPatchLevel():\n"
-                                      << "  encountered node above upper physical boundary\n"
-                                      << "  please ensure that all nodes are within the "
-                                         "computational domain." << std::endl);
+                    TBOX_ERROR(d_object_name
+                               << "::initializeDataOnPatchLevel():\n"
+                               << "  encountered node above upper physical boundary\n"
+                               << "  please ensure that all nodes are within the "
+                                  "computational domain." << std::endl);
                 }
             }
 
@@ -452,7 +437,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
             std::vector<Pointer<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
             for (std::vector<Pointer<Streamable> >::iterator it = node_data.begin();
-                 it != node_data.end(); ++it)
+                 it != node_data.end();
+                 ++it)
             {
                 (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
@@ -464,8 +450,12 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx,
-                                          periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(new LNode(lagrangian_idx,
+                                          global_petsc_idx,
+                                          local_petsc_idx,
+                                          periodic_offset,
+                                          periodic_displacement,
+                                          node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -487,10 +477,15 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(
 } // initializeDataOnPatchLevel
 
 unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(
-    const unsigned int /*global_index_offset*/, const unsigned int local_index_offset,
-    Pointer<LData> M_data, Pointer<LData> K_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
-    const double /*init_data_time*/, const bool can_be_refined, const bool /*initial_time*/,
+    const unsigned int /*global_index_offset*/,
+    const unsigned int local_index_offset,
+    Pointer<LData> M_data,
+    Pointer<LData> K_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool can_be_refined,
+    const bool /*initial_time*/,
     LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
@@ -513,11 +508,17 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower,
-                         domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices,
+                         patch,
+                         level_number,
+                         can_be_refined,
+                         domain_x_lower,
+                         domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+             it != patch_vertices.end();
+             ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -547,10 +548,15 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(
 } // initializeMassOnPatchLevel
 
 unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(
-    const unsigned int /*global_index_offset*/, const unsigned int local_index_offset,
-    Pointer<LData> D_data, const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int level_number, const double /*init_data_time*/, const bool can_be_refined,
-    const bool /*initial_time*/, LDataManager* const /*l_data_manager*/)
+    const unsigned int /*global_index_offset*/,
+    const unsigned int local_index_offset,
+    Pointer<LData> D_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*init_data_time*/,
+    const bool can_be_refined,
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -571,11 +577,17 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower,
-                         domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices,
+                         patch,
+                         level_number,
+                         can_be_refined,
+                         domain_x_lower,
+                         domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
         for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+             it != patch_vertices.end();
+             ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -593,8 +605,10 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 } // initializeDirectorOnPatchLevel
 
 void IBStandardInitializer::tagCellsForInitialRefinement(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_number,
-    const double /*error_data_time*/, const int tag_index)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double /*error_data_time*/,
+    const int tag_index)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -626,16 +640,22 @@ void IBStandardInitializer::tagCellsForInitialRefinement(
         for (int ln = level_number + 1; ln < d_max_levels; ++ln)
         {
             std::vector<std::pair<int, int> > patch_vertices;
-            getPatchVertices(patch_vertices, patch, ln, can_be_refined, domain_x_lower,
-                             domain_x_upper, periodic_shift);
+            getPatchVertices(patch_vertices,
+                             patch,
+                             ln,
+                             can_be_refined,
+                             domain_x_lower,
+                             domain_x_upper,
+                             periodic_shift);
             for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end(); ++it)
+                 it != patch_vertices.end();
+                 ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
 
                 // Get the coordinates of the present vertex.
-                const Point& X = getShiftedVertexPosn(point_idx, ln, domain_x_lower,
-                                                      domain_x_upper, periodic_shift);
+                const Point& X = getShiftedVertexPosn(
+                    point_idx, ln, domain_x_lower, domain_x_upper, periodic_shift);
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
@@ -680,9 +700,10 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_num_vertex[level_number][j] > 0)
             {
                 const std::string postfix = "_vertices";
-                d_silo_writer->registerMarkerCloud(
-                    d_base_filename[level_number][j] + postfix, d_num_vertex[level_number][j],
-                    d_vertex_offset[level_number][j], level_number);
+                d_silo_writer->registerMarkerCloud(d_base_filename[level_number][j] + postfix,
+                                                   d_num_vertex[level_number][j],
+                                                   d_vertex_offset[level_number][j],
+                                                   level_number);
             }
         }
 
@@ -693,9 +714,10 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             {
                 registered_spring_edge_map = true;
                 const std::string postfix = "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix,
-                    d_spring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] +
+                                                            postfix,
+                                                        d_spring_edge_map[level_number][j],
+                                                        level_number);
             }
         }
 
@@ -704,9 +726,10 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_xspring_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = "_xmesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix,
-                    d_xspring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] +
+                                                            postfix,
+                                                        d_xspring_edge_map[level_number][j],
+                                                        level_number);
             }
         }
 
@@ -715,9 +738,10 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_rod_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = registered_spring_edge_map ? "_rod_mesh" : "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix,
-                    d_rod_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] +
+                                                            postfix,
+                                                        d_rod_edge_map[level_number][j],
+                                                        level_number);
             }
         }
     }
@@ -2743,7 +2767,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
                 for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end(); ++meter_it)
+                     meter_it != encountered_instrument_idx.end();
+                     ++meter_it)
                 {
                     const int meter_idx =
                         std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -2757,7 +2782,8 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
                     for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end(); ++node_it)
+                         node_it != meter_node_idxs.end();
+                         ++node_it)
                     {
                         const int node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -3030,10 +3056,13 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
     return;
 } // readSourceFiles
 
-void IBStandardInitializer::getPatchVertices(
-    std::vector<std::pair<int, int> >& patch_vertices, const Pointer<Patch<NDIM> > patch,
-    const int level_number, const bool /*can_be_refined*/, const double* const domain_x_lower,
-    const double* const domain_x_upper, const IntVector<NDIM>& periodic_shift) const
+void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
+                                             const Pointer<Patch<NDIM> > patch,
+                                             const int level_number,
+                                             const bool /*can_be_refined*/,
+                                             const double* const domain_x_lower,
+                                             const double* const domain_x_upper,
+                                             const IntVector<NDIM>& periodic_shift) const
 {
     // Loop over all of the vertices to determine the indices of those vertices
     // within the present patch.
@@ -3052,8 +3081,8 @@ void IBStandardInitializer::getPatchVertices(
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
             std::pair<int, int> point_index(j, k);
-            const Point& X = getShiftedVertexPosn(point_index, level_number, domain_x_lower,
-                                                  domain_x_upper, periodic_shift);
+            const Point& X = getShiftedVertexPosn(
+                point_index, level_number, domain_x_lower, domain_x_upper, periodic_shift);
             const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(
                 X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             if (patch_box.contains(idx)) patch_vertices.push_back(point_index);
@@ -3173,7 +3202,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         {
             for (std::multimap<int, Edge>::const_iterator it =
                      d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
+                 ++it)
             {
 #if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
@@ -3202,7 +3232,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
             if (!d_enable_xsprings[level_number][j]) continue;
             for (std::multimap<int, Edge>::const_iterator it =
                      d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
+                 ++it)
             {
 #if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
@@ -3240,7 +3271,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (std::multimap<int, BeamSpec>::const_iterator it =
                  d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
-             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
+             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
+             ++it)
         {
             const BeamSpec& spec_data = it->second;
             beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
@@ -3249,7 +3281,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         }
         if (!beam_neighbor_idxs.empty())
         {
-            node_data.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs,
+            node_data.push_back(new IBBeamForceSpec(mastr_idx,
+                                                    beam_neighbor_idxs,
                                                     beam_bend_rigidity,
                                                     beam_mesh_dependent_curvature));
         }
@@ -3263,7 +3296,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         rod_material_params;
         for (std::multimap<int, Edge>::const_iterator it =
                  d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
-             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
+             ++it)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
@@ -3476,10 +3510,10 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 }
                 else
                 {
-                    TBOX_ERROR(
-                        d_object_name << ":  "
-                                      << "Key data `level_number' not found in structure `"
-                                      << strct_name << "' input.");
+                    TBOX_ERROR(d_object_name
+                               << ":  "
+                               << "Key data `level_number' not found in structure `"
+                               << strct_name << "' input.");
                 }
             }
             else
@@ -3552,9 +3586,9 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
 
         d_enable_rods[ln].resize(num_base_filename, true);
         d_using_uniform_rod_properties[ln].resize(num_base_filename, false);
-        d_uniform_rod_properties[ln]
-            .resize(num_base_filename,
-                    array_constant<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
+        d_uniform_rod_properties[ln].resize(
+            num_base_filename,
+            array_constant<double, IBRodForceSpec::NUM_MATERIAL_PARAMS>(0.0));
 
         d_enable_target_points[ln].resize(num_base_filename, true);
         d_using_uniform_target_stiffness[ln].resize(num_base_filename, false);
@@ -3709,7 +3743,8 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
                 {
                     d_using_uniform_beam_curvature[ln][j] = true;
                     sub_db->getDoubleArray("uniform_beam_curvature",
-                                           d_uniform_beam_curvature[ln][j].data(), NDIM);
+                                           d_uniform_beam_curvature[ln][j].data(),
+                                           NDIM);
                 }
 
                 if (sub_db->keyExists("uniform_rod_properties"))

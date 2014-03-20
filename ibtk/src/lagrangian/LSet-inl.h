@@ -85,8 +85,8 @@ inline typename LSet<T>::reference LSet<T>::operator[](typename LSet<T>::size_ty
 } // operator[]
 
 template <class T>
-inline typename LSet<T>::const_reference LSet<T>::
-operator[](typename LSet<T>::size_type n) const
+inline typename LSet<T>::const_reference LSet<T>::operator[](typename LSet<T>::size_type n)
+    const
 {
     return d_set[n];
 } // operator[]
@@ -143,15 +143,16 @@ inline typename LSet<T>::iterator LSet<T>::insert(typename LSet<T>::iterator pos
 
 template <class T>
 template <class InputIterator>
-inline void LSet<T>::insert(typename LSet<T>::iterator pos, InputIterator first,
-                            InputIterator last)
+inline void
+LSet<T>::insert(typename LSet<T>::iterator pos, InputIterator first, InputIterator last)
 {
     d_set.insert(pos, first, last);
     return;
 } // insert
 
 template <class T>
-inline void LSet<T>::insert(typename LSet<T>::iterator pos, typename LSet<T>::size_type n,
+inline void LSet<T>::insert(typename LSet<T>::iterator pos,
+                            typename LSet<T>::size_type n,
                             const typename LSet<T>::value_type& x)
 {
     d_set.insert(pos, n, x);
