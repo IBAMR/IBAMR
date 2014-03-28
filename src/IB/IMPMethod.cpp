@@ -33,12 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <stdlib.h>
+#include <stdbool.h>
 #include <algorithm>
-#include <iosfwd>
 #include <limits>
-#include <memory>
-#include <new>
 #include <ostream>
 
 #include "BasePatchHierarchy.h"
@@ -54,10 +51,11 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -92,6 +90,10 @@
 #include "tbox/PIO.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 using namespace libMesh;
 

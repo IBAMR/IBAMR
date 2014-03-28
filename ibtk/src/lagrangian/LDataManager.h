@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -55,13 +56,12 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "boost/array.hpp"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ParallelSet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscao.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
@@ -69,7 +69,10 @@
 
 namespace IBTK
 {
+class LData;
 class LMesh;
+class LNode;
+class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -83,11 +86,6 @@ namespace tbox
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
-
-namespace IBTK
-{
-class LData;
-} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -144,7 +142,7 @@ public:
     static LDataManager* getManager(const std::string& name,
                                     const std::string& default_interp_kernel_fcn,
                                     const std::string& default_spread_kernel_fcn,
-                                    const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width =
+                                    const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
                                         SAMRAI::hier::IntVector<NDIM>(0),
                                     bool register_for_restart = true);
 

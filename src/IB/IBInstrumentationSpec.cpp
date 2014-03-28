@@ -36,7 +36,6 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI_config.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/IBInstrumentationSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

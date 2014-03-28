@@ -39,7 +39,6 @@
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/LSet.h"
-#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK

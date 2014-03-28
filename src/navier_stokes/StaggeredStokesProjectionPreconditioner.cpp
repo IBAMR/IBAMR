@@ -33,17 +33,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <memory>
 #include <ostream>
 
 #include "HierarchyDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "StaggeredStokesProjectionPreconditioner.h"
 #include "Variable.h"

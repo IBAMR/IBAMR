@@ -43,7 +43,6 @@
 #include "Patch.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
 #include "tbox/Utilities.h"

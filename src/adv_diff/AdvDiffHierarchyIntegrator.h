@@ -41,6 +41,8 @@
 
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"

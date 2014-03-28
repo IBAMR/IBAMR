@@ -33,10 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <cmath>
-#include <fstream>
-#include <ios>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 
 #include "Box.h"
@@ -58,8 +54,8 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "boost/multi_array.hpp"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"
 #include "tbox/SAMRAI_MPI.h"

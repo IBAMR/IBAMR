@@ -35,7 +35,6 @@
 #include <cmath>
 #include <limits>
 #include <ostream>
-#include <string>
 
 #include "CartSideDoubleDivPreservingRefine.h"
 #include "CartesianPatchGeometry.h"
@@ -44,12 +43,10 @@
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"

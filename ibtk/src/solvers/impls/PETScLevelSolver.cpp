@@ -34,14 +34,11 @@
 
 #include <math.h>
 #include <stddef.h>
-#include <iosfwd>
 #include <ostream>
 
-#include "IBTK_config.h"
 #include "PETScLevelSolver.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

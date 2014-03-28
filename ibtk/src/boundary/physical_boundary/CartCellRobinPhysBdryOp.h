@@ -41,6 +41,13 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "tbox/Array.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BoundaryBox;
+}  // namespace hier
+}  // namespace SAMRAI
 
 namespace SAMRAI
 {

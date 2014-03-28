@@ -35,14 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <iosfwd>
 #include <string>
 #include <vector>
 
 #include "Box.h"
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "tbox/Pointer.h"
+
+namespace boost {
+template <class T, std::size_t N> class array;
+}  // namespace boost
 
 namespace IBTK
 {
@@ -62,11 +66,11 @@ namespace pdat
 template <int DIM, class TYPE>
 class CellData;
 template <int DIM, class TYPE>
+class EdgeData;
+template <int DIM, class TYPE>
 class NodeData;
 template <int DIM, class TYPE>
 class SideData;
-template <int DIM, class TYPE>
-class EdgeData;
 } // namespace pdat
 namespace tbox
 {
@@ -110,6 +114,18 @@ public:
      */
     static int getStencilSize(const std::string& kernel_fcn);
 
+    /*!
+     * \brief Returns the minimum ghost width size corresponding to the
+     * specified kernel function.
+     *
+     * The minimum ghost cell width is appropriate for simulations in which IB
+     * points are allowed to move no more than one cell width between
+     * regridding/redistribution operations.  Simulations in which IB points are
+     * allowed to move further between regridding/redistribution operations
+     * require correspondingly larger ghost cell widths.
+     */
+    static int getMinimumGhostWidth(const std::string& kernel_fcn);
+    
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.

@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "IBLagrangianForceStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

@@ -33,11 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -55,6 +52,7 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeData.h"     // IWYU pragma: keep
 #include "NodeGeometry.h" // IWYU pragma: keep
 #include "NodeIndex.h"    // IWYU pragma: keep
@@ -62,7 +60,6 @@
 #include "PatchGeometry.h"
 #include "PatchHierarchy.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableDatabase.h"

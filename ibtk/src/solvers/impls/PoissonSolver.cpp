@@ -33,9 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <memory>
 #include <string>
 
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSolver.h"
 #include "RobinBcCoefStrategy.h"

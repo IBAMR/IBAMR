@@ -32,10 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
-#include <map>
 #include <ostream>
-#include <string>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -43,12 +40,9 @@
 #include "CartCellRobinPhysBdryOp.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellVariable.h"
 #include "IBTK_config.h"
-#include "Index.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"

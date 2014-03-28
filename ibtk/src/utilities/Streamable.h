@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
@@ -52,12 +52,6 @@ namespace tbox
 class AbstractStream;
 } // namespace tbox
 } // namespace SAMRAI
-
-namespace boost
-{
-template <class T, size_t N>
-class array;
-} // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

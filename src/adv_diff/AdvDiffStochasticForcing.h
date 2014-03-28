@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "SideVariable.h"
 #include "VariableContext.h"

@@ -34,9 +34,7 @@
 
 #include <stddef.h>
 #include <algorithm>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -45,10 +43,10 @@
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "StaggeredStokesFACPreconditionerStrategy.h"
 #include "Variable.h"

@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -45,7 +46,6 @@
 #include "Index.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"

@@ -32,18 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <iosfwd>
 #include <limits>
-#include <map>
-#include <memory>
 #include <numeric>
 #include <ostream>
-#include <sstream>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -61,11 +56,11 @@
 #include "PatchCellDataOpsReal.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -86,7 +81,6 @@
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "boost/array.hpp"
 #include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -96,6 +90,10 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
+
 namespace SAMRAI
 {
 namespace xfer
@@ -104,7 +102,6 @@ template <int DIM>
 class CoarsenSchedule;
 } // namespace xfer
 } // namespace SAMRAI
-// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -158,9 +155,8 @@ IBMethod::IBMethod(const std::string& object_name,
     // Set some default values.
     d_interp_kernel_fcn = "IB_4";
     d_spread_kernel_fcn = "IB_4";
-    const int stencil_size = std::max(LEInteractor::getStencilSize(d_interp_kernel_fcn),
-                                      LEInteractor::getStencilSize(d_spread_kernel_fcn));
-    d_ghosts = static_cast<int>(floor(0.5 * static_cast<double>(stencil_size))) + 1;
+    d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
+                        LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
     d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.

@@ -42,6 +42,7 @@
 #include <string>
 #include <vector>
 
+#include "Eigen/Dense"
 #include "Index.h"
 #include "IntVector.h"
 #include "boost/array.hpp"
@@ -49,7 +50,6 @@
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
-#include "Eigen/Dense" // IWYU pragma: export
 
 namespace IBTK
 {

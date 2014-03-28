@@ -32,9 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "ArrayData.h"
@@ -43,8 +41,8 @@
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
 #include "Patch.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "muParserError.h"
 #include "muParserRobinBcCoefs.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"

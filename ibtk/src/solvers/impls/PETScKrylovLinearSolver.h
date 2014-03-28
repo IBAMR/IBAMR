@@ -40,6 +40,8 @@
 #include <string>
 #include <vector>
 
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"

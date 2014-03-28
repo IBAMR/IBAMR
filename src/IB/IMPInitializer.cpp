@@ -33,12 +33,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <algorithm>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -49,8 +47,7 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
-#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -65,6 +62,7 @@
 #include "ibtk/LNode-inl.h"
 #include "ibtk/LSet-inl.h"
 #include "ibtk/Streamable.h"
+#include "ibtk/ibtk_utilities.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"

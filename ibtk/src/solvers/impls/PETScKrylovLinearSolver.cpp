@@ -35,19 +35,16 @@
 #include <math.h>
 #include <string.h>
 #include <algorithm>
-#include <memory>
 #include <ostream>
 
 #include "PETScKrylovLinearSolver.h"
 #include "PatchHierarchy.h"
-#include "SAMRAI_config.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PETScSAMRAIVectorReal-inl.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscerror.h"

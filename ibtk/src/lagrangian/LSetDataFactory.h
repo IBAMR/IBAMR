@@ -41,14 +41,9 @@
 #include "CellGeometry.h" // IWYU pragma: keep
 #include "IndexDataFactory.h"
 #include "IntVector.h"
-#include "ibtk/FixedSizedStream-inl.h"
 #include "ibtk/LMarker.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
-#include "ibtk/LSet-inl.h"
 #include "tbox/Arena.h"
 #include "tbox/Pointer.h"
 

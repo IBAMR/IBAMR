@@ -35,15 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 #include <functional>
 #include <ostream>
 
 #include "IntVector.h"
-#include "SAMRAI_config.h"
-#include "ibtk/ibtk_utilities.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"

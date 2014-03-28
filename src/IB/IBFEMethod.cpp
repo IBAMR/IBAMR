@@ -32,27 +32,77 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <utility>
+
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellIndex.h"
 #include "HierarchyDataOpsManager.h"
-#include "IBAMR_config.h"
+#include "HierarchyDataOpsReal.h"
 #include "IBFEMethod.h"
-#include "SAMRAI_config.h"
+#include "Index.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchLevel.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
-#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/boundary_info.h"
+#include "libmesh/auto_ptr.h"
+#include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
+#include "libmesh/edge.h"
+#include "libmesh/elem.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_base.h"
-#include "libmesh/fe_interface.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
 #include "libmesh/mesh.h"
+#include "libmesh/mesh_base.h"
+#include "libmesh/node.h"
+#include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
+#include "libmesh/point.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
+#include "libmesh/system.h"
+#include "libmesh/tensor_value.h"
+#include "libmesh/type_tensor.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
+#include "libmesh/vector_value.h"
+#include "petscvec.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 using namespace libMesh;
 
@@ -90,7 +140,33 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
             dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
     }
     return dirichlet_bdry_ids;
-} // get_dirichlet_bdry_ids
+}
+
+inline bool is_physical_bdry(
+    const Elem* elem,
+    const unsigned short int side,
+    const BoundaryInfo& boundary_info,
+    const DofMap& dof_map)
+{
+    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
+    bool at_physical_bdry = !elem->neighbor(side);
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        if (dof_map.is_periodic_boundary(*cit)) at_physical_bdry = false;
+    }
+    return at_physical_bdry;
+}
+
+inline bool is_dirichlet_bdry(
+    const Elem* elem,
+    const unsigned short int side,
+    const BoundaryInfo& boundary_info,
+    const DofMap& dof_map)
+{
+    if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
+    const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
+    return get_dirichlet_bdry_ids(bdry_ids) != 0;
+}
 }
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -704,7 +780,7 @@ void IBFEMethod::initializeFEData()
         System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
         System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
-        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+        System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
@@ -970,6 +1046,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
@@ -1136,27 +1213,16 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                bool at_physical_bdry = !elem->neighbor(side);
-                if (!at_physical_bdry) continue;
-
-                // Determine if this is a Dirichlet boundary.
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
+                if (!is_physical_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Determine if we need to compute surface forces along this
                 // part of the physical boundary; if not, skip the present side.
+                const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
                 const bool compute_transmission_force =
                     (d_split_forces && !at_dirichlet_bdry) ||
                     (!d_split_forces && at_dirichlet_bdry);
                 if (!compute_transmission_force) continue;
-
+                
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
                 const unsigned int n_basis = dof_indices[0].size();
@@ -1304,22 +1370,11 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                bool at_physical_bdry = !elem->neighbor(side);
-                if (!at_physical_bdry) continue;
-
-                // Determine if this is a Dirichlet boundary.
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
+                if (!is_physical_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Determine if we need to compute surface forces along this
                 // part of the physical boundary; if not, skip the present side.
+                const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
                 const bool compute_transmission_force =
                     (!d_split_forces && !at_dirichlet_bdry);
                 if (!compute_transmission_force) continue;
@@ -1444,6 +1499,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule_face;
 
@@ -1567,16 +1623,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                bool at_physical_bdry = !elem->neighbor(side);
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                has_physical_boundaries = has_physical_boundaries || at_physical_bdry;
+                has_physical_boundaries = has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
             }
             if (!has_physical_boundaries) continue;
 
@@ -1590,20 +1637,10 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                bool at_physical_bdry = !elem->neighbor(side);
-                if (!at_physical_bdry) continue;
+                if (!is_physical_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Skip Dirichlet boundaries.
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
-                if (at_dirichlet_bdry) continue;
+                if (is_dirichlet_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -1744,6 +1781,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Extract the mesh.
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
     TBOX_ASSERT(dim == NDIM);
 
@@ -1886,16 +1924,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                bool at_physical_bdry = !elem->neighbor(side);
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                has_physical_boundaries = has_physical_boundaries || at_physical_bdry;
+                has_physical_boundaries = has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
             }
             if (!has_physical_boundaries) continue;
 
@@ -1908,20 +1937,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                bool at_physical_bdry = !elem->neighbor(side);
-                if (!at_physical_bdry) continue;
+                if (!is_physical_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Skip Dirichlet boundaries.
-                const std::vector<short int>& bdry_ids =
-                    mesh.boundary_info->boundary_ids(elem, side);
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin();
-                     cit != bdry_ids.end();
-                     ++cit)
-                {
-                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
-                }
-                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
-                if (at_dirichlet_bdry) continue;
+                if (is_dirichlet_bdry(elem, side, boundary_info, dof_map)) continue;
 
                 // Construct a side element.
                 AutoPtr<Elem> side_elem = elem->build_side(side);

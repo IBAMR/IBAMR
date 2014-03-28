@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 #include <vector>
 
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI

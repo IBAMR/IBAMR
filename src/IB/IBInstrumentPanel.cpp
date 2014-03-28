@@ -36,11 +36,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <algorithm>
-#include <ios>
+#include <fstream>
 #include <limits>
-#include <memory>
-#include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "BasePatchLevel.h"
@@ -55,11 +52,9 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "boost/array.hpp"
-#include "boost/operators.hpp"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/IBInstrumentationSpec-inl.h"
 #include "ibamr/ibamr_utilities.h"
@@ -76,7 +71,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "boost/array.hpp"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -86,8 +80,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-#include "Eigen/Dense" // IWYU pragma: export
-// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 #if defined(IBAMR_HAVE_SILO)
 #include <silo.h>

@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IntVector.h"
 #include "LinearOperator.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

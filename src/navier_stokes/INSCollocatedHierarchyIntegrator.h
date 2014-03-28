@@ -42,6 +42,8 @@
 #include "FaceVariable.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"

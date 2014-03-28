@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "FaceVariable.h"
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Variable.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"

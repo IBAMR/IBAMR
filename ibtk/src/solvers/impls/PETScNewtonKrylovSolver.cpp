@@ -34,13 +34,13 @@
 
 #include <stddef.h>
 #include <algorithm>
-#include <memory>
 #include <ostream>
 
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "PETScNewtonKrylovSolver.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -49,7 +49,6 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PETScSAMRAIVectorReal-inl.h"
 #include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
 #include "ibtk/ibtk_utilities.h"

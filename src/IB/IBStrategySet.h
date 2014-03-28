@@ -37,8 +37,13 @@
 
 #include <vector>
 
+#include "IntVector.h"
 #include "ibamr/IBStrategy.h"
 #include "tbox/Pointer.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 namespace IBAMR
 {

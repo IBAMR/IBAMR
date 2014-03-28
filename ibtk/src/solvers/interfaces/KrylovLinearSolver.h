@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"

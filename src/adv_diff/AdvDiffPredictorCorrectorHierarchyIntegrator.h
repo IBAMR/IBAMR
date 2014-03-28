@@ -38,6 +38,8 @@
 #include <string>
 
 #include "HyperbolicLevelIntegrator.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"

@@ -41,6 +41,7 @@
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "FaceVariable.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "RefinePatchStrategy.h"

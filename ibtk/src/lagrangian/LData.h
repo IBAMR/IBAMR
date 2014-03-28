@@ -35,10 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <string>
 #include <vector>
 
-#include "boost/multi_array.hpp"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -50,6 +50,9 @@ namespace tbox
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
+namespace boost {
+template <typename T, std::size_t NumDims> class multi_array_ref;
+}  // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

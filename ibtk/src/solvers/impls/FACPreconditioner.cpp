@@ -37,7 +37,7 @@
 #include <ostream>
 
 #include "FACPreconditioner.h"
-#include "SAMRAI_config.h"
+#include "MultiblockDataTranslator.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

@@ -35,9 +35,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 
 #include "AppInitializer.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

@@ -43,7 +43,6 @@
 #include "IBStrategy.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

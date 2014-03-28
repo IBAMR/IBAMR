@@ -33,10 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <ostream>
 
 #include "HierarchyDataOpsInteger.h"
 #include "HierarchyDataOpsManager.h"
-#include "IBAMR_config.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"

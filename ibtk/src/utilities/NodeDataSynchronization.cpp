@@ -43,7 +43,6 @@
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"

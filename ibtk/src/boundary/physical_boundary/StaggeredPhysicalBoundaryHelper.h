@@ -38,6 +38,7 @@
 #include <map>
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

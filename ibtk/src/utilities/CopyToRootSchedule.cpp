@@ -41,7 +41,6 @@
 #include "PatchData.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
-#include "SAMRAI_config.h"
 #include "ibtk/CopyToRootTransaction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"

@@ -35,9 +35,10 @@
 #include <ostream>
 
 #include "GriddingAlgorithm.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PenaltyIBMethod.h"
-#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
@@ -57,9 +58,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class CoarsenSchedule;
-template <int DIM>
 class RefineSchedule;
+template <int DIM>
+class CoarsenSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

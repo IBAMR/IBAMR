@@ -34,17 +34,14 @@
 
 #include <stddef.h>
 #include <algorithm>
-#include <iosfwd>
 #include <ostream>
 
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "IBTK_config.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SCPoissonHypreLevelSolver.h"
 #include "SideData.h"
 #include "SideGeometry.h"

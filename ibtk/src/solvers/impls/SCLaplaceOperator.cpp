@@ -36,9 +36,8 @@
 #include <algorithm>
 #include <ostream>
 
-#include "IBTK_config.h"
+#include "MultiblockDataTranslator.h"
 #include "PoissonSpecifications.h"
-#include "SAMRAI_config.h"
 #include "SCLaplaceOperator.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"

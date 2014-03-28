@@ -33,14 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <iosfwd>
 #include <limits>
 #include <ostream>
-#include <sstream>
 
 #include "IBStandardSourceGen.h"
-#include "SAMRAI_config.h"
-#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSourceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -53,7 +50,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "boost/array.hpp"
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"

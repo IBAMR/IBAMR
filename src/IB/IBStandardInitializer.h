@@ -41,10 +41,12 @@
 #include <utility>
 #include <vector>
 
+#include "IntVector.h"
 #include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

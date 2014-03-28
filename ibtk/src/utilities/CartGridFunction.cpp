@@ -35,9 +35,9 @@
 #include <ostream>
 
 #include "CartGridFunction.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

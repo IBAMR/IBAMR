@@ -35,8 +35,6 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -44,19 +42,21 @@
 #include "AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "BasePatchHierarchy.h"
 #include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
+#include "FaceData.h"
 #include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
+#include "Patch.h"
+#include "PatchFaceDataOpsReal.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -72,7 +72,14 @@
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class Box;
+}  // namespace hier
+}  // namespace SAMRAI
 
 namespace SAMRAI
 {

@@ -41,6 +41,7 @@
 #include <vector>
 
 #include "GriddingAlgorithm.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"

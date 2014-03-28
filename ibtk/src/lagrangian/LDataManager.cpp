@@ -33,15 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <unistd.h>
 #include <algorithm>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
-#include <sstream>
 #include <vector>
 
 #include "BasePatchHierarchy.h"
@@ -55,47 +51,44 @@
 #include "CellIndex.h"
 #include "CellIterator.h"
 #include "CoarsenOperator.h"
+#include "EdgeData.h"
+#include "EdgeVariable.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "LDataManager.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeData.h"
-#include "EdgeData.h"
+#include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
 #include "ProcessorMapping.h"
 #include "RefineOperator.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
+#include "ibtk/LDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LMesh.h"
-#include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/LNodeTransaction.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSetDataIterator-inl.h"
-#include "ibtk/LSetData-inl.h"
-#include "ibtk/LSet-inl.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/LTransaction.h"
-#include "boost/array.hpp"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -171,22 +164,20 @@ std::vector<int> LDataManager::s_ao_dummy(1, -1);
 LDataManager* LDataManager::getManager(const std::string& name,
                                        const std::string& default_interp_kernel_fcn,
                                        const std::string& default_spread_kernel_fcn,
-                                       const IntVector<NDIM>& min_ghost_cell_width,
+                                       const IntVector<NDIM>& min_ghost_width,
                                        bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size =
-            std::max(LEInteractor::getStencilSize(default_interp_kernel_fcn),
-                     LEInteractor::getStencilSize(default_spread_kernel_fcn));
-        const IntVector<NDIM> gcw = IntVector<NDIM>::max(
-            IntVector<NDIM>(static_cast<int>(floor(0.5 * static_cast<double>(stencil_size))) +
-                            1),
-            min_ghost_cell_width);
+        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
+            min_ghost_width,
+            IntVector<NDIM>(std::max(
+                                LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
+                                LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
         s_data_manager_instances[name] = new LDataManager(name,
                                                           default_interp_kernel_fcn,
                                                           default_spread_kernel_fcn,
-                                                          gcw,
+                                                          ghost_width,
                                                           register_for_restart);
     }
     if (!s_registered_callback)

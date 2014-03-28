@@ -34,8 +34,6 @@
 
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 
 #include "CartesianPatchGeometry.h"
@@ -43,12 +41,12 @@
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "IBExplicitHierarchyIntegrator.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PatchSideDataOpsReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -59,6 +57,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"

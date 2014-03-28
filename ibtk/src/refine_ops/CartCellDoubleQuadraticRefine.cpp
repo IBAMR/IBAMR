@@ -40,10 +40,8 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "Patch.h"
-#include "SAMRAI_config.h"
 #include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

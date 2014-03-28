@@ -37,6 +37,7 @@
 
 #include <string>
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/JacobianOperator.h"
 #include "petscmat.h"

@@ -36,12 +36,11 @@
 #include <algorithm>
 #include <ostream>
 
+#include "MultiblockDataTranslator.h"
 #include "PETScMFFDJacobianOperator.h"
 #include "PatchHierarchy.h"
-#include "SAMRAI_config.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PETScSAMRAIVectorReal-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscerror.h"

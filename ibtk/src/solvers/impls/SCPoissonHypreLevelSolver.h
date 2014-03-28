@@ -42,6 +42,7 @@
 #include "HYPRE_sstruct_ls.h"
 #include "HYPRE_sstruct_mv.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "_hypre_sstruct_mv.h"
 #include "ibtk/LinearSolver.h"

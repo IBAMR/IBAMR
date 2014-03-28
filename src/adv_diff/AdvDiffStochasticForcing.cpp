@@ -33,11 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "AdvDiffStochasticForcing.h"
 #include "ArrayData.h"
@@ -51,10 +48,10 @@
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"

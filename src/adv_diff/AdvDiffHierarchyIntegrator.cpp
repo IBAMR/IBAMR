@@ -35,10 +35,8 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
 #include <iterator>
 #include <limits>
-#include <memory>
 #include <ostream>
 #include <utility>
 
@@ -63,7 +61,6 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"
 #include "Variable.h"

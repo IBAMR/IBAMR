@@ -36,12 +36,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <ostream>
 #include <string>
 #include <vector>
 
 #include "BoxGeometryFillPattern.h"
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "VariableFillPattern.h"

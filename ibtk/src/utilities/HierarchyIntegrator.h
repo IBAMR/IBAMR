@@ -39,6 +39,7 @@
 #include <deque>
 #include <list>
 #include <map>
+#include <ostream>
 #include <set>
 #include <string>
 #include <vector>

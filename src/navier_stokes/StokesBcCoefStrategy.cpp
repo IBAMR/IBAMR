@@ -35,7 +35,6 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "SAMRAI_config.h"
 #include "StokesBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

@@ -36,7 +36,6 @@
 #include <vector>
 
 #include "ParallelSet.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

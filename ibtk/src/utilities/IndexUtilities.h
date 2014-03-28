@@ -36,12 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <functional>
-#include <vector>
 
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "boost/array.hpp"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

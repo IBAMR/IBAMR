@@ -36,9 +36,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <ostream>
 #include <vector>
 
 #include "BasePatchLevel.h"
+#include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
 #include "tbox/Pointer.h"
 

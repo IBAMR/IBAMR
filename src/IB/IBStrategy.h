@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,10 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 namespace IBTK
 {

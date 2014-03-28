@@ -33,9 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <map>
 #include <ostream>
-#include <string>
 #include <vector>
 
 #include "BoundaryBox.h"
@@ -50,7 +48,6 @@
 #include "Index.h"
 #include "Patch.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Utilities.h"

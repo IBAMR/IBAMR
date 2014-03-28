@@ -48,13 +48,11 @@
 #include "PETScMatUtilities.h"
 #include "Patch.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"

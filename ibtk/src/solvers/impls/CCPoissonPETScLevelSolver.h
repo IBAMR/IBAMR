@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "RefineSchedule.h"
 #include "VariableContext.h"
 #include "ibtk/PETScLevelSolver.h"

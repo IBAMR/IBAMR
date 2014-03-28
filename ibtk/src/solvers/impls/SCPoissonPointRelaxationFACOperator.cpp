@@ -34,9 +34,7 @@
 
 #include <stddef.h>
 #include <algorithm>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "ArrayData.h"
@@ -48,6 +46,7 @@
 #include "HierarchySideDataOpsReal.h"
 #include "IBTK_config.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchHierarchy.h"
@@ -55,7 +54,6 @@
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SCPoissonPointRelaxationFACOperator.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
@@ -77,7 +75,6 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"

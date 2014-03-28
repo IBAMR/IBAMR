@@ -47,7 +47,6 @@
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "StaggeredPhysicalBoundaryHelper.h"

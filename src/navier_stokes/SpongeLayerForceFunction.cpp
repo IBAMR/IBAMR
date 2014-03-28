@@ -32,11 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <cmath>
 #include <iosfwd>
 #include <ostream>
-#include <sstream>
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -47,7 +45,6 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchData.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"

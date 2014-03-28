@@ -35,16 +35,13 @@
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 #include <ios>
 #include <iosfwd>
 #include <istream>
 #include <iterator>
 #include <limits>
-#include <memory>
 #include <numeric>
 #include <ostream>
-#include <sstream>
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -56,8 +53,8 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBAnchorPointSpec-inl.h"
 #include "ibamr/IBBeamForceSpec.h"

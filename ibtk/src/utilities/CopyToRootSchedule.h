@@ -37,6 +37,7 @@
 
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "tbox/Pointer.h"
 #include "tbox/Schedule.h"

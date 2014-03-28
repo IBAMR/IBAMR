@@ -35,16 +35,16 @@
 #include <math.h>
 #include <algorithm>
 #include <ostream>
-#include <string>
 
 #include "PETScSAMRAIVectorReal.h"
 #include "PatchHierarchy.h"
-#include "SAMRAI_config.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscerror.h"
+#include "petscis.h"
 #include "petscvec.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"

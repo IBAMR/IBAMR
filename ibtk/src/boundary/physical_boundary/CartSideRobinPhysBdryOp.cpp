@@ -32,9 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
 #include <ostream>
-#include <string>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -46,16 +44,13 @@
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"

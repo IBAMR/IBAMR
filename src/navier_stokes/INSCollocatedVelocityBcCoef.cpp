@@ -33,19 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "CartesianPatchGeometry.h"
 #include "INSCollocatedVelocityBcCoef.h"
 #include "Index.h"
-#include "Patch.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibamr/INSCollocatedHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

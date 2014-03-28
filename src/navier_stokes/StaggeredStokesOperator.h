@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "IntVector.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"

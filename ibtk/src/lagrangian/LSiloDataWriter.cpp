@@ -37,20 +37,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
-#include <fstream>
 #include <functional>
-#include <ios>
-#include <iosfwd>
-#include <memory>
-#include <ostream>
 #include <sstream>
 
 #include "IBTK_config.h"
 #include "LSiloDataWriter.h"
-#include "SAMRAI_config.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscis.h"

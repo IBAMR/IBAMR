@@ -33,9 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
 #include <utility>
 
@@ -54,7 +52,6 @@
 #include "PatchLevel.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "TagAndInitializeStrategy.h"
 #include "Variable.h"

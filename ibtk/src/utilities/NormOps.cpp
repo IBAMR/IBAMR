@@ -41,6 +41,7 @@
 
 #include "CellData.h"
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "NormOps.h"
 #include "Patch.h"
 #include "PatchCellDataNormOpsReal.h"
@@ -60,9 +61,9 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Box;
-template <int DIM>
 class Variable;
+template <int DIM>
+class Box;
 } // namespace hier
 } // namespace SAMRAI
 

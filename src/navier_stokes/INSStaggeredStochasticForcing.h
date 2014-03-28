@@ -39,6 +39,7 @@
 
 #include "CellVariable.h"
 #include "EdgeVariable.h" // IWYU pragma: keep
+#include "IntVector.h"
 #include "NodeVariable.h" // IWYU pragma: keep
 #include "PatchLevel.h"
 #include "VariableContext.h"

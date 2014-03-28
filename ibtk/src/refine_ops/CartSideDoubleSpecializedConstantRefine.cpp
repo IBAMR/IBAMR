@@ -38,7 +38,6 @@
 #include "IBTK_config.h"
 #include "Index.h"
 #include "Patch.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideVariable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

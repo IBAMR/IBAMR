@@ -37,9 +37,9 @@
 
 #include "CellData.h"
 #include "IBHierarchyIntegrator.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataBasicOps.h"
-#include "SAMRAI_config.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
@@ -50,9 +50,9 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class PatchLevel;
-template <int DIM>
 class Variable;
+template <int DIM>
+class PatchLevel;
 } // namespace hier
 } // namespace SAMRAI
 

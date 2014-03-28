@@ -35,7 +35,6 @@
 #include <stddef.h>
 #include <algorithm>
 #include <functional>
-#include <iosfwd>
 #include <map>
 #include <ostream>
 
@@ -45,15 +44,14 @@
 #include "CellData.h"
 #include "CellDataFactory.h"
 #include "CellIndex.h"
-#include "IBTK_config.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
 #include "SideIndex.h"

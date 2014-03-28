@@ -34,6 +34,7 @@
 
 #include <stddef.h>
 
+#include "IntVector.h"
 #include "LaplaceOperator.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "RobinBcCoefStrategy.h"

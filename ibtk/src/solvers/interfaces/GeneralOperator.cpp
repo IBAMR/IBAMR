@@ -37,6 +37,7 @@
 #include <ostream>
 
 #include "GeneralOperator.h"
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 

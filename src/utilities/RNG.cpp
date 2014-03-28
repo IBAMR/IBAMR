@@ -10,7 +10,7 @@
 #include <set>
 #include <vector>
 
-#include "RNG.h"
+#include "ibamr/RNG.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "tbox/PIO.h"

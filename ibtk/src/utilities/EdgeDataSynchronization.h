@@ -40,7 +40,9 @@
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
 #include "boost/array.hpp"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -51,8 +53,6 @@ namespace xfer
 {
 template <int DIM>
 class CoarsenSchedule;
-template <int DIM>
-class RefineAlgorithm;
 template <int DIM>
 class RefineSchedule;
 } // namespace xfer

@@ -35,11 +35,8 @@
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ArrayData.h"
@@ -59,13 +56,13 @@
 #include "HyperbolicLevelIntegrator.h"
 #include "IBAMR_config.h"
 #include "Index.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
 #include "PatchFaceDataOpsReal.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"

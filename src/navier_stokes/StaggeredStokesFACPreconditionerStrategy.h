@@ -41,6 +41,7 @@
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
 #include "RefineAlgorithm.h"

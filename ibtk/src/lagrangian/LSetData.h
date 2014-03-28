@@ -39,15 +39,10 @@
 #include "CellIterator.h"
 #include "IndexData.h"
 #include "IntVector.h"
-#include "ibtk/FixedSizedStream-inl.h"
 #include "ibtk/LMarker.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSet-inl.h"
 
 namespace IBTK
 {

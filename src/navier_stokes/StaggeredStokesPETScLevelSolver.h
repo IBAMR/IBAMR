@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "RefineSchedule.h"
 #include "SideVariable.h"
 #include "VariableContext.h"

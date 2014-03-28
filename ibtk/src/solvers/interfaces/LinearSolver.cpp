@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "LinearSolver.h"
 #include "SAMRAIVectorReal.h"

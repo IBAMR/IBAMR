@@ -45,7 +45,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -54,7 +53,6 @@
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
@@ -63,7 +61,6 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "boost/array.hpp"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "tbox/Array.h"

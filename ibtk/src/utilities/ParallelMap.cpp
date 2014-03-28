@@ -38,12 +38,9 @@
 
 #include "IntVector.h"
 #include "ParallelMap.h"
-#include "SAMRAI_config.h"
 #include "ibtk/FixedSizedStream.h"
-#include "ibtk/FixedSizedStream-inl.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
-#include "ibtk/StreamableManager-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
 #include "tbox/SAMRAI_MPI.h"

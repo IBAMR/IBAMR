@@ -33,10 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "KrylovLinearSolverPoissonSolverInterface.h"
-#include "SAMRAI_config.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

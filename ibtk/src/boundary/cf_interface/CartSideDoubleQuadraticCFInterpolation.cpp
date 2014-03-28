@@ -33,9 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <map>
 #include <ostream>
-#include <string>
 #include <vector>
 
 #include "BoundaryBox.h"
@@ -45,11 +43,11 @@
 #include "CoarseFineBoundary.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"

@@ -35,18 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
 #include "ibtk/LMarkerSetData.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
-
-namespace boost
-{
-template <class T, std::size_t N>
-class array;
-} // namespace boost
 
 namespace SAMRAI
 {

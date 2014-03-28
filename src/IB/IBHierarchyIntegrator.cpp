@@ -33,8 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 
 #include "BasePatchHierarchy.h"
@@ -51,14 +49,15 @@
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
-#include "SAMRAI_config.h"
+#include "SideVariable.h"
 #include "VariableDatabase.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/LMarkerUtilities.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/LMarkerUtilities.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"

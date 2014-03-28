@@ -32,6 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <string>
+
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
@@ -41,6 +43,10 @@
 #include "PatchHierarchy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 namespace IBAMR
 {
@@ -56,9 +62,9 @@ class Array;
 namespace xfer
 {
 template <int DIM>
-class CoarsenSchedule;
-template <int DIM>
 class RefineSchedule;
+template <int DIM>
+class CoarsenSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

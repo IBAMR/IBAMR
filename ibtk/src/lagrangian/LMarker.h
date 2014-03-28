@@ -35,10 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 

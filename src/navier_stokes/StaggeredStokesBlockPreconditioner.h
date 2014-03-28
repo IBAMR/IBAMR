@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "HierarchyDataOpsReal.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesSolver.h"

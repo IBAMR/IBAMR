@@ -44,6 +44,10 @@
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
+
 namespace IBTK
 {
 class LData;

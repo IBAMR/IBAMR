@@ -33,10 +33,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
-#include "SAMRAI_config.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

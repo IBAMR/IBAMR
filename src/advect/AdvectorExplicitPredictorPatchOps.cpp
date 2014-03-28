@@ -45,7 +45,6 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "SAMRAI_config.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"

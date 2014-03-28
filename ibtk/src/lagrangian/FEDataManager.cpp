@@ -32,23 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
-#include <string.h>
+#include <stdbool.h>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
-#include <memory>
-#include <new>
 #include <ostream>
 #include <set>
 
-#include "HierarchyDataOpsManager.h"
 #include "BasePatchHierarchy.h"
 #include "Box.h"
-#include "BoxArray.h"
-#include "BoxTree.h"
 #include "CartesianCellDoubleWeightedAverage.h"
-#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
@@ -58,15 +52,19 @@
 #include "CoarsenSchedule.h"
 #include "FEDataManager.h"
 #include "HierarchyCellDataOpsReal.h"
+#include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
 #include "Index.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
 #include "ProcessorMapping.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideIterator.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
@@ -74,9 +72,11 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "libmesh/auto_ptr.h"
 #include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -84,10 +84,9 @@
 #include "libmesh/enum_elem_type.h"
 #include "libmesh/enum_parallel_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_base.h"
 #include "libmesh/fe_interface.h"
 #include "libmesh/fe_type.h"
-#include "libmesh/libmesh_common.h"
+#include "libmesh/fem_context.h"
 #include "libmesh/linear_solver.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/node.h"
@@ -107,14 +106,20 @@
 #include "petscoptions.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/PIO.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+namespace libMesh {
+namespace Parallel {
+class Communicator;
+}  // namespace Parallel
+}  // namespace libMesh
 
 namespace libMesh
 {
@@ -255,15 +260,13 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size =
-            std::max(LEInteractor::getStencilSize(default_interp_spec.kernel_fcn),
-                     LEInteractor::getStencilSize(default_spread_spec.kernel_fcn));
-        const IntVector<NDIM> gcw = IntVector<NDIM>::max(
-            IntVector<NDIM>(static_cast<int>(floor(0.5 * static_cast<double>(stencil_size))) +
-                            1),
-            min_ghost_width);
+        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
+            min_ghost_width,
+            IntVector<NDIM>(std::max(
+                                LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
+                                LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
         s_data_manager_instances[name] = new FEDataManager(
-            name, default_interp_spec, default_spread_spec, gcw, register_for_restart);
+            name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {

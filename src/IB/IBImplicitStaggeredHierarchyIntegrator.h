@@ -37,12 +37,17 @@
 
 #include <string>
 
-#include "petscsnes.h"
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "petscksp.h"
 #include "petscmat.h"
+#include "petscpc.h"
+#include "petscsnes.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 

@@ -39,6 +39,7 @@
 #include <string>
 
 #include "CartesianGridGeometry.h"
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"

@@ -34,9 +34,9 @@
 
 #include <limits>
 #include <ostream>
-#include <sstream>
 
 #include "FACPreconditionerStrategy.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

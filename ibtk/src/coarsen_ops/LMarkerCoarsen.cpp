@@ -40,9 +40,7 @@
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LSetData.h"
-#include "ibtk/LSet-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI

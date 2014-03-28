@@ -38,7 +38,6 @@
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "Index.h"
-#include "SAMRAI_config.h"
 #include "SideGeometry.h"
 #include "SideOverlap.h"
 #include "SideSynchCopyFillPattern.h"

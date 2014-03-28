@@ -32,12 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
+#include <map>
 #include <ostream>
-#include <sstream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
@@ -52,16 +54,25 @@
 #include "NodeIterator.h"
 #include "Patch.h"
 #include "PatchData.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "SideIterator.h"
-#include "boost/array.hpp"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserCartGridFunction.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "muParser.h"
+#include "muParserError.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+}  // namespace SAMRAI
 
 namespace SAMRAI
 {

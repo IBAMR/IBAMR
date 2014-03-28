@@ -32,30 +32,41 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "Eigen/Dense"
-#include "ibamr/IBFEMethod.h"
-#include "ibamr/IBFECentroidPostProcessor.h"
-#include "SAMRAI_config.h"
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
+
 #include "boost/multi_array.hpp"
-#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBFECentroidPostProcessor.h"
+#include "ibamr/IBFEMethod.h"
+#include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
+#include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/boundary_info.h"
-#include "libmesh/dense_vector.h"
+#include "libmesh/auto_ptr.h"
 #include "libmesh/dof_map.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_base.h"
-#include "libmesh/fe_interface.h"
-#include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/mesh_base.h"
+#include "libmesh/numeric_vector.h"
+#include "libmesh/point.h"
 #include "libmesh/quadrature.h"
-#include "libmesh/periodic_boundaries.h"
-#include "libmesh/periodic_boundary.h"
-#include "libmesh/string_to_enum.h"
+#include "libmesh/system.h"
+#include "libmesh/tensor_value.h"
+#include "libmesh/type_tensor.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
+#include "libmesh/vector_value.h"
+#include "tbox/Utilities.h"
+
+namespace libMesh {
+class Elem;
+}  // namespace libMesh
 
 using namespace libMesh;
 

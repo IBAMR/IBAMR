@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
 #include "ibamr/ConvectiveOperator.h"

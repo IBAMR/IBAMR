@@ -35,7 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <vector>
+
 #include "ibamr/IBStrategy.h"
+#include "petscvec.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace tbox {
+template <class TYPE> class Pointer;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

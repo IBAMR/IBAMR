@@ -32,16 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <memory>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "BJacobiPreconditioner.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

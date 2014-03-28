@@ -35,20 +35,16 @@
 #include <math.h>
 #include <algorithm>
 #include <functional>
-#include <iosfwd>
 #include <iterator>
 #include <limits>
-#include <new>
 #include <ostream>
-#include <sstream>
-#include <string>
 #include <utility>
 
 #include "IBStandardForceGen.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
-#include "boost/array.hpp"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBBeamForceSpec-inl.h"
 #include "ibamr/IBSpringForceSpec.h"
@@ -66,13 +62,10 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "boost/array.hpp"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Utilities.h"
-#include "Eigen/Dense" // IWYU pragma: export
-// IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

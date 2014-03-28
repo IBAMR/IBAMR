@@ -42,7 +42,6 @@
 #include "INSProjectionBcCoef.h"
 #include "Index.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
@@ -53,9 +52,9 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Patch;
-template <int DIM>
 class Variable;
+template <int DIM>
+class Patch;
 } // namespace hier
 } // namespace SAMRAI
 

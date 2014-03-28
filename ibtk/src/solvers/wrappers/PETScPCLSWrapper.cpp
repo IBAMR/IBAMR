@@ -35,11 +35,11 @@
 #include <stddef.h>
 #include <ostream>
 
+#include "MultiblockDataTranslator.h"
 #include "PETScPCLSWrapper.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PETScSAMRAIVectorReal-inl.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"

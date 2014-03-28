@@ -40,6 +40,7 @@
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "tbox/DescribedClass.h"

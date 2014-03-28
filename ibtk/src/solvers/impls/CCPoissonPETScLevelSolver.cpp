@@ -37,7 +37,7 @@
 #include "CCPoissonPETScLevelSolver.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "IBTK_config.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"

@@ -38,6 +38,7 @@
 #include <iosfwd>
 #include <vector>
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "tbox/Pointer.h"

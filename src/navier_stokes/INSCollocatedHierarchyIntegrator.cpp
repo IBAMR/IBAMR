@@ -32,16 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <deque>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -65,12 +61,12 @@
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Patch.h"
+#include "PatchCellDataOpsReal.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "RefinePatchStrategy.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -78,9 +74,9 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -97,6 +93,7 @@
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

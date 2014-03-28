@@ -34,10 +34,10 @@
 
 #include <stddef.h>
 
+#include "MultiblockDataTranslator.h"
 #include "PETScMatLOWrapper.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/PETScSAMRAIVectorReal-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscsys.h"

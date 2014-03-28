@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 

@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stdlib.h>
-#include <map>
 #include <ostream>
 
 #include "BoundaryBox.h"
@@ -46,7 +45,6 @@
 #include "FaceIndex.h"
 #include "FaceIterator.h"
 #include "FaceVariable.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "NodeData.h"
 #include "NodeIndex.h"
@@ -62,7 +60,6 @@
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"

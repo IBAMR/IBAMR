@@ -35,15 +35,55 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "PatchHierarchy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/libmesh_utilities.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/mesh.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/system.h"
 #include "libmesh/vector_value.h"
 #include "petscsys.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class BasePatchHierarchy;
+template <int DIM> class BasePatchLevel;
+}  // namespace hier
+namespace tbox {
+class Database;
+template <class TYPE> class Array;
+}  // namespace tbox
+namespace xfer {
+template <int DIM> class CoarsenSchedule;
+template <int DIM> class RefineSchedule;
+}  // namespace xfer
+}  // namespace SAMRAI
+namespace libMesh {
+class EquationSystems;
+class Mesh;
+class Point;
+class System;
+template <typename T> class NumericVector;
+template <typename T> class PetscVector;
+}  // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

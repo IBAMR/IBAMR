@@ -32,12 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <stddef.h>
 #include <cmath>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -51,10 +48,10 @@
 #include "INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
@@ -66,7 +63,6 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
-#include "boost/array.hpp"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

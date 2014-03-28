@@ -35,16 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 #include <vector>
 
 #include "IntVector.h"
 #include "ibtk/LMarker.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 

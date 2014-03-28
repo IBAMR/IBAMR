@@ -40,21 +40,32 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "CoarsenAlgorithm.h"
+#include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsReal.h"
+#include "IntVector.h"
 #include "LoadBalancer.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "boost/array.hpp"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/LMarkerSetVariable.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 namespace SAMRAI
 {

@@ -32,16 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <deque>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
-#include <sstream>
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -69,13 +65,13 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "PatchSideDataOpsReal.h"
 #include "PoissonSpecifications.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
 #include "RefineSchedule.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -113,6 +109,7 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

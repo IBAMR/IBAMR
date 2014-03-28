@@ -32,30 +32,41 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "Eigen/Dense"
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefineSchedule.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
 #include "ibamr/IBFEPostProcessor.h"
-#include "SAMRAI_config.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "libmesh/boundary_info.h"
-#include "libmesh/dense_vector.h"
-#include "libmesh/dof_map.h"
+#include "libmesh/auto_ptr.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_base.h"
-#include "libmesh/fe_interface.h"
-#include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/quadrature.h"
-#include "libmesh/periodic_boundaries.h"
-#include "libmesh/periodic_boundary.h"
-#include "libmesh/string_to_enum.h"
+#include "libmesh/system.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+namespace libMesh {
+template <typename T> class NumericVector;
+}  // namespace libMesh
 
 using namespace libMesh;
 
@@ -242,10 +253,8 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
             TBOX_ASSERT(data_idx >= 0);
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
-            const int stencil_size = LEInteractor::getStencilSize(interp_spec.kernel_fcn);
-            const IntVector<NDIM> ghosts(
-                static_cast<int>(floor(0.5 * static_cast<double>(stencil_size))) + 1);
-            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghosts);
+            const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn);
+            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
             scratch_idxs.insert(scratch_idx);
         }
         refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);

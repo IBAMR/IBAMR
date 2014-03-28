@@ -47,6 +47,8 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeVariable.h"
 #include "OuterfaceVariable.h"
 #include "OutersideVariable.h"
@@ -57,6 +59,12 @@
 #include "ibtk/PatchMathOps.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+namespace SAMRAI {
+namespace pdat {
+template <int DIM, class TYPE> class EdgeVariable;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 namespace IBTK
 {

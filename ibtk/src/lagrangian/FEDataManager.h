@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -49,16 +51,19 @@
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "libmesh/auto_ptr.h"
-#include "libmesh/enum_order.h"
-#include "libmesh/enum_quadrature_type.h"
-#include "libmesh/partitioner.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
+namespace libMesh {
+template <typename Tp> class AutoPtr;
+}  // namespace libMesh
 
 namespace SAMRAI
 {
@@ -76,7 +81,6 @@ namespace libMesh
 {
 class Elem;
 class EquationSystems;
-class MeshBase;
 class QBase;
 template <typename T>
 class LinearSolver;
@@ -196,7 +200,7 @@ public:
     getManager(const std::string& name,
                const InterpSpec& default_interp_spec,
                const SpreadSpec& default_spread_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width =
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
                    SAMRAI::hier::IntVector<NDIM>(0),
                bool register_for_restart = true);
 

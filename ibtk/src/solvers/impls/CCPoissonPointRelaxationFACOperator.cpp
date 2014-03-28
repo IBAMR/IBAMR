@@ -35,9 +35,7 @@
 #include <stddef.h>
 #include <algorithm>
 #include <functional>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "ArrayData.h"
@@ -54,13 +52,13 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"
@@ -78,7 +76,6 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"

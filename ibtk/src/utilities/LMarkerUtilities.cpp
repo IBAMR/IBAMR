@@ -35,13 +35,10 @@
 #include <math.h>
 #include <stddef.h>
 #include <algorithm>
-#include <fstream>
 #include <ios>
 #include <iosfwd>
 #include <istream>
 #include <limits>
-#include <ostream>
-#include <sstream>
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -63,26 +60,19 @@
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarkerCoarsen.h"
 #include "ibtk/LMarkerRefine.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSetDataIterator-inl.h"
-#include "ibtk/LSetData-inl.h"
-#include "ibtk/LSet-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -93,9 +83,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
 class RefinePatchStrategy;
+template <int DIM>
+class CoarsenPatchStrategy;
 } // namespace xfer
 } // namespace SAMRAI
 

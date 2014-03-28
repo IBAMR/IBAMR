@@ -32,16 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <memory>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "BGaussSeidelPreconditioner.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/ibtk_utilities.h"

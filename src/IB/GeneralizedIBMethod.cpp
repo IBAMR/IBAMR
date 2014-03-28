@@ -35,7 +35,6 @@
 #include <math.h>
 #include <stddef.h>
 #include <limits>
-#include <memory>
 #include <ostream>
 
 #include "BasePatchHierarchy.h"
@@ -47,14 +46,15 @@
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
+#include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -66,12 +66,16 @@
 #include "ibtk/LData-inl.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
-#include "Eigen/Dense" // IWYU pragma: export
+
+namespace IBTK {
+class RobinPhysBdryPatchStrategy;
+}  // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

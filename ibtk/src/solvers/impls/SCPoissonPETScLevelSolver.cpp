@@ -34,7 +34,7 @@
 
 #include <stddef.h>
 
-#include "IBTK_config.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"

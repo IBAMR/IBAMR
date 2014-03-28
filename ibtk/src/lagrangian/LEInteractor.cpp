@@ -673,7 +673,7 @@ inline double ib4_kernel_fcn(double r)
     {
         return 0.0;
     }
-} // ib4_kernel_fcn
+}
 }
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -683,13 +683,13 @@ void LEInteractor::setFromDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
-} // setFromDatabase
+}
 
 void LEInteractor::printClassData(std::ostream& os)
 {
     os << "LEInteractor::printClassData():\n";
     return;
-} // printClassData
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -707,7 +707,12 @@ int LEInteractor::getStencilSize(const std::string& kernel_fcn)
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
                << "  Unknown kernel function " << kernel_fcn << std::endl);
     return -1;
-} // getStencilSize
+}
+
+int LEInteractor::getMinimumGhostWidth(const std::string& kernel_fcn)
+{
+    return static_cast<int>(floor(0.5 * getStencilSize(kernel_fcn))) + 1;
+}
 
 template <class T>
 void LEInteractor::interpolate(Pointer<LData> Q_data,
@@ -741,7 +746,7 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(Pointer<LData> Q_data,
@@ -775,7 +780,7 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(Pointer<LData> Q_data,
@@ -815,7 +820,7 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(Pointer<LData> Q_data,
@@ -855,7 +860,7 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(double* const Q_data,
@@ -921,7 +926,7 @@ void LEInteractor::interpolate(double* const Q_data,
                     interp_fcn);
     }
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(double* const Q_data,
@@ -993,7 +998,7 @@ void LEInteractor::interpolate(double* const Q_data,
                     interp_fcn);
     }
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(double* const Q_data,
@@ -1063,12 +1068,12 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        1,
+                        /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
                         SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                         q_data->getGhostCellWidth(),
-                        1,
+                        /*q_depth*/ 1,
                         x_lower_axis.data(),
                         x_upper_axis.data(),
                         dx,
@@ -1085,7 +1090,7 @@ void LEInteractor::interpolate(double* const Q_data,
         }
     }
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::interpolate(double* const Q_data,
@@ -1158,12 +1163,12 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        1,
+                        /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
                         EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                         q_data->getGhostCellWidth(),
-                        1,
+                        /*q_depth*/ 1,
                         x_lower_axis.data(),
                         x_upper_axis.data(),
                         dx,
@@ -1180,7 +1185,7 @@ void LEInteractor::interpolate(double* const Q_data,
         }
     }
     return;
-} // interpolate
+}
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
@@ -1202,7 +1207,7 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                 patch,
                 interp_box,
                 interp_fcn);
-} // interpolate
+}
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
@@ -1224,7 +1229,7 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                 patch,
                 interp_box,
                 interp_fcn);
-} // interpolate
+}
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
@@ -1246,7 +1251,7 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                 patch,
                 interp_box,
                 interp_fcn);
-} // interpolate
+}
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
@@ -1268,7 +1273,7 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                 patch,
                 interp_box,
                 interp_fcn);
-} // interpolate
+}
 
 void LEInteractor::interpolate(double* const Q_data,
                                const int Q_size,
@@ -1333,7 +1338,7 @@ void LEInteractor::interpolate(double* const Q_data,
                     interp_fcn);
     }
     return;
-} // interpolate
+}
 
 void LEInteractor::interpolate(double* const Q_data,
                                const int Q_size,
@@ -1404,7 +1409,7 @@ void LEInteractor::interpolate(double* const Q_data,
                     interp_fcn);
     }
     return;
-} // interpolate
+}
 
 void LEInteractor::interpolate(double* const Q_data,
                                const int Q_size,
@@ -1473,12 +1478,12 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        1,
+                        /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
                         SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                         q_data->getGhostCellWidth(),
-                        1,
+                        /*q_depth*/ 1,
                         x_lower_axis.data(),
                         x_upper_axis.data(),
                         dx,
@@ -1495,7 +1500,7 @@ void LEInteractor::interpolate(double* const Q_data,
         }
     }
     return;
-} // interpolate
+}
 
 void LEInteractor::interpolate(double* const Q_data,
                                const int Q_size,
@@ -1567,12 +1572,12 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        1,
+                        /*Q_depth*/ 1,
                         X_data,
                         q_data->getPointer(axis),
                         EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                         q_data->getGhostCellWidth(),
-                        1,
+                        /*q_depth*/ 1,
                         x_lower_axis.data(),
                         x_upper_axis.data(),
                         dx,
@@ -1589,7 +1594,7 @@ void LEInteractor::interpolate(double* const Q_data,
         }
     }
     return;
-} // interpolate
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
@@ -1623,7 +1628,7 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
@@ -1657,7 +1662,7 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
@@ -1697,7 +1702,7 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
@@ -1711,7 +1716,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
 {
     if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
     {
-        TBOX_ERROR("LEInteractor::interpolate():\n"
+        TBOX_ERROR("LEInteractor::spread():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
 #if !defined(NDEBUG)
@@ -1737,7 +1742,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
@@ -1803,7 +1808,7 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                spread_fcn);
     }
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
@@ -1875,7 +1880,7 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                spread_fcn);
     }
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
@@ -1951,9 +1956,9 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   1,
+                   /*q_depth*/ 1,
                    &Q_data_axis[0],
-                   1,
+                   /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
                    x_upper_axis.data(),
@@ -1967,7 +1972,7 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
         }
     }
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
@@ -1993,7 +1998,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
 #endif
     if (NDIM != 3 || Q_depth != NDIM || q_data->getDepth() != 1)
     {
-        TBOX_ERROR("LEInteractor::interpolate():\n"
+        TBOX_ERROR("LEInteractor::spread():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
 
@@ -2046,9 +2051,9 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   1,
+                   /*q_depth*/ 1,
                    &Q_data_axis[0],
-                   1,
+                   /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
                    x_upper_axis.data(),
@@ -2062,7 +2067,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
         }
     }
     return;
-} // spread
+}
 
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                           const std::vector<double>& Q_data,
@@ -2084,7 +2089,7 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
            patch,
            spread_box,
            interp_fcn);
-} // spread
+}
 
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                           const std::vector<double>& Q_data,
@@ -2106,7 +2111,7 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
            patch,
            spread_box,
            interp_fcn);
-} // spread
+}
 
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                           const std::vector<double>& Q_data,
@@ -2128,7 +2133,7 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
            patch,
            spread_box,
            interp_fcn);
-} // spread
+}
 
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                           const std::vector<double>& Q_data,
@@ -2150,7 +2155,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
            patch,
            spread_box,
            interp_fcn);
-} // spread
+}
 
 void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                           const double* const Q_data,
@@ -2215,7 +2220,7 @@ void LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                spread_fcn);
     }
     return;
-} // spread
+}
 
 void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                           const double* const Q_data,
@@ -2286,7 +2291,7 @@ void LEInteractor::spread(Pointer<NodeData<NDIM, double> > q_data,
                spread_fcn);
     }
     return;
-} // spread
+}
 
 void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                           const double* const Q_data,
@@ -2356,9 +2361,9 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
             spread(q_data->getPointer(axis),
                    SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   1,
+                   /*q_depth*/ 1,
                    &Q_data_axis[0],
-                   1,
+                   /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
                    x_upper_axis.data(),
@@ -2372,7 +2377,7 @@ void LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
         }
     }
     return;
-} // spread
+}
 
 void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
                           const double* const Q_data,
@@ -2387,7 +2392,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
 {
     if (NDIM != 3 || Q_depth != NDIM || q_data->getDepth() != 1)
     {
-        TBOX_ERROR("LEInteractor::interpolate():\n"
+        TBOX_ERROR("LEInteractor::spread():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
 #if !defined(NDEBUG)
@@ -2445,9 +2450,9 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
             spread(q_data->getPointer(axis),
                    EdgeGeometry<NDIM>::toEdgeBox(q_data->getBox(), axis),
                    q_data->getGhostCellWidth(),
-                   1,
+                   /*q_depth*/ 1,
                    &Q_data_axis[0],
-                   1,
+                   /*Q_depth*/ 1,
                    X_data,
                    x_lower_axis.data(),
                    x_upper_axis.data(),
@@ -2461,7 +2466,7 @@ void LEInteractor::spread(Pointer<EdgeData<NDIM, double> > q_data,
         }
     }
     return;
-} // spread
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2486,10 +2491,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const int axis)
 {
     const int stencil_size = getStencilSize(interp_fcn);
-    const int min_ghosts =
-        static_cast<int>(floor(0.5 * static_cast<double>(stencil_size))) + 1;
+    const int min_ghosts = getMinimumGhostWidth(interp_fcn);
     const int q_gcw_min = q_gcw.min();
-    if (q_gcw_min < 0.5 * stencil_size + 1)
+    if (q_gcw_min < min_ghosts)
     {
         TBOX_ERROR(
             "LEInteractor::interpolate(): insufficient ghost cell width for interpolation:"
@@ -2781,7 +2785,7 @@ LEInteractor::interpolate(double* const Q_data,
                    << "  Unknown interpolation kernel function " << interp_fcn << std::endl);
     }
     return;
-} // interpolate
+}
 
 void LEInteractor::spread(double* const q_data,
                           const Box<NDIM>& q_data_box,
@@ -3083,7 +3087,7 @@ void LEInteractor::spread(double* const q_data,
                    << "  Unknown spreading kernel function " << spread_fcn << std::endl);
     }
     return;
-} // spread
+}
 
 template <class T>
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
@@ -3164,7 +3168,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
         }
     }
     return;
-} // buildLocalIndices
+}
 
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                      const Box<NDIM>& box,
@@ -3195,7 +3199,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;
-} // buildLocalIndices
+}
 
 void LEInteractor::userDefinedInterpolate(double* Q,
                                           const int Q_depth,
@@ -3333,7 +3337,7 @@ void LEInteractor::userDefinedInterpolate(double* Q,
         }
     }
     return;
-} // userDefinedInterpolate
+}
 
 void LEInteractor::userDefinedSpread(double* q,
                                      const Box<NDIM>& q_data_box,
@@ -3472,7 +3476,7 @@ void LEInteractor::userDefinedSpread(double* q,
         }
     }
     return;
-} // userDefinedSpread
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

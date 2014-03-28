@@ -40,7 +40,6 @@
 #include "PatchLevel.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideDataSynchronization.h"
 #include "SideVariable.h"
 #include "Variable.h"

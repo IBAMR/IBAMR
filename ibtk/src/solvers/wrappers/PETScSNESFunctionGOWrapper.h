@@ -37,6 +37,7 @@
 
 #include <string>
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "petscsnes.h"

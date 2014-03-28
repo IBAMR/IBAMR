@@ -41,7 +41,6 @@
 #include "NodeGeometry.h"
 #include "NodeOverlap.h"
 #include "NodeSynchCopyFillPattern.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

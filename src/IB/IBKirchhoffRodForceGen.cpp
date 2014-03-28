@@ -33,14 +33,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <new>
 #include <ostream>
 
-#include "IBAMR_config.h"
-#include "IBKirchhoffRodForceGen.h"
+#include "Eigen/Geometry"
+#include "ibamr/IBKirchhoffRodForceGen.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/IBRodForceSpec-inl.h"
@@ -56,15 +55,13 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
-#include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-#include "Eigen/Dense"                       // IWYU pragma: export
-#include "unsupported/Eigen/MatrixFunctions" // IWYU pragma: export
-// IWYU pragma: no_include "petsc-private/vecimpl.h"
+#include "unsupported/Eigen/MatrixFunctions"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

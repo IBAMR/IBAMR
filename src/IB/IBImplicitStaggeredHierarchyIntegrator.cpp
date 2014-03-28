@@ -32,19 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <algorithm>
-#include <iosfwd>
-#include <limits>
-#include <memory>
 #include <ostream>
-#include <vector>
 
-#include "ibtk/KrylovLinearSolver.h"
-#include "petscsnes.h"
-#include "ibtk/PETScMultiVec.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "GriddingAlgorithm.h"
@@ -55,19 +45,28 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PatchSideDataOpsReal.h"
-#include "RefineSchedule.h"
+#include "PoissonSpecifications.h"
 #include "SideData.h"
-#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "ibamr/IBImplicitStrategy.h"
+#include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/PETScMultiVec.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/PETScSAMRAIVectorReal-inl.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
+#include "petscerror.h"
+#include "petscsnes.h"
 #include "petscsys.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -77,7 +76,6 @@
 
 namespace IBAMR
 {
-class INSStaggeredHierarchyIntegrator;
 } // namespace IBAMR
 namespace SAMRAI
 {
@@ -88,8 +86,6 @@ class Box;
 } // namespace hier
 namespace xfer
 {
-template <int DIM>
-class CoarsenSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

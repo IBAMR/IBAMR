@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 
 #include "ArrayDataBasicOps.h"
@@ -46,6 +44,8 @@
 #include "CellData.h"
 #include "CoarseFineBoundary.h"
 #include "CoarsenSchedule.h"
+#include "EdgeData.h"
+#include "EdgeVariable.h"
 #include "FaceData.h"
 #include "FaceDataFactory.h"
 #include "FaceGeometry.h"
@@ -65,7 +65,6 @@
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
 #include "SideGeometry.h"

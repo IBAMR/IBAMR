@@ -48,7 +48,6 @@
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
 #include "RefineSchedule.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
@@ -71,8 +70,6 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
-class IntVector;
 } // namespace hier
 namespace solv
 {

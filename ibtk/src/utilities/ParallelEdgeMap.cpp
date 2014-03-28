@@ -33,15 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <algorithm>
-#include <iosfwd>
 #include <map>
 #include <ostream>
-#include <string>
 #include <vector>
 
 #include "ParallelEdgeMap.h"
-#include "SAMRAI_config.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

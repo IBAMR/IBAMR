@@ -35,17 +35,15 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
 
 #include "INSHierarchyIntegrator.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

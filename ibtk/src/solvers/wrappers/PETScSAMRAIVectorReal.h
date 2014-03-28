@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "mpi.h"
 #include "petscsys.h"

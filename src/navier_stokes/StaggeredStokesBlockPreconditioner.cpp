@@ -33,14 +33,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 #include <string>
 
 #include "HierarchyDataOpsManager.h"
+#include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

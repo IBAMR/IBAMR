@@ -37,12 +37,11 @@
 #include <ostream>
 
 #include "CellVariable.h"
-#include "IBAMR_config.h"
 #include "LocationIndexRobinBcCoefs.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "StaggeredStokesOperator.h"
 #include "ibamr/ibamr_utilities.h"

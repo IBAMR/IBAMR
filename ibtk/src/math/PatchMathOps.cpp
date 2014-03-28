@@ -33,26 +33,23 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
+#include "EdgeData.h" // IWYU pragma: keep
 #include "FaceData.h"
 #include "FaceGeometry.h"
 #include "IBTK_config.h"
 #include "IntVector.h"
 #include "NodeData.h"
-#include "EdgeData.h"
 #include "NodeGeometry.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
 #include "PatchMathOps.h"
 #include "PatchSideDataOpsReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "boost/array.hpp"
 #include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
