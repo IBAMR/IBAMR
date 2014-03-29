@@ -41,6 +41,7 @@
 #include <ibamr/ibamr_utilities.h>
 
 // IBTK INCLUDES
+#include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

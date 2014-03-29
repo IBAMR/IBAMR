@@ -106,6 +106,7 @@ tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
+    const unsigned short int /*side*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -115,7 +116,7 @@ tether_force_function(
 }// tether_force_function
 
 // Stress tensor functions.
-static double mu_s;
+static double mu_s, beta_s;
 void
 PK1_dev_stress_function(
     TensorValue<double>& PP,
@@ -142,7 +143,8 @@ PK1_dil_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    PP = -mu_s*tensor_inverse_transpose(FF, NDIM);
+    const TensorValue<double> CC = FF.transpose() * FF;
+    PP = (-mu_s + beta_s*log(CC.det()))*tensor_inverse_transpose(FF, NDIM);
     return;
 }// PK1_dil_stress_function
 }
@@ -251,7 +253,8 @@ main(
         if (!use_constraint_method)
         {
             kappa_s = input_db->getDouble("KAPPA_S");
-            mu_s    = input_db->getDouble("MU_S"   );
+            mu_s    = input_db->getDoubleWithDefault("MU_S"  ,0.0);
+            beta_s  = input_db->getDoubleWithDefault("BETA_S",0.0);
         }
 
         // Create major algorithm and data objects that comprise the
@@ -297,7 +300,7 @@ main(
         }
         else
         {
-            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
+            ib_method_ops->registerLagSurfaceForceFunction(tether_force_function);
             IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
             IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
             PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
