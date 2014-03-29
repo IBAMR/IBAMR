@@ -32,39 +32,32 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <math.h>
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <ostream>
-#include <utility>
 #include <vector>
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "EdgeData.h"
+#include "EdgeGeometry.h"
 #include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LEInteractor.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
-#include "EdgeData.h"
-#include "EdgeGeometry.h"
 #include "Patch.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LIndexSetData.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LSet.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
