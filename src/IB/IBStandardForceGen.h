@@ -36,12 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <unistd.h>
 #include <map>
 #include <set>
 #include <vector>
 
-#include "boost/array.hpp"
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/IBSpringForceFunctions.h"
 #include "ibtk/ibtk_utilities.h"

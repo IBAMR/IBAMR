@@ -66,6 +66,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/auto_ptr.h"
+#include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"

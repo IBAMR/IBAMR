@@ -52,14 +52,12 @@
 #include "RefineOperator.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "boost/array.hpp"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
@@ -72,13 +70,13 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
 class BasePatchLevel;
 template <int DIM>
 class Patch;
 template <int DIM>
 class PatchHierarchy;
+template <int DIM>
+class BasePatchHierarchy;
 } // namespace hier
 namespace mesh
 {

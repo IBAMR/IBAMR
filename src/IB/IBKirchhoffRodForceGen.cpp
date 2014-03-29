@@ -32,15 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <vector>
 
 #include "Eigen/Geometry"
-#include "ibamr/IBKirchhoffRodForceGen.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "boost/array.hpp"
+#include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/IBRodForceSpec-inl.h"
 #include "ibamr/ibamr_utilities.h"
@@ -56,8 +58,11 @@
 #include "ibtk/LNodeIndex-inl.h"
 #include "ibtk/LNode-inl.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

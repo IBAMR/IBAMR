@@ -55,22 +55,20 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Patch;
-template <int DIM>
 class Variable;
+template <int DIM>
+class Patch;
 } // namespace hier
 namespace pdat
 {
 template <int DIM, class TYPE>
-class CellData;
-template <int DIM, class TYPE>
 class SideData;
+template <int DIM, class TYPE>
+class CellData;
 } // namespace pdat
 namespace tbox
 {
 class Database;
-template <class TYPE>
-class Array;
 } // namespace tbox
 } // namespace SAMRAI
 

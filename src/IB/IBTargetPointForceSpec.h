@@ -36,9 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <unistd.h>
 
-#include "boost/array.hpp"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/ibtk_utilities.h"

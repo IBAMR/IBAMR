@@ -51,12 +51,6 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/point.h"
-#include "libmesh/system.h"
-#include "libmesh/vector_value.h"
-#include "petscsys.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {

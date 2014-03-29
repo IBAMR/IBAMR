@@ -67,24 +67,19 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
 class BasePatchLevel;
 template <int DIM>
 class Patch;
 template <int DIM>
 class PatchHierarchy;
+template <int DIM>
+class BasePatchHierarchy;
 } // namespace hier
 namespace mesh
 {
 template <int DIM>
 class GriddingAlgorithm;
 } // namespace mesh
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

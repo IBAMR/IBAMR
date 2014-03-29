@@ -35,10 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
 #include <vector>
 
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

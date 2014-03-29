@@ -35,17 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <fstream>
 #include <functional>
 #include <iosfwd>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "Eigen/Dense"
 #include "Index.h"
 #include "IntVector.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"

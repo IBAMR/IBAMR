@@ -44,9 +44,6 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "petscmat.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -63,13 +60,13 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
 class BasePatchLevel;
 template <int DIM>
 class PatchHierarchy;
 template <int DIM>
 class Variable;
+template <int DIM>
+class BasePatchHierarchy;
 } // namespace hier
 namespace math
 {

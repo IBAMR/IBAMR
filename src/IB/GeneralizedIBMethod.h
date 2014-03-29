@@ -41,7 +41,6 @@
 #include "Variable.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
-#include "petscmat.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK {
@@ -57,11 +56,11 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
 class BasePatchLevel;
 template <int DIM>
 class PatchHierarchy;
+template <int DIM>
+class BasePatchHierarchy;
 } // namespace hier
 namespace mesh
 {

@@ -53,7 +53,6 @@
 
 namespace IBAMR
 {
-class IBImplicitStrategy;
 class INSStaggeredHierarchyIntegrator;
 } // namespace IBAMR
 namespace SAMRAI

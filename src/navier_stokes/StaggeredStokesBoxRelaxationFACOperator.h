@@ -35,11 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "petscksp.h"
 #include "petscmat.h"

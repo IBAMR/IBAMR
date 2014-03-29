@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <string>
 #include <vector>
@@ -63,9 +64,9 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class BasePatchHierarchy;
-template <int DIM>
 class BasePatchLevel;
+template <int DIM>
+class BasePatchHierarchy;
 } // namespace hier
 namespace tbox
 {
