@@ -115,11 +115,13 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-namespace libMesh {
-namespace Parallel {
+namespace libMesh
+{
+namespace Parallel
+{
 class Communicator;
-}  // namespace Parallel
-}  // namespace libMesh
+} // namespace Parallel
+} // namespace libMesh
 
 namespace libMesh
 {
@@ -262,9 +264,9 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
     {
         const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
             min_ghost_width,
-            IntVector<NDIM>(std::max(
-                                LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
-                                LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
+            IntVector<NDIM>(
+                std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
+                         LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
         s_data_manager_instances[name] = new FEDataManager(
             name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }

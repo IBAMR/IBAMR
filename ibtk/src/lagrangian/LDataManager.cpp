@@ -171,9 +171,9 @@ LDataManager* LDataManager::getManager(const std::string& name,
     {
         const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
             min_ghost_width,
-            IntVector<NDIM>(std::max(
-                                LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
-                                LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
+            IntVector<NDIM>(
+                std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
+                         LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
         s_data_manager_instances[name] = new LDataManager(name,
                                                           default_interp_kernel_fcn,
                                                           default_spread_kernel_fcn,

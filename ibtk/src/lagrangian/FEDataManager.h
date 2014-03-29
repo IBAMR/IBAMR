@@ -58,12 +58,15 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
-namespace libMesh {
-template <typename Tp> class AutoPtr;
-}  // namespace libMesh
+} // namespace IBTK
+namespace libMesh
+{
+template <typename Tp>
+class AutoPtr;
+} // namespace libMesh
 
 namespace SAMRAI
 {
@@ -196,13 +199,12 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static FEDataManager*
-    getManager(const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
-                   SAMRAI::hier::IntVector<NDIM>(0),
-               bool register_for_restart = true);
+    static FEDataManager* getManager(const std::string& name,
+                                     const InterpSpec& default_interp_spec,
+                                     const SpreadSpec& default_spread_spec,
+                                     const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
+                                         SAMRAI::hier::IntVector<NDIM>(0),
+                                     bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.

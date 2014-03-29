@@ -80,11 +80,14 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+} // namespace SAMRAI
 
 namespace SAMRAI
 {

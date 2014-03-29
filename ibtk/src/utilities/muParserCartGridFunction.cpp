@@ -68,11 +68,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+} // namespace SAMRAI
 
 namespace SAMRAI
 {

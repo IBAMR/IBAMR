@@ -73,9 +73,10 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

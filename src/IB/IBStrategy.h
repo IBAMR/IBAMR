@@ -47,9 +47,10 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
+} // namespace IBTK
 
 namespace IBTK
 {

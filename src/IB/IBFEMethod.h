@@ -53,31 +53,44 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BasePatchHierarchy;
-template <int DIM> class BasePatchLevel;
-}  // namespace hier
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+template <int DIM>
+class BasePatchLevel;
+} // namespace hier
+namespace tbox
+{
 class Database;
-template <class TYPE> class Array;
-}  // namespace tbox
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
-namespace libMesh {
+template <class TYPE>
+class Array;
+} // namespace tbox
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
+namespace libMesh
+{
 class EquationSystems;
 class Mesh;
 class Point;
 class System;
-template <typename T> class NumericVector;
-template <typename T> class PetscVector;
-}  // namespace libMesh
+template <typename T>
+class NumericVector;
+template <typename T>
+class PetscVector;
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

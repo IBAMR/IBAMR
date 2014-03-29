@@ -64,9 +64,10 @@
 #include "libmesh/vector_value.h"
 #include "tbox/Utilities.h"
 
-namespace libMesh {
+namespace libMesh
+{
 class Elem;
-}  // namespace libMesh
+} // namespace libMesh
 
 using namespace libMesh;
 

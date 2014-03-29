@@ -63,9 +63,11 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-namespace libMesh {
-template <typename T> class NumericVector;
-}  // namespace libMesh
+namespace libMesh
+{
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 using namespace libMesh;
 
@@ -253,7 +255,8 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
             const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn);
-            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
+            scratch_idx =
+                var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
             scratch_idxs.insert(scratch_idx);
         }
         refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);

@@ -98,12 +98,16 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 using namespace libMesh;
 
@@ -143,26 +147,25 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
     return dirichlet_bdry_ids;
 }
 
-inline bool is_physical_bdry(
-    const Elem* elem,
-    const unsigned short int side,
-    const BoundaryInfo& boundary_info,
-    const DofMap& dof_map)
+inline bool is_physical_bdry(const Elem* elem,
+                             const unsigned short int side,
+                             const BoundaryInfo& boundary_info,
+                             const DofMap& dof_map)
 {
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     bool at_physical_bdry = !elem->neighbor(side);
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end();
+         ++cit)
     {
         if (dof_map.is_periodic_boundary(*cit)) at_physical_bdry = false;
     }
     return at_physical_bdry;
 }
 
-inline bool is_dirichlet_bdry(
-    const Elem* elem,
-    const unsigned short int side,
-    const BoundaryInfo& boundary_info,
-    const DofMap& dof_map)
+inline bool is_dirichlet_bdry(const Elem* elem,
+                              const unsigned short int side,
+                              const BoundaryInfo& boundary_info,
+                              const DofMap& dof_map)
 {
     if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
@@ -1218,12 +1221,13 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
                 // Determine if we need to compute surface forces along this
                 // part of the physical boundary; if not, skip the present side.
-                const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
+                const bool at_dirichlet_bdry =
+                    is_dirichlet_bdry(elem, side, boundary_info, dof_map);
                 const bool compute_transmission_force =
                     (d_split_forces && !at_dirichlet_bdry) ||
                     (!d_split_forces && at_dirichlet_bdry);
                 if (!compute_transmission_force) continue;
-                
+
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
                 const unsigned int n_basis = dof_indices[0].size();
@@ -1375,7 +1379,8 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
                 // Determine if we need to compute surface forces along this
                 // part of the physical boundary; if not, skip the present side.
-                const bool at_dirichlet_bdry = is_dirichlet_bdry(elem, side, boundary_info, dof_map);
+                const bool at_dirichlet_bdry =
+                    is_dirichlet_bdry(elem, side, boundary_info, dof_map);
                 const bool compute_transmission_force =
                     (!d_split_forces && !at_dirichlet_bdry);
                 if (!compute_transmission_force) continue;
@@ -1624,7 +1629,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                has_physical_boundaries = has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
+                has_physical_boundaries = has_physical_boundaries ||
+                                          is_physical_bdry(elem, side, boundary_info, dof_map);
             }
             if (!has_physical_boundaries) continue;
 
@@ -1925,7 +1931,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                has_physical_boundaries = has_physical_boundaries || is_physical_bdry(elem, side, boundary_info, dof_map);
+                has_physical_boundaries = has_physical_boundaries ||
+                                          is_physical_bdry(elem, side, boundary_info, dof_map);
             }
             if (!has_physical_boundaries) continue;
 

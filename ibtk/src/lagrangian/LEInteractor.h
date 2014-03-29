@@ -44,9 +44,11 @@
 #include "IntVector.h"
 #include "tbox/Pointer.h"
 
-namespace boost {
-template <class T, std::size_t N> class array;
-}  // namespace boost
+namespace boost
+{
+template <class T, std::size_t N>
+class array;
+} // namespace boost
 
 namespace IBTK
 {
@@ -125,7 +127,7 @@ public:
      * require correspondingly larger ghost cell widths.
      */
     static int getMinimumGhostWidth(const std::string& kernel_fcn);
-    
+
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.

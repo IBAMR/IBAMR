@@ -44,9 +44,10 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
+} // namespace IBTK
 
 namespace IBAMR
 {

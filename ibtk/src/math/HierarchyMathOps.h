@@ -60,11 +60,14 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace pdat {
-template <int DIM, class TYPE> class EdgeVariable;
-}  // namespace pdat
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace pdat
+{
+template <int DIM, class TYPE>
+class EdgeVariable;
+} // namespace pdat
+} // namespace SAMRAI
 
 namespace IBTK
 {

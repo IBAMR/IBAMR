@@ -43,9 +43,10 @@
 #include "ibamr/IBMethod.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class RobinPhysBdryPatchStrategy;
-}  // namespace IBTK
+} // namespace IBTK
 
 namespace IBTK
 {

@@ -45,9 +45,11 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace boost {
-template <class T, std::size_t N> class array;
-}  // namespace boost
+namespace boost
+{
+template <class T, std::size_t N>
+class array;
+} // namespace boost
 
 namespace SAMRAI
 {

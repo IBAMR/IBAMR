@@ -50,9 +50,11 @@ namespace tbox
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
-namespace boost {
-template <typename T, std::size_t NumDims> class multi_array_ref;
-}  // namespace boost
+namespace boost
+{
+template <typename T, std::size_t NumDims>
+class multi_array_ref;
+} // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
