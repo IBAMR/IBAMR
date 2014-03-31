@@ -187,30 +187,26 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
          ++cit)
     {
         const short int bdry_id = *cit;
-        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
+        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
+        {
+            dirichlet_bdry_ids |= bdry_id;
+        }
     }
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
 
 inline double get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
-    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    libMesh::Point s_node_cache[MAX_NODES];
+    const unsigned int max_nodes = (elem->dim() == 3 ? 27 : 9);
+    std::vector<libMesh::Point> s_node_cache(max_nodes);
     const unsigned int n_node = elem->n_nodes();
-    TBOX_ASSERT(n_node <= MAX_NODES);
+    TBOX_ASSERT(n_node <= max_nodes);
     for (unsigned int k = 0; k < n_node; ++k)
     {
         s_node_cache[k] = elem->point(k);
