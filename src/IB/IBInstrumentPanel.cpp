@@ -47,6 +47,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "Eigen/Geometry" // IWYU pragma: keep
 #include "IBAMR_config.h"
 #include "IBInstrumentPanel.h"
 #include "Patch.h"
