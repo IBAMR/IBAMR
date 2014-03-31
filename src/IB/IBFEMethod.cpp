@@ -129,20 +129,16 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
          ++cit)
     {
         const short int bdry_id = *cit;
-        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
-            dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
+        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ||
+            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
+        {
+            dirichlet_bdry_ids |= bdry_id;
+        }
     }
     return dirichlet_bdry_ids;
 }
@@ -297,9 +293,13 @@ void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data,
     TBOX_ASSERT(part < d_num_parts);
     d_PK1_stress_fcn_data[part].push_back(data);
     if (data.quad_type == INVALID_Q_RULE)
+    {
         d_PK1_stress_fcn_data[part].back().quad_type = d_quad_type;
+    }
     if (data.quad_order == INVALID_ORDER)
+    {
         d_PK1_stress_fcn_data[part].back().quad_order = d_quad_order;
+    }
     d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     d_body_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
@@ -1141,7 +1141,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         std::vector<std::vector<unsigned int> > dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
+        {
             TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+        }
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<libMesh::Point>& q_point = fe->get_xyz();
@@ -1159,8 +1161,10 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
         for (unsigned int d = 0; d < NDIM; ++d)
+        {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-
+        }
+        
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
         //
@@ -1301,7 +1305,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         std::vector<std::vector<unsigned int> > dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
+        {
             TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+        }
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<libMesh::Point>& q_point = fe->get_xyz();
@@ -1319,7 +1325,9 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
         for (unsigned int d = 0; d < NDIM; ++d)
+        {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+        }
 
         // Loop over the elements to compute the right-hand side vector.
         TensorValue<double> FF, FF_inv_trans;
@@ -1515,7 +1523,10 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+    }
     AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
@@ -1525,7 +1536,10 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    }
 
     // Setup extra data needed to compute stresses/forces.
     for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin();
@@ -1798,7 +1812,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(dof_map.variable_type(d) == fe_type);
+    }
     AutoPtr<FEBase> fe_face(FEBase::build(dim, fe_type));
     const std::vector<libMesh::Point>& q_point_face = fe_face->get_xyz();
     const std::vector<libMesh::Point>& normal_face = fe_face->get_normals();
@@ -1807,7 +1824,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    }
 
     // Setup extra data needed to compute stresses/forces.
     for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin();
