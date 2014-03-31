@@ -43,6 +43,7 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
@@ -106,7 +107,6 @@ tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
-    const unsigned short int /*side*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
@@ -114,39 +114,6 @@ tether_force_function(
     F = kappa_s*(s-X);
     return;
 }// tether_force_function
-
-// Stress tensor functions.
-static double mu_s, beta_s;
-void
-PK1_dev_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& FF,
-    const libMesh::Point& /*X*/,
-    const libMesh::Point& /*s*/,
-    Elem* const /*elem*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    PP = mu_s*FF;
-    return;
-}// PK1_dev_stress_function
-
-void
-PK1_dil_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& FF,
-    const libMesh::Point& /*X*/,
-    const libMesh::Point& /*s*/,
-    Elem* const /*elem*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    const TensorValue<double> CC = FF.transpose() * FF;
-    PP = (-mu_s + beta_s*log(CC.det()))*tensor_inverse_transpose(FF, NDIM);
-    return;
-}// PK1_dil_stress_function
 }
 using namespace ModelData;
 
@@ -219,7 +186,7 @@ main(
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create a simple FE mesh.
-        Mesh mesh(NDIM);
+        Mesh solid_mesh(NDIM);
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC")*dx;
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -230,31 +197,38 @@ main(
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
+                solid_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
-            TriangleInterface triangle(mesh);
+            TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
             triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
             triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
-            mesh.prepare_for_use();
+            solid_mesh.prepare_for_use();
         }
         else
         {
             // NOTE: number of segments along boundary is 4*2^r.
             const double num_circum_segments = 2.0*M_PI*R/ds;
             const int r = log2(0.25*num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+            MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
+        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension()-1);
+        if (use_boundary_mesh)
+        {
+            solid_mesh.boundary_info->sync(boundary_mesh);
+        }
+
+        Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
+        
         bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
         if (!use_constraint_method)
         {
             kappa_s = input_db->getDouble("KAPPA_S");
-            mu_s    = input_db->getDoubleWithDefault("MU_S"  ,0.0);
-            beta_s  = input_db->getDoubleWithDefault("BETA_S",0.0);
         }
 
         // Create major algorithm and data objects that comprise the
@@ -300,13 +274,7 @@ main(
         }
         else
         {
-            ib_method_ops->registerLagSurfaceForceFunction(tether_force_function);
-            IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
-            IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
-            PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
-            PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
-            ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
-            ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
         }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
@@ -504,6 +472,7 @@ postprocess_data(
     const double loop_time,
     const string& /*data_dump_dirname*/)
 {
+    const unsigned int dim = mesh.mesh_dimension();
     {
         double F_integral[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
@@ -513,8 +482,8 @@ postprocess_data(
         F_vec->localize(*F_ghost_vec);
         DofMap& F_dof_map = F_system.get_dof_map();
         std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
-        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        AutoPtr<FEBase> fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
@@ -562,8 +531,8 @@ postprocess_data(
         U_vec->localize(*U_ghost_vec);
         DofMap& U_dof_map = U_system.get_dof_map();
         std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);
-        AutoPtr<FEBase> fe(FEBase::build(NDIM, U_dof_map.variable_type(0)));
-        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        AutoPtr<FEBase> fe(FEBase::build(dim, U_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
