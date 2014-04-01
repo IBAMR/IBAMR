@@ -221,6 +221,12 @@ main(
         if (use_boundary_mesh)
         {
             solid_mesh.boundary_info->sync(boundary_mesh);
+            for (MeshBase::node_iterator n_it = boundary_mesh.nodes_begin();
+                 n_it != boundary_mesh.nodes_end(); ++n_it)
+            {
+                libMesh::Node& n = **n_it;
+                n = R*n.unit();
+            }
         }
 
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
