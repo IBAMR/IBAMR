@@ -13,16 +13,14 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid c
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 BLOCK_MFAC = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular blocks
-BEAM_MFAC  = 3.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
+BEAM_MFAC  = 4.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width of the thin beam
+BEAM_USE_MAPPED_GRID = TRUE                        // whether to use a mapped grid that clusters points near the "hinge" region
 BLOCK_ELEM_TYPE = "QUAD9"                          // type of element to use for discretization of the rectangular blocks
 BEAM_ELEM_TYPE  = "QUAD9"                          // type of element to use for discretization of the thin beam
 PK1_DEV_QUAD_ORDER = "FIFTH"
-PK1_DIL_QUAD_ORDER = "FIFTH"
+PK1_DIL_QUAD_ORDER = "THIRD"
 N_X = N
 N_Y = N_X * (L_Y / L_X)
-DS = BEAM_MFAC*DX
-//N_W = 2*ceil(0.016/DS) + 1
-N_W = 2*4 + 1
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                  // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -40,7 +38,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                 // convective differencing di
 CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.2                   // maximum CFL number
-DT                         = 0.625*CFL_MAX*DX/U_MAX*(48.0/NFINEST)      // maximum timestep size
+DT                         = 0.25*CFL_MAX*DX/U_MAX // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = FALSE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm
@@ -54,13 +52,14 @@ ENABLE_LOGGING             = TRUE
 
 // model parameters
 MU_S = 1.0e3
-BETA_S = 1.25e-2*MU_S/DT
 P_MAX = 80.0
 T_END = 2.0
 
 // penalty parameters
-BLOCK_KAPPA_S = 7.5e1 * DX / DT^2
-BEAM_KAPPA_S  = KAPPA_S
+SAFETY = 0.5
+BETA_S = SAFETY * 1.25e-2 * MU_S / sqrt(DT)
+BLOCK_KAPPA_S = SAFETY * 1.0e2 * DX / DT^2
+BEAM_KAPPA_S  = SAFETY * 5.0e1 * DX / DT^2
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "if((X_1 < 0.5), 1.0 , 0.0)"
@@ -111,15 +110,17 @@ IBHierarchyIntegrator {
 }
 
 IBFEMethod {
-   use_IB_spread_operator     = USE_IB_DELTA_FUNCTIONS
-   use_IB_interp_operator     = USE_IB_DELTA_FUNCTIONS
-   IB_delta_fcn               = IB_DELTA_FUNCTION
-   split_forces               = SPLIT_FORCES
-   use_jump_conditions        = USE_JUMP_CONDITIONS
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density           = IB_POINT_DENSITY
-   FF_dil_fe_family = "MONOMIAL"
-   FF_dil_fe_order  = "FIRST"
+   use_IB_spread_operator        = USE_IB_DELTA_FUNCTIONS
+   use_IB_interp_operator        = USE_IB_DELTA_FUNCTIONS
+   IB_delta_fcn                  = IB_DELTA_FUNCTION
+   split_forces                  = SPLIT_FORCES
+   use_jump_conditions           = USE_JUMP_CONDITIONS
+   use_consistent_mass_matrix    = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density              = IB_POINT_DENSITY
+// IB_quad_type                  = "QSIMPSON"
+// IB_quad_order                 = "SECOND"
+// IB_use_consistent_mass_matrix = FALSE
+// IB_use_adaptive_quadrature    = FALSE
 }
 
 INSStaggeredHierarchyIntegrator {
