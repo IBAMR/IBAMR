@@ -47,6 +47,7 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
+#include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -100,6 +101,8 @@ namespace ModelData
 {
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
+static double eta_s = 0.0;
+MeshFunction* U_fcn;
 void
 tether_force_function(
     VectorValue<double>& F,
@@ -111,7 +114,12 @@ tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa_s*(s-X);
+    DenseVector<double> U(NDIM);
+    (*U_fcn)(s, 0.0, U);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = kappa_s*(s(d)-X(d)) - eta_s*U(d);
+    }
     return;
 }// tether_force_function
 }
@@ -235,6 +243,7 @@ main(
         if (!use_constraint_method)
         {
             kappa_s = input_db->getDouble("KAPPA_S");
+            eta_s = input_db->getDouble("ETA_S");
         }
 
         // Create major algorithm and data objects that comprise the
@@ -402,10 +411,23 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
+            System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            NumericVector<double>* U_vec = U_system.solution.get();
+            DofMap& U_dof_map = U_system.get_dof_map();
+            vector<unsigned int> vars(NDIM);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                vars[d] = d;
+            }
+            U_fcn = new MeshFunction(*equation_systems, *U_vec, U_dof_map, vars);
+            U_fcn->init();
+            
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
+            delete U_fcn;
+            
             pout <<                                                    "\n";
             pout << "At end       of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
