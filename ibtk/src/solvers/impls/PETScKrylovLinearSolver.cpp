@@ -638,16 +638,6 @@ void PETScKrylovLinearSolver::resetKSPOperators()
         MATOP_MULT,
         reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMult_SAMRAI));
     IBTK_CHKERRQ(ierr);
-    ierr = MatShellSetOperation(
-        d_petsc_mat,
-        MATOP_MULT_ADD,
-        reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI));
-    IBTK_CHKERRQ(ierr);
-    ierr = MatShellSetOperation(
-        d_petsc_mat,
-        MATOP_GET_VECS,
-        reinterpret_cast<void (*)(void)>(PETScKrylovLinearSolver::MatGetVecs_SAMRAI));
-    IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
@@ -819,54 +809,6 @@ PetscErrorCode PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI
-
-PetscErrorCode PETScKrylovLinearSolver::MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(krylov_solver);
-    TBOX_ASSERT(krylov_solver->d_A);
-#endif
-    krylov_solver->d_A->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(y),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(z));
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(z));
-    IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-} // MatVecMultAdd_SAMRAI
-
-PetscErrorCode PETScKrylovLinearSolver::MatGetVecs_SAMRAI(Mat A, Vec* right, Vec* left)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(krylov_solver);
-#endif
-    if (right)
-    {
-        // vector that the matrix can be multiplied against
-        ierr = VecDuplicate(krylov_solver->d_petsc_x, right);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*right));
-        IBTK_CHKERRQ(ierr);
-    }
-    if (left)
-    {
-        // vector that the matrix vector product can be stored in
-        ierr = VecDuplicate(krylov_solver->d_petsc_b, left);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*left));
-        IBTK_CHKERRQ(ierr);
-    }
-    PetscFunctionReturn(0);
-} // MatGetVecs_SAMRAI
 
 PetscErrorCode PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
 {

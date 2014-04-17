@@ -380,22 +380,6 @@ private:
      */
     static PetscErrorCode MatVecMult_SAMRAI(Mat A, Vec x, Vec y);
 
-    /*!
-     * \brief Compute the matrix vector product y = Ax + z.
-     */
-    static PetscErrorCode MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z);
-
-    /*!
-     * \brief Get vector(s) compatible with the matrix, i.e., with the same
-     * parallel layout.
-     */
-    static PetscErrorCode MatGetVecs_SAMRAI(Mat mat, Vec* right, Vec* left);
-
-    /*!
-     * \brief Apply the preconditioner to x.
-     */
-    static PetscErrorCode PCApply_SAMRAI(void* ctx, Vec x, Vec y);
-
     //\}
 
     bool d_reinitializing_solver;

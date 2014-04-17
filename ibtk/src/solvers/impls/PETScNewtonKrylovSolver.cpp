@@ -657,16 +657,6 @@ void PETScNewtonKrylovSolver::resetSNESJacobian()
             MATOP_MULT,
             reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMult_SAMRAI));
         IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(
-            d_petsc_jac,
-            MATOP_MULT_ADD,
-            reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI));
-        IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(
-            d_petsc_jac,
-            MATOP_GET_VECS,
-            reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatGetVecs_SAMRAI));
-        IBTK_CHKERRQ(ierr);
     }
     else
     {
@@ -763,54 +753,6 @@ PetscErrorCode PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI
-
-PetscErrorCode PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(newton_solver);
-    TBOX_ASSERT(newton_solver->d_J);
-#endif
-    newton_solver->d_J->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(y),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(z));
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(z));
-    IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-} // MatVecMultAdd_SAMRAI
-
-PetscErrorCode PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(Mat A, Vec* right, Vec* left)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(newton_solver);
-#endif
-    if (right)
-    {
-        // vector that the matrix can be multiplied against
-        ierr = VecDuplicate(newton_solver->d_petsc_x, right);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*right));
-        IBTK_CHKERRQ(ierr);
-    }
-    if (left)
-    {
-        // vector that the matrix vector product can be stored in
-        ierr = VecDuplicate(newton_solver->d_petsc_b, left);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*left));
-        IBTK_CHKERRQ(ierr);
-    }
-    PetscFunctionReturn(0);
-} // MatGetVecs_SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 
