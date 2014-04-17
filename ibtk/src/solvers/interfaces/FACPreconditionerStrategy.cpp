@@ -136,6 +136,18 @@ void FACPreconditionerStrategy::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
+void FACPreconditionerStrategy::allocateScratchData()
+{
+    // intentionally blank
+    return;
+}
+
+void FACPreconditionerStrategy::deallocateScratchData()
+{
+    // intentionally blank
+    return;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 Pointer<SAMRAIVectorReal<NDIM, double> >

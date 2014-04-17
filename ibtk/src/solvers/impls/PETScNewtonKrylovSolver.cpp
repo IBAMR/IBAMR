@@ -211,6 +211,10 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
+    // Allocate scratch data.
+    if (d_b) d_b->allocateVectorData();
+    if (d_r) d_r->allocateVectorData();
+
     // Solve the system using a PETSc SNES object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(
         d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
@@ -244,6 +248,10 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
+
+    // Deallocate scratch data.
+    if (d_b) d_b->deallocateVectorData();
+    if (d_r) d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -339,11 +347,9 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
     d_b = b.cloneVector(b.getName());
-    d_b->allocateVectorData();
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     d_r = b.cloneVector(b.getName());
-    d_r->allocateVectorData();
     d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_r, d_petsc_comm);
 
     // Setup the nonlinear operator.
@@ -412,25 +418,16 @@ void PETScNewtonKrylovSolver::deallocateSolverState()
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
-                     std::min(d_x->getFinestLevelNumber(),
-                              d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = NULL;
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
-                     std::min(d_b->getFinestLevelNumber(),
-                              d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
     d_petsc_r = NULL;
-    d_r->resetLevels(d_r->getCoarsestLevelNumber(),
-                     std::min(d_r->getFinestLevelNumber(),
-                              d_r->getPatchHierarchy()->getFinestLevelNumber()));
     d_r->freeVectorComponents();
     d_r.setNull();
 

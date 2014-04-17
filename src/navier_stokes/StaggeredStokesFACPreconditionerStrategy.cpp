@@ -649,10 +649,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(
 
     // Setup solution and rhs vectors.
     d_solution = solution.cloneVector(solution.getName());
-    d_solution->allocateVectorData();
-
     d_rhs = rhs.cloneVector(rhs.getName());
-    d_rhs->allocateVectorData();
 
     // Reset the hierarchy configuration.
     d_hierarchy = solution.getPatchHierarchy();
@@ -922,6 +919,20 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+void StaggeredStokesFACPreconditionerStrategy::allocateScratchData()
+{
+    if (d_solution) d_solution->allocateVectorData();
+    if (d_rhs) d_rhs->allocateVectorData();
+    return;
+}
+
+void StaggeredStokesFACPreconditionerStrategy::deallocateScratchData()
+{
+    if (d_solution) d_solution->deallocateVectorData();
+    if (d_rhs) d_rhs->deallocateVectorData();
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

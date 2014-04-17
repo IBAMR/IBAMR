@@ -212,6 +212,9 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
 #endif
     resetKSPOptions();
 
+    // Allocate scratch data.
+    if (d_b) d_b->allocateVectorData();
+
     // Solve the system using a PETSc KSP object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(
         d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
@@ -246,6 +249,9 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
+
+    // Dealocate scratch data.
+    if (d_b) d_b->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -342,7 +348,6 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
     d_b = b.cloneVector(b.getName());
-    d_b->allocateVectorData();
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     // Initialize the linear operator and preconditioner objects.
@@ -405,17 +410,11 @@ void PETScKrylovLinearSolver::deallocateSolverState()
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
-                     std::min(d_x->getFinestLevelNumber(),
-                              d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = NULL;
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
-                     std::min(d_b->getFinestLevelNumber(),
-                              d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
 
@@ -777,9 +776,10 @@ void PETScKrylovLinearSolver::deallocateNullspaceData()
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullspace_constant_vec);
         d_petsc_nullspace_constant_vec = NULL;
         d_nullspace_constant_vec->resetLevels(
-            d_nullspace_constant_vec->getCoarsestLevelNumber(),
+            0,
             std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
                      d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
+        d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
         d_nullspace_constant_vec.setNull();
     }

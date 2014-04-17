@@ -357,13 +357,9 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(
 
     // Setup solution and rhs vectors.
     d_solution = solution.cloneVector(solution.getName());
-    d_solution->allocateVectorData();
-
     d_rhs = rhs.cloneVector(rhs.getName());
-    d_rhs->allocateVectorData();
 
     Pointer<Variable<NDIM> > sol_var = d_solution->getComponentVariable(0);
-
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -510,15 +506,9 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
     }
 
     // Delete the solution and rhs vectors.
-    d_solution->resetLevels(
-        d_solution->getCoarsestLevelNumber(),
-        std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_solution->freeVectorComponents();
     d_solution.setNull();
 
-    d_rhs->resetLevels(
-        d_rhs->getCoarsestLevelNumber(),
-        std::min(d_rhs->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_rhs->freeVectorComponents();
     d_rhs.setNull();
 
@@ -559,6 +549,20 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+void PoissonFACPreconditionerStrategy::allocateScratchData()
+{
+    if (d_solution) d_solution->allocateVectorData();
+    if (d_rhs) d_rhs->allocateVectorData();
+    return;
+}
+
+void PoissonFACPreconditionerStrategy::deallocateScratchData()
+{
+    if (d_solution) d_solution->deallocateVectorData();
+    if (d_rhs) d_rhs->deallocateVectorData();
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

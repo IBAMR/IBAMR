@@ -196,25 +196,21 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
     d_petsc_u = NULL;
-    d_op_u->resetLevels(d_op_u->getCoarsestLevelNumber(),
-                        std::min(d_op_u->getFinestLevelNumber(),
-                                 d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
+    d_op_u->resetLevels(
+        0,
+        std::min(d_op_u->getFinestLevelNumber(),
+                 d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
+    d_op_u->deallocateVectorData();
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
-    d_op_x->resetLevels(d_op_x->getCoarsestLevelNumber(),
-                        std::min(d_op_x->getFinestLevelNumber(),
-                                 d_op_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_x->freeVectorComponents();
     d_op_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
     d_petsc_y = NULL;
-    d_op_y->resetLevels(d_op_y->getCoarsestLevelNumber(),
-                        std::min(d_op_y->getFinestLevelNumber(),
-                                 d_op_y->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_y->freeVectorComponents();
     d_op_y.setNull();
 
