@@ -1,5 +1,5 @@
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,6 @@ c
       function lagrangian_piecewise_linear_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       double precision lagrangian_piecewise_linear_delta,r
 c
       if ( r.lt.0.d0 ) then
@@ -82,20 +81,19 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Returns the interpolation weight phi(r) for the broadened
-c     (4-point) piecewise linear "hat" function.
+c     Returns the interpolation weight phi(r) for the broadened 4-point
+c     piecewise linear "hat" function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      function lagrangian_wide_piecewise_linear_delta(r)
+      function lagrangian_wide4_piecewise_linear_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       external lagrangian_piecewise_linear_delta
       double precision lagrangian_piecewise_linear_delta
-      double precision lagrangian_wide_piecewise_linear_delta,r
+      double precision lagrangian_wide4_piecewise_linear_delta,r
 c
-      lagrangian_wide_piecewise_linear_delta =
+      lagrangian_wide4_piecewise_linear_delta =
      &     0.5d0*lagrangian_piecewise_linear_delta(0.5d0*r)
 c
       return
@@ -111,7 +109,6 @@ c
       function lagrangian_piecewise_cubic_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       double precision lagrangian_piecewise_cubic_delta,r
 c
       if ( r.lt.0.d0 ) then
@@ -133,20 +130,19 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Returns the interpolation weight phi(r) for the broadened
-c     (8-point) piecewise cubic function.
+c     Returns the interpolation weight phi(r) for the broadened 8-point
+c     piecewise cubic function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      function lagrangian_wide_piecewise_cubic_delta(r)
+      function lagrangian_wide8_piecewise_cubic_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       external lagrangian_piecewise_cubic_delta
       double precision lagrangian_piecewise_cubic_delta
-      double precision lagrangian_wide_piecewise_cubic_delta,r
+      double precision lagrangian_wide8_piecewise_cubic_delta,r
 c
-      lagrangian_wide_piecewise_cubic_delta =
+      lagrangian_wide8_piecewise_cubic_delta =
      &     0.5d0*lagrangian_piecewise_cubic_delta(0.5d0*r)
 c
       return
@@ -162,8 +158,10 @@ c
       function lagrangian_ib_3_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       double precision lagrangian_ib_3_delta,r
+      double precision sixth, third
+      parameter (sixth=0.16666666666667d0)
+      parameter (third=0.333333333333333d0)
 c
       if ( r.lt.0.d0 ) then
          r = -r
@@ -184,20 +182,19 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Returns the interpolation weight phi(r) for the broadened
-c     (6-point) version of the IB 3-point delta function.
+c     Returns the interpolation weight phi(r) for the broadened 6-point
+c     version of the IB 3-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      function lagrangian_wide_ib_3_delta(r)
+      function lagrangian_wide6_ib_3_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       external lagrangian_ib_3_delta
       double precision lagrangian_ib_3_delta
-      double precision lagrangian_wide_ib_3_delta,r
+      double precision lagrangian_wide6_ib_3_delta,r
 c
-      lagrangian_wide_ib_3_delta = 0.5d0*lagrangian_ib_3_delta(0.5d0*r)
+      lagrangian_wide6_ib_3_delta = 0.5d0*lagrangian_ib_3_delta(0.5d0*r)
 c
       return
       end
@@ -235,20 +232,39 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Returns the interpolation weight phi(r) for the broadened
-c     (8-point) version of the IB 4-point delta function.
+c     Returns the interpolation weight phi(r) for the broadened 8-point
+c     version of the IB 4-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      function lagrangian_wide_ib_4_delta(r)
+      function lagrangian_wide8_ib_4_delta(r)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
       external lagrangian_ib_4_delta
       double precision lagrangian_ib_4_delta
-      double precision lagrangian_wide_ib_4_delta,r
+      double precision lagrangian_wide8_ib_4_delta,r
 c
-      lagrangian_wide_ib_4_delta = 0.5d0*lagrangian_ib_4_delta(0.5d0*r)
+      lagrangian_wide8_ib_4_delta = 0.5d0*lagrangian_ib_4_delta(0.5d0*r)
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Returns the interpolation weight phi(r) for the broadened 16-point
+c     version of the IB 4-point delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      function lagrangian_wide16_ib_4_delta(r)
+c
+      implicit none
+      external lagrangian_ib_4_delta
+      double precision lagrangian_ib_4_delta
+      double precision lagrangian_wide16_ib_4_delta,r
+c
+      lagrangian_wide16_ib_4_delta =
+     &     0.25d0*lagrangian_ib_4_delta(0.25d0*r)
 c
       return
       end

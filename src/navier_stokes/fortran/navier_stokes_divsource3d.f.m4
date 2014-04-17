@@ -1,5 +1,5 @@
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -306,9 +306,9 @@ c
       INTEGER nQgc0,nQgc1,nQgc2
       INTEGER nfgc0,nfgc1,nfgc2
 
-      REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
-      REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
-      REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
+      REAL u0(SIDE3d0VECG(ifirst,ilast,nugc))
+      REAL u1(SIDE3d1VECG(ifirst,ilast,nugc))
+      REAL u2(SIDE3d2VECG(ifirst,ilast,nugc))
 
       REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
 c

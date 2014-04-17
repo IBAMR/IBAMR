@@ -1,7 +1,7 @@
 // Filename: namespaces.h
 // Created on 27 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 /*!
  * Defines "using" declarations for all SAMRAI namespaces.  This header file may
  * be included in application codes, but it MUST NOT be included in any other
- * header (.h) or inline (.I) file in the library.
+ * header (.h) or inline (-inl.h) file in the library.
  */
 namespace SAMRAI
 {

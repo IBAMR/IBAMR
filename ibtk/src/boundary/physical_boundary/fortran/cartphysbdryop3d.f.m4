@@ -3,7 +3,7 @@ c     Routines to set physical boundary condition values.
 c
 c     Created on 21 May 2007 by Boyce Griffith
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -47,24 +47,49 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     For cell centered values, we follow a similar approach as that
-c     implemented in class SAMRAI::solv::CartesianRobinBcHelper.
-c     Namely, with u_i denoting the interior cell, u_o denoting the
-c     ghost cell, and u_b and u_n denoting the value and normal
-c     derivative of u at the boundary,
+c     For cell-centered values, we follow a similar approach as that
+c     implemented in class SAMRAI::solv::CartesianRobinBcHelper.  Let
+c     u_g denote the ghost cell value and let u_i denote the
+c     mirror-image interior cell value, and let n be the number of cell
+c     widths separating the ghost cell center and the interior cell
+c     center.  We define
 c
-c          u_b = (u_i + u_o)/2   and   u_n = (u_o - u_i)/h
+c          u_b = (u_g + u_i)/2
+c          u_n = (u_g - u_i)/(n*h)
 c
-c     Now, if
+c     If
 c
 c          a*u_b + b*u_n = g
 c
 c     then
 c
-c          u_o = u_i*(-(a*h - 2*b)/(a*h + 2*b)) + g*(2*h/(a*h + 2*b))
+c          u_g = (-(a*n*h-2*b)/(a*n*h+2*b))*u_i + (2*n*h/(a*n*h+2*b))*g
+c              = f_i*u_i + f_g*g
 c
-c     The following routines evaluate this formula for use with
-c     codimension 1 boundary boxes.
+c     with
+c
+c          f_i = -(a*n*h-2*b)/(a*n*h+2*b)
+c          f_g = 2*n*h/(a*n*h+2*b)
+c
+c     For side-centered values, we follow a similar approach.  In this
+c     case, however, u_b can be a degree of freedom of the problem, so
+c     that
+c
+c          u_g = u_i + (-a*n*h/b)*u_b + (n*h/b)*g
+c              = f_i*u_i + f_b*u_b + f_g*g
+c
+c     with
+c
+c          f_i = 1
+c          f_b = -a*n*h/b
+c          f_g = n*h/b
+c
+c     For Dirichlet boundary conditions, b=0, and the foregoing
+c     expressions are ill defined.  Consequently, in this case, we
+c     eliminate u_b and simply set
+c
+c          u_b = g/a
+c          u_g = 2*u_b - u_i
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -86,7 +111,8 @@ c
      &     ilower2,iupper2,
      &     blower1,bupper1,
      &     blower2,bupper2,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -108,6 +134,8 @@ c
       REAL gcoef(blower1:bupper1,blower2:bupper2)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -119,12 +147,19 @@ c
       INTEGER j
       INTEGER k
       INTEGER sgn
-      REAL    a,b,g,h,u_i
+      REAL    a,b,f_g,f_i,g,h,n,u_g,u_i
 c
-c     Correct the values along the upper/lower x side of the patch.
+c     Initialize temporary variables to yield errors.
+c
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
+c
+c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -142,10 +177,16 @@ c
                b = bcoef(j,k)
                g = gcoef(j,k)
                do i = 0,U_gcw-1
-                  h = (1.d0+2.d0*dble(i))*dx(0)
-                  u_i = U(i_i-sgn*i,j,k)
-                  U(i_g+sgn*i,j,k) =
-     &                 -(a*h*u_i - 2.d0*b*u_i - 2.d0*g*h)/(a*h + 2.d0*b)
+                  n = 1.d0+2.d0*i
+                  f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
+                  f_g = 2.d0*n*h/(a*n*h+2.d0*b)
+                  if (adjoint_op .eq. 1) then
+                     u_g = U(i_g+sgn*i,j,k)
+                     U(i_i-sgn*i,j,k) = U(i_i-sgn*i,j,k) + f_i*u_g
+                  else
+                     u_i = U(i_i-sgn*i,j,k)
+                     U(i_g+sgn*i,j,k) = f_i*u_i + f_g*g
+                  endif
                enddo
             enddo
          enddo
@@ -171,7 +212,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower2,bupper2,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -193,6 +235,8 @@ c
       REAL gcoef(blower0:bupper0,blower2:bupper2)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -204,12 +248,19 @@ c
       INTEGER j,j_g,j_i
       INTEGER k
       INTEGER sgn
-      REAL    a,b,g,h,u_i
+      REAL    a,b,f_g,f_i,g,h,n,u_g,u_i
 c
-c     Correct the values along the upper/lower y side of the patch.
+c     Initialize temporary variables to yield errors.
+c
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
+c
+c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -227,10 +278,16 @@ c
                b = bcoef(i,k)
                g = gcoef(i,k)
                do j = 0,U_gcw-1
-                  h = (1.d0+2.d0*dble(j))*dx(1)
-                  u_i = U(i,j_i-sgn*j,k)
-                  U(i,j_g+sgn*j,k) =
-     &                 -(a*h*u_i - 2.d0*b*u_i - 2.d0*g*h)/(a*h + 2.d0*b)
+                  n = 1.d0+2.d0*j
+                  f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
+                  f_g = 2.d0*n*h/(a*n*h+2.d0*b)
+                  if (adjoint_op .eq. 1) then
+                     u_g = U(i,j_g+sgn*j,k)
+                     U(i,j_i-sgn*j,k) = U(i,j_i-sgn*j,k) + f_i*u_g
+                  else
+                     u_i = U(i,j_i-sgn*j,k)
+                     U(i,j_g+sgn*j,k) = f_i*u_i + f_g*g
+                  endif
                enddo
             enddo
          enddo
@@ -256,7 +313,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -278,6 +336,8 @@ c
       REAL gcoef(blower0:bupper0,blower1:bupper1)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -289,12 +349,19 @@ c
       INTEGER j
       INTEGER k,k_g,k_i
       INTEGER sgn
-      REAL    a,b,g,h,u_i
+      REAL    a,b,f_g,f_i,g,h,n,u_g,u_i
 c
-c     Correct the values along the upper/lower z side of the patch.
+c     Initialize temporary variables to yield errors.
+c
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
+c
+c     Set values along the upper/lower z side of the patch.
 c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 4) then
             sgn = -1
@@ -312,10 +379,16 @@ c
                b = bcoef(i,j)
                g = gcoef(i,j)
                do k = 0,U_gcw-1
-                  h = (1.d0+2.d0*dble(k))*dx(2)
-                  u_i = U(i,j,k_i-sgn*k)
-                  U(i,j,k_g+sgn*k) =
-     &                 -(a*h*u_i - 2.d0*b*u_i - 2.d0*g*h)/(a*h + 2.d0*b)
+                  n = 1.d0+2.d0*k
+                  f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
+                  f_g = 2.d0*n*h/(a*n*h+2.d0*b)
+                  if (adjoint_op .eq. 1) then
+                     u_g = U(i,j,k_g+sgn*k)
+                     U(i,j,k_i-sgn*k) = U(i,j,k_i-sgn*k) + f_i*u_g
+                  else
+                     u_i = U(i,j,k_i-sgn*k)
+                     U(i,j,k_g+sgn*k) = f_i*u_i + f_g*g
+                  endif
                enddo
             enddo
          enddo
@@ -340,7 +413,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     blower2,bupper2)
+     &     blower2,bupper2,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -357,6 +431,8 @@ c
       INTEGER blower0,bupper0
       INTEGER blower1,bupper1
       INTEGER blower2,bupper2
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -364,9 +440,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER i,i_bdry,i_mirror
-      INTEGER j,j_bdry,j_mirror
-      INTEGER k,k_bdry,k_mirror
+      REAL    U_g
+      INTEGER i,i_bdry,i_mirr
+      INTEGER j,j_bdry,j_mirr
+      INTEGER k,k_bdry,k_mirr
       INTEGER sgn_x,sgn_y,sgn_z
 c
 c     Set the codimension 2 boundary values via linear extrapolation.
@@ -491,13 +568,22 @@ c
 c     Set x-edge values.
 c
          do k = blower2,bupper2
-            k_mirror = k_bdry+(k_bdry-k+sgn_z)
+            k_mirr = k_bdry+(k_bdry-k+sgn_z)
             do j = blower1,bupper1
-               j_mirror = j_bdry+(j_bdry-j+sgn_y)
+               j_mirr = j_bdry+(j_bdry-j+sgn_y)
                do i = blower0,bupper0
-                  U(i,j,k) = U(i,j_mirror,k_mirror)
-     &                 + (U(i,j_bdry,k)-U(i,j_bdry,k_mirror))
-     &                 + (U(i,j,k_bdry)-U(i,j_mirror,k_bdry))
+                  if (adjoint_op .eq. 1) then
+                     U_g = U(i,j,k)
+                     U(i,j_mirr,k_mirr) = U(i,j_mirr,k_mirr) + U_g
+                     U(i,j_bdry,k)      = U(i,j_bdry,k)      + U_g
+                     U(i,j,k_bdry)      = U(i,j,k_bdry)      + U_g
+                     U(i,j_bdry,k_mirr) = U(i,j_bdry,k_mirr) - U_g
+                     U(i,j_mirr,k_bdry) = U(i,j_mirr,k_bdry) - U_g
+                  else
+                     U(i,j,k) = U(i,j_mirr,k_mirr)
+     &                    + (U(i,j_bdry,k)-U(i,j_bdry,k_mirr))
+     &                    + (U(i,j,k_bdry)-U(i,j_mirr,k_bdry))
+                  endif
                enddo
             enddo
          enddo
@@ -507,13 +593,22 @@ c
 c     Set y-edge values
 c
          do k = blower2,bupper2
-            k_mirror = k_bdry+(k_bdry-k+sgn_z)
+            k_mirr = k_bdry+(k_bdry-k+sgn_z)
             do j = blower1,bupper1
                do i = blower0,bupper0
-                  i_mirror = i_bdry+(i_bdry-i+sgn_x)
-                  U(i,j,k) = U(i_mirror,j,k_mirror)
-     &                 + (U(i_bdry,j,k)-U(i_bdry,j,k_mirror))
-     &                 + (U(i,j,k_bdry)-U(i_mirror,j,k_bdry))
+                  i_mirr = i_bdry+(i_bdry-i+sgn_x)
+                  if (adjoint_op .eq. 1) then
+                     U_g = U(i,j,k)
+                     U(i_mirr,j,k_mirr) = U(i_mirr,j,k_mirr) + U_g
+                     U(i_bdry,j,k)      = U(i_bdry,j,k)      + U_g
+                     U(i,j,k_bdry)      = U(i,j,k_bdry)      + U_g
+                     U(i_bdry,j,k_mirr) = U(i_bdry,j,k_mirr) - U_g
+                     U(i_mirr,j,k_bdry) = U(i_mirr,j,k_bdry) - U_g
+                  else
+                     U(i,j,k) = U(i_mirr,j,k_mirr)
+     &                    + (U(i_bdry,j,k)-U(i_bdry,j,k_mirr))
+     &                    + (U(i,j,k_bdry)-U(i_mirr,j,k_bdry))
+                  endif
                enddo
             enddo
          enddo
@@ -524,12 +619,21 @@ c     Set z-edge values
 c
          do k = blower2,bupper2
             do j = blower1,bupper1
-               j_mirror = j_bdry+(j_bdry-j+sgn_y)
+               j_mirr = j_bdry+(j_bdry-j+sgn_y)
                do i = blower0,bupper0
-                  i_mirror = i_bdry+(i_bdry-i+sgn_x)
-                  U(i,j,k) = U(i_mirror,j_mirror,k)
-     &                 + (U(i_bdry,j,k)-U(i_bdry,j_mirror,k))
-     &                 + (U(i,j_bdry,k)-U(i_mirror,j_bdry,k))
+                  i_mirr = i_bdry+(i_bdry-i+sgn_x)
+                  if (adjoint_op .eq. 1) then
+                     U_g = U(i,j,k)
+                     U(i_mirr,j_mirr,k) = U(i_mirr,j_mirr,k) + U_g
+                     U(i_bdry,j,k)      = U(i_bdry,j,k)      + U_g
+                     U(i,j_bdry,k)      = U(i,j_bdry,k)      + U_g
+                     U(i_bdry,j_mirr,k) = U(i_bdry,j_mirr,k) - U_g
+                     U(i_mirr,j_bdry,k) = U(i_mirr,j_bdry,k) - U_g
+                  else
+                     U(i,j,k) = U(i_mirr,j_mirr,k)
+     &                    + (U(i_bdry,j,k)-U(i_bdry,j_mirr,k))
+     &                    + (U(i,j_bdry,k)-U(i_mirr,j_bdry,k))
+                  endif
                enddo
             enddo
          enddo
@@ -554,7 +658,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     blower2,bupper2)
+     &     blower2,bupper2,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -571,6 +676,8 @@ c
       INTEGER blower0,bupper0
       INTEGER blower1,bupper1
       INTEGER blower2,bupper2
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -578,9 +685,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER i,i_bdry,i_mirror
-      INTEGER j,j_bdry,j_mirror
-      INTEGER k,k_bdry,k_mirror
+      REAL    U_g
+      INTEGER i,i_bdry,i_mirr
+      INTEGER j,j_bdry,j_mirr
+      INTEGER k,k_bdry,k_mirr
       INTEGER sgn_x,sgn_y,sgn_z
 c
 c     Set the codimension 3 boundary values via linear extrapolation.
@@ -669,15 +777,26 @@ c
       endif
 
       do k = blower2,bupper2
-         k_mirror = k_bdry+(k_bdry-k+sgn_z)
+         k_mirr = k_bdry+(k_bdry-k+sgn_z)
          do j = blower1,bupper1
-            j_mirror = j_bdry+(j_bdry-j+sgn_y)
+            j_mirr = j_bdry+(j_bdry-j+sgn_y)
             do i = blower0,bupper0
-               i_mirror = i_bdry+(i_bdry-i+sgn_x)
-               U(i,j,k) = U(i_mirror,j_mirror,k_mirror)
-     &              + (U(i,j_bdry,k_bdry)-U(i_mirror,j_bdry,k_bdry))
-     &              + (U(i_bdry,j,k_bdry)-U(i_bdry,j_mirror,k_bdry))
-     &              + (U(i_bdry,j_bdry,k)-U(i_bdry,j_bdry,k_mirror))
+               i_mirr = i_bdry+(i_bdry-i+sgn_x)
+               if (adjoint_op .eq. 1) then
+                  U_g = U(i,j,k)
+                  U(i_mirr,j_mirr,k_mirr) = U(i_mirr,j_mirr,k_mirr)+U_g
+                  U(i,j_bdry,k_bdry)      = U(i,j_bdry,k_bdry)     +U_g
+                  U(i_bdry,j,k_bdry)      = U(i_bdry,j,k_bdry)     +U_g
+                  U(i_bdry,j_bdry,k)      = U(i_bdry,j_bdry,k)     +U_g
+                  U(i_mirr,j_bdry,k_bdry) = U(i_mirr,j_bdry,k_bdry)-U_g
+                  U(i_bdry,j_mirr,k_bdry) = U(i_bdry,j_mirr,k_bdry)-U_g
+                  U(i_bdry,j_bdry,k_mirr) = U(i_bdry,j_bdry,k_mirr)-U_g
+               else
+                  U(i,j,k) = U(i_mirr,j_mirr,k_mirr)
+     &                 + (U(i,j_bdry,k_bdry)-U(i_mirr,j_bdry,k_bdry))
+     &                 + (U(i_bdry,j,k_bdry)-U(i_bdry,j_mirr,k_bdry))
+     &                 + (U(i_bdry,j_bdry,k)-U(i_bdry,j_bdry,k_mirr))
+               endif
             enddo
          enddo
       enddo
@@ -701,7 +820,8 @@ c
      &     ilower2,iupper2,
      &     blower1,bupper1,
      &     blower2,bupper2,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -723,6 +843,8 @@ c
       REAL gcoef(blower1:bupper1,blower2:bupper2)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -734,12 +856,20 @@ c
       INTEGER j
       INTEGER k
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,f_b,f_g,f_i,g,h,n,u_b,u_g,u_i
+c
+c     Initialize temporary variables to yield errors.
+c
+      u_b = 2.d0**15.d0
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
 c
 c     Set values along the upper/lower x side of the patch.
 c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -756,25 +886,39 @@ c
                a = acoef(j,k)
                b = bcoef(j,k)
                g = gcoef(j,k)
-
                if (abs(b) .lt. 1.d-12) then
 c     Dirichlet boundary conditions
                   u_b = g/a
                   u0(i_b,j,k) = u_b
                   do i = 1,u_gcw
-                     u_i = u0(i_b-sgn*i,j,k)
-                     u0(i_b+sgn*i,j,k) = 2.d0*u_b-u_i
-                  enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
-                  u_b = u0(i_b,j,k)
-                  do i = 1,u_gcw
-                     u_i = u0(i_b-sgn*i,j,k)
-                     u0(i_b+sgn*i,j,k) = (2.d0*g*dble(i)*dx(0)+u_i*b)/b
+                     f_i = -1.d0
+                     f_b = 2.d0
+                     if (adjoint_op .eq. 1) then
+                        u_g = u0(i_b+sgn*i,j,k)
+                        u0(i_b-sgn*i,j,k) = u0(i_b-sgn*i,j,k) + f_i*u_g
+                        u0(i_b      ,j,k) = u0(i_b      ,j,k) + f_b*u_g
+                     else
+                        u_i = u0(i_b-sgn*i,j,k)
+                        u0(i_b+sgn*i,j,k) = f_i*u_i + f_b*u_b
+                     endif
                   enddo
                else
-                  print *,'error: invalid robin coefficients'
-                  call abort
+c     Robin boundary conditions
+                  u_b = u0(i_b,j,k)
+                  do i = 1,u_gcw
+                     n = 2.d0*i
+                     f_i = 1.d0
+                     f_b = -a*n*h/b
+                     f_g = n*h/b
+                     if (adjoint_op .eq. 1) then
+                        u_g = u0(i_b+sgn*i,j,k)
+                        u0(i_b-sgn*i,j,k) = u0(i_b-sgn*i,j,k) + f_i*u_g
+                        u0(i_b      ,j,k) = u0(i_b      ,j,k) + f_b*u_g
+                     else
+                        u_i = u0(i_b-sgn*i,j,k)
+                        u0(i_b+sgn*i,j,k) = f_i*u_i + f_b*u_b + f_g*g
+                     endif
+                  enddo
                endif
             enddo
          enddo
@@ -800,7 +944,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower2,bupper2,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -822,6 +967,8 @@ c
       REAL gcoef(blower0:bupper0,blower2:bupper2)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -833,12 +980,20 @@ c
       INTEGER j,j_b,j_i
       INTEGER k
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,f_b,f_g,f_i,g,h,n,u_b,u_g,u_i
+c
+c     Initialize temporary variables to yield errors.
+c
+      u_b = 2.d0**15.d0
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
 c
 c     Set values along the upper/lower y side of the patch.
 c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -855,25 +1010,39 @@ c
                a = acoef(i,k)
                b = bcoef(i,k)
                g = gcoef(i,k)
-
                if (abs(b) .lt. 1.d-12) then
 c     Dirichlet boundary conditions
                   u_b = g/a
                   u1(i,j_b,k) = u_b
                   do j = 1,u_gcw
-                     u_i = u1(i,j_b-sgn*j,k)
-                     u1(i,j_b+sgn*j,k) = 2.d0*u_b-u_i
-                  enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
-                  u_b = u1(i,j_b,k)
-                  do j = 1,u_gcw
-                     u_i = u1(i,j_b-sgn*j,k)
-                     u1(i,j_b+sgn*j,k) = (2.d0*g*dble(j)*dx(1)+u_i*b)/b
+                     f_i = -1.d0
+                     f_b = 2.d0
+                     if (adjoint_op .eq. 1) then
+                        u_g = u1(i,j_b+sgn*j,k)
+                        u1(i,j_b-sgn*j,k) = u1(i,j_b-sgn*j,k) + f_i*u_g
+                        u1(i,j_b      ,k) = u1(i,j_b      ,k) + f_b*u_g
+                     else
+                        u_i = u1(i,j_b-sgn*j,k)
+                        u1(i,j_b+sgn*j,k) = f_i*u_i + f_b*u_b
+                     endif
                   enddo
                else
-                  print *,'error: invalid robin coefficients'
-                  call abort
+c     Robin boundary conditions
+                  u_b = u1(i,j_b,k)
+                  do j = 1,u_gcw
+                     n = 2.d0*j
+                     f_i = 1.d0
+                     f_b = -a*n*h/b
+                     f_g = n*h/b
+                     if (adjoint_op .eq. 1) then
+                        u_g = u1(i,j_b+sgn*j,k)
+                        u1(i,j_b-sgn*j,k) = u1(i,j_b-sgn*j,k) + f_i*u_g
+                        u1(i,j_b      ,k) = u1(i,j_b      ,k) + f_b*u_g
+                     else
+                        u_i = u1(i,j_b-sgn*j,k)
+                        u1(i,j_b+sgn*j,k) = f_i*u_i + f_b*u_b + f_g*g
+                     endif
+                  enddo
                endif
             enddo
          enddo
@@ -899,7 +1068,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -921,6 +1091,8 @@ c
       REAL gcoef(blower0:bupper0,blower1:bupper1)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -932,12 +1104,20 @@ c
       INTEGER j
       INTEGER k,k_b,k_i
       INTEGER sgn
-      REAL    a,b,g,u_b,u_i
+      REAL    a,b,f_b,f_g,f_i,g,h,n,u_b,u_g,u_i
+c
+c     Initialize temporary variables to yield errors.
+c
+      u_b = 2.d0**15.d0
+      u_g = 2.d0**15.d0
+      u_i = 2.d0**15.d0
 c
 c     Set values along the upper/lower z side of the patch.
 c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
+
+         h = dx(location_index/NDIM)
 
          if (location_index .eq. 4) then
             sgn = -1
@@ -954,25 +1134,39 @@ c
                a = acoef(i,j)
                b = bcoef(i,j)
                g = gcoef(i,j)
-
                if (abs(b) .lt. 1.d-12) then
 c     Dirichlet boundary conditions
                   u_b = g/a
                   u2(i,j,k_b) = u_b
                   do k = 1,u_gcw
-                     u_i = u2(i,j,k_b-sgn*k)
-                     u2(i,j,k_b+sgn*k) = 2.d0*u_b-u_i
-                  enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
-                  u_b = u2(i,j,k_b)
-                  do k = 1,u_gcw
-                     u_i = u2(i,j,k_b-sgn*k)
-                     u2(i,j,k_b+sgn*k) = (2.d0*g*dble(k)*dx(2)+u_i*b)/b
+                     f_i = -1.d0
+                     f_b = 2.d0
+                     if (adjoint_op .eq. 1) then
+                        u_g = u2(i,j,k_b+sgn*k)
+                        u2(i,j,k_b-sgn*k) = u2(i,j,k_b-sgn*k) + f_i*u_g
+                        u2(i,j,k_b      ) = u2(i,j,k_b      ) + f_b*u_g
+                     else
+                        u_i = u2(i,j,k_b-sgn*k)
+                        u2(i,j,k_b+sgn*k) = f_i*u_i + f_b*u_b
+                     endif
                   enddo
                else
-                  print *,'error: invalid robin coefficients'
-                  call abort
+c     Robin boundary conditions
+                  u_b = u2(i,j,k_b)
+                  do k = 1,u_gcw
+                     n = 2.d0*k
+                     f_i = 1.d0
+                     f_b = -a*n*h/b
+                     f_g = n*h/b
+                     if (adjoint_op .eq. 1) then
+                        u_g = u2(i,j,k_b+sgn*k)
+                        u2(i,j,k_b-sgn*k) = u2(i,j,k_b-sgn*k) + f_i*u_g
+                        u2(i,j,k_b      ) = u2(i,j,k_b      ) + f_b*u_g
+                     else
+                        u_i = u2(i,j,k_b-sgn*k)
+                        u2(i,j,k_b+sgn*k) = f_i*u_i + f_b*u_b + f_g*g
+                     endif
+                  enddo
                endif
             enddo
          enddo
@@ -997,7 +1191,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     blower2,bupper2)
+     &     blower2,bupper2,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -1014,6 +1209,8 @@ c
       INTEGER blower0,bupper0
       INTEGER blower1,bupper1
       INTEGER blower2,bupper2
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -1026,7 +1223,7 @@ c
       INTEGER i,i_bdry,i_shift
       INTEGER j,j_bdry,j_shift
       INTEGER k,k_bdry,k_shift
-      REAL u_b,du
+      REAL u_g,del
 c
 c     Initialize index variables to yield errors in most cases.
 c
@@ -1149,9 +1346,16 @@ c
          do k = blower2,bupper2
             do j = blower1,bupper1+1
                do i = blower0,bupper0
-                  u_b = u1(i,j,k_bdry)
-                  du = u1(i,j,k_bdry)-u1(i,j,k_bdry+k_shift)
-                  u1(i,j,k) = u_b + dble(abs(k-k_bdry))*du
+                  del = dble(abs(k-k_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u1(i,j,k)
+                     u1(i,j,k_bdry) = u1(i,j,k_bdry) + (1.d0+del)*u_g
+                     u1(i,j,k_bdry+k_shift) = u1(i,j,k_bdry+k_shift)
+     &                    - del*u_g
+                  else
+                     u1(i,j,k) = (1.d0+del)*u1(i,j,k_bdry)
+     &                    - del*u1(i,j,k_bdry+k_shift)
+                  endif
                enddo
             enddo
          enddo
@@ -1159,9 +1363,16 @@ c
          do k = blower2,bupper2+1
             do j = blower1,bupper1
                do i = blower0,bupper0
-                  u_b = u2(i,j_bdry,k)
-                  du = u2(i,j_bdry,k)-u2(i,j_bdry+j_shift,k)
-                  u2(i,j,k) = u_b + dble(abs(j-j_bdry))*du
+                  del = dble(abs(j-j_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u2(i,j,k)
+                     u2(i,j_bdry,k) = u2(i,j_bdry,k) + (1.d0+del)*u_g
+                     u2(i,j_bdry+j_shift,k) = u2(i,j_bdry+j_shift,k)
+     &                    - del*u_g
+                  else
+                     u2(i,j,k) = (1.d0+del)*u2(i,j_bdry,k)
+     &                    - del*u2(i,j_bdry+j_shift,k)
+                  endif
                enddo
             enddo
          enddo
@@ -1173,9 +1384,16 @@ c
          do k = blower2,bupper2
             do j = blower1,bupper1
                do i = blower0,bupper0+1
-                  u_b = u0(i,j,k_bdry)
-                  du = u0(i,j,k_bdry)-u0(i,j,k_bdry+k_shift)
-                  u0(i,j,k) = u_b + dble(abs(k-k_bdry))*du
+                  del = dble(abs(k-k_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u0(i,j,k)
+                     u0(i,j,k_bdry) = u0(i,j,k_bdry) + (1.d0+del)*u_g
+                     u0(i,j,k_bdry+k_shift) = u0(i,j,k_bdry+k_shift)
+     &                    - del*u_g
+                  else
+                     u0(i,j,k) = (1.d0+del)*u0(i,j,k_bdry)
+     &                    - del*u0(i,j,k_bdry+k_shift)
+                  endif
                enddo
             enddo
          enddo
@@ -1183,9 +1401,16 @@ c
          do k = blower2,bupper2+1
             do j = blower1,bupper1
                do i = blower0,bupper0
-                  u_b = u2(i_bdry,j,k)
-                  du = u2(i_bdry,j,k)-u2(i_bdry+i_shift,j,k)
-                  u2(i,j,k) = u_b + dble(abs(i-i_bdry))*du
+                  del = dble(abs(i-i_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u2(i,j,k)
+                     u2(i_bdry,j,k) = u2(i_bdry,j,k) + (1.d0+del)*u_g
+                     u2(i_bdry+i_shift,j,k) = u2(i_bdry+i_shift,j,k)
+     &                    - del*u_g
+                  else
+                     u2(i,j,k) = (1.d0+del)*u2(i_bdry,j,k)
+     &                    - del*u2(i_bdry+i_shift,j,k)
+                  endif
                enddo
             enddo
          enddo
@@ -1197,9 +1422,16 @@ c
          do k = blower2,bupper2
             do j = blower1,bupper1
                do i = blower0,bupper0+1
-                  u_b = u0(i,j_bdry,k)
-                  du = u0(i,j_bdry,k)-u0(i,j_bdry+j_shift,k)
-                  u0(i,j,k) = u_b + dble(abs(j-j_bdry))*du
+                  del = dble(abs(j-j_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u0(i,j,k)
+                     u0(i,j_bdry,k) = u0(i,j_bdry,k) + (1.d0+del)*u_g
+                     u0(i,j_bdry+j_shift,k) = u0(i,j_bdry+j_shift,k)
+     &                    - del*u_g
+                  else
+                     u0(i,j,k) = (1.d0+del)*u0(i,j_bdry,k)
+     &                    - del*u0(i,j_bdry+j_shift,k)
+                  endif
                enddo
             enddo
          enddo
@@ -1207,9 +1439,16 @@ c
          do k = blower2,bupper2
             do j = blower1,bupper1+1
                do i = blower0,bupper0
-                  u_b = u1(i_bdry,j,k)
-                  du = u1(i_bdry,j,k)-u1(i_bdry+i_shift,j,k)
-                  u1(i,j,k) = u_b + dble(abs(i-i_bdry))*du
+                  del = dble(abs(i-i_bdry))
+                  if (adjoint_op .eq. 1) then
+                     u_g = u1(i,j,k)
+                     u1(i_bdry,j,k) = u1(i_bdry,j,k) + (1.d0+del)*u_g
+                     u1(i_bdry+i_shift,j,k) = u1(i_bdry+i_shift,j,k)
+     &                    - del*u_g
+                  else
+                     u1(i,j,k) = (1.d0+del)*u1(i_bdry,j,k)
+     &                    - del*u1(i_bdry+i_shift,j,k)
+                  endif
                enddo
             enddo
          enddo
@@ -1234,7 +1473,8 @@ c
      &     ilower2,iupper2,
      &     blower0,bupper0,
      &     blower1,bupper1,
-     &     blower2,bupper2)
+     &     blower2,bupper2,
+     &     adjoint_op)
 c
       implicit none
 c
@@ -1251,6 +1491,8 @@ c
       INTEGER blower0,bupper0
       INTEGER blower1,bupper1
       INTEGER blower2,bupper2
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -1263,7 +1505,7 @@ c
       INTEGER i,i_bdry,i_shift
       INTEGER j,j_bdry,j_shift
       INTEGER k,k_bdry,k_shift
-      REAL u_b,du_i,du_j,du_k
+      REAL u_g,del_i,del_j,del_k
 c
 c     Initialize index variables to yield errors in most cases.
 c
@@ -1279,9 +1521,9 @@ c
       k_bdry  = 2**15
       k_shift = 2**15
 
-      du_i = 2.d0**15.d0
-      du_j = 2.d0**15.d0
-      du_k = 2.d0**15.d0
+      del_i = 2.d0**15.d0
+      del_j = 2.d0**15.d0
+      del_k = 2.d0**15.d0
 c
 c     Set the codimension 3 boundary values via linear extrapolation.
 c
@@ -1370,12 +1612,21 @@ c
       do k = blower2,bupper2
          do j = blower1,bupper1
             do i = blower0,bupper0+1
-               u_b = u0(i,j_bdry,k_bdry)
-               du_j = u0(i,j_bdry,k_bdry)-u0(i,j_bdry+j_shift,k_bdry)
-               du_k = u0(i,j_bdry,k_bdry)-u0(i,j_bdry,k_bdry+k_shift)
-               u0(i,j,k) = u_b
-     &              + dble(abs(j-j_bdry))*du_j
-     &              + dble(abs(k-k_bdry))*du_k
+               del_j = dble(abs(j-j_bdry))
+               del_k = dble(abs(k-k_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u0(i,j,k)
+                  u0(i,j_bdry,k_bdry) = u0(i,j_bdry,k_bdry)
+     &                 + (1.d0+del_j+del_k)*u_g
+                  u0(i,j_bdry+j_shift,k_bdry) = 
+     &                 u0(i,j_bdry+j_shift,k_bdry) - del_j*u_g
+                  u0(i,j_bdry,k_bdry+k_shift) =
+     &                 u0(i,j_bdry,k_bdry+k_shift) - del_k*u_g
+               else
+                  u0(i,j,k) = (1.d0+del_j+del_k)*u0(i,j_bdry,k_bdry)
+     &                 - del_j*u0(i,j_bdry+j_shift,k_bdry)
+     &                 - del_k*u0(i,j_bdry,k_bdry+k_shift)
+               endif
             enddo
          enddo
       enddo
@@ -1383,12 +1634,21 @@ c
       do k = blower2,bupper2
          do j = blower1,bupper1+1
             do i = blower0,bupper0
-               u_b = u1(i_bdry,j,k_bdry)
-               du_i = u1(i_bdry,j,k_bdry)-u1(i_bdry+i_shift,j,k_bdry)
-               du_k = u1(i_bdry,j,k_bdry)-u1(i_bdry,j,k_bdry+k_shift)
-               u1(i,j,k) = u_b
-     &              + dble(abs(i-i_bdry))*du_i
-     &              + dble(abs(k-k_bdry))*du_k
+               del_i = dble(abs(i-i_bdry))
+               del_k = dble(abs(k-k_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u1(i,j,k)
+                  u1(i_bdry,j,k_bdry) = u1(i_bdry,j,k_bdry)
+     &                 + (1.d0+del_i+del_k)*u_g
+                  u1(i_bdry+i_shift,j,k_bdry) =
+     &                 u1(i_bdry+i_shift,j,k_bdry) - del_i*u_g
+                  u1(i_bdry,j,k_bdry+k_shift) =
+     &                 u1(i_bdry,j,k_bdry+k_shift) - del_k*u_g
+               else
+                  u1(i,j,k) = (1.d0+del_i+del_k)*u1(i_bdry,j,k_bdry)
+     &                 - del_i*u1(i_bdry+i_shift,j,k_bdry)
+     &                 - del_k*u1(i_bdry,j,k_bdry+k_shift)
+               endif
             enddo
          enddo
       enddo
@@ -1396,12 +1656,21 @@ c
       do k = blower2,bupper2+1
          do j = blower1,bupper1
             do i = blower0,bupper0
-               u_b = u2(i_bdry,j_bdry,k)
-               du_j = u2(i_bdry,j_bdry,k)-u2(i_bdry+i_shift,j_bdry,k)
-               du_k = u2(i_bdry,j_bdry,k)-u2(i_bdry,j_bdry+j_shift,k)
-               u2(i,j,k) = u_b
-     &              + dble(abs(i-i_bdry))*du_i
-     &              + dble(abs(j-j_bdry))*du_j
+               del_i = dble(abs(i-i_bdry))
+               del_j = dble(abs(j-j_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u2(i,j,k)
+                  u2(i_bdry,j_bdry,k) = u2(i_bdry,j_bdry,k)
+     &                 + (1.d0+del_i+del_j)*u_g
+                  u2(i_bdry+i_shift,j_bdry,k) =
+     &                 u2(i_bdry+i_shift,j_bdry,k) - del_i*u_g
+                  u2(i_bdry,j_bdry+j_shift,k) =
+     &                 u2(i_bdry,j_bdry+j_shift,k) - del_j*u_g
+               else
+                  u2(i,j,k) = (1.d0+del_i+del_j)*u2(i_bdry,j_bdry,k)
+     &                 - del_i*u2(i_bdry+i_shift,j_bdry,k)
+     &                 - del_j*u2(i_bdry,j_bdry+j_shift,k)
+               endif
             enddo
          enddo
       enddo

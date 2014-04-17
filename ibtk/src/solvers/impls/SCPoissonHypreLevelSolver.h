@@ -1,7 +1,7 @@
 // Filename: SCPoissonHypreLevelSolver.h
 // Created on 17 Sep 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,33 +35,34 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// HYPRE INCLUDES
-#ifndef included_HYPRE_sstruct_ls
-#define included_HYPRE_sstruct_ls
-#include <HYPRE_sstruct_ls.h>
-#endif
-
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <BoundaryBox.h>
-#include <Box.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <Patch.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
 #include <vector>
+
+#include "Box.h"
+#include "HYPRE_sstruct_ls.h"
+#include "HYPRE_sstruct_mv.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "_hypre_sstruct_mv.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace pdat
+{
+template <int DIM, class TYPE>
+class SideData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,7 +72,7 @@ namespace IBTK
  * \brief Class SCPoissonHypreLevelSolver is a concrete LinearSolver for solving
  * elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot
  * D \nabla) u$} = f \f$ on a \em single SAMRAI::hier::PatchLevel using <A
- * HREF="http://www.llnl.gov/CASC/linear_solvers">hypre</A>.
+ * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">hypre</A>.
  *
  * This solver class uses the \em hypre library to solve linear equations of the
  * form \f$ (C I + \nabla \cdot D \nabla ) u = f \f$, where \f$C\f$ and \f$D\f$
@@ -98,75 +99,58 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
+ enable_logging = FALSE         // see setLoggingEnabled()
+ solver_type = "Split"          // choices are: "Split", "SysPFMG", "PCG", "GMRES", "FlexGMRES"
+ ,
+ "LGMRES", "BiCGSTAB"
+ precond_type = "none"          // choices are: "Split", "SysPFMG"
+ split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
+ max_iterations = 25            // see setMaxIterations()
+ abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov
+ solvers)
+ rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
+ initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
+ rel_change = 0                 // see hypre User's Manual (only used by SysPFMG or PCG solver)
+ num_pre_relax_steps = 1        // number of pre-sweeps (only used by SysPFMG solver)
+ num_post_relax_steps = 1       // number of post-sweeps (only used by SysPFMG solver)
+ relax_type = 1                 // see hypre User's Manual (only used by SysPFMG solver or
+ preconditioner)
+ skip_relax = 1                 // see hypre User's Manual (only used by SysPFMG solver or
+ preconditioner)
+ two_norm = 1                   // see hypre User's Manual (only used by PCG solver)
  \endverbatim
  *
  * \em hypre is developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  For more information about
- * \em hypre, see <A HREF="http://www.llnl.gov/CASC/linear_solvers">
- * http://www.llnl.gov/CASC/linear_solvers</A>.
+ * \em hypre, see <A
+ *
+ HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
-class SCPoissonHypreLevelSolver
-    : public LinearSolver
+class SCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name  Name of object.
-     * \param input_db     Optional SAMRAI::tbox::Database for input.
      */
-    SCPoissonHypreLevelSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+    SCPoissonHypreLevelSolver(const std::string& object_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              const std::string& default_options_prefix);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~SCPoissonHypreLevelSolver();
 
     /*!
-     * \name Functions for specifying the Poisson problem.
+     * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
-    //\{
-
-    /*!
-     * \brief Set the scalar Poisson equation specifications.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    virtual void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    virtual void
-    setHomogeneousBc(
-        const bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        const double time);
-
-    //\}
+    static SAMRAI::tbox::Pointer<PoissonSolver>
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \name Linear solver functionality.
@@ -210,10 +194,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -252,10 +234,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -266,100 +246,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
-    deallocateSolverState();
-
-    //\}
-
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    virtual bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    virtual int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    virtual int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateSolverState();
 
     //\}
 
@@ -378,8 +265,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonHypreLevelSolver(
-        const SCPoissonHypreLevelSolver& from);
+    SCPoissonHypreLevelSolver(const SCPoissonHypreLevelSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -390,61 +276,24 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonHypreLevelSolver&
-    operator=(
-        const SCPoissonHypreLevelSolver& that);
+    SCPoissonHypreLevelSolver& operator=(const SCPoissonHypreLevelSolver& that);
 
     /*!
      * \brief Functions to allocate, initialize, access, and deallocate hypre
      * data structures.
      */
-    void
-    allocateHypreData();
-    void
-    setMatrixCoefficients_constant_coefficients();
-    void
-    setupHypreSolver();
-    bool
-    solveSystem(
-        const int x_idx,
-        const int b_idx);
-    void
-    copyToHypre(
-        HYPRE_SStructVector vector,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >& src_data,
-        const SAMRAI::hier::Box<NDIM>& box);
-    void
-    copyFromHypre(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >& dst_data,
-        HYPRE_SStructVector vector,
-        const SAMRAI::hier::Box<NDIM>& box);
-    void
-    destroyHypreSolver();
-    void
-    deallocateHypreData();
-
-    /*!
-     * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
-     * the case of constant coefficient problems.
-     */
-    void
-    adjustBoundaryRhsEntries_constant_coefficients(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >& rhs_data,
-        const double D,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        const double* const dx);
-
-    /*!
-     * \brief Object name.
-     */
-    std::string d_object_name;
-
-    /*!
-     * \brief Solver initialization status.
-     */
-    bool d_is_initialized;
+    void allocateHypreData();
+    void setMatrixCoefficients();
+    void setupHypreSolver();
+    bool solveSystem(int x_idx, int b_idx);
+    void copyToHypre(HYPRE_SStructVector vector,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src_data,
+                     const SAMRAI::hier::Box<NDIM>& box);
+    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst_data,
+                       HYPRE_SStructVector vector,
+                       const SAMRAI::hier::Box<NDIM>& box);
+    void destroyHypreSolver();
+    void deallocateHypreData();
 
     /*!
      * \brief Associated hierarchy.
@@ -459,24 +308,6 @@ private:
     int d_level_num;
 
     /*!
-     * \name Problem specification and boundary condition handling.
-     */
-    //\{
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    bool d_constant_coefficients;
-
-    /*!
-     * \brief Robin boundary coefficient object for physical boundaries and
-     * related data.
-     */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc;
-    double d_apply_time;
-
-    //\}
-
-    /*!
      * \name hypre objects.
      */
     //\{
@@ -487,45 +318,23 @@ private:
     static const int Y_VAR = 1;
     static const int Z_VAR = 2;
 
-    HYPRE_SStructGrid    d_grid;
+    HYPRE_SStructGrid d_grid;
     HYPRE_SStructStencil d_stencil[NVARS];
-    HYPRE_SStructGraph   d_graph;
-    HYPRE_SStructMatrix  d_matrix;
-    HYPRE_SStructVector  d_rhs_vec, d_sol_vec;
-    HYPRE_SStructSolver  d_solver, d_precond;
+    HYPRE_SStructGraph d_graph;
+    HYPRE_SStructMatrix d_matrix;
+    HYPRE_SStructVector d_rhs_vec, d_sol_vec;
+    HYPRE_SStructSolver d_solver, d_precond;
+    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type, d_split_solver_type;
-    int d_max_iterations;
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    bool d_initial_guess_nonzero;
     int d_rel_change;
     int d_num_pre_relax_steps, d_num_post_relax_steps;
     int d_relax_type;
     int d_skip_relax;
     int d_two_norm;
-
-    int d_current_its;
-    double d_current_residual_norm;
-    //\}
-
-    /*!
-     * \name Variables for debugging and analysis.
-     */
-    //\{
-
-    /*!
-     * \brief Flag to print solver info.
-     */
-    bool d_enable_logging;
-
     //\}
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/SCPoissonHypreLevelSolver.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

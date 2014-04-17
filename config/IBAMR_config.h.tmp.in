@@ -1,0 +1,203 @@
+/* config/IBAMR_config.h.tmp.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef FC_DUMMY_MAIN
+
+/* Define if F77 and FC dummy `main' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef FC_FUNC
+
+/* As FC_FUNC, but for C identifiers containing underscores. */
+#undef FC_FUNC_
+
+/* Defined if the requested minimum BOOST version is satisfied */
+#undef HAVE_BOOST
+
+/* Define to 1 if you have <boost/array.hpp> */
+#undef HAVE_BOOST_ARRAY_HPP
+
+/* Define to 1 if you have <boost/multi_array.hpp> */
+#undef HAVE_BOOST_MULTI_ARRAY_HPP
+
+/* Boolean value indicating whether the C++ compiler supports the
+   __builtin_expect keyword */
+#undef HAVE_BUILTIN_EXPECT
+
+/* Boolean value indicating whether the C++ compiler supports the
+   __builtin_prefetch keyword */
+#undef HAVE_BUILTIN_PREFETCH
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if you have the libhdf5 library. */
+#undef HAVE_LIBHDF5
+
+/* Define if you have the libhdf5_hl library. */
+#undef HAVE_LIBHDF5_HL
+
+/* Define if you have the libHYPRE library. */
+#undef HAVE_LIBHYPRE
+
+/* Define if you have the libmesh library. */
+#undef HAVE_LIBMESH
+
+/* Define if you have the libmesh_dbg library. */
+#undef HAVE_LIBMESH_DBG
+
+/* Define if you have the libmesh_devel library. */
+#undef HAVE_LIBMESH_DEVEL
+
+/* Define if you have the libmesh_oprof library. */
+#undef HAVE_LIBMESH_OPROF
+
+/* Define if you have the libmesh_opt library. */
+#undef HAVE_LIBMESH_OPT
+
+/* Define if you have the libmesh_prof library. */
+#undef HAVE_LIBMESH_PROF
+
+/* Define if you have the libmuParser library. */
+#undef HAVE_LIBMUPARSER
+
+/* Define if you have the libpetsc library. */
+#undef HAVE_LIBPETSC
+
+/* Define if you have the libSAMRAI library. */
+#undef HAVE_LIBSAMRAI
+
+/* Define if you have the libSAMRAI2d_algs library. */
+#undef HAVE_LIBSAMRAI2D_ALGS
+
+/* Define if you have the libSAMRAI2d_appu library. */
+#undef HAVE_LIBSAMRAI2D_APPU
+
+/* Define if you have the libSAMRAI2d_geom library. */
+#undef HAVE_LIBSAMRAI2D_GEOM
+
+/* Define if you have the libSAMRAI2d_hier library. */
+#undef HAVE_LIBSAMRAI2D_HIER
+
+/* Define if you have the libSAMRAI2d_math_std library. */
+#undef HAVE_LIBSAMRAI2D_MATH_STD
+
+/* Define if you have the libSAMRAI2d_mesh library. */
+#undef HAVE_LIBSAMRAI2D_MESH
+
+/* Define if you have the libSAMRAI2d_pdat_std library. */
+#undef HAVE_LIBSAMRAI2D_PDAT_STD
+
+/* Define if you have the libSAMRAI2d_solv library. */
+#undef HAVE_LIBSAMRAI2D_SOLV
+
+/* Define if you have the libSAMRAI2d_xfer library. */
+#undef HAVE_LIBSAMRAI2D_XFER
+
+/* Define if you have the libSAMRAI3d_algs library. */
+#undef HAVE_LIBSAMRAI3D_ALGS
+
+/* Define if you have the libSAMRAI3d_appu library. */
+#undef HAVE_LIBSAMRAI3D_APPU
+
+/* Define if you have the libSAMRAI3d_geom library. */
+#undef HAVE_LIBSAMRAI3D_GEOM
+
+/* Define if you have the libSAMRAI3d_hier library. */
+#undef HAVE_LIBSAMRAI3D_HIER
+
+/* Define if you have the libSAMRAI3d_math_std library. */
+#undef HAVE_LIBSAMRAI3D_MATH_STD
+
+/* Define if you have the libSAMRAI3d_mesh library. */
+#undef HAVE_LIBSAMRAI3D_MESH
+
+/* Define if you have the libSAMRAI3d_pdat_std library. */
+#undef HAVE_LIBSAMRAI3D_PDAT_STD
+
+/* Define if you have the libSAMRAI3d_solv library. */
+#undef HAVE_LIBSAMRAI3D_SOLV
+
+/* Define if you have the libSAMRAI3d_xfer library. */
+#undef HAVE_LIBSAMRAI3D_XFER
+
+/* Define if you have the libsilo library. */
+#undef HAVE_LIBSILO
+
+/* Define if you have the libsiloh5 library. */
+#undef HAVE_LIBSILOH5
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if you have the MPI library. */
+#undef HAVE_MPI
+
+/* Define if you have the silo library. */
+#undef HAVE_SILO
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Define to 1 if `major', `minor', and `makedev' are declared in <mkdev.h>.
+   */
+#undef MAJOR_IN_MKDEV
+
+/* Define to 1 if `major', `minor', and `makedev' are declared in
+   <sysmacros.h>. */
+#undef MAJOR_IN_SYSMACROS
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION

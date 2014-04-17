@@ -1,7 +1,7 @@
 // Filename: compiler_hints.h
 // Created on 17 Dec 2009 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,23 +35,84 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBTK_prefix_config
-#include <IBTK_prefix_config.h>
-#define included_IBTK_prefix_config
-#endif
+#include "IBTK_config.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 namespace IBTK
 {
+
 #if IBTK_HAVE_BUILTIN_EXPECT
-#define UNLIKELY(c) __builtin_expect(!!(c),0)
-#define LIKELY(c)   __builtin_expect(!!(c),1)
+#define UNLIKELY(c) __builtin_expect(!!(c), 0)
+#define LIKELY(c) __builtin_expect(!!(c), 1)
 #else
 #define UNLIKELY(c) (c)
-#define LIKELY(c)   (c)
+#define LIKELY(c) (c)
 #endif
-}// namespace IBTK
+
+#if IBTK_HAVE_BUILTIN_PREFETCH
+#define PREFETCH_READ_NTA(a) __builtin_prefetch((a), 0, 0)
+#define PREFETCH_READ_NTA_BLOCK(a, n)                                                         \
+    do                                                                                        \
+    {                                                                                         \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                                       \
+        {                                                                                     \
+            PREFETCH_READ_NTA((a) + k);                                                       \
+        }                                                                                     \
+    } while (0)
+#if (NDIM == 2)
+#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                       \
+    do                                                                                        \
+    {                                                                                         \
+        PREFETCH_READ_NTA((a));                                                               \
+        PREFETCH_READ_NTA((a) + 1);                                                           \
+    } while (0)
+#endif
+#if (NDIM == 3)
+#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                       \
+    do                                                                                        \
+    {                                                                                         \
+        PREFETCH_READ_NTA((a));                                                               \
+        PREFETCH_READ_NTA((a) + 1);                                                           \
+        PREFETCH_READ_NTA((a) + 2);                                                           \
+    } while (0)
+#endif
+#define PREFETCH_WRITE_NTA(a) __builtin_prefetch((a), 1, 0)
+#define PREFETCH_WRITE_NTA_BLOCK(a, n)                                                        \
+    do                                                                                        \
+    {                                                                                         \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                                       \
+        {                                                                                     \
+            PREFETCH_WRITE_NTA((a) + k);                                                      \
+        }                                                                                     \
+    } while (0)
+#if (NDIM == 2)
+#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                      \
+    do                                                                                        \
+    {                                                                                         \
+        PREFETCH_WRITE_NTA((a));                                                              \
+        PREFETCH_WRITE_NTA((a) + 1);                                                          \
+    } while (0)
+#endif
+#if (NDIM == 3)
+#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                      \
+    do                                                                                        \
+    {                                                                                         \
+        PREFETCH_WRITE_NTA((a));                                                              \
+        PREFETCH_WRITE_NTA((a) + 1);                                                          \
+        PREFETCH_WRITE_NTA((a) + 2);                                                          \
+    } while (0)
+#endif
+#else
+#define PREFETCH_READ_NTA(a)
+#define PREFETCH_READ_NTA_BLOCK(a, n)
+#define PREFETCH_READ_NTA_NDIM_BLOCK(a)
+#define PREFETCH_WRITE_NTA(a)
+#define PREFETCH_WRITE_NTA_BLOCK(a, n)
+#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)
+#endif
+
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

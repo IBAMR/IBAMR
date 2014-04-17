@@ -1,7 +1,7 @@
 // Filename: INSIntermediateVelocityBcCoef.h
-// Created on 30 Aug 2007 by Boyce Griffith
+// Created on 24 Jul 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,38 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/ExtendedRobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "IntVector.h"
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoundaryBox;
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class ArrayData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+namespace tbox
+{
+template <class TYPE>
+class Pointer;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,92 +75,81 @@ namespace IBAMR
 /*!
  * \brief Class INSIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the intermediate velocity field that is computed in a projection method.
+ * for the intermediate velocity solve embedded in a projection method or in a
+ * block preconditioner for the incompressible Navier-Stokes equations.
+ *
+ * This class interprets pure Dirichlet boundary conditions as prescribed
+ * velocity boundary conditions, whereas pure Neumann boundary conditions are
+ * interpreted as prescribed traction (stress) boundary conditions.  These are
+ * translated into Dirichlet and Neumann boundary conditions, respectively, for
+ * the intermediate velocity.
  */
-class INSIntermediateVelocityBcCoef
-    : public virtual IBTK::ExtendedRobinBcCoefStrategy
+class INSIntermediateVelocityBcCoef : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      *
-     * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
-     * \param Phi_idx         Patch data descriptor index for the cell-centered scalar function Phi
-     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity.
-     * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
+     * \param comp_idx        Component of the velocity which this boundary condition
+     *specification
+     *is to operate on
+     * \param bc_coefs        IBTK::Vector of boundary condition specification objects
+     * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous)
+     *boundary
+     *conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
     INSIntermediateVelocityBcCoef(
-        const int comp_idx,
-        const int Phi_idx,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        const bool homogeneous_bc=false);
+        int comp_idx,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
      */
-    virtual
     ~INSIntermediateVelocityBcCoef();
 
     /*!
-     * \brief Reset the boundary condition specification object so that it
-     * specifies the "true" velocity boundary conditions.
-     */
-    void
-    useTrueVelocityBcCoefs();
-
-    /*!
-     * \brief Reset the boundary condition specification object so that it
-     * specifies the "intermediate" velocity boundary conditions.
-     */
-    void
-    useIntermediateVelocityBcCoefs(
-        const double current_time,
-        const double new_time,
-        const double rho,
-        const bool velocity_correction);
-
-    /*!
-     * \brief Reset the patch data descriptor index for the cell-centered scalar
-     * function Phi.
-     *
-     * \param Phi_idx  Patch data descriptor index for the cell-centered scalar function Phi
-     */
-    void
-    setPhiPatchDataIndex(
-        const int Phi_idx);
-
-    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
+     * physical boundary conditions.
      *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
+     * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
     void
-    setVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
-     * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void setSolutionTime(double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void setTimeInterval(double current_time, double new_time);
+
+    /*!
+     * \name Extended SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{
 
     /*!
      * \brief Set the target data index.
      */
-    virtual void
-    setTargetPatchDataIndex(
-        const int target_idx);
+    void setTargetPatchDataIndex(int target_idx);
+
+    /*!
+     * \brief Clear the target data index.
+     */
+    void clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    virtual void
-    setHomogeneousBc(
-        const bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc);
 
     //\}
 
@@ -168,18 +184,18 @@ public:
      *        If implemented for multiple variables, this parameter can be used
      *        to determine which variable's coefficients are being sought.
      * \param patch       Patch requiring bc coefficients.
-     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
-     * \param fill_time   Solution time corresponding to filling, for use when coefficients are time-dependent.
+     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is
+     *needed.
+     * \param fill_time   Solution time corresponding to filling, for use when coefficients are
+     *time-dependent.
      */
-    virtual void
-    setBcCoefs(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time=0.0) const;
+    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+                    const SAMRAI::hier::Patch<NDIM>& patch,
+                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                    double fill_time = 0.0) const;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -196,13 +212,11 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -218,8 +232,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSIntermediateVelocityBcCoef(
-        const INSIntermediateVelocityBcCoef& from);
+    INSIntermediateVelocityBcCoef(const INSIntermediateVelocityBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -230,60 +243,20 @@ private:
      *
      * \return A reference to this object.
      */
-    INSIntermediateVelocityBcCoef&
-    operator=(
-        const INSIntermediateVelocityBcCoef& that);
+    INSIntermediateVelocityBcCoef& operator=(const INSIntermediateVelocityBcCoef& that);
 
     /*
-     * Component of the velocity which this boundary condition specification is to operate on.
+     * Component of the velocity which this boundary condition specification is
+     * to operate on.
      */
     const int d_comp_idx;
 
     /*
-     * The patch data index corresponding to the current value of U_star.
-     */
-    int d_target_idx;
-
-    /*
-     * The patch data index corresponding to the estimated value of Phi.
-     */
-    int d_Phi_idx;
-
-    /*
      * The boundary condition specification objects for the updated velocity.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-
-    /*
-     * Whether to use homogeneous boundary conditions.
-     */
-    bool d_homogeneous_bc;
-
-    /*
-     * Current time, new time, and timestep size.
-     */
-    double d_current_time, d_new_time;
-
-    /*
-     * Fluid density rho.
-     */
-    double d_rho;
-
-    /*
-     * Whether we are using the "true" or "intermediate" velocity bc coefs.
-     */
-    bool d_using_intermediate_velocity_bc_coefs;
-
-    /*
-     * Whether we are doing a velocity correction or not.
-     */
-    bool d_velocity_correction;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 };
-}// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/INSIntermediateVelocityBcCoef.I>
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

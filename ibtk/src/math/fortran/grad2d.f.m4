@@ -3,7 +3,7 @@ c     Routines to compute discrete gradients on patches.
 c
 c     Created on 12 Jun 2003 by Boyce Griffith
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -91,22 +91,16 @@ c
       fac0 = alpha/(2.d0*dx(0))
       fac1 = alpha/(2.d0*dx(1))
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             G(i0,i1,0) = fac0*(U(i0+1,i1)-U(i0-1,i1))
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             G(i0,i1,1) = fac1*(U(i0,i1+1)-U(i0,i1-1))
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -165,22 +159,16 @@ c
       fac0 = alpha/(2.d0*dx(0))
       fac1 = alpha/(2.d0*dx(1))
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             G(i0,i1,0) = fac0*(U(i0+1,i1)-U(i0-1,i1)) + beta*V(i0,i1,0)
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             G(i0,i1,1) = fac1*(U(i0,i1+1)-U(i0,i1-1)) + beta*V(i0,i1,1)
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -234,22 +222,16 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
             g0(i0,i1) = fac0*(U(i0,i1)-U(i0-1,i1))
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i0 = ilower0,iupper0
          do i1 = ilower1,iupper1+1
             g1(i1,i0) = fac1*(U(i0,i1)-U(i0,i1-1))
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -310,22 +292,16 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
             g0(i0,i1) = fac0*(U(i0,i1)-U(i0-1,i1)) + beta*v0(i0,i1)
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i0 = ilower0,iupper0
          do i1 = ilower1,iupper1+1
             g1(i1,i0) = fac1*(U(i0,i1)-U(i0,i1-1)) + beta*v1(i1,i0)
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -379,22 +355,16 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
             g0(i0,i1) = fac0*(U(i0,i1)-U(i0-1,i1))
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1+1
          do i0 = ilower0,iupper0
             g1(i0,i1) = fac1*(U(i0,i1)-U(i0,i1-1))
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -455,22 +425,16 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
             g0(i0,i1) = fac0*(U(i0,i1)-U(i0-1,i1)) + beta*v0(i0,i1)
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1+1
          do i0 = ilower0,iupper0
             g1(i0,i1) = fac1*(U(i0,i1)-U(i0,i1-1)) + beta*v1(i0,i1)
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end

@@ -1,7 +1,7 @@
 // Filename: CartSideDoubleSpecializedLinearRefine.h
 // Created on 08 Feb 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefineOperator.h>
+#include <string>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "RefineOperator.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -46,10 +61,9 @@ namespace IBTK
  * \brief Class CartSideDoubleSpecializedLinearRefine is a concrete
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
  * precision patch data via linear interpolation in the normal direction and
- * constant interpolatioon in the tangential direction.
+ * MC-limited piecewise-linear interpolation in the tangential direction.
  */
-class CartSideDoubleSpecializedLinearRefine
-    : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartSideDoubleSpecializedLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!
@@ -58,9 +72,8 @@ public:
     CartSideDoubleSpecializedLinearRefine();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartSideDoubleSpecializedLinearRefine();
 
     /*!
@@ -72,16 +85,13 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    virtual bool
-    findRefineOperator(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-        const std::string& op_name) const;
+    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+                            const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the refining operation.
      */
-    virtual const std::string&
-    getOperatorName() const;
+    const std::string& getOperatorName() const;
 
     /*!
      * Return the priority of this operator relative to other refining
@@ -89,8 +99,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    virtual int
-    getOperatorPriority() const;
+    int getOperatorPriority() const;
 
     /*!
      * Return the stencil width associated with the refining operator.  The
@@ -98,8 +107,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -108,19 +116,16 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    virtual void
-    refine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const int dst_component,
-        const int src_component,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+    void refine(SAMRAI::hier::Patch<NDIM>& fine,
+                const SAMRAI::hier::Patch<NDIM>& coarse,
+                int dst_component,
+                int src_component,
+                const SAMRAI::hier::Box<NDIM>& fine_box,
+                const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -129,8 +134,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleSpecializedLinearRefine(
-        const CartSideDoubleSpecializedLinearRefine& from);
+    CartSideDoubleSpecializedLinearRefine(const CartSideDoubleSpecializedLinearRefine& from);
 
     /*!
      * \brief Assignment operator.
@@ -142,19 +146,14 @@ private:
      * \return A reference to this object.
      */
     CartSideDoubleSpecializedLinearRefine&
-    operator=(
-        const CartSideDoubleSpecializedLinearRefine& that);
+    operator=(const CartSideDoubleSpecializedLinearRefine& that);
 
     /*!
      * The operator name.
      */
     static const std::string s_op_name;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideDoubleSpecializedLinearRefine.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

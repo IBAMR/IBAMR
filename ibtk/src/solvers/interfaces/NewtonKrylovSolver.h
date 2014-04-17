@@ -1,7 +1,7 @@
 // Filename: NewtonKrylovSolver.h
 // Created on 18 Nov 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-#include <ibtk/JacobianOperator.h>
-#include <ibtk/KrylovLinearSolver.h>
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+namespace IBTK
+{
+class HierarchyMathOps;
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,20 +57,45 @@ namespace IBTK
  * implementation of inexact Newton-Krylov solvers for nonlinear problems of the
  * form \f$ F[x]=b \f$.
  */
-class NewtonKrylovSolver
-    : public virtual SAMRAI::tbox::DescribedClass
+class NewtonKrylovSolver : public GeneralSolver
 {
 public:
     /*!
-     * \brief Empty constructor.
+     * \brief Default constructor.
      */
     NewtonKrylovSolver();
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~NewtonKrylovSolver();
+    virtual ~NewtonKrylovSolver();
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the solver.
+     */
+    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+
+    /*!
+     * \name General-purpose solver functionality.
+     */
+    //\{
+
+    /*!
+     * \brief Set whether the solver should use homogeneous boundary conditions.
+     */
+    void setHomogeneousBc(bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void setSolutionTime(double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void setTimeInterval(double current_time, double new_time);
+
+    //\}
 
     /*!
      * \name Newton-Krylov solver functionality.
@@ -77,15 +105,12 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    virtual void
-    setOperator(
-        SAMRAI::tbox::Pointer<GeneralOperator> op) = 0;
+    virtual void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op);
 
     /*!
      * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    virtual SAMRAI::tbox::Pointer<GeneralOperator>
-    getOperator() const = 0;
+    virtual SAMRAI::tbox::Pointer<GeneralOperator> getOperator() const;
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
@@ -93,7 +118,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
     getSolutionVector() const = 0;
 
     /*!
@@ -103,7 +128,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
     getFunctionVector() const = 0;
 
     /*!
@@ -114,136 +139,19 @@ public:
      * Newton-Krylov method is employed to approximate the action of the
      * Jacobian.
      */
-    virtual void
-    setJacobian(
-        SAMRAI::tbox::Pointer<JacobianOperator> J) = 0;
+    virtual void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J);
 
     /*!
      * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the
      * solver.
      */
-    virtual SAMRAI::tbox::Pointer<JacobianOperator>
-    getJacobian() const = 0;
+    virtual SAMRAI::tbox::Pointer<JacobianOperator> getJacobian() const;
 
     /*!
      * \brief Retrieve the Krylov linear solver used in computing Newton step
      * directions.
      */
-    virtual SAMRAI::tbox::Pointer<KrylovLinearSolver>
-    getLinearSolver() const = 0;
-
-    /*!
-     * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.
-     *
-     * Before calling solveSystem(), the form of the solution \a x and
-     * right-hand-side \a b vectors must be set properly by the user on all
-     * patch interiors on the specified range of levels in the patch hierarchy.
-     * The user is responsible for all data management for the quantities
-     * associated with the solution and right-hand-side vectors.  In particular,
-     * patch data in these vectors must be allocated prior to calling this
-     * method.
-     *
-     * \param x solution vector
-     * \param b right-hand-side vector
-     *
-     * <b>Conditions on Parameters:</b>
-     * - vectors \a x and \a b must have same patch hierarchy
-     * - vectors \a x and \a b must have same structure, depth, etc.
-     *
-     * \note Subclasses must be implemented so that the vector arguments for
-     * solveSystem() need not match those for initializeSolverState().  However,
-     * they are allowed to require a certain degree of similarity,
-     * including:\par
-     * - hierarchy configuration (hierarchy pointer and range of levels)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the solution \a x and right-hand-side \a b
-     *   vectors
-     *
-     * \note Subclasses are required to be implemented so that the solver does
-     * not need to be initialized prior to calling solveSystem(); however, see
-     * initializeSolverState() and deallocateSolverState() for opportunities to
-     * save overhead when performing multiple consecutive solves.
-     *
-     * \see initializeSolverState
-     * \see deallocateSolverState
-     *
-     * \return \p true if the solver converged to the specified tolerances, \p
-     * false otherwise
-     */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b) = 0;
-
-    /*!
-     * \brief Compute hierarchy dependent data required for solving
-     * \f$F[x]=b\f$.
-     *
-     * In a typical implementation, the solveSystem() method will compute some
-     * required hierarchy dependent data before the solve, and then remove that
-     * data after the solve.  For multiple solves that use the same hierarchy
-     * configuration, it is more efficient to:
-     *
-     * -# initialize the hierarchy-dependent data required by the solver via
-     *    initializeSolverState(),
-     * -# solve the system one or more times via solveSystem(), and
-     * -# remove the hierarchy-dependent data via deallocateSolverState().
-     *
-     * Note that it is generally necessary to reinitialize the solver state when
-     * the hierarchy configuration changes.
-     *
-     * \param x solution vector
-     * \param b right-hand-side vector
-     *
-     * <b>Conditions on Parameters:</b>
-     * - vectors \a x and \a b must have same patch hierarchy
-     * - vectors \a x and \a b must have same structure, depth, etc.
-     *
-     * \note Subclasses must be implemented so that the vector arguments for
-     * solveSystem() need not match those for initializeSolverState().  However,
-     * they are allowed to require a certain degree of similarity,
-     * including:\par
-     * - hierarchy configuration (hierarchy pointer and range of levels)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the solution \a x and right-hand-side \a b
-     *   vectors
-     *
-     * \note Subclasses are required to be implemented so that it is safe to
-     * call initializeSolverState() when the solver state is already
-     * initialized.  In this case, the solver state should be first deallocated
-     * and then reinitialized.
-     *
-     * \note Subclasses are required to be implemented so that when any operator
-     * objects have been registered with the solver via setOperator() or
-     * setJacobian(), they are also initialized by initializeSolverState().
-     *
-     * \see deallocateSolverState
-     *
-     * \note A default implementation is provided which does nothing.
-     */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
-
-    /*!
-     * \brief Remove all hierarchy dependent data allocated by
-     * initializeSolverState().
-     *
-     * \note Subclasses are required to be implemented so that it is safe to
-     * call deallocateSolverState() when the solver state is already
-     * deallocated.
-     *
-     * \note Subclasses are required to be implemented so that when any operator
-     * objects have been registered with the solver via setOperator() or
-     * setJacobian(), they are also deallocated by deallocateSolverState().
-     *
-     * \see initializeSolverState
-     *
-     * \note A default implementation is provided which does nothing.
-     */
-    virtual void
-    deallocateSolverState();
+    virtual SAMRAI::tbox::Pointer<KrylovLinearSolver> getLinearSolver() const;
 
     //\}
 
@@ -253,71 +161,26 @@ public:
     //\{
 
     /*!
-     * \brief Set the maximum number of nonlinear iterations to use per solve.
-     */
-    virtual void
-    setMaxIterations(
-        int max_iterations) = 0;
-
-    /*!
-     * \brief Get the maximum number of nonlinear iterations to use per solve.
-     */
-    virtual int
-    getMaxIterations() const = 0;
-
-    /*!
      * \brief Set the maximum number of function evaluations to use per solve.
      */
-    virtual void
-    setMaxEvaluations(
-        int max_evaluations) = 0;
+    virtual void setMaxEvaluations(int max_evaluations);
 
     /*!
      * \brief Get the maximum number of function evaluations to use per solve.
      */
-    virtual int
-    getMaxEvaluations() const = 0;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol) = 0;
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const = 0;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol) = 0;
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const = 0;
+    virtual int getMaxEvaluations() const;
 
     /*!
      * \brief Set the tolerance in terms of the norm of the change in the
      * solution between steps.
      */
-    virtual void
-    setSolutionTolerance(
-        double solution_tol) = 0;
+    virtual void setSolutionTolerance(double solution_tol);
 
     /*!
      * \brief Get the tolerance in terms of the norm of the change in the
      * solution between steps.
      */
-    virtual double
-    getSolutionTolerance() const = 0;
+    virtual double getSolutionTolerance() const;
 
     //\}
 
@@ -327,39 +190,24 @@ public:
     //\{
 
     /*!
-     * \brief Return the iteration count from the most recent nonlinear solve.
-     */
-    virtual int
-    getNumIterations() const = 0;
-
-    /*!
      * \brief Return the number of linear iterations from the most recent
      * nonlinear solve.
      */
-    virtual int
-    getNumLinearIterations() const = 0;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const = 0;
+    virtual int getNumLinearIterations() const;
 
     //\}
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
+protected:
+    // Solver components.
+    SAMRAI::tbox::Pointer<GeneralOperator> d_F;
+    SAMRAI::tbox::Pointer<JacobianOperator> d_J;
+    SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b, d_r;
 
-    /*!
-     * \brief Enable or disable logging.
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true) = 0;
-
-    //\}
+    // Solver parameters.
+    int d_max_evaluations;
+    double d_solution_tol;
+    int d_current_linear_iterations;
 
 private:
     /*!
@@ -369,8 +217,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NewtonKrylovSolver(
-        const NewtonKrylovSolver& from);
+    NewtonKrylovSolver(const NewtonKrylovSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -381,15 +228,9 @@ private:
      *
      * \return A reference to this object.
      */
-    NewtonKrylovSolver&
-    operator=(
-        const NewtonKrylovSolver& that);
+    NewtonKrylovSolver& operator=(const NewtonKrylovSolver& that);
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/NewtonKrylovSolver.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 // Filename: IBInstrumentPanel.h
 // Created on 12 May 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,19 +35,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LDataManager.h>
-
-// SAMRAI INCLUDES
-#include <Index.h>
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/array.h>
-
-// C++ STDLIB INCLUDES
+#include <functional>
+#include <iosfwd>
 #include <map>
+#include <string>
+#include <vector>
+
+#include "Index.h"
+#include "IntVector.h"
+#include "boost/multi_array.hpp"
+#include "ibtk/ibtk_utilities.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK
+{
+class LDataManager;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,28 +75,24 @@ namespace IBAMR
  *
  * \note Use of class IBInstrumentPanel requires the Blitz++ array library.
  */
-class IBInstrumentPanel
-    : public virtual SAMRAI::tbox::DescribedClass
+class IBInstrumentPanel : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(const std::string& object_name,
+                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBInstrumentPanel();
 
     /*!
      * \return A const reference to the vector of instrument names.
      */
-    const std::vector<std::string>&
-    getInstrumentNames() const;
+    const std::vector<std::string>& getInstrumentNames() const;
 
     /*!
      * \return A const reference to the most recent time that the flow meter and
@@ -89,8 +101,7 @@ public:
      * \note This value is not initialized until the first call is made to
      * readInstrumentData().
      */
-    const double&
-    getInstrumentDataReadTime() const;
+    const double& getInstrumentDataReadTime() const;
 
     /*!
      * \return A const reference to the vector of flow meter values.
@@ -98,8 +109,7 @@ public:
      * \note This vector is not initialized until the first call is made to
      * readInstrumentData().
      */
-    const std::vector<double>&
-    getFlowValues() const;
+    const std::vector<double>& getFlowValues() const;
 
     /*!
      * \return A const reference to the vector of mean pressure values.
@@ -107,8 +117,7 @@ public:
      * \note This vector is not initialized until the first call is made to
      * readInstrumentData().
      */
-    const std::vector<double>&
-    getMeanPressureValues() const;
+    const std::vector<double>& getMeanPressureValues() const;
 
     /*!
      * \return A const reference to the vector of pointwise pressure values.
@@ -116,8 +125,7 @@ public:
      * \note This vector is not initialized until the first call is made to
      * readInstrumentData().
      */
-    const std::vector<double>&
-    getPointwisePressureValues() const;
+    const std::vector<double>& getPointwisePressureValues() const;
 
     /*!
      * \return A boolean indicating whether there are any instruments embedded
@@ -126,8 +134,7 @@ public:
      * \note This method returns false and prints a warning message prior to the
      * first call to initializeHierarchyIndependentData().
      */
-    bool
-    isInstrumented() const;
+    bool isInstrumented() const;
 
     /*!
      * \brief Initialize hierarchy-independent data.
@@ -135,33 +142,30 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void
-    initializeHierarchyIndependentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager);
+    void initializeHierarchyIndependentData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void
-    initializeHierarchyDependentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager,
-        const int timestep_num,
-        const double data_time);
+    void initializeHierarchyDependentData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        IBTK::LDataManager* l_data_manager,
+        int timestep_num,
+        double data_time);
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
      * internal flow meters and pressure gauges.
      */
     void
-    readInstrumentData(
-        const int U_data_idx,
-        const int P_data_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager,
-        const int timestep_num,
-        const double data_time);
+    readInstrumentData(int U_data_idx,
+                       int P_data_idx,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                       IBTK::LDataManager* l_data_manager,
+                       int timestep_num,
+                       double data_time);
 
     /*!
      * \brief Set the directory where plot data is to be written.
@@ -170,17 +174,12 @@ public:
      * "viz_inst2d" for two-dimensional simulations and "viz_inst3d" for
      * three-dimensional simulations.
      */
-    void
-    setPlotDirectory(
-        const std::string& plot_directory_name);
+    void setPlotDirectory(const std::string& plot_directory_name);
 
     /*!
      * \brief Write the plot data to disk.
      */
-    void
-    writePlotData(
-        const int timestep_num,
-        const double simulation_time);
+    void writePlotData(int timestep_num, double simulation_time);
 
 private:
     /*!
@@ -197,8 +196,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInstrumentPanel(
-        const IBInstrumentPanel& from);
+    IBInstrumentPanel(const IBInstrumentPanel& from);
 
     /*!
      * \brief Assignment operator.
@@ -209,25 +207,19 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInstrumentPanel&
-    operator=(
-        const IBInstrumentPanel& that);
+    IBInstrumentPanel& operator=(const IBInstrumentPanel& that);
 
     /*!
      * Read input values, indicated above, from given database.
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Output log data to the provided output stream.
      */
-    void
-    outputLogData(
-        std::ostream& os);
+    void outputLogData(std::ostream& os);
 
     /*
      * The object name is used for error reporting purposes.
@@ -238,11 +230,11 @@ private:
      * \brief Instrumentation data.
      */
     bool d_initialized;
-    int d_num_meters;
+    unsigned int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
-    std::vector<blitz::TinyVector<double,NDIM> > d_X_centroid;
-    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_X_perimeter;
-    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,2> > d_X_web, d_dA_web;
+    std::vector<IBTK::Vector> d_X_centroid;
+    std::vector<boost::multi_array<IBTK::Vector, 1> > d_X_perimeter;
+    std::vector<boost::multi_array<IBTK::Vector, 2> > d_X_web, d_dA_web;
 
     int d_instrument_read_timestep_num;
     double d_instrument_read_time;
@@ -255,43 +247,45 @@ private:
      * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
-    struct IndexFortranOrder
-        : public std::binary_function<SAMRAI::hier::Index<NDIM>,SAMRAI::hier::Index<NDIM>,bool>
+    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>,
+                                                           SAMRAI::hier::Index<NDIM>,
+                                                           bool>
     {
-        inline bool
-        operator()(
-            const SAMRAI::hier::Index<NDIM>& lhs,
-            const SAMRAI::hier::Index<NDIM>& rhs) const
-            {
+        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs,
+                               const SAMRAI::hier::Index<NDIM>& rhs) const
+        {
 
-                return (lhs(0) < rhs(0)
-#if (NDIM>1)
-                        || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
-                        || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+            return (lhs(0) < rhs(0)
+#if (NDIM > 1)
+                    ||
+                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+#if (NDIM > 2)
+                    ||
+                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                        );
-            }// operator()
+                    );
+        } // operator()
     };
 
     struct WebPatch
     {
         int meter_num;
-        const blitz::TinyVector<double,NDIM>* X;
-        const blitz::TinyVector<double,NDIM>* dA;
+        const IBTK::Vector* X;
+        const IBTK::Vector* dA;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebPatch,IndexFortranOrder> WebPatchMap;
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder> WebPatchMap;
     std::vector<WebPatchMap> d_web_patch_map;
 
     struct WebCentroid
     {
         int meter_num;
-        const blitz::TinyVector<double,NDIM>* X;
+        const IBTK::Vector* X;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>,WebCentroid,IndexFortranOrder> WebCentroidMap;
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder>
+    WebCentroidMap;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*
@@ -309,11 +303,7 @@ private:
     double d_flow_conv, d_pres_conv;
     std::string d_flow_units, d_pres_units;
 };
-}// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBInstrumentPanel.I>
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

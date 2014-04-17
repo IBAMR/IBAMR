@@ -1,7 +1,7 @@
 // Filename: EdgeDataSynchronization.h
 // Created on 02 Feb 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CoarsenAlgorithm.h>
-#include <PatchHierarchy.h>
-#include <RefineAlgorithm.h>
-
-// C++ STDLIB INCLUDES
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "RefineAlgorithm.h"
+#include "boost/array.hpp"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -52,8 +66,7 @@ namespace IBTK
  * \brief Class EdgeDataSynchronization encapsulates the operations required to
  * "synchronize" edge-centered values defined at patch boundaries.
  */
-class EdgeDataSynchronization
-    : public virtual SAMRAI::tbox::DescribedClass
+class EdgeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -69,31 +82,26 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline
-        SynchronizationTransactionComponent(
-            const int data_idx=-1,
-            const std::string& coarsen_op_name="NONE")
-            : d_data_idx(data_idx),
-              d_coarsen_op_name(coarsen_op_name)
-            {
-                // intentionally blank
-                return;
-            }// SynchronizationTransactionComponent
+        inline SynchronizationTransactionComponent(int data_idx = -1,
+                                                   const std::string& coarsen_op_name = "NONE")
+            : d_data_idx(data_idx), d_coarsen_op_name(coarsen_op_name)
+        {
+            // intentionally blank
+            return;
+        } // SynchronizationTransactionComponent
 
         /*!
          * \brief Copy constructor.
          *
          * \param from The value to copy to this object.
          */
-        inline
-        SynchronizationTransactionComponent(
+        inline SynchronizationTransactionComponent(
             const SynchronizationTransactionComponent& from)
-            : d_data_idx(from.d_data_idx),
-              d_coarsen_op_name(from.d_coarsen_op_name)
-            {
-                // intentionally blank
-                return;
-            }// SynchronizationTransactionComponent
+            : d_data_idx(from.d_data_idx), d_coarsen_op_name(from.d_coarsen_op_name)
+        {
+            // intentionally blank
+            return;
+        } // SynchronizationTransactionComponent
 
         /*!
          * \brief Assignment operator.
@@ -103,26 +111,24 @@ public:
          * \return A reference to this object.
          */
         inline SynchronizationTransactionComponent&
-        operator=(
-            const SynchronizationTransactionComponent& that)
+        operator=(const SynchronizationTransactionComponent& that)
+        {
+            if (this != &that)
             {
-                if (this != &that)
-                {
-                    d_data_idx = that.d_data_idx;
-                    d_coarsen_op_name = that.d_coarsen_op_name;
-                }
-                return *this;
-            }// operator=
+                d_data_idx = that.d_data_idx;
+                d_coarsen_op_name = that.d_coarsen_op_name;
+            }
+            return *this;
+        } // operator=
 
         /*!
          * \brief Destructor.
          */
-        inline
-        ~SynchronizationTransactionComponent()
-            {
-                //intentionally blank
-                return;
-            }// ~SynchronizationTransactionComponent
+        inline ~SynchronizationTransactionComponent()
+        {
+            // intentionally blank
+            return;
+        } // ~SynchronizationTransactionComponent
 
     private:
         // Data.
@@ -138,15 +144,13 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~EdgeDataSynchronization();
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
      * specified synchronization transactions on the specified patch hierarchy.
      */
-    void
-    initializeOperatorState(
+    void initializeOperatorState(
         const SynchronizationTransactionComponent& transaction_comp,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -155,8 +159,7 @@ public:
      * specified collection of synchronization transactions on the specified
      * patch hierarchy.
      */
-    void
-    initializeOperatorState(
+    void initializeOperatorState(
         const std::vector<SynchronizationTransactionComponent>& transaction_comps,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -164,31 +167,25 @@ public:
      * \brief Reset transaction component with the synchronization operator.
      */
     void
-    resetTransactionComponent(
-        const SynchronizationTransactionComponent& transaction_comps);
+    resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comps);
 
     /*!
      * \brief Reset transaction components with the synchronization operator.
      */
-    void
-    resetTransactionComponents(
+    void resetTransactionComponents(
         const std::vector<SynchronizationTransactionComponent>& transaction_comps);
 
     /*!
      * \brief Clear all cached data.
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     /*!
      * \brief Synchronize the data on all levels of the patch hierarchy.
      */
-    void
-    synchronizeData(
-        const double& fill_time);
+    void synchronizeData(double fill_time);
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -197,8 +194,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    EdgeDataSynchronization(
-        const EdgeDataSynchronization& from);
+    EdgeDataSynchronization(const EdgeDataSynchronization& from);
 
     /*!
      * \brief Assignment operator.
@@ -209,9 +205,7 @@ private:
      *
      * \return A reference to this object.
      */
-    EdgeDataSynchronization&
-    operator=(
-        const EdgeDataSynchronization& that);
+    EdgeDataSynchronization& operator=(const EdgeDataSynchronization& that);
 
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized;
@@ -228,14 +222,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > d_refine_alg;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > d_refine_scheds;
+    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >, NDIM>
+    d_refine_alg;
+    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >,
+                 NDIM> d_refine_scheds;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "EdgeDataSynchronization.I"
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

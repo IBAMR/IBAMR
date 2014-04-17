@@ -1,7 +1,7 @@
 // Filename: IBTargetPointForceSpec.h
 // Created on 21 Mar 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
+#include <stddef.h>
 
-// SAMRAI INCLUDES
-#include <tbox/AbstractStream.h>
+#include "ibtk/Streamable.h"
+#include "ibtk/StreamableFactory.h"
+#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
 
-// C++ STDLIB INCLUDES
-#include <vector>
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
+class AbstractStream;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,8 +65,7 @@ namespace IBAMR
  * force that approximately imposes a Dirichlet boundary condition at a single
  * node of the Lagrangian mesh).
  */
-class IBTargetPointForceSpec
-    : public IBTK::Streamable
+class IBTargetPointForceSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -67,131 +77,96 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBTargetPointForceSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
+
+    /*!
+     * The unique class ID for this object type assigned by the
+     * IBTK::StreamableManager.
+     */
+    static int STREAMABLE_CLASS_ID;
 
     /*!
      * \brief Default constructor.
-     *
-     * \note The subdomain index is ignored unless IBAMR is configured to enable
-     * support for subdomain indices.  Subdomain indices are not enabled by
-     * default.
      */
-    IBTargetPointForceSpec(
-        const int master_idx=-1,
-        const double& kappa_target=0.0,
-        const double& eta_target=0.0,
-        const std::vector<double>& X_target=std::vector<double>(NDIM,0.0),
-        const int subdomain_idx=-1);
+    IBTargetPointForceSpec(int master_idx = -1,
+                           double kappa_target = 0.0,
+                           double eta_target = 0.0,
+                           const IBTK::Point& X_target = IBTK::Point::Zero());
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBTargetPointForceSpec();
 
     /*!
      * \return A const reference to the master node index.
      */
-    const int&
-    getMasterNodeIndex() const;
+    const int& getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int&
-    getMasterNodeIndex();
+    int& getMasterNodeIndex();
 
     /*!
      * \return A const reference to the stiffness of the spring attached to the
      * target point.
      */
-    const double&
-    getStiffness() const;
+    const double& getStiffness() const;
 
     /*!
      * \return A non-const reference to the stiffness of the spring attached to
      * the target point.
      */
-    double&
-    getStiffness();
+    double& getStiffness();
 
     /*!
      * \return A const reference to the damping factor of the spring attached to
      * the target point.
      */
-    const double&
-    getDamping() const;
+    const double& getDamping() const;
 
     /*!
      * \return A non-const reference to the damping factor of the spring
      * attached to the target point.
      */
-    double&
-    getDamping();
+    double& getDamping();
 
     /*!
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const std::vector<double>&
-    getTargetPointPosition() const;
+    const IBTK::Point& getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    std::vector<double>&
-    getTargetPointPosition();
-
-    /*!
-     * \return A const reference to the subdomain index associated with this
-     * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
-     */
-    const int&
-    getSubdomainIndex() const;
-
-    /*!
-     * \return A non-const reference to the subdomain index associated with this
-     * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
-     */
-    int&
-    getSubdomainIndex();
+    IBTK::Point& getTargetPointPosition();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    virtual int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -201,8 +176,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBTargetPointForceSpec(
-        const IBTargetPointForceSpec& from);
+    IBTargetPointForceSpec(const IBTargetPointForceSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -213,41 +187,84 @@ private:
      *
      * \return A reference to this object.
      */
-    IBTargetPointForceSpec&
-    operator=(
-        const IBTargetPointForceSpec& that);
-
-    /*!
-     * Indicates whether the factory has been registered with the
-     * IBTK::StreamableManager.
-     */
-    static bool s_registered_factory;
-
-    /*!
-     * The class ID for this object type assigned by the
-     * IBTK::StreamableManager.
-     */
-    static int s_class_id;
+    IBTargetPointForceSpec& operator=(const IBTargetPointForceSpec& that);
 
     /*!
      * Data required to define the target point penalty forces.
      */
     int d_master_idx;
     double d_kappa_target, d_eta_target;
-    std::vector<double> d_X_target;
+    IBTK::Point d_X_target;
 
-#if ENABLE_SUBDOMAIN_INDICES
     /*!
-     * The subdomain index of the force spec object.
+     * \brief A factory class to rebuild IBTargetPointForceSpec objects from
+     * SAMRAI::tbox::AbstractStream data streams.
      */
-    int d_subdomain_idx;
-#endif
+    class Factory : public IBTK::StreamableFactory
+    {
+    public:
+        /*!
+         * \brief Destructor.
+         */
+        ~Factory();
+
+        /*!
+         * \brief Return the unique identifier used to specify the
+         * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+         * extract IBTargetPointForceSpec objects from data streams.
+         */
+        int getStreamableClassID() const;
+
+        /*!
+         * \brief Set the unique identifier used to specify the
+         * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+         * extract IBTargetPointForceSpec objects from data streams.
+         */
+        void setStreamableClassID(int class_id);
+
+        /*!
+         * \brief Build an IBTargetPointForceSpec object by unpacking data from the
+         * data stream.
+         */
+        SAMRAI::tbox::Pointer<IBTK::Streamable>
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
+
+    private:
+        /*!
+         * \brief Default constructor.
+         */
+        Factory();
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         *
+         * \param from The value to copy to this object.
+         */
+        Factory(const Factory& from);
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \note This operator is not implemented and should not be used.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        Factory& operator=(const Factory& that);
+
+        friend class IBTargetPointForceSpec;
+    };
+    typedef IBTargetPointForceSpec::Factory IBTargetPointForceSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibamr/IBTargetPointForceSpec.I>
+#include "ibamr/IBTargetPointForceSpec-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

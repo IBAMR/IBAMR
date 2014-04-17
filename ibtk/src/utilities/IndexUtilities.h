@@ -1,7 +1,7 @@
 // Filename: IndexUtilities.h
 // Created on 06 Mar 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,50 +35,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LNodeIndex.h>
-
-// SAMRAI INCLUDES
-#include <CellIndex.h>
-
-// C++ STDLIB INCLUDES
 #include <functional>
-#include <vector>
+
+#include "CellIndex.h"
+#include "Index.h"
+#include "IntVector.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
-
-struct LNodeIndexLessThan
-    : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-{
-    inline bool
-    operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-        {
-            return *lhs < *rhs;
-        }
-};
-
 struct CellIndexFortranOrder
-    : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
+    : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
 {
-    inline bool
-    operator()(
-        const SAMRAI::pdat::CellIndex<NDIM>& lhs,
-        const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
-        {
-            return (lhs(0) < rhs(0)
-#if (NDIM>1)
-                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
-                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+    inline bool operator()(const SAMRAI::pdat::CellIndex<NDIM>& lhs,
+                           const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
+    {
+        return (lhs(0) < rhs(0)
+#if (NDIM > 1)
+                ||
+                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+#if (NDIM > 2)
+                ||
+                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
-        }
+                );
+    }
 };
 
 /*!
@@ -89,21 +72,17 @@ struct CellIndexFortranOrder
 class IndexUtilities
 {
 public:
-    /*!
-     * \return The cell index corresponding to location \p X relative
-     * to \p XLower and \p XUpper for the specified Cartesian grid
-     * spacings \p dx and box extents \p ilower and \p iupper.
-     *
-     * \see SAMRAI::geom::CartesianPatchGeometry
+    /*
+     * \return The coarsened version of a cell-centered index.
      */
-    static SAMRAI::hier::Index<NDIM>
-    getCellIndex(
-        const double* const X,
-        const double* const XLower,
-        const double* const XUpper,
-        const double* const dx,
-        const SAMRAI::hier::Index<NDIM>& ilower,
-        const SAMRAI::hier::Index<NDIM>& iupper);
+    static SAMRAI::hier::Index<NDIM> coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
+                                             const SAMRAI::hier::Index<NDIM>& ratio);
+
+    /*
+     * \return The refined version of a cell-centered index.
+     */
+    static SAMRAI::hier::Index<NDIM> refine(const SAMRAI::hier::Index<NDIM>& i_coarsen,
+                                            const SAMRAI::hier::Index<NDIM>& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -112,14 +91,13 @@ public:
      *
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
-    static SAMRAI::hier::Index<NDIM>
-    getCellIndex(
-        const std::vector<double>& X,
-        const double* const XLower,
-        const double* const XUpper,
-        const double* const dx,
-        const SAMRAI::hier::Index<NDIM>& ilower,
-        const SAMRAI::hier::Index<NDIM>& iupper);
+    template <class DoubleArray>
+    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
+                                                  const double* x_lower,
+                                                  const double* x_upper,
+                                                  const double* dx,
+                                                  const SAMRAI::hier::Index<NDIM>& ilower,
+                                                  const SAMRAI::hier::Index<NDIM>& iupper);
 
 private:
     /*!
@@ -138,8 +116,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IndexUtilities(
-        const IndexUtilities& from);
+    IndexUtilities(const IndexUtilities& from);
 
     /*!
      * \brief Unimplemented destructor.
@@ -155,14 +132,13 @@ private:
      *
      * \return A reference to this object.
      */
-    IndexUtilities& operator=(
-        const IndexUtilities& that);
+    IndexUtilities& operator=(const IndexUtilities& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/IndexUtilities.I>
+#include "ibtk/IndexUtilities-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

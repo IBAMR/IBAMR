@@ -1,7 +1,7 @@
 // Filename: PETScPCLSWrapper.h
 // Created on 19 Oct 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,18 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
-
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearSolver.h"
+#include "petscpc.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,10 +50,9 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScPCLSWrapper provides a LinearSolver interface for a <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> PC object.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> PC object.
  */
-class PETScPCLSWrapper
-    : public LinearSolver
+class PETScPCLSWrapper : public LinearSolver
 {
 public:
     /*!
@@ -67,17 +62,14 @@ public:
      * \param petsc_pc PETSc PC object "wrapped" by this object
      *
      */
-    PETScPCLSWrapper(
-        const std::string& object_name,
-        const PC& petsc_pc);
+    PETScPCLSWrapper(const std::string& object_name, const PC& petsc_pc);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      *
      * \note The argument \a petsc_pc provided to the class constructor <em>is
      * not</em> deallocated by the class destructor.
      */
-    virtual
     ~PETScPCLSWrapper();
 
     /*!
@@ -88,8 +80,7 @@ public:
     /*!
      * \brief Get the PETSc PC object "wrapped" by this object.
      */
-    const PC&
-    getPETScPC() const;
+    const PC& getPETScPC() const;
 
     //\}
 
@@ -119,11 +110,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
-
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -163,10 +151,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -177,8 +163,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -193,9 +178,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
@@ -203,8 +186,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual bool
-    getInitialGuessNonzero() const;
+    bool getInitialGuessNonzero() const;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
@@ -212,9 +194,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
+    void setMaxIterations(int max_iterations);
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
@@ -222,8 +202,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual int
-    getMaxIterations() const;
+    int getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for stopping.
@@ -231,9 +210,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
+    void setAbsoluteTolerance(double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for stopping.
@@ -241,8 +218,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual double
-    getAbsoluteTolerance() const;
+    double getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for stopping.
@@ -250,9 +226,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
+    void setRelativeTolerance(double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for stopping.
@@ -260,8 +234,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual double
-    getRelativeTolerance() const;
+    double getRelativeTolerance() const;
 
     //\}
 
@@ -276,8 +249,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual int
-    getNumIterations() const;
+    int getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
@@ -285,22 +257,7 @@ public:
      * \warning Not supported.  If called, a warning will be printed via
      * SAMRAI::TBOX_WARNING.
      */
-    virtual double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    double getResidualNorm() const;
 
     //\}
 
@@ -319,8 +276,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScPCLSWrapper(
-        const PETScPCLSWrapper& from);
+    PETScPCLSWrapper(const PETScPCLSWrapper& from);
 
     /*!
      * \brief Assignment operator.
@@ -331,21 +287,13 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScPCLSWrapper&
-    operator=(
-        const PETScPCLSWrapper& that);
+    PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
     const PC d_petsc_pc;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
     Vec d_petsc_x, d_petsc_b;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/PETScPCLSWrapper.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

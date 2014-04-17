@@ -1,7 +1,7 @@
 // Filename: PETScMFFDJacobianOperator.h
 // Created on 27 Aug 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
+#include <string>
 
-// IBTK INCLUDES
-#include <ibtk/JacobianOperator.h>
-#include <ibtk/PETScNewtonKrylovSolver.h>
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/PETScNewtonKrylovSolver.h"
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -51,37 +56,32 @@ namespace IBTK
  * Jacobian-vector products, i.e., \f$ F'[x]v \f$, via a matrix-free
  * finite-difference approach.
  */
-class PETScMFFDJacobianOperator
-    : public virtual JacobianOperator
+class PETScMFFDJacobianOperator : public JacobianOperator
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
-    PETScMFFDJacobianOperator(
-        std::string options_prefix="");
+    PETScMFFDJacobianOperator(const std::string& object_name,
+                              const std::string& options_prefix = "");
 
     /*!
-     * \brief Virtual empty destructor.
+     * \brief Empty destructor.
      */
-    virtual
     ~PETScMFFDJacobianOperator();
 
     /*!
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
      */
-    void
-    setOperator(
-        SAMRAI::tbox::Pointer<GeneralOperator> F);
+    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> F);
 
     /*!
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
     void
-    setNewtonKrylovSolver(
-        SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
+    setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.
@@ -93,9 +93,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    virtual void
-    formJacobian(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -103,8 +101,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
-    getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
 
     //\}
 
@@ -135,18 +132,16 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
      * z=Ax+y.
      *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
+     * The vector arguments for apply(), applyAdd(), etc, need not match those
+     * for initializeOperatorState().  However, there must be a certain degree
+     * of similarity, including
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
@@ -172,10 +167,8 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -189,28 +182,18 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
-    deallocateOperatorState();
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateOperatorState();
 
     //\}
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    PETScMFFDJacobianOperator();
+
     /*!
      * \brief Copy constructor.
      *
@@ -218,8 +201,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMFFDJacobianOperator(
-        const PETScMFFDJacobianOperator& from);
+    PETScMFFDJacobianOperator(const PETScMFFDJacobianOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -230,29 +212,19 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMFFDJacobianOperator&
-    operator=(
-        const PETScMFFDJacobianOperator& that);
+    PETScMFFDJacobianOperator& operator=(const PETScMFFDJacobianOperator& that);
 
-    static PetscErrorCode
-    FormFunction_SAMRAI(
-        void* p_ctx,
-        Vec x,
-        Vec f);
+    static PetscErrorCode FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f);
 
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_op_u, d_op_x, d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x,
+        d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
-    bool d_is_initialized;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/PETScMFFDJacobianOperator.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

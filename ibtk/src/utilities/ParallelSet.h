@@ -1,7 +1,7 @@
 // Filename: ParallelSet.h
 // Created on 03 Mar 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <tbox/DescribedClass.h>
-
-// C++ STDLIB INCLUDES
 #include <set>
 #include <vector>
+
+#include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -50,8 +48,7 @@ namespace IBTK
  * \brief Class ParallelSet is a utility class for storing collections of
  * integer keys in parallel.
  */
-class ParallelSet
-    : public virtual SAMRAI::tbox::DescribedClass
+class ParallelSet : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -64,8 +61,7 @@ public:
      *
      * \param from The value to copy to this object.
      */
-    ParallelSet(
-        const ParallelSet& from);
+    ParallelSet(const ParallelSet& from);
 
     /*!
      * \brief Destructor.
@@ -79,9 +75,7 @@ public:
      *
      * \return A reference to this object.
      */
-    ParallelSet&
-    operator=(
-        const ParallelSet& that);
+    ParallelSet& operator=(const ParallelSet& that);
 
     /*!
      * \brief Add an item with the specified key to the set.
@@ -94,9 +88,7 @@ public:
      * \note The underling set data structure is \em not updated until the
      * collective method communicateData() is called, even for \em serial runs.
      */
-    void
-    addItem(
-        const int key);
+    void addItem(int key);
 
     /*!
      * \brief Remove an item from the set.
@@ -109,32 +101,24 @@ public:
      * \note The underling set data structure is \em not updated until the
      * collective method communicateData() is called, even for \em serial runs.
      */
-    void
-    removeItem(
-        const int key);
+    void removeItem(int key);
 
     /*!
      * \brief Communicate data to (re-)initialize the set.
      */
-    void
-    communicateData();
+    void communicateData();
 
     /*!
      * \brief Return a const reference to the set.
      */
-    const std::set<int>&
-    getSet() const;
+    const std::set<int>& getSet() const;
 
 private:
     // Member data.
     std::set<int> d_set;
     std::vector<int> d_pending_additions, d_pending_removals;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/ParallelSet.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 // Filename: PETScKrylovLinearSolver.h
 // Created on 09 Sep 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,22 +35,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
-
-// IBTK INCLUDES
-#include <ibtk/KrylovLinearSolver.h>
-#include <ibtk/LinearOperator.h>
-#include <ibtk/LinearSolver.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
+#include <stddef.h>
+#include <iosfwd>
 #include <string>
 #include <vector>
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "mpi.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpc.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK
+{
+class LinearOperator;
+} // namespace IBTK
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBTK
+{
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,14 +71,14 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScKrylovLinearSolver provides a KrylovLinearSolver interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Krylov subspace
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Krylov subspace
  * iterative linear solver (KSP).
  *
  * This solver class provides access to a large number of Krylov subspace
  * solvers for linear problems of the form \f$Ax=b\f$ using the PETSc KSP linear
  * solver interface.  See <A
- * HREF="http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/linearsolvertable.html">
- * http://www-unix.mcs.anl.gov/petsc/petsc-as/documentation/linearsolvertable.html</A>
+ *
+ HREF="http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html">http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html</A>
  * for a complete list of the Krylov solvers provided by this class.  Note that
  * solver configuration is typically done at runtime via command line options.
  *
@@ -74,7 +87,7 @@ namespace IBTK
  *   within the present IBTK solver framework.  However, this <em>does not
  *   mean</em> that preconditioners cannot be used with the
  *   PETScKrylovLinearSolver class; see, for instance, classes FACPreconditioner
- *   and CCPoissonFACOperator.  \par
+ *   and CCPoissonPointRelaxationFACOperator.  \par
  * - Users have the \em option of supplying the PETScKrylovLinearSolver class
  *   constructor with a KSP object.  It is important to emphasize that doing so
  *   is optional.  When a KSP object is provided to the class constructor, the
@@ -88,30 +101,35 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied KSP object is properly
  *   destroyed via KSPDestroy().
  *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ options_prefix = ""           // see setOptionsPrefix()
+ ksp_type = "gmres"            // see setKSPType()
+ initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
+ rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
+ abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
+ max_iterations = 10000        // see setMaxIterations()
+ enable_logging = FALSE        // see setLoggingEnabled()
+ \endverbatim
+ *
  * PETSc is developed in the Mathematics and Computer Science (MCS) Division at
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">
- * http://www-unix.mcs.anl.gov/petsc</A>.
+ * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class PETScKrylovLinearSolver
-    : public KrylovLinearSolver
+class PETScKrylovLinearSolver : public KrylovLinearSolver
 {
 public:
+    friend class PETScNewtonKrylovSolver;
+
     /*!
      * \brief Constructor for a concrete KrylovLinearSolver that employs the
      * PETSc KSP solver framework.
-     *
-     * \param object_name     Name of the solver
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
-     * \param petsc_comm      MPI communicator
-     *
-     * \note The value of \a petsc_comm is used to specify the MPI communicator
-     * used when initializing any PETSc objects required by this class.
      */
-    PETScKrylovLinearSolver(
-        const std::string& object_name,
-        const std::string& options_prefix="",
-        MPI_Comm petsc_comm=PETSC_COMM_WORLD);
+    PETScKrylovLinearSolver(const std::string& object_name,
+                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                            const std::string& default_options_prefix,
+                            MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
      * \brief Constructor for a concrete KrylovLinearSolver that acts as a
@@ -119,48 +137,38 @@ public:
      *
      * \param object_name     Name of the solver
      * \param petsc_ksp       PETSc KSP object
-     * \param options_prefix  Prefix for accessing options set through the PETSc options database (optional)
      *
      * \note This constructor initializes a PETScKrylovLinearSolver object that
      * acts as a "wrapper" for the provided KSP object.  Note that memory
      * management of the provided KSP object is \em NOT handled by this class.
      */
-    PETScKrylovLinearSolver(
-        const std::string& object_name,
-        const KSP& petsc_ksp,
-        const std::string& options_prefix="");
+    PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PETScKrylovLinearSolver();
+
+    /*!
+     * \brief Static function to construct a PETScKrylovLinearSolver.
+     */
+    static SAMRAI::tbox::Pointer<KrylovLinearSolver>
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \brief Set the KSP type.
      */
-    void
-    setKSPType(
-        const std::string& ksp_type);
+    void setKSPType(const std::string& ksp_type);
 
     /*!
-     * \brief Set a list of valid preconditioner types, set via the
-     * -pc_shell_type options database flag.
+     * \brief Set the options prefix used by this PETSc solver object.
      */
-    void
-    setValidPCShellTypes(
-        const std::vector<std::string>& pc_shell_types);
-
-    /*!
-     * \brief Get the preconditioner type, set via the -pc_shell_type options
-     * database flag.
-     *
-     * \note If the PC type is not PCSHELL, or if no preconditioner types have
-     * been registered with the solver via setValidPCShellTypes, this method
-     * will return the value "none".
-     */
-    const std::string&
-    getPCShellType() const;
+    void setOptionsPrefix(const std::string& options_prefix);
 
     /*!
      * \name Functions to access the underlying PETSc objects.
@@ -170,8 +178,7 @@ public:
     /*!
      * \brief Get the PETSc KSP object.
      */
-    const KSP&
-    getPETScKSP() const;
+    const KSP& getPETScKSP() const;
 
     //\}
 
@@ -183,15 +190,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual void
-    setOperator(
-        SAMRAI::tbox::Pointer<LinearOperator> A);
-
-    /*!
-     * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
-     */
-    virtual SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const;
+    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -199,26 +198,11 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void
-    setPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
+    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
 
-    /*!
-     * \brief Retrieve the preconditioner used by the Krylov subspace method
-     * when solving \f$Ax=b\f$.
-     */
-    virtual SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const;
-
-    /*!
-     * \brief Set the nullspace of the linear system.
-     *
-     * The basis vector, if any, will be normalized by the solver.
-     */
-    virtual void
-    setNullspace(
-        const bool contains_constant_vector,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
+    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
+                                                                                       // for
+    // g++ 4.2
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -226,10 +210,11 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    virtual void
-    setNullspace(
-        const bool contains_constant_vector,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
+    void
+    setNullspace(bool contains_constant_vec,
+                 const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >&
+                     nullspace_basis_vecs =
+                         std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -268,10 +253,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -314,10 +297,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -332,100 +313,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
-    deallocateSolverState();
-
-    //\}
-
-    /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
-     */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    virtual bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
-     */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    virtual int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    virtual int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateSolverState();
 
     //\}
 
@@ -444,8 +332,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovLinearSolver(
-        const PETScKrylovLinearSolver& from);
+    PETScKrylovLinearSolver(const PETScKrylovLinearSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -456,56 +343,50 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovLinearSolver&
-    operator=(
-        const PETScKrylovLinearSolver& that);
+    PETScKrylovLinearSolver& operator=(const PETScKrylovLinearSolver& that);
 
     /*!
      * \brief Common routine used by all class constructors.
      */
-    void
-    common_ctor();
+    void common_ctor();
 
     /*!
      * \brief Report the KSPConvergedReason.
      */
-    void
-    reportKSPConvergedReason(
-        const KSPConvergedReason& reason,
-        std::ostream& os) const;
+    void reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const;
+
+    /*!
+     * \brief Reset the KSP wrapped by this solver class.
+     */
+    void resetWrappedKSP(KSP& petsc_ksp);
 
     /*!
      * \brief Reset the values of the convergence tolerances for the PETSc KSP
      * object.
      */
-    void
-    resetKSPOptions();
+    void resetKSPOptions();
 
     /*!
      * \brief Reset the KSP operators to correspond to the supplied
      * LinearOperator.
      */
-    void
-    resetKSPOperators();
+    void resetKSPOperators();
 
     /*!
      * \brief Reset the KSP PC to correspond to the supplied preconditioner.
      */
-    void
-    resetKSPPC();
+    void resetKSPPC();
 
     /*!
      * \brief Reset the KSP nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
-    void
-    resetKSPNullspace();
+    void resetKSPNullspace();
 
     /*!
      * \brief Destroy data allocated to describe nullspace.
      */
-    void
-    deallocateNullspaceData();
+    void deallocateNullspaceData();
 
     /*!
      * \name Static functions for use by PETSc KSP and MatShell objects.
@@ -513,128 +394,51 @@ private:
     //\{
 
     /*!
-     * \brief Set PC options from the PETSc options database.
-     */
-    static PetscErrorCode
-    PCShellSetFromOptions_SAMRAI(
-        PC pc);
-
-    /*!
      * \brief Compute the matrix vector product \f$y=Ax\f$.
      */
-    static PetscErrorCode
-    MatVecMult_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
+    static PetscErrorCode MatVecMult_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * \brief Compute the matrix vector product \f$z=Ax+y\f$.
      */
-    static PetscErrorCode
-    MatVecMultAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
-
-    /*!
-     * \brief Compute the matrix-transpose vector product \f$y=A^{T}x\f$.
-     */
-    static PetscErrorCode
-    MatVecMultTranspose_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    /*!
-     * \brief Compute the matrix-transpose vector product \f$y=A^{T}x+z\f$.
-     */
-    static PetscErrorCode
-    MatVecMultTransposeAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
+    static PetscErrorCode MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z);
 
     /*!
      * \brief Get vector(s) compatible with the matrix, i.e., with the same
      * parallel layout.
      */
-    static PetscErrorCode
-    MatGetVecs_SAMRAI(
-        Mat mat,
-        Vec* right,
-        Vec* left);
+    static PetscErrorCode MatGetVecs_SAMRAI(Mat mat, Vec* right, Vec* left);
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
-    static PetscErrorCode
-    PCApply_SAMRAI(
-        void* ctx,
-        Vec x,
-        Vec y);
-#endif
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
-    static PetscErrorCode
-    PCApply_SAMRAI(
-        PC pc,
-        Vec x,
-        Vec y);
-#endif
+    static PetscErrorCode PCApply_SAMRAI(PC pc, Vec x, Vec y);
 
     //\}
 
-    std::string d_object_name;
-
     std::string d_ksp_type;
 
-    std::vector<std::string> d_pc_shell_types;
-    std::string d_pc_shell_type;
+    bool d_reinitializing_solver;
 
-    bool d_is_initialized, d_reinitializing_solver;
-    bool d_do_log;
-
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b;
     Vec d_petsc_x, d_petsc_b;
 
     std::string d_options_prefix;
 
-    MPI_Comm     d_petsc_comm;
-    KSP          d_petsc_ksp;
-    Mat          d_petsc_mat;
+    MPI_Comm d_petsc_comm;
+    KSP d_petsc_ksp;
+    Mat d_petsc_mat;
     MatNullSpace d_petsc_nullsp;
     bool d_managing_petsc_ksp;
     bool d_user_provided_mat;
     bool d_user_provided_pc;
 
-    SAMRAI::tbox::Pointer<LinearOperator> d_A;
-    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
-
-    bool d_nullsp_contains_constant_vector;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_nullsp_constant;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_solver_nullsp_basis;
-    Vec d_petsc_nullsp_constant;
-    std::vector<Vec> d_petsc_nullsp_basis;
-    bool d_solver_has_attached_nullsp;
-
-    bool d_initial_guess_nonzero;
-
-    double d_rel_residual_tol;
-    double d_abs_residual_tol;
-    double d_divergence_tol;
-    int d_max_iterations;
-
-    int d_current_its;
-    double d_current_residual_norm;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
+    d_nullspace_constant_vec;
+    Vec d_petsc_nullspace_constant_vec;
+    std::vector<Vec> d_petsc_nullspace_basis_vecs;
+    bool d_solver_has_attached_nullspace;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/PETScKrylovLinearSolver.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

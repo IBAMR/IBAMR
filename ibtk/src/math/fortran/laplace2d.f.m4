@@ -3,7 +3,7 @@ c     Routines to compute discrete Laplacians on patches.
 c
 c     Created on 12 Jun 2003 by Boyce Griffith
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -90,9 +90,6 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             F(i0,i1) =
@@ -100,7 +97,6 @@ c
      &           fac1*(U(i0,i1-1)+U(i0,i1+1)-2.d0*U(i0,i1))
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -159,9 +155,6 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             F(i0,i1) =
@@ -170,7 +163,6 @@ c
      &           beta* V(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -222,9 +214,6 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             F(i0,i1) =
@@ -233,7 +222,6 @@ c
      &           beta* U(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -292,9 +280,6 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             F(i0,i1) =
@@ -304,7 +289,6 @@ c
      &           gamma*V(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end

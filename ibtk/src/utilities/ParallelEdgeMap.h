@@ -1,7 +1,7 @@
 // Filename: ParallelEdgeMap.h
 // Created on 28 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <tbox/DescribedClass.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <utility>
+
+#include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,11 +47,8 @@ namespace IBTK
 /*!
  * \brief Class ParallelEdgeMap is a utility class for managing edge maps (i.e.,
  * maps from vertices to links between vertices) in parallel.
- *
- * \note This class is deprecated and has been superseded by class ParallelMap.
  */
-class ParallelEdgeMap
-    : public virtual SAMRAI::tbox::DescribedClass
+class ParallelEdgeMap : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -79,10 +75,7 @@ public:
      * \note By default, the master index associated with each edge is the
      * vertex with minimum index in the link.
      */
-    int
-    addEdge(
-        const std::pair<int,int>& link,
-        int mastr_idx=-1);
+    int addEdge(const std::pair<int, int>& link, int mastr_idx = -1);
 
     /*!
      * \brief Remove an edge from the edge map.
@@ -95,22 +88,17 @@ public:
      * \note The master index argument is optional and is only used as a hint to
      * attempt to find the link in the link table.
      */
-    void
-    removeEdge(
-        const std::pair<int,int>& link,
-        int mastr_idx=-1);
+    void removeEdge(const std::pair<int, int>& link, int mastr_idx = -1);
 
     /*!
      * \brief Communicate data to (re-)initialize the edge map.
      */
-    void
-    communicateData();
+    void communicateData();
 
     /*!
      * \brief Return a const reference to the edge map.
      */
-    const std::multimap<int,std::pair<int,int> >&
-    getEdgeMap() const;
+    const std::multimap<int, std::pair<int, int> >& getEdgeMap() const;
 
 private:
     /*!
@@ -120,8 +108,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ParallelEdgeMap(
-        const ParallelEdgeMap& from);
+    ParallelEdgeMap(const ParallelEdgeMap& from);
 
     /*!
      * \brief Assignment operator.
@@ -132,19 +119,13 @@ private:
      *
      * \return A reference to this object.
      */
-    ParallelEdgeMap&
-    operator=(
-        const ParallelEdgeMap& that);
+    ParallelEdgeMap& operator=(const ParallelEdgeMap& that);
 
     // Member data.
-    std::multimap<int,std::pair<int,int> > d_edge_map;
-    std::multimap<int,std::pair<int,int> > d_pending_additions, d_pending_removals;
+    std::multimap<int, std::pair<int, int> > d_edge_map;
+    std::multimap<int, std::pair<int, int> > d_pending_additions, d_pending_removals;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/ParallelEdgeMap.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

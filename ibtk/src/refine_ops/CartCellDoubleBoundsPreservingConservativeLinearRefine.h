@@ -1,7 +1,7 @@
 // Filename: CartCellDoubleBoundsPreservingConservativeLinearRefine.h
 // Created on 06 Jul 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianCellDoubleConservativeLinearRefine.h>
-#include <CellDoubleConstantRefine.h>
+#include <string>
+
+#include "Box.h"
+#include "CartesianCellDoubleConservativeLinearRefine.h"
+#include "CellDoubleConstantRefine.h"
+#include "IntVector.h"
+#include "RefineOperator.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,9 +75,8 @@ public:
     CartCellDoubleBoundsPreservingConservativeLinearRefine();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartCellDoubleBoundsPreservingConservativeLinearRefine();
 
     /*!
@@ -73,16 +88,13 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    virtual bool
-    findRefineOperator(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-        const std::string& op_name) const;
+    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+                            const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the refining operation.
      */
-    virtual const std::string&
-    getOperatorName() const;
+    const std::string& getOperatorName() const;
 
     /*!
      * Return the priority of this operator relative to other refining
@@ -90,8 +102,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    virtual int
-    getOperatorPriority() const;
+    int getOperatorPriority() const;
 
     /*!
      * Return the stencil width associated with the refining operator.  The
@@ -99,8 +110,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -109,19 +119,16 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    virtual void
-    refine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const int dst_component,
-        const int src_component,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+    void refine(SAMRAI::hier::Patch<NDIM>& fine,
+                const SAMRAI::hier::Patch<NDIM>& coarse,
+                int dst_component,
+                int src_component,
+                const SAMRAI::hier::Box<NDIM>& fine_box,
+                const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -143,8 +150,7 @@ private:
      * \return A reference to this object.
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine&
-    operator=(
-        const CartCellDoubleBoundsPreservingConservativeLinearRefine& that);
+    operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that);
 
     /*!
      * The operator name.
@@ -154,18 +160,15 @@ private:
     /*!
      * The basic, non-bounds preserving conservative linear refine operator.
      */
-    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
+    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM>
+    d_conservative_linear_refine_op;
 
     /*!
      * The constant refine operator.
      */
     SAMRAI::pdat::CellDoubleConstantRefine<NDIM> d_constant_refine_op;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

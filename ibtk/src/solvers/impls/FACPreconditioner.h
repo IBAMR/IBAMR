@@ -1,7 +1,7 @@
 // Filename: FACPreconditioner.h
 // Created on 25 Aug 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,29 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <string>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_enums.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
 class FACPreconditionerStrategy;
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -63,33 +77,47 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- num_pre_sweeps = 1     // see setNumPreSmoothingSweeps()
- num_post_sweeps = 1    // see setNumPostSmoothingSweeps()
- enable_logging = FALSE // see enableLogging()
+ cycle_type = "V_CYCLE"  // see setMGCycleType()
+ num_pre_sweeps = 0      // see setNumPreSmoothingSweeps()
+ num_post_sweeps = 2     // see setNumPostSmoothingSweeps()
+ enable_logging = FALSE  // see setLoggingEnabled()
  \endverbatim
 */
-class FACPreconditioner
-    : public LinearSolver
+class FACPreconditioner : public LinearSolver
 {
 public:
     /*!
      * Constructor.
      */
-    FACPreconditioner(
-        const std::string& object_name,
-        FACPreconditionerStrategy& fac_strategy,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+    FACPreconditioner(const std::string& object_name,
+                      SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
+                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      const std::string& default_options_prefix);
 
     /*!
-     * Virtual destructor.
+     * Destructor.
      */
-    virtual
     ~FACPreconditioner();
 
     /*!
      * \name Linear solver functionality.
      */
     //\{
+
+    /*!
+     * \brief Set whether the solver should use homogeneous boundary conditions.
+     */
+    void setHomogeneousBc(bool homogeneous_bc);
+
+    /*!
+     * \brief Set the time at which the solution is to be evaluated.
+     */
+    void setSolutionTime(double solution_time);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -128,10 +156,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -174,10 +200,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -192,8 +216,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -202,121 +225,75 @@ public:
      */
     //\{
 
-
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    virtual void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
-
-    /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    virtual bool
-    getInitialGuessNonzero() const;
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
+    void setMaxIterations(int max_iterations);
 
     /*!
-     * \brief Get the maximum number of iterations to use per solve.
+     * \brief Set the multigrid algorithm cycle type.
      */
-    virtual int
-    getMaxIterations() const;
+    void setMGCycleType(MGCycleType cycle_type);
 
     /*!
-     * \brief Set the absolute residual tolerance for convergence.
+     * \brief Get the multigrid algorithm cycle type.
      */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    virtual double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    virtual double
-    getRelativeTolerance() const;
+    MGCycleType getMGCycleType() const;
 
     /*!
      * \brief Set the number of pre-smoothing sweeps to employ.
      */
-    void
-    setNumPreSmoothingSweeps(
-        int num_pre_sweeps);
+    void setNumPreSmoothingSweeps(int num_pre_sweeps);
 
     /*!
      * \brief Get the number of pre-smoothing sweeps employed by the
      * preconditioner.
      */
-    int
-    getNumPreSmoothingSweeps() const;
+    int getNumPreSmoothingSweeps() const;
 
     /*!
      * \brief Set the number of post-smoothing sweeps to employ.
      */
-    void
-    setNumPostSmoothingSweeps(
-        int num_post_sweeps);
+    void setNumPostSmoothingSweeps(int num_post_sweeps);
 
     /*!
      * \brief Get the number of post-smoothing sweeps employed by the
      * preconditioner.
      */
-    int
-    getNumPostSmoothingSweeps() const;
+    int getNumPostSmoothingSweeps() const;
 
     //\}
 
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
+protected:
+    void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                                 int level_num);
 
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    virtual int
-    getNumIterations() const;
+    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                   int level_num);
 
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    virtual double
-    getResidualNorm() const;
+    void FACWCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                   int level_num);
 
-    //\}
+    void FACFCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                   int level_num);
 
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    int d_coarsest_ln;
+    int d_finest_ln;
+    MGCycleType d_cycle_type;
+    int d_num_pre_sweeps, d_num_post_sweeps;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f, d_r;
+    bool d_recompute_residual;
 
 private:
     /*!
@@ -333,8 +310,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FACPreconditioner(
-        const FACPreconditioner& from);
+    FACPreconditioner(const FACPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -345,35 +321,11 @@ private:
      *
      * \return A reference to this object.
      */
-    FACPreconditioner&
-    operator=(
-        const FACPreconditioner& that);
+    FACPreconditioner& operator=(const FACPreconditioner& that);
 
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-   void
-   FACCycle(
-       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
-       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
-       int level_num);
-
-    std::string d_object_name;
-    bool d_is_initialized;
-    FACPreconditionerStrategy& d_fac_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln;
-    int d_finest_ln;
-    int d_num_pre_sweeps, d_num_post_sweeps;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_f, d_r;
-    bool d_do_log;
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/FACPreconditioner.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

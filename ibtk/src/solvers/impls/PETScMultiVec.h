@@ -1,7 +1,7 @@
 // Filename: PETScMultiVec.h
 // Created on 13 Mar 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscvec.h>
+#include "mpi.h"
+#include "petscsys.h"
+#include "petscvec.h"
 
 /////////////////////////////// FUNCTION PROTOTYPES //////////////////////////
 
@@ -48,28 +49,20 @@ namespace IBTK
  *
  * \param comm MPI communicator to associate with the MultiVec object
  * \param n number of component Vec objects
- * \param v array of component of Vec objects
- * \param vv output vector
+ * \param vv array of component vectors
+ * \param v pointer to created vector
  *
  * \note Memory associated with the component vectors is \em not freed when the
  * vector is destroyed via VecDestroy().  Users must \em not free the array
  * until the vector is destroyed.
  */
-PetscErrorCode
-VecCreateMultiVec(
-    MPI_Comm comm,
-    PetscInt n,
-    Vec* v,
-    Vec* vv);
+PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v);
 
 /*!
  * \brief Return the number of component Vec objects stored in a MultiVec
  * vector.
  */
-PetscErrorCode
-VecMultiVecGetNumberOfVecs(
-    Vec v,
-    PetscInt* n);
+PetscErrorCode VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n);
 
 /*!
  * \brief Return a pointer to the component Vec objects stored in a MultiVec
@@ -78,15 +71,18 @@ VecMultiVecGetNumberOfVecs(
  * \param v input vector
  * \param vv pointer to array of component vectors
  */
-PetscErrorCode
-VecMultiVecGetVecs(
-    Vec v,
-    Vec* vv[]);
-}// namespace IBTK
+PetscErrorCode VecMultiVecGetSubVecs(Vec v, Vec* vv[]);
 
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "PETScMultiVec.I"
+/*!
+ * \brief Return a pointer to a particular component Vec object stored in a
+ * MultiVec vector.
+ *
+ * \param v input vector
+ * \param idx component index
+ * \param subv pointer to component vector
+ */
+PetscErrorCode VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv);
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

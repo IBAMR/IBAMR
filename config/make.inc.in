@@ -8,12 +8,12 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CXX = @CXX@
 CXXFLAGS = @CXXFLAGS@
-CPPFLAGS = -I. -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/ibtk/include -I$(abs_top_srcdir)/ibtk/third_party/qd-2.3.11/include -I$(abs_top_builddir)/config -I$(abs_top_builddir)/ibtk/config -I$(abs_top_builddir)/ibtk/third_party/qd-2.3.11/include @CPPFLAGS@
+CPPFLAGS = -I. -I$(abs_top_srcdir)/include -I$(abs_top_srcdir)/ibtk/include -I$(abs_top_builddir)/config -I$(abs_top_builddir)/ibtk/config @CPPFLAGS@
 CPPFLAGS_IBAMR = $(CPPFLAGS)
 FC = @FC@
-FCFLAGS = @FCFLAGS@ -I$(abs_top_builddir)/third_party/qd-2.3.11/fortran
+FCFLAGS = @FCFLAGS@
 F77 = @F77@
-FFLAGS = @FFLAGS@ -I$(abs_top_builddir)/third_party/qd-2.3.11/fortran
+FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
@@ -24,14 +24,16 @@ M4 = @M4@
 .f.m4.f:
 	$(M4) -DABS_TOP_SRCDIR=$(abs_top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 .f.o:
-	$(F77) $(FFLAGS) -c $< -o $@
+	$(FC) $(FCFLAGS) -c $< -o $@
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
 .C.o:
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
+.cpp.o:
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -DNDIM=$(PDIM) -c $< -o $@
 
-IBAMR_LIB_2D = $(abs_top_builddir)/lib/libIBAMR2d.a $(abs_top_builddir)/lib/libIBAMR.a
-IBAMR_LIB_3D = $(abs_top_builddir)/lib/libIBAMR3d.a $(abs_top_builddir)/lib/libIBAMR.a
+IBAMR_LIB_2D = $(abs_top_builddir)/lib/libIBAMR2d.a $(abs_top_builddir)/ibtk/lib/libIBTK2d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a
+IBAMR_LIB_3D = $(abs_top_builddir)/lib/libIBAMR3d.a $(abs_top_builddir)/ibtk/lib/libIBTK3d.a $(abs_top_builddir)/lib/libIBAMR.a $(abs_top_builddir)/ibtk/lib/libIBTK.a
 
-IBTK_LIB_2D = $(abs_top_builddir)/ibtk/lib/libIBTK2d.a $(abs_top_builddir)/ibtk/src/libIBTK.a $(abs_top_builddir)/ibtk/third_party/qd-2.3.11/fortran/libqdmod.a $(abs_top_builddir)/ibtk/third_party/qd-2.3.11/src/libqd.a
-IBTK_LIB_3D = $(abs_top_builddir)/ibtk/lib/libIBTK3d.a $(abs_top_builddir)/ibtk/src/libIBTK.a $(abs_top_builddir)/ibtk/third_party/qd-2.3.11/fortran/libqdmod.a $(abs_top_builddir)/ibtk/third_party/qd-2.3.11/src/libqd.a
+IBTK_LIB_2D =
+IBTK_LIB_3D =

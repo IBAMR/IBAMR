@@ -1,7 +1,7 @@
 // Filename: CartSideDoubleCubicCoarsen.h
 // Created on 02 May 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <CartesianSideDoubleWeightedAverage.h>
+#include <string>
+
+#include "Box.h"
+#include "CartesianSideDoubleWeightedAverage.h"
+#include "CoarsenOperator.h"
+#include "IntVector.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,8 +71,7 @@ namespace IBTK
  * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
  * is emitted and simple weighted averaging is used instead.
  */
-class CartSideDoubleCubicCoarsen
-    : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class CartSideDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
@@ -65,9 +80,8 @@ public:
     CartSideDoubleCubicCoarsen();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartSideDoubleCubicCoarsen();
 
     /*!
@@ -79,16 +93,13 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    virtual bool
-    findCoarsenOperator(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-        const std::string& op_name) const;
+    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+                             const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the coarsening operation.
      */
-    virtual const std::string&
-    getOperatorName() const;
+    const std::string& getOperatorName() const;
 
     /*!
      * Return the priority of this operator relative to other coarsening
@@ -96,8 +107,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    virtual int
-    getOperatorPriority() const;
+    int getOperatorPriority() const;
 
     /*!
      * Return the stencil width associated with the coarsening operator.  The
@@ -105,8 +115,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each coarsening operator.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
 
     /*!
      * Coarsen the source component on the fine patch to the destination
@@ -115,19 +124,16 @@ public:
      * patch is guaranteed to contain sufficient data for the stencil width of
      * the coarsening operator.
      */
-    virtual void
-    coarsen(
-        SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Patch<NDIM>& fine,
-        const int dst_component,
-        const int src_component,
-        const SAMRAI::hier::Box<NDIM>& coarse_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse,
+                 const SAMRAI::hier::Patch<NDIM>& fine,
+                 int dst_component,
+                 int src_component,
+                 const SAMRAI::hier::Box<NDIM>& coarse_box,
+                 const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -136,8 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleCubicCoarsen(
-        const CartSideDoubleCubicCoarsen& from);
+    CartSideDoubleCubicCoarsen(const CartSideDoubleCubicCoarsen& from);
 
     /*!
      * \brief Assignment operator.
@@ -148,9 +153,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleCubicCoarsen&
-    operator=(
-        const CartSideDoubleCubicCoarsen& that);
+    CartSideDoubleCubicCoarsen& operator=(const CartSideDoubleCubicCoarsen& that);
 
     /*!
      * The operator name.
@@ -162,11 +165,7 @@ private:
      */
     SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CartSideDoubleCubicCoarsen.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 // Filename: PETScSNESFunctionGOWrapper.h
 // Created on 27 Dec 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,18 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscsnes.h>
-
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
 #include <string>
-#include <ostream>
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,11 +51,10 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScSNESFunctionGOWrapper provides a GeneralOperator interface
- * for a <A HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
+ * for a <A HREF="http://www.mcs.anl.gov/petsc">PETSc</A> SNES nonlinear
  * function.
  */
-class PETScSNESFunctionGOWrapper
-    : public GeneralOperator
+class PETScSNESFunctionGOWrapper : public GeneralOperator
 {
 public:
     /*!
@@ -67,16 +63,14 @@ public:
      * Construct a general operator wrapper corresponding to the provided PETSc
      * SNES function object.
      */
-    PETScSNESFunctionGOWrapper(
-        const std::string& object_name,
-        const SNES& petsc_snes,
-        PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
-        void* const petsc_snes_func_ctx);
+    PETScSNESFunctionGOWrapper(const std::string& object_name,
+                               const SNES& petsc_snes,
+                               PetscErrorCode (*petsc_snes_form_func)(SNES, Vec, Vec, void*),
+                               void* petsc_snes_func_ctx);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PETScSNESFunctionGOWrapper();
 
     /*!
@@ -87,22 +81,19 @@ public:
     /*!
      * \brief Get the PETSc SNES object "wrapped" by this object.
      */
-    const SNES&
-    getPETScSNES() const;
+    const SNES& getPETScSNES() const;
 
     /*!
      * \brief Get the function pointer to the PETSc SNES function "wrapped" by
      * this object.
      */
-    PetscErrorCode
-    (*getPETScSNESFormFunction())(SNES,Vec,Vec,void*);
+    PetscErrorCode (*getPETScSNESFormFunction())(SNES, Vec, Vec, void*);
 
     /*!
      * \brief Get the PETSc SNES function context object "wrapped" by this
      * object.
      */
-    void*
-    getPETScSNESFunctionContext() const;
+    void* getPETScSNESFunctionContext() const;
 
     //\}
 
@@ -133,10 +124,8 @@ public:
      * \param x input
      * \param y output: y=F[x]
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x].
@@ -167,10 +156,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -182,24 +169,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
-    deallocateOperatorState();
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateOperatorState();
 
     //\}
 
@@ -218,8 +188,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSNESFunctionGOWrapper(
-        const PETScSNESFunctionGOWrapper& from);
+    PETScSNESFunctionGOWrapper(const PETScSNESFunctionGOWrapper& from);
 
     /*!
      * \brief Assignment operator.
@@ -230,24 +199,15 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSNESFunctionGOWrapper&
-    operator=(
-        const PETScSNESFunctionGOWrapper& that);
-
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
+    PETScSNESFunctionGOWrapper& operator=(const PETScSNESFunctionGOWrapper& that);
 
     const SNES d_petsc_snes;
-    PetscErrorCode (* const d_petsc_snes_form_func)(SNES,Vec,Vec,void*);
+    PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);
     void* const d_petsc_snes_func_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y;
     Vec d_petsc_x, d_petsc_y;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/PETScSNESFunctionGOWrapper.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

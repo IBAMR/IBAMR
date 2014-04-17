@@ -1,7 +1,7 @@
 // Filename: StreamableFactory.h
 // Created on 14 Jun 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
-// SAMRAI INCLUDES
-#include <IntVector.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
+namespace IBTK
+{
+class Streamable;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
+class AbstractStream;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,8 +76,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableManager
  */
-class StreamableFactory
-    : public virtual SAMRAI::tbox::DescribedClass
+class StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -77,33 +87,28 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~StreamableFactory();
+    virtual ~StreamableFactory();
 
     /*!
      * \brief Return the unique class identifier used to specify the
      * StreamableFactory object used by the StreamableManager to extract
      * Streamable objects from data streams.
      */
-    virtual int
-    getStreamableClassID() const = 0;
+    virtual int getStreamableClassID() const = 0;
 
     /*!
      * \brief Set the unique identifier used to specify the StreamableFactory
      * object used by the StreamableManager to extract Streamable objects from
      * data streams.
      */
-    virtual void
-    setStreamableClassID(
-        const int class_id) = 0;
+    virtual void setStreamableClassID(int class_id) = 0;
 
     /*!
      * \brief Build a Streamable object by unpacking data from the data stream.
      */
     virtual SAMRAI::tbox::Pointer<Streamable>
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset) = 0;
+    unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                 const SAMRAI::hier::IntVector<NDIM>& offset) = 0;
 
 private:
     /*!
@@ -113,8 +118,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StreamableFactory(
-        const StreamableFactory& from);
+    StreamableFactory(const StreamableFactory& from);
 
     /*!
      * \brief Assignment operator.
@@ -125,15 +129,9 @@ private:
      *
      * \return A reference to this object.
      */
-    StreamableFactory&
-    operator=(
-        const StreamableFactory& that);
+    StreamableFactory& operator=(const StreamableFactory& that);
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/StreamableFactory.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

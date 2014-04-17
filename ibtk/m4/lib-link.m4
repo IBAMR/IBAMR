@@ -1,5 +1,5 @@
-# lib-link.m4 serial 25 (gettext-0.18.2)
-dnl Copyright (C) 2001-2010 Free Software Foundation, Inc.
+# lib-link.m4 serial 26 (gettext-0.18.2)
+dnl Copyright (C) 2001-2013 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -116,6 +116,8 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
 dnl Determine the platform dependent parameters needed to use rpath:
 dnl   acl_libext,
 dnl   acl_shlibext,
+dnl   acl_libname_spec,
+dnl   acl_library_names_spec,
 dnl   acl_hardcode_libdir_flag_spec,
 dnl   acl_hardcode_libdir_separator,
 dnl   acl_hardcode_direct,
@@ -193,6 +195,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
     eval additional_includedir=\"$includedir\"
     eval additional_libdir=\"$libdir\"
   ])
+## begin removed by BEG
 ##  AC_ARG_WITH(P_A_C_K[-prefix],
 ##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
 ##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
@@ -215,6 +218,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
 ##      fi
 ##    fi
 ##])
+## end removed by BEG
   dnl Search the library and its dependencies in $additional_libdir and
   dnl $LDFLAGS. Using breadth-first-seach.
   LIB[]NAME=

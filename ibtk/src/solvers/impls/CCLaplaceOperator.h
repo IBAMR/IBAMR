@@ -1,7 +1,7 @@
 // Filename: CCLaplaceOperator.h
 // Created on 19 Sep 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,153 +35,45 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/HierarchyMathOps.h>
-#include <ibtk/LinearOperator.h>
-
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsReal.h>
-#include <LocationIndexRobinBcCoefs.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <string>
 #include <vector>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/LaplaceOperator.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class CCLaplaceOperator is a concrete LinearOperator which implements
+ * \brief Class CCLaplaceOperator is a concrete LaplaceOperator which implements
  * a globally second-order accurate cell-centered finite difference
  * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
  * \cdot D \nabla\f$.
  */
-class CCLaplaceOperator
-    : public LinearOperator
+class CCLaplaceOperator : public LaplaceOperator
 {
 public:
     /*!
      * \brief Constructor for class CCLaplaceOperator initializes the operator
-     * coefficients and boundary conditions for a scalar-valued operator.
-     *
-     * \param object_name     String used to register internal variables and for error reporting purposes.
-     * \param poisson_spec    Laplace operator coefficients.
-     * \param bc_coef         Robin boundary conditions to use with this class.
-     * \param homogeneous_bc  Whether to employ the homogeneous form of the boundary conditions.
+     * coefficients and boundary conditions to default values.
      */
-    CCLaplaceOperator(
-        const std::string& object_name,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef,
-        const bool homogeneous_bc=true);
+    CCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
 
     /*!
-     * \brief Constructor for class CCLaplaceOperator initializes the operator
-     * coefficients and boundary conditions for a vector-valued operator.
-     *
-     * \param object_name     String used to register internal variables and for error reporting purposes.
-     * \param poisson_spec    Laplace operator coefficients.
-     * \param bc_coefs        Robin boundary conditions to use with this class.
-     * \param homogeneous_bc  Whether to employ the homogeneous form of the boundary conditions.
+     * \brief Destructor.
      */
-    CCLaplaceOperator(
-        const std::string& object_name,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const bool homogeneous_bc=true);
-
-    /*!
-     * \brief Virtual destructor.
-     */
-    virtual
     ~CCLaplaceOperator();
-
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar-valued or vector-valued Laplace operator.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    virtual void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    virtual void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    virtual void
-    setHomogeneousBc(
-        const bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        const double time);
-
-    /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \name Linear operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Modify y to account for inhomogeneous boundary conditions.
-     *
-     * Before calling this function, the form of the vector y should be set
-     * properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in this vector should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * \note The operator MUST be initialized prior to calling
-     * modifyRhsForInhomogeneousBc.
-     *
-     * \see initializeOperatorState
-     *
-     * \param y output: y=Ax
-     */
-    virtual void
-    modifyRhsForInhomogeneousBc(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute y=Ax.
@@ -209,10 +101,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -223,10 +113,8 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -239,24 +127,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    virtual void
-    deallocateOperatorState();
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateOperatorState();
 
     //\}
 
@@ -275,8 +146,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCLaplaceOperator(
-        const CCLaplaceOperator& from);
+    CCLaplaceOperator(const CCLaplaceOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -287,45 +157,25 @@ private:
      *
      * \return A reference to this object.
      */
-    CCLaplaceOperator&
-    operator=(
-        const CCLaplaceOperator& that);
-
-    // Housekeeping.
-    std::string d_object_name;
+    CCLaplaceOperator& operator=(const CCLaplaceOperator& that);
 
     // Operator parameters.
-    bool d_is_initialized;
     int d_ncomp;
-    double d_apply_time;
 
     // Cached communications operators.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
+    d_transaction_comps;
     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    std::vector<int> d_scratch_idxs;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
-    bool d_correcting_rhs;
-
-    // Problem specification and mathematical operators.
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc;
-
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/CCLaplaceOperator.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

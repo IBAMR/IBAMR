@@ -1,7 +1,7 @@
 // Filename: muParserCartGridFunction.h
 // Created on 24 Aug 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,19 +35,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <tbox/Database.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
 #include <map>
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "PatchLevel.h"
+#include "boost/array.hpp"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
+#include "muParser.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,8 +73,7 @@ namespace IBTK
  * (possibly spatially- and temporally-varying) functions which are used to set
  * double precision values on standard SAMRAI SAMRAI::hier::PatchData objects.
  */
-class muParserCartGridFunction
-    : public virtual CartGridFunction
+class muParserCartGridFunction : public CartGridFunction
 {
 public:
     /*!
@@ -72,9 +85,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
-     * \brief Empty virtual destructor.
+     * \brief Empty destructor.
      */
-    virtual
     ~muParserCartGridFunction();
 
     /*!
@@ -86,20 +98,18 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    virtual bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Virtual function to evaluate the function on the patch interior.
      */
-    virtual void
-    setDataOnPatch(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        double data_time,
+                        bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -119,8 +129,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserCartGridFunction(
-        const muParserCartGridFunction& from);
+    muParserCartGridFunction(const muParserCartGridFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -131,9 +140,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserCartGridFunction&
-    operator=(
-        const muParserCartGridFunction& that);
+    muParserCartGridFunction& operator=(const muParserCartGridFunction& that);
 
     /*!
      * The Cartesian grid geometry object provides the extents of the
@@ -144,7 +151,7 @@ private:
     /*!
      * User-provided constants specified in the input file.
      */
-    std::map<std::string,double> d_constants;
+    std::map<std::string, double> d_constants;
 
     /*!
      * The strings providing the data-setting functions which are evaluated by the
@@ -161,13 +168,9 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    double d_parser_posn[NDIM];
+    Point d_parser_posn;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/muParserCartGridFunction.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

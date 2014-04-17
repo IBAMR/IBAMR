@@ -1,7 +1,7 @@
 // Filename: IBLagrangianSourceStrategy.h
 // Created on 18 Jun 2005 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/LDataManager.h>
-#include <ibtk/LNodeLevelData.h>
-
-// SAMRAI INCLUDES
-#include <PatchHierarchy.h>
-#include <tbox/DescribedClass.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "ibtk/ibtk_utilities.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+namespace IBTK
+{
+class LData;
+class LDataManager;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -56,8 +64,7 @@ namespace IBAMR
  * specifying the positions and magnitudes of distributed internal fluid
  * source-sinks.
  */
-class IBLagrangianSourceStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+class IBLagrangianSourceStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -68,18 +75,14 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~IBLagrangianSourceStrategy();
+    virtual ~IBLagrangianSourceStrategy();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
-    setTimeInterval(
-        const double current_time,
-        const double new_time);
+    virtual void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \brief Setup the data needed to compute source/sink data on the specified
@@ -88,12 +91,11 @@ public:
      * \note A default empty implementation is provided.
      */
     virtual void
-    initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool initial_time,
-        IBTK::LDataManager* const lag_manager);
+    initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                        int level_number,
+                        double init_data_time,
+                        bool initial_time,
+                        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Specify the number of distributed internal sources or sinks.
@@ -102,12 +104,11 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual int
-    getNumSources(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const lag_manager) = 0;
+    virtual unsigned int
+    getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                  int level_number,
+                  double data_time,
+                  IBTK::LDataManager* l_data_manager) = 0;
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -118,25 +119,23 @@ public:
      * the location of all of the distributed sources/sinks.
      */
     virtual void
-    getSourceLocations(
-        std::vector<std::vector<double> >& X_src,
-        std::vector<double>& r_src,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const lag_manager) = 0;
+    getSourceLocations(std::vector<IBTK::Point>& X_src,
+                       std::vector<double>& r_src,
+                       SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                       int level_number,
+                       double data_time,
+                       IBTK::LDataManager* l_data_manager) = 0;
 
     /*!
      * \brief Set the normalized pressures at the sources.
      */
     virtual void
-    setSourcePressures(
-        const std::vector<double>& P_src,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const lag_manager) = 0;
+    setSourcePressures(const std::vector<double>& P_src,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                       int level_number,
+                       double data_time,
+                       IBTK::LDataManager* l_data_manager) = 0;
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -146,13 +145,12 @@ public:
      * \a Q_src on \em each MPI process.  That is to say, \a Q_src must provide
      * the strengths of all of the distributed sources/sinks.
      */
-    virtual void
-    computeSourceStrengths(
+    virtual void computeSourceStrengths(
         std::vector<double>& Q_src,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const lag_manager) = 0;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager) = 0;
 
 private:
     /*!
@@ -162,8 +160,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBLagrangianSourceStrategy(
-        const IBLagrangianSourceStrategy& from);
+    IBLagrangianSourceStrategy(const IBLagrangianSourceStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -174,15 +171,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBLagrangianSourceStrategy&
-    operator=(
-        const IBLagrangianSourceStrategy& that);
+    IBLagrangianSourceStrategy& operator=(const IBLagrangianSourceStrategy& that);
 };
-}// namespace IBAMR
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibamr/IBLagrangianSourceStrategy.I>
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@ c     Routines to coarsen values via high-order interpolation.
 c
 c     Created on 02 May 2008 by Boyce Griffith
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -91,15 +91,11 @@ c
 c
 c     Coarsen the fine data via cubic interpolation.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,i_f,i_c,j,j_f,j_c)
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)
          do i_c = coarse_box_lower(0),coarse_box_upper(0)
             U_crse(i_c,j_c) = 0.d0
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)
          j_f = j_c*ratio_to_coarser(1)
          do j = -2,1
@@ -114,8 +110,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -177,15 +171,11 @@ c
 c
 c     Coarsen the fine data via cubic interpolation.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i,i_f,i_c,j,j_f,j_c)
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)
          do i_c = coarse_box_lower(0),coarse_box_upper(0)+1
             U_crse0(i_c,j_c) = 0.d0
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)
          j_f = j_c*ratio_to_coarser(1)
          do j = -2,1
@@ -196,15 +186,11 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)+1
          do i_c = coarse_box_lower(0),coarse_box_upper(0)
             U_crse1(i_c,j_c) = 0.d0
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do j_c = coarse_box_lower(1),coarse_box_upper(1)+1
          j_f = j_c*ratio_to_coarser(1)
          do i_c = coarse_box_lower(0),coarse_box_upper(0)
@@ -215,8 +201,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end

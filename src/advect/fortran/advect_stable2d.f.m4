@@ -1,5 +1,5 @@
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,6 @@ c
      &     stabdt)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c

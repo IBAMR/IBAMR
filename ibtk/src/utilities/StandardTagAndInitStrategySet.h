@@ -1,7 +1,7 @@
 // Filename: StandardTagAndInitStrategySet.h
 // Created on 26 Jun 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <StandardTagAndInitStrategy.h>
-
-// C++ STDLIB INCLUDES
+#include <stddef.h>
+#include <ostream>
 #include <vector>
+
+#include "BasePatchLevel.h"
+#include "IntVector.h"
+#include "StandardTagAndInitStrategy.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,39 +80,31 @@ namespace IBTK
  * SAMRAI::mesh::StandardTagAndInitStrategy will work properly with class
  * StandardTagAndInitStrategySet.
  */
-class StandardTagAndInitStrategySet
-    : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class StandardTagAndInitStrategySet : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!
      * \brief Constructor.
      */
-    template<typename InputIterator>
-    StandardTagAndInitStrategySet(
-        InputIterator first,
-        InputIterator last,
-        const bool managed=true)
-        : d_strategy_set(first,last),
-          d_managed(managed)
-        {
-            // intentionally blank
-            return;
-        }// StandardTagAndInitStrategySet
+    template <typename InputIterator>
+    StandardTagAndInitStrategySet(InputIterator first, InputIterator last, bool managed = true)
+        : d_strategy_set(first, last), d_managed(managed)
+    {
+        // intentionally blank
+        return;
+    } // StandardTagAndInitStrategySet
 
     /*!
      * \brief Destructor.
      */
-    virtual
     ~StandardTagAndInitStrategySet();
 
     /*!
      * Determine time increment to advance data on level.
      */
-    virtual double
-    getLevelDt(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
-        const double dt_time,
-        const bool initial_time);
+    double getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
+                      double dt_time,
+                      bool initial_time);
 
     /*!
      * Advance data on all patches on specified patch level from current time
@@ -153,24 +161,22 @@ public:
 
 
      */
-    virtual double
-    advanceLevel(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const double current_time,
-        const double new_time,
-        const bool first_step,
-        const bool last_step,
-        const bool regrid_advance=false);
+    double
+    advanceLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                 double current_time,
+                 double new_time,
+                 bool first_step,
+                 bool last_step,
+                 bool regrid_advance = false);
 
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    virtual void
-    resetTimeDependentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
-        const double new_time,
-        const bool can_be_refined);
+    void
+    resetTimeDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
+                           double new_time,
+                           bool can_be_refined);
 
     /*!
      * Reset data on the patch level by destroying all patch data other than
@@ -178,9 +184,8 @@ public:
      * words, this is the data needed to begin a time integration step on the
      * level.
      */
-    virtual void
-    resetDataToPreadvanceState(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level);
+    void resetDataToPreadvanceState(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -204,15 +209,15 @@ public:
      * can_be_refined boolean argument indicates whether the level is the finest
      * allowable level in the hierarchy.
      */
-    virtual void
-    initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+    void initializeLevelData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data = true);
 
     /*!
      * After hierarchy levels have changed and data has been initialized on the
@@ -231,11 +236,10 @@ public:
      * current hierarchy configuration that have changed.  It should be assumed
      * that all intermediate levels have changed as well.
      */
-    virtual void
-    resetHierarchyConfiguration(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+    void resetHierarchyConfiguration(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -255,14 +259,13 @@ public:
      * detector, and false otherwise.  This argument helps the user to manage
      * multiple regridding criteria.
      */
-    virtual void
-    applyGradientDetector(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+    void applyGradientDetector(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -289,15 +292,14 @@ public:
      * otherwise.  This argument helps the user to manage multiple regridding
      * criteria.
      */
-    virtual void
-    applyRichardsonExtrapolation(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
-        const double error_data_time,
-        const int tag_index,
-        const double deltat,
-        const int error_coarsen_ratio,
-        const bool initial_time,
-        const bool uses_gradient_detector_too);
+    void
+    applyRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+                                 double error_data_time,
+                                 int tag_index,
+                                 double deltat,
+                                 int error_coarsen_ratio,
+                                 bool initial_time,
+                                 bool uses_gradient_detector_too);
 
     /*!
      * Coarsen solution data from level to coarse_level for Richardson
@@ -309,16 +311,14 @@ public:
      * coarsening the "new" solution on the fine level (i.e., after it has been
      * advanced).
      */
-    virtual void
-    coarsenDataForRichardsonExtrapolation(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level,
-        const double coarsen_data_time,
-        const bool before_advance);
+    void coarsenDataForRichardsonExtrapolation(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarser_level,
+        double coarsen_data_time,
+        bool before_advance);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -334,8 +334,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StandardTagAndInitStrategySet(
-        const StandardTagAndInitStrategySet& from);
+    StandardTagAndInitStrategySet(const StandardTagAndInitStrategySet& from);
 
     /*!
      * \brief Assignment operator.
@@ -346,9 +345,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StandardTagAndInitStrategySet&
-    operator=(
-        const StandardTagAndInitStrategySet& that);
+    StandardTagAndInitStrategySet& operator=(const StandardTagAndInitStrategySet& that);
 
     /*!
      * \brief The set of SAMRAI::xfer:StandardTagAndInitStrategy objects.
@@ -361,11 +358,7 @@ private:
      */
     const bool d_managed;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/StandardTagAndInitStrategySet.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

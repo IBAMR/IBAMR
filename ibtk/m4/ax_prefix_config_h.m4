@@ -95,7 +95,7 @@
 #
 #   This program is free software; you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the
-#   Free Software Foundation; either version 2 of the License, or (at your
+#   Free Software Foundation; either version 3 of the License, or (at your
 #   option) any later version.
 #
 #   This program is distributed in the hope that it will be useful, but
@@ -119,12 +119,12 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 10
+#serial 13
 
 AC_DEFUN([AX_PREFIX_CONFIG_H],[dnl
 AC_PREREQ([2.62])
 AC_BEFORE([AC_CONFIG_HEADERS],[$0])dnl
-AC_CONFIG_COMMANDS([ifelse($1,,$PACKAGE-config.h,$1)],[dnl
+AC_CONFIG_COMMANDS(m4_default([$1], [$PACKAGE-config.h]),[dnl
 AS_VAR_PUSHDEF([_OUT],[ac_prefix_conf_OUT])dnl
 AS_VAR_PUSHDEF([_DEF],[ac_prefix_conf_DEF])dnl
 AS_VAR_PUSHDEF([_PKG],[ac_prefix_conf_PKG])dnl
@@ -133,12 +133,12 @@ AS_VAR_PUSHDEF([_UPP],[ac_prefix_conf_UPP])dnl
 AS_VAR_PUSHDEF([_INP],[ac_prefix_conf_INP])dnl
 m4_pushdef([_script],[conftest.prefix])dnl
 m4_pushdef([_symbol],[m4_cr_Letters[]m4_cr_digits[]_])dnl
-_OUT=`echo ifelse($1, , $PACKAGE-config.h, $1)`
+_OUT=`echo m4_default([$1], [$PACKAGE-config.h])`
 _DEF=`echo _$_OUT | sed -e "y:m4_cr_letters:m4_cr_LETTERS[]:" -e "s/@<:@^m4_cr_Letters@:>@/_/g"`
-_PKG=`echo ifelse($2, , $PACKAGE, $2)`
+_PKG=`echo m4_default([$2], [$PACKAGE])`
 _LOW=`echo _$_PKG | sed -e "y:m4_cr_LETTERS-:m4_cr_letters[]_:"`
 _UPP=`echo $_PKG | sed -e "y:m4_cr_letters-:m4_cr_LETTERS[]_:"  -e "/^@<:@m4_cr_digits@:>@/s/^/_/"`
-_INP=`echo "ifelse($3,,,$3)" | sed -e 's/ *//'`
+_INP=`echo "$3" | sed -e 's/ *//'`
 if test ".$_INP" = "."; then
    for ac_file in : $CONFIG_HEADERS; do test "_$ac_file" = _: && continue
      case "$ac_file" in
@@ -192,7 +192,6 @@ else
       rm -f "$_OUT"
       mv $tmp/pconfig.h "$_OUT"
     fi
-    cp _script _configs.sed
   else
     AC_MSG_ERROR([input file $_INP does not exist - skip generating $_OUT])
   fi

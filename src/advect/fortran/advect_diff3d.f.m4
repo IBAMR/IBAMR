@@ -1,5 +1,5 @@
 c
-c     Copyright (c) 2002-2010, Boyce Griffith
+c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
 c
 c     Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,6 @@ c
      &     flux0,flux1,flux2)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -135,7 +134,6 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -195,7 +193,8 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL sixth
+      parameter (sixth=0.16666666666667d0)
 c
 c     Input.
 c
@@ -270,7 +269,6 @@ c
      &     N)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -352,7 +350,6 @@ c
      &     N)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -434,7 +431,6 @@ c
      &     N)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c

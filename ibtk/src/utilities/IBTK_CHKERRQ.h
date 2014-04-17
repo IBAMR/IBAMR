@@ -1,7 +1,7 @@
 // Filename: IBTK_CHKERRQ.h
 // Created on 04 Nov 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/compiler_hints.h>
-
-// SAMRAI INCLUDES
-#include <tbox/Utilities.h>
-
-// C++ STDLIB INCLUDES
 #include <ostream>
+
+#include "ibtk/compiler_hints.h"
+#include "tbox/Utilities.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -54,15 +50,14 @@ namespace IBTK
  * This is is similar to the PETSc CHKERRQ(ierr) macro and is designed to be
  * invoked after a call to a PETSc library function.
  */
-#define IBTK_CHKERRQ(ierr)                              \
-    if (UNLIKELY(ierr))                                 \
-    {                                                   \
-        std::ostringstream tboxos;                      \
-        CHKERRCONTINUE(ierr);                           \
-        SAMRAI::tbox::Utilities::abort(                 \
-            tboxos.str().c_str(), __FILE__, __LINE__);  \
+#define IBTK_CHKERRQ(ierr)                                                                    \
+    if (UNLIKELY(ierr))                                                                       \
+    {                                                                                         \
+        std::ostringstream tboxos;                                                            \
+        CHKERRCONTINUE(ierr);                                                                 \
+        SAMRAI::tbox::Utilities::abort(tboxos.str().c_str(), __FILE__, __LINE__);             \
     }
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

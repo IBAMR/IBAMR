@@ -1,7 +1,7 @@
 // Filename: muParserRobinBcCoefs.h
 // Created on 25 Aug 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,38 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <RobinBcCoefStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <map>
+#include <string>
 #include <vector>
+
+#include "CartesianGridGeometry.h"
+#include "IntVector.h"
+#include "RobinBcCoefStrategy.h"
+#include "muParser.h"
+#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoundaryBox;
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class ArrayData;
+} // namespace pdat
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,8 +82,7 @@ namespace IBTK
  * linear solvers in IBTK are presently designed to support spatially and
  * temporally varying \em inhomogeneous boundary coefficients.
  */
-class muParserRobinBcCoefs
-    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class muParserRobinBcCoefs : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!
@@ -75,7 +96,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~muParserRobinBcCoefs();
 
     /*!
@@ -106,18 +126,18 @@ public:
      *        can be used to determine which variable's coefficients
      *        are being sought.
      * \param patch       Patch requiring bc coefficients.
-     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
-     * \param fill_time   Solution time corresponding to filling, for use when coefficients are time-dependent.
+     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is
+     *needed.
+     * \param fill_time   Solution time corresponding to filling, for use when coefficients are
+     *time-dependent.
      */
-    virtual void
-    setBcCoefs(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time=0.0) const;
+    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+                    const SAMRAI::hier::Patch<NDIM>& patch,
+                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                    double fill_time = 0.0) const;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -134,8 +154,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
 
     //\}
 
@@ -154,8 +173,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    muParserRobinBcCoefs(
-        const muParserRobinBcCoefs& from);
+    muParserRobinBcCoefs(const muParserRobinBcCoefs& from);
 
     /*!
      * \brief Assignment operator.
@@ -166,9 +184,7 @@ private:
      *
      * \return A reference to this object.
      */
-    muParserRobinBcCoefs&
-    operator=(
-        const muParserRobinBcCoefs& that);
+    muParserRobinBcCoefs& operator=(const muParserRobinBcCoefs& that);
 
     /*!
      * The Cartesian grid geometry object provides the extents of the
@@ -179,7 +195,7 @@ private:
     /*!
      * User-provided constants specified in the input file.
      */
-    std::map<std::string,double> d_constants;
+    std::map<std::string, double> d_constants;
 
     /*!
      * The strings providing the data-setting functions which are evaluated by the
@@ -200,13 +216,9 @@ private:
      * Time and position variables.
      */
     double* d_parser_time;
-    double* d_parser_posn;
+    Point* d_parser_posn;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <ibtk/muParserRobinBcCoefs.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

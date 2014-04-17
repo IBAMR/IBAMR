@@ -1,7 +1,7 @@
 // Filename: FaceSynchCopyFillPattern.h
 // Created on 03 Feb 2011 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <VariableFillPattern.h>
+#include <string>
+
+#include "Box.h"
+#include "IntVector.h"
+#include "VariableFillPattern.h"
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoxGeometry;
+template <int DIM>
+class BoxOverlap;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -49,8 +64,7 @@ namespace IBTK
  * face-centered ghost region surrounding a patch appropriate for
  * "synchronizing" face-centered values at patch boundaries.
  */
-class FaceSynchCopyFillPattern
-    : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
+class FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -61,7 +75,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~FaceSynchCopyFillPattern();
 
     /*!
@@ -74,32 +87,33 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source box
-     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
-     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
+     * \param src_mask            the source mask, the box resulting from shifting the source
+     *box
+     * \param overwrite_interior  controls whether or not to include the destination box
+     *interior in
+     *the overlap
+     * \param src_offset          the offset between source and destination index space (src +
+     *src_offset = dst)
      *
      * \return                    pointer to the calculated overlap object
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(
-        const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-        const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-        const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-        const SAMRAI::hier::Box<NDIM>& src_mask,
-        const bool overwrite_interior,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
+                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
+                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
+                     const SAMRAI::hier::Box<NDIM>& src_mask,
+                     bool overwrite_interior,
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>&
-    getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
 
     /*!
      * Returns a string name identifier "FACE_SYNCH_COPY_FILL_PATTERN".
      */
-    const std::string&
-    getPatternName() const;
+    const std::string& getPatternName() const;
 
 private:
     /*!
@@ -109,8 +123,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FaceSynchCopyFillPattern(
-        const FaceSynchCopyFillPattern& from);
+    FaceSynchCopyFillPattern(const FaceSynchCopyFillPattern& from);
 
     /*!
      * \brief Assignment operator.
@@ -121,17 +134,11 @@ private:
      *
      * \return A reference to this object.
      */
-    FaceSynchCopyFillPattern&
-    operator=(
-        const FaceSynchCopyFillPattern& that);
+    FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "FaceSynchCopyFillPattern.I"
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

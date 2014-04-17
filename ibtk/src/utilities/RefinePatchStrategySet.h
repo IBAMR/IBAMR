@@ -1,7 +1,7 @@
 // Filename: RefinePatchStrategySet.h
 // Created on 11 Sep 2006 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <RefinePatchStrategy.h>
-
-// C++ STDLIB INCLUDES
 #include <vector>
+
+#include "Box.h"
+#include "BoxList.h"
+#include "IntVector.h"
+#include "RefinePatchStrategy.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -50,24 +60,19 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy objects to be employed by a single
  * SAMRAI::xfer::RefineSchedule.
  */
-class RefinePatchStrategySet
-    : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class RefinePatchStrategySet : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
 public:
     /*!
      * \brief Constructor.
      */
-    template<typename InputIterator>
-    RefinePatchStrategySet(
-        InputIterator first,
-        InputIterator last,
-        const bool managed=true)
-        : d_strategy_set(first,last),
-          d_managed(managed)
-        {
-            // intentionally blank
-            return;
-        }// RefinePatchStrategySet
+    template <typename InputIterator>
+    RefinePatchStrategySet(InputIterator first, InputIterator last, bool managed = true)
+        : d_strategy_set(first, last), d_managed(managed)
+    {
+        // intentionally blank
+        return;
+    } // RefinePatchStrategySet
 
     /*!
      * \brief Destructor.
@@ -75,7 +80,6 @@ public:
      * \note The patch strategy objects provided to the constructor are deleted
      * by this class destructor.
      */
-    virtual
     ~RefinePatchStrategySet();
 
     /*!
@@ -88,21 +92,21 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
-    virtual void
-    setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
+                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -117,14 +121,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    virtual void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -139,14 +143,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    virtual void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined refine operations.  This member function
@@ -159,14 +163,14 @@ public:
      * \param fine        Fine patch containing destination data.
      * \param coarse      Coarse patch containing source data.
      * \param fine_boxes  List of box regions on fine patch into which data is refined.
-     * \param ratio       Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio       Integer vector containing ratio relating index space between coarse
+     *and
+     *fine patches.
      */
-    virtual void
-    preprocessRefineBoxes(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefineBoxes(SAMRAI::hier::Patch<NDIM>& fine,
+                               const SAMRAI::hier::Patch<NDIM>& coarse,
+                               const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
+                               const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined refine operations.  This member function
@@ -179,17 +183,16 @@ public:
      * \param fine        Fine patch containing destination data.
      * \param coarse      Coarse patch containing source data.
      * \param fine_boxes  List of box regions on fine patch into which data is refined.
-     * \param ratio       Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio       Integer vector containing ratio relating index space between coarse
+     *and
+     *fine patches.
      */
-    virtual void
-    postprocessRefineBoxes(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefineBoxes(SAMRAI::hier::Patch<NDIM>& fine,
+                                const SAMRAI::hier::Patch<NDIM>& coarse,
+                                const SAMRAI::hier::BoxList<NDIM>& fine_boxes,
+                                const SAMRAI::hier::IntVector<NDIM>& ratio);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -205,8 +208,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    RefinePatchStrategySet(
-        const RefinePatchStrategySet& from);
+    RefinePatchStrategySet(const RefinePatchStrategySet& from);
 
     /*!
      * \brief Assignment operator.
@@ -217,9 +219,7 @@ private:
      *
      * \return A reference to this object.
      */
-    RefinePatchStrategySet&
-    operator=(
-        const RefinePatchStrategySet& that);
+    RefinePatchStrategySet& operator=(const RefinePatchStrategySet& that);
 
     /*!
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.
@@ -232,11 +232,7 @@ private:
      */
     const bool d_managed;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/RefinePatchStrategySet.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

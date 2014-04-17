@@ -1,7 +1,7 @@
 // Filename: PETScSAMRAIVectorReal.h
 // Created on 10 Nov 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscvec.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <set>
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "mpi.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
+// IWYU pragma: no_include "petscmath.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -52,7 +50,7 @@ namespace IBTK
 /*!
  * \brief Class PETScSAMRAIVectorReal is a class for wrapping
  * SAMRAI::solv::SAMRAIVectorReal objects so that they may be used with the <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> solver package.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> solver package.
  *
  * Class PETScSAMRAIVectorReal wraps a real-valued SAMRAI vector (see
  * SAMRAI::solv::SAMRAIVectorReal class) object so that it may be used with the
@@ -88,10 +86,9 @@ public:
      * \note Each call to createPETScVector() should be matched with a
      * corresponding call to destroyPETScVector().
      */
-    static Vec
-    createPETScVector(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vec,
-        MPI_Comm comm=PETSC_COMM_WORLD);
+    static Vec createPETScVector(
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
+        MPI_Comm comm = PETSC_COMM_WORLD);
 
     /*!
      * Destroy a given PETSc vector object.  It is important to note that this
@@ -101,26 +98,22 @@ public:
      * \note Each call to createPETScVector() should be matched with a
      * corresponding call to destroyPETScVector().
      */
-    static void
-    destroyPETScVector(
-        Vec petsc_vec);
+    static void destroyPETScVector(Vec petsc_vec);
 
     /*!
      * Return pointer to the SAMRAI vector object associated with the given
      * PETSc vector object.
      */
-    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> >
-    getSAMRAIVector(
-        Vec petsc_vec);
+    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
+    getSAMRAIVector(Vec petsc_vec);
 
     /*!
      * Replace the SAMRAI vector object associated with the given PETSc vector
      * object.
      */
-    static void
-    replaceSAMRAIVector(
+    static void replaceSAMRAIVector(
         Vec petsc_vec,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vec);
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec);
 
 protected:
     /*
@@ -136,17 +129,17 @@ protected:
      * clone) operation, but not otherwise.
      */
     PETScSAMRAIVectorReal(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vector,
+        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
+            samrai_vector,
         bool vector_created_via_duplicate,
         MPI_Comm comm);
 
     /*
-     * Virtual destructor for PETScSAMRAIVectorReal is protected so that an
-     * object of this class cannot be destroyed without calling the static
-     * member function destroyPETScVector, which is used to destroy the PETSc
-     * vector and associated "wrapper."
+     * Destructor for PETScSAMRAIVectorReal is protected so that an object of
+     * this class cannot be destroyed without calling the static member function
+     * destroyPETScVector, which is used to destroy the PETSc vector and
+     * associated "wrapper."
      */
-    virtual
     ~PETScSAMRAIVectorReal();
 
 private:
@@ -164,8 +157,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScSAMRAIVectorReal(
-        const PETScSAMRAIVectorReal& from);
+    PETScSAMRAIVectorReal(const PETScSAMRAIVectorReal& from);
 
     /*!
      * \brief Assignment operator.
@@ -176,23 +168,16 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScSAMRAIVectorReal&
-    operator=(
-        const PETScSAMRAIVectorReal& that);
+    PETScSAMRAIVectorReal& operator=(const PETScSAMRAIVectorReal& that);
 
-    static PetscErrorCode
-    VecDuplicate_SAMRAI(
-        Vec v,
-        Vec* newv);
+    static PetscErrorCode VecDuplicate_SAMRAI(Vec v, Vec* newv);
 
-    static PetscErrorCode
-    VecDestroy_SAMRAI(
-        Vec v);
+    static PetscErrorCode VecDestroy_SAMRAI(Vec v);
 
     /*
      * Vector data is maintained in the SAMRAI vector structure.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > d_samrai_vector;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > d_samrai_vector;
 
     /*
      * PETSc vector object corresponding to this PETScAbstractVectorReal object.
@@ -200,11 +185,11 @@ private:
     Vec d_petsc_vector;
     bool d_vector_created_via_duplicate;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/PETScSAMRAIVectorReal.I>
+#include "ibtk/PETScSAMRAIVectorReal-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -1,7 +1,7 @@
 // Filename: PETScMatLOWrapper.h
 // Created on 26 Dec 2003 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,18 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
-// IBTK INCLUDES
-#include <ibtk/LinearOperator.h>
-
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
 #include <string>
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/LinearOperator.h"
+#include "petscmat.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,10 +50,9 @@ namespace IBTK
 {
 /*!
  * \brief Class PETScMatLOWrapper provides a LinearOperator interface for a <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Mat object.
+ * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> Mat object.
  */
-class PETScMatLOWrapper
-    : public LinearOperator
+class PETScMatLOWrapper : public LinearOperator
 {
 public:
     /*!
@@ -69,14 +64,11 @@ public:
      * \param object_name name of the linear operator
      * \param petsc_mat PETSc Mat object
      */
-    PETScMatLOWrapper(
-        const std::string& object_name,
-        const Mat& petsc_mat);
+    PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PETScMatLOWrapper();
 
     /*!
@@ -87,8 +79,7 @@ public:
     /*!
      * \brief Get the PETSc Mat object "wrapped" by this object.
      */
-    const Mat&
-    getPETScMat() const;
+    const Mat& getPETScMat() const;
 
     //\}
 
@@ -96,12 +87,6 @@ public:
      * \name Linear operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Indicates whether the linear operator is symmetric.
-     */
-    virtual bool
-    isSymmetric() const;
 
     /*!
      * \brief Compute y=Ax.
@@ -125,10 +110,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute z=Ax+y.
@@ -153,75 +136,17 @@ public:
      * \param y input
      * \param z output: z=Ax+y
      */
-    virtual void
-    applyAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
-
-    /*!
-     * \brief Compute y=A'x.
-     *
-     * Before calling this function, the form of the vectors x and y should be
-     * set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and y \em cannot be the same.
-     *
-     * \note The operator NEED NOT be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y output: y=A'x
-     */
-    virtual void
-    applyAdjoint(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-    /*!
-     * \brief Compute z=A'x+y.
-     *
-     * Before calling this function, the form of the vectors x, y, and z should
-     * be set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and z \em cannot be the same.
-     *
-     * \note The operator NEED NOT be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y input
-     * \param z output: z=A'x+y
-     */
-    virtual void
-    applyAdjointAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
+    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
      * z=Ax+y.
      *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
+     * The vector arguments for apply(), applyAdd(), etc, need not match those
+     * for initializeOperatorState().  However, there must be a certain degree
+     * of similarity, including
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
@@ -245,10 +170,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -260,24 +183,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
-    deallocateOperatorState();
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
-     */
-    virtual void
-    enableLogging(
-        bool enabled=true);
+    void deallocateOperatorState();
 
     //\}
 
@@ -296,8 +202,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatLOWrapper(
-        const PETScMatLOWrapper& from);
+    PETScMatLOWrapper(const PETScMatLOWrapper& from);
 
     /*!
      * \brief Assignment operator.
@@ -308,21 +213,13 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatLOWrapper&
-    operator=(
-        const PETScMatLOWrapper& that);
+    PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that);
 
-    std::string d_object_name;
-    bool d_is_initialized, d_do_log;
     const Mat d_petsc_mat;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_y, d_z;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
-}// namespace IBTK
-
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-#include <ibtk/PETScMatLOWrapper.I>
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
