@@ -40,11 +40,14 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -56,39 +59,35 @@ IBInstrumentationSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBInstrumentationSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBInstrumentationSpec::Factory::getStreamableClassID() const
+int IBInstrumentationSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBInstrumentationSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBInstrumentationSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
 Pointer<Streamable>
-IBInstrumentationSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+IBInstrumentationSpec::Factory::unpackStream(AbstractStream& stream,
+                                             const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBInstrumentationSpec> ret_val = new IBInstrumentationSpec();
-    stream.unpack(&ret_val->d_master_idx,1);
-    stream.unpack(&ret_val->d_meter_idx,1);
-    stream.unpack(&ret_val->d_node_idx,1);
+    stream.unpack(&ret_val->d_master_idx, 1);
+    stream.unpack(&ret_val->d_meter_idx, 1);
+    stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

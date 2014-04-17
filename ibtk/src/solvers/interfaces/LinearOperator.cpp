@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IntVector.h"
 #include "LinearOperator.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -45,45 +46,41 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LinearOperator::LinearOperator(
-    const std::string& object_name,
-    bool homogeneous_bc)
+LinearOperator::LinearOperator(const std::string& object_name, bool homogeneous_bc)
     : GeneralOperator(object_name, homogeneous_bc)
 {
     // intentionally blank
     return;
-}// LinearOperator()
+} // LinearOperator()
 
 LinearOperator::~LinearOperator()
 {
     deallocateOperatorState();
     return;
-}// ~LinearOperator()
+} // ~LinearOperator()
 
-void
-LinearOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
+void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<NDIM, double>& y)
 {
     if (d_homogeneous_bc) return;
 
     // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
     // inhomogeneous boundary conditions.
-    Pointer<SAMRAIVectorReal<NDIM,double> > x = y.cloneVector("");
-    Pointer<SAMRAIVectorReal<NDIM,double> > b = y.cloneVector("");
+    Pointer<SAMRAIVectorReal<NDIM, double> > x = y.cloneVector("");
+    Pointer<SAMRAIVectorReal<NDIM, double> > b = y.cloneVector("");
     x->allocateVectorData();
     b->allocateVectorData();
     x->setToScalar(0.0);
-    apply(*x,*b);
-    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), b);
+    apply(*x, *b);
+    y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
     x->freeVectorComponents();
     b->freeVectorComponents();
     return;
-}// modifyRhsForInhomogeneousBc
+} // modifyRhsForInhomogeneousBc
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

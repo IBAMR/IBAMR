@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"
@@ -45,9 +46,10 @@
 #include "ibtk/LaplaceOperator.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class StaggeredPhysicalBoundaryHelper;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,17 +61,14 @@ namespace IBTK
  * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
  * \cdot D \nabla\f$.
  */
-class SCLaplaceOperator
-    : public LaplaceOperator
+class SCLaplaceOperator : public LaplaceOperator
 {
 public:
     /*!
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(
-        const std::string& object_name,
-        bool homogeneous_bc=true);
+    SCLaplaceOperator(const std::string& object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
@@ -107,10 +106,8 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -121,10 +118,8 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -137,8 +132,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -157,8 +151,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCLaplaceOperator(
-        const SCLaplaceOperator& from);
+    SCLaplaceOperator(const SCLaplaceOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -169,20 +162,19 @@ private:
      *
      * \return A reference to this object.
      */
-    SCLaplaceOperator&
-    operator=(
-        const SCLaplaceOperator& that);
+    SCLaplaceOperator& operator=(const SCLaplaceOperator& that);
 
     // Operator parameters.
     int d_ncomp;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
-    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
+    d_transaction_comps;
     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -191,7 +183,7 @@ private:
     // Dirichlet boundary condition utilities.
     std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

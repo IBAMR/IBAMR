@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "RefineSchedule.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
@@ -48,14 +49,19 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -68,18 +74,16 @@ namespace IBAMR
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class StaggeredStokesPETScLevelSolver
-    : public IBTK::PETScLevelSolver,
-      public StaggeredStokesSolver
+class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver,
+                                        public StaggeredStokesSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesPETScLevelSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    StaggeredStokesPETScLevelSolver(const std::string& object_name,
+                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                    const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -90,60 +94,52 @@ public:
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
     static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
-    allocate_solver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix)
-        {
-            return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
-        }// allocate_solver
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new StaggeredStokesPETScLevelSolver(
+            object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
     void
-    initializeSolverStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
      * initializeSolverStateSpecialized().
      */
-    void
-    deallocateSolverStateSpecialized();
+    void deallocateSolverStateSpecialized();
 
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    void
-    copyToPETScVec(
-        Vec& petsc_x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    void copyToPETScVec(Vec& petsc_x,
+                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    void
-    copyFromPETScVec(
-        Vec& petsc_x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    void copyFromPETScVec(Vec& petsc_x,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
      * representation, including any modifications to account for boundary
      * conditions.
      */
-    void
-    setupKSPVecs(
-        Vec& petsc_x,
-        Vec& petsc_b,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+    void setupKSPVecs(Vec& petsc_x,
+                      Vec& petsc_b,
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
 private:
     /*!
@@ -160,8 +156,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPETScLevelSolver(
-        const StaggeredStokesPETScLevelSolver& from);
+    StaggeredStokesPETScLevelSolver(const StaggeredStokesPETScLevelSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -172,9 +167,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPETScLevelSolver&
-    operator=(
-        const StaggeredStokesPETScLevelSolver& that);
+    StaggeredStokesPETScLevelSolver& operator=(const StaggeredStokesPETScLevelSolver& that);
 
     /*!
      * \name PETSc objects.
@@ -184,13 +177,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched,
+        d_ghost_fill_sched;
 
     //\}
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

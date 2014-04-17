@@ -43,16 +43,18 @@
 #include "Patch.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -62,50 +64,43 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CopyToRootTransaction::CopyToRootTransaction(
-    const int src_proc,
-    const int dst_proc,
-    Pointer<PatchLevel<NDIM> > patch_level,
-    const int src_patch_data_idx,
-    Pointer<PatchData<NDIM> > dst_patch_data)
-    : d_src_proc(src_proc),
-      d_dst_proc(dst_proc),
-      d_patch_level(patch_level),
-      d_src_patch_data_idx(src_patch_data_idx),
-      d_dst_patch_data(dst_patch_data)
+CopyToRootTransaction::CopyToRootTransaction(const int src_proc,
+                                             const int dst_proc,
+                                             Pointer<PatchLevel<NDIM> > patch_level,
+                                             const int src_patch_data_idx,
+                                             Pointer<PatchData<NDIM> > dst_patch_data)
+    : d_src_proc(src_proc), d_dst_proc(dst_proc), d_patch_level(patch_level),
+      d_src_patch_data_idx(src_patch_data_idx), d_dst_patch_data(dst_patch_data)
 {
     // intentionally blank
     return;
-}// CopyToRootTransaction
+} // CopyToRootTransaction
 
 CopyToRootTransaction::~CopyToRootTransaction()
 {
     // intentionally blank
     return;
-}// CopyToRootTransaction
+} // CopyToRootTransaction
 
-Pointer<PatchData<NDIM> >
-CopyToRootTransaction::getRootPatchData() const
+Pointer<PatchData<NDIM> > CopyToRootTransaction::getRootPatchData() const
 {
     return d_dst_patch_data;
-}// getRootPatchData
+} // getRootPatchData
 
-bool
-CopyToRootTransaction::canEstimateIncomingMessageSize()
+bool CopyToRootTransaction::canEstimateIncomingMessageSize()
 {
     return false;
-}// canEstimateIncomingMessageSize
+} // canEstimateIncomingMessageSize
 
-int
-CopyToRootTransaction::computeIncomingMessageSize()
+int CopyToRootTransaction::computeIncomingMessageSize()
 {
     return 0;
-}// computeIncomingMessageSize
+} // computeIncomingMessageSize
 
-int
-CopyToRootTransaction::computeOutgoingMessageSize()
+int CopyToRootTransaction::computeOutgoingMessageSize()
 {
-    Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
+    Pointer<PatchDataFactory<NDIM> > pdat_factory =
+        d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
@@ -125,29 +120,27 @@ CopyToRootTransaction::computeOutgoingMessageSize()
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
+            *src_box_geometry, src_mask, overwrite_interior, src_shift);
         size += patch->getPatchData(d_src_patch_data_idx)->getDataStreamSize(*box_overlap);
     }
     return size;
-}// computeOutgoingMessageSize
+} // computeOutgoingMessageSize
 
-int
-CopyToRootTransaction::getSourceProcessor()
+int CopyToRootTransaction::getSourceProcessor()
 {
     return d_src_proc;
-}// getSourceProcessor
+} // getSourceProcessor
 
-int
-CopyToRootTransaction::getDestinationProcessor()
+int CopyToRootTransaction::getDestinationProcessor()
 {
     return d_dst_proc;
-}// getDestinationProcessor
+} // getDestinationProcessor
 
-void
-CopyToRootTransaction::packStream(
-    AbstractStream& stream)
+void CopyToRootTransaction::packStream(AbstractStream& stream)
 {
-    Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
+    Pointer<PatchDataFactory<NDIM> > pdat_factory =
+        d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
@@ -173,17 +166,17 @@ CopyToRootTransaction::packStream(
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
+            *src_box_geometry, src_mask, overwrite_interior, src_shift);
         patch->getPatchData(d_src_patch_data_idx)->packStream(stream, *box_overlap);
     }
     return;
-}// packStream
+} // packStream
 
-void
-CopyToRootTransaction::unpackStream(
-    AbstractStream& stream)
+void CopyToRootTransaction::unpackStream(AbstractStream& stream)
 {
-    Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
+    Pointer<PatchDataFactory<NDIM> > pdat_factory =
+        d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
@@ -203,16 +196,17 @@ CopyToRootTransaction::unpackStream(
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
+            *src_box_geometry, src_mask, overwrite_interior, src_shift);
         d_dst_patch_data->unpackStream(stream, *box_overlap);
     }
     return;
-}// unpackStream
+} // unpackStream
 
-void
-CopyToRootTransaction::copyLocalData()
+void CopyToRootTransaction::copyLocalData()
 {
-    Pointer<PatchDataFactory<NDIM> > pdat_factory = d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
+    Pointer<PatchDataFactory<NDIM> > pdat_factory =
+        d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
@@ -230,19 +224,18 @@ CopyToRootTransaction::copyLocalData()
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
+            *src_box_geometry, src_mask, overwrite_interior, src_shift);
         d_dst_patch_data->copy(*patch->getPatchData(d_src_patch_data_idx), *box_overlap);
     }
     return;
-}// copyLocalData
+} // copyLocalData
 
-void
-CopyToRootTransaction::printClassData(
-    std::ostream& stream) const
+void CopyToRootTransaction::printClassData(std::ostream& stream) const
 {
     stream << "CopyToRootTransaction::printClassData() is not implemented\n";
     return;
-}// printClassData
+} // printClassData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -250,6 +243,6 @@ CopyToRootTransaction::printClassData(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

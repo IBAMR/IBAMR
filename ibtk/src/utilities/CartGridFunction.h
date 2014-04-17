@@ -42,13 +42,18 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchHierarchy;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,21 +63,18 @@ namespace IBTK
  * \brief Class CartGridFunction provides an abstract interface for objects for
  * evaluating functions to set values in SAMRAI::hier::PatchData objects.
  */
-class CartGridFunction
-    : public virtual SAMRAI::tbox::DescribedClass
+class CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief The default constructor sets the name of the strategy object.
      */
-    CartGridFunction(
-        const std::string& object_name="");
+    CartGridFunction(const std::string& object_name = "");
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~CartGridFunction();
+    virtual ~CartGridFunction();
 
     /*!
      * \name Methods to set patch interior data.
@@ -83,8 +85,7 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    virtual bool
-    isTimeDependent() const = 0;
+    virtual bool isTimeDependent() const = 0;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -93,15 +94,14 @@ public:
      *
      * \see setDataOnPatch
      */
-    virtual void
-    setDataOnPatchHierarchy(
+    virtual void setDataOnPatchHierarchy(
         int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         double data_time,
-        bool initial_time=false,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+        bool initial_time = false,
+        int coarsest_ln = -1,
+        int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -110,25 +110,24 @@ public:
      * \see setDataOnPatch
      */
     virtual void
-    setDataOnPatchLevel(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        double data_time,
-        bool initial_time=false);
+    setDataOnPatchLevel(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                        double data_time,
+                        bool initial_time = false);
 
     /*!
      * \brief Pure virtual function to evaluate the function on the patch
      * interior.
      */
-    virtual void
-    setDataOnPatch(
+    virtual void setDataOnPatch(
         int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         double data_time,
-        bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
+        bool initial_time = false,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >
+            patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) = 0;
 
     //\}
 
@@ -146,8 +145,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunction(
-        const CartGridFunction& from);
+    CartGridFunction(const CartGridFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -158,11 +156,9 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunction&
-    operator=(
-        const CartGridFunction& that);
+    CartGridFunction& operator=(const CartGridFunction& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

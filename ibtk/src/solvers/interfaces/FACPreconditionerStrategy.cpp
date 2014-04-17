@@ -34,9 +34,9 @@
 
 #include <limits>
 #include <ostream>
-#include <sstream>
 
 #include "FACPreconditionerStrategy.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -49,132 +49,113 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy(
-    const std::string& object_name,
-    bool homogeneous_bc)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_homogeneous_bc(homogeneous_bc),
+FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_name,
+                                                     bool homogeneous_bc)
+    : d_object_name(object_name), d_is_initialized(false), d_homogeneous_bc(homogeneous_bc),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
     return;
-}// FACPreconditionerStrategy
+} // FACPreconditionerStrategy
 
 FACPreconditionerStrategy::~FACPreconditionerStrategy()
 {
     // intentionally blank
     return;
-}// ~FACPreconditionerStrategy
+} // ~FACPreconditionerStrategy
 
-const std::string&
-FACPreconditionerStrategy::getName() const
+const std::string& FACPreconditionerStrategy::getName() const
 {
     return d_object_name;
-}// getName
+} // getName
 
-bool
-FACPreconditionerStrategy::getIsInitialized() const
+bool FACPreconditionerStrategy::getIsInitialized() const
 {
     return d_is_initialized;
-}// getIsInitialized
+} // getIsInitialized
 
 void
-FACPreconditionerStrategy::setFACPreconditioner(
-    ConstPointer<FACPreconditioner> preconditioner)
+FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
-}// setFACPreconditioner
+} // setFACPreconditioner
 
-void
-FACPreconditionerStrategy::setHomogeneousBc(
-    bool homogeneous_bc)
+void FACPreconditionerStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-bool
-FACPreconditionerStrategy::getHomogeneousBc() const
+bool FACPreconditionerStrategy::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-}// getHomogeneousBc
+} // getHomogeneousBc
 
-void
-FACPreconditionerStrategy::setSolutionTime(
-    double solution_time)
+void FACPreconditionerStrategy::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-double
-FACPreconditionerStrategy::getSolutionTime() const
+double FACPreconditionerStrategy::getSolutionTime() const
 {
     return d_solution_time;
-}// getSolutionTime
+} // getSolutionTime
 
-void
-FACPreconditionerStrategy::setTimeInterval(
-    double current_time,
-    double new_time)
+void FACPreconditionerStrategy::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-std::pair<double,double>
-FACPreconditionerStrategy::getTimeInterval() const
+std::pair<double, double> FACPreconditionerStrategy::getTimeInterval() const
 {
-    return std::make_pair(d_current_time,d_new_time);
-}// getTimeInterval
+    return std::make_pair(d_current_time, d_new_time);
+} // getTimeInterval
 
-double
-FACPreconditionerStrategy::getDt() const
+double FACPreconditionerStrategy::getDt() const
 {
-    return d_new_time-d_current_time;
-}// getDt
+    return d_new_time - d_current_time;
+} // getDt
 
-void
-FACPreconditionerStrategy::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM,double>& /*rhs*/)
+void FACPreconditionerStrategy::initializeOperatorState(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
 {
     d_is_initialized = true;
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-FACPreconditionerStrategy::deallocateOperatorState()
+void FACPreconditionerStrategy::deallocateOperatorState()
 {
     d_is_initialized = false;
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<SAMRAIVectorReal<NDIM,double> >
-FACPreconditionerStrategy::getLevelSAMRAIVectorReal(
-    const SAMRAIVectorReal<NDIM,double>& vec,
-    int level_num) const
+Pointer<SAMRAIVectorReal<NDIM, double> >
+FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec,
+                                                    int level_num) const
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<NDIM,double> > level_vec = new SAMRAIVectorReal<NDIM,double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec = new SAMRAIVectorReal<NDIM, double>(
+        name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
-        level_vec->addComponent(vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp), vec.getControlVolumeIndex(comp));
+        level_vec->addComponent(vec.getComponentVariable(comp),
+                                vec.getComponentDescriptorIndex(comp),
+                                vec.getControlVolumeIndex(comp));
     }
     return level_vec;
-}// getLevelSAMRAIVectorReal
+} // getLevelSAMRAIVectorReal
 
-void
-FACPreconditionerStrategy::printClassData(
-    std::ostream& stream)
+void FACPreconditionerStrategy::printClassData(std::ostream& stream)
 {
     stream << "\n"
            << "object_name = " << d_object_name << "\n"
@@ -184,12 +165,12 @@ FACPreconditionerStrategy::printClassData(
            << "current_time = " << d_current_time << "\n"
            << "new_time = " << d_new_time << "\n";
     return;
-}// printClassData
+} // printClassData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

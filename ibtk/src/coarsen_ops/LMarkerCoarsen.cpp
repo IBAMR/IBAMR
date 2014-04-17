@@ -40,16 +40,17 @@
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LSetData.h"
-#include "ibtk/LSet-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -64,18 +65,12 @@ namespace
 static const int COARSEN_OP_PRIORITY = 0;
 static const int COARSEN_OP_STENCIL_WIDTH = 0;
 
-inline int
-coarsen(
-    const int index,
-    const int ratio)
+inline int coarsen(const int index, const int ratio)
 {
-    return (index < 0 ? (index+1)/ratio-1 : index/ratio);
-}// coarsen
+    return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
+} // coarsen
 
-inline Index<NDIM>
-coarsen_index(
-    const Index<NDIM>& i,
-    const IntVector<NDIM>& ratio)
+inline Index<NDIM> coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_i;
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -83,7 +78,7 @@ coarsen_index(
         coarse_i(d) = coarsen(i(d), ratio(d));
     }
     return coarse_i;
-}// coarsen_index
+} // coarsen_index
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -92,58 +87,51 @@ LMarkerCoarsen::LMarkerCoarsen()
 {
     // intentionally blank
     return;
-}// LMarkerCoarsen
+} // LMarkerCoarsen
 
 LMarkerCoarsen::~LMarkerCoarsen()
 {
     // intentionally blank
     return;
-}// ~LMarkerCoarsen
+} // ~LMarkerCoarsen
 
-bool
-LMarkerCoarsen::findCoarsenOperator(
-    const Pointer<Variable<NDIM> >& var,
-    const std::string &op_name) const
+bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
+                                         const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
-}// findCoarsenOperator
+} // findCoarsenOperator
 
-const std::string&
-LMarkerCoarsen::getOperatorName() const
+const std::string& LMarkerCoarsen::getOperatorName() const
 {
     return s_op_name;
-}// getOperatorName
+} // getOperatorName
 
-int
-LMarkerCoarsen::getOperatorPriority() const
+int LMarkerCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
-}// getOperatorPriority
+} // getOperatorPriority
 
-IntVector<NDIM>
-LMarkerCoarsen::getStencilWidth() const
+IntVector<NDIM> LMarkerCoarsen::getStencilWidth() const
 {
     return COARSEN_OP_STENCIL_WIDTH;
-}// getStencilWidth
+} // getStencilWidth
 
-void
-LMarkerCoarsen::coarsen(
-    Patch<NDIM>& coarse,
-    const Patch<NDIM>& fine,
-    const int dst_component,
-    const int src_component,
-    const Box<NDIM>& coarse_box,
-    const IntVector<NDIM>& ratio) const
+void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
+                             const Patch<NDIM>& fine,
+                             const int dst_component,
+                             const int src_component,
+                             const Box<NDIM>& coarse_box,
+                             const IntVector<NDIM>& ratio) const
 {
     Pointer<LMarkerSetData> dst_mark_data = coarse.getPatchData(dst_component);
-    Pointer<LMarkerSetData> src_mark_data = fine  .getPatchData(src_component);
+    Pointer<LMarkerSetData> src_mark_data = fine.getPatchData(src_component);
 
-    const Box<NDIM> fine_box = Box<NDIM>::refine(coarse_box,ratio);
+    const Box<NDIM> fine_box = Box<NDIM>::refine(coarse_box, ratio);
     for (LMarkerSetData::SetIterator it(*src_mark_data); it; it++)
     {
         const Index<NDIM>& fine_i = it.getIndex();
-        const Index<NDIM> coarse_i = coarsen_index(fine_i,ratio);
+        const Index<NDIM> coarse_i = coarsen_index(fine_i, ratio);
         if (fine_box.contains(fine_i) && coarse_box.contains(coarse_i))
         {
             const LMarkerSet& fine_mark_set = it();
@@ -152,11 +140,12 @@ LMarkerCoarsen::coarsen(
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
             }
             LMarkerSet& coarse_mark_set = *(dst_mark_data->getItem(coarse_i));
-            coarse_mark_set.insert(coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
+            coarse_mark_set.insert(
+                coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
         }
     }
     return;
-}// coarsen
+} // coarsen
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -164,6 +153,6 @@ LMarkerCoarsen::coarsen(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

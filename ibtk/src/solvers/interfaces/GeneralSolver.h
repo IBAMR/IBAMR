@@ -43,11 +43,14 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,8 +61,7 @@ namespace IBTK
  * implementation of linear or nonlinear solvers for systems of equations
  * defined on an AMR patch hierarchy.
  */
-class GeneralSolver
-    : public virtual SAMRAI::tbox::DescribedClass
+class GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -70,8 +72,7 @@ public:
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~GeneralSolver();
+    virtual ~GeneralSolver();
 
     /*!
      * \name General-purpose solver functionality.
@@ -81,74 +82,58 @@ public:
     /*!
      * \brief Return the object name.
      */
-    const std::string&
-    getName() const;
+    const std::string& getName() const;
 
     /*!
      * \brief Return whether the operator is initialized.
      */
-    virtual bool
-    getIsInitialized() const;
+    virtual bool getIsInitialized() const;
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    virtual void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    virtual void setHomogeneousBc(bool homogeneous_bc);
 
     /*!
      * \brief Return whether the solver is using homogeneous boundary
      * conditions.
      */
-    virtual bool
-    getHomogeneousBc() const;
+    virtual bool getHomogeneousBc() const;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    virtual void
-    setSolutionTime(
-        double solution_time);
+    virtual void setSolutionTime(double solution_time);
 
     /*!
      * \brief Get the time at which the solution is being evaluated.
      */
-    virtual double
-    getSolutionTime() const;
+    virtual double getSolutionTime() const;
 
     /*!
      * \brief Set the current time interval.
      */
-    virtual void
-    setTimeInterval(
-        double current_time,
-        double new_time);
+    virtual void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \brief Get the current time interval.
      */
-    virtual std::pair<double,double>
-    getTimeInterval() const;
+    virtual std::pair<double, double> getTimeInterval() const;
 
     /*!
      * \brief Get the current time step size.
      */
-    virtual double
-    getDt() const;
+    virtual double getDt() const;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    virtual void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the solver.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps>
-    getHierarchyMathOps() const;
+    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Solve the system of equations.
@@ -188,10 +173,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b) = 0;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -237,10 +220,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -256,8 +237,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
-    deallocateSolverState();
+    virtual void deallocateSolverState();
 
     //\}
 
@@ -269,41 +249,32 @@ public:
     /*!
      * \brief Set the maximum number of nonlinear iterations to use per solve.
      */
-    virtual void
-    setMaxIterations(
-        int max_iterations);
+    virtual void setMaxIterations(int max_iterations);
 
     /*!
      * \brief Get the maximum number of nonlinear iterations to use per solve.
      */
-    virtual int
-    getMaxIterations() const;
+    virtual int getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
-    virtual void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
+    virtual void setAbsoluteTolerance(double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
-    virtual double
-    getAbsoluteTolerance() const;
+    virtual double getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
-    virtual void
-    setRelativeTolerance(
-        double rel_residual_tol);
+    virtual void setRelativeTolerance(double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
-    virtual double
-    getRelativeTolerance() const;
+    virtual double getRelativeTolerance() const;
 
     //\}
 
@@ -315,14 +286,12 @@ public:
     /*!
      * \brief Return the iteration count from the most recent solve.
      */
-    virtual int
-    getNumIterations() const;
+    virtual int getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
-    virtual double
-    getResidualNorm() const;
+    virtual double getResidualNorm() const;
 
     //\}
 
@@ -334,31 +303,23 @@ public:
     /*!
      * \brief Enable or disable logging.
      */
-    virtual void
-    setLoggingEnabled(
-        bool enable_logging=true);
+    virtual void setLoggingEnabled(bool enable_logging = true);
 
     /*!
      * \brief Determine whether logging is enabled or disabled.
      */
-    virtual bool
-    getLoggingEnabled() const;
+    virtual bool getLoggingEnabled() const;
 
     /*!
      * \brief Print class data to stream.
      */
-    virtual void
-    printClassData(
-        std::ostream& stream);
+    virtual void printClassData(std::ostream& stream);
 
     //\}
 
 protected:
     // Basic initialization.
-    void
-    init(
-        const std::string& object_name,
-        bool homogeneous_bc);
+    void init(const std::string& object_name, bool homogeneous_bc);
 
     // Object name.
     std::string d_object_name;
@@ -391,8 +352,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralSolver(
-        const GeneralSolver& from);
+    GeneralSolver(const GeneralSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -403,11 +363,9 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralSolver&
-    operator=(
-        const GeneralSolver& that);
+    GeneralSolver& operator=(const GeneralSolver& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

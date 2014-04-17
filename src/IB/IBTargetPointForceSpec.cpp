@@ -35,7 +35,6 @@
 #include <ostream>
 
 #include "IBTargetPointForceSpec.h"
-#include "SAMRAI_config.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -49,8 +48,7 @@ namespace IBAMR
 
 int IBTargetPointForceSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
-void
-IBTargetPointForceSpec::registerWithStreamableManager()
+void IBTargetPointForceSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
@@ -62,11 +60,12 @@ IBTargetPointForceSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBTargetPointForceSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
+            new IBTargetPointForceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;
-}// registerWithStreamableManager
+} // registerWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

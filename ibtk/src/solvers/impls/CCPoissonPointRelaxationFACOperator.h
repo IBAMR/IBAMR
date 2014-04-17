@@ -49,20 +49,30 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Box;
-template <int DIM> class BoxList;
-template <int DIM> class Patch;
-}  // namespace hier
-namespace pdat {
-template <int DIM, class TYPE> class CellData;
-template <int DIM, class TYPE> class SideData;
-}  // namespace pdat
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+template <int DIM>
+class BoxList;
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class CellData;
+template <int DIM, class TYPE>
+class SideData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -101,24 +111,23 @@ namespace IBTK
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 1             // see setCoarseSolverMaxIterations()
- coarse_solver_db {                           // SAMRAI::tbox::Database for initializing coarse level solver
+ coarse_solver_db {                           // SAMRAI::tbox::Database for initializing coarse
+ level solver
     solver_type = "PFMG"
     num_pre_relax_steps = 0
     num_post_relax_steps = 2
  }
  \endverbatim
 */
-class CCPoissonPointRelaxationFACOperator
-    : public PoissonFACPreconditionerStrategy
+class CCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    CCPoissonPointRelaxationFACOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    CCPoissonPointRelaxationFACOperator(const std::string& object_name,
+                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -130,15 +139,18 @@ public:
      * CCPoissonPointRelaxationFACOperator FAC strategy.
      */
     static SAMRAI::tbox::Pointer<PoissonSolver>
-    allocate_solver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix)
-        {
-            SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-                new CCPoissonPointRelaxationFACOperator(object_name+"::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
-            return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
-        }// allocate
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
+            new CCPoissonPointRelaxationFACOperator(
+                object_name + "::CCPoissonPointRelaxationFACOperator",
+                input_db,
+                default_options_prefix);
+        return new PoissonFACPreconditioner(
+            object_name, fac_operator, input_db, default_options_prefix);
+    } // allocate
 
     /*!
      * \name Functions for configuring the solver.
@@ -153,16 +165,12 @@ public:
      * - \c "PROCESSOR_GAUSS_SEIDEL"
      * - \c "RED_BLACK_GAUSS_SEIDEL"
      */
-    void
-    setSmootherType(
-        const std::string& smoother_type);
+    void setSmootherType(const std::string& smoother_type);
 
     /*!
      * \brief Specify the coarse level solver.
      */
-    void
-    setCoarseSolverType(
-        const std::string& coarse_solver_type);
+    void setCoarseSolverType(const std::string& coarse_solver_type);
 
     //\}
 
@@ -178,17 +186,19 @@ public:
      * \param residual residual vector
      * \param level_num level number
      * \param num_sweeps number of sweeps to perform
-     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
-     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
+     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are
+     *being
+     *performed
+     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are
+     *being
+     *performed
      */
-    void
-    smoothError(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int level_num,
-        int num_sweeps,
-        bool performing_pre_sweeps,
-        bool performing_post_sweeps);
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                     int level_num,
+                     int num_sweeps,
+                     bool performing_pre_sweeps,
+                     bool performing_post_sweeps);
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -198,11 +208,9 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool
-    solveCoarsestLevel(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int coarsest_ln);
+    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                            int coarsest_ln);
 
     /*!
      * \brief Compute composite grid residual on a range of levels.
@@ -213,13 +221,11 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void
-    computeResidual(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int coarsest_level_num,
-        int finest_level_num);
+    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                         int coarsest_level_num,
+                         int finest_level_num);
 
     //\}
 
@@ -227,20 +233,16 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void
-    initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+    void initializeOperatorStateSpecialized(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
         int coarsest_reset_ln,
         int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void
-    deallocateOperatorStateSpecialized(
-        int coarsest_reset_ln,
-        int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
 
 private:
     /*!
@@ -257,8 +259,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonPointRelaxationFACOperator(
-        const CCPoissonPointRelaxationFACOperator& from);
+    CCPoissonPointRelaxationFACOperator(const CCPoissonPointRelaxationFACOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -269,29 +270,27 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonPointRelaxationFACOperator& operator=(
-        const CCPoissonPointRelaxationFACOperator& that);
+    CCPoissonPointRelaxationFACOperator&
+    operator=(const CCPoissonPointRelaxationFACOperator& that);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch.
      */
     static void
-    buildPatchLaplaceOperator(
-        Mat& A,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+    buildPatchLaplaceOperator(Mat& A,
+                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                              const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch with grid aligned anisotropy.
      */
-    static void
-    buildPatchLaplaceOperator_aligned(
+    static void buildPatchLaplaceOperator_aligned(
         Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
@@ -299,11 +298,10 @@ private:
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch with non-grid aligned anisotropy.
      */
-    static void
-    buildPatchLaplaceOperator_nonaligned(
+    static void buildPatchLaplaceOperator_nonaligned(
         Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
@@ -324,9 +322,10 @@ private:
      * Patch overlap data.
      */
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > >
+    d_patch_neighbor_overlap;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -36,9 +36,8 @@
 #include <algorithm>
 #include <ostream>
 
-#include "IBTK_config.h"
+#include "MultiblockDataTranslator.h"
 #include "PoissonSpecifications.h"
-#include "SAMRAI_config.h"
 #include "SCLaplaceOperator.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"
@@ -51,11 +50,14 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -70,9 +72,9 @@ static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE     = "NONE";
-static const bool        USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -89,43 +91,33 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SCLaplaceOperator::SCLaplaceOperator(
-    const std::string& object_name,
-    const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_ncomp(0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
+SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
+    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL),
+      d_transaction_comps(), d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL),
+      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(
+        NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::deallocateOperatorState()");
-                 );
+    IBTK_DO_ONCE(t_apply =
+                     TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
+                 t_initialize_operator_state = TimerManager::getManager()->getTimer(
+                     "IBTK::SCLaplaceOperator::initializeOperatorState()");
+                 t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+                     "IBTK::SCLaplaceOperator::deallocateOperatorState()"););
     return;
-}// SCLaplaceOperator()
+} // SCLaplaceOperator()
 
 SCLaplaceOperator::~SCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~SCLaplaceOperator()
+} // ~SCLaplaceOperator()
 
-void
-SCLaplaceOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
+                              SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -134,15 +126,16 @@ SCLaplaceOperator::apply(
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                       << "  encountered non-side centered vector components" << std::endl);
+                                     << "  encountered non-side centered vector components"
+                                     << std::endl);
         }
-        Pointer<SideDataFactory<NDIM,double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM,double> > y_factory = y_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -151,17 +144,27 @@ SCLaplaceOperator::apply(
         if (x_depth != 1 || y_depth != 1)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                       << "  each vector component must have data depth == 1" << std::endl);
+                                     << "  each vector component must have data depth == 1"
+                                     << std::endl);
         }
     }
 #endif
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp), x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp),
+                                                      x.getComponentDescriptorIndex(comp),
+                                                      DATA_REFINE_TYPE,
+                                                      USE_CF_INTERPOLATION,
+                                                      DATA_COARSEN_TYPE,
+                                                      BDRY_EXTRAP_TYPE,
+                                                      CONSISTENT_TYPE_2_BDRY,
+                                                      d_bc_coefs,
+                                                      d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -172,23 +175,22 @@ SCLaplaceOperator::apply(
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM,double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM,double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
-        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
+        d_hier_math_ops->laplace(
+            y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
     IBTK_TIMER_STOP(t_apply);
     return;
-}// apply
+} // apply
 
-void
-SCLaplaceOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -196,14 +198,14 @@ SCLaplaceOperator::initializeOperatorState(
     if (d_is_initialized) deallocateOperatorState();
 
     // Setup solution and rhs vectors.
-    d_x = in .cloneVector(in .getName());
+    d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
     d_x->allocateVectorData();
 
     // Setup operator state.
-    d_hierarchy   = in.getPatchHierarchy();
+    d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
-    d_finest_ln   = in.getFinestLevelNumber();
+    d_finest_ln = in.getFinestLevelNumber();
 
     d_ncomp = in.getNumberOfComponents();
 
@@ -216,7 +218,8 @@ SCLaplaceOperator::initializeOperatorState(
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(
+            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -239,27 +242,36 @@ SCLaplaceOperator::initializeOperatorState(
     {
         d_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), in.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
+                                                    in.getComponentDescriptorIndex(comp),
+                                                    DATA_REFINE_TYPE,
+                                                    USE_CF_INTERPOLATION,
+                                                    DATA_COARSEN_TYPE,
+                                                    BDRY_EXTRAP_TYPE,
+                                                    CONSISTENT_TYPE_2_BDRY,
+                                                    d_bc_coefs,
+                                                    d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(
+        d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-SCLaplaceOperator::deallocateOperatorState()
+void SCLaplaceOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -275,10 +287,14 @@ SCLaplaceOperator::deallocateOperatorState()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Delete the solution and rhs vectors.
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
+    d_x->resetLevels(
+        d_x->getCoarsestLevelNumber(),
+        std::min(d_x->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_x->freeVectorComponents();
 
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
+    d_b->resetLevels(
+        d_b->getCoarsestLevelNumber(),
+        std::min(d_b->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_b->freeVectorComponents();
 
     d_x.setNull();
@@ -289,12 +305,12 @@ SCLaplaceOperator::deallocateOperatorState()
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

@@ -38,14 +38,18 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -59,19 +63,17 @@ LInitStrategy::LInitStrategy()
 {
     // intentionally blank
     return;
-}// LInitStrategy
+} // LInitStrategy
 
 LInitStrategy::~LInitStrategy()
 {
     // intentionally blank
     return;
-}// ~LInitStrategy
+} // ~LInitStrategy
 
-
-void
-LInitStrategy::initializeStructureIndexingOnPatchLevel(
-    std::map<int,std::string>& /*strct_id_to_strct_name_map*/,
-    std::map<int,std::pair<int,int> >& /*strct_id_to_lag_idx_range_map*/,
+void LInitStrategy::initializeStructureIndexingOnPatchLevel(
+    std::map<int, std::string>& /*strct_id_to_strct_name_map*/,
+    std::map<int, std::pair<int, int> >& /*strct_id_to_lag_idx_range_map*/,
     const int /*level_number*/,
     const double /*init_data_time*/,
     const bool /*can_be_refined*/,
@@ -81,10 +83,9 @@ LInitStrategy::initializeStructureIndexingOnPatchLevel(
     TBOX_WARNING("LInitStrategy::initializeStructureIndexingOnPatchLevel()\n"
                  << "  default implementation employed, no indexing data provided.\n");
     return;
-}// initializeStructureIndexingOnPatchLevel
+} // initializeStructureIndexingOnPatchLevel
 
-unsigned int
-LInitStrategy::initializeMassDataOnPatchLevel(
+unsigned int LInitStrategy::initializeMassDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int /*local_index_offset*/,
     Pointer<LData> /*M_data*/,
@@ -99,10 +100,9 @@ LInitStrategy::initializeMassDataOnPatchLevel(
     TBOX_WARNING("LInitStrategy::initializeMassDataOnPatchLevel()\n"
                  << "  default implementation employed, no mass data initialized.\n");
     return 0;
-}// initializeMassDataOnPatchLevel
+} // initializeMassDataOnPatchLevel
 
-unsigned int
-LInitStrategy::initializeDirectorDataOnPatchLevel(
+unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int /*local_index_offset*/,
     Pointer<LData> /*D_data*/,
@@ -116,19 +116,18 @@ LInitStrategy::initializeDirectorDataOnPatchLevel(
     TBOX_WARNING("LInitStrategy::initializeDirectorDataOnPatchLevel()\n"
                  << "  default implementation employed, no director data initialized.\n");
     return 0;
-}// initializeDirectorDataOnPatchLevel
+} // initializeDirectorDataOnPatchLevel
 
 void
-LInitStrategy::tagCellsForInitialRefinement(
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int /*level_number*/,
-    const double /*error_data_time*/,
-    const int /*tag_index*/)
+LInitStrategy::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const int /*level_number*/,
+                                            const double /*error_data_time*/,
+                                            const int /*tag_index*/)
 {
     TBOX_WARNING("LInitStrategy::tagCellsForInitialRefinement()\n"
                  << "  default implementation employed, no cells tagged for refinement.\n");
     return;
-}// tagCellsForInitialRefinement
+} // tagCellsForInitialRefinement
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

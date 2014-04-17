@@ -10,7 +10,7 @@
 #include <set>
 #include <vector>
 
-#include "RNG.h"
+#include "ibamr/RNG.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "tbox/PIO.h"
@@ -68,61 +68,58 @@ namespace IBAMR
 /* Tempering parameters */
 #define TEMPERING_MASK_B 0x9d2c5680
 #define TEMPERING_MASK_C 0xefc60000
-#define TEMPERING_SHIFT_U(y)  (y >> 11)
-#define TEMPERING_SHIFT_S(y)  (y << 7)
-#define TEMPERING_SHIFT_T(y)  (y << 15)
-#define TEMPERING_SHIFT_L(y)  (y >> 18)
+#define TEMPERING_SHIFT_U(y) (y >> 11)
+#define TEMPERING_SHIFT_S(y) (y << 7)
+#define TEMPERING_SHIFT_T(y) (y << 15)
+#define TEMPERING_SHIFT_L(y) (y >> 18)
 
 static unsigned long mt[N]; /* the array for the state vector  */
-static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
+static int mti = N + 1;     /* mti==N+1 means mt[N] is not initialized */
 
-void
-RNG::srandgen(
-    unsigned long seed)
+void RNG::srandgen(unsigned long seed)
 {
-/*    int mti; */
+    /*    int mti; */
 
     mt[0] = seed & 0xffffffffUL;
-    for ( mti=1; mti<N; mti++ )
+    for (mti = 1; mti < N; mti++)
     {
-        mt[mti] = (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30L)) + mti);
+        mt[mti] = (1812433253UL * (mt[mti - 1] ^ (mt[mti - 1] >> 30L)) + mti);
         /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
         /* In the previous versions, MSBs of the seed affect   */
         /* only MSBs of the array mt[].                        */
         /* 2002/01/09 modified by Makoto Matsumoto             */
-        mt[mti] &= 0xffffffffUL;       /* for >32 bit machines */
+        mt[mti] &= 0xffffffffUL; /* for >32 bit machines */
     }
 
     mti = N;
     return;
-}// srandgen
+} // srandgen
 
-void
-RNG::genrand(
-    double* rn)
+void RNG::genrand(double* rn)
 {
     unsigned long y;
-    static unsigned long mag01[2]={0x0, MATRIX_A};
+    static unsigned long mag01[2] = { 0x0, MATRIX_A };
     /* mag01[x] = x * MATRIX_A  for x=0,1 */
 
-    if (mti >= N) { /* generate N words at one time */
+    if (mti >= N)
+    { /* generate N words at one time */
         int kk;
 
-        if (mti == N+1)   /* if srandgen() has not been called, */
+        if (mti == N + 1)   /* if srandgen() has not been called, */
             srandgen(4357); /* a default initial seed is used   */
 
-        for (kk=0;kk<N-M;kk++)
+        for (kk = 0; kk < N - M; kk++)
         {
-            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+            mt[kk] = mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1];
         }
-        for (;kk<N-1;kk++)
+        for (; kk < N - 1; kk++)
         {
-            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+            mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1];
         }
-        y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
-        mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
+        y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
+        mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1];
 
         mti = 0;
     }
@@ -133,9 +130,9 @@ RNG::genrand(
     y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
     y ^= TEMPERING_SHIFT_L(y);
 
-    *rn = ( (double)y * 2.3283064365386963e-10 ); /* reals: [0,1)-interval */
+    *rn = ((double)y * 2.3283064365386963e-10); /* reals: [0,1)-interval */
     return;
-}// genrand
+} // genrand
 
 /*
 ** Lower tail quantile for standard normal distribution function.
@@ -158,43 +155,19 @@ RNG::genrand(
 */
 namespace
 {
-double
-InvNormDist(
-    double p)
+double InvNormDist(double p)
 {
-    static const double a[6] =
-        {
-            -3.969683028665376e+01,
-            2.209460984245205e+02,
-            -2.759285104469687e+02,
-            1.383577518672690e+02,
-            -3.066479806614716e+01,
-            2.506628277459239e+00
-        };
-    static const double b[5] =
-        {
-            -5.447609879822406e+01,
-            1.615858368580409e+02,
-            -1.556989798598866e+02,
-            6.680131188771972e+01,
-            -1.328068155288572e+01
-        };
-    static const double c[6] =
-        {
-            -7.784894002430293e-03,
-            -3.223964580411365e-01,
-            -2.400758277161838e+00,
-            -2.549732539343734e+00,
-            4.374664141464968e+00,
-            2.938163982698783e+00
-        };
-    static const double d[4] =
-        {
-            7.784695709041462e-03,
-            3.224671290700398e-01,
-            2.445134137142996e+00,
-            3.754408661907416e+00
-        };
+    static const double a[6] = { -3.969683028665376e+01, 2.209460984245205e+02,
+                                 -2.759285104469687e+02, 1.383577518672690e+02,
+                                 -3.066479806614716e+01, 2.506628277459239e+00 };
+    static const double b[5] = { -5.447609879822406e+01, 1.615858368580409e+02,
+                                 -1.556989798598866e+02, 6.680131188771972e+01,
+                                 -1.328068155288572e+01 };
+    static const double c[6] = { -7.784894002430293e-03, -3.223964580411365e-01,
+                                 -2.400758277161838e+00, -2.549732539343734e+00,
+                                 4.374664141464968e+00,  2.938163982698783e+00 };
+    static const double d[4] = { 7.784695709041462e-03, 3.224671290700398e-01,
+                                 2.445134137142996e+00, 3.754408661907416e+00 };
 
     static const double lo = 0.02425;
     static const double hi = 0.97575;
@@ -215,20 +188,20 @@ InvNormDist(
         /*
         ** Rational approximation for lower region.
         */
-        double q = sqrt(-2*log(p));
+        double q = sqrt(-2 * log(p));
 
-        x = (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-            ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+        x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+            ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
     }
     else if (p > hi)
     {
         /*
         ** Rational approximation for upper region.
         */
-        double q = sqrt(-2*log(1-p));
+        double q = sqrt(-2 * log(1 - p));
 
-        x = -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
-            ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+        x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+            ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
     }
     else
     {
@@ -236,19 +209,17 @@ InvNormDist(
         ** Rational approximation for central region.
         */
         double q = p - 0.5;
-        double r = q*q;
+        double r = q * q;
 
-        x = (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
-            (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+        x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+            (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
     }
 
     return x;
 }
 }
 
-void
-RNG::genrandn(
-    double* result)
+void RNG::genrandn(double* result)
 {
     double val;
     /*
@@ -257,16 +228,13 @@ RNG::genrandn(
     do
     {
         genrand(&val);
-    }
-    while (val == 0);
+    } while (val == 0);
 
     *result = InvNormDist(val);
     return;
-}// genrandn
+} // genrandn
 
-void
-RNG::parallel_seed(
-    int global_seed)
+void RNG::parallel_seed(int global_seed)
 {
     int seed;
     int size, rank;
@@ -308,7 +276,8 @@ RNG::parallel_seed(
 
             // Insert the unique seeds into the seed vector.
             unsigned i = 0;
-            for (std::set<int>::const_iterator cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
+            for (std::set<int>::const_iterator cit = seed_set.begin(); cit != seed_set.end();
+                 ++cit, ++i)
             {
                 seeds[i] = *cit;
             }
@@ -322,14 +291,7 @@ RNG::parallel_seed(
         }
 
         // Communicate the seeds.
-        MPI_Scatter(&seeds[0],
-                    1,
-                    MPI_INT,
-                    &seed,
-                    1,
-                    MPI_INT,
-                    mpi_root,
-                    MPI_COMM_WORLD);
+        MPI_Scatter(&seeds[0], 1, MPI_INT, &seed, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
     }
 
     // Output the local seed to the log file for debugging purposes.
@@ -342,10 +304,10 @@ RNG::parallel_seed(
     // Seed the local RNG.
     srandgen(seed);
     return;
-}// parallel_seed
+} // parallel_seed
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

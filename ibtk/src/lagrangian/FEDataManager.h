@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -49,34 +51,47 @@
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "libmesh/auto_ptr.h"
-#include "libmesh/enum_order.h"
-#include "libmesh/enum_quadrature_type.h"
-#include "libmesh/partitioner.h"
-#include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BasePatchHierarchy;
-}  // namespace hier
-namespace tbox {
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace libMesh
+{
+template <typename Tp>
+class AutoPtr;
+} // namespace libMesh
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
-namespace libMesh {
+} // namespace tbox
+} // namespace SAMRAI
+namespace libMesh
+{
 class Elem;
 class EquationSystems;
-class MeshBase;
 class QBase;
-template <typename T> class LinearSolver;
-template <typename T> class NumericVector;
-template <typename T> class SparseMatrix;
-}  // namespace libMesh
+template <typename T>
+class LinearSolver;
+template <typename T>
+class NumericVector;
+template <typename T>
+class SparseMatrix;
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -88,9 +103,8 @@ namespace IBTK
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager
-    : public SAMRAI::tbox::Serializable,
-      public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable,
+                      public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!
@@ -100,21 +114,21 @@ public:
      */
     struct InterpSpec
     {
-        InterpSpec() { }
+        InterpSpec()
+        {
+        }
 
-        InterpSpec(
-            const std::string& kernel_fcn,
-            const libMeshEnums::QuadratureType& quad_type,
-            const libMeshEnums::Order& quad_order,
-            bool use_adaptive_quadrature,
-            double point_density,
-            bool use_consistent_mass_matrix)
-            : kernel_fcn(kernel_fcn),
-              quad_type(quad_type),
-              quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature),
-              point_density(point_density),
-              use_consistent_mass_matrix(use_consistent_mass_matrix) { }
+        InterpSpec(const std::string& kernel_fcn,
+                   const libMeshEnums::QuadratureType& quad_type,
+                   const libMeshEnums::Order& quad_order,
+                   bool use_adaptive_quadrature,
+                   double point_density,
+                   bool use_consistent_mass_matrix)
+            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
+              use_consistent_mass_matrix(use_consistent_mass_matrix)
+        {
+        }
 
         std::string kernel_fcn;
         libMeshEnums::QuadratureType quad_type;
@@ -131,19 +145,19 @@ public:
      */
     struct SpreadSpec
     {
-        SpreadSpec() { }
+        SpreadSpec()
+        {
+        }
 
-        SpreadSpec(
-            const std::string& kernel_fcn,
-            const libMeshEnums::QuadratureType& quad_type,
-            const libMeshEnums::Order& quad_order,
-            bool use_adaptive_quadrature,
-            double point_density)
-            : kernel_fcn(kernel_fcn),
-              quad_type(quad_type),
-              quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature),
-              point_density(point_density) { }
+        SpreadSpec(const std::string& kernel_fcn,
+                   const libMeshEnums::QuadratureType& quad_type,
+                   const libMeshEnums::Order& quad_order,
+                   bool use_adaptive_quadrature,
+                   double point_density)
+            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
+              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density)
+        {
+        }
 
         std::string kernel_fcn;
         libMeshEnums::QuadratureType quad_type;
@@ -185,13 +199,12 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static FEDataManager*
-    getManager(
-        const std::string& name,
-        const InterpSpec& default_interp_spec,
-        const SpreadSpec& default_spread_spec,
-        const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
-        bool register_for_restart=true);
+    static FEDataManager* getManager(const std::string& name,
+                                     const InterpSpec& default_interp_spec,
+                                     const SpreadSpec& default_spread_spec,
+                                     const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
+                                         SAMRAI::hier::IntVector<NDIM>(0),
+                                     bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.
@@ -199,14 +212,12 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeAllManagers();
+    static void freeAllManagers();
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void
-    registerLoadBalancer(
+    void registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
         int workload_data_idx);
 
@@ -220,14 +231,12 @@ public:
      * \brief Reset patch hierarchy over which operations occur.
      */
     void
-    setPatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
-    getPatchHierarchy() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -235,18 +244,14 @@ public:
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
-    void
-    setPatchLevels(
-        int coarsest_ln,
-        int finest_ln);
+    void setPatchLevels(int coarsest_ln, int finest_ln);
 
     /*!
      * \brief Get the range of patch levels used by this object.
      *
      * \note Returns [coarsest_ln,finest_ln+1).
      */
-    std::pair<int,int>
-    getPatchLevels() const;
+    std::pair<int, int> getPatchLevels() const;
 
     //\}
 
@@ -255,197 +260,169 @@ public:
      * FEDataManager.  Currently, each set of equation systems must be assigned
      * to a particular level of the AMR grid.
      */
-    void
-    setEquationSystems(
-        libMesh::EquationSystems* equation_systems,
-        int level_number);
+    void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
     /*!
      * \return A pointer to the equations systems object that is associated with
      * the FEDataManager.
      */
-    libMesh::EquationSystems*
-    getEquationSystems() const;
+    libMesh::EquationSystems* getEquationSystems() const;
 
     /*!
      * \return The level number to which the equations system object managed by
      * the FEDataManager is assigned.
      */
-    int
-    getLevelNumber() const;
+    int getLevelNumber() const;
 
     /*!
      * \return The ghost cell width used for quantities that are to be
      * interpolated from the Cartesian grid to the FE mesh.
      */
-    const SAMRAI::hier::IntVector<NDIM>&
-    getGhostCellWidth() const;
+    const SAMRAI::hier::IntVector<NDIM>& getGhostCellWidth() const;
 
     /*!
      * \return The specifications of the scheme used for interpolating from the
      * Cartesian grid to the FE mesh.
      */
-    const InterpSpec&
-    getDefaultInterpSpec() const;
+    const InterpSpec& getDefaultInterpSpec() const;
 
     /*!
      * \return The specifications of the scheme used for spreading densities
      * from the FE mesh to the Cartesian grid
      */
-    const SpreadSpec&
-    getDefaultSpreadSpec() const;
+    const SpreadSpec& getDefaultSpreadSpec() const;
 
     /*!
      * \return A const reference to the map from local patch number to local
      * active elements.
      */
-    const std::vector<std::vector<libMesh::Elem*> >&
-    getActivePatchElementMap() const;
+    const std::vector<std::vector<libMesh::Elem*> >& getActivePatchElementMap() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
      */
-    void
-    reinitElementMappings();
+    void reinitElementMappings();
 
     /*!
      * \return A pointer to the unghosted solution vector associated with the
      * specified system.
      */
-    libMesh::NumericVector<double>*
-    getSolutionVector(
-        const std::string& system_name) const;
+    libMesh::NumericVector<double>* getSolutionVector(const std::string& system_name) const;
 
     /*!
      * \return A pointer to the ghosted solution vector associated with the
      * specified system.
      */
-    libMesh::NumericVector<double>*
-    buildGhostedSolutionVector(
-        const std::string& system_name,
-        bool localize_data=true);
+    libMesh::NumericVector<double>* buildGhostedSolutionVector(const std::string& system_name,
+                                                               bool localize_data = true);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
      */
-    libMesh::NumericVector<double>*
-    getCoordsVector() const;
+    libMesh::NumericVector<double>* getCoordsVector() const;
 
     /*!
      * \return A pointer to the ghosted coordinates (nodal position) vector.
      */
-    libMesh::NumericVector<double>*
-    buildGhostedCoordsVector(
-        bool localize_data=true);
+    libMesh::NumericVector<double>* buildGhostedCoordsVector(bool localize_data = true);
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
      * default spreading spec.
      */
-    void
-    spread(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        double fill_data_time);
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                double fill_data_time);
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using a
      * specified spreading spec.
      */
-    void
-    spread(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        double fill_data_time,
-        const SpreadSpec& spread_spec);
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                const SpreadSpec& spread_spec,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                double fill_data_time);
 
     /*!
      * \brief Prolong a value or a density from the FE mesh to the Cartesian
      * grid.
      */
-    void
-    prolongData(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool is_density=true,
-        bool accumulate_on_grid=true);
+    void prolongData(int f_data_idx,
+                     libMesh::NumericVector<double>& F,
+                     libMesh::NumericVector<double>& X,
+                     const std::string& system_name,
+                     bool is_density = true,
+                     bool accumulate_on_grid = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
      * the default interpolation spec.
      */
     void
-    interp(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0);
+    interp(int f_data_idx,
+           libMesh::NumericVector<double>& F,
+           libMesh::NumericVector<double>& X,
+           const std::string& system_name,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_refine_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
      * specified interpolation spec.
      */
     void
-    interp(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        const InterpSpec& interp_spec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0);
+    interp(int f_data_idx,
+           libMesh::NumericVector<double>& F,
+           libMesh::NumericVector<double>& X,
+           const std::string& system_name,
+           const InterpSpec& interp_spec,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_refine_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0);
 
     /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
      */
-    void
-    restrictData(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool use_consistent_mass_matrix=true);
+    void restrictData(int f_data_idx,
+                      libMesh::NumericVector<double>& F,
+                      libMesh::NumericVector<double>& X,
+                      const std::string& system_name,
+                      bool use_consistent_mass_matrix = true);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
      * L2 projection operator.
      */
-    std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
-    buildL2ProjectionSolver(
-        const std::string& system_name,
-        libMeshEnums::QuadratureType quad_type=QGAUSS,
-        libMeshEnums::Order quad_order=FIFTH);
+    std::pair<libMesh::LinearSolver<double>*, libMesh::SparseMatrix<double>*>
+    buildL2ProjectionSolver(const std::string& system_name,
+                            libMeshEnums::QuadratureType quad_type = QGAUSS,
+                            libMeshEnums::Order quad_order = FIFTH);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
      */
-    libMesh::NumericVector<double>*
-    buildDiagonalL2MassMatrix(
-        const std::string& system_name);
+    libMesh::NumericVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
     /*!
      * \brief Set U to be the L2 projection of F.
      */
-    bool
-    computeL2Projection(
-        libMesh::NumericVector<double>& U,
-        libMesh::NumericVector<double>& F,
-        const std::string& system_name,
-        bool consistent_mass_matrix=true,
-        libMeshEnums::QuadratureType quad_type=QGAUSS,
-        libMeshEnums::Order quad_order=FIFTH,
-        double tol=1.0e-6,
-        unsigned int max_its=100);
+    bool computeL2Projection(libMesh::NumericVector<double>& U,
+                             libMesh::NumericVector<double>& F,
+                             const std::string& system_name,
+                             bool consistent_mass_matrix = true,
+                             libMeshEnums::QuadratureType quad_type = QGAUSS,
+                             libMeshEnums::Order quad_order = FIFTH,
+                             double tol = 1.0e-6,
+                             unsigned int max_its = 100);
 
     /*!
      * Update the quadrature rule for the current element used by the
@@ -456,13 +433,11 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool
-    updateInterpQuadratureRule(
-        libMesh::AutoPtr<libMesh::QBase>& qrule,
-        const InterpSpec& spec,
-        libMesh::Elem* elem,
-        const boost::multi_array<double,2>& X_node,
-        double dx_min);
+    static bool updateInterpQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+                                           const InterpSpec& spec,
+                                           libMesh::Elem* elem,
+                                           const boost::multi_array<double, 2>& X_node,
+                                           double dx_min);
 
     /*!
      * Update the quadrature rule for the current element used by the
@@ -473,21 +448,16 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool
-    updateSpreadQuadratureRule(
-        libMesh::AutoPtr<libMesh::QBase>& qrule,
-        const SpreadSpec& spec,
-        libMesh::Elem* elem,
-        const boost::multi_array<double,2>& X_node,
-        double dx_min);
+    static bool updateSpreadQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+                                           const SpreadSpec& spec,
+                                           libMesh::Elem* elem,
+                                           const boost::multi_array<double, 2>& X_node,
+                                           double dx_min);
 
     /*!
      * \brief Update the cell workload estimate.
      */
-    void
-    updateWorkloadEstimates(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -514,15 +484,15 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void
-    initializeLevelData(
+    void initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double init_data_time,
         bool can_be_refined,
         bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data = true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -539,8 +509,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void
-    resetHierarchyConfiguration(
+    void resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int coarsest_ln,
         int finest_ln);
@@ -563,8 +532,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void
-    applyGradientDetector(
+    void applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double error_data_time,
@@ -577,20 +545,17 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
     /*!
      * \brief Constructor.
      */
-    FEDataManager(
-        const std::string& object_name,
-        const InterpSpec& default_interp_spec,
-        const SpreadSpec& default_spread_spec,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width,
-        bool register_for_restart=true);
+    FEDataManager(const std::string& object_name,
+                  const InterpSpec& default_interp_spec,
+                  const SpreadSpec& default_spread_spec,
+                  const SAMRAI::hier::IntVector<NDIM>& ghost_width,
+                  bool register_for_restart = true);
 
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
@@ -612,8 +577,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    FEDataManager(
-        const FEDataManager& from);
+    FEDataManager(const FEDataManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -624,19 +588,14 @@ private:
      *
      * \return A reference to this object.
      */
-    FEDataManager&
-    operator=(
-        const FEDataManager& that);
+    FEDataManager& operator=(const FEDataManager& that);
 
     /*!
      * Compute the quadrature point counts in each cell of the level in which
      * the FE mesh is embedded.  Also zeros out node count data for other levels
      * within the specified range of level numbers.
      */
-    void
-    updateQuadPointCountData(
-        int coarsest_ln,
-        int finest_ln);
+    void updateQuadPointCountData(int coarsest_ln, int finest_ln);
 
     /*!
      * Compute the bounding boxes of all active elements.
@@ -644,8 +603,7 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    std::vector<std::pair<Point,Point> >*
-    computeActiveElementBoundingBoxes();
+    std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
 
     /*!
      * Collect all of the active elements which are located within a local
@@ -655,19 +613,16 @@ private:
      * not is based on the position of the bounding box of the element.
      */
     void
-    collectActivePatchElements(
-        std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
-        int level_number,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+    collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+                               int level_number,
+                               const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.
      */
-    void
-    collectGhostDOFIndices(
-        std::vector<unsigned int>& ghost_dofs,
-        const std::vector<libMesh::Elem*>& active_elems,
-        const std::string& system_name);
+    void collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
+                                const std::vector<libMesh::Elem*>& active_elems,
+                                const std::string& system_name);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -682,14 +637,13 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 
     /*!
      * Static data members used to control access to and destruction of
      * singleton data manager instance.
      */
-    static std::map<std::string,FEDataManager*> s_data_manager_instances;
+    static std::map<std::string, FEDataManager*> s_data_manager_instances;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
@@ -722,7 +676,7 @@ private:
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_qp_count_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
 
     /*
@@ -730,7 +684,7 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx;
 
     /*
@@ -756,25 +710,25 @@ private:
      * Data to manage mappings between mesh elements and grid patches.
      */
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point,Point> > d_active_elem_bboxes;
+    std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
+    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
 
     /*
      * Ghost vectors for the various equation systems.
      */
-    std::map<std::string,libMesh::NumericVector<double>*> d_system_ghost_vec;
+    std::map<std::string, libMesh::NumericVector<double>*> d_system_ghost_vec;
 
     /*
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string,libMesh::LinearSolver<double>*> d_L2_proj_solver;
-    std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
-    std::map<std::string,libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
-    std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
-    std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
+    std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
+    std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
+    std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
+    std::map<std::string, libMeshEnums::QuadratureType> d_L2_proj_quad_type;
+    std::map<std::string, libMeshEnums::Order> d_L2_proj_quad_order;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

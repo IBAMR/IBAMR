@@ -32,17 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <string>
+
 #include "IntVector.h"
-#include "LSetVariable.h"
+#include "Variable.h"
+#include "ibtk/LSet.h" // IWYU pragma: keep
+#include "ibtk/LSetVariable.h"
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LMarker;
 class LNode;
 class LNodeIndex;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -52,35 +57,32 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-LSetVariable<T>::LSetVariable(
-    const std::string& name)
+template <class T>
+LSetVariable<T>::LSetVariable(const std::string& name)
     : Variable<NDIM>(name, new LSetDataFactory<T>(IntVector<NDIM>(0)))
 {
     // intentionally blank
     return;
-}// LSetVariable
+} // LSetVariable
 
-template<class T>
+template <class T>
 LSetVariable<T>::~LSetVariable()
 {
     // intentionally blank
     return;
-}// ~LSetVariable
+} // ~LSetVariable
 
-template<class T>
-bool
-LSetVariable<T>::dataLivesOnPatchBorder() const
+template <class T>
+bool LSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
-}// dataLivesOnPatchBorder
+} // dataLivesOnPatchBorder
 
-template<class T>
-bool
-LSetVariable<T>::fineBoundaryRepresentsVariable() const
+template <class T>
+bool LSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
-}// fineBoundaryRepresentsVariable
+} // fineBoundaryRepresentsVariable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -91,7 +93,6 @@ LSetVariable<T>::fineBoundaryRepresentsVariable() const
 } // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
 
 template class IBTK::LSetVariable<IBTK::LMarker>;
 template class Pointer<IBTK::LSetVariable<IBTK::LMarker> >;

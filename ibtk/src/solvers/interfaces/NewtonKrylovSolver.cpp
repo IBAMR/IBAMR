@@ -47,75 +47,57 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NewtonKrylovSolver::NewtonKrylovSolver()
-    : d_F(NULL),
-      d_J(NULL),
-      d_krylov_solver(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_r(NULL),
-      d_max_evaluations(10000),
-      d_solution_tol(1.0e-8),
-      d_current_linear_iterations(0)
+    : d_F(NULL), d_J(NULL), d_krylov_solver(NULL), d_x(NULL), d_b(NULL), d_r(NULL),
+      d_max_evaluations(10000), d_solution_tol(1.0e-8), d_current_linear_iterations(0)
 {
     d_max_iterations = 50;
     d_rel_residual_tol = 1.0e-8;
     d_abs_residual_tol = 1.0e-50;
     return;
-}// NewtonKrylovSolver()
+} // NewtonKrylovSolver()
 
 NewtonKrylovSolver::~NewtonKrylovSolver()
 {
     // intentionally blank
     return;
-}// ~NewtonKrylovSolver()
+} // ~NewtonKrylovSolver()
 
-void
-NewtonKrylovSolver::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
+void NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
     if (d_J) d_J->setHierarchyMathOps(d_hier_math_ops);
     if (d_krylov_solver) d_krylov_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
-}// setHierarchyMathOps
+} // setHierarchyMathOps
 
-void
-NewtonKrylovSolver::setHomogeneousBc(
-    const bool homogeneous_bc)
+void NewtonKrylovSolver::setHomogeneousBc(const bool homogeneous_bc)
 {
     GeneralSolver::setHomogeneousBc(homogeneous_bc);
     if (d_F) d_F->setHomogeneousBc(homogeneous_bc);
     if (d_krylov_solver) d_krylov_solver->setHomogeneousBc(homogeneous_bc);
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-void
-NewtonKrylovSolver::setSolutionTime(
-    const double solution_time)
+void NewtonKrylovSolver::setSolutionTime(const double solution_time)
 {
     GeneralSolver::setSolutionTime(solution_time);
     if (d_F) d_F->setSolutionTime(solution_time);
     if (d_J) d_J->setSolutionTime(solution_time);
     if (d_krylov_solver) d_krylov_solver->setSolutionTime(solution_time);
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-void
-NewtonKrylovSolver::setTimeInterval(
-    const double current_time,
-    const double new_time)
+void NewtonKrylovSolver::setTimeInterval(const double current_time, const double new_time)
 {
     GeneralSolver::setTimeInterval(current_time, new_time);
     if (d_F) d_F->setTimeInterval(current_time, new_time);
     if (d_J) d_J->setTimeInterval(current_time, new_time);
     if (d_krylov_solver) d_krylov_solver->setTimeInterval(current_time, new_time);
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-void
-NewtonKrylovSolver::setOperator(
-    Pointer<GeneralOperator> F)
+void NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
 {
     Pointer<GeneralOperator> F_old = d_F;
     d_F = F;
@@ -124,17 +106,14 @@ NewtonKrylovSolver::setOperator(
     d_F->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_F != F_old) && d_F) d_F->initializeOperatorState(*d_x, *d_b);
     return;
-}// setOperator
+} // setOperator
 
-Pointer<GeneralOperator>
-NewtonKrylovSolver::getOperator() const
+Pointer<GeneralOperator> NewtonKrylovSolver::getOperator() const
 {
     return d_F;
-}// getOperator
+} // getOperator
 
-void
-NewtonKrylovSolver::setJacobian(
-    Pointer<JacobianOperator> J)
+void NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
 {
     Pointer<JacobianOperator> J_old = d_J;
     d_J = J;
@@ -143,58 +122,49 @@ NewtonKrylovSolver::setJacobian(
     d_J->setTimeInterval(d_current_time, d_new_time);
     if (d_is_initialized && (d_J != J_old) && d_J) d_J->initializeOperatorState(*d_x, *d_b);
     return;
-}// setJacobian
+} // setJacobian
 
-Pointer<JacobianOperator>
-NewtonKrylovSolver::getJacobian() const
+Pointer<JacobianOperator> NewtonKrylovSolver::getJacobian() const
 {
     return d_J;
-}// getJacobian
+} // getJacobian
 
-Pointer<KrylovLinearSolver>
-NewtonKrylovSolver::getLinearSolver() const
+Pointer<KrylovLinearSolver> NewtonKrylovSolver::getLinearSolver() const
 {
     return d_krylov_solver;
-}// getLinearSolver
+} // getLinearSolver
 
-void
-NewtonKrylovSolver::setMaxEvaluations(
-    int max_evaluations)
+void NewtonKrylovSolver::setMaxEvaluations(int max_evaluations)
 {
     d_max_evaluations = max_evaluations;
     return;
-}// setMaxEvaluations
+} // setMaxEvaluations
 
-int
-NewtonKrylovSolver::getMaxEvaluations() const
+int NewtonKrylovSolver::getMaxEvaluations() const
 {
     return d_max_evaluations;
-}// getMaxEvaluations
+} // getMaxEvaluations
 
-void
-NewtonKrylovSolver::setSolutionTolerance(
-    double solution_tol)
+void NewtonKrylovSolver::setSolutionTolerance(double solution_tol)
 {
     d_solution_tol = solution_tol;
     return;
-}// setSolutionTolerance
+} // setSolutionTolerance
 
-double
-NewtonKrylovSolver::getSolutionTolerance() const
+double NewtonKrylovSolver::getSolutionTolerance() const
 {
     return d_solution_tol;
-}// getSolutionTolerance
+} // getSolutionTolerance
 
-int
-NewtonKrylovSolver::getNumLinearIterations() const
+int NewtonKrylovSolver::getNumLinearIterations() const
 {
     return d_current_linear_iterations;
-}// getNumLinearIterations
+} // getNumLinearIterations
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

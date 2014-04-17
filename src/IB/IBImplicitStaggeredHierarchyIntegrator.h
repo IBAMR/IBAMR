@@ -37,30 +37,41 @@
 
 #include <string>
 
-#include "petscsnes.h"
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "petscksp.h"
 #include "petscmat.h"
+#include "petscpc.h"
+#include "petscsnes.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
-class IBImplicitStrategy;
+namespace IBAMR
+{
 class INSStaggeredHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-namespace mesh {
-template <int DIM> class GriddingAlgorithm;
-}  // namespace mesh
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace mesh
+{
+template <int DIM>
+class GriddingAlgorithm;
+} // namespace mesh
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,8 +82,7 @@ namespace IBAMR
  * formally second-order accurate, nonlinearly-implicit version of the immersed
  * boundary method.
  */
-class IBImplicitStaggeredHierarchyIntegrator
-    : public IBHierarchyIntegrator
+class IBImplicitStaggeredHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!
@@ -86,7 +96,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
-        bool register_for_restart=true);
+        bool register_for_restart = true);
 
     /*!
      * The destructor for class IBImplicitStaggeredHierarchyIntegrator
@@ -99,30 +109,21 @@ public:
      * Prepare to advance the data from current_time to new_time.
      */
     void
-    preprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        int num_cycles=1);
+    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void
-    integrateHierarchy(
-        double current_time,
-        double new_time,
-        int cycle_num=0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void
-    postprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles=1);
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -133,27 +134,23 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(
+    void initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int
-    getNumberOfCycles() const;
+    int getNumberOfCycles() const;
 
 protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void
-    putToDatabaseSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
-    
+
 private:
     /*!
      * \brief Default constructor.
@@ -169,8 +166,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator(
-        const IBImplicitStaggeredHierarchyIntegrator& from);
+    IBImplicitStaggeredHierarchyIntegrator(const IBImplicitStaggeredHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -182,115 +178,77 @@ private:
      * \return A reference to this object.
      */
     IBImplicitStaggeredHierarchyIntegrator&
-    operator=(
-        const IBImplicitStaggeredHierarchyIntegrator& that);
+    operator=(const IBImplicitStaggeredHierarchyIntegrator& that);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 
     /*!
      * Static function for implicit formulation.
      */
-    static PetscErrorCode
-    compositeIBFunction_SAMRAI(
-        SNES snes,
-        Vec x,
-        Vec f,
-        void* ctx);
+    static PetscErrorCode compositeIBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx);
 
     /*!
      * Function for implicit formulation.
      */
-    PetscErrorCode
-    compositeIBFunction(
-        SNES snes,
-        Vec x,
-        Vec f);
+    PetscErrorCode compositeIBFunction(SNES snes, Vec x, Vec f);
 
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
-    static PetscErrorCode
-    compositeIBJacobianSetup_SAMRAI(
-        SNES snes,
-        Vec x,
-        Mat* A,
-        Mat* B,
-        MatStructure* mat_structure,
-        void* p_ctx);
+    static PetscErrorCode compositeIBJacobianSetup_SAMRAI(SNES snes,
+                                                          Vec x,
+                                                          Mat* A,
+                                                          Mat* B,
+                                                          MatStructure* mat_structure,
+                                                          void* p_ctx);
 
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
     PetscErrorCode
-    compositeIBJacobianSetup(
-        SNES snes,
-        Vec x,
-        Mat* A,
-        Mat* B,
-        MatStructure* mat_structure);
+    compositeIBJacobianSetup(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
 
     /*!
      * Static function for implicit formulation composite Jacobian.
      */
-    static PetscErrorCode
-    compositeIBJacobianApply_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
+    static PetscErrorCode compositeIBJacobianApply_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * Function for implicit formulation composite Jacobian.
      */
-    PetscErrorCode
-    compositeIBJacobianApply(
-        Vec x,
-        Vec y);
+    PetscErrorCode compositeIBJacobianApply(Vec x, Vec y);
 
     /*!
      * Static function for implicit formulation composite preconditioner.
      */
-    static PetscErrorCode
-    compositeIBPCApply_SAMRAI(
-        PC pc,
-        Vec x,
-        Vec y);
+    static PetscErrorCode compositeIBPCApply_SAMRAI(PC pc, Vec x, Vec y);
 
     /*!
      * Function for implicit formulation composite preconditioner.
      */
-    PetscErrorCode
-    compositeIBPCApply(
-        Vec x,
-        Vec y);
+    PetscErrorCode compositeIBPCApply(Vec x, Vec y);
 
     /*!
      * Static function for implicit formulation Lagrangian Schur complement.
      */
-    static PetscErrorCode
-    lagrangianSchurApply_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
+    static PetscErrorCode lagrangianSchurApply_SAMRAI(Mat A, Vec x, Vec y);
 
     /*!
      * Function for implicit formulation Lagrangian Schur complement.
      */
-    PetscErrorCode
-    lagrangianSchurApply(
-        Vec x,
-        Vec y);
+    PetscErrorCode lagrangianSchurApply(Vec x, Vec y);
 
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_u_scratch_vec, d_f_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_u_scratch_vec,
+        d_f_scratch_vec;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

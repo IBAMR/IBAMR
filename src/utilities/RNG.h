@@ -10,21 +10,13 @@ namespace IBAMR
 class RNG
 {
 public:
-    static void
-    srandgen(
-        unsigned long seed);
+    static void srandgen(unsigned long seed);
 
-    static void
-    genrand(
-        double* rn);
+    static void genrand(double* rn);
 
-    static void
-    genrandn(
-        double* result);
+    static void genrandn(double* result);
 
-    static void
-    parallel_seed(
-        int global_seed);
+    static void parallel_seed(int global_seed);
 
 private:
     RNG();
@@ -32,6 +24,6 @@ private:
     ~RNG();
     RNG& operator=(RNG&);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 #endif //#ifndef included_RNG

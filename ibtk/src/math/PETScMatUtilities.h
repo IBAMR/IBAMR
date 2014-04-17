@@ -43,14 +43,19 @@
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -74,8 +79,7 @@ public:
      * cell-centered Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelCCLaplaceOp(
+    static void constructPatchLevelCCLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
@@ -89,8 +93,7 @@ public:
      * cell-centered Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelCCLaplaceOp(
+    static void constructPatchLevelCCLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
@@ -104,8 +107,7 @@ public:
      * cell-centered complex Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelCCComplexLaplaceOp(
+    static void constructPatchLevelCCComplexLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
@@ -120,8 +122,7 @@ public:
      * cell-centered complex Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelCCComplexLaplaceOp(
+    static void constructPatchLevelCCComplexLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
@@ -136,8 +137,7 @@ public:
      * side-centered Laplacian of a side-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelSCLaplaceOp(
+    static void constructPatchLevelSCLaplaceOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
@@ -154,35 +154,30 @@ public:
      * interp_stencil is odd, nor does it properly handle physical boundary
      * conditions.
      */
-    static void
-    constructPatchLevelSCInterpOp(
+    static void constructPatchLevelSCInterpOp(
         Mat& mat,
-        void (*interp_fcn)(double r_lower,double* w),
+        void (*interp_fcn)(double r_lower, double* w),
         int interp_stencil,
         Vec& X_vec,
         const std::vector<int>& num_dofs_per_proc,
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
-    static inline void
-    ib_4_interp_fcn(
-        const double r,
-        double* const w)
-        {
-            const double q = sqrt(1.0+4.0*r*(1.0-r));
-            w[0] = 0.125*(3.0-2.0*r-q);
-            w[1] = 0.125*(3.0-2.0*r+q);
-            w[2] = 0.125*(1.0+2.0*r+q);
-            w[3] = 0.125*(1.0+2.0*r-q);
-            return;
-        }// ib_4_interp_fcn
+    static inline void ib_4_interp_fcn(const double r, double* const w)
+    {
+        const double q = sqrt(1.0 + 4.0 * r * (1.0 - r));
+        w[0] = 0.125 * (3.0 - 2.0 * r - q);
+        w[1] = 0.125 * (3.0 - 2.0 * r + q);
+        w[2] = 0.125 * (1.0 + 2.0 * r + q);
+        w[3] = 0.125 * (1.0 + 2.0 * r - q);
+        return;
+    } // ib_4_interp_fcn
 
     static const int ib_4_interp_stencil = 4;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -198,8 +193,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatUtilities(
-        const PETScMatUtilities& from);
+    PETScMatUtilities(const PETScMatUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -210,11 +204,9 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatUtilities&
-    operator=(
-        const PETScMatUtilities& that);
+    PETScMatUtilities& operator=(const PETScMatUtilities& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////////////////////////////////////////////////////
 

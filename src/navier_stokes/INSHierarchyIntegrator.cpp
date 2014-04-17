@@ -35,17 +35,15 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
 #include <limits>
-#include <memory>
 #include <ostream>
 
 #include "INSHierarchyIntegrator.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -82,28 +80,24 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     delete d_Phi_bc_coef;
     d_Phi_bc_coef = NULL;
     return;
-}// ~INSHierarchyIntegrator
+} // ~INSHierarchyIntegrator
 
-TimeSteppingType
-INSHierarchyIntegrator::getViscousTimeSteppingType() const
+TimeSteppingType INSHierarchyIntegrator::getViscousTimeSteppingType() const
 {
     return d_viscous_time_stepping_type;
-}// getViscousTimeSteppingType
+} // getViscousTimeSteppingType
 
-TimeSteppingType
-INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
+TimeSteppingType INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
 {
     return d_convective_time_stepping_type;
-}// getConvectiveTimeSteppingType
+} // getConvectiveTimeSteppingType
 
-TimeSteppingType
-INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
+TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
 {
     return d_init_convective_time_stepping_type;
-}// getInitialConvectiveTimeSteppingType
+} // getInitialConvectiveTimeSteppingType
 
-void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
 #if !defined(NDEBUG)
@@ -112,29 +106,26 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
     registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
     d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
-    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
+    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var,
+                                                                     !d_Q_fcn);
     return;
-}// registerAdvDiffHierarchyIntegrator
+} // registerAdvDiffHierarchyIntegrator
 
-void
-INSHierarchyIntegrator::setStokesSpecifications(
-    StokesSpecifications problem_coefs)
+void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_problem_coefs = problem_coefs;
     return;
-}// setStokesSpecifications
+} // setStokesSpecifications
 
-const StokesSpecifications*
-INSHierarchyIntegrator::getStokesSpecifications() const
+const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() const
 {
     return &d_problem_coefs;
-}// getStokesSpecifications
+} // getStokesSpecifications
 
-void
-INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
+void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -143,45 +134,40 @@ INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// registerPhysicalBoundaryConditions
+} // registerPhysicalBoundaryConditions
 
 const std::vector<RobinBcCoefStrategy<NDIM>*>&
 INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
-}// getVelocityBoundaryConditions
+} // getVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>*
-INSHierarchyIntegrator::getPressureBoundaryConditions() const
+RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
-}// getPressureBoundaryConditions
+} // getPressureBoundaryConditions
 
 void
-INSHierarchyIntegrator::registerVelocityInitialConditions(
-    Pointer<CartGridFunction> U_init)
+INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_U_init = U_init;
     return;
-}// registerVelocityInitialConditions
+} // registerVelocityInitialConditions
 
 void
-INSHierarchyIntegrator::registerPressureInitialConditions(
-    Pointer<CartGridFunction> P_init)
+INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_P_init = P_init;
     return;
-}// registerPressureInitialConditions
+} // registerPressureInitialConditions
 
-void
-INSHierarchyIntegrator::registerBodyForceFunction(
-    Pointer<CartGridFunction> F_fcn)
+void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -193,9 +179,11 @@ INSHierarchyIntegrator::registerBodyForceFunction(
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
                  << "  body force function has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  functions will be evaluated in the order in which they were registered "
+                    "with "
+                    "the solver\n"
                  << "  when evaluating the body force term value.\n";
-            p_F_fcn = new CartGridFunctionSet(d_object_name+"::body_force_function_set");
+            p_F_fcn = new CartGridFunctionSet(d_object_name + "::body_force_function_set");
             p_F_fcn->addFunction(d_F_fcn);
         }
         p_F_fcn->addFunction(F_fcn);
@@ -205,11 +193,9 @@ INSHierarchyIntegrator::registerBodyForceFunction(
         d_F_fcn = F_fcn;
     }
     return;
-}// registerBodyForceFunction
+} // registerBodyForceFunction
 
-void
-INSHierarchyIntegrator::registerFluidSourceFunction(
-    Pointer<CartGridFunction> Q_fcn)
+void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -221,9 +207,11 @@ INSHierarchyIntegrator::registerFluidSourceFunction(
         {
             pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"
                  << "  fluid source function has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered with the solver\n"
+                 << "  functions will be evaluated in the order in which they were registered "
+                    "with "
+                    "the solver\n"
                  << "  when evaluating the fluid source term value.\n";
-            p_Q_fcn = new CartGridFunctionSet(d_object_name+"::fluid_source_function_set");
+            p_Q_fcn = new CartGridFunctionSet(d_object_name + "::fluid_source_function_set");
             p_Q_fcn->addFunction(d_Q_fcn);
         }
         p_Q_fcn->addFunction(Q_fcn);
@@ -233,53 +221,46 @@ INSHierarchyIntegrator::registerFluidSourceFunction(
         d_Q_fcn = Q_fcn;
     }
     return;
-}// registerFluidSourceFunction
+} // registerFluidSourceFunction
 
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable<NDIM> > INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
-}// getVelocityVariable
+} // getVelocityVariable
 
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable<NDIM> > INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
-}// getPressureVariable
+} // getPressureVariable
 
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable<NDIM> > INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
-}// getBodyForceVariable
+} // getBodyForceVariable
 
-Pointer<Variable<NDIM> >
-INSHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable<NDIM> > INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
-}// getFluidSourceVariable
+} // getFluidSourceVariable
 
-Pointer<FaceVariable<NDIM,double> >
-INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+Pointer<FaceVariable<NDIM, double> > INSHierarchyIntegrator::getAdvectionVelocityVariable()
+    const
 {
     return d_U_adv_diff_var;
-}// getAdvectionVelocityVariable
+} // getAdvectionVelocityVariable
 
 std::vector<RobinBcCoefStrategy<NDIM>*>
 INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
-}// getIntermediateVelocityBoundaryConditions
+} // getIntermediateVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>*
-INSHierarchyIntegrator::getProjectionBoundaryConditions() const
+RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef;
-}// getProjectionBoundaryConditions
+} // getProjectionBoundaryConditions
 
-void
-INSHierarchyIntegrator::registerMassDensityVariable(
-    Pointer<Variable<NDIM> > rho_var)
+void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
@@ -287,28 +268,23 @@ INSHierarchyIntegrator::registerMassDensityVariable(
 #endif
     d_rho_var = rho_var;
     return;
-}// registerMassDensityVariable
+} // registerMassDensityVariable
 
-void
-INSHierarchyIntegrator::setMassDensityFunction(
-    Pointer<CartGridFunction> rho_fcn)
+void INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_rho_fcn = rho_fcn;
     return;
-}// registerMassDensityFunction
+} // registerMassDensityFunction
 
-Pointer<CartGridFunction>
-INSHierarchyIntegrator::getMassDensityFunction() const
+Pointer<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
 {
     return d_rho_fcn;
-}// getMassDensityFunction
+} // getMassDensityFunction
 
-void
-INSHierarchyIntegrator::setCreepingFlow(
-    bool creeping_flow)
+void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -317,17 +293,14 @@ INSHierarchyIntegrator::setCreepingFlow(
     d_convective_op.setNull();
     d_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
     return;
-}// setCreepingFlow
+} // setCreepingFlow
 
-bool
-INSHierarchyIntegrator::getCreepingFlow() const
+bool INSHierarchyIntegrator::getCreepingFlow() const
 {
     return d_creeping_flow;
-}// getCreepingFlow
+} // getCreepingFlow
 
-void
-INSHierarchyIntegrator::setConvectiveOperatorType(
-    const std::string& op_type)
+void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -336,16 +309,14 @@ INSHierarchyIntegrator::setConvectiveOperatorType(
 #endif
     d_convective_op_type = op_type;
     return;
-}// setConvectiveOperatorType
+} // setConvectiveOperatorType
 
-const std::string&
-INSHierarchyIntegrator::getConvectiveOperatorType() const
+const std::string& INSHierarchyIntegrator::getConvectiveOperatorType() const
 {
     return d_convective_op_type;
-}// getConvectiveOperatorType
+} // getConvectiveOperatorType
 
-void
-INSHierarchyIntegrator::setConvectiveDifferencingType(
+void INSHierarchyIntegrator::setConvectiveDifferencingType(
     ConvectiveDifferencingType difference_form)
 {
 #if !defined(NDEBUG)
@@ -355,17 +326,14 @@ INSHierarchyIntegrator::setConvectiveDifferencingType(
 #endif
     d_convective_difference_form = difference_form;
     return;
-}// setConvectiveDifferencingType
+} // setConvectiveDifferencingType
 
-ConvectiveDifferencingType
-INSHierarchyIntegrator::getConvectiveDifferencingType() const
+ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType() const
 {
     return d_convective_difference_form;
-}// getConvectiveDifferencingType
+} // getConvectiveDifferencingType
 
-void
-INSHierarchyIntegrator::setConvectiveOperator(
-    Pointer<ConvectiveOperator> convective_op)
+void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -374,11 +342,9 @@ INSHierarchyIntegrator::setConvectiveOperator(
     d_convective_op = convective_op;
     d_creeping_flow = !d_convective_op;
     return;
-}// setConvectiveOperator
+} // setConvectiveOperator
 
-void
-INSHierarchyIntegrator::setVelocitySubdomainSolver(
-    Pointer<PoissonSolver> velocity_solver)
+void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -386,11 +352,9 @@ INSHierarchyIntegrator::setVelocitySubdomainSolver(
 #endif
     d_velocity_solver = velocity_solver;
     return;
-}// setVelocitySubdomainSolver
+} // setVelocitySubdomainSolver
 
-void
-INSHierarchyIntegrator::setPressureSubdomainSolver(
-    Pointer<PoissonSolver> pressure_solver)
+void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -398,41 +362,34 @@ INSHierarchyIntegrator::setPressureSubdomainSolver(
 #endif
     d_pressure_solver = pressure_solver;
     return;
-}// setPressureSubdomainSolver
+} // setPressureSubdomainSolver
 
-int
-INSHierarchyIntegrator::getNumberOfCycles() const
+int INSHierarchyIntegrator::getNumberOfCycles() const
 {
     int num_cycles = d_num_cycles;
-    if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) && is_multistep_time_stepping_type(d_convective_time_stepping_type) && d_init_convective_time_stepping_type != FORWARD_EULER)
+    if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) &&
+        is_multistep_time_stepping_type(d_convective_time_stepping_type) &&
+        d_init_convective_time_stepping_type != FORWARD_EULER)
     {
-        num_cycles = std::max(2,num_cycles);
+        num_cycles = std::max(2, num_cycles);
     }
     return num_cycles;
-}// getNumberOfCycles
+} // getNumberOfCycles
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<Variable<NDIM> > U_var,
-    Pointer<Variable<NDIM> > P_var,
-    Pointer<Variable<NDIM> > F_var,
-    Pointer<Variable<NDIM> > Q_var,
-    bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_U_var(U_var),
-      d_P_var(P_var),
-      d_F_var(F_var),
-      d_Q_var(Q_var),
-      d_U_init(NULL),
-      d_P_init(NULL),
-      d_default_bc_coefs(d_object_name+"::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_traction_bc_type(TRACTION),
-      d_F_fcn(NULL),
-      d_Q_fcn(NULL)
+INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
+                                               Pointer<Database> input_db,
+                                               Pointer<Variable<NDIM> > U_var,
+                                               Pointer<Variable<NDIM> > P_var,
+                                               Pointer<Variable<NDIM> > F_var,
+                                               Pointer<Variable<NDIM> > Q_var,
+                                               bool register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var),
+      d_P_var(P_var), d_F_var(F_var), d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
+      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
 {
     // Set some default values.
     d_integrator_is_initialized = false;
@@ -447,7 +404,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_normalize_velocity = false;
     d_convective_op_type = "DEFAULT";
     d_convective_difference_form = ADVECTIVE;
-    d_convective_op_input_db = new MemoryDatabase(d_object_name+"::convective_op_input_db");
+    d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
     d_creeping_flow = false;
     d_regrid_max_div_growth_factor = 1.1;
     d_U_scale = 1.0;
@@ -469,16 +426,17 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     // Dirichlet (solid-wall) boundary conditions for the velocity.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coefs.setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coefs.setBoundaryValue(2*d+1,0.0);
+        d_default_bc_coefs.setBoundaryValue(2 * d, 0.0);
+        d_default_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
     }
-    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,&d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(
+        std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,d_bc_coefs);
+        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
     }
     d_Phi_bc_coef = new INSProjectionBcCoef(d_bc_coefs);
 
@@ -490,93 +448,103 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = new FaceVariable<NDIM,double>(d_object_name+"::U_adv_diff");
+    d_U_adv_diff_var = new FaceVariable<NDIM, double>(d_object_name + "::U_adv_diff");
     return;
-}// INSHierarchyIntegrator
+} // INSHierarchyIntegrator
 
-double
-INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt = std::min(dt, d_cfl_max*getStableTimestep(level));
+        dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (!initial_time && d_dt_growth_factor >= 1.0)
     {
-        dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
+        dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
-}// getMaximumTimeStepSizeSpecialized
+} // getMaximumTimeStepSizeSpecialized
 
-double
-INSHierarchyIntegrator::getStableTimestep(
-    Pointer<PatchLevel<NDIM> > level) const
+double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        stable_dt = std::min(stable_dt,getStableTimestep(patch));
+        stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = SAMRAI_MPI::minReduction(stable_dt);
     return stable_dt;
-}// getStableTimestep
+} // getStableTimestep
 
-void
-INSHierarchyIntegrator::putToDatabaseSpecialized(
-    Pointer<Database> db)
+void INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
-    db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION",INS_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
-    db->putString("d_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_convective_time_stepping_type));
-    db->putString("d_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type));
-    db->putDouble("d_rho",d_problem_coefs.getRho());
-    db->putDouble("d_mu",d_problem_coefs.getMu());
-    db->putDouble("d_lambda",d_problem_coefs.getLambda());
-    db->putDouble("d_cfl_max",d_cfl_max);
-    db->putBool("d_using_vorticity_tagging",d_using_vorticity_tagging);
-    if (d_Omega_rel_thresh.size() > 0) db->putDoubleArray("d_Omega_rel_thresh",d_Omega_rel_thresh);
-    if (d_Omega_abs_thresh.size() > 0) db->putDoubleArray("d_Omega_abs_thresh",d_Omega_abs_thresh);
-    db->putDouble("d_Omega_max",d_Omega_max);
-    db->putBool("d_normalize_pressure",d_normalize_pressure);
-    db->putBool("d_normalize_velocity",d_normalize_velocity);
-    db->putString("d_convective_op_type",d_convective_op_type);
-    db->putString("d_convective_difference_form",enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
-    db->putBool("d_creeping_flow",d_creeping_flow);
-    db->putDouble("d_regrid_max_div_growth_factor",d_regrid_max_div_growth_factor);
-    db->putDouble("d_U_scale",d_U_scale);
-    db->putDouble("d_P_scale",d_P_scale);
-    db->putDouble("d_F_scale",d_F_scale);
-    db->putDouble("d_Q_scale",d_Q_scale);
-    db->putDouble("d_Omega_scale",d_Omega_scale);
-    db->putDouble("d_Div_U_scale",d_Div_U_scale);
-    db->putBool("d_output_U",d_output_U);
-    db->putBool("d_output_P",d_output_P);
-    db->putBool("d_output_F",d_output_F);
-    db->putBool("d_output_Q",d_output_Q);
-    db->putBool("d_output_Omega",d_output_Omega);
-    db->putBool("d_output_Div_U",d_output_Div_U);
+    db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION", INS_HIERARCHY_INTEGRATOR_VERSION);
+    db->putString("d_viscous_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
+    db->putString("d_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_convective_time_stepping_type));
+    db->putString("d_init_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type));
+    db->putDouble("d_rho", d_problem_coefs.getRho());
+    db->putDouble("d_mu", d_problem_coefs.getMu());
+    db->putDouble("d_lambda", d_problem_coefs.getLambda());
+    db->putDouble("d_cfl_max", d_cfl_max);
+    db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
+    if (d_Omega_rel_thresh.size() > 0)
+        db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
+    if (d_Omega_abs_thresh.size() > 0)
+        db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
+    db->putDouble("d_Omega_max", d_Omega_max);
+    db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putBool("d_normalize_velocity", d_normalize_velocity);
+    db->putString("d_convective_op_type", d_convective_op_type);
+    db->putString("d_convective_difference_form",
+                  enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
+    db->putBool("d_creeping_flow", d_creeping_flow);
+    db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
+    db->putDouble("d_U_scale", d_U_scale);
+    db->putDouble("d_P_scale", d_P_scale);
+    db->putDouble("d_F_scale", d_F_scale);
+    db->putDouble("d_Q_scale", d_Q_scale);
+    db->putDouble("d_Omega_scale", d_Omega_scale);
+    db->putDouble("d_Div_U_scale", d_Div_U_scale);
+    db->putBool("d_output_U", d_output_U);
+    db->putBool("d_output_P", d_output_P);
+    db->putBool("d_output_F", d_output_F);
+    db->putBool("d_output_Q", d_output_Q);
+    db->putBool("d_output_Omega", d_output_Omega);
+    db->putBool("d_output_Div_U", d_output_Div_U);
     return;
-}// putToDatabaseSpecialized
+} // putToDatabaseSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-INSHierarchyIntegrator::getFromInput(
-    Pointer<Database> db,
-    const bool is_from_restart)
+void INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_restart)
 {
     if (!is_from_restart)
     {
-        if      (db->keyExists("viscous_time_stepping_type")) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_time_stepping_type"));
-        else if (db->keyExists("viscous_timestepping_type") ) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_timestepping_type") );
-        if      (db->keyExists("convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
-        else if (db->keyExists("convective_timestepping_type") ) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_timestepping_type") );
-        if      (db->keyExists("init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
-        else if (db->keyExists("init_convective_timestepping_type") ) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type") );
+        if (db->keyExists("viscous_time_stepping_type"))
+            d_viscous_time_stepping_type =
+                string_to_enum<TimeSteppingType>(db->getString("viscous_time_stepping_type"));
+        else if (db->keyExists("viscous_timestepping_type"))
+            d_viscous_time_stepping_type =
+                string_to_enum<TimeSteppingType>(db->getString("viscous_timestepping_type"));
+        if (db->keyExists("convective_time_stepping_type"))
+            d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("convective_time_stepping_type"));
+        else if (db->keyExists("convective_timestepping_type"))
+            d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("convective_timestepping_type"));
+        if (db->keyExists("init_convective_time_stepping_type"))
+            d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("init_convective_time_stepping_type"));
+        else if (db->keyExists("init_convective_timestepping_type"))
+            d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("init_convective_timestepping_type"));
         if (db->keyExists("rho"))
         {
             d_problem_coefs.setRho(db->getDouble("rho"));
@@ -584,7 +552,7 @@ INSHierarchyIntegrator::getFromInput(
         else
         {
             TBOX_ERROR(d_object_name << ":  "
-                       << "Key data `rho' not found in input.");
+                                     << "Key data `rho' not found in input.");
         }
 
         if (db->keyExists("mu"))
@@ -594,7 +562,7 @@ INSHierarchyIntegrator::getFromInput(
         else
         {
             TBOX_ERROR(d_object_name << ":  "
-                       << "Key data `mu' not found in input.");
+                                     << "Key data `mu' not found in input.");
         }
 
         if (db->keyExists("lambda"))
@@ -607,31 +575,59 @@ INSHierarchyIntegrator::getFromInput(
         }
     }
     if (db->keyExists("num_cycles")) d_num_cycles = db->getInteger("num_cycles");
-    if (db->keyExists("cfl")) d_cfl_max = db->getDouble("cfl");
-    else if (db->keyExists("cfl_max")) d_cfl_max = db->getDouble("cfl_max");
-    else if (db->keyExists("CFL")) d_cfl_max = db->getDouble("CFL");
-    else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
-    if (db->keyExists("using_vorticity_tagging")) d_using_vorticity_tagging = db->getBool("using_vorticity_tagging");
-    if (db->keyExists("Omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("Omega_rel_thresh");
-    else if (db->keyExists("omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("omega_rel_thresh");
-    else if (db->keyExists("vorticity_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("vorticity_rel_thresh");
-    if (db->keyExists("Omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("Omega_abs_thresh");
-    else if (db->keyExists("omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("omega_abs_thresh");
-    else if (db->keyExists("vorticity_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
-    if (db->keyExists("normalize_pressure")) d_normalize_pressure = db->getBool("normalize_pressure");
-    if (db->keyExists("normalize_velocity")) d_normalize_velocity = db->getBool("normalize_velocity");
-    if      (db->keyExists("convective_op_type"))               d_convective_op_type = db->getString("convective_op_type");
-    else if (db->keyExists("convective_operator_type"))         d_convective_op_type = db->getString("convective_operator_type");
-    else if (db->keyExists("default_convective_op_type"))       d_convective_op_type = db->getString("default_convective_op_type");
-    else if (db->keyExists("default_convective_operator_type")) d_convective_op_type = db->getString("default_convective_operator_type");
-    if      (db->keyExists("convective_difference_form"))         d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
-    else if (db->keyExists("convective_difference_type"))         d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
-    else if (db->keyExists("default_convective_difference_form")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
-    else if (db->keyExists("default_convective_difference_type")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
-    if      (db->keyExists("convective_op_db"))         d_convective_op_input_db = db->getDatabase("convective_op_db");
-    else if (db->keyExists("default_convective_op_db")) d_convective_op_input_db = db->getDatabase("default_convective_op_db");
+    if (db->keyExists("cfl"))
+        d_cfl_max = db->getDouble("cfl");
+    else if (db->keyExists("cfl_max"))
+        d_cfl_max = db->getDouble("cfl_max");
+    else if (db->keyExists("CFL"))
+        d_cfl_max = db->getDouble("CFL");
+    else if (db->keyExists("CFL_max"))
+        d_cfl_max = db->getDouble("CFL_max");
+    if (db->keyExists("using_vorticity_tagging"))
+        d_using_vorticity_tagging = db->getBool("using_vorticity_tagging");
+    if (db->keyExists("Omega_rel_thresh"))
+        d_Omega_rel_thresh = db->getDoubleArray("Omega_rel_thresh");
+    else if (db->keyExists("omega_rel_thresh"))
+        d_Omega_rel_thresh = db->getDoubleArray("omega_rel_thresh");
+    else if (db->keyExists("vorticity_rel_thresh"))
+        d_Omega_rel_thresh = db->getDoubleArray("vorticity_rel_thresh");
+    if (db->keyExists("Omega_abs_thresh"))
+        d_Omega_abs_thresh = db->getDoubleArray("Omega_abs_thresh");
+    else if (db->keyExists("omega_abs_thresh"))
+        d_Omega_abs_thresh = db->getDoubleArray("omega_abs_thresh");
+    else if (db->keyExists("vorticity_abs_thresh"))
+        d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
+    if (db->keyExists("normalize_pressure"))
+        d_normalize_pressure = db->getBool("normalize_pressure");
+    if (db->keyExists("normalize_velocity"))
+        d_normalize_velocity = db->getBool("normalize_velocity");
+    if (db->keyExists("convective_op_type"))
+        d_convective_op_type = db->getString("convective_op_type");
+    else if (db->keyExists("convective_operator_type"))
+        d_convective_op_type = db->getString("convective_operator_type");
+    else if (db->keyExists("default_convective_op_type"))
+        d_convective_op_type = db->getString("default_convective_op_type");
+    else if (db->keyExists("default_convective_operator_type"))
+        d_convective_op_type = db->getString("default_convective_operator_type");
+    if (db->keyExists("convective_difference_form"))
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getString("convective_difference_form"));
+    else if (db->keyExists("convective_difference_type"))
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getString("convective_difference_type"));
+    else if (db->keyExists("default_convective_difference_form"))
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getString("default_convective_difference_form"));
+    else if (db->keyExists("default_convective_difference_type"))
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getString("default_convective_difference_type"));
+    if (db->keyExists("convective_op_db"))
+        d_convective_op_input_db = db->getDatabase("convective_op_db");
+    else if (db->keyExists("default_convective_op_db"))
+        d_convective_op_input_db = db->getDatabase("default_convective_op_db");
     if (db->keyExists("creeping_flow")) d_creeping_flow = db->getBool("creeping_flow");
-    if (db->keyExists("regrid_max_div_growth_factor")) d_regrid_max_div_growth_factor = db->getDouble("regrid_max_div_growth_factor");
+    if (db->keyExists("regrid_max_div_growth_factor"))
+        d_regrid_max_div_growth_factor = db->getDouble("regrid_max_div_growth_factor");
     if (db->keyExists("U_scale")) d_U_scale = db->getDouble("U_scale");
     if (db->keyExists("P_scale")) d_P_scale = db->getDouble("P_scale");
     if (db->keyExists("F_scale")) d_F_scale = db->getDouble("F_scale");
@@ -644,54 +640,64 @@ INSHierarchyIntegrator::getFromInput(
     if (db->keyExists("output_Q")) d_output_Q = db->getBool("output_Q");
     if (db->keyExists("output_Omega")) d_output_Omega = db->getBool("output_Omega");
     if (db->keyExists("output_Div_U")) d_output_Div_U = db->getBool("output_Div_U");
-    if (db->keyExists("traction_bc_type")) d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
+    if (db->keyExists("traction_bc_type"))
+        d_traction_bc_type = string_to_enum<TractionBcType>(db->getString("traction_bc_type"));
 
     if (db->keyExists("velocity_solver_type"))
     {
         d_velocity_solver_type = db->getString("velocity_solver_type");
-        if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
+        if (db->keyExists("velocity_solver_db"))
+            d_velocity_solver_db = db->getDatabase("velocity_solver_db");
     }
     if (!d_velocity_solver_db) d_velocity_solver_db = new MemoryDatabase("velocity_solver_db");
 
     if (db->keyExists("velocity_precond_type"))
     {
         d_velocity_precond_type = db->getString("velocity_precond_type");
-        if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
+        if (db->keyExists("velocity_precond_db"))
+            d_velocity_precond_db = db->getDatabase("velocity_precond_db");
     }
-    if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
+    if (!d_velocity_precond_db)
+        d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
 
     if (db->keyExists("pressure_solver_type"))
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
-        if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
+        if (db->keyExists("pressure_solver_db"))
+            d_pressure_solver_db = db->getDatabase("pressure_solver_db");
     }
     if (!d_pressure_solver_db) d_pressure_solver_db = new MemoryDatabase("pressure_solver_db");
 
     if (db->keyExists("pressure_precond_type"))
     {
         d_pressure_precond_type = db->getString("pressure_precond_type");
-        if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
+        if (db->keyExists("pressure_precond_db"))
+            d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     }
-    if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
+    if (!d_pressure_precond_db)
+        d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
 
     if (db->keyExists("regrid_projection_solver_type"))
     {
         d_regrid_projection_solver_type = db->getString("regrid_projection_solver_type");
-        if (db->keyExists("regrid_projection_solver_db")) d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
+        if (db->keyExists("regrid_projection_solver_db"))
+            d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
     }
-    if (!d_regrid_projection_solver_db) d_regrid_projection_solver_db = new MemoryDatabase("regrid_projection_solver_db");
+    if (!d_regrid_projection_solver_db)
+        d_regrid_projection_solver_db = new MemoryDatabase("regrid_projection_solver_db");
 
     if (db->keyExists("regrid_projection_precond_type"))
     {
         d_regrid_projection_precond_type = db->getString("regrid_projection_precond_type");
-        if (db->keyExists("regrid_projection_precond_db")) d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
+        if (db->keyExists("regrid_projection_precond_db"))
+            d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
     }
-    if (!d_regrid_projection_precond_db) d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
+    if (!d_regrid_projection_precond_db)
+        d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
     return;
-}// getFromInput
+} // getFromInput
 
-void
-INSHierarchyIntegrator::getFromRestart()
+void INSHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -701,32 +707,41 @@ INSHierarchyIntegrator::getFromRestart()
     }
     else
     {
-        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("INS_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != INS_HIERARCHY_INTEGRATOR_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
+                                 << std::endl);
     }
-    d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_viscous_time_stepping_type"));
-    d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_convective_time_stepping_type"));
-    d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_init_convective_time_stepping_type"));
+    d_viscous_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_viscous_time_stepping_type"));
+    d_convective_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_convective_time_stepping_type"));
+    d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+        db->getString("d_init_convective_time_stepping_type"));
     d_problem_coefs.setRho(db->getDouble("d_rho"));
     d_problem_coefs.setMu(db->getDouble("d_mu"));
     d_problem_coefs.setLambda(db->getDouble("d_lambda"));
     d_num_cycles = db->getInteger("d_num_cycles");
     d_cfl_max = db->getDouble("d_cfl_max");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    if (db->keyExists("d_Omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
-    else d_Omega_rel_thresh.resizeArray(0);
-    if (db->keyExists("d_Omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
-    else d_Omega_abs_thresh.resizeArray(0);
+    if (db->keyExists("d_Omega_rel_thresh"))
+        d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
+    else
+        d_Omega_rel_thresh.resizeArray(0);
+    if (db->keyExists("d_Omega_abs_thresh"))
+        d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
+    else
+        d_Omega_abs_thresh.resizeArray(0);
     d_Omega_max = db->getDouble("d_Omega_max");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_normalize_velocity = db->getBool("d_normalize_velocity");
     d_convective_op_type = db->getString("d_convective_op_type");
-    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+        db->getString("d_convective_difference_form"));
     d_creeping_flow = db->getBool("d_creeping_flow");
     d_regrid_max_div_growth_factor = db->getDouble("d_regrid_max_div_growth_factor");
     d_U_scale = db->getDouble("d_U_scale");
@@ -742,10 +757,10 @@ INSHierarchyIntegrator::getFromRestart()
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
     return;
-}// getFromRestart
+} // getFromRestart
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

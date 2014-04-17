@@ -56,21 +56,13 @@ namespace IBTK
  * vector is destroyed via VecDestroy().  Users must \em not free the array
  * until the vector is destroyed.
  */
-PetscErrorCode
-VecCreateMultiVec(
-    MPI_Comm comm,
-    PetscInt n,
-    Vec vv[],
-    Vec* v);
+PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v);
 
 /*!
  * \brief Return the number of component Vec objects stored in a MultiVec
  * vector.
  */
-PetscErrorCode
-VecMultiVecGetNumberOfSubVecs(
-    Vec v,
-    PetscInt* n);
+PetscErrorCode VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n);
 
 /*!
  * \brief Return a pointer to the component Vec objects stored in a MultiVec
@@ -79,10 +71,7 @@ VecMultiVecGetNumberOfSubVecs(
  * \param v input vector
  * \param vv pointer to array of component vectors
  */
-PetscErrorCode
-VecMultiVecGetSubVecs(
-    Vec v,
-    Vec* vv[]);
+PetscErrorCode VecMultiVecGetSubVecs(Vec v, Vec* vv[]);
 
 /*!
  * \brief Return a pointer to a particular component Vec object stored in a
@@ -92,12 +81,8 @@ VecMultiVecGetSubVecs(
  * \param idx component index
  * \param subv pointer to component vector
  */
-PetscErrorCode
-VecMultiVecGetSubVec(
-    Vec v,
-    PetscInt idx,
-    Vec* subv);
-}// namespace IBTK
+PetscErrorCode VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv);
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -40,11 +40,14 @@
 #include "ibtk/LinearOperator.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,15 +58,13 @@ namespace IBTK
  * specification of general operators to compute Jacobian-vector products, i.e.,
  * \f$ F'[x]v \f$.
  */
-class JacobianOperator
-    : public LinearOperator
+class JacobianOperator : public LinearOperator
 {
 public:
     /*!
      * \brief Constructor.
      */
-    JacobianOperator(
-        const std::string& object_name);
+    JacobianOperator(const std::string& object_name);
 
     /*!
      * \brief Empty destructor.
@@ -80,9 +81,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    virtual void
-    formJacobian(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x) = 0;
+    virtual void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -91,7 +90,7 @@ public:
      * NULL pointer if the operator is not initialized, or if formJacobian() has
      * not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
     getBaseVector() const = 0;
 
     //\}
@@ -111,8 +110,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    JacobianOperator(
-        const JacobianOperator& from);
+    JacobianOperator(const JacobianOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -123,11 +121,9 @@ private:
      *
      * \return A reference to this object.
      */
-    JacobianOperator&
-    operator=(
-        const JacobianOperator& that);
+    JacobianOperator& operator=(const JacobianOperator& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

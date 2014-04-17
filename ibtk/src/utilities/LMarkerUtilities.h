@@ -35,26 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <stddef.h>
 #include <string>
 #include <vector>
 
 #include "ibtk/LMarkerSetData.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
 
-namespace boost {
-template <class T, std::size_t N> class array;
-}  // namespace boost
-
-namespace SAMRAI {
-namespace geom {
-template <int DIM> class CartesianGridGeometry;
-}  // namespace geom
-namespace hier {
-template <int DIM> class BasePatchLevel;
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace geom
+{
+template <int DIM>
+class CartesianGridGeometry;
+} // namespace geom
+namespace hier
+{
+template <int DIM>
+class BasePatchLevel;
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -71,8 +73,7 @@ public:
      * Read the initial positions of a collection of Lagrangian markers from a
      * text file.  Returns the number of markers read.
      */
-    static unsigned int
-    readMarkerPositions(
+    static unsigned int readMarkerPositions(
         std::vector<Point>& mark_init_posns,
         const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
@@ -81,16 +82,14 @@ public:
      * Advect all markers by the specified advection velocity using forward
      * Euler.
      */
-    static void
-    eulerStep(
-        int mark_current_idx,
-        int mark_new_idx,
-        int u_current_idx,
-        double dt,
-        const std::string& weighting_fcn,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    static void eulerStep(int mark_current_idx,
+                          int mark_new_idx,
+                          int u_current_idx,
+                          double dt,
+                          const std::string& weighting_fcn,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                          int coarsest_ln = -1,
+                          int finest_ln = -1);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -100,15 +99,14 @@ public:
      * predicted marker positions.
      */
     static void
-    midpointStep(
-        int mark_current_idx,
-        int mark_new_idx,
-        int u_half_idx,
-        double dt,
-        const std::string& weighting_fcn,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    midpointStep(int mark_current_idx,
+                 int mark_new_idx,
+                 int u_half_idx,
+                 double dt,
+                 const std::string& weighting_fcn,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 int coarsest_ln = -1,
+                 int finest_ln = -1);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -118,22 +116,20 @@ public:
      * current marker velocities and the predicted marker positions.
      */
     static void
-    trapezoidalStep(
-        int mark_current_idx,
-        int mark_new_idx,
-        int u_new_idx,
-        double dt,
-        const std::string& weighting_fcn,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    trapezoidalStep(int mark_current_idx,
+                    int mark_new_idx,
+                    int u_new_idx,
+                    double dt,
+                    const std::string& weighting_fcn,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                    int coarsest_ln = -1,
+                    int finest_ln = -1);
 
     /*!
      * Collect all marker data onto the coarsest level of the patch hierarchy
      * (to prepare for regridding the patch hierarchy).
      */
-    static void
-    collectMarkersOnPatchHierarchy(
+    static void collectMarkersOnPatchHierarchy(
         int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -142,8 +138,7 @@ public:
      * refining markers from coarser levels in the patch hierarchy or by copying
      * markers from old_level.
      */
-    static void
-    initializeMarkersOnLevel(
+    static void initializeMarkersOnLevel(
         int mark_idx,
         const std::vector<Point>& mark_init_posns,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -156,21 +151,19 @@ public:
      * hierarchy.
      */
     static void
-    pruneInvalidMarkers(
-        int mark_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    pruneInvalidMarkers(int mark_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                        int coarsest_ln = -1,
+                        int finest_ln = -1);
 
     /*!
      * Count the markers.
      */
     static unsigned int
-    countMarkers(
-        int mark_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    countMarkers(int mark_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                 int coarsest_ln = -1,
+                 int finest_ln = -1);
 
 private:
     /*!
@@ -189,8 +182,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMarkerUtilities(
-        const LMarkerUtilities& from);
+    LMarkerUtilities(const LMarkerUtilities& from);
 
     /*!
      * \brief Unimplemented destructor.
@@ -206,58 +198,47 @@ private:
      *
      * \return A reference to this object.
      */
-    LMarkerUtilities& operator=(
-        const LMarkerUtilities& that);
+    LMarkerUtilities& operator=(const LMarkerUtilities& that);
 
     /*!
      * Determine the number of markers in a patch.
      */
-    static unsigned int
-    countMarkersOnPatch(
-        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    static unsigned int countMarkersOnPatch(SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
 
     /*!
      * Collect marker positions into a single vector.
      */
-    static void
-    collectMarkerPositionsOnPatch(
-        std::vector<double>& X_mark,
-        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    static void collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
+                                              SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
 
     /*!
      * Reset marker positions from a single vector.
      */
-    static void
-    resetMarkerPositionsOnPatch(
-        const std::vector<double>& X_mark,
-        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    static void resetMarkerPositionsOnPatch(const std::vector<double>& X_mark,
+                                            SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
 
     /*!
      * Collect marker velocities into a single vector.
      */
     static void
-    collectMarkerVelocitiesOnPatch(
-        std::vector<double>& U_mark,
-        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark,
+                                   SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
 
     /*!
      * Reset marker velocities from a single vector.
      */
-    static void
-    resetMarkerVelocitiesOnPatch(
-        const std::vector<double>& U_mark,
-        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    static void resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark,
+                                             SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
 
     /*!
      * Prevent markers from leaving the computational domain through physical
      * boundaries.
      */
-    static void
-    preventMarkerEscape(
+    static void preventMarkerEscape(
         std::vector<double>& X_mark,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

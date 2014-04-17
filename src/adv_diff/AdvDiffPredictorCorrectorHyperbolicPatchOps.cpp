@@ -67,57 +67,102 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define ADV_DIFF_CONSDIFF_FC IBAMR_FC_FUNC_(adv_diff_consdiff2d, ADV_DIFF_CONSDIFF2D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC IBAMR_FC_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC                                                     \
+    IBAMR_FC_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
 #endif
 
 #if (NDIM == 3)
 #define ADV_DIFF_CONSDIFF_FC IBAMR_FC_FUNC_(adv_diff_consdiff3d, ADV_DIFF_CONSDIFF3D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC IBAMR_FC_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
+#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC                                                     \
+    IBAMR_FC_FUNC_(adv_diff_consdiffwithdivsource3d, ADV_DIFF_CONSDIFFWITHDIVSOURCE3D)
 #endif
 
-extern "C"
-{
-    void
-    ADV_DIFF_CONSDIFF_FC(
-        const double*, const double&,
+extern "C" {
+void ADV_DIFF_CONSDIFF_FC(const double*,
+                          const double&,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
 #endif
-        double*);
+                          double*);
 
-    void
-    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-        const double*, const double&,
+void ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(const double*,
+                                       const double&,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        const double* , const double* ,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const int&,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
+                                       const double*,
 #endif
-        double*);
+                                       double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -134,20 +179,23 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name, input_db, explicit_predictor, grid_geom, register_for_restart)
+    : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name,
+                                                   input_db,
+                                                   explicit_predictor,
+                                                   grid_geom,
+                                                   register_for_restart)
 {
     d_overwrite_tags = false;
     return;
-}// AdvDiffPredictorCorrectorHyperbolicPatchOps
+} // AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::~AdvDiffPredictorCorrectorHyperbolicPatchOps()
 {
     // intentionally blank
     return;
-}// ~AdvDiffPredictorCorrectorHyperbolicPatchOps
+} // ~AdvDiffPredictorCorrectorHyperbolicPatchOps
 
-void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
     const double /*time*/,
     const double dt,
@@ -160,123 +208,173 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-        Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        Pointer<CellData<NDIM, double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            Pointer<FaceVariable<NDIM,double> > flux_integral_var = d_flux_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM,double> > q_integral_var = d_q_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM,double> > u_integral_var = d_u_integral_var[u_var];
+            Pointer<FaceVariable<NDIM, double> > flux_integral_var =
+                d_flux_integral_var[Q_var];
+            Pointer<FaceVariable<NDIM, double> > q_integral_var = d_q_integral_var[Q_var];
+            Pointer<FaceVariable<NDIM, double> > u_integral_var = d_u_integral_var[u_var];
 
-            Pointer<FaceData<NDIM,double> > flux_integral_data =
-                (conservation_form
-                 ? patch.getPatchData(flux_integral_var, getDataContext())
-                 : Pointer<PatchData<NDIM> >(NULL));
-            Pointer<FaceData<NDIM,double> > q_integral_data =
-                (!conservation_form || !u_is_div_free
-                 ? patch.getPatchData(q_integral_var, getDataContext())
-                 : Pointer<PatchData<NDIM> >(NULL));
-            Pointer<FaceData<NDIM,double> > u_integral_data =
-                (!conservation_form || !u_is_div_free
-                 ? patch.getPatchData(u_integral_var, getDataContext())
-                 : Pointer<PatchData<NDIM> >(NULL));
+            Pointer<FaceData<NDIM, double> > flux_integral_data =
+                (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
+                                     Pointer<PatchData<NDIM> >(NULL));
+            Pointer<FaceData<NDIM, double> > q_integral_data =
+                (!conservation_form || !u_is_div_free ?
+                     patch.getPatchData(q_integral_var, getDataContext()) :
+                     Pointer<PatchData<NDIM> >(NULL));
+            Pointer<FaceData<NDIM, double> > u_integral_data =
+                (!conservation_form || !u_is_div_free ?
+                     patch.getPatchData(u_integral_var, getDataContext()) :
+                     Pointer<PatchData<NDIM> >(NULL));
 
             const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-            const IntVector<NDIM>& flux_integral_data_ghost_cells = (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
+            const IntVector<NDIM>& flux_integral_data_ghost_cells =
+                (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
+            const IntVector<NDIM>& q_integral_data_ghost_cells =
+                (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
+            const IntVector<NDIM>& u_integral_data_ghost_cells =
+                (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
 
             switch (d_Q_difference_form[Q_var])
             {
-                case CONSERVATIVE:
+            case CONSERVATIVE:
+            {
+                for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                 {
-                    for (int depth = 0; depth < Q_data->getDepth(); ++depth)
+                    if (u_is_div_free)
                     {
-                        if (u_is_div_free)
-                        {
 #if (NDIM == 2)
-                            ADV_DIFF_CONSDIFF_FC(
-                                dx,dt,
-                                ilower(0),iupper(0),ilower(1),iupper(1),
-                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                                flux_integral_data->getPointer(0,depth),
-                                flux_integral_data->getPointer(1,depth),
-                                Q_data->getPointer(depth));
+                        ADV_DIFF_CONSDIFF_FC(dx,
+                                             dt,
+                                             ilower(0),
+                                             iupper(0),
+                                             ilower(1),
+                                             iupper(1),
+                                             flux_integral_data_ghost_cells(0),
+                                             flux_integral_data_ghost_cells(1),
+                                             Q_data_ghost_cells(0),
+                                             Q_data_ghost_cells(1),
+                                             flux_integral_data->getPointer(0, depth),
+                                             flux_integral_data->getPointer(1, depth),
+                                             Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                            ADV_DIFF_CONSDIFF_FC(
-                                dx,dt,
-                                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                                flux_integral_data->getPointer(0,depth),
-                                flux_integral_data->getPointer(1,depth),
-                                flux_integral_data->getPointer(2,depth),
-                                Q_data->getPointer(depth));
+                        ADV_DIFF_CONSDIFF_FC(dx,
+                                             dt,
+                                             ilower(0),
+                                             iupper(0),
+                                             ilower(1),
+                                             iupper(1),
+                                             ilower(2),
+                                             iupper(2),
+                                             flux_integral_data_ghost_cells(0),
+                                             flux_integral_data_ghost_cells(1),
+                                             flux_integral_data_ghost_cells(2),
+                                             Q_data_ghost_cells(0),
+                                             Q_data_ghost_cells(1),
+                                             Q_data_ghost_cells(2),
+                                             flux_integral_data->getPointer(0, depth),
+                                             flux_integral_data->getPointer(1, depth),
+                                             flux_integral_data->getPointer(2, depth),
+                                             Q_data->getPointer(depth));
 #endif
-                        }
-                        else
-                        {
-#if (NDIM == 2)
-                            ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-                                dx,dt,
-                                ilower(0),iupper(0),ilower(1),iupper(1),
-                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                                q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),
-                                u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),
-                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                                flux_integral_data->getPointer(0,depth),
-                                flux_integral_data->getPointer(1,depth),
-                                q_integral_data->getPointer(0,depth),
-                                q_integral_data->getPointer(1,depth),
-                                u_integral_data->getPointer(0),
-                                u_integral_data->getPointer(1),
-                                Q_data->getPointer(depth));
-#endif
-#if (NDIM == 3)
-                            ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-                                dx,dt,
-                                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                                flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                                q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),q_integral_data_ghost_cells(2),
-                                u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),u_integral_data_ghost_cells(2),
-                                Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                                flux_integral_data->getPointer(0,depth),
-                                flux_integral_data->getPointer(1,depth),
-                                flux_integral_data->getPointer(2,depth),
-                                q_integral_data->getPointer(0,depth),
-                                q_integral_data->getPointer(1,depth),
-                                q_integral_data->getPointer(2,depth),
-                                u_integral_data->getPointer(0),
-                                u_integral_data->getPointer(1),
-                                u_integral_data->getPointer(2),
-                                Q_data->getPointer(depth));
-#endif
-                        }
                     }
-                    break;
+                    else
+                    {
+#if (NDIM == 2)
+                        ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
+                            dx,
+                            dt,
+                            ilower(0),
+                            iupper(0),
+                            ilower(1),
+                            iupper(1),
+                            flux_integral_data_ghost_cells(0),
+                            flux_integral_data_ghost_cells(1),
+                            q_integral_data_ghost_cells(0),
+                            q_integral_data_ghost_cells(1),
+                            u_integral_data_ghost_cells(0),
+                            u_integral_data_ghost_cells(1),
+                            Q_data_ghost_cells(0),
+                            Q_data_ghost_cells(1),
+                            flux_integral_data->getPointer(0, depth),
+                            flux_integral_data->getPointer(1, depth),
+                            q_integral_data->getPointer(0, depth),
+                            q_integral_data->getPointer(1, depth),
+                            u_integral_data->getPointer(0),
+                            u_integral_data->getPointer(1),
+                            Q_data->getPointer(depth));
+#endif
+#if (NDIM == 3)
+                        ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
+                            dx,
+                            dt,
+                            ilower(0),
+                            iupper(0),
+                            ilower(1),
+                            iupper(1),
+                            ilower(2),
+                            iupper(2),
+                            flux_integral_data_ghost_cells(0),
+                            flux_integral_data_ghost_cells(1),
+                            flux_integral_data_ghost_cells(2),
+                            q_integral_data_ghost_cells(0),
+                            q_integral_data_ghost_cells(1),
+                            q_integral_data_ghost_cells(2),
+                            u_integral_data_ghost_cells(0),
+                            u_integral_data_ghost_cells(1),
+                            u_integral_data_ghost_cells(2),
+                            Q_data_ghost_cells(0),
+                            Q_data_ghost_cells(1),
+                            Q_data_ghost_cells(2),
+                            flux_integral_data->getPointer(0, depth),
+                            flux_integral_data->getPointer(1, depth),
+                            flux_integral_data->getPointer(2, depth),
+                            q_integral_data->getPointer(0, depth),
+                            q_integral_data->getPointer(1, depth),
+                            q_integral_data->getPointer(2, depth),
+                            u_integral_data->getPointer(0),
+                            u_integral_data->getPointer(1),
+                            u_integral_data->getPointer(2),
+                            Q_data->getPointer(depth));
+#endif
+                    }
                 }
-                case ADVECTIVE:
-                {
-                    CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
-                    d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
-                    PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
-                    patch_cc_data_ops.scale(Q_data, -1.0/(dt*dt), Pointer<CellData<NDIM,double> >(&N_data,false), patch_box);
-                    break;
-                }
-                default:
-                {
-                    TBOX_ERROR("AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch():\n"
-                               << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
-                               << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
-                }
+                break;
+            }
+            case ADVECTIVE:
+            {
+                CellData<NDIM, double> N_data(patch_box, Q_data->getDepth(), 0);
+                d_explicit_predictor->computeAdvectiveDerivative(
+                    N_data, *u_integral_data, *q_integral_data, patch);
+                PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+                patch_cc_data_ops.scale(Q_data,
+                                        -1.0 / (dt * dt),
+                                        Pointer<CellData<NDIM, double> >(&N_data, false),
+                                        patch_box);
+                break;
+            }
+            default:
+            {
+                TBOX_ERROR(
+                    "AdvDiffPredictorCorrectorHyperbolicPatchOps::"
+                    "conservativeDifferenceOnPatch():"
+                    "\n"
+                    << "  unsupported differencing form: "
+                    << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var])
+                    << " \n"
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+            }
             }
         }
         else
@@ -285,10 +383,9 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
         }
     }
     return;
-}// conservativeDifferenceOnPatch
+} // conservativeDifferenceOnPatch
 
-void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double /*dt*/,
@@ -299,21 +396,23 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end();
+         ++cit)
     {
-        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+            const int u_idx =
+                var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
         }
     }
     return;
-}// preprocessAdvanceLevelState
+} // preprocessAdvanceLevelState
 
-void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
@@ -324,21 +423,24 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end();
+         ++cit)
     {
-        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
-            d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time+dt);
+            const int u_idx =
+                var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+            d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time + dt);
         }
     }
     return;
-}// postprocessAdvanceLevelState
+} // postprocessAdvanceLevelState
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

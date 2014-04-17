@@ -43,17 +43,22 @@
 #include "tbox/ConstPointer.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LinearOperator;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-namespace tbox {
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -94,17 +99,15 @@ namespace IBTK
  \endverbatim
  *
  */
-class BGaussSeidelPreconditioner
-    : public LinearSolver
+class BGaussSeidelPreconditioner : public LinearSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    BGaussSeidelPreconditioner(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    BGaussSeidelPreconditioner(const std::string& object_name,
+                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                               const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -115,17 +118,14 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void
-    setComponentPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-        unsigned int component);
+    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
+                                    unsigned int component);
 
     /*!
      * \brief Set the linear operators to be employed on the specified vector
      * component.
      */
-    void
-    setComponentOperators(
+    void setComponentOperators(
         const std::vector<SAMRAI::tbox::Pointer<LinearOperator> >& linear_ops,
         unsigned int component);
 
@@ -133,18 +133,14 @@ public:
      * \brief Indicate whether to apply the component preconditioners
      * symmetrically.
      */
-    void
-    setSymmetricPreconditioner(
-        bool symmetric_preconditioner);
+    void setSymmetricPreconditioner(bool symmetric_preconditioner);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners in
      * reversed order (i.e., starting with the last component and ending with
      * the first component).
      */
-    void
-    setReversedOrder(
-        bool reverse_order);
+    void setReversedOrder(bool reverse_order);
 
     /*!
      * \name Linear solver functionality.
@@ -188,10 +184,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -230,10 +224,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -244,8 +236,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -257,16 +248,12 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
+    void setInitialGuessNonzero(bool initial_guess_nonzero = true);
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    void
-    setMaxIterations(
-        int max_iterations);
+    void setMaxIterations(int max_iterations);
 
     /*!
      * \name Functions to access data on the most recent solve.
@@ -276,14 +263,12 @@ public:
     /*!
      * \brief Return the iteration count from the most recent linear solve.
      */
-    int
-    getNumIterations() const;
+    int getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
-    double
-    getResidualNorm() const;
+    double getResidualNorm() const;
 
     //\}
 
@@ -302,8 +287,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    BGaussSeidelPreconditioner(
-        const BGaussSeidelPreconditioner& from);
+    BGaussSeidelPreconditioner(const BGaussSeidelPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -314,9 +298,7 @@ private:
      *
      * \return A reference to this object.
      */
-    BGaussSeidelPreconditioner&
-    operator=(
-        const BGaussSeidelPreconditioner& that);
+    BGaussSeidelPreconditioner& operator=(const BGaussSeidelPreconditioner& that);
 
     /*!
      * \brief Extract the individual components of a
@@ -324,19 +306,20 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >
+    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >
     getComponentVectors(
-        SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x);
+        SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > x);
 
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
 
     /*!
      * The component operators.
      */
-    std::map<unsigned int,std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > >
+    d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component
@@ -344,7 +327,7 @@ private:
      */
     bool d_symmetric_preconditioner, d_reverse_order;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

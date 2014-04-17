@@ -50,6 +50,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -157,7 +158,7 @@ main(
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
-
+        
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -226,7 +227,7 @@ main(
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
-
+        
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);

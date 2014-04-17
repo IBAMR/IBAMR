@@ -51,6 +51,7 @@
 #include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -138,6 +139,7 @@ main(
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
+        LDataManager* l_data_manager = ib_method_ops->getLDataManager();
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -202,6 +204,14 @@ main(
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
+
+        // Setup Silo writer.
+        if (silo_data_writer)
+        {
+            const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
+            Pointer<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+            silo_data_writer->registerVariableData("F", F_data, finest_hier_level);
+        }
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";
@@ -272,7 +282,7 @@ main(
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            postprocess_data(patch_hierarchy, ib_method_ops->getLDataManager(), loop_time, C_D_stream, C_L_stream);
+            postprocess_data(patch_hierarchy, l_data_manager, loop_time, C_D_stream, C_L_stream);
 
         }
 

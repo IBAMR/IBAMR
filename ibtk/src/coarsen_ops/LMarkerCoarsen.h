@@ -42,12 +42,16 @@
 #include "IntVector.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,8 +62,7 @@ namespace IBTK
  * restricting IB marker data from finer levels to coarser levels in the patch
  * hierarchy.
  */
-class LMarkerCoarsen
-    : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
@@ -81,16 +84,13 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool
-    findCoarsenOperator(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
-        const std::string& op_name) const;
+    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+                             const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the coarsening operation.
      */
-    const std::string&
-    getOperatorName() const;
+    const std::string& getOperatorName() const;
 
     /*!
      * Return the priority of this operator relative to other coarsening
@@ -98,8 +98,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    int
-    getOperatorPriority() const;
+    int getOperatorPriority() const;
 
     /*!
      * Return the stencil width associated with the coarsening operator.  The
@@ -107,8 +106,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each coarsening operator.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
 
     /*!
      * Coarsen the source component on the fine patch to the destination
@@ -117,19 +115,16 @@ public:
      * patch is guaranteed to contain sufficient data for the stencil width of
      * the coarsening operator.
      */
-    void
-    coarsen(
-        SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Patch<NDIM>& fine,
-        int dst_component,
-        int src_component,
-        const SAMRAI::hier::Box<NDIM>& coarse_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse,
+                 const SAMRAI::hier::Patch<NDIM>& fine,
+                 int dst_component,
+                 int src_component,
+                 const SAMRAI::hier::Box<NDIM>& coarse_box,
+                 const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -138,8 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LMarkerCoarsen(
-        const LMarkerCoarsen& from);
+    LMarkerCoarsen(const LMarkerCoarsen& from);
 
     /*!
      * \brief Assignment operator.
@@ -150,16 +144,14 @@ private:
      *
      * \return A reference to this object.
      */
-    LMarkerCoarsen&
-    operator=(
-        const LMarkerCoarsen& that);
+    LMarkerCoarsen& operator=(const LMarkerCoarsen& that);
 
     /*!
      * The operator name.
      */
     static const std::string s_op_name;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

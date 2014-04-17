@@ -33,7 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <iosfwd>
 #include <ostream>
 #include <utility>
 
@@ -47,11 +46,14 @@
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -59,18 +61,18 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string INSStaggeredConvectiveOperatorManager::DEFAULT        = "DEFAULT";
-const std::string INSStaggeredConvectiveOperatorManager::CENTERED       = "CENTERED";
-const std::string INSStaggeredConvectiveOperatorManager::PPM            = "PPM";
-const std::string INSStaggeredConvectiveOperatorManager::UPWIND         = "UPWIND";
+const std::string INSStaggeredConvectiveOperatorManager::DEFAULT = "DEFAULT";
+const std::string INSStaggeredConvectiveOperatorManager::CENTERED = "CENTERED";
+const std::string INSStaggeredConvectiveOperatorManager::PPM = "PPM";
+const std::string INSStaggeredConvectiveOperatorManager::UPWIND = "UPWIND";
 const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABILIZED_PPM";
 
-INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
+INSStaggeredConvectiveOperatorManager*
+INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
 unsigned char INSStaggeredConvectiveOperatorManager::s_shutdown_priority = 200;
 
-INSStaggeredConvectiveOperatorManager*
-INSStaggeredConvectiveOperatorManager::getManager()
+INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::getManager()
 {
     if (!s_operator_manager_instance)
     {
@@ -82,72 +84,75 @@ INSStaggeredConvectiveOperatorManager::getManager()
         s_registered_callback = true;
     }
     return s_operator_manager_instance;
-}// getManager
+} // getManager
 
-void
-INSStaggeredConvectiveOperatorManager::freeManager()
+void INSStaggeredConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
     return;
-}// freeManager
+} // freeManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
-INSStaggeredConvectiveOperatorManager::allocateOperator(
+Pointer<ConvectiveOperator> INSStaggeredConvectiveOperatorManager::allocateOperator(
     const std::string& operator_type,
     const std::string& operator_object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
-    std::map<std::string,OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
+    std::map<std::string, OperatorMaker>::const_iterator it =
+        d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"
                    << "  unrecognized operator type: " << operator_type << "\n");
     }
     return (it->second)(operator_object_name, input_db, difference_form, bc_coefs);
-}// allocateOperator
+} // allocateOperator
 
-void
-INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(
+void INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(
     const std::string& operator_type,
     OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {
         pout << "INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for operator_type = " << operator_type << "\n";
+             << "  NOTICE: overriding initialization function for operator_type = "
+             << operator_type << "\n";
     }
     d_operator_maker_map[operator_type] = operator_maker;
     return;
-}// registerOperatorFactoryFunction
+} // registerOperatorFactoryFunction
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager()
     : d_operator_maker_map()
 {
-    registerOperatorFactoryFunction(DEFAULT       , INSStaggeredPPMConvectiveOperator          ::allocate_operator);
-    registerOperatorFactoryFunction(CENTERED      , INSStaggeredCenteredConvectiveOperator     ::allocate_operator);
-    registerOperatorFactoryFunction(PPM           , INSStaggeredPPMConvectiveOperator          ::allocate_operator);
-    registerOperatorFactoryFunction(UPWIND        , INSStaggeredUpwindConvectiveOperator       ::allocate_operator);
-    registerOperatorFactoryFunction(STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(DEFAULT,
+                                    INSStaggeredPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(CENTERED,
+                                    INSStaggeredCenteredConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(PPM, INSStaggeredPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(UPWIND,
+                                    INSStaggeredUpwindConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(
+        STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
     return;
-}// INSStaggeredConvectiveOperatorManager
+} // INSStaggeredConvectiveOperatorManager
 
 INSStaggeredConvectiveOperatorManager::~INSStaggeredConvectiveOperatorManager()
 {
     // intentionally blank
     return;
-}// ~INSStaggeredConvectiveOperatorManager
+} // ~INSStaggeredConvectiveOperatorManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

@@ -39,30 +39,30 @@
 #include "CellIterator.h"
 #include "IndexData.h"
 #include "IntVector.h"
-#include "ibtk/FixedSizedStream-inl.h"
 #include "ibtk/LMarker.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSet-inl.h"
 
-namespace IBTK {
-template <class T> class LSet;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace pdat {
-template <int DIM> class CellGeometry;
-}  // namespace pdat
-}  // namespace SAMRAI
+namespace IBTK
+{
+template <class T>
+class LSet;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace pdat
+{
+template <int DIM>
+class CellGeometry;
+} // namespace pdat
+} // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -75,9 +75,9 @@ namespace IBTK
  *
  * \see SAMRAI::pdat::IndexData
  */
-template<class T>
+template <class T>
 class LSetData
-    : public SAMRAI::pdat::IndexData<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> >
+    : public SAMRAI::pdat::IndexData<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
     /*!
@@ -89,7 +89,8 @@ public:
      * Thhis iterator iterates over the LSet elements within the IndexData patch
      * data object.
      */
-    typedef SAMRAI::pdat::IndexIterator<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> > SetIterator;
+    typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
+    SetIterator;
 
     /*!
      * This iterator iterates over the Lagrangian elements located within a cell
@@ -101,31 +102,25 @@ public:
      * Return an iterator to the first Lagrangian data object in the specified
      * region of index space.
      */
-    DataIterator
-    data_begin(
-        const SAMRAI::hier::Box<NDIM>& box);
+    DataIterator data_begin(const SAMRAI::hier::Box<NDIM>& box);
 
     /*!
      * Return an iterator pointing to the end of the collection of Lagrangian
      * data objects associated with the patch data object.
      */
-    DataIterator
-    data_end();
+    DataIterator data_end();
 
     /*!
      * The constructor for an SAMRAI::pdat::IndexData<NDIM> object.  The box
      * describes the interior of the index space and the ghosts vector describes
      * the ghost nodes in each coordinate direction.
      */
-    LSetData(
-        const SAMRAI::hier::Box<NDIM>& box,
-        const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LSetData(const SAMRAI::hier::Box<NDIM>& box, const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
      * The virtual destructor for an LSetData object.
      */
-    virtual
-    ~LSetData();
+    virtual ~LSetData();
 
 private:
     /*!
@@ -142,8 +137,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetData(
-        const LSetData<T>& from);
+    LSetData(const LSetData<T>& from);
 
     /*!
      * \brief Assignment operator.
@@ -154,15 +148,13 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetData&
-    operator=(
-        const LSetData<T>& that);
+    LSetData& operator=(const LSetData<T>& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LSetData-inl.h"  // IWYU pragma: keep
+#include "ibtk/LSetData-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

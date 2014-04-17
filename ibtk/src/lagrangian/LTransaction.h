@@ -39,21 +39,20 @@
 #include <iosfwd>
 #include <vector>
 
-#include "boost/array.hpp"
 #include "ibtk/LMarker.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/LSet.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Transaction.h"
 
-namespace SAMRAI {
-namespace tbox {
+namespace SAMRAI
+{
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -67,9 +66,8 @@ namespace IBTK
  * \see SAMRAI::tbox::Schedule
  * \see SAMRAI::tbox::Transaction
  */
-template<class T>
-class LTransaction
-    : public SAMRAI::tbox::Transaction
+template <class T>
+class LTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!
@@ -82,31 +80,25 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline
-        LTransactionComponent(
-            const typename LSet<T>::value_type& item=NULL,
-            const Point& posn=Point::Zero())
-            : item(item),
-              posn(posn)
-            {
-                // intentionally blank
-                return;
-            }// LTransactionComponent
+        inline LTransactionComponent(const typename LSet<T>::value_type& item = NULL,
+                                     const Point& posn = Point::Zero())
+            : item(item), posn(posn)
+        {
+            // intentionally blank
+            return;
+        } // LTransactionComponent
 
         /*!
          * \brief Copy constructor.
          *
          * \param from The value to copy to this object.
          */
-        inline
-        LTransactionComponent(
-            const LTransactionComponent& from)
-            : item(from.item),
-              posn(from.posn)
-            {
-                // intentionally blank
-                return;
-            }// LTransactionComponent
+        inline LTransactionComponent(const LTransactionComponent& from)
+            : item(from.item), posn(from.posn)
+        {
+            // intentionally blank
+            return;
+        } // LTransactionComponent
 
         /*!
          * \brief Assignment operator.
@@ -115,27 +107,24 @@ public:
          *
          * \return A reference to this object.
          */
-        inline LTransactionComponent&
-        operator=(
-            const LTransactionComponent& that)
+        inline LTransactionComponent& operator=(const LTransactionComponent& that)
+        {
+            if (this != &that)
             {
-                if (this != &that)
-                {
-                    item = that.item;
-                    posn = that.posn;
-                }
-                return *this;
-            }// operator=
+                item = that.item;
+                posn = that.posn;
+            }
+            return *this;
+        } // operator=
 
         /*!
          * \brief Destructor.
          */
-        inline
-        ~LTransactionComponent()
-            {
-                //intentionally blank
-                return;
-            }// ~LTransactionComponent
+        inline ~LTransactionComponent()
+        {
+            // intentionally blank
+            return;
+        } // ~LTransactionComponent
 
         // Data.
         typename LSet<T>::value_type item;
@@ -145,36 +134,36 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LTransaction(
-        int src_proc,
-        int dst_proc);
+    LTransaction(int src_proc, int dst_proc);
 
     /*!
      * \brief Class constructor.
      */
-    LTransaction(
-        int src_proc,
-        int dst_proc,
-        const std::vector<LTransactionComponent>& src_item_set);
+    LTransaction(int src_proc,
+                 int dst_proc,
+                 const std::vector<LTransactionComponent>& src_item_set);
 
     /*!
      * \brief The virtual destructor for the copy transaction releases all
      * memory associated with the transaction.
      */
-    virtual
-    ~LTransaction();
+    virtual ~LTransaction();
 
     /*!
      * \brief Return a constant reference to the source data.
      */
-    inline const std::vector<LTransactionComponent>&
-    getSourceData() const { return d_src_item_set; }
+    inline const std::vector<LTransactionComponent>& getSourceData() const
+    {
+        return d_src_item_set;
+    }
 
     /*!
      * \brief Return a constant reference to the destination data.
      */
-    inline const std::vector<LTransactionComponent>&
-    getDestinationData() const { return d_dst_item_set; }
+    inline const std::vector<LTransactionComponent>& getDestinationData() const
+    {
+        return d_dst_item_set;
+    }
 
     /*!
      * \brief Return a boolean indicating whether this transaction can estimate
@@ -183,8 +172,7 @@ public:
      * If this evaluates to false, then a different communication protocol kicks
      * in and the message size is transmitted between sides.
      */
-    virtual bool
-    canEstimateIncomingMessageSize();
+    virtual bool canEstimateIncomingMessageSize();
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the incoming
@@ -195,56 +183,45 @@ public:
      *
      * \see canEstimateIncomingMessageSize()
      */
-    virtual int
-    computeIncomingMessageSize();
+    virtual int computeIncomingMessageSize();
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the outgoing
      * message.
      */
-    virtual int
-    computeOutgoingMessageSize();
+    virtual int computeOutgoingMessageSize();
 
     /*!
      * \brief Return the sending processor number for the communications
      * transaction.
      */
-    virtual int
-    getSourceProcessor();
+    virtual int getSourceProcessor();
 
     /*!
      * \brief Return the receiving processor number for the communications
      * transaction.
      */
-    virtual int
-    getDestinationProcessor();
+    virtual int getDestinationProcessor();
 
     /*!
      * \brief Pack the transaction data into the message stream.
      */
-    virtual void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    virtual void packStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack the transaction data from the message stream.
      */
-    virtual void
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Perform the local data copy for the transaction.
      */
-    virtual void
-    copyLocalData();
+    virtual void copyLocalData();
 
     /*!
      * \brief Print out transaction information.
      */
-    virtual void
-    printClassData(
-        std::ostream& stream) const;
+    virtual void printClassData(std::ostream& stream) const;
 
 private:
     /*!
@@ -261,8 +238,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LTransaction(
-        const LTransaction& from);
+    LTransaction(const LTransaction& from);
 
     /*!
      * \brief Assignment operator.
@@ -273,9 +249,7 @@ private:
      *
      * \return A reference to this object.
      */
-    void
-    operator=(
-        const LTransaction& that);
+    void operator=(const LTransaction& that);
 
     std::vector<LTransactionComponent> d_src_item_set;
     int d_src_proc;
@@ -284,7 +258,7 @@ private:
     std::vector<LTransactionComponent> d_dst_item_set;
     int d_dst_proc;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

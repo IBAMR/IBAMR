@@ -63,49 +63,45 @@ public:
      * dX/ds.
      */
     static inline void
-    FF_fcn(
-        libMesh::TensorValue<double>& FF_out,
-        const libMesh::TensorValue<double>& FF_in,
-        const libMesh::Point& /*X*/,
-        const libMesh::Point& /*s*/,
-        libMesh::Elem* /*elem*/,
-        const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
-        double /*data_time*/,
-        void* /*ctx*/)
-        {
-            FF_out = FF_in;
-            return;
-        }// FF_fcn
+    FF_fcn(libMesh::TensorValue<double>& FF_out,
+           const libMesh::TensorValue<double>& FF_in,
+           const libMesh::Point& /*X*/,
+           const libMesh::Point& /*s*/,
+           libMesh::Elem* /*elem*/,
+           const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
+           double /*data_time*/,
+           void* /*ctx*/)
+    {
+        FF_out = FF_in;
+        return;
+    } // FF_fcn
 
     /*!
      * \brief Function for reconstructing the Green-Lagrangian strain tensor EE
      * = 0.5*(CC - II), with CC = FF^T FF and FF = dX/ds.
      */
     static inline void
-    EE_fcn(
-        libMesh::TensorValue<double>& EE,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& /*X*/,
-        const libMesh::Point& /*s*/,
-        libMesh::Elem* /*elem*/,
-        const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
-        double /*data_time*/,
-        void* /*ctx*/)
-        {
-            const libMesh::TensorValue<double> CC = FF.transpose() * FF;
-            static const libMesh::TensorValue<double> II(1.0,0.0,0.0,
-                                                         0.0,1.0,0.0,
-                                                         0.0,0.0,1.0);
-            EE = 0.5*(CC - II);
-            return;
-        }// EE_fcn
+    EE_fcn(libMesh::TensorValue<double>& EE,
+           const libMesh::TensorValue<double>& FF,
+           const libMesh::Point& /*X*/,
+           const libMesh::Point& /*s*/,
+           libMesh::Elem* /*elem*/,
+           const std::vector<libMesh::NumericVector<double>*>& /*system_data*/,
+           double /*data_time*/,
+           void* /*ctx*/)
+    {
+        const libMesh::TensorValue<double> CC = FF.transpose() * FF;
+        static const libMesh::TensorValue<double> II(
+            1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+        EE = 0.5 * (CC - II);
+        return;
+    } // EE_fcn
 
     /*!
      * \brief Function for reconstructing the Cauchy stress from the PK1 stress,
      * using the PK1 stress function data provided by the ctx argument.
      */
-    static inline void
-    cauchy_stress_from_PK1_stress_fcn(
+    static inline void cauchy_stress_from_PK1_stress_fcn(
         libMesh::TensorValue<double>& sigma,
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
@@ -114,17 +110,18 @@ public:
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double data_time,
         void* ctx)
-        {
-            TBOX_ASSERT(ctx);
-            std::pair<IBTK::TensorMeshFcnPtr,void*>* PK1_stress_fcn_data = static_cast<std::pair<IBTK::TensorMeshFcnPtr,void*>*>(ctx);
-            TBOX_ASSERT(PK1_stress_fcn_data);
-            IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->first;
-            void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->second;
-            libMesh::TensorValue<double> PP;
-            PK1_stress_fcn(PP, FF, X, s, elem, system_data, data_time, PK1_stress_fcn_ctx);
-            sigma = PP * FF.transpose() / FF.det();
-            return;
-        }// cauchy_stress_from_PK1_stress_fcn
+    {
+        TBOX_ASSERT(ctx);
+        std::pair<IBTK::TensorMeshFcnPtr, void*>* PK1_stress_fcn_data =
+            static_cast<std::pair<IBTK::TensorMeshFcnPtr, void*>*>(ctx);
+        TBOX_ASSERT(PK1_stress_fcn_data);
+        IBTK::TensorMeshFcnPtr PK1_stress_fcn = PK1_stress_fcn_data->first;
+        void* PK1_stress_fcn_ctx = PK1_stress_fcn_data->second;
+        libMesh::TensorValue<double> PP;
+        PK1_stress_fcn(PP, FF, X, s, elem, system_data, data_time, PK1_stress_fcn_ctx);
+        sigma = PP * FF.transpose() / FF.det();
+        return;
+    } // cauchy_stress_from_PK1_stress_fcn
 
     /*!
      * \brief Function for reconstructing a deformed material axis.  A pointer
@@ -134,28 +131,27 @@ public:
      * field.
      */
     static inline void
-    deformed_material_axis_fcn(
-        libMesh::VectorValue<double>& f,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& /*X*/,
-        const libMesh::Point& /*s*/,
-        libMesh::Elem* elem,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double /*data_time*/,
-        void* ctx)
+    deformed_material_axis_fcn(libMesh::VectorValue<double>& f,
+                               const libMesh::TensorValue<double>& FF,
+                               const libMesh::Point& /*X*/,
+                               const libMesh::Point& /*s*/,
+                               libMesh::Elem* elem,
+                               const std::vector<libMesh::NumericVector<double>*>& system_data,
+                               double /*data_time*/,
+                               void* ctx)
+    {
+        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(ctx);
+        int f0_system_num = *static_cast<int*>(ctx);
+        NumericVector<double>* f0_vec = system_data[0];
+        VectorValue<double> f0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(system_data.size() == 1);
-            TBOX_ASSERT(ctx);
-            int f0_system_num = *static_cast<int*>(ctx);
-            NumericVector<double>* f0_vec = system_data[0];
-            VectorValue<double> f0;
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                f0(d) = (*f0_vec)(elem->dof_number(f0_system_num,d,0));
-            }
-            f = FF*f0;
-            return;
-        }// deformed_material_axis_fcn
+            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
+        }
+        f = FF * f0;
+        return;
+    } // deformed_material_axis_fcn
 
     /*!
      * \brief Function for reconstructing a deformed, normalized material axis.
@@ -164,8 +160,7 @@ public:
      * \note Assumes that the material axis is described by a piecewise constant
      * field.
      */
-    static inline void
-    deformed_normalized_material_axis_fcn(
+    static inline void deformed_normalized_material_axis_fcn(
         libMesh::VectorValue<double>& f,
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& /*X*/,
@@ -174,19 +169,19 @@ public:
         const std::vector<libMesh::NumericVector<double>*>& system_data,
         double /*data_time*/,
         void* ctx)
+    {
+        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(ctx);
+        int f0_system_num = *static_cast<int*>(ctx);
+        NumericVector<double>* f0_vec = system_data[0];
+        VectorValue<double> f0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(system_data.size() == 1);
-            TBOX_ASSERT(ctx);
-            int f0_system_num = *static_cast<int*>(ctx);
-            NumericVector<double>* f0_vec = system_data[0];
-            VectorValue<double> f0;
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                f0(d) = (*f0_vec)(elem->dof_number(f0_system_num,d,0));
-            }
-            f = (FF*f0).unit();
-            return;
-        }// deformed_normalized_material_axis_fcn
+            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
+        }
+        f = (FF * f0).unit();
+        return;
+    } // deformed_normalized_material_axis_fcn
 
     /*!
      * \brief Function for reconstructing the stretch in a material axis.  A
@@ -196,88 +191,80 @@ public:
      * field.
      */
     static inline void
-    material_axis_stretch_fcn(
-        double& lambda,
-        const libMesh::TensorValue<double>& FF,
-        const libMesh::Point& /*X*/,
-        const libMesh::Point& /*s*/,
-        libMesh::Elem* elem,
-        const std::vector<libMesh::NumericVector<double>*>& system_data,
-        double /*data_time*/,
-        void* ctx)
+    material_axis_stretch_fcn(double& lambda,
+                              const libMesh::TensorValue<double>& FF,
+                              const libMesh::Point& /*X*/,
+                              const libMesh::Point& /*s*/,
+                              libMesh::Elem* elem,
+                              const std::vector<libMesh::NumericVector<double>*>& system_data,
+                              double /*data_time*/,
+                              void* ctx)
+    {
+        TBOX_ASSERT(system_data.size() == 1);
+        TBOX_ASSERT(ctx);
+        int f0_system_num = *static_cast<int*>(ctx);
+        NumericVector<double>* f0_vec = system_data[0];
+        VectorValue<double> f0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            TBOX_ASSERT(system_data.size() == 1);
-            TBOX_ASSERT(ctx);
-            int f0_system_num = *static_cast<int*>(ctx);
-            NumericVector<double>* f0_vec = system_data[0];
-            VectorValue<double> f0;
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                f0(d) = (*f0_vec)(elem->dof_number(f0_system_num,d,0));
-            }
-            VectorValue<double> f = FF*f0;
-            lambda = f.size()/f0.size();
-            return;
-        }// material_axis_stretch_fcn
+            f0(d) = (*f0_vec)(elem->dof_number(f0_system_num, d, 0));
+        }
+        VectorValue<double> f = FF * f0;
+        lambda = f.size() / f0.size();
+        return;
+    } // material_axis_stretch_fcn
 
     /*!
      * Constructor.
      */
-    IBFEPostProcessor(
-        const std::string& name,
-        IBTK::FEDataManager* fe_data_manager);
+    IBFEPostProcessor(const std::string& name, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Virtual destructor.
      */
-    virtual
-    ~IBFEPostProcessor();
+    virtual ~IBFEPostProcessor();
 
     /*!
      * Register a scalar-valued variable for reconstruction.
      */
-    virtual void
-    registerScalarVariable(
+    virtual void registerScalarVariable(
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
         IBTK::ScalarMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL);
+        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+        void* var_fcn_ctx = NULL);
 
     /*!
      * Register a vector-valued variable for reconstruction.
      */
-    virtual void
-    registerVectorVariable(
+    virtual void registerVectorVariable(
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
         IBTK::VectorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL,
-        unsigned int var_dim=NDIM);
+        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+        void* var_fcn_ctx = NULL,
+        unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
      */
-    virtual void
-    registerTensorVariable(
+    virtual void registerTensorVariable(
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
         IBTK::TensorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems=std::vector<unsigned int>(),
-        void* var_fcn_ctx=NULL,
-        unsigned int var_dim=NDIM);
+        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+        void* var_fcn_ctx = NULL,
+        unsigned int var_dim = NDIM);
 
     /*!
      * Register a scalar-valued Eulerian field for reconstruction on the FE
      * mesh.  The variable is interpolated using the default interp spec
      * provided by the associated FEDataManager object.
      */
-    virtual void
-    registerInterpolatedScalarEulerianVariable(
+    virtual void registerInterpolatedScalarEulerianVariable(
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
@@ -288,8 +275,7 @@ public:
      * Register a scalar-valued Eulerian field for reconstruction on the FE
      * mesh.  The variable is interpolated using the specified interp spec.
      */
-    virtual void
-    registerInterpolatedScalarEulerianVariable(
+    virtual void registerInterpolatedScalarEulerianVariable(
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
@@ -300,30 +286,23 @@ public:
     /*!
      * Initialize data used by the post processor.
      */
-    virtual void
-    initializeFEData();
+    virtual void initializeFEData();
 
     /*!
      * Execute all reconstruction and interpolation operations.
      */
-    virtual void
-    postProcessData(
-        double data_time);
+    virtual void postProcessData(double data_time);
 
 protected:
     /*!
      * Virtual function to interpolate Eulerian data to the mesh.
      */
-    virtual void
-    interpolateVariables(
-        double data_time);
+    virtual void interpolateVariables(double data_time);
 
     /*!
      * Pure virtual function to reconstruct the data on the mesh.
      */
-    virtual void
-    reconstructVariables(
-        double data_time) = 0;
+    virtual void reconstructVariables(double data_time) = 0;
 
     /*!
      * Name of the post processor object (used for internal variable context).
@@ -398,8 +377,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEPostProcessor(
-        const IBFEPostProcessor& from);
+    IBFEPostProcessor(const IBFEPostProcessor& from);
 
     /*!
      * \brief Assignment operator.
@@ -410,11 +388,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEPostProcessor&
-    operator=(
-        const IBFEPostProcessor& that);
+    IBFEPostProcessor& operator=(const IBFEPostProcessor& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

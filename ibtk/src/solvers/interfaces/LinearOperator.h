@@ -39,11 +39,14 @@
 
 #include "ibtk/GeneralOperator.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -54,16 +57,13 @@ namespace IBTK
  * specification of linear operators to compute \f$ y=Ax \f$ and \f$ z=Ax+y \f$
  * and, optionally, \f$ y=A^{T} x \f$ and \f$ z=A^{T}x+y \f$.
  */
-class LinearOperator
-    : public GeneralOperator
+class LinearOperator : public GeneralOperator
 {
 public:
     /*!
      * \brief Constructor.
      */
-    LinearOperator(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    LinearOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty destructor.
@@ -93,9 +93,7 @@ public:
      * \note A default implementation is provided which does nothing but warns
      * that inhomogeneous boundary conditions are not properly supported.
      */
-    virtual void
-    modifyRhsForInhomogeneousBc(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    virtual void modifyRhsForInhomogeneousBc(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     //\}
 
@@ -114,8 +112,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LinearOperator(
-        const LinearOperator& from);
+    LinearOperator(const LinearOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -126,11 +123,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LinearOperator&
-    operator=(
-        const LinearOperator& that);
+    LinearOperator& operator=(const LinearOperator& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

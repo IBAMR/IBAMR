@@ -43,7 +43,6 @@
 #include "IBStrategy.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -52,17 +51,25 @@
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace mesh {
-template <int DIM> class LoadBalancer;
-}  // namespace mesh
-namespace xfer {
-template <int DIM> class CoarsenPatchStrategy;
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefinePatchStrategy;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace mesh
+{
+template <int DIM>
+class LoadBalancer;
+} // namespace mesh
+namespace xfer
+{
+template <int DIM>
+class CoarsenPatchStrategy;
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefinePatchStrategy;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -72,48 +79,40 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStrategy::IBStrategy()
-    : d_ib_solver(NULL),
-      d_use_fixed_coupling_ops(false)
+IBStrategy::IBStrategy() : d_ib_solver(NULL), d_use_fixed_coupling_ops(false)
 {
     // intentionally blank
     return;
-}// IBStrategy
+} // IBStrategy
 
 IBStrategy::~IBStrategy()
 {
     // intentionally blank
     return;
-}// ~IBStrategy
+} // ~IBStrategy
 
-void
-IBStrategy::registerIBHierarchyIntegrator(
-    IBHierarchyIntegrator* ib_solver)
+void IBStrategy::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {
     d_ib_solver = ib_solver;
     return;
-}// registerIBHierarchyIntegrator
+} // registerIBHierarchyIntegrator
 
-void
-IBStrategy::registerEulerianVariables()
+void IBStrategy::registerEulerianVariables()
 {
     // intentionally blank
     return;
-}// registerEulerianVariables
+} // registerEulerianVariables
 
-void
-IBStrategy::registerEulerianCommunicationAlgorithms()
+void IBStrategy::registerEulerianCommunicationAlgorithms()
 {
     // intentionally blank
     return;
-}// registerEulerianCommunicationAlgorithms
+} // registerEulerianCommunicationAlgorithms
 
-void
-IBStrategy::setupTagBuffer(
-    Array<int>& tag_buffer,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void IBStrategy::setupTagBuffer(Array<int>& tag_buffer,
+                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
-    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
     tag_buffer.resizeArray(finest_hier_ln);
     for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
@@ -123,69 +122,57 @@ IBStrategy::setupTagBuffer(
         tag_buffer[i] = std::max(tag_buffer[i], gcw);
     }
     return;
-}// setupTagBuffer
+} // setupTagBuffer
 
-void
-IBStrategy::preprocessIntegrateData(
-    double /*current_time*/,
-    double /*new_time*/,
-    int /*num_cycles*/)
+void IBStrategy::preprocessIntegrateData(double /*current_time*/,
+                                         double /*new_time*/,
+                                         int /*num_cycles*/)
 {
     // intentionally blank
     return;
-}// preprocessIntegrateData
+} // preprocessIntegrateData
 
-void
-IBStrategy::postprocessIntegrateData(
-    double /*current_time*/,
-    double /*new_time*/,
-    int /*num_cycles*/)
+void IBStrategy::postprocessIntegrateData(double /*current_time*/,
+                                          double /*new_time*/,
+                                          int /*num_cycles*/)
 {
     // intentionally blank
     return;
-}// postprocessIntegrateData
+} // postprocessIntegrateData
 
-void
-IBStrategy::setUseFixedLEOperators(
-    bool use_fixed_coupling_ops)
+void IBStrategy::setUseFixedLEOperators(bool use_fixed_coupling_ops)
 {
     d_use_fixed_coupling_ops = use_fixed_coupling_ops;
     return;
-}// setUseFixedLEOperators
+} // setUseFixedLEOperators
 
-void
-IBStrategy::updateFixedLEOperators()
+void IBStrategy::updateFixedLEOperators()
 {
     TBOX_ERROR("IBStrategy::updateFixedLEOperators(): unimplemented\n");
     return;
-}// updateFixedLEOperators
+} // updateFixedLEOperators
 
-bool
-IBStrategy::hasFluidSources() const
+bool IBStrategy::hasFluidSources() const
 {
     return false;
-}// hasFluidSources
+} // hasFluidSources
 
-void
-IBStrategy::computeLagrangianFluidSource(
-    double /*data_time*/)
+void IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 {
     // intentionally blank
     return;
-}// computeLagrangianFluidSource
+} // computeLagrangianFluidSource
 
-void
-IBStrategy::spreadFluidSource(
+void IBStrategy::spreadFluidSource(
     int /*q_data_idx*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
     double /*data_time*/)
 {
     // intentionally blank
     return;
-}// spreadFluidSource
+} // spreadFluidSource
 
-void
-IBStrategy::interpolatePressure(
+void IBStrategy::interpolatePressure(
     int /*p_data_idx*/,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
@@ -193,37 +180,31 @@ IBStrategy::interpolatePressure(
 {
     // intentionally blank
     return;
-}// interpolatePressure
+} // interpolatePressure
 
-void
-IBStrategy::preprocessSolveFluidEquations(
-    double /*current_time*/,
-    double /*new_time*/,
-    int /*cycle_num*/)
+void IBStrategy::preprocessSolveFluidEquations(double /*current_time*/,
+                                               double /*new_time*/,
+                                               int /*cycle_num*/)
 {
     // intentionally blank
     return;
-}// preprocessSolveFluidEquations
+} // preprocessSolveFluidEquations
 
-void
-IBStrategy::postprocessSolveFluidEquations(
-    double /*current_time*/,
-    double /*new_time*/,
-    int /*cycle_num*/)
+void IBStrategy::postprocessSolveFluidEquations(double /*current_time*/,
+                                                double /*new_time*/,
+                                                int /*cycle_num*/)
 {
     // intentionally blank
     return;
-}// postprocessSolveFluidEquations
+} // postprocessSolveFluidEquations
 
-void
-IBStrategy::postprocessData()
+void IBStrategy::postprocessData()
 {
     // intentionally blank
     return;
-}// postprocessData
+} // postprocessData
 
-void
-IBStrategy::initializePatchHierarchy(
+void IBStrategy::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
     int /*u_data_idx*/,
@@ -235,227 +216,200 @@ IBStrategy::initializePatchHierarchy(
 {
     // intentionally blank
     return;
-}// initializePatchHierarchy
+} // initializePatchHierarchy
 
-void
-IBStrategy::registerLoadBalancer(
-    Pointer<LoadBalancer<NDIM> > /*load_balancer*/,
-    int /*workload_data_idx*/)
+void IBStrategy::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > /*load_balancer*/,
+                                      int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
-}// registerLoadBalancer
+} // registerLoadBalancer
 
-void
-IBStrategy::updateWorkloadEstimates(
-    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    int /*workload_data_idx*/)
+void IBStrategy::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                         int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
-}// updateWorkloadEstimates
+} // updateWorkloadEstimates
 
-void
-IBStrategy::beginDataRedistribution(
-    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
-}// beginDataRedistribution
+} // beginDataRedistribution
 
-void
-IBStrategy::endDataRedistribution(
-    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
-}// endDataRedistribution
+} // endDataRedistribution
 
-void
-IBStrategy::initializeLevelData(
-    Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-    int /*level_number*/,
-    double /*init_data_time*/,
-    bool /*can_be_refined*/,
-    bool /*initial_time*/,
-    Pointer<BasePatchLevel<NDIM> > /*old_level*/,
-    bool /*allocate_data*/)
+void IBStrategy::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                     int /*level_number*/,
+                                     double /*init_data_time*/,
+                                     bool /*can_be_refined*/,
+                                     bool /*initial_time*/,
+                                     Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                     bool /*allocate_data*/)
 {
     // intentionally blank
     return;
-}// initializeLevelData
+} // initializeLevelData
 
-void
-IBStrategy::resetHierarchyConfiguration(
-    Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-    int /*coarsest_level*/,
-    int /*finest_level*/)
+void IBStrategy::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                             int /*coarsest_level*/,
+                                             int /*finest_level*/)
 {
     // intentionally blank
     return;
-}// resetHierarchyConfiguration
+} // resetHierarchyConfiguration
 
-void
-IBStrategy::applyGradientDetector(
-    Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
-    int /*level_number*/,
-    double /*error_data_time*/,
-    int /*tag_index*/,
-    bool /*initial_time*/,
-    bool /*uses_richardson_extrapolation_too*/)
+void IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                       int /*level_number*/,
+                                       double /*error_data_time*/,
+                                       int /*tag_index*/,
+                                       bool /*initial_time*/,
+                                       bool /*uses_richardson_extrapolation_too*/)
 {
     // intentionally blank
     return;
-}// applyGradientDetector
+} // applyGradientDetector
 
-void
-IBStrategy::putToDatabase(
-    Pointer<Database> /*db*/)
+void IBStrategy::putToDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
-}// putToDatabase
+} // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator*
-IBStrategy::getINSHierarchyIntegrator() const
+INSHierarchyIntegrator* IBStrategy::getINSHierarchyIntegrator() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_ins_hier_integrator;
-}// getINSHierarchyIntegrator
+} // getINSHierarchyIntegrator
 
-Pointer<HierarchyDataOpsReal<NDIM,double> >
-IBStrategy::getVelocityHierarchyDataOps() const
+Pointer<HierarchyDataOpsReal<NDIM, double> > IBStrategy::getVelocityHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_velocity_data_ops;
-}// getVelocityHierarchyDataOps
+} // getVelocityHierarchyDataOps
 
-Pointer<HierarchyDataOpsReal<NDIM,double> >
-IBStrategy::getPressureHierarchyDataOps() const
+Pointer<HierarchyDataOpsReal<NDIM, double> > IBStrategy::getPressureHierarchyDataOps() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_pressure_data_ops;
-}// getPressureHierarchyDataOps
+} // getPressureHierarchyDataOps
 
-Pointer<HierarchyMathOps>
-IBStrategy::getHierarchyMathOps() const
+Pointer<HierarchyMathOps> IBStrategy::getHierarchyMathOps() const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
     return d_ib_solver->d_hier_math_ops;
-}// getHierarchyMathOps
+} // getHierarchyMathOps
 
-void
-IBStrategy::registerVariable(
-    int& current_idx,
-    int& new_idx,
-    int& scratch_idx,
-    Pointer<Variable<NDIM> > variable,
-    const IntVector<NDIM>& scratch_ghosts,
-    const std::string& coarsen_name,
-    const std::string& refine_name,
-    Pointer<CartGridFunction> init_fcn)
+void IBStrategy::registerVariable(int& current_idx,
+                                  int& new_idx,
+                                  int& scratch_idx,
+                                  Pointer<Variable<NDIM> > variable,
+                                  const IntVector<NDIM>& scratch_ghosts,
+                                  const std::string& coarsen_name,
+                                  const std::string& refine_name,
+                                  Pointer<CartGridFunction> init_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
-    d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
+    d_ib_solver->registerVariable(current_idx,
+                                  new_idx,
+                                  scratch_idx,
+                                  variable,
+                                  scratch_ghosts,
+                                  coarsen_name,
+                                  refine_name,
+                                  init_fcn);
     return;
-}// registerVariable
+} // registerVariable
 
-void
-IBStrategy::registerVariable(
-    int& idx,
-    Pointer<Variable<NDIM> > variable,
-    const IntVector<NDIM>& ghosts,
-    Pointer<VariableContext> ctx)
+void IBStrategy::registerVariable(int& idx,
+                                  Pointer<Variable<NDIM> > variable,
+                                  const IntVector<NDIM>& ghosts,
+                                  Pointer<VariableContext> ctx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
     d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
     return;
-}// registerVariable
+} // registerVariable
 
-void
-IBStrategy::registerGhostfillRefineAlgorithm(
+void IBStrategy::registerGhostfillRefineAlgorithm(
     const std::string& name,
     Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
     RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
 {
-    d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
-}// registerGhostfillRefineAlgorithm
+    d_ib_solver->registerGhostfillRefineAlgorithm(
+        name, ghostfill_alg, ghostfill_patch_strategy);
+} // registerGhostfillRefineAlgorithm
 
 void
-IBStrategy::registerProlongRefineAlgorithm(
-    const std::string& name,
-    Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
+                                           Pointer<RefineAlgorithm<NDIM> > prolong_alg,
+                                           RefinePatchStrategy<NDIM>* prolong_patch_strategy)
 {
     d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
-}// registerProlongRefineAlgorithm
+} // registerProlongRefineAlgorithm
 
-void
-IBStrategy::registerCoarsenAlgorithm(
-    const std::string& name,
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-    CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+void IBStrategy::registerCoarsenAlgorithm(const std::string& name,
+                                          Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
+                                          CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
 {
     d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);
-}// registerCoarsenAlgorithm
+} // registerCoarsenAlgorithm
 
 Pointer<RefineAlgorithm<NDIM> >
-IBStrategy::getGhostfillRefineAlgorithm(
-    const std::string& name) const
+IBStrategy::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineAlgorithm(name);
-}// getGhostfillRefineAlgorithm
+} // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> >
-IBStrategy::getProlongRefineAlgorithm(
-    const std::string& name) const
+Pointer<RefineAlgorithm<NDIM> > IBStrategy::getProlongRefineAlgorithm(const std::string& name)
+    const
 {
     return d_ib_solver->getProlongRefineAlgorithm(name);
-}// getProlongRefineAlgorithm
+} // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithm<NDIM> >
-IBStrategy::getCoarsenAlgorithm(
-    const std::string& name) const
+Pointer<CoarsenAlgorithm<NDIM> > IBStrategy::getCoarsenAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getCoarsenAlgorithm(name);
-}// getCoarsenAlgorithm
+} // getCoarsenAlgorithm
 
 const std::vector<Pointer<RefineSchedule<NDIM> > >&
-IBStrategy::getGhostfillRefineSchedules(
-    const std::string& name) const
+IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
-}// getGhostfillRefineSchedules
+} // getGhostfillRefineSchedules
 
 const std::vector<Pointer<RefineSchedule<NDIM> > >&
-IBStrategy::getProlongRefineSchedules(
-    const std::string& name) const
+IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
-}// getProlongRefineSchedules
+} // getProlongRefineSchedules
 
 const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
-IBStrategy::getCoarsenSchedules(
-    const std::string& name) const
+IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);
-}// getCoarsenSchedules
+} // getCoarsenSchedules
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

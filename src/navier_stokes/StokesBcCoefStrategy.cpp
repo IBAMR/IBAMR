@@ -35,14 +35,14 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "SAMRAI_config.h"
 #include "StokesBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class StokesSpecifications;
-}  // namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -53,75 +53,63 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StokesBcCoefStrategy::StokesBcCoefStrategy()
-    : d_problem_coefs(NULL),
-      d_u_target_data_idx(-1),
-      d_p_target_data_idx(-1),
+    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1),
       d_traction_bc_type(TRACTION)
 {
     // intentionally blank
     return;
-}// StokesBcCoefStrategy
+} // StokesBcCoefStrategy
 
 StokesBcCoefStrategy::~StokesBcCoefStrategy()
 {
     // intentionally blank
     return;
-}// ~StokesBcCoefStrategy
+} // ~StokesBcCoefStrategy
 
 void
-StokesBcCoefStrategy::setStokesSpecifications(
-    const StokesSpecifications* const problem_coefs)
+StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);
 #endif
     d_problem_coefs = problem_coefs;
     return;
-}// setStokesSpecifications
+} // setStokesSpecifications
 
-void
-StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(
-    int u_target_data_idx)
+void StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
     d_u_target_data_idx = u_target_data_idx;
     return;
-}// setTargetVelocityPatchDataIndex
+} // setTargetVelocityPatchDataIndex
 
-void
-StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
+void StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
 {
     d_u_target_data_idx = -1;
     return;
-}// clearTargetVelocityPatchDataIndex
+} // clearTargetVelocityPatchDataIndex
 
-void
-StokesBcCoefStrategy::setTargetPressurePatchDataIndex(
-    int p_target_data_idx)
+void StokesBcCoefStrategy::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
     d_p_target_data_idx = p_target_data_idx;
     return;
-}// setPressurePatchDataIndex
+} // setPressurePatchDataIndex
 
-void
-StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
+void StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
 {
     d_p_target_data_idx = -1;
     return;
-}// clearPressurePatchDataIndex
+} // clearPressurePatchDataIndex
 
-void
-StokesBcCoefStrategy::setTractionBcType(
-    TractionBcType bc_type)
+void StokesBcCoefStrategy::setTractionBcType(TractionBcType bc_type)
 {
     d_traction_bc_type = bc_type;
     return;
-}// setTractionBcType
+} // setTractionBcType
 
-TractionBcType
-StokesBcCoefStrategy::getTractionBcType() const
+TractionBcType StokesBcCoefStrategy::getTractionBcType() const
 {
     return d_traction_bc_type;
-}// getTractionBcType
+} // getTractionBcType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -129,6 +117,6 @@ StokesBcCoefStrategy::getTractionBcType() const
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

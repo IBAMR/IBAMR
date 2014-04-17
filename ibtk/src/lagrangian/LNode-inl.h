@@ -48,52 +48,44 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-LNode::LNode(
-    const int lagrangian_nidx,
-    const int global_petsc_nidx,
-    const int local_petsc_nidx,
-    const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-    const Vector& periodic_displacement,
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
-    : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
+inline LNode::LNode(const int lagrangian_nidx,
+                    const int global_petsc_nidx,
+                    const int local_petsc_nidx,
+                    const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
+                    const Vector& periodic_displacement,
+                    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+    : LNodeIndex(lagrangian_nidx,
+                 global_petsc_nidx,
+                 local_petsc_nidx,
+                 periodic_offset,
+                 periodic_displacement),
       d_node_data(node_data)
 {
     setupNodeDataTypeArray();
     return;
-}// LNode
+} // LNode
 
-inline
-LNode::LNode(
-    const LNode& from)
-    : LNodeIndex(from),
-      d_node_data(from.d_node_data)
+inline LNode::LNode(const LNode& from) : LNodeIndex(from), d_node_data(from.d_node_data)
 {
     setupNodeDataTypeArray();
     return;
-}// LNode
+} // LNode
 
-inline
-LNode::LNode(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
-    : LNodeIndex(),
-      d_node_data()
+inline LNode::LNode(SAMRAI::tbox::AbstractStream& stream,
+                    const SAMRAI::hier::IntVector<NDIM>& offset)
+    : LNodeIndex(), d_node_data()
 {
-    unpackStream(stream,offset);
+    unpackStream(stream, offset);
     return;
-}// LNode
+} // LNode
 
-inline
-LNode::~LNode()
+inline LNode::~LNode()
 {
     // intentionally blank
     return;
-}// ~LNode
+} // ~LNode
 
-inline LNode&
-LNode::operator=(
-    const LNode& that)
+inline LNode& LNode::operator=(const LNode& that)
 {
     if (this != &that)
     {
@@ -101,39 +93,35 @@ LNode::operator=(
         assignThatToThis(that);
     }
     return *this;
-}// operator=
+} // operator=
 
-inline void
-LNode::registerPeriodicShift(
-    const SAMRAI::hier::IntVector<NDIM>& offset,
-    const Vector& displacement)
+inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
+                                         const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end(); ++it)
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin();
+         it != d_node_data.end();
+         ++it)
     {
         (*it)->registerPeriodicShift(offset, displacement);
     }
     return;
-}// registerPeriodicShift
+} // registerPeriodicShift
 
-inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-LNode::getNodeData() const
+inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >& LNode::getNodeData() const
 {
     return d_node_data;
-}// getNodeData
+} // getNodeData
 
 inline void
-LNode::setNodeData(
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+LNode::setNodeData(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
 {
     d_node_data = node_data;
     setupNodeDataTypeArray();
     return;
-}// setNodeData
+} // setNodeData
 
-inline void
-LNode::appendNodeDataItem(
-    const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
+inline void LNode::appendNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
 {
     d_node_data.push_back(node_data_item);
     const int class_id = node_data_item->getStreamableClassID();
@@ -142,24 +130,22 @@ LNode::appendNodeDataItem(
         d_node_data_type_arr[class_id] = node_data_item.getPointer();
     }
     return;
-}// appendNodeDataItem
+} // appendNodeDataItem
 
-inline void
-LNode::removeNodeDataItem(
-    const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
+inline void LNode::removeNodeDataItem(const SAMRAI::tbox::Pointer<Streamable>& node_data_item)
 {
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
+    std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it =
+        std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
     if (it != d_node_data.end())
     {
         d_node_data.erase(it);
         setupNodeDataTypeArray();
     }
     return;
-}// removeNodeDataItem
+} // removeNodeDataItem
 
-template<typename T>
-inline T*
-LNode::getNodeDataItem() const
+template <typename T>
+inline T* LNode::getNodeDataItem() const
 {
     if (LIKELY(T::STREAMABLE_CLASS_ID < MAX_SIZE))
     {
@@ -181,11 +167,10 @@ LNode::getNodeDataItem() const
         }
         return ret_val;
     }
-}// getNodeDataItem
+} // getNodeDataItem
 
-template<typename T>
-inline std::vector<T*>
-LNode::getNodeDataVector() const
+template <typename T>
+inline std::vector<T*> LNode::getNodeDataVector() const
 {
     const unsigned int node_data_sz = d_node_data.size();
     std::vector<T*> ret_val;
@@ -200,13 +185,11 @@ LNode::getNodeDataVector() const
         }
     }
     return ret_val;
-}// getNodeDataVector
+} // getNodeDataVector
 
-inline void
-LNode::copySourceItem(
-    const SAMRAI::hier::Index<NDIM>& src_index,
-    const SAMRAI::hier::IntVector<NDIM>& src_offset,
-    const LNodeIndex& src_item)
+inline void LNode::copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
+                                  const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                                  const LNodeIndex& src_item)
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
     const LNode* const p_src_item = dynamic_cast<const LNode*>(&src_item);
@@ -215,53 +198,50 @@ LNode::copySourceItem(
 #endif
     assignThatToThis(*p_src_item);
     return;
-}// copySourceItem
+} // copySourceItem
 
-inline size_t
-LNode::getDataStreamSize() const
+inline size_t LNode::getDataStreamSize() const
 {
-    return LNodeIndex::getDataStreamSize() + StreamableManager::getManager()->getDataStreamSize(d_node_data);
-}// getDataStreamSize
+    return LNodeIndex::getDataStreamSize() +
+           StreamableManager::getManager()->getDataStreamSize(d_node_data);
+} // getDataStreamSize
 
-inline void
-LNode::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void LNode::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     LNodeIndex::packStream(stream);
     StreamableManager::getManager()->packStream(stream, d_node_data);
     return;
-}// packStream
+} // packStream
 
-inline void
-LNode::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+inline void LNode::unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     LNodeIndex::unpackStream(stream, offset);
     d_node_data.clear();
     StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
     setupNodeDataTypeArray();
     return;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-inline void
-LNode::assignThatToThis(
-    const LNode& that)
+inline void LNode::assignThatToThis(const LNode& that)
 {
     d_node_data = that.d_node_data;
     setupNodeDataTypeArray();
     return;
-}// assignThatToThis
+} // assignThatToThis
 
-inline void
-LNode::setupNodeDataTypeArray()
+inline void LNode::setupNodeDataTypeArray()
 {
-    std::fill(d_node_data_type_arr,d_node_data_type_arr+MAX_SIZE,static_cast<Streamable*>(NULL));
+    std::fill(
+        d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(NULL));
     Streamable* it_val;
     int class_id;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin(); cit != d_node_data.end(); ++cit)
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit =
+             d_node_data.begin();
+         cit != d_node_data.end();
+         ++cit)
     {
         it_val = *cit;
         class_id = it_val->getStreamableClassID();
@@ -271,13 +251,13 @@ LNode::setupNodeDataTypeArray()
         }
     }
     return;
-}// setupNodeDataTypeArray
+} // setupNodeDataTypeArray
 
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

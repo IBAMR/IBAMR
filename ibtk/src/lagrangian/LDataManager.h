@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 #include <map>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -55,34 +56,36 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "boost/array.hpp"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ParallelSet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscao.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace IBTK {
-class LMesh;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BasePatchHierarchy;
-}  // namespace hier
-namespace tbox {
-class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
-
 namespace IBTK
 {
 class LData;
-}// namespace IBTK
+class LMesh;
+class LNode;
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+} // namespace hier
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -98,9 +101,8 @@ namespace IBTK
  *
  * \note Multiple LDataManager objects may be instantiated simultaneously.
  */
-class LDataManager
-    : public SAMRAI::tbox::Serializable,
-      public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class LDataManager : public SAMRAI::tbox::Serializable,
+                     public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!
@@ -137,13 +139,12 @@ public:
      * \note By default, the ghost cell width is set according to the
      * interpolation and spreading kernel functions.
      */
-    static LDataManager*
-    getManager(
-        const std::string& name,
-        const std::string& default_interp_kernel_fcn,
-        const std::string& default_spread_kernel_fcn,
-        const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
-        bool register_for_restart=true);
+    static LDataManager* getManager(const std::string& name,
+                                    const std::string& default_interp_kernel_fcn,
+                                    const std::string& default_spread_kernel_fcn,
+                                    const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
+                                        SAMRAI::hier::IntVector<NDIM>(0),
+                                    bool register_for_restart = true);
 
     /*!
      * Deallocate all of the LDataManager instances.
@@ -151,8 +152,7 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeAllManagers();
+    static void freeAllManagers();
 
     /*!
      * \name Methods to set and get the patch hierarchy and range of patch
@@ -164,14 +164,12 @@ public:
      * \brief Reset patch hierarchy over which operations occur.
      */
     void
-    setPatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
-    getPatchHierarchy() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -179,18 +177,14 @@ public:
      * The levels must exist in the hierarchy or an assertion failure will
      * result.
      */
-    void
-    setPatchLevels(
-        int coarsest_ln,
-        int finest_ln);
+    void setPatchLevels(int coarsest_ln, int finest_ln);
 
     /*!
      * \brief Get the range of patch levels used by this object.
      *
      * \note Returns [coarsest_ln,finest_ln+1).
      */
-    std::pair<int,int>
-    getPatchLevels() const;
+    std::pair<int, int> getPatchLevels() const;
 
     //\}
 
@@ -198,25 +192,23 @@ public:
      * \brief Return the ghost cell width associated with the interaction
      * scheme.
      */
-    const SAMRAI::hier::IntVector<NDIM>&
-    getGhostCellWidth() const;
+    const SAMRAI::hier::IntVector<NDIM>& getGhostCellWidth() const;
 
     /*!
      * \brief Return the default kernel function associated with the
      * Eulerian-to-Lagrangian interpolation scheme.
      */
-    const std::string&
-    getDefaultInterpKernelFunction() const;
+    const std::string& getDefaultInterpKernelFunction() const;
 
     /*!
      * \brief Return the default kernel function associated with the
      * Lagrangian-to-Eulerian spreading scheme.
      */
-    const std::string&
-    getDefaultSpreadKernelFunction() const;
+    const std::string& getDefaultSpreadKernelFunction() const;
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -228,21 +220,23 @@ public:
      * which spreads densities, \em NOT values.
      */
     void
-    spread(
-        int f_data_idx,
-        SAMRAI::tbox::Pointer<LData> F_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        SAMRAI::tbox::Pointer<LData> ds_data,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        int level_num,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        bool F_data_ghost_node_update=true,
-        bool X_data_ghost_node_update=true,
-        bool ds_data_ghost_node_update=true);
+    spread(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           SAMRAI::tbox::Pointer<LData> ds_data,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           bool ds_data_ghost_node_update = true);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using a specified spreading kernel function.
      *
      * \note This spreading operation does include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -254,22 +248,83 @@ public:
      * which spreads densities, \em NOT values.
      */
     void
-    spread(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        bool F_data_ghost_node_update=true,
-        bool X_data_ghost_node_update=true,
-        bool ds_data_ghost_node_update=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    spread(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           SAMRAI::tbox::Pointer<LData> ds_data,
+           const std::string& spread_kernel_fcn,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           bool ds_data_ghost_node_update = true);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
+     *
+     * This is the standard regularized delta function spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void
+    spread(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           bool ds_data_ghost_node_update = true,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using a specified spreading kernel function.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
+     *
+     * This is the standard regularized delta function spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void
+    spread(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+           const std::string& spread_kernel_fcn,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           bool ds_data_ghost_node_update = true,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
      *
      * \note This spreading operation does NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -281,19 +336,21 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void
-    spread(
-        int f_data_idx,
-        SAMRAI::tbox::Pointer<LData> F_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        int level_num,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        bool F_data_ghost_node_update=true,
-        bool X_data_ghost_node_update=true);
+    spread(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true);
 
     /*!
-     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the specified spreading kernel function.
      *
      * \note This spreading operation does NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -305,54 +362,151 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void
-    spread(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        bool F_data_ghost_node_update=true,
-        bool X_data_ghost_node_update=true,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    spread(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           const std::string& spread_kernel_fcn,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the default spreading kernel function.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void
+    spread(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the specified spreading kernel function.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *
+     * Unlike the standard regularized delta function spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void
+    spread(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           const std::string& spread_kernel_fcn,
+           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_prolongation_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           bool F_data_ghost_node_update = true,
+           bool X_data_ghost_node_update = true,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh.
+     * mesh using the default interpolation kernel function.
      */
     void
-    interp(
-        int f_data_idx,
-        SAMRAI::tbox::Pointer<LData> F_data,
-        SAMRAI::tbox::Pointer<LData> X_data,
-        int level_num,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0);
+    interp(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+               f_synch_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_ghost_fill_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh.
+     * mesh using the specified interpolation kernel function.
      */
     void
-    interp(
-        int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        double fill_data_time=0.0,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    interp(int f_data_idx,
+           SAMRAI::tbox::Pointer<LData> F_data,
+           SAMRAI::tbox::Pointer<LData> X_data,
+           const std::string& interp_kernel_fcn,
+           int level_num,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+               f_synch_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_ghost_fill_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the default interpolation kernel function.
+     */
+    void
+    interp(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+               f_synch_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_ghost_fill_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the specified interpolation kernel function.
+     */
+    void
+    interp(int f_data_idx,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+           std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+           const std::string& interp_kernel_fcn,
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+               f_synch_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+               f_ghost_fill_scheds =
+                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           double fill_data_time = 0.0,
+           int coarsest_ln = -1,
+           int finest_ln = -1);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      */
-    void
-    registerLInitStrategy(
-        SAMRAI::tbox::Pointer<LInitStrategy> lag_init);
+    void registerLInitStrategy(SAMRAI::tbox::Pointer<LInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -360,28 +514,23 @@ public:
      * \note Be sure to call this method only once the initialization object is
      * no longer needed.
      */
-    void
-    freeLInitStrategy();
+    void freeLInitStrategy();
 
     /*!
      * \brief Register a VisIt data writer with the manager.
      */
-    void
-    registerVisItDataWriter(
+    void registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
      * \brief Register a Silo data writer with the manager.
      */
-    void
-    registerLSiloDataWriter(
-        SAMRAI::tbox::Pointer<LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(SAMRAI::tbox::Pointer<LSiloDataWriter> silo_writer);
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void
-    registerLoadBalancer(
+    void registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
         int workload_data_idx);
 
@@ -389,17 +538,13 @@ public:
      * \brief Indicates whether there is Lagrangian data on the given patch
      * hierarchy level.
      */
-    bool
-    levelContainsLagrangianData(
-        int level_number) const;
+    bool levelContainsLagrangianData(int level_number) const;
 
     /*!
      * \return The number of total nodes of the Lagrangian data for the
      * specified level of the patch hierarchy.
      */
-    unsigned int
-    getNumberOfNodes(
-        int level_number) const;
+    unsigned int getNumberOfNodes(int level_number) const;
 
     /*!
      * \return The number of local (i.e., on-processor) nodes of the Lagrangian
@@ -411,9 +556,7 @@ public:
      * \see getNumberOfNodes
      * \see getNumberOfGhostNodes
      */
-    unsigned int
-    getNumberOfLocalNodes(
-        int level_number) const;
+    unsigned int getNumberOfLocalNodes(int level_number) const;
 
     /*!
      * \return The number of ghost (i.e., off-processor) nodes of the Lagrangian
@@ -422,9 +565,7 @@ public:
      * \see getNumberOfNodes
      * \see getNumberOfLocalNodes
      */
-    unsigned int
-    getNumberOfGhostNodes(
-        int level_number) const;
+    unsigned int getNumberOfGhostNodes(int level_number) const;
 
     /*!
      * \return The number of nodes on all processors with MPI rank less than the
@@ -433,26 +574,20 @@ public:
      * \note This count does not include nodes that only lie in ghost cells for
      * the current process.
      */
-    unsigned int
-    getGlobalNodeOffset(
-        int level_number) const;
+    unsigned int getGlobalNodeOffset(int level_number) const;
 
     /*!
      * \brief Get the Lagrangian mesh associated with the given patch hierarchy
      * level.
      */
-    SAMRAI::tbox::Pointer<LMesh>
-    getLMesh(
-        int level_number) const;
+    SAMRAI::tbox::Pointer<LMesh> getLMesh(int level_number) const;
 
     /*!
      * \brief Get the specified Lagrangian quantity data on the given patch
      * hierarchy level.
      */
-    SAMRAI::tbox::Pointer<LData>
-    getLData(
-        const std::string& quantity_name,
-        int level_number) const;
+    SAMRAI::tbox::Pointer<LData> getLData(const std::string& quantity_name,
+                                          int level_number) const;
 
     /*!
      * \brief Allocate new Lagrangian level data with the specified name and
@@ -462,47 +597,38 @@ public:
      * \note Quantities maintained by the LDataManager must have unique names.
      * The name "X" is reserved for the nodal coordinates.
      */
-    SAMRAI::tbox::Pointer<LData>
-    createLData(
-        const std::string& quantity_name,
-        int level_number,
-        unsigned int depth=1,
-        bool maintain_data=false);
+    SAMRAI::tbox::Pointer<LData> createLData(const std::string& quantity_name,
+                                             int level_number,
+                                             unsigned int depth = 1,
+                                             bool maintain_data = false);
 
     /*!
      * \brief Get the patch data descriptor index for the Lagrangian index data.
      */
-    int
-    getLNodePatchDescriptorIndex() const;
+    int getLNodePatchDescriptorIndex() const;
 
     /*!
      * \brief Get the patch data descriptor index for the workload cell data.
      */
-    int
-    getWorkloadPatchDescriptorIndex() const;
+    int getWorkloadPatchDescriptorIndex() const;
 
     /*!
      * \brief Get the patch data descriptor index for the Lagrangian node count
      * cell data.
      */
-    int
-    getNodeCountPatchDescriptorIndex() const;
+    int getNodeCountPatchDescriptorIndex() const;
 
     /*!
      * \brief Get a list of Lagrangian structure names for the specified level
      * of the patch hierarchy.
      */
-    std::vector<std::string>
-    getLagrangianStructureNames(
-        int level_number) const;
+    std::vector<std::string> getLagrangianStructureNames(int level_number) const;
 
     /*!
      * \brief Get a list of Lagrangian structure IDs for the specified level of
      * the patch hierarchy.
      */
-    std::vector<int>
-    getLagrangianStructureIDs(
-        int level_number) const;
+    std::vector<int> getLagrangianStructureIDs(int level_number) const;
 
     /*!
      * \brief Get the ID of the Lagrangian structure associated with the
@@ -511,10 +637,7 @@ public:
      * \note Returns -1 in the case that the Lagrangian index is not associated
      * with any Lagrangian structure.
      */
-    int
-    getLagrangianStructureID(
-        int lagrangian_index,
-        int level_number) const;
+    int getLagrangianStructureID(int lagrangian_index, int level_number) const;
 
     /*!
      * \brief Get the ID of the Lagrangian structure with the specified name.
@@ -522,10 +645,7 @@ public:
      * \note Returns -1 in the case that the Lagrangian structure name is not
      * associated with any Lagrangian structure.
      */
-    int
-    getLagrangianStructureID(
-        const std::string& structure_name,
-        int level_number) const;
+    int getLagrangianStructureID(const std::string& structure_name, int level_number) const;
 
     /*!
      * \brief Get the name of the Lagrangian structure with the specified ID.
@@ -533,10 +653,7 @@ public:
      * \note Returns "UNKNOWN" in the case that the Lagrangian structure ID is
      * not associated with any Lagrangian structure.
      */
-    std::string
-    getLagrangianStructureName(
-        int structure_id,
-        int level_number) const;
+    std::string getLagrangianStructureName(int structure_id, int level_number) const;
 
     /*!
      * \brief Get the range of Lagrangian indices for the Lagrangian structure
@@ -549,10 +666,8 @@ public:
      * \note Returns std::make_pair(-1,-1) in the case that the Lagrangian
      * structure ID is not associated with any Lagrangian structure.
      */
-    std::pair<int,int>
-    getLagrangianStructureIndexRange(
-        int structure_id,
-        int level_number) const;
+    std::pair<int, int> getLagrangianStructureIndexRange(int structure_id,
+                                                         int level_number) const;
 
     /*!
      * \brief Get the center of mass of the Lagrangian structure with the
@@ -567,10 +682,7 @@ public:
      * \note Returns Point::Zero() in the case that the Lagrangian structure
      * ID is not associated with any Lagrangian structure.
      */
-    Point
-    computeLagrangianStructureCenterOfMass(
-        int structure_id,
-        int level_number);
+    Point computeLagrangianStructureCenterOfMass(int structure_id, int level_number);
 
     /*!
      * \brief Get the bounding box of the Lagrangian structure with the
@@ -580,10 +692,8 @@ public:
      * that the Lagrangian structure ID is not associated with any Lagrangian
      * structure.
      */
-    std::pair<Point,Point>
-    computeLagrangianStructureBoundingBox(
-        int structure_id,
-        int level_number);
+    std::pair<Point, Point> computeLagrangianStructureBoundingBox(int structure_id,
+                                                                  int level_number);
 
     /*!
      * \brief Reset the positions of the nodes of the Lagrangian structure with
@@ -593,11 +703,7 @@ public:
      * \note This operation must be performed immediately before a regridding
      * operation, otherwise the results are undefined.
      */
-    void
-    reinitLagrangianStructure(
-        const Point& X_center,
-        int structure_id,
-        int level_number);
+    void reinitLagrangianStructure(const Point& X_center, int structure_id, int level_number);
 
     /*!
      * \brief Shift the positions of the nodes of the Lagrangian structure with
@@ -609,11 +715,7 @@ public:
      * \warning All displacements must involve shifts that do \em not cross
      * periodic boundaries.
      */
-    void
-    displaceLagrangianStructure(
-        const Vector& dX,
-        int structure_id,
-        int level_number);
+    void displaceLagrangianStructure(const Vector& dX, int structure_id, int level_number);
 
     /*!
      * \brief Activate the Lagrangian structures with the specified ID numbers.
@@ -622,10 +724,7 @@ public:
      * processes); however, each MPI process may provide a different collection
      * of structures to activate.
      */
-    void
-    activateLagrangianStructures(
-        const std::vector<int>& structure_ids,
-        int level_number);
+    void activateLagrangianStructures(const std::vector<int>& structure_ids, int level_number);
 
     /*!
      * \brief Inactivate the Lagrangian structures with the specified ID
@@ -635,46 +734,33 @@ public:
      * processes); however, each MPI process may provide a different collection
      * of structures to inactivate.
      */
-    void
-    inactivateLagrangianStructures(
-        const std::vector<int>& structure_ids,
-        int level_number);
+    void inactivateLagrangianStructures(const std::vector<int>& structure_ids,
+                                        int level_number);
 
     /*!
      * \brief Determine whether the Lagrangian structure with the specified ID
      * number is activated.
      */
-    bool
-    getLagrangianStructureIsActivated(
-        int structure_id,
-        int level_number) const;
+    bool getLagrangianStructureIsActivated(int structure_id, int level_number) const;
 
     /*!
      * \brief Set the components of the supplied LData object to zero
      * for those entries that correspond to inactivated structures.
      */
-    void
-    zeroInactivatedComponents(
-        SAMRAI::tbox::Pointer<LData> lag_data,
-        int level_number) const;
+    void zeroInactivatedComponents(SAMRAI::tbox::Pointer<LData> lag_data,
+                                   int level_number) const;
 
     /*!
      * \brief Map the collection of Lagrangian indices to the corresponding
      * global PETSc indices.
      */
-    void
-    mapLagrangianToPETSc(
-        std::vector<int>& inds,
-        int level_number) const;
+    void mapLagrangianToPETSc(std::vector<int>& inds, int level_number) const;
 
     /*!
      * \brief Map the collection of global PETSc indices to the corresponding
      * Lagrangian indices.
      */
-    void
-    mapPETScToLagrangian(
-        std::vector<int>& inds,
-        int level_number) const;
+    void mapPETScToLagrangian(std::vector<int>& inds, int level_number) const;
 
     /*!
      * \brief Scatter data from the Lagrangian ordering to the global PETSc
@@ -682,11 +768,7 @@ public:
      *
      * \todo Optimize the implementation of this method.
      */
-    void
-    scatterLagrangianToPETSc(
-        Vec& lagrangian_vec,
-        Vec& petsc_vec,
-        int level_number) const;
+    void scatterLagrangianToPETSc(Vec& lagrangian_vec, Vec& petsc_vec, int level_number) const;
 
     /*!
      * \brief Scatter data from the global PETSc ordering to the Lagrangian
@@ -694,31 +776,21 @@ public:
      *
      * \todo Optimize the implementation of this method.
      */
-    void
-    scatterPETScToLagrangian(
-        Vec& petsc_vec,
-        Vec& lagrangian_vec,
-        int level_number) const;
+    void scatterPETScToLagrangian(Vec& petsc_vec, Vec& lagrangian_vec, int level_number) const;
 
     /*!
      * \brief Scatter data from a distributed PETSc vector to all processors.
      *
      * \todo Optimize the implementation of this method.
      */
-    void
-    scatterToAll(
-        Vec& parallel_vec,
-        Vec& sequential_vec) const;
+    void scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const;
 
     /*!
      * \brief Scatter data from a distributed PETSc vector to processor zero.
      *
      * \todo Optimize the implementation of this method.
      */
-    void
-    scatterToZero(
-        Vec& parallel_vec,
-        Vec& sequential_vec) const;
+    void scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const;
 
     /*!
      * \brief Start the process of redistributing the Lagrangian data.
@@ -733,10 +805,7 @@ public:
      *
      * \see endDataRedistribution
      */
-    void
-    beginDataRedistribution(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void beginDataRedistribution(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Finish the process of redistributing the Lagrangian data.
@@ -754,10 +823,7 @@ public:
      *
      * \see beginDataRedistribution
      */
-    void
-    endDataRedistribution(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void endDataRedistribution(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Update the workload and count of nodes per cell.
@@ -771,10 +837,7 @@ public:
      *
      * in which alpha and beta are parameters that each default to the value 1.
      */
-    void
-    updateWorkloadEstimates(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void updateWorkloadEstimates(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief Update the count of nodes per cell.
@@ -784,10 +847,7 @@ public:
      * node count data is used to tag cells for refinement, and to specify
      * non-uniform load balancing.
      */
-    void
-    updateNodeCountData(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void updateNodeCountData(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -814,15 +874,15 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void
-    initializeLevelData(
+    void initializeLevelData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double init_data_time,
         bool can_be_refined,
         bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
+            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data = true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -839,8 +899,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void
-    resetHierarchyConfiguration(
+    void resetHierarchyConfiguration(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int coarsest_ln,
         int finest_ln);
@@ -863,8 +922,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void
-    applyGradientDetector(
+    void applyGradientDetector(
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double error_data_time,
@@ -877,20 +935,17 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
     /*!
      * \brief Constructor.
      */
-    LDataManager(
-        const std::string& object_name,
-        const std::string& default_interp_kernel_fcn,
-        const std::string& default_spread_kernel_fcn,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width,
-        bool register_for_restart=true);
+    LDataManager(const std::string& object_name,
+                 const std::string& default_interp_kernel_fcn,
+                 const std::string& default_spread_kernel_fcn,
+                 const SAMRAI::hier::IntVector<NDIM>& ghost_width,
+                 bool register_for_restart = true);
 
     /*!
      * \brief The LDataManager destructor cleans up any remaining PETSc AO
@@ -913,8 +968,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LDataManager(
-        const LDataManager& from);
+    LDataManager(const LDataManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -925,20 +979,14 @@ private:
      *
      * \return A reference to this object.
      */
-    LDataManager&
-    operator=(
-        const LDataManager& that);
+    LDataManager& operator=(const LDataManager& that);
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
      * scatterLagrangianToPETSc().
      */
     void
-    scatterData(
-        Vec& lagrangian_vec,
-        Vec& petsc_vec,
-        int level_number,
-        ScatterMode mode) const;
+    scatterData(Vec& lagrangian_vec, Vec& petsc_vec, int level_number, ScatterMode mode) const;
 
     /*!
      * \brief Begin the process of refilling nonlocal Lagrangian quantities over
@@ -947,10 +995,7 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void
-    beginNonlocalDataFill(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void beginNonlocalDataFill(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * \brief End the process of refilling nonlocal Lagrangian quantities over
@@ -959,10 +1004,7 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void
-    endNonlocalDataFill(
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+    void endNonlocalDataFill(int coarsest_ln = -1, int finest_ln = -1);
 
     /*!
      * Determines the global Lagrangian and PETSc indices of the local and
@@ -986,26 +1028,22 @@ private:
      * appearing in the ghost cell region of a patch may or may not be owned by
      * this processor.
      */
-    void
-    computeNodeDistribution(
-        AO& ao,
-        std::vector<int>& local_lag_indices,
-        std::vector<int>& nonlocal_lag_indices,
-        std::vector<int>& local_petsc_indices,
-        std::vector<int>& nonlocal_petsc_indices,
-        unsigned int& num_nodes,
-        unsigned int& node_offset,
-        int level_number);
+    void computeNodeDistribution(AO& ao,
+                                 std::vector<int>& local_lag_indices,
+                                 std::vector<int>& nonlocal_lag_indices,
+                                 std::vector<int>& local_petsc_indices,
+                                 std::vector<int>& nonlocal_petsc_indices,
+                                 unsigned int& num_nodes,
+                                 unsigned int& node_offset,
+                                 int level_number);
 
     /*!
      * Determine the number of local Lagrangian nodes on all MPI processes with
      * rank less than the rank of the current MPI process.
      */
-    static void
-    computeNodeOffsets(
-        unsigned int& num_nodes,
-        unsigned int& node_offset,
-        unsigned int num_local_nodes);
+    static void computeNodeOffsets(unsigned int& num_nodes,
+                                   unsigned int& node_offset,
+                                   unsigned int num_local_nodes);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -1020,14 +1058,13 @@ private:
      *    -   The class version number and restart version number do not match.
      *
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 
     /*!
      * Static data members used to control access to and destruction of
      * singleton data manager instance.
      */
-    static std::map<std::string,LDataManager*> s_data_manager_instances;
+    static std::map<std::string, LDataManager*> s_data_manager_instances;
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
@@ -1079,7 +1116,7 @@ private:
      * balancing.
      */
     double d_beta_work;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx;
     bool d_output_workload;
 
@@ -1088,7 +1125,7 @@ private:
      * cell variable used to keep track of the count of the nodes in each cell
      * for visualization and tagging purposes.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_node_count_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_node_count_var;
     int d_node_count_idx;
     bool d_output_node_count;
 
@@ -1108,10 +1145,12 @@ private:
      * Communications algorithms and schedules.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_lag_node_index_bdry_fill_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_lag_node_index_bdry_fill_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    d_lag_node_index_bdry_fill_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_node_count_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_node_count_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >
+    d_node_count_coarsen_scheds;
 
     /*
      * SAMRAI::hier::VariableContext objects are used for data management.
@@ -1133,13 +1172,13 @@ private:
     /*!
      * Information about the names and IDs of the various Lagrangian structures.
      */
-    std::vector<std::map<std::string,int> > d_strct_name_to_strct_id_map;
-    std::vector<std::map<int,std::string> > d_strct_id_to_strct_name_map;
-    std::vector<std::map<int,std::pair<int,int> > > d_strct_id_to_lag_idx_range_map;
-    std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
+    std::vector<std::map<std::string, int> > d_strct_name_to_strct_id_map;
+    std::vector<std::map<int, std::string> > d_strct_id_to_strct_name_map;
+    std::vector<std::map<int, std::pair<int, int> > > d_strct_id_to_lag_idx_range_map;
+    std::vector<std::map<int, int> > d_last_lag_idx_to_strct_id_map;
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<Point,Point> > > d_displaced_strct_bounding_boxes;
+    std::vector<std::vector<std::pair<Point, Point> > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
     std::vector<std::vector<Point> > d_displaced_strct_lnode_posns;
 
@@ -1151,7 +1190,7 @@ private:
     /*!
      * The Lagrangian mesh data owned by the manager object.
      */
-    std::vector<std::map<std::string,SAMRAI::tbox::Pointer<LData> > > d_lag_mesh_data;
+    std::vector<std::map<std::string, SAMRAI::tbox::Pointer<LData> > > d_lag_mesh_data;
 
     /*!
      * Indicates whether the LData is in synch with the LNodeData.
@@ -1215,11 +1254,11 @@ private:
 
     //\}
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LDataManager-inl.h"  // IWYU pragma: keep
+#include "ibtk/LDataManager-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

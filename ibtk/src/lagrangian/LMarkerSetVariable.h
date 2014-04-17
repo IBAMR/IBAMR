@@ -43,7 +43,7 @@
 namespace IBTK
 {
 typedef LSetVariable<LMarker> LMarkerSetVariable;
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

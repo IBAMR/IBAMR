@@ -40,21 +40,28 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class IBStrategy;
 class INSHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-namespace mesh {
-template <int DIM> class GriddingAlgorithm;
-}  // namespace mesh
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace mesh
+{
+template <int DIM>
+class GriddingAlgorithm;
+} // namespace mesh
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,8 +71,7 @@ namespace IBAMR
  * \brief Class IBExplicitHierarchyIntegrator is an implementation of a formally
  * second-order accurate, semi-implicit version of the immersed boundary method.
  */
-class IBExplicitHierarchyIntegrator
-    : public IBHierarchyIntegrator
+class IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!
@@ -79,7 +85,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-        bool register_for_restart=true);
+        bool register_for_restart = true);
 
     /*!
      * The destructor for class IBExplicitHierarchyIntegrator unregisters the
@@ -92,30 +98,21 @@ public:
      * Prepare to advance the data from current_time to new_time.
      */
     void
-    preprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        int num_cycles=1);
+    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void
-    integrateHierarchy(
-        double current_time,
-        double new_time,
-        int cycle_num=0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void
-    postprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles=1);
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -126,8 +123,7 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(
+    void initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
@@ -135,9 +131,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void
-    putToDatabaseSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -154,8 +148,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBExplicitHierarchyIntegrator(
-        const IBExplicitHierarchyIntegrator& from);
+    IBExplicitHierarchyIntegrator(const IBExplicitHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -166,18 +159,15 @@ private:
      *
      * \return A reference to this object.
      */
-    IBExplicitHierarchyIntegrator&
-    operator=(
-        const IBExplicitHierarchyIntegrator& that);
+    IBExplicitHierarchyIntegrator& operator=(const IBExplicitHierarchyIntegrator& that);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

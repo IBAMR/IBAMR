@@ -47,13 +47,13 @@ IBMethodPostProcessStrategy::IBMethodPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// IBMethodPostProcessStrategy
+} // IBMethodPostProcessStrategy
 
 IBMethodPostProcessStrategy::~IBMethodPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// ~IBMethodPostProcessStrategy
+} // ~IBMethodPostProcessStrategy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

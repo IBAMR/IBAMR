@@ -35,8 +35,6 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -44,19 +42,21 @@
 #include "AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "BasePatchHierarchy.h"
 #include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
+#include "FaceData.h"
 #include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
+#include "Patch.h"
+#include "PatchFaceDataOpsReal.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -72,13 +72,26 @@
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+} // namespace SAMRAI
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -105,7 +118,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     d_default_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_init_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_convective_op_type = AdvDiffConvectiveOperatorManager::DEFAULT;
-    d_default_convective_op_input_db = new MemoryDatabase(d_object_name+"::default_convective_op_input_db");
+    d_default_convective_op_input_db =
+        new MemoryDatabase(d_object_name + "::default_convective_op_input_db");
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -115,244 +129,248 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     // Check to make sure the time stepping types are supported.
     switch (d_default_diffusion_time_stepping_type)
     {
-        case BACKWARD_EULER:
-        case FORWARD_EULER:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
-                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    case BACKWARD_EULER:
+    case FORWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+        break;
+    default:
+        TBOX_ERROR(
+            d_object_name
+            << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
+            << "  unsupported default diffusion time stepping type: "
+            << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
+            << " \n"
+            << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 
     switch (d_default_convective_time_stepping_type)
     {
-        case ADAMS_BASHFORTH:
-        case FORWARD_EULER:
-        case MIDPOINT_RULE:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                       << "  unsupported default convective time stepping type: " << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type) << " \n"
-                       << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    case ADAMS_BASHFORTH:
+    case FORWARD_EULER:
+    case MIDPOINT_RULE:
+    case TRAPEZOIDAL_RULE:
+        break;
+    default:
+        TBOX_ERROR(d_object_name
+                   << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
+                   << "  unsupported default convective time stepping type: "
+                   << enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type)
+                   << " \n"
+                   << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, "
+                      "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     if (is_multistep_time_stepping_type(d_default_convective_time_stepping_type))
     {
         switch (d_default_init_convective_time_stepping_type)
         {
-            case FORWARD_EULER:
-            case MIDPOINT_RULE:
-            case TRAPEZOIDAL_RULE:
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
-                           << "  unsupported default initial convective time stepping type: " << enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type) << " \n"
-                           << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        case FORWARD_EULER:
+        case MIDPOINT_RULE:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(
+                d_object_name
+                << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
+                << "  unsupported default initial convective time stepping type: "
+                << enum_to_string<TimeSteppingType>(
+                       d_default_init_convective_time_stepping_type) << " \n"
+                << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
     return;
-}// AdvDiffSemiImplicitHierarchyIntegrator
+} // AdvDiffSemiImplicitHierarchyIntegrator
 
 AdvDiffSemiImplicitHierarchyIntegrator::~AdvDiffSemiImplicitHierarchyIntegrator()
 {
     // intentionally blank
     return;
-}// ~AdvDiffSemiImplicitHierarchyIntegrator
+} // ~AdvDiffSemiImplicitHierarchyIntegrator
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveTimeSteppingType(
+void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveTimeSteppingType(
     TimeSteppingType default_convective_time_stepping_type)
 {
     d_default_convective_time_stepping_type = default_convective_time_stepping_type;
     return;
-}// setDefaultConvectiveTimeSteppingType
+} // setDefaultConvectiveTimeSteppingType
 
-TimeSteppingType
-AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveTimeSteppingType() const
+TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveTimeSteppingType()
+    const
 {
     return d_default_convective_time_stepping_type;
-}// getDefaultConvectiveTimeSteppingType
+} // getDefaultConvectiveTimeSteppingType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setDefaultInitialConvectiveTimeSteppingType(
+void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultInitialConvectiveTimeSteppingType(
     TimeSteppingType default_init_convective_time_stepping_type)
 {
     d_default_init_convective_time_stepping_type = default_init_convective_time_stepping_type;
     return;
-}// setDefaultInitialConvectiveTimeSteppingType
+} // setDefaultInitialConvectiveTimeSteppingType
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultInitialConvectiveTimeSteppingType() const
 {
     return d_default_init_convective_time_stepping_type;
-}// getDefaultInitialConvectiveTimeSteppingType
+} // getDefaultInitialConvectiveTimeSteppingType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorType(
+void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorType(
     const std::string& op_type)
 {
     d_default_convective_op_type = op_type;
     return;
-}// setDefaultConvectiveOperatorType
+} // setDefaultConvectiveOperatorType
 
-const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorType() const
+const std::string& AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorType()
+    const
 {
     return d_default_convective_op_type;
-}// getDefaultConvectiveOperatorType
+} // getDefaultConvectiveOperatorType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorInputDatabase(
+void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorInputDatabase(
     Pointer<Database> input_db)
 {
     d_default_convective_op_input_db = input_db;
     return;
-}// setDefaultConvectiveOperatorInputDatabase
+} // setDefaultConvectiveOperatorInputDatabase
 
 Pointer<Database>
 AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorInputDatabase() const
 {
     return d_default_convective_op_input_db;
-}// getDefaultConvectiveOperatorInputDatabase
+} // getDefaultConvectiveOperatorInputDatabase
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
-    Pointer<CellVariable<NDIM,double> > Q_var)
+void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(
+    Pointer<CellVariable<NDIM, double> > Q_var)
 {
     AdvDiffHierarchyIntegrator::registerTransportedQuantity(Q_var);
 
     // Set default values.
-    d_Q_convective_time_stepping_type     [Q_var] = d_default_convective_time_stepping_type;
-    d_Q_init_convective_time_stepping_type[Q_var] = d_default_init_convective_time_stepping_type;
-    d_Q_convective_op_type                [Q_var] = d_default_convective_op_type;
-    d_Q_convective_op_input_db            [Q_var] = d_default_convective_op_input_db;
-    d_Q_convective_op                     [Q_var] = NULL;
-    d_Q_convective_op_needs_init          [Q_var] = false;
+    d_Q_convective_time_stepping_type[Q_var] = d_default_convective_time_stepping_type;
+    d_Q_init_convective_time_stepping_type[Q_var] =
+        d_default_init_convective_time_stepping_type;
+    d_Q_convective_op_type[Q_var] = d_default_convective_op_type;
+    d_Q_convective_op_input_db[Q_var] = d_default_convective_op_input_db;
+    d_Q_convective_op[Q_var] = NULL;
+    d_Q_convective_op_needs_init[Q_var] = false;
     return;
-}// registerTransportedQuantity
+} // registerTransportedQuantity
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM,double> > Q_var,
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(
+    Pointer<CellVariable<NDIM, double> > Q_var,
     TimeSteppingType convective_time_stepping_type)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_time_stepping_type[Q_var] = convective_time_stepping_type;
     return;
-}// setConvectiveTimeSteppingType
+} // setConvectiveTimeSteppingType
 
-TimeSteppingType
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM,double> > Q_var) const
+TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(
+    Pointer<CellVariable<NDIM, double> > Q_var) const
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_time_stepping_type.find(Q_var)->second;
-}// getConvectiveTimeSteppingType
+} // getConvectiveTimeSteppingType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM,double> > Q_var,
+void AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
+    Pointer<CellVariable<NDIM, double> > Q_var,
     TimeSteppingType init_convective_time_stepping_type)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     d_Q_init_convective_time_stepping_type[Q_var] = init_convective_time_stepping_type;
     return;
-}// setInitialConvectiveTimeSteppingType
+} // setInitialConvectiveTimeSteppingType
 
-TimeSteppingType
-AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(
-    Pointer<CellVariable<NDIM,double> > Q_var) const
+TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(
+    Pointer<CellVariable<NDIM, double> > Q_var) const
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     return d_Q_init_convective_time_stepping_type.find(Q_var)->second;
-}// getInitialConvectiveTimeSteppingType
+} // getInitialConvectiveTimeSteppingType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(
-    Pointer<CellVariable<NDIM,double> > Q_var,
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(
+    Pointer<CellVariable<NDIM, double> > Q_var,
     const std::string& op_type)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_op_type[Q_var] = op_type;
     return;
-}// setConvectiveOperatorType
+} // setConvectiveOperatorType
 
-const std::string&
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(
-    Pointer<CellVariable<NDIM,double> > Q_var) const
+const std::string& AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(
+    Pointer<CellVariable<NDIM, double> > Q_var) const
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_op_type.find(Q_var)->second;
-}// getConvectiveOperatorType
+} // getConvectiveOperatorType
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
-    Pointer<CellVariable<NDIM,double> > Q_var,
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
+    Pointer<CellVariable<NDIM, double> > Q_var,
     Pointer<Database> input_db)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     d_Q_convective_op_input_db[Q_var] = input_db;
     return;
-}// setConvectiveOperatorInputDatabase
+} // setConvectiveOperatorInputDatabase
 
-Pointer<Database>
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
-    Pointer<CellVariable<NDIM,double> > Q_var) const
+Pointer<Database> AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(
+    Pointer<CellVariable<NDIM, double> > Q_var) const
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     return d_Q_convective_op_input_db.find(Q_var)->second;
-}// getConvectiveOperatorInputDatabase
+} // getConvectiveOperatorInputDatabase
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(
-    Pointer<CellVariable<NDIM,double> > Q_var,
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(
+    Pointer<CellVariable<NDIM, double> > Q_var,
     Pointer<ConvectiveOperator> convective_op)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_Q_convective_op[Q_var] = convective_op;
     d_Q_convective_op_needs_init[Q_var] = true;
     return;
-}// setConvectiveOperator
+} // setConvectiveOperator
 
-Pointer<ConvectiveOperator>
-AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
-    Pointer<CellVariable<NDIM,double> > Q_var)
+Pointer<ConvectiveOperator> AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(
+    Pointer<CellVariable<NDIM, double> > Q_var)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(std::find(d_Q_var.begin(),d_Q_var.end(),Q_var) != d_Q_var.end());
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
     if (!d_Q_convective_op[Q_var])
     {
-        AdvDiffConvectiveOperatorManager* convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
-        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(d_Q_convective_op_type[Q_var], d_object_name+"::"+Q_var->getName()+"::ConvectiveOperator", Q_var, d_Q_convective_op_input_db[Q_var], d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var]);
+        AdvDiffConvectiveOperatorManager* convective_op_manager =
+            AdvDiffConvectiveOperatorManager::getManager();
+        d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(
+            d_Q_convective_op_type[Q_var],
+            d_object_name + "::" + Q_var->getName() + "::ConvectiveOperator",
+            Q_var,
+            d_Q_convective_op_input_db[Q_var],
+            d_Q_difference_form[Q_var],
+            d_Q_bc_coef[Q_var]);
         d_Q_convective_op_needs_init[Q_var] = true;
     }
     return d_Q_convective_op[Q_var];
-}// getConvectiveOperator
+} // getConvectiveOperator
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
+void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -363,38 +381,54 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM,double>("fc_var"), hierarchy, true);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
+        HierarchyDataOpsManager<NDIM>::getManager();
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
+        new FaceVariable<NDIM, double>("fc_var"), hierarchy, true);
 
     // Register variables using the default variable registration routine.
     AdvDiffHierarchyIntegrator::registerVariables();
 
     // Setup the convective operators.
-    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
+             d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         getConvectiveOperator(Q_var);
     }
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
-    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
+             d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-        Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        Pointer<CellVariable<NDIM,double> > N_var = new CellVariable<NDIM,double>(Q_var->getName()+"::N",Q_depth);
+        Pointer<CellVariable<NDIM, double> > N_var =
+            new CellVariable<NDIM, double>(Q_var->getName() + "::N", Q_depth);
         d_N_var.insert(N_var);
         d_Q_N_map[Q_var] = N_var;
         int N_scratch_idx;
         registerVariable(N_scratch_idx, N_var, cell_ghosts, getScratchContext());
 
-        Pointer<CellVariable<NDIM,double> > N_old_var = new CellVariable<NDIM,double>(Q_var->getName()+"::N_old",Q_depth);
+        Pointer<CellVariable<NDIM, double> > N_old_var =
+            new CellVariable<NDIM, double>(Q_var->getName() + "::N_old", Q_depth);
         d_N_old_var.insert(N_old_var);
         d_Q_N_old_map[Q_var] = N_old_var;
         int N_old_current_idx, N_old_new_idx, N_old_scratch_idx;
-        registerVariable(N_old_current_idx, N_old_new_idx, N_old_scratch_idx, N_old_var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+        registerVariable(N_old_current_idx,
+                         N_old_new_idx,
+                         N_old_scratch_idx,
+                         N_old_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
     }
 
     // Perform hierarchy initialization operations common to all implementations
@@ -404,48 +438,55 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-}// initializeHierarchyIntegrator
+} // initializeHierarchyIntegrator
 
-int
-AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
+int AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
 {
     int num_cycles = d_num_cycles;
     if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
     {
-        for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+        for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
+                 d_Q_var.begin();
+             cit != d_Q_var.end();
+             ++cit)
         {
-            Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+            Pointer<CellVariable<NDIM, double> > Q_var = *cit;
             if (!d_Q_u_map.find(Q_var)->second) continue;
-            if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) && d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
+            if (is_multistep_time_stepping_type(
+                    d_Q_convective_time_stepping_type.find(Q_var)->second) &&
+                d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
             {
-                num_cycles = std::max(2,num_cycles);
+                num_cycles = std::max(2, num_cycles);
             }
         }
     }
     return num_cycles;
-}// getNumberOfCycles
+} // getNumberOfCycles
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
+AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                                     const double new_time,
+                                                                     const int num_cycles)
 {
-    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(
+        current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
+    const double dt = new_time - current_time;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]);
+    const bool dt_change =
+        initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
     if (dt_change)
     {
-        std::fill(d_helmholtz_solvers_need_init.begin(),d_helmholtz_solvers_need_init.end(), true);
-        std::fill(d_helmholtz_rhs_ops_need_init.begin(),d_helmholtz_rhs_ops_need_init.end(), true);
+        std::fill(
+            d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+        std::fill(
+            d_helmholtz_rhs_ops_need_init.begin(), d_helmholtz_rhs_ops_need_init.end(), true);
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
@@ -455,20 +496,26 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data    ,     new_time);
+        level->allocatePatchData(d_new_data, new_time);
     }
 
     // Update the advection velocity.
-    for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit =
+             d_u_var.begin();
+         cit != d_u_var.end();
+         ++cit)
     {
-        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
-        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
-        const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, getNewContext()    );
+        Pointer<FaceVariable<NDIM, double> > u_var = *cit;
+        const int u_current_idx =
+            var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+        const int u_scratch_idx =
+            var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
         if (d_u_fcn[u_var])
         {
-            d_u_fcn[u_var]->setDataOnPatchHierarchy(u_current_idx, u_var, d_hierarchy, current_time);
-            d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx    , u_var, d_hierarchy,     new_time);
+            d_u_fcn[u_var]->setDataOnPatchHierarchy(
+                u_current_idx, u_var, d_hierarchy, current_time);
+            d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
         }
         else
         {
@@ -478,73 +525,93 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     }
 
     // Update the diffusion coefficient
-    for (std::vector<Pointer<SideVariable<NDIM,double> > >::const_iterator cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
+    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit =
+             d_diffusion_coef_var.begin();
+         cit != d_diffusion_coef_var.end();
+         ++cit)
     {
-        Pointer<SideVariable<NDIM,double> > D_var = *cit;
+        Pointer<SideVariable<NDIM, double> > D_var = *cit;
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
-            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            const int D_current_idx =
+                var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, current_time);
         }
     }
 
     // Setup the operators and solvers and compute the right-hand-side terms.
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator
+             cit = d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
-        Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        Pointer<SideVariable<NDIM,double> > D_var     = d_Q_diffusion_coef_variable[Q_var];
-        Pointer<SideVariable<NDIM,double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
-        TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
-        const double lambda = d_Q_damping_coef  [Q_var];
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<SideVariable<NDIM, double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        TimeSteppingType diffusion_time_stepping_type =
+            d_Q_diffusion_time_stepping_type[Q_var];
+        const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
-        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        const int Q_current_idx =
+            var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        const int Q_scratch_idx =
+            var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
-        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
-        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
-        const int D_rhs_scratch_idx = (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
+        const int Q_rhs_scratch_idx =
+            var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
+        const int D_current_idx =
+            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int D_scratch_idx =
+            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
+        const int D_rhs_scratch_idx =
+            (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) :
+                         -1);
 
         // Setup the problem coefficients for the linear solve for Q(n+1).
         double K = 0.0;
         switch (diffusion_time_stepping_type)
         {
-            case BACKWARD_EULER:
-                K = 1.0;
-                break;
-            case FORWARD_EULER:
-                K = 0.0;
-                break;
-            case TRAPEZOIDAL_RULE:
-                K = 0.5;
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                           << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR(
+                d_object_name
+                << "::integrateHierarchy():\n"
+                << "  unsupported diffusion time stepping type: "
+                << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
-        PoissonSpecifications solver_spec(d_object_name+"::solver_spec::"+Q_var->getName());
-        PoissonSpecifications rhs_op_spec(d_object_name+"::rhs_op_spec::"+Q_var->getName());
-        solver_spec.setCConstant(1.0/dt+K*lambda);
-        rhs_op_spec.setCConstant(1.0/dt-(1.0-K)*lambda);
+        PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" +
+                                          Q_var->getName());
+        PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" +
+                                          Q_var->getName());
+        solver_spec.setCConstant(1.0 / dt + K * lambda);
+        rhs_op_spec.setCConstant(1.0 / dt - (1.0 - K) * lambda);
         if (isDiffusionCoefficientVariable(Q_var))
         {
             // set -K*kappa in solver_spec
             d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_current_idx);
             solver_spec.setDPatchDataId(D_scratch_idx);
             // set (1.0-K)*kappa in rhs_op_spec
-            d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0-K), D_current_idx);
+            d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0 - K), D_current_idx);
             rhs_op_spec.setDPatchDataId(D_rhs_scratch_idx);
         }
         else
         {
             const double kappa = d_Q_diffusion_coef[Q_var];
-            solver_spec.setDConstant(-K*kappa);
-            rhs_op_spec.setDConstant(+(1.0-K)*kappa);
+            solver_spec.setDConstant(-K * kappa);
+            rhs_op_spec.setDConstant(+(1.0 - K) * kappa);
         }
 
         // Initialize the RHS operator and compute the RHS vector.
@@ -559,13 +626,14 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             if (d_enable_logging)
             {
                 plog << d_object_name << ": "
-                     << "Initializing Helmholtz RHS operator for variable number " << l << "\n";
+                     << "Initializing Helmholtz RHS operator for variable number " << l
+                     << "\n";
             }
-            helmholtz_rhs_op->initializeOperatorState(*d_sol_vecs[l],*d_rhs_vecs[l]);
+            helmholtz_rhs_op->initializeOperatorState(*d_sol_vecs[l], *d_rhs_vecs[l]);
             d_helmholtz_rhs_ops_need_init[l] = false;
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
-        helmholtz_rhs_op->apply(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        helmholtz_rhs_op->apply(*d_sol_vecs[l], *d_rhs_vecs[l]);
 
         // Initialize the linear solver.
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
@@ -581,49 +649,63 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
                 plog << d_object_name << ": "
                      << "Initializing Helmholtz solvers for variable number " << l << "\n";
             }
-            helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
+            helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
             d_helmholtz_solvers_need_init[l] = false;
         }
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
-            Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
-            Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
-            TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
-            if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
+            Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
+            Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
+            TimeSteppingType convective_time_stepping_type =
+                d_Q_convective_time_stepping_type[Q_var];
+            if (getIntegratorStep() == 0 &&
+                is_multistep_time_stepping_type(convective_time_stepping_type))
             {
                 convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
             }
-            if ((num_cycles == 1) && (convective_time_stepping_type == MIDPOINT_RULE || convective_time_stepping_type == TRAPEZOIDAL_RULE))
+            if ((num_cycles == 1) && (convective_time_stepping_type == MIDPOINT_RULE ||
+                                      convective_time_stepping_type == TRAPEZOIDAL_RULE))
             {
-                TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                           << "  time stepping type: " << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " requires num_cycles > 1.\n"
+                TBOX_ERROR(d_object_name
+                           << "::preprocessIntegrateHierarchy():\n"
+                           << "  time stepping type: "
+                           << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                           << " requires num_cycles > 1.\n"
                            << "  at current time step, num_cycles = " << num_cycles << "\n");
             }
             if (d_Q_convective_op_needs_init[Q_var])
             {
-                d_Q_convective_op[Q_var]->initializeOperatorState(*d_sol_vecs[l],*d_rhs_vecs[l]);
+                d_Q_convective_op[Q_var]->initializeOperatorState(*d_sol_vecs[l],
+                                                                  *d_rhs_vecs[l]);
                 d_Q_convective_op_needs_init[Q_var] = false;
             }
-            const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+            const int u_current_idx =
+                var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
             d_Q_convective_op[Q_var]->setAdvectionVelocity(u_current_idx);
-            const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-            const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-            const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
+            const int Q_current_idx =
+                var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+            const int Q_scratch_idx =
+                var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+            const int N_scratch_idx =
+                var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx);
             d_Q_convective_op[Q_var]->setSolutionTime(current_time);
             d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
-            const int N_old_new_idx = var_db->mapVariableAndContextToIndex(N_old_var, getNewContext());
+            const int N_old_new_idx =
+                var_db->mapVariableAndContextToIndex(N_old_var, getNewContext());
             d_hier_cc_data_ops->copyData(N_old_new_idx, N_scratch_idx);
             if (convective_time_stepping_type == FORWARD_EULER)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
 
@@ -634,17 +716,15 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-}// preprocessIntegrateHierarchy
+} // preprocessIntegrateHierarchy
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int cycle_num)
+void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                                const double new_time,
+                                                                const int cycle_num)
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-    const double dt = new_time-current_time;
-    const double half_time = current_time+0.5*dt;
+    const double dt = new_time - current_time;
+    const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
@@ -654,53 +734,69 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
         IBAMR_DO_ONCE(
             {
                 pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            }
-                      );
+                     << "  WARNING: num_cycles = " << d_current_num_cycles
+                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
+            });
     }
 
     // Perform a single step of fixed point iteration.
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator
+             cit = d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
-        Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map    [Q_var];
-        Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM, double> > F_var = d_Q_F_map[Q_var];
+        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
 
-        const int Q_scratch_idx     = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-        const int Q_new_idx         = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        const int F_scratch_idx     = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) : -1;
-        const int F_new_idx         = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()    ) : -1;
-        const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
+        const int Q_scratch_idx =
+            var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
+        const int F_scratch_idx =
+            d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) :
+                             -1;
+        const int F_new_idx =
+            d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()) : -1;
+        const int Q_rhs_scratch_idx =
+            var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Update the advection velocity.
         if (cycle_num > 0)
         {
-            for (std::vector<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+            for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit =
+                     d_u_var.begin();
+                 cit != d_u_var.end();
+                 ++cit)
             {
-                Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-                const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
-                const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
-                const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, getNewContext()    );
+                Pointer<FaceVariable<NDIM, double> > u_var = *cit;
+                const int u_current_idx =
+                    var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+                const int u_scratch_idx =
+                    var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
+                const int u_new_idx =
+                    var_db->mapVariableAndContextToIndex(u_var, getNewContext());
                 if (d_u_fcn[u_var])
                 {
-                    d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
+                    d_u_fcn[u_var]->setDataOnPatchHierarchy(
+                        u_new_idx, u_var, d_hierarchy, new_time);
                 }
                 else
                 {
                     d_hier_fc_data_ops->copyData(u_new_idx, u_current_idx);
                 }
-                d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+                d_hier_fc_data_ops->linearSum(
+                    u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
             }
         }
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > N_var = d_Q_N_map[Q_var];
+        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+        Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
         TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
         if (u_var)
         {
-            Pointer<CellVariable<NDIM,double> > N_old_var = d_Q_N_old_map[Q_var];
+            Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
             convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -709,44 +805,65 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
 #endif
                 if (getIntegratorStep() == 0)
                 {
-                    convective_time_stepping_type = d_Q_init_convective_time_stepping_type[Q_var];
+                    convective_time_stepping_type =
+                        d_Q_init_convective_time_stepping_type[Q_var];
                 }
                 else if (cycle_num > 0)
                 {
                     convective_time_stepping_type = MIDPOINT_RULE;
                     IBAMR_DO_ONCE(
                         {
-                            pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                                 << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                                 << "           using " << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var]) << " only for the first cycle in each time step;\n"
-                                 << "           using " << enum_to_string<TimeSteppingType>(    convective_time_stepping_type       ) << " for subsequent cycles.\n";
-                        }
-                                  );
+                            pout << "AdvDiffSemiImplicitHierarchyIntegrator::"
+                                    "integrateHierarchy():"
+                                    "\n"
+                                 << "  WARNING: convective_time_stepping_type = "
+                                 << enum_to_string<TimeSteppingType>(
+                                        d_Q_convective_time_stepping_type[Q_var])
+                                 << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                                 << "           using "
+                                 << enum_to_string<TimeSteppingType>(
+                                        d_Q_convective_time_stepping_type[Q_var])
+                                 << " only for the first cycle in each time step;\n"
+                                 << "           using " << enum_to_string<TimeSteppingType>(
+                                                               convective_time_stepping_type)
+                                 << " for subsequent cycles.\n";
+                        });
                 }
             }
-            const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
+            const int N_scratch_idx =
+                var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
             if (cycle_num > 0)
             {
                 if (convective_time_stepping_type == MIDPOINT_RULE)
                 {
-                    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
+                    const int u_scratch_idx =
+                        var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
                     d_Q_convective_op[Q_var]->setAdvectionVelocity(u_scratch_idx);
-                    const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-                    const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-                    const int Q_new_idx     = var_db->mapVariableAndContextToIndex(Q_var, getNewContext()    );
-                    d_hier_cc_data_ops->linearSum(Q_scratch_idx, 0.5, Q_current_idx, 0.5, Q_new_idx);
+                    const int Q_current_idx =
+                        var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+                    const int Q_scratch_idx =
+                        var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+                    const int Q_new_idx =
+                        var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
+                    d_hier_cc_data_ops->linearSum(
+                        Q_scratch_idx, 0.5, Q_current_idx, 0.5, Q_new_idx);
                     d_Q_convective_op[Q_var]->setSolutionTime(half_time);
-                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
+                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx,
+                                                                      N_scratch_idx);
                 }
                 else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
                 {
-                    const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
+                    const int u_new_idx =
+                        var_db->mapVariableAndContextToIndex(u_var, getNewContext());
                     d_Q_convective_op[Q_var]->setAdvectionVelocity(u_new_idx);
-                    const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-                    const int Q_new_idx     = var_db->mapVariableAndContextToIndex(Q_var, getNewContext()    );
+                    const int Q_scratch_idx =
+                        var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+                    const int Q_new_idx =
+                        var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
                     d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_new_idx);
                     d_Q_convective_op[Q_var]->setSolutionTime(new_time);
-                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
+                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx,
+                                                                      N_scratch_idx);
                 }
             }
             if (convective_time_stepping_type == ADAMS_BASHFORTH)
@@ -754,55 +871,75 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
 #if !defined(NDEBUG)
                 TBOX_ASSERT(cycle_num == 0);
 #endif
-                const int N_old_current_idx = var_db->mapVariableAndContextToIndex(N_old_var, getCurrentContext());
+                const int N_old_current_idx =
+                    var_db->mapVariableAndContextToIndex(N_old_var, getCurrentContext());
                 const double omega = dt / d_dt_previous[0];
-                d_hier_cc_data_ops->linearSum(N_scratch_idx, 1.0 + 0.5*omega, N_scratch_idx, -0.5*omega, N_old_current_idx);
+                d_hier_cc_data_ops->linearSum(N_scratch_idx,
+                                              1.0 + 0.5 * omega,
+                                              N_scratch_idx,
+                                              -0.5 * omega,
+                                              N_old_current_idx);
             }
-            if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
+            if (convective_time_stepping_type == ADAMS_BASHFORTH ||
+                convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, -1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, -0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
 
         // Account for forcing terms.
         if (d_F_fcn[F_var])
         {
-            d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, half_time);
+            d_F_fcn[F_var]->setDataOnPatchHierarchy(
+                F_scratch_idx, F_var, d_hierarchy, half_time);
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
         }
 
         // Solve for Q(n+1).
         Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
-        helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): diffusion solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): diffusion solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): diffusion solve number of iterations = "
+                 << helmholtz_solver->getNumIterations() << "\n";
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): diffusion solve residual norm        = "
+                 << helmholtz_solver->getResidualNorm() << "\n";
         if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
         {
             pout << d_object_name << "::integrateHierarchy():"
-                 <<"  WARNING: linear solver iterations == max iterations\n";
+                 << "  WARNING: linear solver iterations == max iterations\n";
         }
 
         // Reset the right-hand side vector.
         if (u_var)
         {
-            const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
-            if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
+            const int N_scratch_idx =
+                var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
+            if (convective_time_stepping_type == ADAMS_BASHFORTH ||
+                convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +1.0, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, +1.0, N_scratch_idx, Q_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, +0.5, N_scratch_idx, Q_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(
+                    Q_rhs_scratch_idx, +0.5, N_scratch_idx, Q_rhs_scratch_idx);
             }
         }
         if (d_F_fcn[F_var])
         {
-            d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, -1.0, F_scratch_idx, Q_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(
+                Q_rhs_scratch_idx, -1.0, F_scratch_idx, Q_rhs_scratch_idx);
             d_hier_cc_data_ops->copyData(F_new_idx, F_scratch_idx);
         }
     }
@@ -810,28 +947,29 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-}// integrateHierarchy
+} // integrateHierarchy
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
+void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const bool skip_synchronize_new_state_data,
     const int num_cycles)
 {
-    AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
+    const double dt = new_time - current_time;
 
     // Determine the CFL number.
     double cfl_max = 0.0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     for (unsigned int k = 0; k < d_u_var.size(); ++k)
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
-        PatchFaceDataOpsReal<NDIM,double> patch_fc_ops;
+        const int u_new_idx =
+            var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -841,26 +979,29 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
-                const double dx_min = *(std::min_element(dx,dx+NDIM));
-                Pointer<FaceData<NDIM,double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                const double dx_min = *(std::min_element(dx, dx + NDIM));
+                Pointer<FaceData<NDIM, double> > u_fc_new_data =
+                    patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
-                cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+                cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
     }
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
-    if (d_enable_logging) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+    if (d_enable_logging)
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max
+             << "\n";
 
     // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-}// postprocessIntegrateHierarchy
+} // postprocessIntegrateHierarchy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+void AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -869,61 +1010,85 @@ AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
-    for (std::vector<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
+             d_Q_var.begin();
+         cit != d_Q_var.end();
+         ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         d_Q_convective_op_needs_init[Q_var] = true;
     }
-    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
+    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
     return;
-}// resetHierarchyConfigurationSpecialized
+} // resetHierarchyConfigurationSpecialized
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(
-    Pointer<Database> db)
+void AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
-    db->putString("d_default_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type));
-    db->putString("d_default_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type));
+    db->putString("d_default_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_default_convective_time_stepping_type));
+    db->putString(
+        "d_default_init_convective_time_stepping_type",
+        enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type));
     db->putString("d_default_convective_op_type", d_default_convective_op_type);
     AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
-}// putToDatabaseSpecialized
+} // putToDatabaseSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
-    Pointer<Database> db,
-    bool is_from_restart)
+void AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> db,
+                                                          bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
     if (!is_from_restart)
     {
-        if      (db->keyExists("convective_time_stepping_type")) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
-        else if (db->keyExists("convective_timestepping_type" )) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_timestepping_type") );
-        else if (db->keyExists("default_convective_time_stepping_type")) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_time_stepping_type"));
-        else if (db->keyExists("default_convective_timestepping_type" )) d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_convective_timestepping_type") );
+        if (db->keyExists("convective_time_stepping_type"))
+            d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("convective_time_stepping_type"));
+        else if (db->keyExists("convective_timestepping_type"))
+            d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("convective_timestepping_type"));
+        else if (db->keyExists("default_convective_time_stepping_type"))
+            d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("default_convective_time_stepping_type"));
+        else if (db->keyExists("default_convective_timestepping_type"))
+            d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("default_convective_timestepping_type"));
 
-        if      (db->keyExists("init_convective_time_stepping_type")) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
-        else if (db->keyExists("init_convective_timestepping_type" )) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type") );
-        else if (db->keyExists("default_init_convective_time_stepping_type")) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_time_stepping_type"));
-        else if (db->keyExists("default_init_convective_timestepping_type" )) d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_init_convective_timestepping_type") );
+        if (db->keyExists("init_convective_time_stepping_type"))
+            d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("init_convective_time_stepping_type"));
+        else if (db->keyExists("init_convective_timestepping_type"))
+            d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("init_convective_timestepping_type"));
+        else if (db->keyExists("default_init_convective_time_stepping_type"))
+            d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("default_init_convective_time_stepping_type"));
+        else if (db->keyExists("default_init_convective_timestepping_type"))
+            d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+                db->getString("default_init_convective_timestepping_type"));
 
-        if      (db->keyExists("convective_op_type"))               d_default_convective_op_type = db->getString("convective_op_type");
-        else if (db->keyExists("convective_operator_type"))         d_default_convective_op_type = db->getString("convective_operator_type");
-        else if (db->keyExists("default_convective_op_type"))       d_default_convective_op_type = db->getString("default_convective_op_type");
-        else if (db->keyExists("default_convective_operator_type")) d_default_convective_op_type = db->getString("default_convective_operator_type");
+        if (db->keyExists("convective_op_type"))
+            d_default_convective_op_type = db->getString("convective_op_type");
+        else if (db->keyExists("convective_operator_type"))
+            d_default_convective_op_type = db->getString("convective_operator_type");
+        else if (db->keyExists("default_convective_op_type"))
+            d_default_convective_op_type = db->getString("default_convective_op_type");
+        else if (db->keyExists("default_convective_operator_type"))
+            d_default_convective_op_type = db->getString("default_convective_operator_type");
 
-        if      (db->keyExists("convective_op_db"))         d_default_convective_op_input_db = db->getDatabase("convective_op_db");
-        else if (db->keyExists("default_convective_op_db")) d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
+        if (db->keyExists("convective_op_db"))
+            d_default_convective_op_input_db = db->getDatabase("convective_op_db");
+        else if (db->keyExists("default_convective_op_db"))
+            d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
     }
     return;
-}// getFromInput
+} // getFromInput
 
-void
-AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
+void AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -933,17 +1098,19 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
     }
     else
     {
-        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
     }
-    d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_convective_time_stepping_type"));
-    d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_init_convective_time_stepping_type"));
+    d_default_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+        db->getString("d_default_convective_time_stepping_type"));
+    d_default_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(
+        db->getString("d_default_init_convective_time_stepping_type"));
     d_default_convective_op_type = db->getString("d_default_convective_op_type");
     return;
-}// getFromRestart
+} // getFromRestart
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

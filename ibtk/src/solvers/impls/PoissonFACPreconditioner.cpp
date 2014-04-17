@@ -39,11 +39,14 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -62,48 +65,44 @@ PoissonFACPreconditioner::PoissonFACPreconditioner(
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;
-}// PoissonFACPreconditioner
+} // PoissonFACPreconditioner
 
 PoissonFACPreconditioner::~PoissonFACPreconditioner()
 {
     // intentionally blank
     return;
-}// ~PoissonFACPreconditioner
+} // ~PoissonFACPreconditioner
 
 void
-PoissonFACPreconditioner::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
+PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPoissonSpecifications(d_poisson_spec);
     return;
-}// setPoissonSpecifications
+} // setPoissonSpecifications
 
-void
-PoissonFACPreconditioner::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* bc_coef)
+void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
-}// setPhysicalBcCoef
+} // setPhysicalBcCoef
 
-void
-PoissonFACPreconditioner::setPhysicalBcCoefs(
+void PoissonFACPreconditioner::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

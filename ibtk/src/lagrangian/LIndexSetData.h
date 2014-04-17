@@ -42,11 +42,14 @@
 #include "ibtk/LSetData.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,9 +63,8 @@ namespace IBTK
  * \see LSetData
  * \see SAMRAI::pdat::IndexData
  */
-template<class T>
-class LIndexSetData
-    : public LSetData<T>
+template <class T>
+class LIndexSetData : public LSetData<T>
 {
 public:
     /*!
@@ -70,107 +72,91 @@ public:
      * interior of the index space and the ghosts vector describes the ghost
      * nodes in each coordinate direction.
      */
-    LIndexSetData(
-        const SAMRAI::hier::Box<NDIM>& box,
-        const SAMRAI::hier::IntVector<NDIM>& ghosts);
+    LIndexSetData(const SAMRAI::hier::Box<NDIM>& box,
+                  const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
      * The virtual destructor for an LIndexSetData object.
      */
-    virtual
-    ~LIndexSetData();
+    virtual ~LIndexSetData();
 
     /*!
      * \brief Update the cached indexing data.
      */
-    void
-    cacheLocalIndices(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
+    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
      * lie in the patch (including the ghost cell region).
      */
-    const std::vector<int>&
-    getLagrangianIndices() const;
+    const std::vector<int>& getLagrangianIndices() const;
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
      * lie in the patch interior.
      */
-    const std::vector<int>&
-    getInteriorLagrangianIndices() const;
+    const std::vector<int>& getInteriorLagrangianIndices() const;
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
      * lie in the ghost cell region of the patch data object.
      */
-    const std::vector<int>&
-    getGhostLagrangianIndices() const;
+    const std::vector<int>& getGhostLagrangianIndices() const;
 
     /*!
      * \return A constant reference to the set of global PETSc data indices that
      * lie in the patch (including the ghost cell region).
      */
-    const std::vector<int>&
-    getGlobalPETScIndices() const;
+    const std::vector<int>& getGlobalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of global PETSc data indices that
      * lie in the patch interior.
      */
-    const std::vector<int>&
-    getInteriorGlobalPETScIndices() const;
+    const std::vector<int>& getInteriorGlobalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of global PETSc data indices that
      * lie in the ghost cell region of the patch data object.
      */
-    const std::vector<int>&
-    getGhostGlobalPETScIndices() const;
+    const std::vector<int>& getGhostGlobalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of local PETSc data indices that
      * lie in the patch (including the ghost cell region).
      */
-    const std::vector<int>&
-    getLocalPETScIndices() const;
+    const std::vector<int>& getLocalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of local PETSc data indices that
      * lie in the patch interior.
      */
-    const std::vector<int>&
-    getInteriorLocalPETScIndices() const;
+    const std::vector<int>& getInteriorLocalPETScIndices() const;
 
     /*!
      * \return A constant reference to the set of local PETSc data indices that
      * lie in the ghost cell region of the patch data object.
      */
-    const std::vector<int>&
-    getGhostLocalPETScIndices() const;
+    const std::vector<int>& getGhostLocalPETScIndices() const;
 
     /*!
      * \return A constant reference to the periodic shifts for the indices that
      * lie in the patch (including the ghost cell region).
      */
-    const std::vector<double>&
-    getPeriodicShifts() const;
+    const std::vector<double>& getPeriodicShifts() const;
 
     /*!
      * \return A constant reference to the periodic shifts for the indices that
      * lie in the patch interior.
      */
-    const std::vector<double>&
-    getInteriorPeriodicShifts() const;
+    const std::vector<double>& getInteriorPeriodicShifts() const;
 
     /*!
      * \return A constant reference to the periodic shifts for the indices that
      * lie in the ghost cell region of the patch data object.
      */
-    const std::vector<double>&
-    getGhostPeriodicShifts() const;
+    const std::vector<double>& getGhostPeriodicShifts() const;
 
 private:
     /*!
@@ -187,8 +173,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetData(
-        const LIndexSetData<T>& from);
+    LIndexSetData(const LIndexSetData<T>& from);
 
     /*!
      * \brief Assignment operator.
@@ -199,20 +184,20 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetData&
-    operator=(
-        const LIndexSetData<T>& that);
+    LIndexSetData& operator=(const LIndexSetData<T>& that);
 
     std::vector<int> d_lag_indices, d_interior_lag_indices, d_ghost_lag_indices;
-    std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
-    std::vector<int> d_local_petsc_indices, d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
+    std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices,
+        d_ghost_global_petsc_indices;
+    std::vector<int> d_local_petsc_indices, d_interior_local_petsc_indices,
+        d_ghost_local_petsc_indices;
     std::vector<double> d_periodic_shifts, d_interior_periodic_shifts, d_ghost_periodic_shifts;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LIndexSetData-inl.h"  // IWYU pragma: keep
+#include "ibtk/LIndexSetData-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

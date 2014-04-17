@@ -44,11 +44,14 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -79,8 +82,7 @@ public:
      *
      * \return A pointer to the operator manager instance.
      */
-    static INSStaggeredConvectiveOperatorManager*
-    getManager();
+    static INSStaggeredConvectiveOperatorManager* getManager();
 
     /*!
      * Deallocate the INSStaggeredConvectiveOperatorManager instance.
@@ -88,14 +90,12 @@ public:
      * It is not necessary to call this function at program termination since it
      * is automatically called by the ShutdownRegistry class.
      */
-    static void
-    freeManager();
+    static void freeManager();
 
     /*!
      * Allocate a new INSStaggeredConvectiveOperator object of the specified type.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocateOperator(
+    SAMRAI::tbox::Pointer<ConvectiveOperator> allocateOperator(
         const std::string& operator_type,
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -105,8 +105,7 @@ public:
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator>
-    (*OperatorMaker)(
+    typedef SAMRAI::tbox::Pointer<ConvectiveOperator>(*OperatorMaker)(
         const std::string& operator_object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
@@ -115,10 +114,8 @@ public:
     /*!
      * Register a operator factory function with the operator manager class.
      */
-    void
-    registerOperatorFactoryFunction(
-        const std::string& operator_type,
-        OperatorMaker operator_maker);
+    void registerOperatorFactoryFunction(const std::string& operator_type,
+                                         OperatorMaker operator_maker);
 
 protected:
     /*!
@@ -139,8 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredConvectiveOperatorManager(
-        const INSStaggeredConvectiveOperatorManager& from);
+    INSStaggeredConvectiveOperatorManager(const INSStaggeredConvectiveOperatorManager& from);
 
     /*!
      * \brief Assignment operator.
@@ -152,8 +148,7 @@ private:
      * \return A reference to this object.
      */
     INSStaggeredConvectiveOperatorManager&
-    operator=(
-        const INSStaggeredConvectiveOperatorManager& that);
+    operator=(const INSStaggeredConvectiveOperatorManager& that);
 
     /*!
      * Static data members used to control access to and destruction of
@@ -166,9 +161,9 @@ private:
     /*!
      * Mapping from operator type names to operator maker functions.
      */
-    std::map<std::string,OperatorMaker> d_operator_maker_map;
+    std::map<std::string, OperatorMaker> d_operator_maker_map;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

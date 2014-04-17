@@ -47,30 +47,26 @@ namespace IBTK
  * \brief Class LIndexSetVariable provides a SAMRAI::hier::Variable class
  * corresponding to patch data of type LIndexSetData.
  */
-template<class T>
-class LIndexSetVariable
-    : public SAMRAI::hier::Variable<NDIM>
+template <class T>
+class LIndexSetVariable : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!
      * Create an LIndexSetVariable object with the specified name.
      */
-    LIndexSetVariable(
-        const std::string& name);
+    LIndexSetVariable(const std::string& name);
 
     /*!
      * Virtual destructor for LIndexSetVariable objects.
      */
-    virtual
-    ~LIndexSetVariable();
+    virtual ~LIndexSetVariable();
 
     /*!
      * Return false since the LIndexSet data index space matches the
      * cell-centered index space for AMR patches.  Thus, LIndexSet data does not
      * live on patch borders.
      */
-    bool
-    dataLivesOnPatchBorder() const;
+    bool dataLivesOnPatchBorder() const;
 
     /*!
      * Return true so that the LIndexSet data quantities will always be treated
@@ -80,8 +76,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    bool
-    fineBoundaryRepresentsVariable() const;
+    bool fineBoundaryRepresentsVariable() const;
 
 private:
     /*!
@@ -98,8 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LIndexSetVariable(
-        const LIndexSetVariable<T>& from);
+    LIndexSetVariable(const LIndexSetVariable<T>& from);
 
     /*!
      * \brief Assignment operator.
@@ -110,11 +104,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LIndexSetVariable<T>&
-    operator=(
-        const LIndexSetVariable<T>& that);
+    LIndexSetVariable<T>& operator=(const LIndexSetVariable<T>& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

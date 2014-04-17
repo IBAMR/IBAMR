@@ -40,23 +40,23 @@
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarker-inl.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
-#include "ibtk/LSet-inl.h"
-#include "boost/array.hpp"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -78,51 +78,44 @@ LMarkerRefine::LMarkerRefine()
 {
     // intentionally blank
     return;
-}// LMarkerRefine
+} // LMarkerRefine
 
 LMarkerRefine::~LMarkerRefine()
 {
     // intentionally blank
     return;
-}// ~LMarkerRefine
+} // ~LMarkerRefine
 
-bool
-LMarkerRefine::findRefineOperator(
-    const Pointer<Variable<NDIM> >& var,
-    const std::string& op_name) const
+bool LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                       const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
-}// findRefineOperator
+} // findRefineOperator
 
-const std::string&
-LMarkerRefine::getOperatorName() const
+const std::string& LMarkerRefine::getOperatorName() const
 {
     return s_op_name;
-}// getOperatorName
+} // getOperatorName
 
-int
-LMarkerRefine::getOperatorPriority() const
+int LMarkerRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
-}// getOperatorPriority
+} // getOperatorPriority
 
-IntVector<NDIM>
-LMarkerRefine::getStencilWidth() const
+IntVector<NDIM> LMarkerRefine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
-}// getStencilWidth
+} // getStencilWidth
 
-void
-LMarkerRefine::refine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const int dst_component,
-    const int src_component,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio) const
+void LMarkerRefine::refine(Patch<NDIM>& fine,
+                           const Patch<NDIM>& coarse,
+                           const int dst_component,
+                           const int src_component,
+                           const Box<NDIM>& fine_box,
+                           const IntVector<NDIM>& ratio) const
 {
-    Pointer<LMarkerSetData> dst_mark_data = fine  .getPatchData(dst_component);
+    Pointer<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
     Pointer<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
 
     const Box<NDIM>& fine_patch_box = fine.getBox();
@@ -136,25 +129,32 @@ LMarkerRefine::refine(
     const Pointer<CartesianPatchGeometry<NDIM> > coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patchDx = coarse_patch_geom->getDx();
 
-    const Box<NDIM> coarse_box = Box<NDIM>::coarsen(fine_box,ratio);
+    const Box<NDIM> coarse_box = Box<NDIM>::coarsen(fine_box, ratio);
     for (LMarkerSetData::SetIterator it(*src_mark_data); it; it++)
     {
         const Index<NDIM>& coarse_i = it.getIndex();
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
-            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
+            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin();
+                 cit != coarse_mark_set.end();
+                 ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
                 const Point& X = coarse_mark->getPosition();
                 const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
-                boost::array<double,NDIM> X_shifted;
+                boost::array<double, NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];
+                    X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
 
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
+                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted,
+                                                                        fine_patchXLower,
+                                                                        fine_patchXUpper,
+                                                                        fine_patchDx,
+                                                                        fine_patch_lower,
+                                                                        fine_patch_upper);
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))
@@ -168,7 +168,7 @@ LMarkerRefine::refine(
         }
     }
     return;
-}// refine
+} // refine
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -176,6 +176,6 @@ LMarkerRefine::refine(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

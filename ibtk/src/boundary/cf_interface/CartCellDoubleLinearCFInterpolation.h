@@ -46,13 +46,18 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoxArray;
-template <int DIM> class CoarseFineBoundary;
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoxArray;
+template <int DIM>
+class CoarseFineBoundary;
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,8 +69,7 @@ namespace IBTK
  * values for cell-centered double precision patch data via linear interpolation
  * in the normal and tangential directions at coarse-fine interfaces.
  */
-class CartCellDoubleLinearCFInterpolation
-    : public CoarseFineBoundaryRefinePatchStrategy
+class CartCellDoubleLinearCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!
@@ -94,21 +98,21 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
     void
-    setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
+                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -125,14 +129,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -147,14 +151,14 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and
+     *fine
+     *patches.
      */
-    void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //\}
 
@@ -168,59 +172,46 @@ public:
      * Whether or not to employ a consistent interpolation scheme at "Type 2"
      * coarse-fine interface ghost cells.
      */
-    void
-    setConsistentInterpolationScheme(
-        bool consistent_type_2_bdry);
+    void setConsistentInterpolationScheme(bool consistent_type_2_bdry);
 
     /*!
      * \brief Reset the patch data index operated upon by this class.
      */
-    void
-    setPatchDataIndex(
-        int patch_data_index);
+    void setPatchDataIndex(int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const std::set<int>& patch_data_indices);
+    void setPatchDataIndices(const std::set<int>& patch_data_indices);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    void
-    setPatchDataIndices(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices);
+    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
     void
-    setPatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void
-    clearPatchHierarchy();
+    void clearPatchHierarchy();
 
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
-    void
-    computeNormalExtension(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::IntVector<NDIM>& ratio,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
+                                const SAMRAI::hier::IntVector<NDIM>& ratio,
+                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -229,8 +220,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellDoubleLinearCFInterpolation(
-        const CartCellDoubleLinearCFInterpolation& from);
+    CartCellDoubleLinearCFInterpolation(const CartCellDoubleLinearCFInterpolation& from);
 
     /*!
      * \brief Assignment operator.
@@ -242,8 +232,7 @@ private:
      * \return A reference to this object.
      */
     CartCellDoubleLinearCFInterpolation&
-    operator=(
-        const CartCellDoubleLinearCFInterpolation& that);
+    operator=(const CartCellDoubleLinearCFInterpolation& that);
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is
@@ -270,7 +259,7 @@ private:
     std::vector<SAMRAI::hier::BoxArray<NDIM>*> d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

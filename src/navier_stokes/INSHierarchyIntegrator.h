@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "FaceVariable.h"
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Variable.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
@@ -53,15 +54,21 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -73,8 +80,7 @@ namespace IBAMR
  * hierarchy, along with basic data management for variables defined on that
  * hierarchy.
  */
-class INSHierarchyIntegrator
-    : public IBTK::HierarchyIntegrator
+class INSHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
 public:
     /*!
@@ -90,9 +96,7 @@ public:
      *
      * Different implementations may support different time stepping schemes.
      */
-    void
-    setViscousTimeSteppingType(
-        TimeSteppingType viscous_time_stepping_type);
+    void setViscousTimeSteppingType(TimeSteppingType viscous_time_stepping_type);
 
     /*!
      * Get the type of viscous time integration scheme being employed by the
@@ -100,8 +104,7 @@ public:
      *
      * Different implementations may support different time stepping schemes.
      */
-    TimeSteppingType
-    getViscousTimeSteppingType() const;
+    TimeSteppingType getViscousTimeSteppingType() const;
 
     /*!
      * Set the type of convective time integration scheme being employed by the
@@ -109,9 +112,7 @@ public:
      *
      * Different implementations may support different time stepping schemes.
      */
-    void
-    setConvectiveTimeSteppingType(
-        TimeSteppingType convective_time_stepping_type);
+    void setConvectiveTimeSteppingType(TimeSteppingType convective_time_stepping_type);
 
     /*!
      * Get the type of convective time integration scheme being employed by the
@@ -119,8 +120,7 @@ public:
      *
      * Different implementations may support different time stepping schemes.
      */
-    TimeSteppingType
-    getConvectiveTimeSteppingType() const;
+    TimeSteppingType getConvectiveTimeSteppingType() const;
 
     /*!
      * Set the type of convective time integration scheme being employed by the
@@ -131,8 +131,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void
-    setInitialConvectiveTimeSteppingType(
+    void setInitialConvectiveTimeSteppingType(
         TimeSteppingType init_convective_time_stepping_type) const;
 
     /*!
@@ -144,37 +143,31 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    TimeSteppingType
-    getInitialConvectiveTimeSteppingType() const;
+    TimeSteppingType getInitialConvectiveTimeSteppingType() const;
 
     /*!
      * Register an advection-diffusion solver with this incompressible
      * Navier-Stokes solver.
      */
-    void
-    registerAdvDiffHierarchyIntegrator(
+    void registerAdvDiffHierarchyIntegrator(
         SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator);
 
     /*!
      * Set the problem coefficients used by the solver.
      */
-    void
-    setStokesSpecifications(
-        StokesSpecifications problem_coefs);
+    void setStokesSpecifications(StokesSpecifications problem_coefs);
 
     /*!
      * Get a const pointer to the problem coefficients object used by the
      * solver.
      */
-    const StokesSpecifications*
-    getStokesSpecifications() const;
+    const StokesSpecifications* getStokesSpecifications() const;
 
     /*!
      * Supply a physical boundary conditions specificaion for the velocity
      * field.
      */
-    void
-    registerPhysicalBoundaryConditions(
+    void registerPhysicalBoundaryConditions(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
@@ -191,15 +184,13 @@ public:
      *
      * \note Implementations may return a NULL pointer.
      */
-    virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getPressureBoundaryConditions() const;
+    virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPressureBoundaryConditions() const;
 
     /*!
      * Supply initial conditions for the velocity field.
      */
     void
-    registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
+    registerVelocityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
 
     /*!
      * Supply initial conditions for the pressure.
@@ -209,46 +200,37 @@ public:
      * initial time step.
      */
     void
-    registerPressureInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
+    registerPressureInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
 
     /*!
      * Supply a body force.
      */
-    void
-    registerBodyForceFunction(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+    void registerBodyForceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Supply a fluid source/sink distribution.
      */
-    void
-    registerFluidSourceFunction(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
+    void registerFluidSourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getPressureVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getBodyForceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getFluidSourceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect
@@ -258,7 +240,7 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >
     getAdvectionVelocityVariable() const;
 
     /*!
@@ -272,74 +254,60 @@ public:
      * Get a pointer to the projection Poisson problem boundary condition
      * specification object.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getProjectionBoundaryConditions() const;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getProjectionBoundaryConditions() const;
 
     /*!
      * Register a variable mass density variable with the hierarchy integrator.
      */
     void
-    registerMassDensityVariable(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
+    registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value the mass
      * density variable.
      */
-    void
-    setMassDensityFunction(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
+    void setMassDensityFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
 
     /*!
      * Get the IBTK::CartGridFunction object being used to specify the value of
      * the mass density variable.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
-    getMassDensityFunction() const;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> getMassDensityFunction() const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver.
      */
-    void
-    setConvectiveOperatorType(
-        const std::string& op_type);
+    void setConvectiveOperatorType(const std::string& op_type);
 
     /*!
      * \brief Get the convective operator type used by the solver.
      */
-    const std::string&
-    getConvectiveOperatorType() const;
+    const std::string& getConvectiveOperatorType() const;
 
     /*!
      * \brief Set the convective differencing form to be used by the
      * solver.
      */
-    void
-    setConvectiveDifferencingType(
-        ConvectiveDifferencingType difference_form);
+    void setConvectiveDifferencingType(ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Get the convective differencing form used by the solver.
      */
-    ConvectiveDifferencingType
-    getConvectiveDifferencingType() const;
+    ConvectiveDifferencingType getConvectiveDifferencingType() const;
 
     /*!
      * \brief Set whether the integrator solves the time-dependent (creeping)
      * Stokes equations.  Otherwise, the integrator solves the time-dependent
      * Navier-Stokes equations.
      */
-    void
-    setCreepingFlow(
-        bool creeping_flow);
+    void setCreepingFlow(bool creeping_flow);
 
     /*!
      * \brief Get whether the integrator solves the time-dependent (creeping)
      * Stokes equations.  Otherwise, the integrator solves the time-dependent
      * Navier-Stokes equations.
      */
-    bool
-    getCreepingFlow() const;
+    bool getCreepingFlow() const;
 
     /*!
      * Register an operator to compute the convective acceleration term u*grad
@@ -349,9 +317,7 @@ public:
      * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
      * equations.
      */
-    void
-    setConvectiveOperator(
-        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
+    void setConvectiveOperator(SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -362,15 +328,13 @@ public:
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
-    virtual SAMRAI::tbox::Pointer<ConvectiveOperator>
-    getConvectiveOperator() = 0;
+    virtual SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator() = 0;
 
     /*!
      * Register a solver for the velocity subsystem.
      */
     void
-    setVelocitySubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
@@ -379,15 +343,13 @@ public:
      * If the velocity subdomain solver has not already been constructed, then
      * this function will initialize a default solver.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getVelocitySubdomainSolver() = 0;
+    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getVelocitySubdomainSolver() = 0;
 
     /*!
      * Register a solver for the pressure subsystem.
      */
     void
-    setPressureSubdomainSolver(
-        SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
@@ -396,14 +358,12 @@ public:
      * If the pressure subdomain solver has not already been constructed, then
      * this function will initialize a default solver.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getPressureSubdomainSolver() = 0;
+    virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver() = 0;
 
     /*!
      * Returns the number of cycles to perform for the present time step.
      */
-    int
-    getNumberOfCycles() const;
+    int getNumberOfCycles() const;
 
 protected:
     /*!
@@ -412,41 +372,35 @@ protected:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
-        bool register_for_restart);
+    INSHierarchyIntegrator(const std::string& object_name,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           bool register_for_restart);
 
     /*!
      * Return the maximum stable time step size.
      */
-    double
-    getMaximumTimeStepSizeSpecialized();
+    double getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
     double
-    getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+    getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
     virtual double
-    getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
+    getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void
-    putToDatabaseSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -481,7 +435,7 @@ protected:
      * capability for quantities transported by the fluid velocity field.
      */
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_U_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
 
     /*!
      * The maximum CFL number.
@@ -537,7 +491,8 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var,
+        d_rho_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
@@ -545,11 +500,13 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs,
+        d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef, * d_Phi_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op,
+        d_P_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
 
     /*!
      * Hierarchy operators and solvers and related configuration data.
@@ -573,7 +530,8 @@ protected:
     bool d_pressure_solver_needs_init;
 
     std::string d_regrid_projection_solver_type, d_regrid_projection_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db, d_regrid_projection_precond_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db,
+        d_regrid_projection_precond_db;
 
 private:
     /*!
@@ -590,8 +548,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSHierarchyIntegrator(
-        const INSHierarchyIntegrator& from);
+    INSHierarchyIntegrator(const INSHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -602,26 +559,20 @@ private:
      *
      * \return A reference to this object.
      */
-    INSHierarchyIntegrator&
-    operator=(
-        const INSHierarchyIntegrator& that);
+    INSHierarchyIntegrator& operator=(const INSHierarchyIntegrator& that);
 
     /*!
      * Read input values from a given database.
      */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
-    void
-    getFromRestart();
+    void getFromRestart();
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

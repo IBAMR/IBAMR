@@ -35,9 +35,7 @@
 #include <stddef.h>
 #include <algorithm>
 #include <functional>
-#include <iosfwd>
 #include <ostream>
-#include <sstream>
 #include <utility>
 
 #include "ArrayData.h"
@@ -54,13 +52,13 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"
@@ -78,7 +76,6 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "boost/array.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
@@ -91,41 +88,48 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d,GSSMOOTH2D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d,RBGSSMOOTH2D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d, GSSMOOTH2D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d, RBGSSMOOTH2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d,GSSMOOTH3D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d,RBGSSMOOTH3D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d, GSSMOOTH3D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d, RBGSSMOOTH3D)
 #endif
 
 // Function interfaces
-extern "C"
-{
-    void
-    GS_SMOOTH_FC(
-        double* U, const int& U_gcw,
-        const double& alpha, const double& beta,
-        const double* F, const int& F_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+extern "C" {
+void GS_SMOOTH_FC(double* U,
+                  const int& U_gcw,
+                  const double& alpha,
+                  const double& beta,
+                  const double* F,
+                  const int& F_gcw,
+                  const int& ilower0,
+                  const int& iupper0,
+                  const int& ilower1,
+                  const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                  const int& ilower2,
+                  const int& iupper2,
 #endif
-        const double* dx);
+                  const double* dx);
 
-    void
-    RB_GS_SMOOTH_FC(
-        double* U, const int& U_gcw,
-        const double& alpha, const double& beta,
-        const double* F, const int& F_gcw,
-        const int& ilower0, const int& iupper0,
-        const int& ilower1, const int& iupper1,
+void RB_GS_SMOOTH_FC(double* U,
+                     const int& U_gcw,
+                     const double& alpha,
+                     const double& beta,
+                     const double* F,
+                     const int& F_gcw,
+                     const int& ilower0,
+                     const int& iupper0,
+                     const int& ilower1,
+                     const int& iupper1,
 #if (NDIM == 3)
-        const int& ilower2, const int& iupper2,
+                     const int& ilower2,
+                     const int& iupper2,
 #endif
-        const double* dx,
-        const int& red_or_black);
+                     const double* dx,
+                     const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -149,9 +153,9 @@ static const int CELLG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE     = "NONE";
-static const bool        USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries; used only to evaluate
 // composite grid residuals.
@@ -161,23 +165,21 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
-struct IndexComp
-    : std::binary_function<Index<NDIM>,Index<NDIM>,bool>
+struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
 {
-    inline bool
-    operator()(
-        const Index<NDIM>& lhs,
-        const Index<NDIM>& rhs) const
-        {
-            return ((lhs(0) < rhs(0))
+    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    {
+        return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
-                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                ||
+                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
-        }// operator()
+                );
+    } // operator()
 };
 
 enum SmootherType
@@ -185,22 +187,20 @@ enum SmootherType
     PATCH_GAUSS_SEIDEL,
     PROCESSOR_GAUSS_SEIDEL,
     RED_BLACK_GAUSS_SEIDEL,
-    UNKNOWN=-1
+    UNKNOWN = -1
 };
 
-inline SmootherType
-get_smoother_type(
-    const std::string& smoother_type_string)
+inline SmootherType get_smoother_type(const std::string& smoother_type_string)
 {
     if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
     if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL") return PROCESSOR_GAUSS_SEIDEL;
-    if (smoother_type_string == "RED_BLACK_GAUSS_SEIDEL") return RED_BLACK_GAUSS_SEIDEL;
-    else return UNKNOWN;
-}// get_smoother_type
+    if (smoother_type_string == "RED_BLACK_GAUSS_SEIDEL")
+        return RED_BLACK_GAUSS_SEIDEL;
+    else
+        return UNKNOWN;
+} // get_smoother_type
 
-inline bool
-use_red_black_ordering(
-    SmootherType smoother_type)
+inline bool use_red_black_ordering(SmootherType smoother_type)
 {
     if (smoother_type == RED_BLACK_GAUSS_SEIDEL)
     {
@@ -210,14 +210,11 @@ use_red_black_ordering(
     {
         return false;
     }
-}// use_red_black_ordering
+} // use_red_black_ordering
 
-inline bool
-do_local_data_update(
-    SmootherType smoother_type)
+inline bool do_local_data_update(SmootherType smoother_type)
 {
-    if (smoother_type == PROCESSOR_GAUSS_SEIDEL ||
-        smoother_type == RED_BLACK_GAUSS_SEIDEL)
+    if (smoother_type == PROCESSOR_GAUSS_SEIDEL || smoother_type == RED_BLACK_GAUSS_SEIDEL)
     {
         return true;
     }
@@ -225,7 +222,7 @@ do_local_data_update(
     {
         return false;
     }
-}// do_local_data_update
+} // do_local_data_update
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -234,25 +231,25 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : PoissonFACPreconditionerStrategy(object_name, new CellVariable<NDIM,double>(object_name+"::cell_scratch", DEFAULT_DATA_DEPTH), CELLG, input_db, default_options_prefix),
-      d_coarse_solver(NULL),
-      d_coarse_solver_db(),
-      d_using_petsc_smoothers(true),
-      d_patch_vec_e(),
-      d_patch_vec_f(),
-      d_patch_mat(),
-      d_patch_bc_box_overlap(),
+    : PoissonFACPreconditionerStrategy(
+          object_name,
+          new CellVariable<NDIM, double>(object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
+          CELLG,
+          input_db,
+          default_options_prefix),
+      d_coarse_solver(NULL), d_coarse_solver_db(), d_using_petsc_smoothers(true),
+      d_patch_vec_e(), d_patch_vec_f(), d_patch_mat(), d_patch_bc_box_overlap(),
       d_patch_neighbor_overlap()
 {
     // Set some default values.
     d_smoother_type = "PATCH_GAUSS_SEIDEL";
     d_prolongation_method = "LINEAR_REFINE";
-    d_restriction_method  = "CONSERVATIVE_COARSEN";
-    d_coarse_solver_type  = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
+    d_restriction_method = "CONSERVATIVE_COARSEN";
+    d_coarse_solver_type = CCPoissonSolverManager::HYPRE_LEVEL_SOLVER;
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
-    d_coarse_solver_db = new MemoryDatabase(object_name+"::coarse_solver_db");
+    d_coarse_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
     d_coarse_solver_db->putString("solver_type", "PFMG");
     d_coarse_solver_db->putInteger("num_pre_relax_steps", 0);
     d_coarse_solver_db->putInteger("num_post_relax_steps", 2);
@@ -260,30 +257,43 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     // Get values from the input database.
     if (input_db)
     {
-        if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
-        if (input_db->keyExists("prolongation_method")) d_prolongation_method = input_db->getString("prolongation_method");
-        if (input_db->keyExists("restriction_method")) d_restriction_method = input_db->getString("restriction_method");
-        if (input_db->keyExists("coarse_solver_type")) d_coarse_solver_type = input_db->getString("coarse_solver_type");
-        if (input_db->keyExists("coarse_solver_rel_residual_tol")) d_coarse_solver_rel_residual_tol = input_db->getDouble("coarse_solver_rel_residual_tol");
-        if (input_db->keyExists("coarse_solver_abs_residual_tol")) d_coarse_solver_abs_residual_tol = input_db->getDouble("coarse_solver_abs_residual_tol");
-        if (input_db->keyExists("coarse_solver_max_iterations")) d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
+        if (input_db->keyExists("smoother_type"))
+            d_smoother_type = input_db->getString("smoother_type");
+        if (input_db->keyExists("prolongation_method"))
+            d_prolongation_method = input_db->getString("prolongation_method");
+        if (input_db->keyExists("restriction_method"))
+            d_restriction_method = input_db->getString("restriction_method");
+        if (input_db->keyExists("coarse_solver_type"))
+            d_coarse_solver_type = input_db->getString("coarse_solver_type");
+        if (input_db->keyExists("coarse_solver_rel_residual_tol"))
+            d_coarse_solver_rel_residual_tol =
+                input_db->getDouble("coarse_solver_rel_residual_tol");
+        if (input_db->keyExists("coarse_solver_abs_residual_tol"))
+            d_coarse_solver_abs_residual_tol =
+                input_db->getDouble("coarse_solver_abs_residual_tol");
+        if (input_db->keyExists("coarse_solver_max_iterations"))
+            d_coarse_solver_max_iterations =
+                input_db->getInteger("coarse_solver_max_iterations");
         if (input_db->isDatabase("coarse_solver_db"))
         {
             d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
         }
         if (input_db->isDatabase("bottom_solver"))
         {
-            tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
+            tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class "
+                          "CCPoissonPointRelaxationFACOperator.\n"
                        << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("hypre_solver"))
         {
-            tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
+            tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class "
+                          "CCPoissonPointRelaxationFACOperator.\n"
                        << "         use ``coarse_solver_db'' input entry instead.\n";
         }
         if (input_db->isDatabase("petsc_solver"))
         {
-            tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class CCPoissonPointRelaxationFACOperator.\n"
+            tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class "
+                          "CCPoissonPointRelaxationFACOperator.\n"
                        << "         use ``coarse_solver_db'' input entry instead.\n";
         }
     }
@@ -292,53 +302,55 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(
     setCoarseSolverType(d_coarse_solver_type);
 
     // Setup Timers.
-    IBTK_DO_ONCE(
-        t_smooth_error         = TimerManager::getManager()->getTimer("IBTK::CCPoissonPointRelaxationFACOperator::smoothError()");
-        t_solve_coarsest_level = TimerManager::getManager()->getTimer("IBTK::CCPoissonPointRelaxationFACOperator::solveCoarsestLevel()");
-        t_compute_residual     = TimerManager::getManager()->getTimer("IBTK::CCPoissonPointRelaxationFACOperator::computeResidual()");
-                 );
+    IBTK_DO_ONCE(t_smooth_error = TimerManager::getManager()->getTimer(
+                     "IBTK::CCPoissonPointRelaxationFACOperator::smoothError()");
+                 t_solve_coarsest_level = TimerManager::getManager()->getTimer(
+                     "IBTK::CCPoissonPointRelaxationFACOperator::solveCoarsestLevel()");
+                 t_compute_residual = TimerManager::getManager()->getTimer(
+                     "IBTK::CCPoissonPointRelaxationFACOperator::computeResidual()"););
     return;
-}// CCPoissonPointRelaxationFACOperator
+} // CCPoissonPointRelaxationFACOperator
 
 CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~CCPoissonPointRelaxationFACOperator
+} // ~CCPoissonPointRelaxationFACOperator
 
-void
-CCPoissonPointRelaxationFACOperator::setSmootherType(
-    const std::string& smoother_type)
+void CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
 #endif
     d_smoother_type = smoother_type;
     return;
-}// setSmootherType
+} // setSmootherType
 
 void
-CCPoissonPointRelaxationFACOperator::setCoarseSolverType(
-    const std::string& coarse_solver_type)
+CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
+                                 << "  cannot be called while operator state is initialized"
+                                 << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
     if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
     {
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type, d_object_name+"::coarse_solver", d_coarse_solver_db, d_coarse_solver_default_options_prefix);
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_coarse_solver_type,
+            d_object_name + "::coarse_solver",
+            d_coarse_solver_db,
+            d_coarse_solver_default_options_prefix);
     }
     return;
-}// setCoarseSolverType
+} // setCoarseSolverType
 
-void
-CCPoissonPointRelaxationFACOperator::smoothError(
-    SAMRAIVectorReal<NDIM,double>& error,
-    const SAMRAIVectorReal<NDIM,double>& residual,
+void CCPoissonPointRelaxationFACOperator::smoothError(
+    SAMRAIVectorReal<NDIM, double>& error,
+    const SAMRAIVectorReal<NDIM, double>& residual,
     int level_num,
     int num_sweeps,
     bool /*performing_pre_sweeps*/,
@@ -349,15 +361,18 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     IBTK_TIMER_START(t_smooth_error);
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const int   error_idx = error.getComponentDescriptorIndex(0);
+    const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
     // Determine the smoother type.
-    const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
+    const std::string& smoother_type_string =
+        (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
 #if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
-    if (d_using_petsc_smoothers) TBOX_ASSERT(smoother_type == PATCH_GAUSS_SEIDEL || smoother_type == PROCESSOR_GAUSS_SEIDEL);
+    if (d_using_petsc_smoothers)
+        TBOX_ASSERT(smoother_type == PATCH_GAUSS_SEIDEL ||
+                    smoother_type == PROCESSOR_GAUSS_SEIDEL);
 #endif
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
@@ -369,15 +384,18 @@ CCPoissonPointRelaxationFACOperator::smoothError(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
-            Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
+            Pointer<CellData<NDIM, double> > error_data =
+                error.getComponentPatchData(0, *patch);
+            Pointer<CellData<NDIM, double> > scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-            TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-            scratch_data->getArrayData().copy(error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
+            scratch_data->getArrayData().copy(error_data->getArrayData(),
+                                              d_patch_bc_box_overlap[level_num][patch_counter],
+                                              IntVector<NDIM>(0));
         }
     }
 
@@ -396,15 +414,20 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM,double> >   error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<CellData<NDIM,double> > scratch_data = patch->getPatchData(scratch_idx);
+                    Pointer<CellData<NDIM, double> > error_data =
+                        error.getComponentPatchData(0, *patch);
+                    Pointer<CellData<NDIM, double> > scratch_data =
+                        patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
                     const Box<NDIM>& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-                    TBOX_ASSERT(  error_data->getGhostCellWidth() == d_gcw);
+                    TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-                    error_data->getArrayData().copy(scratch_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
+                    error_data->getArrayData().copy(
+                        scratch_data->getArrayData(),
+                        d_patch_bc_box_overlap[level_num][patch_counter],
+                        IntVector<NDIM>(0));
                 }
 
                 // Fill the non-coarse-fine interface ghost cell values.
@@ -432,12 +455,14 @@ CCPoissonPointRelaxationFACOperator::smoothError(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM,double> >    error_data = error   .getComponentPatchData(0, *patch);
-            Pointer<CellData<NDIM,double> > residual_data = residual.getComponentPatchData(0, *patch);
+            Pointer<CellData<NDIM, double> > error_data =
+                error.getComponentPatchData(0, *patch);
+            Pointer<CellData<NDIM, double> > residual_data =
+                residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
             const Box<NDIM>& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
-            TBOX_ASSERT(   error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
@@ -448,14 +473,19 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             // Copy updated values from neighboring local patches.
             if (update_local_data)
             {
-                const std::map<int,Box<NDIM> > neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
-                for (std::map<int,Box<NDIM> >::const_iterator cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
+                const std::map<int, Box<NDIM> > neighbor_overlap =
+                    d_patch_neighbor_overlap[level_num][patch_counter];
+                for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
+                     cit != neighbor_overlap.end();
+                     ++cit)
                 {
                     const int src_patch_num = cit->first;
                     const Box<NDIM>& overlap = cit->second;
                     Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
-                    Pointer<CellData<NDIM,double> > src_error_data = error.getComponentPatchData(0, *src_patch);
-                    error_data->getArrayData().copy(src_error_data->getArrayData(), overlap, IntVector<NDIM>(0));
+                    Pointer<CellData<NDIM, double> > src_error_data =
+                        error.getComponentPatchData(0, *src_patch);
+                    error_data->getArrayData().copy(
+                        src_error_data->getArrayData(), overlap, IntVector<NDIM>(0));
                 }
             }
 
@@ -470,7 +500,10 @@ CCPoissonPointRelaxationFACOperator::smoothError(
             {
                 // Reset ghost cell values in the residual data so that patch
                 // boundary conditions are properly handled.
-                residual_data->getArrayData().copy(error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
+                residual_data->getArrayData().copy(
+                    error_data->getArrayData(),
+                    d_patch_bc_box_overlap[level_num][patch_counter],
+                    IntVector<NDIM>(0));
 
                 for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
@@ -481,8 +514,10 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     Vec& e = d_patch_vec_e[level_num][patch_counter];
                     Vec& f = d_patch_vec_f[level_num][patch_counter];
 
-                    ierr = VecPlaceArray(e,    error_data->getPointer(depth));  IBTK_CHKERRQ(ierr);
-                    ierr = VecPlaceArray(f, residual_data->getPointer(depth));  IBTK_CHKERRQ(ierr);
+                    ierr = VecPlaceArray(e, error_data->getPointer(depth));
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecPlaceArray(f, residual_data->getPointer(depth));
+                    IBTK_CHKERRQ(ierr);
 
                     // Smooth the error on the patch using PETSc.  Here, we are
                     // approximately solving
@@ -499,18 +534,22 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     static const double shift = 0.0;
                     static const int its = 1;
                     Mat& A = d_patch_mat[level_num][patch_counter];
-                    ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
+                    ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);
+                    IBTK_CHKERRQ(ierr);
 
                     // Reset the PETSc Vec wrappers.
-                    ierr = VecResetArray(e);  IBTK_CHKERRQ(ierr);
-                    ierr = VecResetArray(f);  IBTK_CHKERRQ(ierr);
+                    ierr = VecResetArray(e);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecResetArray(f);
+                    IBTK_CHKERRQ(ierr);
                 }
             }
             else
             {
                 // Smooth the error via Gauss-Seidel.
                 const double& alpha = d_poisson_spec.getDConstant();
-                const double& beta  = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+                const double& beta =
+                    d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
                 for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
                     double* const U = error_data->getPointer(depth);
@@ -519,30 +558,41 @@ CCPoissonPointRelaxationFACOperator::smoothError(
                     const int F_ghosts = (residual_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
                     {
-                        int red_or_black = isweep % 2;  // "red" = 0, "black" = 1
-                        RB_GS_SMOOTH_FC(
-                            U, U_ghosts,
-                            alpha, beta,
-                            F, F_ghosts,
-                            patch_box.lower(0), patch_box.upper(0),
-                            patch_box.lower(1), patch_box.upper(1),
+                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                        RB_GS_SMOOTH_FC(U,
+                                        U_ghosts,
+                                        alpha,
+                                        beta,
+                                        F,
+                                        F_ghosts,
+                                        patch_box.lower(0),
+                                        patch_box.upper(0),
+                                        patch_box.lower(1),
+                                        patch_box.upper(1),
 #if (NDIM == 3)
-                            patch_box.lower(2), patch_box.upper(2),
+                                        patch_box.lower(2),
+                                        patch_box.upper(2),
 #endif
-                            dx, red_or_black);
+                                        dx,
+                                        red_or_black);
                     }
                     else
                     {
-                        GS_SMOOTH_FC(
-                            U, U_ghosts,
-                            alpha, beta,
-                            F, F_ghosts,
-                            patch_box.lower(0), patch_box.upper(0),
-                            patch_box.lower(1), patch_box.upper(1),
+                        GS_SMOOTH_FC(U,
+                                     U_ghosts,
+                                     alpha,
+                                     beta,
+                                     F,
+                                     F_ghosts,
+                                     patch_box.lower(0),
+                                     patch_box.upper(0),
+                                     patch_box.lower(1),
+                                     patch_box.upper(1),
 #if (NDIM == 3)
-                            patch_box.lower(2), patch_box.upper(2),
+                                     patch_box.lower(2),
+                                     patch_box.upper(2),
 #endif
-                            dx);
+                                     dx);
                     }
                 }
             }
@@ -550,12 +600,11 @@ CCPoissonPointRelaxationFACOperator::smoothError(
     }
     IBTK_TIMER_STOP(t_smooth_error);
     return;
-}// smoothError
+} // smoothError
 
-bool
-CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
-    SAMRAIVectorReal<NDIM,double>& error,
-    const SAMRAIVectorReal<NDIM,double>& residual,
+bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
+    SAMRAIVectorReal<NDIM, double>& error,
+    const SAMRAIVectorReal<NDIM, double>& residual,
     int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
@@ -569,26 +618,28 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        LinearSolver* p_coarse_solver =
+            dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
-        d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln), *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
+        d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
+                                     *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
     }
     else
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
 #endif
-        smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
+        smoothError(
+            error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
-}// solveCoarsestLevel
+} // solveCoarsestLevel
 
-void
-CCPoissonPointRelaxationFACOperator::computeResidual(
-    SAMRAIVectorReal<NDIM,double>& residual,
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs,
+void CCPoissonPointRelaxationFACOperator::computeResidual(
+    SAMRAIVectorReal<NDIM, double>& residual,
+    const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs,
     int coarsest_level_num,
     int finest_level_num)
 {
@@ -598,14 +649,23 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<CellVariable<NDIM,double> > res_var = residual.getComponentVariable(0);
-    const Pointer<CellVariable<NDIM,double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<CellVariable<NDIM,double> > rhs_var = rhs.getComponentVariable(0);
+    const Pointer<CellVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
+    const Pointer<CellVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
+    const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
+    Pointer<CellNoCornersFillPattern> fill_pattern =
+        new CellNoCornersFillPattern(CELLG, false, false, true);
+    InterpolationTransactionComponent transaction_comp(sol_idx,
+                                                       DATA_REFINE_TYPE,
+                                                       USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE,
+                                                       BDRY_EXTRAP_TYPE,
+                                                       CONSISTENT_TYPE_2_BDRY,
+                                                       d_bc_coefs,
+                                                       fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -613,61 +673,76 @@ CCPoissonPointRelaxationFACOperator::computeResidual(
     else
     {
         d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
+            transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
-    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-    d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
+    InterpolationTransactionComponent default_transaction_comp(
+        d_solution->getComponentDescriptorIndex(0),
+        DATA_REFINE_TYPE,
+        USE_CF_INTERPOLATION,
+        DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE,
+        CONSISTENT_TYPE_2_BDRY,
+        d_bc_coefs,
+        fill_pattern);
+    d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(
+        default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
         std::ostringstream stream;
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
-        d_level_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_math_ops[finest_level_num] = new HierarchyMathOps(
+            stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_level_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
-    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    d_level_math_ops[finest_level_num]->laplace(
+        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+        d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
-}// computeResidual
+} // computeResidual
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs,
+void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs,
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    Pointer<CellVariable<NDIM,double> > solution_var = solution.getComponentVariable(0);
-    Pointer<CellVariable<NDIM,double> >      rhs_var =      rhs.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
-    Pointer<CellDataFactory<NDIM,double> > solution_pdat_fac = solution_var->getPatchDataFactory();
-    Pointer<CellDataFactory<NDIM,double> >      rhs_pdat_fac =      rhs_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double> > solution_pdat_fac =
+        solution_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double> > rhs_pdat_fac = rhs_var->getPatchDataFactory();
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
-    TBOX_ASSERT(     rhs_var);
+    TBOX_ASSERT(rhs_var);
     TBOX_ASSERT(solution_pdat_fac);
-    TBOX_ASSERT(     rhs_pdat_fac);
+    TBOX_ASSERT(rhs_pdat_fac);
 #endif
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
     {
-        TBOX_ERROR("CCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac     ->getDefaultDepth() << std::endl);
+        TBOX_ERROR(
+            "CCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
+            << "  solution and rhs vectors must have the same data depths\n"
+            << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+            << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<CellDataFactory<NDIM,double> > scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
+    Pointer<CellDataFactory<NDIM, double> > scratch_pdat_fac =
+        var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
     // Initialize the coarse level solvers when needed.
@@ -680,14 +755,14 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
         d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
         d_coarse_solver->setHomogeneousBc(true);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln), *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        d_coarse_solver->initializeSolverState(
+            *getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+            *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
 
     // Setup specialized transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    IBTK_DO_ONCE(
-        geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-                 );
+    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen()););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
@@ -707,18 +782,20 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize all cached PETSc data.
-    d_using_petsc_smoothers = (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant()) || !d_poisson_spec.dIsConstant();
+    d_using_petsc_smoothers = (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant()) ||
+                              !d_poisson_spec.dIsConstant();
     if (d_using_petsc_smoothers)
     {
         int ierr;
-        d_patch_vec_e.resize(d_finest_ln+1);
-        d_patch_vec_f.resize(d_finest_ln+1);
-        d_patch_mat  .resize(d_finest_ln+1);
+        d_patch_vec_e.resize(d_finest_ln + 1);
+        d_patch_vec_f.resize(d_finest_ln + 1);
+        d_patch_mat.resize(d_finest_ln + 1);
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-            d_patch_mat  [ln].resize(num_local_patches);
+            const int num_local_patches =
+                level->getProcessorMapping().getLocalIndices().getSize();
+            d_patch_mat[ln].resize(num_local_patches);
             d_patch_vec_e[ln].resize(num_local_patches);
             d_patch_vec_f[ln].resize(num_local_patches);
             int patch_counter = 0;
@@ -731,8 +808,10 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
                 Vec& e = d_patch_vec_e[ln][patch_counter];
                 Vec& f = d_patch_vec_f[ln][patch_counter];
                 const int bs = 1;
-                ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &e);  IBTK_CHKERRQ(ierr);
-                ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &f);  IBTK_CHKERRQ(ierr);
+                ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &e);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, NULL, &f);
+                IBTK_CHKERRQ(ierr);
                 Mat& A = d_patch_mat[ln][patch_counter];
                 buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
             }
@@ -740,7 +819,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Get overlap information for setting patch boundary conditions.
-    d_patch_bc_box_overlap.resize(d_finest_ln+1);
+    d_patch_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -759,7 +838,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Get overlap information for re-setting patch boundary conditions during
     // smoothing.
-    d_patch_neighbor_overlap.resize(d_finest_ln+1);
+    d_patch_neighbor_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -773,7 +852,8 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
             const Box<NDIM>& dst_patch_box = dst_patch->getBox();
             const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
             int patch_counter2 = 0;
-            for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+            for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1;
+                 p2++, ++patch_counter2)
             {
                 Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
                 const Box<NDIM>& src_patch_box = src_patch->getBox();
@@ -786,10 +866,9 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
     }
     return;
-}// initializeOperatorStateSpecialized
+} // initializeOperatorStateSpecialized
 
-void
-CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
+void CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
@@ -798,24 +877,33 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
     int ierr;
     if (d_using_petsc_smoothers)
     {
-        for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln,finest_reset_ln); ++ln)
+        for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
         {
-            for (std::vector<Vec>::iterator it = d_patch_vec_e[ln].begin(); it != d_patch_vec_e[ln].end(); ++it)
+            for (std::vector<Vec>::iterator it = d_patch_vec_e[ln].begin();
+                 it != d_patch_vec_e[ln].end();
+                 ++it)
             {
                 Vec& e = *it;
-                ierr = VecDestroy(&e);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&e);
+                IBTK_CHKERRQ(ierr);
             }
             d_patch_vec_e[ln].clear();
-            for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
+            for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin();
+                 it != d_patch_vec_f[ln].end();
+                 ++it)
             {
                 Vec& f = *it;
-                ierr = VecDestroy(&f);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&f);
+                IBTK_CHKERRQ(ierr);
             }
             d_patch_vec_f[ln].clear();
-            for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
+            for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin();
+                 it != d_patch_mat[ln].end();
+                 ++it)
             {
                 Mat& A = *it;
-                ierr = MatDestroy(&A);  IBTK_CHKERRQ(ierr);
+                ierr = MatDestroy(&A);
+                IBTK_CHKERRQ(ierr);
             }
             d_patch_mat[ln].clear();
         }
@@ -831,12 +919,11 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;
-}// deallocateOperatorStateSpecialized
+} // deallocateOperatorStateSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
+void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     Mat& A,
     const PoissonSpecifications& poisson_spec,
     const Pointer<Patch<NDIM> > patch,
@@ -854,7 +941,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     const Box<NDIM>& patch_box = patch->getBox();
     static const IntVector<NDIM> no_ghosts = 0;
 
-    Pointer<CellData<NDIM,double> > C_data;
+    Pointer<CellData<NDIM, double> > C_data;
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
         C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
@@ -867,12 +954,14 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     }
     else
     {
-        C_data = new CellData<NDIM,double>(patch_box, 1, no_ghosts);
-        if (poisson_spec.cIsZero()) C_data->fill(0.0);
-        else C_data->fill(poisson_spec.getCConstant());
+        C_data = new CellData<NDIM, double>(patch_box, 1, no_ghosts);
+        if (poisson_spec.cIsZero())
+            C_data->fill(0.0);
+        else
+            C_data->fill(poisson_spec.getCConstant());
     }
 
-    Pointer<SideData<NDIM,double> > D_data;
+    Pointer<SideData<NDIM, double> > D_data;
     if (!poisson_spec.dIsConstant())
     {
         D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
@@ -885,7 +974,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     }
     else
     {
-        D_data = new SideData<NDIM,double>(patch_box, 1, no_ghosts);
+        D_data = new SideData<NDIM, double>(patch_box, 1, no_ghosts);
         D_data->fill(poisson_spec.getDConstant());
     }
 
@@ -903,16 +992,16 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(
     else
     {
         TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
-                   << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
+                   << "  D must be side-centered patch data with either 1 or NDIM components"
+                   << std::endl);
     }
     return;
-}// buildPatchLaplaceOperator
+} // buildPatchLaplaceOperator
 
-void
-CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
+void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
     Mat& A,
-    const Pointer<CellData<NDIM,double> > C_data,
-    const Pointer<SideData<NDIM,double> > D_data,
+    const Pointer<CellData<NDIM, double> > C_data,
+    const Pointer<SideData<NDIM, double> > D_data,
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
@@ -923,7 +1012,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
     const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, ghost_cell_width);
     const int size = ghost_box.size();
 
-    static const int stencil_sz = 2*NDIM+1;
+    static const int stencil_sz = 2 * NDIM + 1;
 
     BoxList<NDIM> ghost_boxes(ghost_box);
     ghost_boxes.removeIntersections(patch_box);
@@ -935,17 +1024,20 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    IBTK_CHKERRQ(ierr);
 
-    // Set some general matrix options.
+// Set some general matrix options.
 #if !defined(NDEBUG)
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
 #endif
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    boost::array<int,NDIM> num_cells;
+    boost::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -962,13 +1054,13 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
 #if (NDIM == 3)
     static const int x_axis = 0;
     static const int y_axis = 1;
-    mat_stencil[0] = -num_cells[x_axis]*num_cells[y_axis]; // zlower
-    mat_stencil[1] = -num_cells[x_axis];                   // ylower
-    mat_stencil[2] = -1;                                   // xlower
+    mat_stencil[0] = -num_cells[x_axis] * num_cells[y_axis]; // zlower
+    mat_stencil[1] = -num_cells[x_axis];                     // ylower
+    mat_stencil[2] = -1;                                     // xlower
     mat_stencil[3] = 0;
-    mat_stencil[4] = +1;                                   // xupper
-    mat_stencil[5] = +num_cells[x_axis];                   // yupper
-    mat_stencil[6] = +num_cells[x_axis]*num_cells[y_axis]; // zupper
+    mat_stencil[4] = +1;                                     // xupper
+    mat_stencil[5] = +num_cells[x_axis];                     // yupper
+    mat_stencil[6] = +num_cells[x_axis] * num_cells[y_axis]; // zupper
 #endif
 
     // Set the matrix coefficients to correspond to the standard finite
@@ -985,7 +1077,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
     {
         const Index<NDIM>& i = b();
 
-        std::vector<double> mat_vals(stencil_sz,0.0);
+        std::vector<double> mat_vals(stencil_sz, 0.0);
         mat_vals[NDIM] = (*C_data)(i);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -993,14 +1085,14 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
             {
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
                 const double& D_lower = (*D_data)(ilower);
-                mat_vals[NDIM-axis-1] += D_lower/(h*h);
-                mat_vals[NDIM       ] -= D_lower/(h*h);
+                mat_vals[NDIM - axis - 1] += D_lower / (h * h);
+                mat_vals[NDIM] -= D_lower / (h * h);
             }
             {
                 const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
                 const double& D_upper = (*D_data)(iupper);
-                mat_vals[NDIM+axis+1] += D_upper/(h*h);
-                mat_vals[NDIM       ] -= D_upper/(h*h);
+                mat_vals[NDIM + axis + 1] += D_upper / (h * h);
+                mat_vals[NDIM] -= D_upper / (h * h);
             }
         }
 
@@ -1009,8 +1101,12 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
-        ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        std::transform(mat_stencil.begin(),
+                       mat_stencil.end(),
+                       idxn.begin(),
+                       std::bind2nd(std::plus<int>(), idxm));
+        ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Set the entries in the ghost cell region so that ghost cell values are
@@ -1020,21 +1116,23 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(
         for (Box<NDIM>::Iterator b(bl()); b; b++)
         {
             const int i = ghost_box.offset(b());
-            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
         }
     }
 
     // Assemble the matrix.
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd  (A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
     return;
-}// buildPatchLaplaceOperator_aligned
+} // buildPatchLaplaceOperator_aligned
 
-void
-CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
+void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     Mat& A,
-    const Pointer<CellData<NDIM,double> > C_data,
-    const Pointer<SideData<NDIM,double> > D_data,
+    const Pointer<CellData<NDIM, double> > C_data,
+    const Pointer<SideData<NDIM, double> > D_data,
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
@@ -1057,22 +1155,25 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
             nnz[ghost_box.offset(b())] = 1;
         }
     }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
+    IBTK_CHKERRQ(ierr);
 
-    // Set some general matrix options.
+// Set some general matrix options.
 #if !defined(NDEBUG)
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE);  IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
 #endif
 
     // Setup the finite difference stencil.
-    boost::array<int,NDIM> num_cells;
+    boost::array<int, NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
     }
     std::vector<int> mat_stencil(stencil_sz);
-    std::map<Index<NDIM>,int,IndexComp> stencil_indices;
+    std::map<Index<NDIM>, int, IndexComp> stencil_indices;
     int stencil_index = 0;
     static const int x_axis = 0;
 #if (NDIM == 3)
@@ -1090,15 +1191,16 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                 {
 #endif
 #if (NDIM == 2)
-                    const Index<NDIM> i(x_offset,y_offset);
+                    const Index<NDIM> i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                    const Index<NDIM> i(x_offset,y_offset,z_offset);
+                    const Index<NDIM> i(x_offset, y_offset, z_offset);
 #endif
                     stencil_indices[i] = stencil_index++;
-                    mat_stencil[stencil_indices[i]] = x_offset + y_offset*num_cells[x_axis]
+                    mat_stencil[stencil_indices[i]] =
+                        x_offset + y_offset * num_cells[x_axis]
 #if (NDIM == 3)
-                        + z_offset*num_cells[x_axis]*num_cells[y_axis]
+                        + z_offset * num_cells[x_axis] * num_cells[y_axis]
 #endif
                         ;
 #if (NDIM == 3)
@@ -1119,7 +1221,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
         static const Index<NDIM> i_stencil_center(0);
         const int stencil_center = stencil_indices[i_stencil_center];
 
-        std::vector<double> mat_vals(stencil_sz,0.0);
+        std::vector<double> mat_vals(stencil_sz, 0.0);
         mat_vals[stencil_center] = (*C_data)(i);
 
         // The grid aligned part of the stencil (normal derivatives).
@@ -1134,9 +1236,9 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                 const int stencil_lower = stencil_indices[i_stencil_lower];
 
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
-                const double& D_lower = (*D_data)(ilower,axis);
-                mat_vals[stencil_lower ] += D_lower/(h*h);
-                mat_vals[stencil_center] -= D_lower/(h*h);
+                const double& D_lower = (*D_data)(ilower, axis);
+                mat_vals[stencil_lower] += D_lower / (h * h);
+                mat_vals[stencil_center] -= D_lower / (h * h);
             }
 
             // Upper side normal flux.
@@ -1146,9 +1248,9 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                 const int stencil_upper = stencil_indices[i_stencil_upper];
 
                 const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
-                const double& D_upper = (*D_data)(iupper,axis);
-                mat_vals[stencil_upper ] += D_upper/(h*h);
-                mat_vals[stencil_center] -= D_upper/(h*h);
+                const double& D_upper = (*D_data)(iupper, axis);
+                mat_vals[stencil_upper] += D_upper / (h * h);
+                mat_vals[stencil_center] -= D_upper / (h * h);
             }
         }
 
@@ -1169,16 +1271,18 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
                             Index<NDIM> i_stencil(0);
-                            i_stencil[ norm_axis] +=  norm_shift;
+                            i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
                             if (trans_shift == 1)
                             {
-                                mat_vals[stencil_index] -= 0.25*(*D_data)(ilower,norm_axis)/(norm_h*trans_h);
+                                mat_vals[stencil_index] -=
+                                    0.25 * (*D_data)(ilower, norm_axis) / (norm_h * trans_h);
                             }
                             else
                             {
-                                mat_vals[stencil_index] += 0.25*(*D_data)(ilower,norm_axis)/(norm_h*trans_h);
+                                mat_vals[stencil_index] +=
+                                    0.25 * (*D_data)(ilower, norm_axis) / (norm_h * trans_h);
                             }
                         }
                     }
@@ -1192,16 +1296,18 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
                             Index<NDIM> i_stencil(0);
-                            i_stencil[ norm_axis] +=  norm_shift;
+                            i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
                             if (trans_shift == 1)
                             {
-                                mat_vals[stencil_index] += 0.25*(*D_data)(iupper,norm_axis)/(norm_h*trans_h);
+                                mat_vals[stencil_index] +=
+                                    0.25 * (*D_data)(iupper, norm_axis) / (norm_h * trans_h);
                             }
                             else
                             {
-                                mat_vals[stencil_index] -= 0.25*(*D_data)(iupper,norm_axis)/(norm_h*trans_h);
+                                mat_vals[stencil_index] -=
+                                    0.25 * (*D_data)(iupper, norm_axis) / (norm_h * trans_h);
                             }
                         }
                     }
@@ -1214,8 +1320,12 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
-        ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        std::transform(mat_stencil.begin(),
+                       mat_stencil.end(),
+                       idxn.begin(),
+                       std::bind2nd(std::plus<int>(), idxm));
+        ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
     }
 
     // Set the entries in the ghost cell region so that ghost cell values are
@@ -1225,18 +1335,21 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
         for (Box<NDIM>::Iterator b(bl()); b; b++)
         {
             const int i = ghost_box.offset(b());
-            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
         }
     }
 
     // Assemble the matrix.
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd  (A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
     return;
-}// buildPatchLaplaceOperator_nonaligned
+} // buildPatchLaplaceOperator_nonaligned
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

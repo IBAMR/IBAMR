@@ -37,7 +37,7 @@
 #include <ostream>
 
 #include "FACPreconditioner.h"
-#include "SAMRAI_config.h"
+#include "MultiblockDataTranslator.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -52,20 +52,12 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditioner::FACPreconditioner(
-    const std::string& object_name,
-    Pointer<FACPreconditionerStrategy> fac_strategy,
-    tbox::Pointer<tbox::Database> input_db,
-    const std::string& /*default_options_prefix*/)
-    : d_fac_strategy(fac_strategy),
-      d_hierarchy(NULL),
-      d_coarsest_ln(0),
-      d_finest_ln(0),
-      d_cycle_type(V_CYCLE),
-      d_num_pre_sweeps(0),
-      d_num_post_sweeps(2),
-      d_f(),
-      d_r()
+FACPreconditioner::FACPreconditioner(const std::string& object_name,
+                                     Pointer<FACPreconditionerStrategy> fac_strategy,
+                                     tbox::Pointer<tbox::Database> input_db,
+                                     const std::string& /*default_options_prefix*/)
+    : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0),
+      d_cycle_type(V_CYCLE), d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
 {
     // Setup default options.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
@@ -75,7 +67,7 @@ FACPreconditioner::FACPreconditioner(
     d_max_iterations = 1;
 
     // Register this class with the FACPreconditionerStrategy object.
-    d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
+    d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this, false));
 
     // Initialize object with data read from input database.
     if (input_db)
@@ -83,50 +75,41 @@ FACPreconditioner::FACPreconditioner(
         getFromInput(input_db);
     }
     return;
-}// FACPreconditioner
+} // FACPreconditioner
 
 FACPreconditioner::~FACPreconditioner()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-}// ~FACPreconditioner
+} // ~FACPreconditioner
 
-void
-FACPreconditioner::setHomogeneousBc(
-    const bool homogeneous_bc)
+void FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     d_fac_strategy->setHomogeneousBc(homogeneous_bc);
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-void
-FACPreconditioner::setSolutionTime(
-    const double solution_time)
+void FACPreconditioner::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     d_fac_strategy->setSolutionTime(solution_time);
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-void
-FACPreconditioner::setTimeInterval(
-    const double current_time,
-    const double new_time)
+void FACPreconditioner::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-bool
-FACPreconditioner::solveSystem(
-    SAMRAIVectorReal<NDIM,double>& u,
-    SAMRAIVectorReal<NDIM,double>& f)
+bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u,
+                                    SAMRAIVectorReal<NDIM, double>& f)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
-    if (deallocate_after_solve) initializeSolverState(u,f);
+    if (deallocate_after_solve) initializeSolverState(u, f);
 
     // Set the initial guess to equal zero.
     u.setToScalar(0.0, /*interior_only*/ false);
@@ -147,34 +130,34 @@ FACPreconditioner::solveSystem(
     }
     else
     {
-        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&f, false), false);
-        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&f, false), false);
+        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
+        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         switch (d_cycle_type)
         {
-            case V_CYCLE:
-                FACVCycle(u, *d_f, d_finest_ln);
-                break;
-            case W_CYCLE:
-                FACWCycle(u, *d_f, d_finest_ln);
-                break;
-            case F_CYCLE:
-                FACFCycle(u, *d_f, d_finest_ln);
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                           << "  unrecognized FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type) << "." << std::endl);
+        case V_CYCLE:
+            FACVCycle(u, *d_f, d_finest_ln);
+            break;
+        case W_CYCLE:
+            FACWCycle(u, *d_f, d_finest_ln);
+            break;
+        case F_CYCLE:
+            FACFCycle(u, *d_f, d_finest_ln);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::solveSystem():\n"
+                                     << "  unrecognized FAC cycle type: "
+                                     << enum_to_string<MGCycleType>(d_cycle_type) << "."
+                                     << std::endl);
         }
     }
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
     return true;
-}// solveSystem
+} // solveSystem
 
-void
-FACPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs)
+void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                              const SAMRAIVectorReal<NDIM, double>& rhs)
 {
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
@@ -183,14 +166,14 @@ FACPreconditioner::initializeSolverState(
     }
 
     // Setup operator state.
-    d_hierarchy   = solution.getPatchHierarchy();
+    d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
-    d_finest_ln   = solution.getFinestLevelNumber();
+    d_finest_ln = solution.getFinestLevelNumber();
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_hierarchy   == rhs.getPatchHierarchy());
+    TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln   == rhs.getFinestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
 #endif
     d_fac_strategy->initializeOperatorState(solution, rhs);
 
@@ -207,24 +190,27 @@ FACPreconditioner::initializeSolverState(
     // Indicate the operator is initialized.
     d_is_initialized = true;
     return;
-}// initializeSolverState
+} // initializeSolverState
 
-void
-FACPreconditioner::deallocateSolverState()
+void FACPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
     // Destroy temporary vectors.
     if (d_f)
     {
-        d_f->resetLevels(d_f->getCoarsestLevelNumber(), std::min(d_f->getFinestLevelNumber(),d_f->getPatchHierarchy()->getFinestLevelNumber()));
+        d_f->resetLevels(d_f->getCoarsestLevelNumber(),
+                         std::min(d_f->getFinestLevelNumber(),
+                                  d_f->getPatchHierarchy()->getFinestLevelNumber()));
         d_f->freeVectorComponents();
         d_f.setNull();
     }
 
     if (d_r)
     {
-        d_r->resetLevels(d_r->getCoarsestLevelNumber(), std::min(d_r->getFinestLevelNumber(),d_r->getPatchHierarchy()->getFinestLevelNumber()));
+        d_r->resetLevels(d_r->getCoarsestLevelNumber(),
+                         std::min(d_r->getFinestLevelNumber(),
+                                  d_r->getPatchHierarchy()->getFinestLevelNumber()));
         d_r->freeVectorComponents();
         d_r.setNull();
     }
@@ -235,81 +221,70 @@ FACPreconditioner::deallocateSolverState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
     return;
-}// deallocateSolverState
+} // deallocateSolverState
 
-void
-FACPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
-                   << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
+        TBOX_ERROR(d_object_name
+                   << "::setInitialGuessNonzero()\n"
+                   << "  class IBTK::FACPreconditioner requires a zero initial guess"
+                   << std::endl);
     }
     return;
-}// setInitialGuessNonzero
+} // setInitialGuessNonzero
 
-void
-FACPreconditioner::setMaxIterations(
-    int max_iterations)
+void FACPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
-        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
-                   << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
+        TBOX_ERROR(d_object_name
+                   << "::setMaxIterations()\n"
+                   << "  class IBTK::FACPreconditioner only performs a single iteration"
+                   << std::endl);
     }
     return;
-}// setMaxIterations
+} // setMaxIterations
 
-void
-FACPreconditioner::setMGCycleType(
-    MGCycleType cycle_type)
+void FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
 {
     d_cycle_type = cycle_type;
     return;
-}// setMGCycleType
+} // setMGCycleType
 
-MGCycleType
-FACPreconditioner::getMGCycleType() const
+MGCycleType FACPreconditioner::getMGCycleType() const
 {
     return d_cycle_type;
-}// getMGCycleType
+} // getMGCycleType
 
-void
-FACPreconditioner::setNumPreSmoothingSweeps(
-    int num_pre_sweeps)
+void FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
 {
     d_num_pre_sweeps = num_pre_sweeps;
     return;
-}// setNumPreSmoothingSweeps
+} // setNumPreSmoothingSweeps
 
-int
-FACPreconditioner::getNumPreSmoothingSweeps() const
+int FACPreconditioner::getNumPreSmoothingSweeps() const
 {
     return d_num_pre_sweeps;
-}// getNumPreSmoothingSweeps
+} // getNumPreSmoothingSweeps
 
-void
-FACPreconditioner::setNumPostSmoothingSweeps(
-    int num_post_sweeps)
+void FACPreconditioner::setNumPostSmoothingSweeps(int num_post_sweeps)
 {
     d_num_post_sweeps = num_post_sweeps;
     return;
-}// setNumPostSmoothingSweeps
+} // setNumPostSmoothingSweeps
 
-int
-FACPreconditioner::getNumPostSmoothingSweeps() const
+int FACPreconditioner::getNumPostSmoothingSweeps() const
 {
     return d_num_post_sweeps;
-}// getNumPostSmoothingSweeps
+} // getNumPostSmoothingSweeps
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-FACPreconditioner::FACVCycleNoPreSmoothing(
-    SAMRAIVectorReal<NDIM,double>& u,
-    SAMRAIVectorReal<NDIM,double>& f,
-    int level_num)
+void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
+                                                SAMRAIVectorReal<NDIM, double>& f,
+                                                int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -319,10 +294,10 @@ FACPreconditioner::FACVCycleNoPreSmoothing(
     else
     {
         // Restrict the residual to the next coarser level.
-        d_fac_strategy->restrictResidual(f, f, level_num-1);
+        d_fac_strategy->restrictResidual(f, f, level_num - 1);
 
         // Recursively call the FAC algorithm.
-        FACVCycleNoPreSmoothing(u, f, level_num-1);
+        FACVCycleNoPreSmoothing(u, f, level_num - 1);
 
         // Prolong the error from the next coarser level.  Because we did not
         // perform any presmoothing, we do not need to correct the solution on
@@ -336,13 +311,11 @@ FACPreconditioner::FACVCycleNoPreSmoothing(
         }
     }
     return;
-}// FACVCycleNoPreSmoothing
+} // FACVCycleNoPreSmoothing
 
-void
-FACPreconditioner::FACVCycle(
-    SAMRAIVectorReal<NDIM,double>& u,
-    SAMRAIVectorReal<NDIM,double>& f,
-    int level_num)
+void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
+                                  SAMRAIVectorReal<NDIM, double>& f,
+                                  int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -363,16 +336,16 @@ FACPreconditioner::FACVCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
         }
         else
         {
-            d_fac_strategy->restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num - 1);
         }
 
         // Recursively call the FAC algorithm.
-        FACVCycle(u, f, level_num-1);
+        FACVCycle(u, f, level_num - 1);
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
@@ -386,13 +359,11 @@ FACPreconditioner::FACVCycle(
         }
     }
     return;
-}// FACVCycle
+} // FACVCycle
 
-void
-FACPreconditioner::FACWCycle(
-    SAMRAIVectorReal<NDIM,double>& u,
-    SAMRAIVectorReal<NDIM,double>& f,
-    int level_num)
+void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u,
+                                  SAMRAIVectorReal<NDIM, double>& f,
+                                  int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -413,17 +384,17 @@ FACPreconditioner::FACWCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
         }
         else
         {
-            d_fac_strategy->restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num - 1);
         }
 
         // Recursively call the FAC algorithm.
-        FACWCycle(u, f, level_num-1);
-        FACWCycle(u, f, level_num-1);
+        FACWCycle(u, f, level_num - 1);
+        FACWCycle(u, f, level_num - 1);
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
@@ -437,13 +408,11 @@ FACPreconditioner::FACWCycle(
         }
     }
     return;
-}// FACWCycle
+} // FACWCycle
 
-void
-FACPreconditioner::FACFCycle(
-    SAMRAIVectorReal<NDIM,double>& u,
-    SAMRAIVectorReal<NDIM,double>& f,
-    int level_num)
+void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u,
+                                  SAMRAIVectorReal<NDIM, double>& f,
+                                  int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -464,17 +433,17 @@ FACPreconditioner::FACFCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
         }
         else
         {
-            d_fac_strategy->restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num - 1);
         }
 
         // Recursively call the FAC algorithm.
-        FACWCycle(u, f, level_num-1);
-        FACVCycle(u, f, level_num-1);
+        FACWCycle(u, f, level_num - 1);
+        FACVCycle(u, f, level_num - 1);
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
@@ -488,25 +457,26 @@ FACPreconditioner::FACFCycle(
         }
     }
     return;
-}// FACFCycle
+} // FACFCycle
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-FACPreconditioner::getFromInput(
-    tbox::Pointer<tbox::Database> db)
+void FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
 
-    if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
-    if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
-    if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
+    if (db->keyExists("cycle_type"))
+        setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
+    if (db->keyExists("num_pre_sweeps"))
+        setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
+    if (db->keyExists("num_post_sweeps"))
+        setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
-}// getFromInput
+} // getFromInput
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

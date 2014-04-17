@@ -37,16 +37,19 @@
 
 #include <iosfwd>
 
+#include "IntVector.h"
 #include "PatchData.h"
 #include "PatchLevel.h"
 #include "tbox/Pointer.h"
 #include "tbox/Transaction.h"
 
-namespace SAMRAI {
-namespace tbox {
+namespace SAMRAI
+{
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,8 +62,7 @@ namespace IBTK
  *
  * \note This class is designed to be used with uniform grid data only.
  */
-class CopyToRootTransaction
-    : public SAMRAI::tbox::Transaction
+class CopyToRootTransaction : public SAMRAI::tbox::Transaction
 {
 public:
     /*!
@@ -81,68 +83,55 @@ public:
     /*!
      * Return a pointer to the data on the root process.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    getRootPatchData() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > getRootPatchData() const;
 
     /*!
      * Return a boolean indicating whether this transaction can estimate the
      * size of an incoming message.
      */
-    bool
-    canEstimateIncomingMessageSize();
+    bool canEstimateIncomingMessageSize();
 
     /*!
      * Return the amount of buffer space needed for the incoming message.
      * This routine is only called if the transaction can estimate the
      * size of the incoming message.
      */
-    int
-    computeIncomingMessageSize();
+    int computeIncomingMessageSize();
 
     /*!
      * Return the buffer space needed for the outgoing message.
      */
-    int
-    computeOutgoingMessageSize();
+    int computeOutgoingMessageSize();
 
     /*!
      * Return the sending processor for the communications transaction.
      */
-    int
-    getSourceProcessor();
+    int getSourceProcessor();
 
     /*!
      * Return the receiving processor for the communications transaction.
      */
-    int
-    getDestinationProcessor();
+    int getDestinationProcessor();
 
     /*!
      * Pack the transaction data into the message stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * Unpack the transaction data from the message stream.
      */
-    void
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * Perform the local data copy for the transaction.
      */
-    void
-    copyLocalData();
+    void copyLocalData();
 
     /*!
      * Print out transaction information.
      */
-    void
-    printClassData(
-        std::ostream& stream) const;
+    void printClassData(std::ostream& stream) const;
 
 private:
     /*!
@@ -159,8 +148,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CopyToRootTransaction(
-        const CopyToRootTransaction& from);
+    CopyToRootTransaction(const CopyToRootTransaction& from);
 
     /*!
      * \brief Assignment operator.
@@ -171,16 +159,14 @@ private:
      *
      * \return A reference to this object.
      */
-    CopyToRootTransaction&
-    operator=(
-        const CopyToRootTransaction& that);
+    CopyToRootTransaction& operator=(const CopyToRootTransaction& that);
 
     const int d_src_proc, d_dst_proc;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;
     const int d_src_patch_data_idx;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > d_dst_patch_data;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

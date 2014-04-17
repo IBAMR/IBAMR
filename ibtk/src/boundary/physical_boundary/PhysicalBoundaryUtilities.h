@@ -39,11 +39,14 @@
 #include "Box.h"
 #include "tbox/Array.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,46 +64,35 @@ public:
      * boundary region (i.e., the associated box region contains higher values
      * along the axis in the coordinate direction than the boundary region).
      */
-    static bool
-    isLower(
-        int loc,
-        int codim,
-        int direction);
+    static bool isLower(int loc, int codim, int direction);
 
     /*!
      * \brief Indicate whether the given boundary information indicates a upper
      * boundary region (i.e., the associated box region contains lower values
      * along the axis in the coordinate direction than the boundary region).
      */
-    static bool
-    isUpper(
-        int loc,
-        int codim,
-        int direction);
+    static bool isUpper(int loc, int codim, int direction);
 
     /*!
      * \brief Return the co-dimension 1 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
     static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >
-    getPhysicalBoundaryCodim1Boxes(
-        const SAMRAI::hier::Patch<NDIM>& patch);
+    getPhysicalBoundaryCodim1Boxes(const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Return the co-dimension 2 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
     static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >
-    getPhysicalBoundaryCodim2Boxes(
-        const SAMRAI::hier::Patch<NDIM>& patch);
+    getPhysicalBoundaryCodim2Boxes(const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Return the co-dimension 3 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
     static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >
-    getPhysicalBoundaryCodim3Boxes(
-        const SAMRAI::hier::Patch<NDIM>& patch);
+    getPhysicalBoundaryCodim3Boxes(const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Trim a co-dimension 1 boundary box so that it does not stick out
@@ -111,9 +103,8 @@ public:
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
     static SAMRAI::hier::BoundaryBox<NDIM>
-    trimBoundaryCodim1Box(
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        const SAMRAI::hier::Patch<NDIM>& patch);
+    trimBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                          const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Return box describing the side index space of surfaces defined by
@@ -124,11 +115,9 @@ public:
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
     static SAMRAI::hier::Box<NDIM>
-    makeSideBoundaryCodim1Box(
-        const SAMRAI::hier::BoundaryBox<NDIM>& boundary_box);
+    makeSideBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& boundary_box);
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -144,8 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PhysicalBoundaryUtilities(
-        const PhysicalBoundaryUtilities& from);
+    PhysicalBoundaryUtilities(const PhysicalBoundaryUtilities& from);
 
     /*!
      * \brief Destructor.
@@ -161,11 +149,9 @@ private:
      *
      * \return A reference to this object.
      */
-    PhysicalBoundaryUtilities&
-    operator=(
-        const PhysicalBoundaryUtilities& that);
+    PhysicalBoundaryUtilities& operator=(const PhysicalBoundaryUtilities& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

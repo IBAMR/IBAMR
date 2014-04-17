@@ -43,11 +43,14 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,22 +61,18 @@ namespace IBTK
  * specification of general operators to compute \f$ y=F[x] \f$ and \f$ z=F[x]+y
  * \f$.
  */
-class GeneralOperator
-    : public virtual SAMRAI::tbox::DescribedClass
+class GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Constructor.
      */
-    GeneralOperator(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    GeneralOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~GeneralOperator();
+    virtual ~GeneralOperator();
 
     /*!
      * \name General operator functionality.
@@ -83,75 +82,59 @@ public:
     /*!
      * \brief Return the object name.
      */
-    const std::string&
-    getName() const;
+    const std::string& getName() const;
 
     /*!
      * \brief Return whether the operator is initialized.
      */
-    virtual bool
-    getIsInitialized() const;
+    virtual bool getIsInitialized() const;
 
     /*!
      * \brief Set whether the operator should use homogeneous boundary
      * conditions.
      */
-    virtual void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    virtual void setHomogeneousBc(bool homogeneous_bc);
 
     /*!
      * \brief Return whether the operator is using homogeneous boundary
      * conditions.
      */
-    virtual bool
-    getHomogeneousBc() const;
+    virtual bool getHomogeneousBc() const;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    virtual void
-    setSolutionTime(
-        double solution_time);
+    virtual void setSolutionTime(double solution_time);
 
     /*!
      * \brief Get the time at which the solution is being evaluated.
      */
-    virtual double
-    getSolutionTime() const;
+    virtual double getSolutionTime() const;
 
     /*!
      * \brief Set the current time interval.
      */
-    virtual void
-    setTimeInterval(
-        double current_time,
-        double new_time);
+    virtual void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \brief Get the current time interval.
      */
-    virtual std::pair<double,double>
-    getTimeInterval() const;
+    virtual std::pair<double, double> getTimeInterval() const;
 
     /*!
      * \brief Get the current time step size.
      */
-    virtual double
-    getDt() const;
+    virtual double getDt() const;
 
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
-    virtual void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the operator.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps>
-    getHierarchyMathOps() const;
+    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Compute \f$y=F[x]\f$.
@@ -177,10 +160,8 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y) = 0;
+    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) = 0;
 
     /*!
      * \brief Compute \f$z=F[x]+y\f$.
@@ -210,11 +191,9 @@ public:
      * \note A default implementation is provided which employs apply() and
      * SAMRAI::solv::SAMRAIVectorReal::add().
      */
-    virtual void
-    applyAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
+    virtual void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -247,9 +226,8 @@ public:
      * \param out output vector
      */
     virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -261,8 +239,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
-    deallocateOperatorState();
+    virtual void deallocateOperatorState();
 
     //\}
 
@@ -274,22 +251,17 @@ public:
     /*!
      * \brief Enable or disable logging.
      */
-    virtual void
-    setLoggingEnabled(
-        bool enable_logging=true);
+    virtual void setLoggingEnabled(bool enable_logging = true);
 
     /*!
      * \brief Determine whether logging is enabled or disabled.
      */
-    virtual bool
-    getLoggingEnabled() const;
+    virtual bool getLoggingEnabled() const;
 
     /*!
      * \brief Print class data to stream.
      */
-    virtual void
-    printClassData(
-        std::ostream& stream);
+    virtual void printClassData(std::ostream& stream);
 
     //\}
 
@@ -327,8 +299,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    GeneralOperator(
-        const GeneralOperator& from);
+    GeneralOperator(const GeneralOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -339,11 +310,9 @@ private:
      *
      * \return A reference to this object.
      */
-    GeneralOperator&
-    operator=(
-        const GeneralOperator& that);
+    GeneralOperator& operator=(const GeneralOperator& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

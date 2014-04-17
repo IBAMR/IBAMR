@@ -46,12 +46,12 @@
 #include "INSCollocatedPPMConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -62,11 +62,14 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -85,114 +88,206 @@ template <int DIM> class RobinBcCoefStrategy;
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #endif
 
-extern "C"
-{
-    void
-    ADVECT_DERIVATIVE_FC(
-        const double*,
+extern "C" {
+void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        const int& , const int& ,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        const int& , const int& , const int& ,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const int&,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const double*,
+                          const int&,
+                          const int&,
+                          const int&,
 #endif
-        double*
-                         );
+                          double*);
 
-    void
-    ADVECT_FLUX_FC(
-        const double& ,
+void ADVECT_FLUX_FC(const double&,
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        double* , double*
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    double*,
+                    double*
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        double* , double* , double*
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const int&,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    const double*,
+                    double*,
+                    double*,
+                    double*
 #endif
-                   );
+                    );
 
-    void
-    F_TO_C_DIV_FC(
-        double* , const int& ,
-        const double& ,
+void F_TO_C_DIV_FC(double*,
+                   const int&,
+                   const double&,
 #if (NDIM == 2)
-        const double* , const double* , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
+                   const double*,
+                   const double*,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
 #endif
 #if (NDIM == 3)
-        const double* , const double* , const double* , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
+                   const double*,
+                   const double*,
+                   const double*,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
+                   const int&,
 #endif
-        const double*
-               );
+                   const double*);
 
-    void
-    F_TO_C_DIV_ADD_FC(
-        double* , const int& ,
-        const double& ,
+void F_TO_C_DIV_ADD_FC(double*,
+                       const int&,
+                       const double&,
 #if (NDIM == 2)
-        const double* , const double* , const int& ,
-        const double& ,
-        const double* , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
+                       const double*,
+                       const double*,
+                       const int&,
+                       const double&,
+                       const double*,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
 #endif
 #if (NDIM == 3)
-        const double* , const double* , const double* , const int& ,
-        const double& ,
-        const double* , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
+                       const double*,
+                       const double*,
+                       const double*,
+                       const int&,
+                       const double&,
+                       const double*,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
+                       const int&,
 #endif
-        const double*
-                      );
+                       const double*);
 
-    void
-    GODUNOV_EXTRAPOLATE_FC(
+void GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const double* , double* , double* , double* , double* ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        double* , double*
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    double*,
+    double*
 #endif
 #if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , double* , double* , double* , double* , double* ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        double* , double* , double*
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    double*,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const int&,
+    const double*,
+    const double*,
+    const double*,
+    double*,
+    double*,
+    double*
 #endif
-                           );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -223,36 +318,30 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(object_name, difference_form),
-      d_ghostfill_alg(NULL),
-      d_ghostfill_scheds(),
-      d_bdry_extrap_type("CONSTANT"),
-      d_hierarchy(NULL),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_U_var(NULL),
-      d_U_scratch_idx(-1),
-      d_u_extrap_var(NULL),
-      d_u_flux_var(NULL),
-      d_u_extrap_idx(-1),
-      d_u_flux_idx(-1)
+    : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(), d_bdry_extrap_type("CONSTANT"), d_hierarchy(NULL),
+      d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1),
+      d_u_extrap_var(NULL), d_u_flux_var(NULL), d_u_extrap_idx(-1), d_u_flux_idx(-1)
 {
-    if (d_difference_form != ADVECTIVE &&
-        d_difference_form != CONSERVATIVE &&
+    if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE &&
         d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
-                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
+            << "  unsupported differencing form: "
+            << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     if (input_db)
     {
-        if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->keyExists("bdry_extrap_type"))
+            d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
+    Pointer<VariableContext> context =
+        var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -262,8 +351,9 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     }
     else
     {
-        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_var = new CellVariable<NDIM, double>(U_var_name, NDIM);
+        d_U_scratch_idx =
+            var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -276,8 +366,9 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     }
     else
     {
-        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
-        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
+        d_u_extrap_var = new FaceVariable<NDIM, double>(u_extrap_var_name, NDIM);
+        d_u_extrap_idx =
+            var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_u_extrap_idx >= 0);
@@ -290,8 +381,9 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     }
     else
     {
-        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
-        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
+        d_u_flux_var = new FaceVariable<NDIM, double>(u_flux_var_name, NDIM);
+        d_u_flux_idx =
+            var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_u_flux_idx >= 0);
@@ -299,38 +391,41 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
 
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::INSCollocatedPPMConvectiveOperator::applyConvectiveOperator()");
-        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSCollocatedPPMConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSCollocatedPPMConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSCollocatedPPMConvectiveOperator::deallocateOperatorState()");
-                  );
+        t_apply_convective_operator = TimerManager::getManager()->getTimer(
+            "IBAMR::INSCollocatedPPMConvectiveOperator::applyConvectiveOperator()");
+        t_apply = TimerManager::getManager()->getTimer(
+            "IBAMR::INSCollocatedPPMConvectiveOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer(
+            "IBAMR::INSCollocatedPPMConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+            "IBAMR::INSCollocatedPPMConvectiveOperator::deallocateOperatorState()"););
     return;
-}// INSCollocatedPPMConvectiveOperator
+} // INSCollocatedPPMConvectiveOperator
 
 INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-}// ~INSCollocatedPPMConvectiveOperator
+} // ~INSCollocatedPPMConvectiveOperator
 
-void
-INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
-    const int U_idx,
-    const int N_idx)
+void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
+                                                                 const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
     if (!d_is_initialized)
     {
-        TBOX_ERROR("INSCollocatedPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR(
+            "INSCollocatedPPMConvectiveOperator::applyConvectiveOperator():\n"
+            << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
 #endif
 
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op =
+        grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -348,58 +443,86 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<CellData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            Pointer<FaceData<NDIM, double> > u_extrap_data =
+                patch->getPatchData(d_u_extrap_idx);
             const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 #endif
-            CellData<NDIM,double>& U0_data = *U_data;
-            CellData<NDIM,double>  U1_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM, double>& U0_data = *U_data;
+            CellData<NDIM, double> U1_data(patch_box, 1, U_data_gcw);
 #if (NDIM == 3)
-            CellData<NDIM,double>  U2_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM, double> U2_data(patch_box, 1, U_data_gcw);
 #endif
-            CellData<NDIM,double>  dU_data(patch_box, 1, U_data_gcw);
-            CellData<NDIM,double> U_L_data(patch_box, 1, U_data_gcw);
-            CellData<NDIM,double> U_R_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM, double> dU_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM, double> U_L_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM, double> U_R_data(patch_box, 1, U_data_gcw);
 
             // Extrapolate from cell centers to cell faces.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    U_data_gcw(0), U_data_gcw(1),
-                    U0_data.getPointer(axis), U1_data.getPointer(),
-                    dU_data.getPointer(), U_L_data.getPointer(), U_R_data.getPointer(),
-                    u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                    u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                    u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                    u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis)
+                    patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    U_data_gcw(0),
+                    U_data_gcw(1),
+                    U0_data.getPointer(axis),
+                    U1_data.getPointer(),
+                    dU_data.getPointer(),
+                    U_L_data.getPointer(),
+                    U_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    u_extrap_data_gcw(0),
+                    u_extrap_data_gcw(1),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    u_extrap_data->getPointer(0, axis),
+                    u_extrap_data->getPointer(1, axis)
 #endif
 #if (NDIM == 3)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    patch_lower(2), patch_upper(2),
-                    U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
-                    U0_data.getPointer(axis), U1_data.getPointer(), U2_data.getPointer(),
-                    dU_data.getPointer(), U_L_data.getPointer(), U_R_data.getPointer(),
-                    u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                    u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                    u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                    u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis)
+                    patch_lower(0),
+                    patch_upper(0),
+                    patch_lower(1),
+                    patch_upper(1),
+                    patch_lower(2),
+                    patch_upper(2),
+                    U_data_gcw(0),
+                    U_data_gcw(1),
+                    U_data_gcw(2),
+                    U0_data.getPointer(axis),
+                    U1_data.getPointer(),
+                    U2_data.getPointer(),
+                    dU_data.getPointer(),
+                    U_L_data.getPointer(),
+                    U_R_data.getPointer(),
+                    u_ADV_data_gcw(0),
+                    u_ADV_data_gcw(1),
+                    u_ADV_data_gcw(2),
+                    u_extrap_data_gcw(0),
+                    u_extrap_data_gcw(1),
+                    u_extrap_data_gcw(2),
+                    u_ADV_data->getPointer(0),
+                    u_ADV_data->getPointer(1),
+                    u_ADV_data->getPointer(2),
+                    u_extrap_data->getPointer(0, axis),
+                    u_extrap_data->getPointer(1, axis),
+                    u_extrap_data->getPointer(2, axis)
 #endif
-                                       );
+                    );
             }
 
             // If we are using conservative or skew-symmetric differencing,
@@ -407,9 +530,10 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double> > u_flux_data =
+                    patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -417,31 +541,57 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
                     ADVECT_FLUX_FC(
                         dt,
 #if (NDIM == 2)
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_flux_data_gcw  (0), u_flux_data_gcw  (1),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
-                        u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis)
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1),
+                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        u_ADV_data_gcw(0),
+                        u_ADV_data_gcw(1),
+                        u_extrap_data_gcw(0),
+                        u_extrap_data_gcw(1),
+                        u_flux_data_gcw(0),
+                        u_flux_data_gcw(1),
+                        //                      u_extrap_data->getPointer(0,0),
+                        // u_extrap_data->getPointer(1,1),
+                        u_ADV_data->getPointer(0),
+                        u_ADV_data->getPointer(1),
+                        u_extrap_data->getPointer(0, axis),
+                        u_extrap_data->getPointer(1, axis),
+                        u_flux_data->getPointer(0, axis),
+                        u_flux_data->getPointer(1, axis)
 #endif
 #if (NDIM == 3)
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-                        patch_lower(2), patch_upper(2),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_flux_data_gcw  (0), u_flux_data_gcw  (1), u_flux_data_gcw  (2),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
-                        u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis), u_flux_data  ->getPointer(2,axis)
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1),
+                        patch_lower(2),
+                        patch_upper(2),
+                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        // u_extrap_data_gcw(2),
+                        u_ADV_data_gcw(0),
+                        u_ADV_data_gcw(1),
+                        u_ADV_data_gcw(2),
+                        u_extrap_data_gcw(0),
+                        u_extrap_data_gcw(1),
+                        u_extrap_data_gcw(2),
+                        u_flux_data_gcw(0),
+                        u_flux_data_gcw(1),
+                        u_flux_data_gcw(2),
+                        //                      u_extrap_data->getPointer(0,0),
+                        // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                        u_ADV_data->getPointer(0),
+                        u_ADV_data->getPointer(1),
+                        u_ADV_data->getPointer(2),
+                        u_extrap_data->getPointer(0, axis),
+                        u_extrap_data->getPointer(1, axis),
+                        u_extrap_data->getPointer(2, axis),
+                        u_flux_data->getPointer(0, axis),
+                        u_flux_data->getPointer(1, axis),
+                        u_flux_data->getPointer(2, axis)
 #endif
-                                   );
+                        );
                 }
             }
         }
@@ -465,44 +615,69 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
+                patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM,double> > N_data = patch->getPatchData(N_idx);
+            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(N_idx);
             const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                Pointer<FaceData<NDIM, double> > u_extrap_data =
+                    patch->getPatchData(d_u_extrap_idx);
                 const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     ADVECT_DERIVATIVE_FC(
                         dx,
 #if (NDIM == 2)
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
-                        N_data_gcw(0), N_data_gcw(1),
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1),
+                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        u_ADV_data_gcw(0),
+                        u_ADV_data_gcw(1),
+                        u_extrap_data_gcw(0),
+                        u_extrap_data_gcw(1),
+                        //                      u_extrap_data->getPointer(0,0),
+                        // u_extrap_data->getPointer(1,1),
+                        u_ADV_data->getPointer(0),
+                        u_ADV_data->getPointer(1),
+                        u_extrap_data->getPointer(0, axis),
+                        u_extrap_data->getPointer(1, axis),
+                        N_data_gcw(0),
+                        N_data_gcw(1),
 #endif
 #if (NDIM == 3)
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-                        patch_lower(2), patch_upper(2),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
-                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1),
+                        patch_lower(2),
+                        patch_upper(2),
+                        //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        // u_extrap_data_gcw(2),
+                        u_ADV_data_gcw(0),
+                        u_ADV_data_gcw(1),
+                        u_ADV_data_gcw(2),
+                        u_extrap_data_gcw(0),
+                        u_extrap_data_gcw(1),
+                        u_extrap_data_gcw(2),
+                        //                      u_extrap_data->getPointer(0,0),
+                        // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                        u_ADV_data->getPointer(0),
+                        u_ADV_data->getPointer(1),
+                        u_ADV_data->getPointer(2),
+                        u_extrap_data->getPointer(0, axis),
+                        u_extrap_data->getPointer(1, axis),
+                        u_extrap_data->getPointer(2, axis),
+                        N_data_gcw(0),
+                        N_data_gcw(1),
+                        N_data_gcw(2),
 #endif
                         N_data->getPointer(axis));
                 }
@@ -510,68 +685,91 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
 
             if (d_difference_form == CONSERVATIVE)
             {
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double> > u_flux_data =
+                    patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const double alpha = 1.0;
-                    F_TO_C_DIV_FC(
-                        N_data->getPointer(axis), N_data_gcw.min(),
-                        alpha,
+                    F_TO_C_DIV_FC(N_data->getPointer(axis),
+                                  N_data_gcw.min(),
+                                  alpha,
 #if (NDIM == 2)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data_gcw.min(),
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
+                                  u_flux_data->getPointer(0, axis),
+                                  u_flux_data->getPointer(1, axis),
+                                  u_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
 #endif
 #if (NDIM == 3)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data->getPointer(2,axis), u_flux_data_gcw.min(),
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-                        patch_lower(2), patch_upper(2),
+                                  u_flux_data->getPointer(0, axis),
+                                  u_flux_data->getPointer(1, axis),
+                                  u_flux_data->getPointer(2, axis),
+                                  u_flux_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
+                                  patch_lower(2),
+                                  patch_upper(2),
 #endif
-                        dx);
+                                  dx);
                 }
             }
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                Pointer<FaceData<NDIM, double> > u_flux_data =
+                    patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const double alpha = 0.5;
-                    static const double beta  = 0.5;
-                    F_TO_C_DIV_ADD_FC(
-                        N_data->getPointer(axis), N_data_gcw.min(),
-                        alpha,
+                    static const double beta = 0.5;
+                    F_TO_C_DIV_ADD_FC(N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      alpha,
 #if (NDIM == 2)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data_gcw.min(),
-                        beta,
-                        N_data->getPointer(axis), N_data_gcw.min(),
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
+                                      u_flux_data->getPointer(0, axis),
+                                      u_flux_data->getPointer(1, axis),
+                                      u_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
 #endif
 #if (NDIM == 3)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data->getPointer(2,axis), u_flux_data_gcw.min(),
-                        beta,
-                        N_data->getPointer(axis), N_data_gcw.min(),
-                        patch_lower(0), patch_upper(0),
-                        patch_lower(1), patch_upper(1),
-                        patch_lower(2), patch_upper(2),
+                                      u_flux_data->getPointer(0, axis),
+                                      u_flux_data->getPointer(1, axis),
+                                      u_flux_data->getPointer(2, axis),
+                                      u_flux_data_gcw.min(),
+                                      beta,
+                                      N_data->getPointer(axis),
+                                      N_data_gcw.min(),
+                                      patch_lower(0),
+                                      patch_upper(0),
+                                      patch_lower(1),
+                                      patch_upper(1),
+                                      patch_lower(2),
+                                      patch_upper(2),
 #endif
-                        dx);
+                                      dx);
                 }
             }
         }
     }
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
-}// applyConvectiveOperator
+} // applyConvectiveOperator
 
-void
-INSCollocatedPPMConvectiveOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+void INSCollocatedPPMConvectiveOperator::initializeOperatorState(
+    const SAMRAIVectorReal<NDIM, double>& in,
+    const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -591,28 +789,34 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    Pointer<CoarsenOperator<NDIM> > coarsen_op =
+        grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    if (d_difference_form == ADVECTIVE    || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
-    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx,   d_u_flux_idx,   coarsen_op);
-    d_coarsen_scheds.resize(d_finest_ln+1);
-    for (int ln = d_coarsest_ln+1; ln <= d_finest_ln; ++ln)
+    if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
+        d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
+    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
+        d_coarsen_alg->registerCoarsen(d_u_flux_idx, d_u_flux_idx, coarsen_op);
+    d_coarsen_scheds.resize(d_finest_ln + 1);
+    for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> >         level = d_hierarchy->getPatchLevel(ln  );
-        Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op =
+        grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
+    d_ghostfill_alg->registerRefine(
+        d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
-    d_ghostfill_scheds.resize(d_finest_ln+1);
+    d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln-1, d_hierarchy, d_ghostfill_strategy);
+        d_ghostfill_scheds[ln] =
+            d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 
     // Allocate scratch data.
@@ -623,17 +827,17 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(
         {
             level->allocatePatchData(d_U_scratch_idx);
             level->allocatePatchData(d_u_extrap_idx);
-            if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) level->allocatePatchData(d_u_flux_idx);
+            if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
+                level->allocatePatchData(d_u_flux_idx);
         }
     }
     d_is_initialized = true;
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
+void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -670,7 +874,7 @@ INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -678,6 +882,6 @@ INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

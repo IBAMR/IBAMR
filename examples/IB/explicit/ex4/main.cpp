@@ -50,6 +50,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/muParserCartGridFunction.h>

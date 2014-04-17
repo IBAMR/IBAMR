@@ -33,17 +33,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <memory>
 #include <ostream>
 
 #include "HierarchyDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "SAMRAI_config.h"
 #include "SideVariable.h"
 #include "StaggeredStokesProjectionPreconditioner.h"
 #include "Variable.h"
@@ -77,9 +75,9 @@ static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE     = "NONE";
-static const bool        USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -100,13 +98,10 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     const std::string& object_name,
     Pointer<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
-    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
-      d_Phi_bdry_fill_op(NULL),
-      d_no_fill_op(NULL),
-      d_Phi_var(NULL),
-      d_F_Phi_var(NULL),
-      d_Phi_scratch_idx(-1),
-      d_F_Phi_idx(-1)
+    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
+                                         /*needs_pressure_solver*/ true),
+      d_Phi_bdry_fill_op(NULL), d_no_fill_op(NULL), d_Phi_var(NULL), d_F_Phi_var(NULL),
+      d_Phi_scratch_idx(-1), d_F_Phi_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -117,9 +112,9 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
 
     // Setup variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext(d_object_name+"::CONTEXT");
+    Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
 
-    const std::string Phi_var_name = d_object_name+"::Phi";
+    const std::string Phi_var_name = d_object_name + "::Phi";
     d_Phi_var = var_db->getVariable(Phi_var_name);
     if (d_Phi_var)
     {
@@ -127,13 +122,14 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_Phi_var = new CellVariable<NDIM,double>(Phi_var_name);
-        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
+        d_Phi_var = new CellVariable<NDIM, double>(Phi_var_name);
+        d_Phi_scratch_idx =
+            var_db->registerVariableAndContext(d_Phi_var, context, IntVector<NDIM>(CELLG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
 #endif
-    const std::string F_var_name = d_object_name+"::F";
+    const std::string F_var_name = d_object_name + "::F";
     d_F_Phi_var = var_db->getVariable(F_var_name);
     if (d_F_Phi_var)
     {
@@ -141,8 +137,9 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_F_Phi_var = new CellVariable<NDIM,double>(F_var_name);
-        d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
+        d_F_Phi_var = new CellVariable<NDIM, double>(F_var_name);
+        d_F_Phi_idx =
+            var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector<NDIM>(CELLG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_F_Phi_idx >= 0);
@@ -150,32 +147,35 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
 
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesProjectionPreconditioner::solveSystem()");
-        t_initialize_solver_state = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesProjectionPreconditioner::initializeSolverState()");
-        t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesProjectionPreconditioner::deallocateSolverState()");
-                  );
+        t_solve_system = TimerManager::getManager()->getTimer(
+            "IBAMR::StaggeredStokesProjectionPreconditioner::solveSystem()");
+        t_initialize_solver_state = TimerManager::getManager()->getTimer(
+            "IBAMR::StaggeredStokesProjectionPreconditioner::initializeSolverState()");
+        t_deallocate_solver_state = TimerManager::getManager()->getTimer(
+            "IBAMR::StaggeredStokesProjectionPreconditioner::deallocateSolverState()"););
     return;
-}// StaggeredStokesProjectionPreconditioner
+} // StaggeredStokesProjectionPreconditioner
 
 StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditioner()
 {
     deallocateSolverState();
     return;
-}// ~StaggeredStokesProjectionPreconditioner
+} // ~StaggeredStokesProjectionPreconditioner
 
-bool
-StaggeredStokesProjectionPreconditioner::solveSystem(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& b)
+bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
+                                                          SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeSolverState(x,b);
+    if (!d_is_initialized) initializeSolverState(x, b);
 
     // Determine whether we are solving a steady-state problem.
-    const bool steady_state = d_U_problem_coefs.cIsZero() || (d_U_problem_coefs.cIsConstant() && MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(),0.0));
+    const bool steady_state =
+        d_U_problem_coefs.cIsZero() ||
+        (d_U_problem_coefs.cIsConstant() &&
+         MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(), 0.0));
 
     // Get the vector components.
     const int F_U_idx = b.getComponentDescriptorIndex(0);
@@ -184,8 +184,8 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     const Pointer<Variable<NDIM> >& F_U_var = b.getComponentVariable(0);
     const Pointer<Variable<NDIM> >& F_P_var = b.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM,double> > F_U_sc_var = F_U_var;
-    Pointer<CellVariable<NDIM,double> > F_P_cc_var = F_P_var;
+    Pointer<SideVariable<NDIM, double> > F_U_sc_var = F_U_var;
+    Pointer<CellVariable<NDIM, double> > F_P_cc_var = F_P_var;
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -193,28 +193,34 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     const Pointer<Variable<NDIM> >& U_var = x.getComponentVariable(0);
     const Pointer<Variable<NDIM> >& P_var = x.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM,double> > U_sc_var = U_var;
-    Pointer<CellVariable<NDIM,double> > P_cc_var = P_var;
+    Pointer<SideVariable<NDIM, double> > U_sc_var = U_var;
+    Pointer<CellVariable<NDIM, double> > P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    Pointer<SAMRAIVectorReal<NDIM,double> > F_U_vec;
-    F_U_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<NDIM, double> > F_U_vec;
+    F_U_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > U_vec;
-    U_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<NDIM, double> > U_vec;
+    U_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > Phi_scratch_vec;
-    Phi_scratch_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
-    Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
+    Pointer<SAMRAIVectorReal<NDIM, double> > Phi_scratch_vec;
+    Phi_scratch_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Phi_scratch_vec->addComponent(
+        d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > F_Phi_vec;
-    F_Phi_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<NDIM, double> > F_Phi_vec;
+    F_Phi_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM,double> > P_vec;
-    P_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<NDIM, double> > P_vec;
+    P_vec = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
@@ -223,7 +229,8 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     //
     // An approximate Helmholtz solver is used.
     d_velocity_solver->setHomogeneousBc(true);
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    LinearSolver* p_velocity_solver =
+        dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
 
@@ -260,9 +267,20 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     // in which L_rho = D*(1/rho)*G.
     //
     // Approximate Poisson solvers are used in both cases.
-    d_hier_math_ops->div(d_F_Phi_idx, d_F_Phi_var, -1.0, U_idx, U_sc_var, d_no_fill_op, d_new_time, /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
+    d_hier_math_ops->div(d_F_Phi_idx,
+                         d_F_Phi_var,
+                         -1.0,
+                         U_idx,
+                         U_sc_var,
+                         d_no_fill_op,
+                         d_new_time,
+                         /*cf_bdry_synch*/ true,
+                         -1.0,
+                         F_P_idx,
+                         F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    LinearSolver* p_pressure_solver =
+        dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
     if (steady_state)
@@ -271,7 +289,11 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     }
     else
     {
-        d_pressure_data_ops->linearSum(P_idx, 1.0/getDt(), d_Phi_scratch_idx, -d_U_problem_coefs.getDConstant(), d_F_Phi_idx);
+        d_pressure_data_ops->linearSum(P_idx,
+                                       1.0 / getDt(),
+                                       d_Phi_scratch_idx,
+                                       -d_U_problem_coefs.getDConstant(),
+                                       d_F_Phi_idx);
     }
 
     // (3) Evaluate U in terms of U^* and Phi.
@@ -294,7 +316,17 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
     {
         coef = d_P_problem_coefs.getDConstant();
     }
-    d_hier_math_ops->grad(U_idx, U_sc_var, /*cf_bdry_synch*/ true, coef, d_Phi_scratch_idx, d_Phi_var, d_Phi_bdry_fill_op, d_pressure_solver->getSolutionTime(), 1.0, U_idx, U_sc_var);
+    d_hier_math_ops->grad(U_idx,
+                          U_sc_var,
+                          /*cf_bdry_synch*/ true,
+                          coef,
+                          d_Phi_scratch_idx,
+                          d_Phi_var,
+                          d_Phi_bdry_fill_op,
+                          d_pressure_solver->getSolutionTime(),
+                          1.0,
+                          U_idx,
+                          U_sc_var);
 
     // Account for nullspace vectors.
     correctNullspace(U_vec, P_vec);
@@ -304,24 +336,32 @@ StaggeredStokesProjectionPreconditioner::solveSystem(
 
     IBAMR_TIMER_STOP(t_solve_system);
     return true;
-}// solveSystem
+} // solveSystem
 
-void
-StaggeredStokesProjectionPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& b)
+void StaggeredStokesProjectionPreconditioner::initializeSolverState(
+    const SAMRAIVectorReal<NDIM, double>& x,
+    const SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
     if (d_is_initialized) deallocateSolverState();
 
     // Parent class initialization.
-    StaggeredStokesBlockPreconditioner::initializeSolverState(x,b);
+    StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, fill_pattern);
+    Pointer<VariableFillPattern<NDIM> > fill_pattern =
+        new CellNoCornersFillPattern(CELLG, false, false, true);
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
+    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
+                                                          DATA_REFINE_TYPE,
+                                                          USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE,
+                                                          BDRY_EXTRAP_TYPE,
+                                                          CONSISTENT_TYPE_2_BDRY,
+                                                          d_P_bc_coef,
+                                                          fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
@@ -344,10 +384,9 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
-}// initializeSolverState
+} // initializeSolverState
 
-void
-StaggeredStokesProjectionPreconditioner::deallocateSolverState()
+void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -377,31 +416,30 @@ StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
     return;
-}// deallocateSolverState
+} // deallocateSolverState
 
 void
-StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR(d_object_name+"::setInitialGuessNonzero()\n"
-                   << "  class IBAMR::StaggeredStokesProjectionPreconditioner requires a zero initial guess" << std::endl);
+        TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
+                   << "  class IBAMR::StaggeredStokesProjectionPreconditioner requires a zero "
+                      "initial guess" << std::endl);
     }
     return;
-}// setInitialGuessNonzero
+} // setInitialGuessNonzero
 
-void
-StaggeredStokesProjectionPreconditioner::setMaxIterations(
-    int max_iterations)
+void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
-        TBOX_ERROR(d_object_name+"::setMaxIterations()\n"
-                   << "  class IBAMR::StaggeredStokesProjectionPreconditioner only performs a single iteration" << std::endl);
+        TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
+                   << "  class IBAMR::StaggeredStokesProjectionPreconditioner only performs a "
+                      "single iteration" << std::endl);
     }
     return;
-}// setMaxIterations
+} // setMaxIterations
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -409,6 +447,6 @@ StaggeredStokesProjectionPreconditioner::setMaxIterations(
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

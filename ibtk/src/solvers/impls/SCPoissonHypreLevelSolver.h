@@ -42,6 +42,7 @@
 #include "HYPRE_sstruct_ls.h"
 #include "HYPRE_sstruct_mv.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "_hypre_sstruct_mv.h"
 #include "ibtk/LinearSolver.h"
@@ -49,14 +50,19 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace pdat {
-template <int DIM, class TYPE> class SideData;
-}  // namespace pdat
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace pdat
+{
+template <int DIM, class TYPE>
+class SideData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -94,38 +100,41 @@ namespace IBTK
  * values): \verbatim
 
  enable_logging = FALSE         // see setLoggingEnabled()
- solver_type = "Split"          // choices are: "Split", "SysPFMG", "PCG", "GMRES", "FlexGMRES" , "LGMRES", "BiCGSTAB"
+ solver_type = "Split"          // choices are: "Split", "SysPFMG", "PCG", "GMRES", "FlexGMRES"
+ ,
+ "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "Split", "SysPFMG"
  split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
  max_iterations = 25            // see setMaxIterations()
- abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov solvers)
+ abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov
+ solvers)
  rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
  initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
  rel_change = 0                 // see hypre User's Manual (only used by SysPFMG or PCG solver)
  num_pre_relax_steps = 1        // number of pre-sweeps (only used by SysPFMG solver)
  num_post_relax_steps = 1       // number of post-sweeps (only used by SysPFMG solver)
- relax_type = 1                 // see hypre User's Manual (only used by SysPFMG solver or preconditioner)
- skip_relax = 1                 // see hypre User's Manual (only used by SysPFMG solver or preconditioner)
+ relax_type = 1                 // see hypre User's Manual (only used by SysPFMG solver or
+ preconditioner)
+ skip_relax = 1                 // see hypre User's Manual (only used by SysPFMG solver or
+ preconditioner)
  two_norm = 1                   // see hypre User's Manual (only used by PCG solver)
  \endverbatim
  *
  * \em hypre is developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  For more information about
  * \em hypre, see <A
- * HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
+ *
+ HREF="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</A>.
  */
-class SCPoissonHypreLevelSolver
-    : public LinearSolver,
-      public PoissonSolver
+class SCPoissonHypreLevelSolver : public LinearSolver, public PoissonSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    SCPoissonHypreLevelSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    SCPoissonHypreLevelSolver(const std::string& object_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -136,13 +145,12 @@ public:
      * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
     static SAMRAI::tbox::Pointer<PoissonSolver>
-    allocate_solver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix)
-        {
-            return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
-        }// allocate_solver
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \name Linear solver functionality.
@@ -186,10 +194,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -228,10 +234,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void
-    initializeSolverState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -242,8 +246,7 @@ public:
      *
      * \see initializeSolverState
      */
-    void
-    deallocateSolverState();
+    void deallocateSolverState();
 
     //\}
 
@@ -262,8 +265,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SCPoissonHypreLevelSolver(
-        const SCPoissonHypreLevelSolver& from);
+    SCPoissonHypreLevelSolver(const SCPoissonHypreLevelSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -274,38 +276,24 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonHypreLevelSolver&
-    operator=(
-        const SCPoissonHypreLevelSolver& that);
+    SCPoissonHypreLevelSolver& operator=(const SCPoissonHypreLevelSolver& that);
 
     /*!
      * \brief Functions to allocate, initialize, access, and deallocate hypre
      * data structures.
      */
-    void
-    allocateHypreData();
-    void
-    setMatrixCoefficients();
-    void
-    setupHypreSolver();
-    bool
-    solveSystem(
-        int x_idx,
-        int b_idx);
-    void
-    copyToHypre(
-        HYPRE_SStructVector vector,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > src_data,
-        const SAMRAI::hier::Box<NDIM>& box);
-    void
-    copyFromHypre(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > dst_data,
-        HYPRE_SStructVector vector,
-        const SAMRAI::hier::Box<NDIM>& box);
-    void
-    destroyHypreSolver();
-    void
-    deallocateHypreData();
+    void allocateHypreData();
+    void setMatrixCoefficients();
+    void setupHypreSolver();
+    bool solveSystem(int x_idx, int b_idx);
+    void copyToHypre(HYPRE_SStructVector vector,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src_data,
+                     const SAMRAI::hier::Box<NDIM>& box);
+    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst_data,
+                       HYPRE_SStructVector vector,
+                       const SAMRAI::hier::Box<NDIM>& box);
+    void destroyHypreSolver();
+    void deallocateHypreData();
 
     /*!
      * \brief Associated hierarchy.
@@ -330,12 +318,12 @@ private:
     static const int Y_VAR = 1;
     static const int Z_VAR = 2;
 
-    HYPRE_SStructGrid    d_grid;
+    HYPRE_SStructGrid d_grid;
     HYPRE_SStructStencil d_stencil[NVARS];
-    HYPRE_SStructGraph   d_graph;
-    HYPRE_SStructMatrix  d_matrix;
-    HYPRE_SStructVector  d_rhs_vec, d_sol_vec;
-    HYPRE_SStructSolver  d_solver, d_precond;
+    HYPRE_SStructGraph d_graph;
+    HYPRE_SStructMatrix d_matrix;
+    HYPRE_SStructVector d_rhs_vec, d_sol_vec;
+    HYPRE_SStructSolver d_solver, d_precond;
     std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type, d_split_solver_type;
@@ -346,7 +334,7 @@ private:
     int d_two_norm;
     //\}
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

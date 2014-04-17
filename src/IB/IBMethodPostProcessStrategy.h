@@ -37,17 +37,23 @@
 
 #include "tbox/DescribedClass.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LData;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchHierarchy;
-}  // namespace hier
-namespace tbox {
-template <class TYPE> class Pointer;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace tbox
+{
+template <class TYPE>
+class Pointer;
+} // namespace tbox
+} // namespace SAMRAI
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 namespace IBAMR
@@ -63,8 +69,7 @@ namespace IBAMR
  * \brief Class IBMethodPostProcessStrategy provides a generic interface for
  * specifying post-processing code for use in an IB computation.
  */
-class IBMethodPostProcessStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+class IBMethodPostProcessStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -75,25 +80,23 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~IBMethodPostProcessStrategy();
+    virtual ~IBMethodPostProcessStrategy();
 
     /*!
      * \brief Post-process data on the patch hierarchy.
      */
     virtual void
-    postprocessData(
-        int u_idx,
-        int p_idx,
-        int f_idx,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level_number,
-        int finest_level_number,
-        double data_time,
-        IBMethod* ib_method) = 0;
+    postprocessData(int u_idx,
+                    int p_idx,
+                    int f_idx,
+                    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
+                    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
+                    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                    int coarsest_level_number,
+                    int finest_level_number,
+                    double data_time,
+                    IBMethod* ib_method) = 0;
 
 private:
     /*!
@@ -103,8 +106,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBMethodPostProcessStrategy(
-        const IBMethodPostProcessStrategy& from);
+    IBMethodPostProcessStrategy(const IBMethodPostProcessStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -115,11 +117,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBMethodPostProcessStrategy&
-    operator=(
-        const IBMethodPostProcessStrategy& that);
+    IBMethodPostProcessStrategy& operator=(const IBMethodPostProcessStrategy& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

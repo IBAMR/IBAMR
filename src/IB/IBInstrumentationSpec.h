@@ -43,14 +43,18 @@
 #include "ibtk/StreamableFactory.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,8 +64,7 @@ namespace IBAMR
  * \brief Class IBInstrumentationSpec encapsulates the data required to
  * initialize distributed internal flow meters and pressure gauges.
  */
-class IBInstrumentationSpec
-    : public IBTK::Streamable
+class IBInstrumentationSpec : public IBTK::Streamable
 {
 public:
     /*!
@@ -73,15 +76,13 @@ public:
      * ensure that all processes employ the same class ID for the
      * IBInstrumentationSpec class.
      */
-    static void
-    registerWithStreamableManager();
+    static void registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
      * with the singleton IBTK::StreamableManager object.
      */
-    static bool
-    getIsRegisteredWithStreamableManager();
+    static bool getIsRegisteredWithStreamableManager();
 
     /*!
      * The unique class ID for this object type assigned by the
@@ -92,23 +93,17 @@ public:
     /*!
      * \brief Set the names of the flow meters and pressure gauges.
      */
-    static void
-    setInstrumentNames(
-        const std::vector<std::string>& names);
+    static void setInstrumentNames(const std::vector<std::string>& names);
 
     /*!
      * \brief Get the names of the flow meters and pressure gauges.
      */
-    static const std::vector<std::string>&
-    getInstrumentNames();
+    static const std::vector<std::string>& getInstrumentNames();
 
     /*!
      * \brief Default constructor.
      */
-    IBInstrumentationSpec(
-        int master_idx=-1,
-        int meter_idx=-1,
-        int node_idx=-1);
+    IBInstrumentationSpec(int master_idx = -1, int meter_idx = -1, int node_idx = -1);
 
     /*!
      * \brief Destructor.
@@ -118,64 +113,54 @@ public:
     /*!
      * \return A const reference to the master node index.
      */
-    const int&
-    getMasterNodeIndex() const;
+    const int& getMasterNodeIndex() const;
 
     /*!
      * \return A non-const reference to the master node index.
      */
-    int&
-    getMasterNodeIndex();
+    int& getMasterNodeIndex();
 
     /*!
      * \return A const reference to the meter index associated with the master
      * node.
      */
-    const int&
-    getMeterIndex() const;
+    const int& getMeterIndex() const;
 
     /*!
      * \return A non-const reference to the meter index associated with the
      * master node.
      */
-    int&
-    getMeterIndex();
+    int& getMeterIndex();
 
     /*!
      * \return A const reference to the node index associated with the master
      * node.
      */
-    const int&
-    getNodeIndex() const;
+    const int& getNodeIndex() const;
 
     /*!
      * \return A non-const reference to the node index associated with the master
      * node.
      */
-    int&
-    getNodeIndex();
+    int& getNodeIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    int
-    getStreamableClassID() const;
+    int getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    size_t
-    getDataStreamSize() const;
+    size_t getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::AbstractStream& stream);
 
 private:
     /*!
@@ -185,8 +170,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBInstrumentationSpec(
-        const IBInstrumentationSpec& from);
+    IBInstrumentationSpec(const IBInstrumentationSpec& from);
 
     /*!
      * \brief Assignment operator.
@@ -197,9 +181,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBInstrumentationSpec&
-    operator=(
-        const IBInstrumentationSpec& that);
+    IBInstrumentationSpec& operator=(const IBInstrumentationSpec& that);
 
     /*!
      * The names of the instrument names.
@@ -215,8 +197,7 @@ private:
      * \brief A factory class to rebuild IBInstrumentationSpec objects from
      * SAMRAI::tbox::AbstractStream data streams.
      */
-    class Factory
-        : public IBTK::StreamableFactory
+    class Factory : public IBTK::StreamableFactory
     {
     public:
         /*!
@@ -229,26 +210,22 @@ private:
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBInstrumentationSpec objects from data streams.
          */
-        int
-        getStreamableClassID() const;
+        int getStreamableClassID() const;
 
         /*!
          * \brief Set the unique identifier used to specify the
          * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
          * extract IBInstrumentationSpec objects from data streams.
          */
-        void
-        setStreamableClassID(
-            int class_id);
+        void setStreamableClassID(int class_id);
 
         /*!
          * \brief Build an IBInstrumentationSpec object by unpacking data from
          * the data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(
-            SAMRAI::tbox::AbstractStream& stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset);
+        unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                     const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!
@@ -263,8 +240,7 @@ private:
          *
          * \param from The value to copy to this object.
          */
-        Factory(
-            const Factory& from);
+        Factory(const Factory& from);
 
         /*!
          * \brief Assignment operator.
@@ -275,15 +251,13 @@ private:
          *
          * \return A reference to this object.
          */
-        Factory&
-        operator=(
-            const Factory& that);
+        Factory& operator=(const Factory& that);
 
         friend class IBInstrumentationSpec;
     };
     typedef IBInstrumentationSpec::Factory IBInstrumentationSpecFactory;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 

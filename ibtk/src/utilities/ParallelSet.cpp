@@ -36,7 +36,6 @@
 #include <vector>
 
 #include "ParallelSet.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -49,34 +48,27 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelSet::ParallelSet()
-    : d_set(),
-      d_pending_additions(),
-      d_pending_removals()
+ParallelSet::ParallelSet() : d_set(), d_pending_additions(), d_pending_removals()
 {
     // intentionally blank
     return;
-}// ParallelSet
+} // ParallelSet
 
-ParallelSet::ParallelSet(
-    const ParallelSet& from)
-    : d_set(from.d_set),
-      d_pending_additions(from.d_pending_additions),
+ParallelSet::ParallelSet(const ParallelSet& from)
+    : d_set(from.d_set), d_pending_additions(from.d_pending_additions),
       d_pending_removals(from.d_pending_removals)
 {
     // intentionally blank
     return;
-}// ParallelSet
+} // ParallelSet
 
 ParallelSet::~ParallelSet()
 {
     // intentionally blank
     return;
-}// ~ParallelSet
+} // ~ParallelSet
 
-ParallelSet&
-ParallelSet::operator=(
-    const ParallelSet& that)
+ParallelSet& ParallelSet::operator=(const ParallelSet& that)
 {
     if (this != &that)
     {
@@ -85,26 +77,21 @@ ParallelSet::operator=(
         d_pending_removals = that.d_pending_removals;
     }
     return *this;
-}// operator=
+} // operator=
 
-void
-ParallelSet::addItem(
-    const int key)
+void ParallelSet::addItem(const int key)
 {
     d_pending_additions.push_back(key);
     return;
-}// addItem
+} // addItem
 
-void
-ParallelSet::removeItem(
-    const int key)
+void ParallelSet::removeItem(const int key)
 {
     d_pending_removals.push_back(key);
     return;
-}// removeItem
+} // removeItem
 
-void
-ParallelSet::communicateData()
+void ParallelSet::communicateData()
 {
     const int size = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
@@ -114,7 +101,7 @@ ParallelSet::communicateData()
     {
         // Determine how many keys have been registered for addition on each
         // process.
-        std::vector<int> num_additions(size,0);
+        std::vector<int> num_additions(size, 0);
         num_additions[rank] = d_pending_additions.size();
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
@@ -125,7 +112,7 @@ ParallelSet::communicateData()
             if (num_keys == 0) continue;
             if (sending_proc == rank)
             {
-                // Pack and broadcast data on process sending_proc.
+// Pack and broadcast data on process sending_proc.
 #if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
 #endif
@@ -156,7 +143,7 @@ ParallelSet::communicateData()
     {
         // Determine how many keys have been registered for removal on each
         // process.
-        std::vector<int> num_removals(size,0);
+        std::vector<int> num_removals(size, 0);
         num_removals[rank] = d_pending_removals.size();
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
@@ -167,7 +154,7 @@ ParallelSet::communicateData()
             if (num_keys == 0) continue;
             if (sending_proc == rank)
             {
-                // Pack and broadcast data on process sending_proc.
+// Pack and broadcast data on process sending_proc.
 #if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
@@ -193,13 +180,12 @@ ParallelSet::communicateData()
         d_pending_removals.clear();
     }
     return;
-}// communicateData
+} // communicateData
 
-const std::set<int>&
-ParallelSet::getSet() const
+const std::set<int>& ParallelSet::getSet() const
 {
     return d_set;
-}// getSet
+} // getSet
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

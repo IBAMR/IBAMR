@@ -33,10 +33,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <cmath>
-#include <fstream>
-#include <ios>
-#include <iosfwd>
-#include <memory>
 #include <ostream>
 
 #include "Box.h"
@@ -58,8 +54,8 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "boost/multi_array.hpp"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -73,13 +69,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool
-DebuggingUtilities::checkCellDataForNaNs(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const bool interior_only,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
+                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const bool interior_only,
+                                              const int coarsest_ln_in,
+                                              const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -91,44 +85,44 @@ DebuggingUtilities::checkCellDataForNaNs(
         {
             const int patch_num = p();
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<CellData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<CellData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box<NDIM>& data_box =
+                interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(data_box); it; it++)
             {
                 const Index<NDIM>& i = it();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
-                    if ((*patch_data)(i,d) != (*patch_data)(i,d) || std::isnan((*patch_data)(i,d)))
+                    if ((*patch_data)(i, d) != (*patch_data)(i, d) ||
+                        std::isnan((*patch_data)(i, d)))
                     {
                         ++num_nans;
                         plog << "found NaN!\n"
                              << "level number = " << ln << "\n"
                              << "index = " << i << "\n"
                              << "depth = " << d << "\n"
-                             << "data value = " << (*patch_data)(i,d) << std::endl;
+                             << "data value = " << (*patch_data)(i, d) << std::endl;
                     }
-                    if (std::abs((*patch_data)(i,d)) > 1.0e12)
+                    if (std::abs((*patch_data)(i, d)) > 1.0e12)
                     {
                         plog << "found large value!\n"
                              << "level number = " << ln << "\n"
                              << "index = " << i << "\n"
                              << "depth = " << d << "\n"
-                             << "data value = " << (*patch_data)(i,d) << std::endl;
+                             << "data value = " << (*patch_data)(i, d) << std::endl;
                     }
                 }
             }
         }
     }
     return SAMRAI_MPI::minReduction(num_nans) > 0;
-}// checkCellDataForNaNs
+} // checkCellDataForNaNs
 
-bool
-DebuggingUtilities::checkFaceDataForNaNs(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const bool interior_only,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
+                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const bool interior_only,
+                                              const int coarsest_ln_in,
+                                              const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -140,32 +134,35 @@ DebuggingUtilities::checkFaceDataForNaNs(
         {
             const int patch_num = p();
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<FaceData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<FaceData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box<NDIM>& data_box =
+                interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box,axis)); it; it++)
+                for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box, axis)); it;
+                     it++)
                 {
                     const Index<NDIM>& i = it();
                     const FaceIndex<NDIM> i_f(i, axis, FaceIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
-                        if ((*patch_data)(i_f,d) != (*patch_data)(i_f,d) || std::isnan((*patch_data)(i_f,d)))
+                        if ((*patch_data)(i_f, d) != (*patch_data)(i_f, d) ||
+                            std::isnan((*patch_data)(i_f, d)))
                         {
                             ++num_nans;
                             plog << "found NaN!\n"
                                  << "level number = " << ln << "\n"
                                  << "index = " << i << "\n"
                                  << "depth = " << d << "\n"
-                                 << "data value = " << (*patch_data)(i_f,d) << std::endl;
+                                 << "data value = " << (*patch_data)(i_f, d) << std::endl;
                         }
-                        if (std::abs((*patch_data)(i_f,d)) > 1.0e12)
+                        if (std::abs((*patch_data)(i_f, d)) > 1.0e12)
                         {
                             plog << "found large value!\n"
                                  << "level number = " << ln << "\n"
                                  << "index = " << i << "\n"
                                  << "depth = " << d << "\n"
-                                 << "data value = " << (*patch_data)(i_f,d) << std::endl;
+                                 << "data value = " << (*patch_data)(i_f, d) << std::endl;
                         }
                     }
                 }
@@ -173,15 +170,13 @@ DebuggingUtilities::checkFaceDataForNaNs(
         }
     }
     return SAMRAI_MPI::minReduction(num_nans) > 0;
-}// checkFaceDataForNaNs
+} // checkFaceDataForNaNs
 
-bool
-DebuggingUtilities::checkNodeDataForNaNs(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const bool interior_only,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
+                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const bool interior_only,
+                                              const int coarsest_ln_in,
+                                              const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -193,45 +188,45 @@ DebuggingUtilities::checkNodeDataForNaNs(
         {
             const int patch_num = p();
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<NodeData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<NodeData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box<NDIM>& data_box =
+                interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(data_box)); it; it++)
             {
                 const Index<NDIM>& i = it();
-                const NodeIndex<NDIM> i_n(i,0);
+                const NodeIndex<NDIM> i_n(i, 0);
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
-                    if ((*patch_data)(i_n,d) != (*patch_data)(i_n,d) || std::isnan((*patch_data)(i_n,d)))
+                    if ((*patch_data)(i_n, d) != (*patch_data)(i_n, d) ||
+                        std::isnan((*patch_data)(i_n, d)))
                     {
                         ++num_nans;
                         plog << "found NaN!\n"
                              << "level number = " << ln << "\n"
                              << "index = " << i << "\n"
                              << "depth = " << d << "\n"
-                             << "data value = " << (*patch_data)(i_n,d) << std::endl;
+                             << "data value = " << (*patch_data)(i_n, d) << std::endl;
                     }
-                    if (std::abs((*patch_data)(i_n,d)) > 1.0e12)
+                    if (std::abs((*patch_data)(i_n, d)) > 1.0e12)
                     {
                         plog << "found large value!\n"
                              << "level number = " << ln << "\n"
                              << "index = " << i << "\n"
                              << "depth = " << d << "\n"
-                             << "data value = " << (*patch_data)(i_n,d) << std::endl;
+                             << "data value = " << (*patch_data)(i_n, d) << std::endl;
                     }
                 }
             }
         }
     }
     return SAMRAI_MPI::minReduction(num_nans) > 0;
-}// checkNodeDataForNaNs
+} // checkNodeDataForNaNs
 
-bool
-DebuggingUtilities::checkSideDataForNaNs(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const bool interior_only,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
+                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const bool interior_only,
+                                              const int coarsest_ln_in,
+                                              const int finest_ln_in)
 {
     int num_nans = 0;
     const int coarsest_ln = coarsest_ln_in < 0 ? 0 : coarsest_ln_in;
@@ -243,32 +238,35 @@ DebuggingUtilities::checkSideDataForNaNs(
         {
             const int patch_num = p();
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<SideData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<SideData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box<NDIM>& data_box =
+                interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box,axis)); it; it++)
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box, axis)); it;
+                     it++)
                 {
                     const Index<NDIM>& i = it();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
-                        if ((*patch_data)(i_s,d) != (*patch_data)(i_s,d) || std::isnan((*patch_data)(i_s,d)))
+                        if ((*patch_data)(i_s, d) != (*patch_data)(i_s, d) ||
+                            std::isnan((*patch_data)(i_s, d)))
                         {
                             ++num_nans;
                             plog << "found NaN!\n"
                                  << "level number = " << ln << "\n"
                                  << "index = " << i << "\n"
                                  << "depth = " << d << "\n"
-                                 << "data value = " << (*patch_data)(i_s,d) << std::endl;
+                                 << "data value = " << (*patch_data)(i_s, d) << std::endl;
                         }
-                        if (std::abs((*patch_data)(i_s,d)) > 1.0e12)
+                        if (std::abs((*patch_data)(i_s, d)) > 1.0e12)
                         {
                             plog << "found large value!\n"
                                  << "level number = " << ln << "\n"
                                  << "index = " << i << "\n"
                                  << "depth = " << d << "\n"
-                                 << "data value = " << (*patch_data)(i_s,d) << std::endl;
+                                 << "data value = " << (*patch_data)(i_s, d) << std::endl;
                         }
                     }
                 }
@@ -276,19 +274,17 @@ DebuggingUtilities::checkSideDataForNaNs(
         }
     }
     return SAMRAI_MPI::minReduction(num_nans) > 0;
-}// checkSideDataForNaNs
+} // checkSideDataForNaNs
 
-void
-DebuggingUtilities::saveCellData(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const std::string& filename,
-    const std::string& dirname)
+void DebuggingUtilities::saveCellData(const int patch_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const std::string& filename,
+                                      const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
-    while (truncated_dirname[truncated_dirname.size()-1] == '/')
+    while (truncated_dirname[truncated_dirname.size() - 1] == '/')
     {
-        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size()-1);
+        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size() - 1);
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
@@ -306,23 +302,33 @@ DebuggingUtilities::saveCellData(
                     const int patch_num = p();
                     Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM,double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<CellData<NDIM, double> > data =
+                        patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' + Utilities::patchToString(patch_num);
-                    std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+                    const std::string patch_filename = truncated_dirname + '/' + filename +
+                                                       '_' + Utilities::levelToString(ln) +
+                                                       '_' +
+                                                       Utilities::patchToString(patch_num);
+                    std::ofstream of(patch_filename.c_str(),
+                                     std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),
+                                 sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),
+                                 sizeof(int));
                     }
                     const int depth = data->getDepth();
-                    of.write(reinterpret_cast<const char*>(&depth),sizeof(int));
+                    of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(patch_box)); it; it++)
+                        for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(patch_box));
+                             it;
+                             it++)
                         {
                             const CellIndex<NDIM> i(it());
-                            of.write(reinterpret_cast<const char*>(&(*data)(i,d)),sizeof(double));
+                            of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
+                                     sizeof(double));
                         }
                     }
                     of.close();
@@ -332,19 +338,17 @@ DebuggingUtilities::saveCellData(
         SAMRAI_MPI::barrier();
     }
     return;
-}// saveCellData
+} // saveCellData
 
-void
-DebuggingUtilities::saveFaceData(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const std::string& filename,
-    const std::string& dirname)
+void DebuggingUtilities::saveFaceData(const int patch_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const std::string& filename,
+                                      const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
-    while (truncated_dirname[truncated_dirname.size()-1] == '/')
+    while (truncated_dirname[truncated_dirname.size() - 1] == '/')
     {
-        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size()-1);
+        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size() - 1);
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
@@ -362,25 +366,36 @@ DebuggingUtilities::saveFaceData(
                     const int patch_num = p();
                     Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<FaceData<NDIM,double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<FaceData<NDIM, double> > data =
+                        patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' + Utilities::patchToString(patch_num);
-                    std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+                    const std::string patch_filename = truncated_dirname + '/' + filename +
+                                                       '_' + Utilities::levelToString(ln) +
+                                                       '_' +
+                                                       Utilities::patchToString(patch_num);
+                    std::ofstream of(patch_filename.c_str(),
+                                     std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),
+                                 sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),
+                                 sizeof(int));
                     }
                     const int depth = data->getDepth();
-                    of.write(reinterpret_cast<const char*>(&depth),sizeof(int));
+                    of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (unsigned int face = 0; face < NDIM; ++face)
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(patch_box,face)); it; it++)
+                            for (Box<NDIM>::Iterator it(
+                                     FaceGeometry<NDIM>::toFaceBox(patch_box, face));
+                                 it;
+                                 it++)
                             {
-                                const FaceIndex<NDIM> i(it(),face,FaceIndex<NDIM>::Lower);
-                                of.write(reinterpret_cast<const char*>(&(*data)(i,d)),sizeof(double));
+                                const FaceIndex<NDIM> i(it(), face, FaceIndex<NDIM>::Lower);
+                                of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
+                                         sizeof(double));
                             }
                         }
                     }
@@ -391,19 +406,17 @@ DebuggingUtilities::saveFaceData(
         SAMRAI_MPI::barrier();
     }
     return;
-}// saveFaceData
+} // saveFaceData
 
-void
-DebuggingUtilities::saveNodeData(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const std::string& filename,
-    const std::string& dirname)
+void DebuggingUtilities::saveNodeData(const int patch_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const std::string& filename,
+                                      const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
-    while (truncated_dirname[truncated_dirname.size()-1] == '/')
+    while (truncated_dirname[truncated_dirname.size() - 1] == '/')
     {
-        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size()-1);
+        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size() - 1);
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
@@ -421,23 +434,33 @@ DebuggingUtilities::saveNodeData(
                     const int patch_num = p();
                     Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<NodeData<NDIM,double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<NodeData<NDIM, double> > data =
+                        patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' + Utilities::patchToString(patch_num);
-                    std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+                    const std::string patch_filename = truncated_dirname + '/' + filename +
+                                                       '_' + Utilities::levelToString(ln) +
+                                                       '_' +
+                                                       Utilities::patchToString(patch_num);
+                    std::ofstream of(patch_filename.c_str(),
+                                     std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),
+                                 sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),
+                                 sizeof(int));
                     }
                     const int depth = data->getDepth();
-                    of.write(reinterpret_cast<const char*>(&depth),sizeof(int));
+                    of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box)); it; it++)
+                        for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box));
+                             it;
+                             it++)
                         {
-                            const NodeIndex<NDIM> i(it(),IntVector<NDIM>(0));
-                            of.write(reinterpret_cast<const char*>(&(*data)(i,d)),sizeof(double));
+                            const NodeIndex<NDIM> i(it(), IntVector<NDIM>(0));
+                            of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
+                                     sizeof(double));
                         }
                     }
                     of.close();
@@ -447,19 +470,17 @@ DebuggingUtilities::saveNodeData(
         SAMRAI_MPI::barrier();
     }
     return;
-}// saveNodeData
+} // saveNodeData
 
-void
-DebuggingUtilities::saveSideData(
-    const int patch_data_idx,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const std::string& filename,
-    const std::string& dirname)
+void DebuggingUtilities::saveSideData(const int patch_data_idx,
+                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const std::string& filename,
+                                      const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
-    while (truncated_dirname[truncated_dirname.size()-1] == '/')
+    while (truncated_dirname[truncated_dirname.size() - 1] == '/')
     {
-        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size()-1);
+        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size() - 1);
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
@@ -477,25 +498,36 @@ DebuggingUtilities::saveSideData(
                     const int patch_num = p();
                     Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
                     const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM,double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<SideData<NDIM, double> > data =
+                        patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' + Utilities::patchToString(patch_num);
-                    std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+                    const std::string patch_filename = truncated_dirname + '/' + filename +
+                                                       '_' + Utilities::levelToString(ln) +
+                                                       '_' +
+                                                       Utilities::patchToString(patch_num);
+                    std::ofstream of(patch_filename.c_str(),
+                                     std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)),
+                                 sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)),
+                                 sizeof(int));
                     }
                     const int depth = data->getDepth();
-                    of.write(reinterpret_cast<const char*>(&depth),sizeof(int));
+                    of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (unsigned int side = 0; side < NDIM; ++side)
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box,side)); it; it++)
+                            for (Box<NDIM>::Iterator it(
+                                     SideGeometry<NDIM>::toSideBox(patch_box, side));
+                                 it;
+                                 it++)
                             {
-                                const SideIndex<NDIM> i(it(),side,SideIndex<NDIM>::Lower);
-                                of.write(reinterpret_cast<const char*>(&(*data)(i,d)),sizeof(double));
+                                const SideIndex<NDIM> i(it(), side, SideIndex<NDIM>::Lower);
+                                of.write(reinterpret_cast<const char*>(&(*data)(i, d)),
+                                         sizeof(double));
                             }
                         }
                     }
@@ -506,51 +538,55 @@ DebuggingUtilities::saveSideData(
         SAMRAI_MPI::barrier();
     }
     return;
-}// saveSideData
+} // saveSideData
 
-void
-DebuggingUtilities::saveLagrangianData(
-    const Pointer<LData> lag_data,
-    const bool save_ghost_nodes,
-    const std::string& filename,
-    const std::string& dirname)
+void DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
+                                            const bool save_ghost_nodes,
+                                            const std::string& filename,
+                                            const std::string& dirname)
 {
     std::string truncated_dirname = dirname;
-    while (truncated_dirname[truncated_dirname.size()-1] == '/')
+    while (truncated_dirname[truncated_dirname.size() - 1] == '/')
     {
-        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size()-1);
+        truncated_dirname = std::string(truncated_dirname, truncated_dirname.size() - 1);
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const boost::multi_array_ref<double,2>& array_data = *lag_data->getGhostedLocalFormVecArray();
+    const boost::multi_array_ref<double, 2>& array_data =
+        *lag_data->getGhostedLocalFormVecArray();
     const int rank = SAMRAI_MPI::getRank();
     const int nodes = SAMRAI_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
         {
-            const std::string data_filename = truncated_dirname + '/' + filename + '_' + Utilities::processorToString(n);
-            std::ofstream of(data_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+            const std::string data_filename =
+                truncated_dirname + '/' + filename + '_' + Utilities::processorToString(n);
+            std::ofstream of(data_filename.c_str(),
+                             std::ios::out | std::ios::trunc | std::ios::binary);
             const int depth = lag_data->getDepth();
-            of.write(reinterpret_cast<const char*>(&depth),sizeof(int));
+            of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
             const int num_local_nodes = lag_data->getLocalNodeCount();
-            of.write(reinterpret_cast<const char*>(&num_local_nodes),sizeof(int));
+            of.write(reinterpret_cast<const char*>(&num_local_nodes), sizeof(int));
             for (int i = 0; i < num_local_nodes; ++i)
             {
                 for (int d = 0; d < depth; ++d)
                 {
-                    of.write(reinterpret_cast<const char*>(&(array_data[i][d])),sizeof(double));
+                    of.write(reinterpret_cast<const char*>(&(array_data[i][d])),
+                             sizeof(double));
                 }
             }
             if (save_ghost_nodes)
             {
                 const int num_ghost_nodes = lag_data->getGhostNodeCount();
-                of.write(reinterpret_cast<const char*>(&num_ghost_nodes),sizeof(int));
+                of.write(reinterpret_cast<const char*>(&num_ghost_nodes), sizeof(int));
                 for (int i = 0; i < num_ghost_nodes; ++i)
                 {
                     for (int d = 0; d < depth; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&(array_data[i+num_local_nodes][d])),sizeof(double));
+                        of.write(reinterpret_cast<const char*>(
+                                     &(array_data[i + num_local_nodes][d])),
+                                 sizeof(double));
                     }
                 }
             }
@@ -560,7 +596,7 @@ DebuggingUtilities::saveLagrangianData(
     }
     lag_data->restoreArrays();
     return;
-}// saveLagrangianData
+} // saveLagrangianData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -568,6 +604,6 @@ DebuggingUtilities::saveLagrangianData(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

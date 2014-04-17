@@ -35,8 +35,8 @@
 #include <utility>
 #include <vector>
 
+#include "Eigen/Core"
 #include "IBBeamForceSpec.h"
-#include "boost/array.hpp"
 #include "ibamr/IBBeamForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
@@ -44,11 +44,14 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -61,51 +64,46 @@ IBBeamForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBBeamForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBBeamForceSpec::Factory::getStreamableClassID() const
+int IBBeamForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBBeamForceSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
-Pointer<Streamable>
-IBBeamForceSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream,
+                                                           const IntVector<NDIM>& /*offset*/)
 {
     int num_beams;
-    stream.unpack(&num_beams,1);
+    stream.unpack(&num_beams, 1);
     Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
-    stream.unpack(&ret_val->d_master_idx,1);
-    std::vector<int> tmp_neighbor_idxs(2*num_beams);
-    stream.unpack(&tmp_neighbor_idxs[0],2*num_beams);
+    stream.unpack(&ret_val->d_master_idx, 1);
+    std::vector<int> tmp_neighbor_idxs(2 * num_beams);
+    stream.unpack(&tmp_neighbor_idxs[0], 2 * num_beams);
     for (int k = 0; k < num_beams; ++k)
     {
-        ret_val->d_neighbor_idxs[k].first  = tmp_neighbor_idxs[2*k  ];
-        ret_val->d_neighbor_idxs[k].second = tmp_neighbor_idxs[2*k+1];
+        ret_val->d_neighbor_idxs[k].first = tmp_neighbor_idxs[2 * k];
+        ret_val->d_neighbor_idxs[k].second = tmp_neighbor_idxs[2 * k + 1];
     }
-    stream.unpack(&ret_val->d_bend_rigidities[0],num_beams);
+    stream.unpack(&ret_val->d_bend_rigidities[0], num_beams);
     for (int k = 0; k < num_beams; ++k)
     {
-        stream.unpack(ret_val->d_mesh_dependent_curvatures[k].data(),NDIM);
+        stream.unpack(ret_val->d_mesh_dependent_curvatures[k].data(), NDIM);
     }
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

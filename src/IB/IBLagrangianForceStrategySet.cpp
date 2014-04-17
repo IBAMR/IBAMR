@@ -33,14 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBLagrangianForceStrategySet.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LDataManager;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -54,38 +56,40 @@ IBLagrangianForceStrategySet::~IBLagrangianForceStrategySet()
 {
     // intentionally blank
     return;
-}// ~IBLagrangianForceStrategySet
+} // ~IBLagrangianForceStrategySet
 
-void
-IBLagrangianForceStrategySet::setTimeInterval(
-    const double current_time,
-    const double new_time)
+void IBLagrangianForceStrategySet::setTimeInterval(const double current_time,
+                                                   const double new_time)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->setTimeInterval(current_time, new_time);
     }
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-void
-IBLagrangianForceStrategySet::initializeLevelData(
+void IBLagrangianForceStrategySet::initializeLevelData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
     LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->initializeLevelData(
             hierarchy, level_number, init_data_time, initial_time, l_data_manager);
     }
     return;
-}// initializeLevelData
+} // initializeLevelData
 
-void
-IBLagrangianForceStrategySet::computeLagrangianForce(
+void IBLagrangianForceStrategySet::computeLagrangianForce(
     Pointer<LData> F_data,
     Pointer<LData> X_data,
     Pointer<LData> U_data,
@@ -94,32 +98,36 @@ IBLagrangianForceStrategySet::computeLagrangianForce(
     const double data_time,
     LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->computeLagrangianForce(
             F_data, X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
     }
     return;
-}// computeLagrangianForce
+} // computeLagrangianForce
 
-void
-IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
+void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
         (*cit)->computeLagrangianForceJacobianNonzeroStructure(
             d_nnz, o_nnz, hierarchy, level_number, l_data_manager);
     }
     return;
-}// computeLagrangianForceJacobianNonzeroStructure
+} // computeLagrangianForceJacobianNonzeroStructure
 
-void
-IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
+void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
@@ -131,22 +139,34 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     const double data_time,
     LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        (*cit)->computeLagrangianForceJacobian(
-            J_mat, MAT_FLUSH_ASSEMBLY, X_coef, X_data, U_coef, U_data, hierarchy, level_number, data_time, l_data_manager);
+        (*cit)->computeLagrangianForceJacobian(J_mat,
+                                               MAT_FLUSH_ASSEMBLY,
+                                               X_coef,
+                                               X_data,
+                                               U_coef,
+                                               U_data,
+                                               hierarchy,
+                                               level_number,
+                                               data_time,
+                                               l_data_manager);
     }
     if (assembly_type != MAT_FLUSH_ASSEMBLY)
     {
         int ierr;
-        ierr = MatAssemblyBegin(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
-        ierr = MatAssemblyEnd(J_mat, assembly_type);  IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyBegin(J_mat, assembly_type);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(J_mat, assembly_type);
+        IBTK_CHKERRQ(ierr);
     }
     return;
-}// computeLagrangianForceJacobian
+} // computeLagrangianForceJacobian
 
-double
-IBLagrangianForceStrategySet::computeLagrangianEnergy(
+double IBLagrangianForceStrategySet::computeLagrangianEnergy(
     Pointer<LData> X_data,
     Pointer<LData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -155,12 +175,16 @@ IBLagrangianForceStrategySet::computeLagrangianEnergy(
     LDataManager* const l_data_manager)
 {
     double ret_val = 0.0;
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit =
+             d_strategy_set.begin();
+         cit != d_strategy_set.end();
+         ++cit)
     {
-        ret_val += (*cit)->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
+        ret_val += (*cit)->computeLagrangianEnergy(
+            X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
     }
     return ret_val;
-}// computeLagrangianEnergy
+} // computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -39,18 +39,22 @@
 #include "ArrayData.h"
 #include "INSIntermediateVelocityBcCoef.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoundaryBox;
-template <int DIM> class Patch;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+template <int DIM>
+class BoundaryBox;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -64,22 +68,20 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     const int comp_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_comp_idx(comp_idx),
-      d_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
+    : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-}// INSIntermediateVelocityBcCoef
+} // INSIntermediateVelocityBcCoef
 
 INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 {
     // intentionally blank
     return;
-}// ~INSIntermediateVelocityBcCoef
+} // ~INSIntermediateVelocityBcCoef
 
-void
-INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
+void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
@@ -87,72 +89,64 @@ INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
 #endif
     d_bc_coefs = bc_coefs;
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-INSIntermediateVelocityBcCoef::setSolutionTime(
-    double /*solution_time*/)
+void INSIntermediateVelocityBcCoef::setSolutionTime(double /*solution_time*/)
 {
     // intentionally blank
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-void
-INSIntermediateVelocityBcCoef::setTimeInterval(
-    double /*current_time*/,
-    double /*new_time*/)
+void INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/,
+                                                    double /*new_time*/)
 {
     // intentionally blank
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-void
-INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(
-    int target_idx)
+void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
 {
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
+            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
-}// setTargetPatchDataIndex
+} // setTargetPatchDataIndex
 
-void
-INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
+void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
 {
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
+            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-}// clearTargetPatchDataIndex
+} // clearTargetPatchDataIndex
 
-void
-INSIntermediateVelocityBcCoef::setHomogeneousBc(
-    bool homogeneous_bc)
+void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
+            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-void
-INSIntermediateVelocityBcCoef::setBcCoefs(
-    Pointer<ArrayData<NDIM,double> >& acoef_data,
-    Pointer<ArrayData<NDIM,double> >& bcoef_data,
-    Pointer<ArrayData<NDIM,double> >& gcoef_data,
-    const Pointer<Variable<NDIM> >& variable,
-    const Patch<NDIM>& patch,
-    const BoundaryBox<NDIM>& bdry_box,
-    double fill_time) const
+void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
+                                               Pointer<ArrayData<NDIM, double> >& bcoef_data,
+                                               Pointer<ArrayData<NDIM, double> >& gcoef_data,
+                                               const Pointer<Variable<NDIM> >& variable,
+                                               const Patch<NDIM>& patch,
+                                               const BoundaryBox<NDIM>& bdry_box,
+                                               double fill_time) const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -161,13 +155,13 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
-}// setBcCoefs
+} // setBcCoefs
 
-IntVector<NDIM>
-INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
+IntVector<NDIM> INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -181,7 +175,7 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
         ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
-}// numberOfExtensionsFillable
+} // numberOfExtensionsFillable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -189,6 +183,6 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

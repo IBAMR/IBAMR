@@ -37,15 +37,19 @@
 
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "tbox/Pointer.h"
 #include "tbox/Schedule.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchData;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchData;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -63,18 +67,16 @@ public:
     /*!
      * \brief Constructor
      */
-    CopyToRootSchedule(
-        int root_proc,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        int src_patch_data_idx);
+    CopyToRootSchedule(int root_proc,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                       int src_patch_data_idx);
 
     /*!
      * \brief Constructor
      */
-    CopyToRootSchedule(
-        int root_proc,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        const std::vector<int>& src_patch_data_idxs);
+    CopyToRootSchedule(int root_proc,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                       const std::vector<int>& src_patch_data_idxs);
 
     /*!
      * \brief Destructor
@@ -84,8 +86,7 @@ public:
     /*!
      * \brief Communicate data.
      */
-    void
-    communicate();
+    void communicate();
 
     /*!
      * \brief Get unified patch data.
@@ -110,8 +111,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CopyToRootSchedule(
-        const CopyToRootSchedule& from);
+    CopyToRootSchedule(const CopyToRootSchedule& from);
 
     /*!
      * \brief Assignment operator.
@@ -122,12 +122,9 @@ private:
      *
      * \return A reference to this object.
      */
-    CopyToRootSchedule&
-    operator=(
-        const CopyToRootSchedule& that);
+    CopyToRootSchedule& operator=(const CopyToRootSchedule& that);
 
-    void
-    commonClassCtor();
+    void commonClassCtor();
 
     const int d_root_proc;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_patch_level;
@@ -135,7 +132,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > > d_root_patch_data;
     SAMRAI::tbox::Schedule d_schedule;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

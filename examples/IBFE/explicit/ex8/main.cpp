@@ -46,7 +46,6 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
-#include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -64,10 +63,8 @@
 // Elasticity model data.
 namespace ModelData
 {
-static double block_kappa_s = 1.0e6;
-static double beam_kappa_s  = 1.0e6;
-
 // Tether (penalty) force function for the solid blocks.
+static double block_kappa_s = 1.0e6;
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -84,6 +81,7 @@ block_tether_force_function(
 }// block_tether_force_function
 
 // Tether (penalty) force function for the thin beam.
+static double beam_kappa_s = 1.0e6;
 void
 beam_tether_force_function(
     VectorValue<double>& F,
@@ -91,11 +89,19 @@ beam_tether_force_function(
     const libMesh::Point& X,
     const libMesh::Point& s,
     Elem* const /*elem*/,
+    const unsigned short int side,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    F = beam_kappa_s*(s-X);
+    if (side == 1 || side == 3)
+    {
+        F = beam_kappa_s*(s-X);
+    }
+    else
+    {
+        F.zero();
+    }
     return;
 }// beam_tether_force_function
 
@@ -112,10 +118,12 @@ beam_PK1_dev_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    PP = mu_s*FF;
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    PP = mu_s*(FF-FF_inv_trans);
     return;
 }// beam_PK1_dev_stress_function
 
+double J_dil_min, J_dil_max;
 void
 beam_PK1_dil_stress_function(
     TensorValue<double>& PP,
@@ -127,11 +135,14 @@ beam_PK1_dil_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = -mu_s*FF_inv_trans;
+    double J = FF.det();
+    J_dil_min = std::min(J, J_dil_min);
+    J_dil_max = std::max(J, J_dil_max);
+    PP.zero();
     if (!MathUtilities<double>::equalEps(beta_s, 0.0))
     {
-        PP += 2.0*beta_s*log(FF.det())*FF_inv_trans;
+        const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+        PP -= 2.0*beta_s*log(FF.det())*FF_inv_trans;
     }
     return;
 }// beam_PK1_dil_stress_function
@@ -155,30 +166,30 @@ compute_deformed_length(
     EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
     AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
-    DofMap& X_dof_map = X_system.get_dof_map();
-    vector<unsigned int> vars(2);
-    vars[0] = 0; vars[1] = 1;
-    MeshFunction X_fcn(*equation_systems, *X_serial_vec, X_dof_map, vars);
-    X_fcn.init();
 
     // Get the current positions of the points.
-    std::vector<DenseVector<double> > points;
+    std::vector<IBTK::Point> points;
     points.reserve(nodes.size());
-    DenseVector<double> p(2);
+    IBTK::Point p;
     for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-        X_fcn(**it, 0.0, p);
+        Node* node = *it;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p(d) = (*X_serial_vec)(node->dof_number(X_sys_num, d, 0));
+        }
         points.push_back(p);
     }
 
     // Compute the length of the center line.
-    DenseVector<double> p0(2), p1(2);
+    IBTK::Point p0, p1;
     double l = 0.0;
-    std::vector<DenseVector<double> >::iterator it = points.begin();
+    std::vector<IBTK::Point>::iterator it = points.begin();
     p0 = *it;
     ++it;
     for ( ; it != points.end(); ++it)
@@ -202,31 +213,31 @@ compute_displaced_area(
     EquationSystems* equation_systems)
 {
     System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
     AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
     X_vec->localize(*X_serial_vec);
-    DofMap& X_dof_map = X_system.get_dof_map();
-    vector<unsigned int> vars(2);
-    vars[0] = 0; vars[1] = 1;
-    MeshFunction X_fcn(*equation_systems, *X_serial_vec, X_dof_map, vars);
-    X_fcn.init();
 
     // Get the current positions of the points.
-    std::vector<DenseVector<double> > points;
+    std::vector<IBTK::Point> points;
     points.reserve(nodes.size());
-    DenseVector<double> p(2);
+    IBTK::Point p;
     for (typename node_set::iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-        X_fcn(**it, 0.0, p);
+        Node* node = *it;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p(d) = (*X_serial_vec)(node->dof_number(X_sys_num, d, 0));
+        }
         points.push_back(p);
     }
 
     // Compute the area of the polygon.
-    DenseVector<double> p0(2), p1(2);
+    IBTK::Point p0, p1;
     double A2 = 0.0;
     p0 = *points.rbegin();
-    for (std::vector<DenseVector<double> >::iterator it = points.begin(); it != points.end(); ++it)
+    for (std::vector<IBTK::Point>::iterator it = points.begin(); it != points.end(); ++it)
     {
         p1 = *it;
         A2 += p0(0)*p1(1) - p0(1)*p1(0);
@@ -298,6 +309,11 @@ compute_inflow_flux(
     SAMRAI_MPI::sumReduction(&Q_in,1);
     return Q_in;
 }
+
+inline double cheby(double t, double a, double b)
+{
+    return 0.5*(a+b) + 0.5*(a-b)*cos(t*M_PI);
+}
 }
 using namespace ModelData;
 
@@ -320,7 +336,7 @@ main(
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+//  SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
     {// cleanup dynamically allocated objects prior to shutdown
@@ -368,13 +384,61 @@ main(
                                             0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
 
+        // We use Chebyshev points for the beam discretization in order to
+        // cluster nodes near the ends of the beam, where it experiences very
+        // large deformations.
+        const double beam_x_lower = 0.5;
+        const double beam_x_upper = 1.5;
+        int n_beam_x = std::ceil((beam_x_upper-beam_x_lower)/ds_beam);
+        bool beam_use_mapped_grid = input_db->getBoolWithDefault("BEAM_USE_MAPPED_GRID", true);
+        if (beam_use_mapped_grid)
+        {
+            // Determine the number of grid points needed.
+            while (abs(cheby(0.5-0.5/n_beam_x, beam_x_lower, beam_x_upper) -
+                       cheby(0.5+0.5/n_beam_x, beam_x_lower, beam_x_upper)) > ds_beam)
+            {
+                n_beam_x++;
+            }
+        }
+        pout << "number of beam x grid points = " << n_beam_x << "\n";
+        const double beam_y_lower = 0.5 - 0.016;
+        const double beam_y_upper = 0.5;
+        int n_beam_y = max(static_cast<int>(ceil(beam_y_upper-beam_y_lower/ds_beam)),4);
         Mesh beam_mesh(NDIM);
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(1.0/ds_beam), max(static_cast<int>(ceil(0.016/ds_beam)),4),
-//                                          ceil(1.0/ds_beam), static_cast<int>(ceil(0.016/ds_beam)),
-                                            0.5, 1.5,
-                                            0.5-0.016, 0.5,
-                                            Utility::string_to_enum<ElemType>(beam_elem_type));
+                                            n_beam_x, n_beam_y,
+                                            beam_x_lower, beam_x_upper,
+                                            beam_y_lower, beam_y_upper,
+                                            QUAD4);
+        if (beam_use_mapped_grid)
+        {
+            set<double> x;
+            for (MeshBase::node_iterator it = beam_mesh.nodes_begin(); it != beam_mesh.nodes_end();
+                 ++it)
+            {
+                Node& n = **it;
+                n(0) = cheby((n(0)-beam_x_lower)/(beam_x_upper-beam_x_lower), beam_x_lower, beam_x_upper);
+                x.insert(n(0));
+            }
+        }
+
+        if (beam_elem_type == "QUAD4")
+        {
+            // do nothing
+        }
+        else if (beam_elem_type == "QUAD8")
+        {
+            beam_mesh.all_second_order(/*full_order*/ false);
+        }
+        else if (beam_elem_type == "QUAD9")
+        {
+            beam_mesh.all_second_order(/*full_order*/ true);
+        }
+        else
+        {
+            TBOX_ERROR("unsupported beam elem type: " << beam_elem_type << "\n");
+        }
+
         block1_mesh.prepare_for_use();
         block2_mesh.prepare_for_use();
         beam_mesh  .prepare_for_use();
@@ -382,17 +446,12 @@ main(
         // Make an ordered list of the nodes along the bottom edge of the beam.
         typedef std::set<libMesh::Node*,node_x_comp> node_set;
         node_set centerline_node_set;
-        std::set<libMesh::dof_id_type> tethered_node_ids;
         for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != beam_mesh.nodes_end(); ++n_it)
         {
             const libMesh::Node& n = **n_it;
             if (abs(n(1) - 0.5) < 1.0e-8)
             {
                 centerline_node_set.insert(*n_it);
-            }
-            if (abs(n(0) - 0.5) < 1.0e-8 || abs(n(0) - 1.5) < 1.0e-8)
-            {
-                tethered_node_ids.insert(n.id());
             }
         }
 
@@ -404,7 +463,7 @@ main(
         mu_s = input_db->getDouble("MU_S");
         beta_s = input_db->getDouble("BETA_S");
         block_kappa_s = input_db->getDouble("BLOCK_KAPPA_S");
-        beam_kappa_s  = input_db->getDouble("BEAM_KAPPA_S" );
+        beam_kappa_s = input_db->getDouble("BEAM_KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -432,12 +491,12 @@ main(
         ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
         ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 1);
 
-        IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
+        IBFEMethod::LagSurfaceForceFcnData beam_tether_force_data(beam_tether_force_function);
         IBFEMethod::PK1StressFcnData beam_PK1_dev_stress_data(beam_PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData beam_PK1_dil_stress_data(beam_PK1_dil_stress_function);
         beam_PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","FIFTH"));
         beam_PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","THIRD"));
-        ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 2);
+        ib_method_ops->registerLagSurfaceForceFunction(beam_tether_force_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, 2);
         ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, 2);
 
@@ -562,9 +621,18 @@ main(
             const double A_disp_current = compute_displaced_area( centerline_node_set, beam_equation_systems);
             const double l_def_current  = compute_deformed_length(centerline_node_set, beam_equation_systems);
 
+            J_dil_min = +1.0e8;
+            J_dil_max = -1.0e8;
+            
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
+            J_dil_min = SAMRAI_MPI::minReduction(J_dil_min);
+            J_dil_max = SAMRAI_MPI::maxReduction(J_dil_max);
+
+            pout << "J_min = " << J_dil_min << "\n"
+                 << "J_max = " << J_dil_max << "\n";
+            
             const double Q_in_new    = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
             const double Q_in_half   = (Q_in_new+Q_in_current)/2.0;
             const double A_in_new    = A_in_current + dt*Q_in_half;

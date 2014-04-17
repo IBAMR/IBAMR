@@ -39,18 +39,26 @@
 
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace pdat {
-template <int DIM, class TYPE> class CellData;
-template <int DIM, class TYPE> class FaceData;
-}  // namespace pdat
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class CellData;
+template <int DIM, class TYPE>
+class FaceData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -67,10 +75,9 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void
-    setPhysicalBoundaryConditions(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_ADV_data,
+    static void setPhysicalBoundaryConditions(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_ADV_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         const double fill_time,
@@ -92,8 +99,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPhysicalBoundaryUtilities(
-        const AdvDiffPhysicalBoundaryUtilities& from);
+    AdvDiffPhysicalBoundaryUtilities(const AdvDiffPhysicalBoundaryUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -104,11 +110,9 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPhysicalBoundaryUtilities&
-    operator=(
-        const AdvDiffPhysicalBoundaryUtilities& that);
+    AdvDiffPhysicalBoundaryUtilities& operator=(const AdvDiffPhysicalBoundaryUtilities& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

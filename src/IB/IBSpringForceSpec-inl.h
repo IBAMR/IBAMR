@@ -46,20 +46,15 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool
-IBSpringForceSpec::getIsRegisteredWithStreamableManager()
+inline bool IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-}// getIsRegisteredWithStreamableManager
+} // getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-IBSpringForceSpec::IBSpringForceSpec(
-    const unsigned int num_springs)
-    : d_master_idx(-1),
-      d_slave_idxs(num_springs),
-      d_force_fcn_idxs(num_springs),
+inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
+    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs),
       d_parameters(num_springs)
 {
 #if !defined(NDEBUG)
@@ -71,17 +66,14 @@ IBSpringForceSpec::IBSpringForceSpec(
     }
 #endif
     return;
-}// IBSpringForceSpec
+} // IBSpringForceSpec
 
-inline
-IBSpringForceSpec::IBSpringForceSpec(
+inline IBSpringForceSpec::IBSpringForceSpec(
     const int master_idx,
     const std::vector<int>& slave_idxs,
     const std::vector<int>& force_fcn_idxs,
     const std::vector<std::vector<double> >& parameters)
-    : d_master_idx(master_idx),
-      d_slave_idxs(slave_idxs),
-      d_force_fcn_idxs(force_fcn_idxs),
+    : d_master_idx(master_idx), d_slave_idxs(slave_idxs), d_force_fcn_idxs(force_fcn_idxs),
       d_parameters(parameters)
 {
 #if !defined(NDEBUG)
@@ -96,17 +88,15 @@ IBSpringForceSpec::IBSpringForceSpec(
     }
 #endif
     return;
-}// IBSpringForceSpec
+} // IBSpringForceSpec
 
-inline
-IBSpringForceSpec::~IBSpringForceSpec()
+inline IBSpringForceSpec::~IBSpringForceSpec()
 {
     // intentionally blank
     return;
-}// ~IBSpringForceSpec
+} // ~IBSpringForceSpec
 
-inline unsigned int
-IBSpringForceSpec::getNumberOfSprings() const
+inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
 {
     const unsigned int num_springs = d_slave_idxs.size();
 #if !defined(NDEBUG)
@@ -114,81 +104,70 @@ IBSpringForceSpec::getNumberOfSprings() const
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
     return num_springs;
-}// getNumberOfSprings
+} // getNumberOfSprings
 
-inline const int&
-IBSpringForceSpec::getMasterNodeIndex() const
+inline const int& IBSpringForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline int&
-IBSpringForceSpec::getMasterNodeIndex()
+inline int& IBSpringForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-}// getMasterNodeIndex
+} // getMasterNodeIndex
 
-inline const std::vector<int>&
-IBSpringForceSpec::getSlaveNodeIndices() const
+inline const std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices() const
 {
     return d_slave_idxs;
-}// getSlaveNodeIndices
+} // getSlaveNodeIndices
 
-inline std::vector<int>&
-IBSpringForceSpec::getSlaveNodeIndices()
+inline std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices()
 {
     return d_slave_idxs;
-}// getSlaveNodeIndices
+} // getSlaveNodeIndices
 
-inline const std::vector<int>&
-IBSpringForceSpec::getForceFunctionIndices() const
+inline const std::vector<int>& IBSpringForceSpec::getForceFunctionIndices() const
 {
     return d_force_fcn_idxs;
-}// getForceFunctionIndices
+} // getForceFunctionIndices
 
-inline std::vector<int>&
-IBSpringForceSpec::getForceFunctionIndices()
+inline std::vector<int>& IBSpringForceSpec::getForceFunctionIndices()
 {
     return d_force_fcn_idxs;
-}// getForceFunctionIndices
+} // getForceFunctionIndices
 
-inline const std::vector<std::vector<double> >&
-IBSpringForceSpec::getParameters() const
+inline const std::vector<std::vector<double> >& IBSpringForceSpec::getParameters() const
 {
     return d_parameters;
-}// getParameters
+} // getParameters
 
-inline std::vector<std::vector<double> >&
-IBSpringForceSpec::getParameters()
+inline std::vector<std::vector<double> >& IBSpringForceSpec::getParameters()
 {
     return d_parameters;
-}// getParameters
+} // getParameters
 
-inline int
-IBSpringForceSpec::getStreamableClassID() const
+inline int IBSpringForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-inline size_t
-IBSpringForceSpec::getDataStreamSize() const
+inline size_t IBSpringForceSpec::getDataStreamSize() const
 {
     const unsigned int num_springs = d_slave_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
-    size_t size = (2+2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofInt();
+    size_t size = (2 + 2 * num_springs) * SAMRAI::tbox::AbstractStream::sizeofInt();
     for (unsigned int k = 0; k < num_springs; ++k)
     {
-        size += SAMRAI::tbox::AbstractStream::sizeofInt() + d_parameters[k].size()*SAMRAI::tbox::AbstractStream::sizeofDouble();
+        size += SAMRAI::tbox::AbstractStream::sizeofInt() +
+                d_parameters[k].size() * SAMRAI::tbox::AbstractStream::sizeofDouble();
     }
     return size;
-}// getDataStreamSize
+} // getDataStreamSize
 
-inline void
-IBSpringForceSpec::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
     const unsigned int num_springs = d_slave_idxs.size();
 #if !defined(NDEBUG)
@@ -196,17 +175,17 @@ IBSpringForceSpec::packStream(
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
     stream << static_cast<int>(num_springs);
-    stream.pack(&d_master_idx,1);
-    stream.pack(&d_slave_idxs[0],num_springs);
-    stream.pack(&d_force_fcn_idxs[0],num_springs);
+    stream.pack(&d_master_idx, 1);
+    stream.pack(&d_slave_idxs[0], num_springs);
+    stream.pack(&d_force_fcn_idxs[0], num_springs);
     for (unsigned int k = 0; k < num_springs; ++k)
     {
         const int num_parameters = d_parameters[k].size();
         stream << num_parameters;
-        stream.pack(&d_parameters[k][0],num_parameters);
+        stream.pack(&d_parameters[k][0], num_parameters);
     }
     return;
-}// packStream
+} // packStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

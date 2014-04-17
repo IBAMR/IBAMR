@@ -36,7 +36,6 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI_config.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/IBInstrumentationSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -55,8 +54,7 @@ int IBInstrumentationSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregiste
 
 std::vector<std::string> IBInstrumentationSpec::s_instrument_names;
 
-void
-IBInstrumentationSpec::registerWithStreamableManager()
+void IBInstrumentationSpec::registerWithStreamableManager()
 {
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
@@ -68,19 +66,18 @@ IBInstrumentationSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBInstrumentationSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
+            new IBInstrumentationSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;
-}// registerWithStreamableManager
+} // registerWithStreamableManager
 
-void
-IBInstrumentationSpec::setInstrumentNames(
-    const std::vector<std::string>& names)
+void IBInstrumentationSpec::setInstrumentNames(const std::vector<std::string>& names)
 {
     s_instrument_names = names;
     return;
-}// getInstrumentNames
+} // getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

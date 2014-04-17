@@ -39,6 +39,7 @@
 
 #include "CellVariable.h"
 #include "EdgeVariable.h" // IWYU pragma: keep
+#include "IntVector.h"
 #include "NodeVariable.h" // IWYU pragma: keep
 #include "PatchLevel.h"
 #include "VariableContext.h"
@@ -47,19 +48,26 @@
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class INSStaggeredHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchHierarchy;
-template <int DIM> class Variable;
-}  // namespace hier
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -71,8 +79,7 @@ namespace IBAMR
  * specifying a stochastic forcing term for a staggered-grid incompressible
  * Navier-Stokes solver.
  */
-class INSStaggeredStochasticForcing
-    : public IBTK::CartGridFunction
+class INSStaggeredStochasticForcing : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -80,10 +87,9 @@ public:
      * storing the stochastic stresses at the centers and nodes of the Cartesian
      * grid.
      */
-    INSStaggeredStochasticForcing(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const INSStaggeredHierarchyIntegrator* fluid_solver);
+    INSStaggeredStochasticForcing(const std::string& object_name,
+                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
      * \brief Empty destructor.
@@ -99,34 +105,31 @@ public:
      * \brief Indicates whether the concrete INSStaggeredStochasticForcing object is
      * time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
      * levels of the patch hierarchy.
      */
-    void
-    setDataOnPatchHierarchy(
+    void setDataOnPatchHierarchy(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const double data_time,
-        const bool initial_time=false,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const bool initial_time = false,
+        const int coarsest_ln = -1,
+        const int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void
-    setDataOnPatch(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(const int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        const double data_time,
+                        const bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -151,8 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStochasticForcing(
-        const INSStaggeredStochasticForcing& from);
+    INSStaggeredStochasticForcing(const INSStaggeredStochasticForcing& from);
 
     /*!
      * \brief Assignment operator.
@@ -163,9 +165,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStochasticForcing&
-    operator=(
-        const INSStaggeredStochasticForcing& that);
+    INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that);
 
     /*!
      * Pointer to the fluid solver object that is using this stochastic force
@@ -195,21 +195,21 @@ private:
      * stochastic stresses.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_W_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
     int d_W_cc_idx;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > d_W_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
     int d_W_nc_idx;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM,double> > d_W_ec_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
     int d_W_ec_idx;
     std::vector<int> d_W_ec_idxs;
 #endif
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

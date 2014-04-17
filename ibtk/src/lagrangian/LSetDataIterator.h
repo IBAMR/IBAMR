@@ -40,21 +40,27 @@
 #include "ibtk/LSet.h"
 #include "tbox/DescribedClass.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Index;
-}  // namespace hier
-namespace pdat {
-template <int DIM> class CellGeometry;
-}  // namespace pdat
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Index;
+} // namespace hier
+namespace pdat
+{
+template <int DIM>
+class CellGeometry;
+} // namespace pdat
+} // namespace SAMRAI
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
 namespace IBTK
 {
-template<class T> class LSetData;
-}// namespace IBTK
+template <class T>
+class LSetData;
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,9 +71,8 @@ namespace IBTK
  * iterate through LSet objects associated with a specified box in cell-centered
  * index space.
  */
-template<class T>
-class LSetDataIterator
-    : public SAMRAI::tbox::DescribedClass
+template <class T>
+class LSetDataIterator : public SAMRAI::tbox::DescribedClass
 {
 public:
     friend class LSetData<T>;
@@ -80,82 +85,68 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LSetDataIterator(
-        const LSetDataIterator& that);
+    LSetDataIterator(const LSetDataIterator& that);
 
     /*!
      * \brief Class destructor.
      */
-    virtual
-    ~LSetDataIterator();
+    virtual ~LSetDataIterator();
 
     /*!
      * \brief Assignment operator.
      */
-    LSetDataIterator<T>&
-    operator=(
-        const LSetDataIterator<T>& that);
+    LSetDataIterator<T>& operator=(const LSetDataIterator<T>& that);
 
     /*!
      * \brief Test two iterators for equality.
      */
-    bool
-    operator==(
-        const LSetDataIterator<T>& that);
+    bool operator==(const LSetDataIterator<T>& that);
 
     /*!
      * \brief Test two iterators for inequality.
      */
-    bool
-    operator!=(
-        const LSetDataIterator<T>& that);
+    bool operator!=(const LSetDataIterator<T>& that);
 
     /*!
      * \brief Prefix increment operator.
      */
-    LSetDataIterator<T>&
-    operator++();
+    LSetDataIterator<T>& operator++();
 
     /*!
      * \brief Postfix increment operator.
      */
-    LSetDataIterator<T>
-    operator++(
-        int);
+    LSetDataIterator<T> operator++(int);
 
     /*!
      * \brief Return a reference to the Lagrangian data item referred to by the
      * iterator.
      */
-    typename LSet<T>::value_type&
-    operator*() const;
+    typename LSet<T>::value_type& operator*() const;
 
     /*!
      * \brief Return a reference to the Lagrangian data item referred to by the
      * iterator.
      */
-    typename LSet<T>::value_type&
-    getDataItem() const;
+    typename LSet<T>::value_type& getDataItem() const;
 
     /*!
      * \brief Return a const reference to the cell index referred to by the
      * iterator.
      */
-    const SAMRAI::hier::Index<NDIM>&
-    getCellIndex() const;
+    const SAMRAI::hier::Index<NDIM>& getCellIndex() const;
 
 private:
     SAMRAI::hier::Box<NDIM> d_box;
-    SAMRAI::pdat::IndexIterator<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> > d_index_it;
+    SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > d_index_it;
     LSet<T>* d_node_set;
     typename LSet<T>::iterator d_node_it;
 };
 
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LSetDataIterator-inl.h"  // IWYU pragma: keep
+#include "ibtk/LSetDataIterator-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

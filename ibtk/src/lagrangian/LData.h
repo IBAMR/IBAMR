@@ -35,19 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <string>
 #include <vector>
 
-#include "boost/multi_array.hpp"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
-namespace SAMRAI {
-namespace tbox {
+namespace SAMRAI
+{
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
+namespace boost
+{
+template <typename T, std::size_t NumDims>
+class multi_array_ref;
+} // namespace boost
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -57,8 +64,7 @@ namespace IBTK
  * \brief Class LData provides storage for a single scalar- or vector-valued
  * Lagrangian quantity.
  */
-class LData
-    : public SAMRAI::tbox::Serializable
+class LData : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -68,11 +74,10 @@ public:
      * object.  Data management for this PETSc Vec object is handled by the
      * LData object.
      */
-    LData(
-        const std::string& name,
-        unsigned int num_local_nodes,
-        unsigned int depth,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
+    LData(const std::string& name,
+          unsigned int num_local_nodes,
+          unsigned int depth,
+          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0));
 
     /*!
      * \brief Constructor.
@@ -87,23 +92,20 @@ public:
      * appropriately.  Its value is used to determine the data depth (i.e., the
      * number of data components per node).
      */
-    LData(
-        const std::string& name,
-        Vec vec,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0),
-        const bool manage_petsc_vec=true);
+    LData(const std::string& name,
+          Vec vec,
+          const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+          const bool manage_petsc_vec = true);
 
     /*!
      * \brief Constructor.
      */
-    LData(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    LData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~LData();
+    virtual ~LData();
 
     /*!
      * \brief Reset data items.
@@ -117,44 +119,38 @@ public:
      * number of data components per node).
      */
     virtual void
-    resetData(
-        Vec vec,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0),
-        const bool manage_petsc_vec=true);
+    resetData(Vec vec,
+              const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+              const bool manage_petsc_vec = true);
 
     /*!
      * \brief Returns a const reference to the name of this LData object.
      */
-    const std::string&
-    getName() const;
+    const std::string& getName() const;
 
     /*!
      * \brief Returns the total number of Lagrangian nodes.
      */
-    unsigned int
-    getGlobalNodeCount() const;
+    unsigned int getGlobalNodeCount() const;
 
     /*!
      * \brief Returns the number of local (i.e., on processor) Lagrangian nodes.
      *
      * \note This count does not include ghost nodes (if any).
      */
-    unsigned int
-    getLocalNodeCount() const;
+    unsigned int getLocalNodeCount() const;
 
     /*!
      * \brief Returns the number of local ghost nodes associated with the LData
      * object.
      */
-    unsigned int
-    getGhostNodeCount() const;
+    unsigned int getGhostNodeCount() const;
 
     /*!
      * \brief Returns the depth (i.e., the number of components per node) of the
      * Lagrangian data.
      */
-    unsigned int
-    getDepth() const;
+    unsigned int getDepth() const;
 
     /*!
      * \brief Returns the PETSc Vec object that stores the data.
@@ -164,8 +160,7 @@ public:
      *
      * \see restoreArrays()
      */
-    Vec
-    getVec();
+    Vec getVec();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -183,8 +178,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,1>*
-    getArray();
+    boost::multi_array_ref<double, 1>* getArray();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -202,8 +196,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,1>*
-    getLocalFormArray();
+    boost::multi_array_ref<double, 1>* getLocalFormArray();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -223,8 +216,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,1>*
-    getGhostedLocalFormArray();
+    boost::multi_array_ref<double, 1>* getGhostedLocalFormArray();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -242,8 +234,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,2>*
-    getVecArray();
+    boost::multi_array_ref<double, 2>* getVecArray();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -261,8 +252,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,2>*
-    getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>* getLocalFormVecArray();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -282,8 +272,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double,2>*
-    getGhostedLocalFormVecArray();
+    boost::multi_array_ref<double, 2>* getGhostedLocalFormVecArray();
 
     /*!
      * \brief Restore any arrays extracted via calls to getArray(),
@@ -292,27 +281,22 @@ public:
      * \note Any outstanding references to the underlying array data are
      * invalidated by restoreArrays().
      */
-    void
-    restoreArrays();
+    void restoreArrays();
 
     /*!
      * \brief Begin updating ghost values.
      */
-    void
-    beginGhostUpdate();
+    void beginGhostUpdate();
 
     /*!
      * \brief End updating ghost values.
      */
-    void
-    endGhostUpdate();
+    void endGhostUpdate();
 
     /*!
      * \brief Write out object state to the given database.
      */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -329,8 +313,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LData(
-        const LData& from);
+    LData(const LData& from);
 
     /*
      * Extract the array data.
@@ -375,8 +358,8 @@ private:
     Vec d_global_vec;
     bool d_managing_petsc_vec;
     double* d_array;
-    boost::multi_array_ref<double,1>* d_boost_array, * d_boost_local_array;
-    boost::multi_array_ref<double,2>* d_boost_vec_array, * d_boost_local_vec_array;
+    boost::multi_array_ref<double, 1>* d_boost_array, *d_boost_local_array;
+    boost::multi_array_ref<double, 2>* d_boost_vec_array, *d_boost_local_vec_array;
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
@@ -385,14 +368,14 @@ private:
      */
     Vec d_ghosted_local_vec;
     double* d_ghosted_local_array;
-    boost::multi_array_ref<double,1>* d_boost_ghosted_local_array;
-    boost::multi_array_ref<double,2>* d_boost_vec_ghosted_local_array;
+    boost::multi_array_ref<double, 1>* d_boost_ghosted_local_array;
+    boost::multi_array_ref<double, 2>* d_boost_vec_ghosted_local_array;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/LData-inl.h"  // IWYU pragma: keep
+#include "ibtk/LData-inl.h" // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 

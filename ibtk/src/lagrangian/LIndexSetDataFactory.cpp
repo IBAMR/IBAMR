@@ -40,10 +40,11 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/ArenaManager.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class LNode;
 class LNodeIndex;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -53,69 +54,61 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-LIndexSetDataFactory<T>::LIndexSetDataFactory(
-    const IntVector<NDIM>& ghosts)
+template <class T>
+LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector<NDIM>& ghosts)
     : LSetDataFactory<T>(ghosts)
 {
     // intentionally blank
     return;
-}// LIndexSetDataFactory
+} // LIndexSetDataFactory
 
-template<class T>
+template <class T>
 LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 {
     // intentionally blank
     return;
-}// ~LIndexSetDataFactory
+} // ~LIndexSetDataFactory
 
-template<class T>
+template <class T>
 Pointer<PatchDataFactory<NDIM> >
-LIndexSetDataFactory<T>::cloneFactory(
-    const IntVector<NDIM>& ghosts)
+LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
-}// cloneFactory
+} // cloneFactory
 
-template<class T>
-Pointer<PatchData<NDIM> >
-LIndexSetDataFactory<T>::allocate(
-    const Box<NDIM>& box,
-    Pointer<Arena> pool) const
+template <class T>
+Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box,
+                                                            Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd = new (pool) LIndexSetData<T>(box,LSetDataFactory<T>::getGhostCellWidth());
+    PatchData<NDIM>* pd =
+        new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
     return Pointer<PatchData<NDIM> >(pd, pool);
-}// allocate
+} // allocate
 
-template<class T>
-Pointer<PatchData<NDIM> >
-LIndexSetDataFactory<T>::allocate(
-    const Patch<NDIM>& patch,
-    Pointer<Arena> pool) const
+template <class T>
+Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch,
+                                                            Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
-}// allocate
+} // allocate
 
-template<class T>
-size_t
-LIndexSetDataFactory<T>::getSizeOfMemory(
-    const Box<NDIM>& /*box*/) const
+template <class T>
+size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 {
     return Arena::align(sizeof(LIndexSetData<T>));
-}// getSizeOfMemory
+} // getSizeOfMemory
 
-template<class T>
-bool
-LIndexSetDataFactory<T>::validCopyTo(
-    const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+template <class T>
+bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf)
+    const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
-}// validCopyTo
+} // validCopyTo
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -126,7 +119,6 @@ LIndexSetDataFactory<T>::validCopyTo(
 } // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
 
 template class IBTK::LIndexSetDataFactory<IBTK::LNode>;
 template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNode> >;

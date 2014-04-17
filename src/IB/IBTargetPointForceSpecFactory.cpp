@@ -33,19 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBTargetPointForceSpec.h"
-#include "boost/array.hpp"
 #include "ibamr/IBTargetPointForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,40 +60,36 @@ IBTargetPointForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBTargetPointForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBTargetPointForceSpec::Factory::getStreamableClassID() const
+int IBTargetPointForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBTargetPointForceSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
 Pointer<Streamable>
-IBTargetPointForceSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream,
+                                              const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
-    stream.unpack(&ret_val->d_master_idx,1);
-    stream.unpack(&ret_val->d_kappa_target,1);
-    stream.unpack(&ret_val->d_eta_target,1);
-    stream.unpack(ret_val->d_X_target.data(),NDIM);
+    stream.unpack(&ret_val->d_master_idx, 1);
+    stream.unpack(&ret_val->d_kappa_target, 1);
+    stream.unpack(&ret_val->d_eta_target, 1);
+    stream.unpack(ret_val->d_X_target.data(), NDIM);
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

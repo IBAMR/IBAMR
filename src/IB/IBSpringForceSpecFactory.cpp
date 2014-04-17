@@ -42,11 +42,14 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -58,48 +61,43 @@ IBSpringForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// Factory
+} // Factory
 
 IBSpringForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~Factory
+} // ~Factory
 
-int
-IBSpringForceSpec::Factory::getStreamableClassID() const
+int IBSpringForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-void
-IBSpringForceSpec::Factory::setStreamableClassID(
-    const int class_id)
+void IBSpringForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-}// setStreamableClassID
+} // setStreamableClassID
 
-Pointer<Streamable>
-IBSpringForceSpec::Factory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBSpringForceSpec::Factory::unpackStream(AbstractStream& stream,
+                                                             const IntVector<NDIM>& /*offset*/)
 {
     int num_springs;
-    stream.unpack(&num_springs,1);
+    stream.unpack(&num_springs, 1);
     Pointer<IBSpringForceSpec> ret_val = new IBSpringForceSpec(num_springs);
-    stream.unpack(&ret_val->d_master_idx,1);
-    stream.unpack(&ret_val->d_slave_idxs[0],num_springs);
-    stream.unpack(&ret_val->d_force_fcn_idxs[0],num_springs);
+    stream.unpack(&ret_val->d_master_idx, 1);
+    stream.unpack(&ret_val->d_slave_idxs[0], num_springs);
+    stream.unpack(&ret_val->d_force_fcn_idxs[0], num_springs);
     for (int k = 0; k < num_springs; ++k)
     {
         int num_parameters;
         stream.unpack(&num_parameters);
         ret_val->d_parameters[k].resize(num_parameters);
-        stream.unpack(&ret_val->d_parameters[k][0],num_parameters);
+        stream.unpack(&ret_val->d_parameters[k][0], num_parameters);
     }
     return ret_val;
-}// unpackStream
+} // unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

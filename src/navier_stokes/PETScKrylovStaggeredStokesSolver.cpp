@@ -52,18 +52,18 @@ PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(
 {
     // intentionally blank
     return;
-}// PETScKrylovStaggeredStokesSolver()
+} // PETScKrylovStaggeredStokesSolver()
 
 PETScKrylovStaggeredStokesSolver::~PETScKrylovStaggeredStokesSolver()
 {
     // intentionally blank
     return;
-}// ~PETScKrylovStaggeredStokesSolver()
+} // ~PETScKrylovStaggeredStokesSolver()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

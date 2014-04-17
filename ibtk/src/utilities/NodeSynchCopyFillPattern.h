@@ -42,12 +42,16 @@
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoxGeometry;
-template <int DIM> class BoxOverlap;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoxGeometry;
+template <int DIM>
+class BoxOverlap;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -66,15 +70,13 @@ namespace IBTK
  * values in three spatial dimensions, we first synchronize values in the x
  * direction, then in the y direction, and finally in the z direction.
  */
-class NodeSynchCopyFillPattern
-    : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class NodeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
      * \brief Constructor
      */
-    NodeSynchCopyFillPattern(
-        unsigned int axis);
+    NodeSynchCopyFillPattern(unsigned int axis);
 
     /*!
      * \brief Destructor
@@ -91,32 +93,33 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source box
-     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
-     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
+     * \param src_mask            the source mask, the box resulting from shifting the source
+     *box
+     * \param overwrite_interior  controls whether or not to include the destination box
+     *interior in
+     *the overlap
+     * \param src_offset          the offset between source and destination index space (src +
+     *src_offset = dst)
      *
      * \return                    pointer to the calculated overlap object
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(
-        const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-        const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-        const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-        const SAMRAI::hier::Box<NDIM>& src_mask,
-        bool overwrite_interior,
-        const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
+                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
+                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
+                     const SAMRAI::hier::Box<NDIM>& src_mask,
+                     bool overwrite_interior,
+                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>&
-    getStencilWidth();
+    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
 
     /*!
      * Returns a string name identifier "NODE_SYNCH_COPY_FILL_PATTERN".
      */
-    const std::string&
-    getPatternName() const;
+    const std::string& getPatternName() const;
 
 private:
     /*!
@@ -133,8 +136,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    NodeSynchCopyFillPattern(
-        const NodeSynchCopyFillPattern& from);
+    NodeSynchCopyFillPattern(const NodeSynchCopyFillPattern& from);
 
     /*!
      * \brief Assignment operator.
@@ -145,14 +147,12 @@ private:
      *
      * \return A reference to this object.
      */
-    NodeSynchCopyFillPattern&
-    operator=(
-        const NodeSynchCopyFillPattern& that);
+    NodeSynchCopyFillPattern& operator=(const NodeSynchCopyFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
     const unsigned int d_axis;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

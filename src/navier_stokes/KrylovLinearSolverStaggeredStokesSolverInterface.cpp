@@ -33,21 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
-#include "SAMRAI_config.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/KrylovLinearSolver.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,20 +58,21 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::
+    KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
-}// KrylovLinearSolverStaggeredStokesSolverInterface
+} // KrylovLinearSolverStaggeredStokesSolverInterface
 
-KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::
+    ~KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
-}// ~KrylovLinearSolverStaggeredStokesSolverInterface
+} // ~KrylovLinearSolverStaggeredStokesSolverInterface
 
-void
-KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
+void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
@@ -81,12 +83,12 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecificatio
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
     Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
-    if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    if (p_preconditioner)
+        p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
-}// setVelocityPoissonSpecifications
+} // setVelocityPoissonSpecifications
 
-void
-KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
+void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -100,10 +102,9 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
+void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
@@ -116,12 +117,12 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
-}// setPhysicalBoundaryHelper
+} // setPhysicalBoundaryHelper
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

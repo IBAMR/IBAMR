@@ -35,23 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class IntVector;
-}  // namespace hier
-namespace tbox {
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class IntVector;
+} // namespace hier
+namespace tbox
+{
 class AbstractStream;
-}  // namespace tbox
-}  // namespace SAMRAI
-
-namespace boost {
-template <class T, size_t N> class array;
-}  // namespace boost
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -73,8 +73,7 @@ namespace IBTK
  * \see StreamableFactory
  * \see StreamableManager
  */
-class Streamable
-    : public virtual SAMRAI::tbox::DescribedClass
+class Streamable : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -85,30 +84,25 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
-    ~Streamable();
+    virtual ~Streamable();
 
     /*!
      * \brief Return the unique class identifier used to specify the
      * StreamableFactory object used by the StreamableManager to extract
      * Streamable objects from data streams.
      */
-    virtual int
-    getStreamableClassID() const = 0;
+    virtual int getStreamableClassID() const = 0;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t
-    getDataStreamSize() const = 0;
+    virtual size_t getDataStreamSize() const = 0;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void
-    packStream(
-        SAMRAI::tbox::AbstractStream& stream) = 0;
+    virtual void packStream(SAMRAI::tbox::AbstractStream& stream) = 0;
 
     /*!
      * \brief Indicate that the Streamable object has been shifted across a
@@ -116,10 +110,8 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
-    registerPeriodicShift(
-        const SAMRAI::hier::IntVector<NDIM>& offset,
-        const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
+                                       const Vector& displacement);
 
 private:
     /*!
@@ -129,8 +121,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    Streamable(
-        const Streamable& from);
+    Streamable(const Streamable& from);
 
     /*!
      * \brief Assignment operator.
@@ -141,11 +132,9 @@ private:
      *
      * \return A reference to this object.
      */
-    Streamable&
-    operator=(
-        const Streamable& that);
+    Streamable& operator=(const Streamable& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

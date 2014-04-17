@@ -47,30 +47,26 @@ namespace IBTK
  * \brief Class LSetVariable provides a SAMRAI::hier::Variable class
  * corresponding to patch data of type LSetData.
  */
-template<class T>
-class LSetVariable
-    : public SAMRAI::hier::Variable<NDIM>
+template <class T>
+class LSetVariable : public SAMRAI::hier::Variable<NDIM>
 {
 public:
     /*!
      * Create an LSetVariable object with the specified name.
      */
-    LSetVariable(
-        const std::string& name);
+    LSetVariable(const std::string& name);
 
     /*!
      * Virtual destructor for LSetVariable objects.
      */
-    virtual
-    ~LSetVariable();
+    virtual ~LSetVariable();
 
     /*!
      * Return false since the LSet data index space matches the
      * cell-centered index space for AMR patches.  Thus, LSet data does
      * not live on patch borders.
      */
-    bool
-    dataLivesOnPatchBorder() const;
+    bool dataLivesOnPatchBorder() const;
 
     /*!
      * Return true so that the LSet data quantities will always be treated
@@ -80,8 +76,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    bool
-    fineBoundaryRepresentsVariable() const;
+    bool fineBoundaryRepresentsVariable() const;
 
 private:
     /*!
@@ -98,8 +93,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LSetVariable(
-        const LSetVariable<T>& from);
+    LSetVariable(const LSetVariable<T>& from);
 
     /*!
      * \brief Assignment operator.
@@ -110,11 +104,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LSetVariable<T>&
-    operator=(
-        const LSetVariable<T>& that);
+    LSetVariable<T>& operator=(const LSetVariable<T>& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

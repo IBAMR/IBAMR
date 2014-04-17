@@ -37,14 +37,16 @@
 
 #include <stddef.h>
 
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class HierarchyMathOps;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,8 +57,7 @@ namespace IBTK
  * implementation of Krylov subspace solvers for linear problems of the form
  * \f$Ax=b\f$.
  */
-class KrylovLinearSolver
-    : public LinearSolver
+class KrylovLinearSolver : public LinearSolver
 {
 public:
     /*!
@@ -72,9 +73,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \name General-purpose solver functionality.
@@ -84,24 +83,17 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void
-    setSolutionTime(
-        double solution_time);
+    void setSolutionTime(double solution_time);
 
     /*!
      * \brief Set the current time interval.
      */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
+    void setTimeInterval(double current_time, double new_time);
 
     //\}
 
@@ -113,15 +105,12 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual void
-    setOperator(
-        SAMRAI::tbox::Pointer<LinearOperator> A);
+    virtual void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearOperator>
-    getOperator() const;
+    virtual SAMRAI::tbox::Pointer<LinearOperator> getOperator() const;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -129,16 +118,13 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void
-    setPreconditioner(
-        SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
+    virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
      * when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearSolver>
-    getPreconditioner() const;
+    virtual SAMRAI::tbox::Pointer<LinearSolver> getPreconditioner() const;
 
     //\}
 
@@ -146,7 +132,7 @@ protected:
     // Solver components.
     SAMRAI::tbox::Pointer<LinearOperator> d_A;
     SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
 
 private:
     /*!
@@ -156,8 +142,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolver(
-        const KrylovLinearSolver& from);
+    KrylovLinearSolver(const KrylovLinearSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -168,11 +153,9 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolver&
-    operator=(
-        const KrylovLinearSolver& that);
+    KrylovLinearSolver& operator=(const KrylovLinearSolver& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

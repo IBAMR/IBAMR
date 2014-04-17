@@ -39,17 +39,23 @@
 #include <string>
 #include <vector>
 
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchHierarchy;
-template <int DIM> class Variable;
-}  // namespace hier
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class Variable;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,30 +65,25 @@ namespace IBTK
  * \brief Class CartGridFunctionSet is a concrete CartGridFunction that is used
  * to allow multiple CartGridFunction objects to act as a single function.
  */
-class CartGridFunctionSet
-    : public CartGridFunction
+class CartGridFunctionSet : public CartGridFunction
 {
 public:
     /*!
      * \brief The default constructor sets the name of the strategy object and
      * sets the collection of functions to be empty.
      */
-    CartGridFunctionSet(
-        const std::string& object_name="");
+    CartGridFunctionSet(const std::string& object_name = "");
 
     /*!
      * \brief Empty virtual destructor.
      */
-    virtual
-    ~CartGridFunctionSet();
+    virtual ~CartGridFunctionSet();
 
     /*!
      * \brief Add a CartGridFunction to the set of functions grouped together by
      * this object.
      */
-    void
-    addFunction(
-        SAMRAI::tbox::Pointer<CartGridFunction> fcn);
+    void addFunction(SAMRAI::tbox::Pointer<CartGridFunction> fcn);
 
     /*!
      * \name Methods to set patch interior data.
@@ -93,23 +94,21 @@ public:
      * \brief Indicates whether the concrete CartGridFunctionSet object is
      * time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
      * levels of the patch hierarchy using the implementations of
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
-    void
-    setDataOnPatchHierarchy(
+    void setDataOnPatchHierarchy(
         int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         double data_time,
-        bool initial_time=false,
-        int coarsest_ln=-1,
-        int finest_ln=-1);
+        bool initial_time = false,
+        int coarsest_ln = -1,
+        int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -117,26 +116,24 @@ public:
      * setDataOnPatchLevel() provided by the component function objects.
      */
     void
-    setDataOnPatchLevel(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        double data_time,
-        bool initial_time=false);
+    setDataOnPatchLevel(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                        double data_time,
+                        bool initial_time = false);
 
     /*!
      * \brief Evaluate the function on the patch interior using the
      * implementations of setDataOnPatch() provided by the component function
      * objects.
      */
-    void
-    setDataOnPatch(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        double data_time,
-        bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        double data_time,
+                        bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -154,8 +151,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartGridFunctionSet(
-        const CartGridFunctionSet& from);
+    CartGridFunctionSet(const CartGridFunctionSet& from);
 
     /*!
      * \brief Assignment operator.
@@ -166,11 +162,9 @@ private:
      *
      * \return A reference to this object.
      */
-    CartGridFunctionSet&
-    operator=(
-        const CartGridFunctionSet& that);
+    CartGridFunctionSet& operator=(const CartGridFunctionSet& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

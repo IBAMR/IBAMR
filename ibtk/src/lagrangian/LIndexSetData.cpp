@@ -39,13 +39,13 @@
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/LSet.h"
-#include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-namespace IBTK {
+namespace IBTK
+{
 class LNode;
 class LNodeIndex;
-}  // namespace IBTK
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -55,53 +55,41 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template<class T>
-LIndexSetData<T>::LIndexSetData(
-    const Box<NDIM>& box,
-    const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box,ghosts),
-      d_lag_indices(),
-      d_interior_lag_indices(),
-      d_ghost_lag_indices(),
-      d_global_petsc_indices(),
-      d_interior_global_petsc_indices(),
-      d_ghost_global_petsc_indices(),
-      d_local_petsc_indices(),
-      d_interior_local_petsc_indices(),
-      d_ghost_local_petsc_indices(),
-      d_periodic_shifts(),
-      d_interior_periodic_shifts(),
-      d_ghost_periodic_shifts()
+template <class T>
+LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
+    : LSetData<T>(box, ghosts), d_lag_indices(), d_interior_lag_indices(),
+      d_ghost_lag_indices(), d_global_petsc_indices(), d_interior_global_petsc_indices(),
+      d_ghost_global_petsc_indices(), d_local_petsc_indices(),
+      d_interior_local_petsc_indices(), d_ghost_local_petsc_indices(), d_periodic_shifts(),
+      d_interior_periodic_shifts(), d_ghost_periodic_shifts()
 {
     // intentionally blank
     return;
-}// LIndexSetData
+} // LIndexSetData
 
-template<class T>
+template <class T>
 LIndexSetData<T>::~LIndexSetData()
 {
     // intentionally blank
     return;
-}// ~LIndexSetData
+} // ~LIndexSetData
 
-template<class T>
-void
-LIndexSetData<T>::cacheLocalIndices(
-    Pointer<Patch<NDIM> > patch,
-    const IntVector<NDIM>& periodic_shift)
+template <class T>
+void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
+                                         const IntVector<NDIM>& periodic_shift)
 {
-    d_lag_indices                  .clear();
-    d_interior_lag_indices         .clear();
-    d_ghost_lag_indices            .clear();
-    d_global_petsc_indices         .clear();
+    d_lag_indices.clear();
+    d_interior_lag_indices.clear();
+    d_ghost_lag_indices.clear();
+    d_global_petsc_indices.clear();
     d_interior_global_petsc_indices.clear();
-    d_ghost_global_petsc_indices   .clear();
-    d_local_petsc_indices          .clear();
-    d_interior_local_petsc_indices .clear();
-    d_ghost_local_petsc_indices    .clear();
-    d_periodic_shifts              .clear();
-    d_interior_periodic_shifts     .clear();
-    d_ghost_periodic_shifts        .clear();
+    d_ghost_global_petsc_indices.clear();
+    d_local_petsc_indices.clear();
+    d_interior_local_petsc_indices.clear();
+    d_ghost_local_petsc_indices.clear();
+    d_periodic_shifts.clear();
+    d_interior_periodic_shifts.clear();
+    d_ghost_periodic_shifts.clear();
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -109,26 +97,29 @@ LIndexSetData<T>::cacheLocalIndices(
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    boost::array<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry,
+        patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,0);
-        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
+        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
+        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 1);
     }
 
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();
-        boost::array<int,NDIM> offset;
+        boost::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
+            if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
             {
-                offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
+                offset[d] = -periodic_shift(d); // X is ABOVE the top    of the patch --- need
+                                                // to shift DOWN
             }
             else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
             {
-                offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                offset[d] = +periodic_shift(
+                                d); // X is BELOW the bottom of the patch --- need to shift UP
             }
             else
             {
@@ -140,40 +131,41 @@ LIndexSetData<T>::cacheLocalIndices(
         for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
         {
             const typename LSet<T>::value_type& idx = *n;
-            const int          lag_idx = idx->getLagrangianIndex();
+            const int lag_idx = idx->getLagrangianIndex();
             const int global_petsc_idx = idx->getGlobalPETScIndex();
-            const int  local_petsc_idx = idx->getLocalPETScIndex();
-            d_lag_indices         .push_back(         lag_idx);
+            const int local_petsc_idx = idx->getLocalPETScIndex();
+            d_lag_indices.push_back(lag_idx);
             d_global_petsc_indices.push_back(global_petsc_idx);
-            d_local_petsc_indices .push_back( local_petsc_idx);
+            d_local_petsc_indices.push_back(local_petsc_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                d_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+                d_periodic_shifts.push_back(static_cast<double>(offset[d]) * dx[d]);
             }
             if (patch_owns_idx_set)
             {
-                d_interior_lag_indices         .push_back(         lag_idx);
+                d_interior_lag_indices.push_back(lag_idx);
                 d_interior_global_petsc_indices.push_back(global_petsc_idx);
-                d_interior_local_petsc_indices .push_back( local_petsc_idx);
+                d_interior_local_petsc_indices.push_back(local_petsc_idx);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_interior_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+                    d_interior_periodic_shifts.push_back(static_cast<double>(offset[d]) *
+                                                         dx[d]);
                 }
             }
             else
             {
-                d_ghost_lag_indices         .push_back(         lag_idx);
+                d_ghost_lag_indices.push_back(lag_idx);
                 d_ghost_global_petsc_indices.push_back(global_petsc_idx);
-                d_ghost_local_petsc_indices .push_back( local_petsc_idx);
+                d_ghost_local_petsc_indices.push_back(local_petsc_idx);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_ghost_periodic_shifts.push_back(static_cast<double>(offset[d])*dx[d]);
+                    d_ghost_periodic_shifts.push_back(static_cast<double>(offset[d]) * dx[d]);
                 }
             }
         }
     }
     return;
-}// cacheLocalIndices
+} // cacheLocalIndices
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

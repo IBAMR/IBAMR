@@ -51,7 +51,6 @@ namespace IBTK
 
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
-
 template class IBTK::LSet<IBTK::LMarker>;
 template class Pointer<IBTK::LSet<IBTK::LMarker> >;
 

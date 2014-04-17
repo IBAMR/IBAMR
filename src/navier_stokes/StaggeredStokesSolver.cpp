@@ -35,9 +35,9 @@
 #include <stddef.h>
 #include <ostream>
 
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "RobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
@@ -53,9 +53,11 @@ namespace IBAMR
 
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(NULL))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(NULL))),
+      d_default_U_bc_coef(
+          new LocationIndexRobinBcCoefs<NDIM>("default_U_bc_coef", Pointer<Database>(NULL))),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
+      d_default_P_bc_coef(
+          new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef)
 {
     // Setup a default boundary condition object that specifies homogeneous
@@ -63,18 +65,21 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
-        p_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
-        p_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
-        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
-        p_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
-        p_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
+        p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
+        p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
+        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
+        p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
+        p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef),d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef),
+                       d_default_P_bc_coef);
     return;
-}// StaggeredStokesSolver()
+} // StaggeredStokesSolver()
 
 StaggeredStokesSolver::~StaggeredStokesSolver()
 {
@@ -83,18 +88,16 @@ StaggeredStokesSolver::~StaggeredStokesSolver()
     delete d_default_P_bc_coef;
     d_default_P_bc_coef = NULL;
     return;
-}// ~StaggeredStokesSolver()
+} // ~StaggeredStokesSolver()
 
-void
-StaggeredStokesSolver::setVelocityPoissonSpecifications(
+void StaggeredStokesSolver::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
-}// setVelocityPoissonSpecifications
+} // setVelocityPoissonSpecifications
 
-void
-StaggeredStokesSolver::setPhysicalBcCoefs(
+void StaggeredStokesSolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
@@ -122,10 +125,9 @@ StaggeredStokesSolver::setPhysicalBcCoefs(
         d_P_bc_coef = d_default_P_bc_coef;
     }
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
-void
-StaggeredStokesSolver::setPhysicalBoundaryHelper(
+void StaggeredStokesSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -133,12 +135,12 @@ StaggeredStokesSolver::setPhysicalBoundaryHelper(
 #endif
     d_bc_helper = bc_helper;
     return;
-}// setPhysicalBoundaryHelper
+} // setPhysicalBoundaryHelper
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

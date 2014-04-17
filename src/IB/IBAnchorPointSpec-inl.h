@@ -46,18 +46,14 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool
-IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
+inline bool IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-}// getIsRegisteredWithStreamableManager
+} // getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-IBAnchorPointSpec::IBAnchorPointSpec(
-    const int node_idx)
-    : d_node_idx(node_idx)
+inline IBAnchorPointSpec::IBAnchorPointSpec(const int node_idx) : d_node_idx(node_idx)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -68,46 +64,39 @@ IBAnchorPointSpec::IBAnchorPointSpec(
     }
 #endif
     return;
-}// IBAnchorPointSpec
+} // IBAnchorPointSpec
 
-inline
-IBAnchorPointSpec::~IBAnchorPointSpec()
+inline IBAnchorPointSpec::~IBAnchorPointSpec()
 {
     // intentionally blank
     return;
-}// ~IBAnchorPointSpec
+} // ~IBAnchorPointSpec
 
-inline const int&
-IBAnchorPointSpec::getNodeIndex() const
+inline const int& IBAnchorPointSpec::getNodeIndex() const
 {
     return d_node_idx;
-}// getNodeIndex
+} // getNodeIndex
 
-inline int&
-IBAnchorPointSpec::getNodeIndex()
+inline int& IBAnchorPointSpec::getNodeIndex()
 {
     return d_node_idx;
-}// getNodeIndex
+} // getNodeIndex
 
-inline int
-IBAnchorPointSpec::getStreamableClassID() const
+inline int IBAnchorPointSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-}// getStreamableClassID
+} // getStreamableClassID
 
-inline size_t
-IBAnchorPointSpec::getDataStreamSize() const
+inline size_t IBAnchorPointSpec::getDataStreamSize() const
 {
     return SAMRAI::tbox::AbstractStream::sizeofInt();
-}// getDataStreamSize
+} // getDataStreamSize
 
-inline void
-IBAnchorPointSpec::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
+inline void IBAnchorPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    stream.pack(&d_node_idx,1);
+    stream.pack(&d_node_idx, 1);
     return;
-}// packStream
+} // packStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

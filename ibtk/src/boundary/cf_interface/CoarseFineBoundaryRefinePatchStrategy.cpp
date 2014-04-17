@@ -47,13 +47,13 @@ CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy()
 {
     // intentionally blank
     return;
-}// CoarseFineBoundaryRefinePatchStrategy
+} // CoarseFineBoundaryRefinePatchStrategy
 
 CoarseFineBoundaryRefinePatchStrategy::~CoarseFineBoundaryRefinePatchStrategy()
 {
     // intentionally blank
     return;
-}// ~CoarseFineBoundaryRefinePatchStrategy
+} // ~CoarseFineBoundaryRefinePatchStrategy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -61,6 +61,6 @@ CoarseFineBoundaryRefinePatchStrategy::~CoarseFineBoundaryRefinePatchStrategy()
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

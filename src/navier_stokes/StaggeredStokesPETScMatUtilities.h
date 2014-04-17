@@ -41,14 +41,19 @@
 #include "petscmat.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class PatchLevel;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -72,8 +77,7 @@ public:
      * discretization of the time-dependent incompressible Stokes equations on a
      * single SAMRAI::hier::PatchLevel.
      */
-    static void
-    constructPatchLevelMACStokesOp(
+    static void constructPatchLevelMACStokesOp(
         Mat& mat,
         const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
@@ -86,7 +90,6 @@ public:
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -102,8 +105,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesPETScMatUtilities(
-        const StaggeredStokesPETScMatUtilities& from);
+    StaggeredStokesPETScMatUtilities(const StaggeredStokesPETScMatUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -114,11 +116,9 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPETScMatUtilities&
-    operator=(
-        const StaggeredStokesPETScMatUtilities& that);
+    StaggeredStokesPETScMatUtilities& operator=(const StaggeredStokesPETScMatUtilities& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

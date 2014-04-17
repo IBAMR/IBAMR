@@ -39,9 +39,8 @@
 #include "CCLaplaceOperator.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
-#include "IBTK_config.h"
+#include "MultiblockDataTranslator.h"
 #include "PoissonSpecifications.h"
-#include "SAMRAI_config.h"
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/ibtk_utilities.h"
@@ -63,9 +62,9 @@ static const int CELLG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE     = "NONE";
-static const bool        USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+static const std::string DATA_REFINE_TYPE = "NONE";
+static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -82,43 +81,32 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CCLaplaceOperator::CCLaplaceOperator(
-    const std::string& object_name,
-    const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc),
-      d_ncomp(0),
-      d_fill_pattern(NULL),
-      d_transaction_comps(),
-      d_hier_bdry_fill(NULL),
-      d_no_fill(NULL),
-      d_x(NULL),
-      d_b(NULL),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1)
+CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
+    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL),
+      d_transaction_comps(), d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL),
+      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
 {
     // Setup the operator to use default scalar-valued boundary conditions.
     setPhysicalBcCoef(NULL);
 
     // Setup Timers.
-    IBTK_DO_ONCE(
-        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-                 );
+    IBTK_DO_ONCE(t_apply =
+                     TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
+                 t_initialize_operator_state = TimerManager::getManager()->getTimer(
+                     "IBTK::CCLaplaceOperator::initializeOperatorState()");
+                 t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+                     "IBTK::CCLaplaceOperator::deallocateOperatorState()"););
     return;
-}// CCLaplaceOperator()
+} // CCLaplaceOperator()
 
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~CCLaplaceOperator()
+} // ~CCLaplaceOperator()
 
-void
-CCLaplaceOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
+                              SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -126,15 +114,16 @@ CCLaplaceOperator::apply(
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
+        Pointer<CellVariable<NDIM, double> > x_cc_var = x.getComponentVariable(comp);
+        Pointer<CellVariable<NDIM, double> > y_cc_var = y.getComponentVariable(comp);
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                       << "  encountered non-cell centered vector components" << std::endl);
+                                     << "  encountered non-cell centered vector components"
+                                     << std::endl);
         }
-        Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
-        Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, double> > x_factory = x_cc_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, double> > y_factory = y_cc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -143,18 +132,28 @@ CCLaplaceOperator::apply(
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                       << "  each vector component must have data depth == " << d_bc_coefs.size() << "\n"
-                       << "  since d_bc_coefs.size() == " << d_bc_coefs.size() << std::endl);
+                                     << "  each vector component must have data depth == "
+                                     << d_bc_coefs.size() << "\n"
+                                     << "  since d_bc_coefs.size() == " << d_bc_coefs.size()
+                                     << std::endl);
         }
     }
 #endif
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
+                                                      DATA_REFINE_TYPE,
+                                                      USE_CF_INTERPOLATION,
+                                                      DATA_COARSEN_TYPE,
+                                                      BDRY_EXTRAP_TYPE,
+                                                      CONSISTENT_TYPE_2_BDRY,
+                                                      d_bc_coefs,
+                                                      d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -165,24 +164,33 @@ CCLaplaceOperator::apply(
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
+        Pointer<CellVariable<NDIM, double> > x_cc_var = x.getComponentVariable(comp);
+        Pointer<CellVariable<NDIM, double> > y_cc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
-            d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var, d_no_fill, 0.0, 0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL), l, l);
+            d_hier_math_ops->laplace(y_idx,
+                                     y_cc_var,
+                                     d_poisson_spec,
+                                     x_idx,
+                                     x_cc_var,
+                                     d_no_fill,
+                                     0.0,
+                                     0.0,
+                                     -1,
+                                     Pointer<CellVariable<NDIM, double> >(NULL),
+                                     l,
+                                     l);
         }
     }
 
     IBTK_TIMER_STOP(t_apply);
     return;
-}// apply
+} // apply
 
-void
-CCLaplaceOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                const SAMRAIVectorReal<NDIM, double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -190,13 +198,13 @@ CCLaplaceOperator::initializeOperatorState(
     if (d_is_initialized) deallocateOperatorState();
 
     // Setup solution and rhs vectors.
-    d_x = in .cloneVector(in .getName());
+    d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
 
     // Setup operator state.
-    d_hierarchy   = in.getPatchHierarchy();
+    d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
-    d_finest_ln   = in.getFinestLevelNumber();
+    d_finest_ln = in.getFinestLevelNumber();
 
     d_ncomp = in.getNumberOfComponents();
 
@@ -209,7 +217,8 @@ CCLaplaceOperator::initializeOperatorState(
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = new HierarchyMathOps(
+            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -224,27 +233,35 @@ CCLaplaceOperator::initializeOperatorState(
     {
         d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
+                                                    DATA_REFINE_TYPE,
+                                                    USE_CF_INTERPOLATION,
+                                                    DATA_COARSEN_TYPE,
+                                                    BDRY_EXTRAP_TYPE,
+                                                    CONSISTENT_TYPE_2_BDRY,
+                                                    d_bc_coefs,
+                                                    d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(
+        d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-}// initializeOperatorState
+} // initializeOperatorState
 
-void
-CCLaplaceOperator::deallocateOperatorState()
+void CCLaplaceOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -260,10 +277,14 @@ CCLaplaceOperator::deallocateOperatorState()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Delete the solution and rhs vectors.
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(), std::min(d_x->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
+    d_x->resetLevels(
+        d_x->getCoarsestLevelNumber(),
+        std::min(d_x->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_x->freeVectorComponents();
 
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(), std::min(d_b->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
+    d_b->resetLevels(
+        d_b->getCoarsestLevelNumber(),
+        std::min(d_b->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_b->freeVectorComponents();
 
     d_x.setNull();
@@ -274,12 +295,12 @@ CCLaplaceOperator::deallocateOperatorState()
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
-}// deallocateOperatorState
+} // deallocateOperatorState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

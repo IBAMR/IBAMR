@@ -33,21 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
-#include <string>
 
 #include "KrylovLinearSolverPoissonSolverInterface.h"
-#include "SAMRAI_config.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -61,16 +62,15 @@ KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterfa
 {
     // intentionally blank
     return;
-}// KrylovLinearSolverPoissonSolverInterface
+} // KrylovLinearSolverPoissonSolverInterface
 
 KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterface()
 {
     // intentionally blank
     return;
-}// ~KrylovLinearSolverPoissonSolverInterface
+} // ~KrylovLinearSolverPoissonSolverInterface
 
-void
-KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
+void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
     const PoissonSpecifications& poisson_spec)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
@@ -83,11 +83,10 @@ KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(
     Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
-}// setPoissonSpecifications
+} // setPoissonSpecifications
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* bc_coef)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -99,10 +98,9 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(
     Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
-}// setPhysicalBcCoef
+} // setPhysicalBcCoef
 
-void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
@@ -115,12 +113,12 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(
     Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
-}// setPhysicalBcCoefs
+} // setPhysicalBcCoefs
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

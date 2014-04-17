@@ -46,47 +46,46 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::coarsen(
-    const SAMRAI::hier::Index<NDIM>& i_fine,
-    const SAMRAI::hier::Index<NDIM>& ratio)
+IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
+                        const SAMRAI::hier::Index<NDIM>& ratio)
 {
     SAMRAI::hier::Index<NDIM> i_coarse;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        i_coarse(d) = i_fine(d) < 0 ? (i_fine(d)+1)/ratio(d)-1 : i_fine(d)/ratio(d);
+        i_coarse(d) = i_fine(d) < 0 ? (i_fine(d) + 1) / ratio(d) - 1 : i_fine(d) / ratio(d);
     }
     return i_coarse;
-}// coarsen
+} // coarsen
 
 inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::refine(
-    const SAMRAI::hier::Index<NDIM>& i_coarse,
-    const SAMRAI::hier::Index<NDIM>& ratio)
+IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse,
+                       const SAMRAI::hier::Index<NDIM>& ratio)
 {
-    return i_coarse*ratio;
-}// refine
+    return i_coarse * ratio;
+} // refine
 
-template<class DoubleArray>
+template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
-IndexUtilities::getCellIndex(
-    const DoubleArray& X,
-    const double* const x_lower,
-    const double* const /*x_upper*/,
-    const double* const dx,
-    const SAMRAI::hier::Index<NDIM>& ilower,
-    const SAMRAI::hier::Index<NDIM>& /*iupper*/)
+IndexUtilities::getCellIndex(const DoubleArray& X,
+                             const double* const x_lower,
+                             const double* const /*x_upper*/,
+                             const double* const dx,
+                             const SAMRAI::hier::Index<NDIM>& ilower,
+                             const SAMRAI::hier::Index<NDIM>& /*iupper*/)
 {
     SAMRAI::hier::Index<NDIM> idx(
-        static_cast<int>( floor((X[0]-x_lower[0])/dx[0]))+ilower(0)
+        static_cast<int>(floor((X[0] - x_lower[0]) / dx[0])) + ilower(0)
 #if (NDIM > 1)
-        ,static_cast<int>(floor((X[1]-x_lower[1])/dx[1]))+ilower(1)
+        ,
+        static_cast<int>(floor((X[1] - x_lower[1]) / dx[1])) + ilower(1)
 #if (NDIM > 2)
-        ,static_cast<int>(floor((X[2]-x_lower[2])/dx[2]))+ilower(2)
+        ,
+        static_cast<int>(floor((X[2] - x_lower[2]) / dx[2])) + ilower(2)
 #endif
 #endif
-                                  );
+        );
     return idx;
-}// getCellIndex
+} // getCellIndex
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -96,7 +95,7 @@ IndexUtilities::getCellIndex(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

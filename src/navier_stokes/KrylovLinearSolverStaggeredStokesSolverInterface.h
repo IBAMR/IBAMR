@@ -41,14 +41,18 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class StaggeredStokesPhysicalBoundaryHelper;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,8 +69,7 @@ namespace IBAMR
  *
  * \see PETScKrylovStaggeredStokesSolver
  */
-class KrylovLinearSolverStaggeredStokesSolverInterface
-    : public StaggeredStokesSolver
+class KrylovLinearSolverStaggeredStokesSolverInterface : public StaggeredStokesSolver
 {
 public:
     /*!
@@ -84,8 +87,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void
-    setVelocityPoissonSpecifications(
+    void setVelocityPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
@@ -97,20 +99,21 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
+     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
+     *condition coefficients for the velocity
+     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     *coefficients
+     *for the pressure
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void
-    setPhysicalBoundaryHelper(
+    void setPhysicalBoundaryHelper(
         SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
@@ -134,10 +137,9 @@ private:
      * \return A reference to this object.
      */
     KrylovLinearSolverStaggeredStokesSolverInterface&
-    operator=(
-        const KrylovLinearSolverStaggeredStokesSolverInterface& that);
+    operator=(const KrylovLinearSolverStaggeredStokesSolverInterface& that);
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

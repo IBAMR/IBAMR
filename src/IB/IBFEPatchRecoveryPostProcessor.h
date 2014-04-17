@@ -60,9 +60,8 @@ public:
     /*!
      * Constructor.
      */
-    IBFEPatchRecoveryPostProcessor(
-        libMesh::MeshBase* mesh,
-        IBTK::FEDataManager* fe_data_manager);
+    IBFEPatchRecoveryPostProcessor(libMesh::MeshBase* mesh,
+                                   IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Destructor.
@@ -72,56 +71,44 @@ public:
     /*!
      * Initialize data used by the post processor.
      */
-    void
-    initializeFEData(
-        const libMesh::PeriodicBoundaries* periodic_boundaries=NULL);
+    void initializeFEData(const libMesh::PeriodicBoundaries* periodic_boundaries = NULL);
 
     /*!
      * Initialize system to store reconstructed Cauchy stress values.
      */
-    libMesh::System*
-    initializeCauchyStressSystem();
+    libMesh::System* initializeCauchyStressSystem();
 
     /*!
      * Initialize system to store reconstructed pressure values.
      */
-    libMesh::System*
-    initializePressureSystem();
+    libMesh::System* initializePressureSystem();
 
     /*!
      * Register the Cauchy stress associated with an element and quadrature
      * point.
      */
-    void
-    registerCauchyStressValue(
-        const libMesh::Elem* elem,
-        const libMesh::QBase* qrule,
-        unsigned int qp,
-        const libMesh::TensorValue<double>& sigma);
+    void registerCauchyStressValue(const libMesh::Elem* elem,
+                                   const libMesh::QBase* qrule,
+                                   unsigned int qp,
+                                   const libMesh::TensorValue<double>& sigma);
 
     /*!
      * Register the pressure associated with an element and quadrature point.
      */
-    void
-    registerPressureValue(
-        const libMesh::Elem* elem,
-        const libMesh::QBase* qrule,
-        unsigned int qp,
-        double p);
+    void registerPressureValue(const libMesh::Elem* elem,
+                               const libMesh::QBase* qrule,
+                               unsigned int qp,
+                               double p);
 
     /*!
      * Reconstruct the Cauchy stress at the nodes of the mesh.
      */
-    void
-    reconstructCauchyStress(
-        libMesh::System& sigma_system);
+    void reconstructCauchyStress(libMesh::System& sigma_system);
 
     /*!
      * Reconstruct the pressure at the nodes of the mesh.
      */
-    void
-    reconstructPressure(
-        libMesh::System& p_system);
+    void reconstructPressure(libMesh::System& p_system);
 
 private:
     /*!
@@ -138,8 +125,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEPatchRecoveryPostProcessor(
-        const IBFEPatchRecoveryPostProcessor& from);
+    IBFEPatchRecoveryPostProcessor(const IBFEPatchRecoveryPostProcessor& from);
 
     /*!
      * \brief Assignment operator.
@@ -150,9 +136,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEPatchRecoveryPostProcessor&
-    operator=(
-        const IBFEPatchRecoveryPostProcessor& that);
+    IBFEPatchRecoveryPostProcessor& operator=(const IBFEPatchRecoveryPostProcessor& that);
 
     /*
      * FE data associated with this object.
@@ -165,35 +149,33 @@ private:
     /*
      * Map from local nodes to element patches.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
-    typedef boost::tuple<const Elem*,CompositePeriodicMapping,CompositePeriodicMapping> ElemPatchItem;
+    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> >
+    CompositePeriodicMapping;
+    typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping>
+    ElemPatchItem;
     struct ElemPatchItemComp
-        : std::binary_function<const ElemPatchItem&, const ElemPatchItem&,bool>
+        : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {
-        inline bool
-        operator()(
-            const ElemPatchItem& lhs,
-            const ElemPatchItem& rhs)
-            {
-                return lhs.get<0>() < rhs.get<0>();
-            }
+        inline bool operator()(const ElemPatchItem& lhs, const ElemPatchItem& rhs)
+        {
+            return lhs.get<0>() < rhs.get<0>();
+        }
     };
-    typedef std::set<ElemPatchItem,ElemPatchItemComp> ElemPatch;
-    std::map<libMesh::dof_id_type,ElemPatch> d_local_elem_patches;
+    typedef std::set<ElemPatchItem, ElemPatchItemComp> ElemPatch;
+    std::map<libMesh::dof_id_type, ElemPatch> d_local_elem_patches;
 
     static inline libMesh::Point
-    apply_composite_periodic_mapping(
-        const CompositePeriodicMapping& mapping,
-        const libMesh::Point& p)
+    apply_composite_periodic_mapping(const CompositePeriodicMapping& mapping,
+                                     const libMesh::Point& p)
+    {
+        if (mapping.empty()) return p;
+        libMesh::Point periodic_image = p;
+        for (unsigned int k = 0; k < mapping.size(); ++k)
         {
-            if (mapping.empty()) return p;
-            libMesh::Point periodic_image = p;
-            for (unsigned int k = 0; k < mapping.size(); ++k)
-            {
-                periodic_image = mapping[k]->get_corresponding_pos(periodic_image);
-            }
-            return periodic_image;
-        }// apply_composite_periodic_mapping
+            periodic_image = mapping[k]->get_corresponding_pos(periodic_image);
+        }
+        return periodic_image;
+    } // apply_composite_periodic_mapping
 
     /*
      * Interpolation point indexing data for each element.
@@ -210,11 +192,11 @@ private:
      * Stress data at interpolation points.
      */
     typedef std::vector<libMesh::TensorValue<double> > ElemStress;
-    std::map<libMesh::dof_id_type,ElemStress> d_elem_sigma;
+    std::map<libMesh::dof_id_type, ElemStress> d_elem_sigma;
     typedef std::vector<double> ElemPressure;
-    std::map<libMesh::dof_id_type,ElemPressure> d_elem_pressure;
+    std::map<libMesh::dof_id_type, ElemPressure> d_elem_pressure;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

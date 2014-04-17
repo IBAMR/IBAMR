@@ -41,6 +41,7 @@
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
 #include "RefineAlgorithm.h"
@@ -58,19 +59,26 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-namespace IBTK {
+namespace IBTK
+{
 class HierarchyGhostCellInterpolation;
 class HierarchyMathOps;
-}  // namespace IBTK
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-namespace xfer {
-template <int DIM> class CoarsenSchedule;
-template <int DIM> class RefineSchedule;
-}  // namespace xfer
-}  // namespace SAMRAI
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -94,11 +102,12 @@ namespace IBAMR
  coarse_solver_rel_residual_tol = 1.0e-5        // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50       // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 10              // see setCoarseSolverMaxIterations()
- coarse_solver_db = { ... }                     // SAMRAI::tbox::Database for initializing coarse level solver
+ coarse_solver_db = { ... }                     // SAMRAI::tbox::Database for initializing
+ coarse
+ level solver
  \endverbatim
 */
-class StaggeredStokesFACPreconditionerStrategy
-    : public IBTK::FACPreconditionerStrategy
+class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
 {
 public:
     /*!
@@ -120,8 +129,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    virtual void
-    setVelocityPoissonSpecifications(
+    virtual void setVelocityPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
@@ -133,20 +141,21 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
+     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
+     *condition coefficients for the velocity
+     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     *coefficients
+     *for the pressure
      */
     virtual void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    virtual void
-    setPhysicalBoundaryHelper(
+    virtual void setPhysicalBoundaryHelper(
         SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
@@ -174,24 +183,17 @@ public:
      * This \b is \b not what you want to have happen if, for instance, the
      * Poisson specifications changes.
      */
-    void
-    setResetLevels(
-        int coarsest_ln,
-        int finest_ln);
+    void setResetLevels(int coarsest_ln, int finest_ln);
 
     /*!
      * \brief Specify the smoother type.
      */
-    void
-    setSmootherType(
-        const std::string& smoother_type);
+    void setSmootherType(const std::string& smoother_type);
 
     /*!
      * \brief Specify the coarse level solver.
      */
-    void
-    setCoarseSolverType(
-        const std::string& coarse_solver_type);
+    void setCoarseSolverType(const std::string& coarse_solver_type);
 
     /*!
      * \brief Set the maximum number of iterations for the coarse level solve.
@@ -200,9 +202,7 @@ public:
      * the specified value is used.  If the coarse level solver does not use
      * such a stopping parameter, implementations are free to ignore this value.
      */
-    void
-    setCoarseSolverMaxIterations(
-        int coarse_solver_max_iterations);
+    void setCoarseSolverMaxIterations(int coarse_solver_max_iterations);
 
     /*!
      * \brief Set the absolute residual tolerance for convergence for coarse
@@ -213,9 +213,7 @@ public:
      * not use such a stopping parameter, implementations are free to ignore
      * this value.
      */
-    void
-    setCoarseSolverAbsoluteTolerance(
-        double coarse_solver_abs_residual_tol);
+    void setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol);
 
     /*!
      * \brief Set the relative residual tolerance for convergence for coarse
@@ -226,25 +224,19 @@ public:
      * not use such a stopping parameter, implementations are free to ignore
      * this value.
      */
-    void
-    setCoarseSolverRelativeTolerance(
-        double coarse_solver_rel_residual_tol);
+    void setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol);
 
     /*!
      * \brief Set the prolongation methods.
      */
-    void
-    setProlongationMethods(
-        const std::string& U_prolongation_method,
-        const std::string& P_prolongation_method);
+    void setProlongationMethods(const std::string& U_prolongation_method,
+                                const std::string& P_prolongation_method);
 
     /*!
      * \brief Set the restriction methods.
      */
-    void
-    setRestrictionMethods(
-        const std::string& U_restriction_method,
-        const std::string& P_restriction_method);
+    void setRestrictionMethods(const std::string& U_restriction_method,
+                               const std::string& P_restriction_method);
 
     //\}
 
@@ -261,11 +253,9 @@ public:
      * \param dst destination residual
      * \param dst_ln destination level number
      */
-    void
-    restrictResidual(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
+    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                          int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -275,11 +265,9 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void
-    prolongError(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
+    void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                      int dst_ln);
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
@@ -289,11 +277,9 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void
-    prolongErrorAndCorrect(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
+    void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+                                int dst_ln);
 
     /*!
      * \brief Solve the residual equation Ae=r on the coarsest level of the
@@ -303,23 +289,19 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool
-    solveCoarsestLevel(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int coarsest_ln);
+    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                            int coarsest_ln);
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    void
-    computeResidual(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int coarsest_level_num,
-        int finest_level_num);
+    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                         int coarsest_level_num,
+                         int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -335,10 +317,8 @@ public:
      * \param solution solution vector u
      * \param rhs right hand side vector f
      */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -347,8 +327,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void
-    deallocateOperatorState();
+    void deallocateOperatorState();
 
     //\}
 
@@ -356,20 +335,17 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    virtual void
-    initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+    virtual void initializeOperatorStateSpecialized(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
         int coarsest_reset_ln,
         int finest_reset_ln) = 0;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    virtual void
-    deallocateOperatorStateSpecialized(
-        int coarsest_reset_ln,
-        int finest_reset_ln) = 0;
+    virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln,
+                                                    int finest_reset_ln) = 0;
 
     /*!
      * \name Methods for executing, caching, and resetting communication
@@ -380,37 +356,27 @@ protected:
     /*!
      * \brief Execute a refinement schedule for prolonging data.
      */
-    void
-    xeqScheduleProlongation(
-        const std::pair<int,int>& dst_idxs,
-        const std::pair<int,int>& src_idxs,
-        int dst_ln);
+    void xeqScheduleProlongation(const std::pair<int, int>& dst_idxs,
+                                 const std::pair<int, int>& src_idxs,
+                                 int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
      */
-    void
-    xeqScheduleRestriction(
-        const std::pair<int,int>& dst_idxs,
-        const std::pair<int,int>& src_idxs,
-        int dst_ln);
+    void xeqScheduleRestriction(const std::pair<int, int>& dst_idxs,
+                                const std::pair<int, int>& src_idxs,
+                                int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
      */
-    void
-    xeqScheduleGhostFillNoCoarse(
-        const std::pair<int,int>& dst_idxs,
-        int dst_ln);
+    void xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      */
-    void
-    xeqScheduleDataSynch(
-        int dst_idx,
-        int dst_ln);
+    void xeqScheduleDataSynch(int dst_idx, int dst_ln);
 
     //\}
 
@@ -441,7 +407,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solution, d_rhs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -457,7 +423,8 @@ protected:
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> >
+    d_level_bdry_fill_ops;
     std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_level_math_ops;
 
     /*
@@ -533,12 +500,14 @@ protected:
     /*
      * Coarse-fine interface interpolation objects.
      */
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op, d_P_cf_bdry_op;
+    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op,
+        d_P_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_op_stencil_fill_pattern,  d_P_op_stencil_fill_pattern, d_U_synch_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> >
+    d_U_op_stencil_fill_pattern, d_P_op_stencil_fill_pattern, d_U_synch_fill_pattern;
 
     //\}
 
@@ -569,8 +538,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesFACPreconditionerStrategy& operator=(
-        const StaggeredStokesFACPreconditionerStrategy& that);
+    StaggeredStokesFACPreconditionerStrategy&
+    operator=(const StaggeredStokesFACPreconditionerStrategy& that);
 
     /*
      * Combined U & P physical boundary operator.
@@ -580,31 +549,41 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_prolongation_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> >
+    d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> >
+    d_prolongation_refine_patch_strategy;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    d_prolongation_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> >
+    d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
+    d_restriction_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >
+    d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_nocoarse_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    d_synch_refine_schedules;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

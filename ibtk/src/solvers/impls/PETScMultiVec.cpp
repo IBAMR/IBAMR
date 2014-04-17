@@ -36,15 +36,14 @@
 #include <stddef.h>
 #include <algorithm>
 #include <ostream>
-#include <string>
 
 #include "PETScMultiVec.h"
-#include "SAMRAI_config.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscerror.h"
+#include "petscis.h"
 #include "petscmath.h"
-#include "petsc-private/vecimpl.h"
+#include "petsc-private/vecimpl.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -62,10 +61,7 @@ struct Vec_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDuplicate_MultiVec"
-PetscErrorCode
-VecDuplicate_MultiVec(
-    Vec v,
-    Vec* newv)
+PetscErrorCode VecDuplicate_MultiVec(Vec v, Vec* newv)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -76,30 +72,31 @@ VecDuplicate_MultiVec(
 #endif
     PetscErrorCode ierr;
     Vec* newvarray;
-    ierr = PetscMalloc(mv->n*sizeof(Vec),&newvarray); CHKERRQ(ierr);
+    ierr = PetscMalloc(mv->n * sizeof(Vec), &newvarray);
+    CHKERRQ(ierr);
     for (PetscInt k = 0; k < mv->n; ++k)
     {
-        ierr = VecDuplicate(mv->array[k], &newvarray[k]); CHKERRQ(ierr);
+        ierr = VecDuplicate(mv->array[k], &newvarray[k]);
+        CHKERRQ(ierr);
     }
     MPI_Comm comm;
-    ierr = PetscObjectGetComm((PetscObject)v,&comm); CHKERRQ(ierr);
-    ierr = VecCreateMultiVec(comm, mv->n, newvarray, newv); CHKERRQ(ierr);
+    ierr = PetscObjectGetComm((PetscObject)v, &comm);
+    CHKERRQ(ierr);
+    ierr = VecCreateMultiVec(comm, mv->n, newvarray, newv);
+    CHKERRQ(ierr);
     Vec_MultiVec* mnewv = static_cast<Vec_MultiVec*>((*newv)->data);
 #if !defined(NDEBUG)
     TBOX_ASSERT(mnewv);
 #endif
     mnewv->array_allocated = newvarray;
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecDuplicate_MultiVec
+} // VecDuplicate_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDot_MultiVec"
-PetscErrorCode
-VecDot_MultiVec(
-    Vec x,
-    Vec y,
-    PetscScalar* val)
+PetscErrorCode VecDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -117,20 +114,16 @@ VecDot_MultiVec(
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscScalar component_val;
-        ierr = VecDot(mx->array[k], my->array[k], &component_val); CHKERRQ(ierr);
+        ierr = VecDot(mx->array[k], my->array[k], &component_val);
+        CHKERRQ(ierr);
         *val += component_val;
     }
     PetscFunctionReturn(0);
-}// VecDot_MultiVec
+} // VecDot_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMDot_MultiVec"
-PetscErrorCode
-VecMDot_MultiVec(
-    Vec x,
-    PetscInt nv,
-    const Vec* y,
-    PetscScalar* val)
+PetscErrorCode VecMDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -142,18 +135,15 @@ VecMDot_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        ierr = VecDot_MultiVec(x,y[i],&val[i]); CHKERRQ(ierr);
+        ierr = VecDot_MultiVec(x, y[i], &val[i]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecMDot_MultiVec
+} // VecMDot_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNorm_MultiVec"
-PetscErrorCode
-VecNorm_MultiVec(
-    Vec x,
-    NormType type,
-    PetscScalar* val)
+PetscErrorCode VecNorm_MultiVec(Vec x, NormType type, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -169,7 +159,8 @@ VecNorm_MultiVec(
         for (PetscInt k = 0; k < mx->n; ++k)
         {
             PetscScalar component_val;
-            ierr = VecNorm(mx->array[k], type, &component_val); CHKERRQ(ierr);
+            ierr = VecNorm(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
             *val += component_val;
         }
     }
@@ -179,8 +170,9 @@ VecNorm_MultiVec(
         for (PetscInt k = 0; k < mx->n; ++k)
         {
             PetscScalar component_val;
-            ierr = VecNorm(mx->array[k], type, &component_val); CHKERRQ(ierr);
-            *val += component_val*component_val;
+            ierr = VecNorm(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
+            *val += component_val * component_val;
         }
         *val = sqrt(*val);
     }
@@ -190,25 +182,24 @@ VecNorm_MultiVec(
         for (PetscInt k = 0; k < mx->n; ++k)
         {
             PetscScalar component_val;
-            ierr = VecNorm(mx->array[k], type, &component_val); CHKERRQ(ierr);
-            *val = std::max(*val,component_val);
+            ierr = VecNorm(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
+            *val = std::max(*val, component_val);
         }
     }
     else if (type == NORM_1_AND_2)
     {
-        ierr = VecNorm_MultiVec(x, NORM_1, &val[0]); CHKERRQ(ierr);
-        ierr = VecNorm_MultiVec(x, NORM_2, &val[1]); CHKERRQ(ierr);
+        ierr = VecNorm_MultiVec(x, NORM_1, &val[0]);
+        CHKERRQ(ierr);
+        ierr = VecNorm_MultiVec(x, NORM_2, &val[1]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecNorm_MultiVec
+} // VecNorm_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecTDot_MultiVec"
-PetscErrorCode
-VecTDot_MultiVec(
-    Vec x,
-    Vec y,
-    PetscScalar* val)
+PetscErrorCode VecTDot_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -226,20 +217,16 @@ VecTDot_MultiVec(
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscScalar component_val;
-        ierr = VecTDot(mx->array[k], my->array[k], &component_val); CHKERRQ(ierr);
+        ierr = VecTDot(mx->array[k], my->array[k], &component_val);
+        CHKERRQ(ierr);
         *val += component_val;
     }
     PetscFunctionReturn(0);
-}// VecTDot_MultiVec
+} // VecTDot_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMTDot_MultiVec"
-PetscErrorCode
-VecMTDot_MultiVec(
-    Vec x,
-    PetscInt nv,
-    const Vec* y,
-    PetscScalar* val)
+PetscErrorCode VecMTDot_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -251,17 +238,15 @@ VecMTDot_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        ierr = VecTDot_MultiVec(x,y[i],&val[i]); CHKERRQ(ierr);
+        ierr = VecTDot_MultiVec(x, y[i], &val[i]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecMTDot_MultiVec
+} // VecMTDot_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecScale_MultiVec"
-PetscErrorCode
-VecScale_MultiVec(
-    Vec x,
-    PetscScalar alpha)
+PetscErrorCode VecScale_MultiVec(Vec x, PetscScalar alpha)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -273,18 +258,17 @@ VecScale_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
-        ierr = VecScale(mx->array[k], alpha); CHKERRQ(ierr);
+        ierr = VecScale(mx->array[k], alpha);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecScale_MultiVec
+} // VecScale_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecCopy_MultiVec"
-PetscErrorCode
-VecCopy_MultiVec(
-    Vec x,
-    Vec y)
+PetscErrorCode VecCopy_MultiVec(Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -300,18 +284,17 @@ VecCopy_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
-        ierr = VecCopy(mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecCopy(mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecCopy_MultiVec
+} // VecCopy_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSet_MultiVec"
-PetscErrorCode
-VecSet_MultiVec(
-    Vec x,
-    PetscScalar alpha)
+PetscErrorCode VecSet_MultiVec(Vec x, PetscScalar alpha)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -323,18 +306,17 @@ VecSet_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
-        ierr = VecSet(mx->array[k], alpha); CHKERRQ(ierr);
+        ierr = VecSet(mx->array[k], alpha);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecSet_MultiVec
+} // VecSet_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSwap_MultiVec"
-PetscErrorCode
-VecSwap_MultiVec(
-    Vec x,
-    Vec y)
+PetscErrorCode VecSwap_MultiVec(Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -350,20 +332,19 @@ VecSwap_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
-        ierr = VecSwap(mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecSwap(mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x)); CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
+    CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecSwap_MultiVec
+} // VecSwap_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPY_MultiVec"
-PetscErrorCode
-VecAXPY_MultiVec(
-    Vec y,
-    PetscScalar alpha,
-    Vec x)
+PetscErrorCode VecAXPY_MultiVec(Vec y, PetscScalar alpha, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -379,20 +360,17 @@ VecAXPY_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < my->n; ++k)
     {
-        ierr = VecAXPY(my->array[k], alpha, mx->array[k]); CHKERRQ(ierr);
+        ierr = VecAXPY(my->array[k], alpha, mx->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecAXPY_MultiVec
+} // VecAXPY_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBY_MultiVec"
-PetscErrorCode
-VecAXPBY_MultiVec(
-    Vec y,
-    PetscScalar alpha,
-    PetscScalar beta,
-    Vec x)
+PetscErrorCode VecAXPBY_MultiVec(Vec y, PetscScalar alpha, PetscScalar beta, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -408,20 +386,17 @@ VecAXPBY_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < my->n; ++k)
     {
-        ierr = VecAXPBY(my->array[k], alpha, beta, mx->array[k]); CHKERRQ(ierr);
+        ierr = VecAXPBY(my->array[k], alpha, beta, mx->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecAXPBY_MultiVec
+} // VecAXPBY_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMAXPY_MultiVec"
-PetscErrorCode
-VecMAXPY_MultiVec(
-    Vec y,
-    PetscInt nv,
-    const PetscScalar* alpha,
-    Vec* x)
+PetscErrorCode VecMAXPY_MultiVec(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -433,19 +408,17 @@ VecMAXPY_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        ierr = VecAXPY_MultiVec(y, alpha[i], x[i]); CHKERRQ(ierr);
+        ierr = VecAXPY_MultiVec(y, alpha[i], x[i]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecMAXPY_MultiVec
+} // VecMAXPY_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAYPX_MultiVec"
-PetscErrorCode
-VecAYPX_MultiVec(
-    Vec y,
-    const PetscScalar alpha,
-    Vec x)
+PetscErrorCode VecAYPX_MultiVec(Vec y, const PetscScalar alpha, Vec x)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(y);
@@ -461,20 +434,17 @@ VecAYPX_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < my->n; ++k)
     {
-        ierr = VecAYPX(my->array[k], alpha, mx->array[k]); CHKERRQ(ierr);
+        ierr = VecAYPX(my->array[k], alpha, mx->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecAYPX_MultiVec
+} // VecAYPX_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecWAXPY_MultiVec"
-PetscErrorCode
-VecWAXPY_MultiVec(
-    Vec w,
-    PetscScalar alpha,
-    Vec x,
-    Vec y)
+PetscErrorCode VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -494,22 +464,22 @@ VecWAXPY_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mw->n; ++k)
     {
-        ierr = VecWAXPY(mw->array[k], alpha, mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecWAXPY(mw->array[k], alpha, mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecWAXPY_MultiVec
+} // VecWAXPY_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBYPCZ_MultiVec"
-PetscErrorCode
-VecAXPBYPCZ_MultiVec(
-    Vec w,
-    PetscScalar alpha,
-    PetscScalar beta,
-    PetscScalar gamma,
-    Vec x,
-    Vec y)
+PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w,
+                                    PetscScalar alpha,
+                                    PetscScalar beta,
+                                    PetscScalar gamma,
+                                    Vec x,
+                                    Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -529,19 +499,17 @@ VecAXPBYPCZ_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mw->n; ++k)
     {
-        ierr = VecAXPBYPCZ(mw->array[k], alpha, beta, gamma, mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(mw->array[k], alpha, beta, gamma, mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecAXPBYPCZ_MultiVec
+} // VecAXPBYPCZ_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecPointwiseMult_MultiVec"
-PetscErrorCode
-VecPointwiseMult_MultiVec(
-    Vec w,
-    Vec x,
-    Vec y)
+PetscErrorCode VecPointwiseMult_MultiVec(Vec w, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -561,19 +529,17 @@ VecPointwiseMult_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mw->n; ++k)
     {
-        ierr = VecPointwiseMult(mw->array[k], mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecPointwiseMult(mw->array[k], mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecPointwiseMult_MultiVec
+} // VecPointwiseMult_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecPointwiseDivide_MultiVec"
-PetscErrorCode
-VecPointwiseDivide_MultiVec(
-    Vec w,
-    Vec x,
-    Vec y)
+PetscErrorCode VecPointwiseDivide_MultiVec(Vec w, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -593,47 +559,39 @@ VecPointwiseDivide_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mw->n; ++k)
     {
-        ierr = VecPointwiseDivide(mw->array[k], mx->array[k], my->array[k]); CHKERRQ(ierr);
+        ierr = VecPointwiseDivide(mw->array[k], mx->array[k], my->array[k]);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecPointwiseDivide_MultiVec
+} // VecPointwiseDivide_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecGetSize_MultiVec"
-PetscErrorCode
-VecGetSize_MultiVec(
-    Vec x,
-    PetscInt* size)
+PetscErrorCode VecGetSize_MultiVec(Vec x, PetscInt* size)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
 #endif
     *size = x->map->N;
     PetscFunctionReturn(0);
-}// VecGetSize_MultiVec
+} // VecGetSize_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecGetLocalSize_MultiVec"
-PetscErrorCode
-VecGetLocalSize_MultiVec(
-    Vec x,
-    PetscInt* size)
+PetscErrorCode VecGetLocalSize_MultiVec(Vec x, PetscInt* size)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
 #endif
     *size = x->map->n;
     PetscFunctionReturn(0);
-}// VecGetLocalSize_MultiVec
+} // VecGetLocalSize_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMax_MultiVec"
-PetscErrorCode
-VecMax_MultiVec(
-    Vec x,
-    PetscInt* p,
-    PetscScalar* val)
+PetscErrorCode VecMax_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -649,19 +607,16 @@ VecMax_MultiVec(
     {
         PetscInt component_p;
         PetscScalar component_val;
-        ierr = VecMax(mx->array[k], &component_p, &component_val); CHKERRQ(ierr);
-        *val = std::max(*val,component_val);
+        ierr = VecMax(mx->array[k], &component_p, &component_val);
+        CHKERRQ(ierr);
+        *val = std::max(*val, component_val);
     }
     PetscFunctionReturn(0);
-}// VecMax_MultiVec
+} // VecMax_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMin_MultiVec"
-PetscErrorCode
-VecMin_MultiVec(
-    Vec x,
-    PetscInt* p,
-    PetscScalar* val)
+PetscErrorCode VecMin_MultiVec(Vec x, PetscInt* p, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -677,18 +632,16 @@ VecMin_MultiVec(
     {
         PetscInt component_p;
         PetscScalar component_val;
-        ierr = VecMin(mx->array[k], &component_p, &component_val); CHKERRQ(ierr);
-        *val = std::min(*val,component_val);
+        ierr = VecMin(mx->array[k], &component_p, &component_val);
+        CHKERRQ(ierr);
+        *val = std::min(*val, component_val);
     }
     PetscFunctionReturn(0);
-}// VecMin_MultiVec
+} // VecMin_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecSetRandom_MultiVec"
-PetscErrorCode
-VecSetRandom_MultiVec(
-    Vec x,
-    PetscRandom rctx)
+PetscErrorCode VecSetRandom_MultiVec(Vec x, PetscRandom rctx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -700,17 +653,17 @@ VecSetRandom_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
-        ierr = VecSetRandom(mx->array[k], rctx); CHKERRQ(ierr);
+        ierr = VecSetRandom(mx->array[k], rctx);
+        CHKERRQ(ierr);
     }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecSetRandom_MultiVec
+} // VecSetRandom_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDestroy_MultiVec"
-PetscErrorCode
-VecDestroy_MultiVec(
-    Vec v)
+PetscErrorCode VecDestroy_MultiVec(Vec v)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -727,21 +680,20 @@ VecDestroy_MultiVec(
 #endif
         for (PetscInt k = 0; k < mv->n; ++k)
         {
-            ierr = VecDestroy(&mv->array_allocated[k]); CHKERRQ(ierr);
+            ierr = VecDestroy(&mv->array_allocated[k]);
+            CHKERRQ(ierr);
         }
-        ierr = PetscFree(mv->array_allocated); CHKERRQ(ierr);
+        ierr = PetscFree(mv->array_allocated);
+        CHKERRQ(ierr);
     }
-    ierr = PetscFree(mv); CHKERRQ(ierr);
+    ierr = PetscFree(mv);
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecDestroy_MultiVec
+} // VecDestroy_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDot_local_MultiVec"
-PetscErrorCode
-VecDot_local_MultiVec(
-    Vec x,
-    Vec y,
-    PetscScalar* val)
+PetscErrorCode VecDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -763,19 +715,16 @@ VecDot_local_MultiVec(
         TBOX_ASSERT(mx->array[k]->ops->dot_local == my->array[k]->ops->dot_local);
 #endif
         PetscScalar component_val;
-        ierr = (*mx->array[k]->ops->dot_local)(mx->array[k], my->array[k], &component_val); CHKERRQ(ierr);
+        ierr = (*mx->array[k]->ops->dot_local)(mx->array[k], my->array[k], &component_val);
+        CHKERRQ(ierr);
         *val += component_val;
     }
     PetscFunctionReturn(0);
-}// VecDot_local_MultiVec
+} // VecDot_local_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecTDot_local_MultiVec"
-PetscErrorCode
-VecTDot_local_MultiVec(
-    Vec x,
-    Vec y,
-    PetscScalar* val)
+PetscErrorCode VecTDot_local_MultiVec(Vec x, Vec y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -797,19 +746,16 @@ VecTDot_local_MultiVec(
         TBOX_ASSERT(mx->array[k]->ops->tdot_local == my->array[k]->ops->dot_local);
 #endif
         PetscScalar component_val;
-        ierr = (*mx->array[k]->ops->tdot_local)(mx->array[k], my->array[k], &component_val); CHKERRQ(ierr);
+        ierr = (*mx->array[k]->ops->tdot_local)(mx->array[k], my->array[k], &component_val);
+        CHKERRQ(ierr);
         *val += component_val;
     }
     PetscFunctionReturn(0);
-}// VecTDot_local_MultiVec
+} // VecTDot_local_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecNorm_local_MultiVec"
-PetscErrorCode
-VecNorm_local_MultiVec(
-    Vec x,
-    NormType type,
-    PetscScalar* val)
+PetscErrorCode VecNorm_local_MultiVec(Vec x, NormType type, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -828,7 +774,8 @@ VecNorm_local_MultiVec(
             TBOX_ASSERT(mx->array[k]->ops->norm_local);
 #endif
             PetscScalar component_val;
-            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val); CHKERRQ(ierr);
+            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
             *val += component_val;
         }
     }
@@ -841,8 +788,9 @@ VecNorm_local_MultiVec(
             TBOX_ASSERT(mx->array[k]->ops->norm_local);
 #endif
             PetscScalar component_val;
-            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val); CHKERRQ(ierr);
-            *val += component_val*component_val;
+            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
+            *val += component_val * component_val;
         }
         *val = sqrt(*val);
     }
@@ -855,26 +803,24 @@ VecNorm_local_MultiVec(
             TBOX_ASSERT(mx->array[k]->ops->norm_local);
 #endif
             PetscScalar component_val;
-            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val); CHKERRQ(ierr);
-            *val = std::max(*val,component_val);
+            ierr = (*mx->array[k]->ops->norm_local)(mx->array[k], type, &component_val);
+            CHKERRQ(ierr);
+            *val = std::max(*val, component_val);
         }
     }
     else if (type == NORM_1_AND_2)
     {
-        ierr = VecNorm_local_MultiVec(x, NORM_1, &val[0]); CHKERRQ(ierr);
-        ierr = VecNorm_local_MultiVec(x, NORM_2, &val[1]); CHKERRQ(ierr);
+        ierr = VecNorm_local_MultiVec(x, NORM_1, &val[0]);
+        CHKERRQ(ierr);
+        ierr = VecNorm_local_MultiVec(x, NORM_2, &val[1]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecNorm_local_MultiVec
+} // VecNorm_local_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMDot_local_MultiVec"
-PetscErrorCode
-VecMDot_local_MultiVec(
-    Vec x,
-    PetscInt nv,
-    const Vec* y,
-    PetscScalar* val)
+PetscErrorCode VecMDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -886,19 +832,15 @@ VecMDot_local_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        ierr = VecDot_local_MultiVec(x,y[i],&val[i]); CHKERRQ(ierr);
+        ierr = VecDot_local_MultiVec(x, y[i], &val[i]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecMDot_local_MultiVec
+} // VecMDot_local_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMTDot_local_MultiVec"
-PetscErrorCode
-VecMTDot_local_MultiVec(
-    Vec x,
-    PetscInt nv,
-    const Vec* y,
-    PetscScalar* val)
+PetscErrorCode VecMTDot_local_MultiVec(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -910,18 +852,15 @@ VecMTDot_local_MultiVec(
     PetscErrorCode ierr;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        ierr = VecTDot_local_MultiVec(x,y[i],&val[i]); CHKERRQ(ierr);
+        ierr = VecTDot_local_MultiVec(x, y[i], &val[i]);
+        CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-}// VecMTDot_local_MultiVec
+} // VecMTDot_local_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMaxPointwiseDivide_MultiVec"
-PetscErrorCode
-VecMaxPointwiseDivide_MultiVec(
-    Vec x,
-    Vec y,
-    PetscScalar* max)
+PetscErrorCode VecMaxPointwiseDivide_MultiVec(Vec x, Vec y, PetscScalar* max)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(x);
@@ -939,85 +878,79 @@ VecMaxPointwiseDivide_MultiVec(
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscScalar component_max;
-        ierr = VecMaxPointwiseDivide(mx->array[k], my->array[k], &component_max); CHKERRQ(ierr);
-        *max = std::max(*max,component_max);
+        ierr = VecMaxPointwiseDivide(mx->array[k], my->array[k], &component_max);
+        CHKERRQ(ierr);
+        *max = std::max(*max, component_max);
     }
     PetscFunctionReturn(0);
-}// VecMaxPointwiseDivide_MultiVec
+} // VecMaxPointwiseDivide_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecDotNorm2_MultiVec"
-PetscErrorCode
-VecDotNorm2_MultiVec(
-    Vec s,
-    Vec t,
-    PetscScalar* dp,
-    PetscScalar* nm)
+PetscErrorCode VecDotNorm2_MultiVec(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(s);
     TBOX_ASSERT(t);
 #endif
     PetscErrorCode ierr;
-    ierr = VecDot_MultiVec(s, t, dp); CHKERRQ(ierr);
-    ierr = VecDot_MultiVec(t, t, nm); CHKERRQ(ierr);
+    ierr = VecDot_MultiVec(s, t, dp);
+    CHKERRQ(ierr);
+    ierr = VecDot_MultiVec(t, t, nm);
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecDotNorm2_MultiVec
+} // VecDotNorm2_MultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecCreateMultiVec"
-PetscErrorCode
-VecCreateMultiVec(
-    MPI_Comm comm,
-    PetscInt n,
-    Vec vv[],
-    Vec* v)
+PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 {
     PetscErrorCode ierr;
-    ierr = VecCreate(comm, v); CHKERRQ(ierr);
+    ierr = VecCreate(comm, v);
+    CHKERRQ(ierr);
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    IBTK_DO_ONCE(
-        DvOps.duplicate = VecDuplicate_MultiVec;
-        DvOps.duplicatevecs = VecDuplicateVecs_Default;
-        DvOps.destroyvecs = VecDestroyVecs_Default;
-        DvOps.dot = VecDot_MultiVec;
-        DvOps.mdot = VecMDot_MultiVec;
-        DvOps.norm = VecNorm_MultiVec;
-        DvOps.tdot = VecTDot_MultiVec;
-        DvOps.mtdot = VecMTDot_MultiVec;
-        DvOps.scale = VecScale_MultiVec;
-        DvOps.copy = VecCopy_MultiVec;
-        DvOps.set = VecSet_MultiVec;
-        DvOps.swap = VecSwap_MultiVec;
-        DvOps.axpy = VecAXPY_MultiVec;
-        DvOps.axpby = VecAXPBY_MultiVec;
-        DvOps.maxpy = VecMAXPY_MultiVec;
-        DvOps.aypx = VecAYPX_MultiVec;
-        DvOps.waxpy = VecWAXPY_MultiVec;
-        DvOps.axpbypcz = VecAXPBYPCZ_MultiVec;
-        DvOps.pointwisemult = VecPointwiseMult_MultiVec;
-        DvOps.pointwisedivide = VecPointwiseDivide_MultiVec;
-        DvOps.getsize = VecGetSize_MultiVec;
-        DvOps.getlocalsize = VecGetLocalSize_MultiVec;
-        DvOps.max = VecMax_MultiVec;
-        DvOps.min = VecMin_MultiVec;
-        DvOps.setrandom = VecSetRandom_MultiVec;
-        DvOps.destroy = VecDestroy_MultiVec;
-        DvOps.dot_local = VecDot_local_MultiVec;
-        DvOps.tdot_local = VecTDot_local_MultiVec;
-        DvOps.norm_local = VecNorm_local_MultiVec;
-        DvOps.mdot_local = VecMDot_local_MultiVec;
-        DvOps.mtdot_local = VecMTDot_local_MultiVec;
-        DvOps.maxpointwisedivide = VecMaxPointwiseDivide_MultiVec;
-        DvOps.dotnorm2 = VecDotNorm2_MultiVec;
-                 );
-    ierr = PetscMemcpy((*v)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
+    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec;
+                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
+                 DvOps.destroyvecs = VecDestroyVecs_Default;
+                 DvOps.dot = VecDot_MultiVec;
+                 DvOps.mdot = VecMDot_MultiVec;
+                 DvOps.norm = VecNorm_MultiVec;
+                 DvOps.tdot = VecTDot_MultiVec;
+                 DvOps.mtdot = VecMTDot_MultiVec;
+                 DvOps.scale = VecScale_MultiVec;
+                 DvOps.copy = VecCopy_MultiVec;
+                 DvOps.set = VecSet_MultiVec;
+                 DvOps.swap = VecSwap_MultiVec;
+                 DvOps.axpy = VecAXPY_MultiVec;
+                 DvOps.axpby = VecAXPBY_MultiVec;
+                 DvOps.maxpy = VecMAXPY_MultiVec;
+                 DvOps.aypx = VecAYPX_MultiVec;
+                 DvOps.waxpy = VecWAXPY_MultiVec;
+                 DvOps.axpbypcz = VecAXPBYPCZ_MultiVec;
+                 DvOps.pointwisemult = VecPointwiseMult_MultiVec;
+                 DvOps.pointwisedivide = VecPointwiseDivide_MultiVec;
+                 DvOps.getsize = VecGetSize_MultiVec;
+                 DvOps.getlocalsize = VecGetLocalSize_MultiVec;
+                 DvOps.max = VecMax_MultiVec;
+                 DvOps.min = VecMin_MultiVec;
+                 DvOps.setrandom = VecSetRandom_MultiVec;
+                 DvOps.destroy = VecDestroy_MultiVec;
+                 DvOps.dot_local = VecDot_local_MultiVec;
+                 DvOps.tdot_local = VecTDot_local_MultiVec;
+                 DvOps.norm_local = VecNorm_local_MultiVec;
+                 DvOps.mdot_local = VecMDot_local_MultiVec;
+                 DvOps.mtdot_local = VecMTDot_local_MultiVec;
+                 DvOps.maxpointwisedivide = VecMaxPointwiseDivide_MultiVec;
+                 DvOps.dotnorm2 = VecDotNorm2_MultiVec;);
+    ierr = PetscMemcpy((*v)->ops, &DvOps, sizeof(DvOps));
+    CHKERRQ(ierr);
 
     // Set PETSc vector data.
     Vec_MultiVec* mv;
-    ierr = PetscNew(Vec_MultiVec,&mv); CHKERRQ(ierr);
+    ierr = PetscNew(Vec_MultiVec, &mv);
+    CHKERRQ(ierr);
     mv->n = n;
     mv->array = vv;
     mv->array_allocated = NULL;
@@ -1033,21 +966,20 @@ VecCreateMultiVec(
         (*v)->map->n += mv->array[k]->map->n;
         (*v)->map->N += mv->array[k]->map->N;
     }
-    (*v)->map->bs = 1;  // NOTE: Here we are giving a bogus block size.
+    (*v)->map->bs = 1; // NOTE: Here we are giving a bogus block size.
 
     // Set the PETSc vector type name.
-    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*v), "Vec_MultiVec"); CHKERRQ(ierr);
+    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(*v), "Vec_MultiVec");
+    CHKERRQ(ierr);
 
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*v)); CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*v));
+    CHKERRQ(ierr);
     PetscFunctionReturn(0);
-}// VecCreateMultiVec
+} // VecCreateMultiVec
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetNumberOfSubVecs"
-PetscErrorCode
-VecMultiVecGetNumberOfSubVecs(
-    Vec v,
-    PetscInt* n)
+PetscErrorCode VecMultiVecGetNumberOfSubVecs(Vec v, PetscInt* n)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -1058,14 +990,11 @@ VecMultiVecGetNumberOfSubVecs(
 #endif
     *n = mv->n;
     PetscFunctionReturn(0);
-}// VecMultiVecGetNumberOfSubVecs
+} // VecMultiVecGetNumberOfSubVecs
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetSubVecs"
-PetscErrorCode
-VecMultiVecGetSubVecs(
-    Vec v,
-    Vec* vv[])
+PetscErrorCode VecMultiVecGetSubVecs(Vec v, Vec* vv[])
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -1076,15 +1005,11 @@ VecMultiVecGetSubVecs(
 #endif
     *vv = mv->array;
     PetscFunctionReturn(0);
-}// VecMultiVecGetSubVecs
+} // VecMultiVecGetSubVecs
 
 #undef __FUNCT__
 #define __FUNCT__ "VecMultiVecGetSubVec"
-PetscErrorCode
-VecMultiVecGetSubVec(
-    Vec v,
-    PetscInt idx,
-    Vec* subv)
+PetscErrorCode VecMultiVecGetSubVec(Vec v, PetscInt idx, Vec* subv)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
@@ -1096,7 +1021,7 @@ VecMultiVecGetSubVec(
 #endif
     *subv = mv->array[idx];
     PetscFunctionReturn(0);
-}// VecMultiVecGetSubVec
+} // VecMultiVecGetSubVec
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -1106,6 +1031,6 @@ VecMultiVecGetSubVec(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

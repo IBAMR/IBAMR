@@ -41,11 +41,14 @@
 #include "PoissonSpecifications.h"
 #include "ibtk/LinearOperator.h"
 
-namespace SAMRAI {
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,16 +58,13 @@ namespace IBTK
  * \brief Class LaplaceOperator is an abstract base class for a Laplace-type
  * operators.
  */
-class LaplaceOperator
-    : public LinearOperator
+class LaplaceOperator : public LinearOperator
 {
 public:
     /*!
      * \brief Constructor.
      */
-    LaplaceOperator(
-        const std::string& object_name,
-        bool homogeneous_bc=false);
+    LaplaceOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -76,15 +76,13 @@ public:
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
     virtual void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Get the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual const SAMRAI::solv::PoissonSpecifications&
-    getPoissonSpecifications() const;
+    virtual const SAMRAI::solv::PoissonSpecifications& getPoissonSpecifications() const;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -93,11 +91,10 @@ public:
      * \note \a bc_coef may be NULL.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
+     * \param bc_coef  Pointer to an object that can set the Robin boundary condition
+     *coefficients
      */
-    virtual void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -107,11 +104,11 @@ public:
      * default boundary conditions (as supplied to the class constructor) are
      * employed for that data depth.
      *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
+     *coefficients
      */
     virtual void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Get the SAMRAI::solv::RobinBcCoefStrategy object(s) used to
@@ -141,8 +138,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LaplaceOperator(
-        const LaplaceOperator& from);
+    LaplaceOperator(const LaplaceOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -153,11 +149,9 @@ private:
      *
      * \return A reference to this object.
      */
-    LaplaceOperator&
-    operator=(
-        const LaplaceOperator& that);
+    LaplaceOperator& operator=(const LaplaceOperator& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

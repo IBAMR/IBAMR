@@ -35,28 +35,39 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <unistd.h>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
-#include "boost/array.hpp"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoxList;
-}  // namespace hier
-namespace solv {
-template <int DIM, class TYPE> class SAMRAIVectorReal;
-}  // namespace solv
-namespace tbox {
+namespace boost
+{
+template <class T, std::size_t N>
+class array;
+} // namespace boost
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoxList;
+} // namespace hier
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -67,8 +78,7 @@ namespace IBAMR
  * StaggeredStokesFACPreconditionerStrategy implementing a box relaxation
  * (Vanka-type) smoother for use as a multigrid preconditioner.
 */
-class StaggeredStokesBoxRelaxationFACOperator
-    : public StaggeredStokesFACPreconditionerStrategy
+class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
 public:
     /*!
@@ -96,17 +106,19 @@ public:
      * \param residual residual vector
      * \param level_num level number
      * \param num_sweeps number of sweeps to perform
-     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
-     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
+     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are
+     *being
+     *performed
+     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are
+     *being
+     *performed
      */
-    void
-    smoothError(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int level_num,
-        int num_sweeps,
-        bool performing_pre_sweeps,
-        bool performing_post_sweeps);
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                     int level_num,
+                     int num_sweeps,
+                     bool performing_pre_sweeps,
+                     bool performing_post_sweeps);
 
     //\}
 
@@ -114,20 +126,16 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void
-    initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+    void initializeOperatorStateSpecialized(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
         int coarsest_reset_ln,
         int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void
-    deallocateOperatorStateSpecialized(
-        int coarsest_reset_ln,
-        int finest_reset_ln);
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
 
 private:
     /*!
@@ -156,8 +164,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator& operator=(
-        const StaggeredStokesBoxRelaxationFACOperator& that);
+    StaggeredStokesBoxRelaxationFACOperator&
+    operator=(const StaggeredStokesBoxRelaxationFACOperator& that);
 
     /*
      * Box operator data.
@@ -169,10 +177,11 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > >
+    d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

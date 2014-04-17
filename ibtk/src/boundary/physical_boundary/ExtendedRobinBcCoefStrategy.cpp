@@ -35,7 +35,6 @@
 #include <ostream>
 
 #include "ExtendedRobinBcCoefStrategy.h"
-#include "SAMRAI_config.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -48,44 +47,38 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy()
-    : d_target_data_idx(-1),
-      d_homogeneous_bc(false)
+    : d_target_data_idx(-1), d_homogeneous_bc(false)
 {
     // intentionally blank
     return;
-}// ExtendedRobinBcCoefStrategy
+} // ExtendedRobinBcCoefStrategy
 
 ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
 {
     // intentionally blank
     return;
-}// ~ExtendedRobinBcCoefStrategy
+} // ~ExtendedRobinBcCoefStrategy
 
-void
-ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(
-    int target_data_idx)
+void ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(target_data_idx >= 0);
 #endif
     d_target_data_idx = target_data_idx;
     return;
-}// setTargetPatchDataIndex
+} // setTargetPatchDataIndex
 
-void
-ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
+void ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
 {
     d_target_data_idx = -1;
     return;
-}// clearTargetPatchDataIndex
+} // clearTargetPatchDataIndex
 
-void
-ExtendedRobinBcCoefStrategy::setHomogeneousBc(
-    bool homogeneous_bc)
+void ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -93,6 +86,6 @@ ExtendedRobinBcCoefStrategy::setHomogeneousBc(
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

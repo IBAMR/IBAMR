@@ -41,11 +41,13 @@
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "tbox/Pointer.h"
 
-namespace SAMRAI {
-namespace tbox {
+namespace SAMRAI
+{
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -56,18 +58,16 @@ namespace IBTK
  * PETScKrylovLinearSolver that provides an implementation of the PoissonSolver
  * interface.
  */
-class PETScKrylovPoissonSolver
-    : public PETScKrylovLinearSolver,
-      public KrylovLinearSolverPoissonSolverInterface
+class PETScKrylovPoissonSolver : public PETScKrylovLinearSolver,
+                                 public KrylovLinearSolverPoissonSolverInterface
 {
 public:
     /*!
      * \brief Constructor.
      */
-    PETScKrylovPoissonSolver(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    PETScKrylovPoissonSolver(const std::string& object_name,
+                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -75,7 +75,6 @@ public:
     ~PETScKrylovPoissonSolver();
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -91,8 +90,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScKrylovPoissonSolver(
-        const PETScKrylovPoissonSolver& from);
+    PETScKrylovPoissonSolver(const PETScKrylovPoissonSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -103,11 +101,9 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScKrylovPoissonSolver&
-    operator=(
-        const PETScKrylovPoissonSolver& that);
+    PETScKrylovPoissonSolver& operator=(const PETScKrylovPoissonSolver& that);
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

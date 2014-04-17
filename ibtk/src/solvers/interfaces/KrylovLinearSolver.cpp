@@ -44,65 +44,50 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolver::KrylovLinearSolver()
-    : d_A(NULL),
-      d_pc_solver(NULL),
-      d_x(NULL),
-      d_b(NULL)
+KrylovLinearSolver::KrylovLinearSolver() : d_A(NULL), d_pc_solver(NULL), d_x(NULL), d_b(NULL)
 {
     // intentionally blank
     return;
-}// KrylovLinearSolver()
+} // KrylovLinearSolver()
 
 KrylovLinearSolver::~KrylovLinearSolver()
 {
     // intentionally blank
     return;
-}// ~KrylovLinearSolver()
+} // ~KrylovLinearSolver()
 
-void
-KrylovLinearSolver::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
+void KrylovLinearSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     LinearSolver::setHierarchyMathOps(hier_math_ops);
     if (d_A) d_A->setHierarchyMathOps(d_hier_math_ops);
     if (d_pc_solver) d_pc_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
-}// setHierarchyMathOps
+} // setHierarchyMathOps
 
-void
-KrylovLinearSolver::setHomogeneousBc(
-    bool homogeneous_bc)
+void KrylovLinearSolver::setHomogeneousBc(bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
     return;
-}// setHomogeneousBc
+} // setHomogeneousBc
 
-void
-KrylovLinearSolver::setSolutionTime(
-    const double solution_time)
+void KrylovLinearSolver::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     if (d_A) d_A->setSolutionTime(solution_time);
     if (d_pc_solver) d_pc_solver->setSolutionTime(solution_time);
     return;
-}// setSolutionTime
+} // setSolutionTime
 
-void
-KrylovLinearSolver::setTimeInterval(
-    const double current_time,
-    const double new_time)
+void KrylovLinearSolver::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     if (d_A) d_A->setTimeInterval(current_time, new_time);
     if (d_pc_solver) d_pc_solver->setTimeInterval(current_time, new_time);
     return;
-}// setTimeInterval
+} // setTimeInterval
 
-void
-KrylovLinearSolver::setOperator(
-    Pointer<LinearOperator> A)
+void KrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
 {
     Pointer<LinearOperator> A_old = d_A;
     d_A = A;
@@ -117,17 +102,14 @@ KrylovLinearSolver::setOperator(
         }
     }
     return;
-}// setOperator
+} // setOperator
 
-Pointer<LinearOperator>
-KrylovLinearSolver::getOperator() const
+Pointer<LinearOperator> KrylovLinearSolver::getOperator() const
 {
     return d_A;
-}// getOperator
+} // getOperator
 
-void
-KrylovLinearSolver::setPreconditioner(
-    Pointer<LinearSolver> pc_solver)
+void KrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
 {
     Pointer<LinearSolver> pc_solver_old = d_pc_solver;
     d_pc_solver = pc_solver;
@@ -142,18 +124,17 @@ KrylovLinearSolver::setPreconditioner(
         }
     }
     return;
-}// setPreconditioner
+} // setPreconditioner
 
-Pointer<LinearSolver>
-KrylovLinearSolver::getPreconditioner() const
+Pointer<LinearSolver> KrylovLinearSolver::getPreconditioner() const
 {
     return d_pc_solver;
-}// getPreconditioner
+} // getPreconditioner
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

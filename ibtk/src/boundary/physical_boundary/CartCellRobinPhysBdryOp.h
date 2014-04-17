@@ -41,15 +41,30 @@
 #include "ComponentSelector.h"
 #include "IntVector.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "tbox/Array.h"
 
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-}  // namespace hier
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoundaryBox;
+} // namespace hier
+} // namespace SAMRAI
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -65,8 +80,7 @@ namespace IBTK
  * the two classes is that class CartCellRobinPhysBdryOp allows for the
  * specification of boundary conditions for vector-valued quantities.
  */
-class CartCellRobinPhysBdryOp
-    : public RobinPhysBdryPatchStrategy
+class CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
 public:
     /*!
@@ -91,38 +105,40 @@ public:
      *
      * \param patch_data_index  Patch data index requiring ghost cell filling.
      * \param bc_coef           Robin boundary conditions to use with this class.
-     * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
-    CartCellRobinPhysBdryOp(
-        int patch_data_index,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        bool homogeneous_bc=false);
+    CartCellRobinPhysBdryOp(int patch_data_index,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for scalar-valued
      * quantities.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
      * \param bc_coef             Robin boundary conditions to use with this class.
-     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
-    CartCellRobinPhysBdryOp(
-        const std::set<int>& patch_data_indices,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        bool homogeneous_bc=false);
+    CartCellRobinPhysBdryOp(const std::set<int>& patch_data_indices,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for scalar-valued
      * quantities.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
      * \param bc_coef             Robin boundary conditions to use with this class.
-     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
-    CartCellRobinPhysBdryOp(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        bool homogeneous_bc=false);
+    CartCellRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -131,38 +147,43 @@ public:
      *
      * \param patch_data_index  Patch data index requiring ghost cell filling.
      * \param bc_coefs          Robin boundary conditions to use with this class.
-     * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
     CartCellRobinPhysBdryOp(
         int patch_data_index,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc=false);
+        bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
      * quantities.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
      * \param bc_coefs            Robin boundary conditions to use with this class.
-     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
     CartCellRobinPhysBdryOp(
         const std::set<int>& patch_data_indices,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc=false);
+        bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
      * quantities.
      *
-     * \param patch_data_indices  Collection of patch data indices which require ghost cell filling.
+     * \param patch_data_indices  Collection of patch data indices which require ghost cell
+     *filling.
      * \param bc_coefs            Robin boundary conditions to use with this class.
-     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary conditions.
+     * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
+     *conditions.
      */
     CartCellRobinPhysBdryOp(
         const SAMRAI::hier::ComponentSelector& patch_data_indices,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc=false);
+        bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -183,21 +204,21 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
     void
-    setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                  double fill_time,
+                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const;
 
     //\}
 
@@ -209,16 +230,16 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
+     *all
+     *registered scratch components.
      */
-    void
-    accumulateFromPhysicalBoundaryData(
+    void accumulateFromPhysicalBoundaryData(
         SAMRAI::hier::Patch<NDIM>& patch,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:
-
 private:
     /*!
      * \brief Copy constructor.
@@ -227,8 +248,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartCellRobinPhysBdryOp(
-        const CartCellRobinPhysBdryOp& from);
+    CartCellRobinPhysBdryOp(const CartCellRobinPhysBdryOp& from);
 
     /*!
      * \brief Assignment operator.
@@ -239,15 +259,12 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellRobinPhysBdryOp&
-    operator=(
-        const CartCellRobinPhysBdryOp& that);
+    CartCellRobinPhysBdryOp& operator=(const CartCellRobinPhysBdryOp& that);
 
     /*!
      * \brief Set the boundary conditions along the co-dimension one boundary.
      */
-    void
-    fillGhostCellValuesCodim1(
+    void fillGhostCellValuesCodim1(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
         double fill_time,
@@ -258,8 +275,7 @@ private:
     /*!
      * \brief Set the boundary conditions along the co-dimension two boundary.
      */
-    void
-    fillGhostCellValuesCodim2(
+    void fillGhostCellValuesCodim2(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
@@ -270,8 +286,7 @@ private:
     /*!
      * \brief Set the boundary conditions along the co-dimension three boundary.
      */
-    void
-    fillGhostCellValuesCodim3(
+    void fillGhostCellValuesCodim3(
         int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
@@ -279,7 +294,7 @@ private:
         bool adjoint_op);
 #endif
 };
-}// namespace IBTK
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 

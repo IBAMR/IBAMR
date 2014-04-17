@@ -32,29 +32,42 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-#include "Eigen/Dense"
+#include <stdbool.h>
+#include <stddef.h>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefineSchedule.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
 #include "ibamr/IBFEPostProcessor.h"
-#include "SAMRAI_config.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
-#include "libmesh/boundary_info.h"
-#include "libmesh/dense_vector.h"
-#include "libmesh/dof_map.h"
+#include "libmesh/auto_ptr.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_base.h"
-#include "libmesh/fe_interface.h"
-#include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/quadrature.h"
-#include "libmesh/periodic_boundaries.h"
-#include "libmesh/periodic_boundary.h"
-#include "libmesh/string_to_enum.h"
+#include "libmesh/system.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+namespace libMesh
+{
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 using namespace libMesh;
 
@@ -66,32 +79,26 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEPostProcessor::IBFEPostProcessor(
-    const std::string& name,
-    FEDataManager* fe_data_manager)
-    : d_name(name),
-      d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
-      d_fe_data_manager(fe_data_manager),
-      d_fe_data_initialized(false)
+IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
+    : d_name(name), d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
+      d_fe_data_manager(fe_data_manager), d_fe_data_initialized(false)
 {
     // intentionally blank
     return;
-}// IBFEPostProcessor
+} // IBFEPostProcessor
 
 IBFEPostProcessor::~IBFEPostProcessor()
 {
     // intentionally blank
     return;
-}// ~IBFEPostProcessor
+} // ~IBFEPostProcessor
 
-void
-IBFEPostProcessor::registerScalarVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    ScalarMeshFcnPtr var_fcn,
-    std::vector<unsigned int> var_fcn_systems,
-    void* var_fcn_ctx)
+void IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
+                                               libMeshEnums::FEFamily var_fe_family,
+                                               libMeshEnums::Order var_fe_order,
+                                               ScalarMeshFcnPtr var_fcn,
+                                               std::vector<unsigned int> var_fcn_systems,
+                                               void* var_fcn_ctx)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -103,17 +110,15 @@ IBFEPostProcessor::registerScalarVariable(
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-}// registerScalarVariable
+} // registerScalarVariable
 
-void
-IBFEPostProcessor::registerVectorVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    VectorMeshFcnPtr var_fcn,
-    std::vector<unsigned int> var_fcn_systems,
-    void* var_fcn_ctx,
-    unsigned int var_dim)
+void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
+                                               libMeshEnums::FEFamily var_fe_family,
+                                               libMeshEnums::Order var_fe_order,
+                                               VectorMeshFcnPtr var_fcn,
+                                               std::vector<unsigned int> var_fcn_systems,
+                                               void* var_fcn_ctx,
+                                               unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -131,17 +136,15 @@ IBFEPostProcessor::registerVectorVariable(
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-}// registerVectorVariable
+} // registerVectorVariable
 
-void
-IBFEPostProcessor::registerTensorVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    TensorMeshFcnPtr var_fcn,
-    std::vector<unsigned int> var_fcn_systems,
-    void* var_fcn_ctx,
-    unsigned int var_dim)
+void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
+                                               libMeshEnums::FEFamily var_fe_family,
+                                               libMeshEnums::Order var_fe_order,
+                                               TensorMeshFcnPtr var_fcn,
+                                               std::vector<unsigned int> var_fcn_systems,
+                                               void* var_fcn_ctx,
+                                               unsigned int var_dim)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " reconstruction system");
@@ -162,22 +165,25 @@ IBFEPostProcessor::registerTensorVariable(
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-}// registerTensorVariable
+} // registerTensorVariable
 
-void
-IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
     Pointer<hier::Variable<NDIM> > var,
     Pointer<VariableContext> ctx)
 {
-    registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, d_fe_data_manager->getDefaultInterpSpec());
+    registerInterpolatedScalarEulerianVariable(var_name,
+                                               var_fe_family,
+                                               var_fe_order,
+                                               var,
+                                               ctx,
+                                               d_fe_data_manager->getDefaultInterpSpec());
     return;
-}//
+} //
 
-void
-IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
@@ -191,14 +197,13 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     d_scalar_interp_var_systems.push_back(&system);
     d_scalar_interp_vars.push_back(var);
     d_scalar_interp_ctxs.push_back(ctx);
-    d_scalar_interp_data_idxs.push_back(-1);  // These must be set up just before they are used.
+    d_scalar_interp_data_idxs.push_back(-1); // These must be set up just before they are used.
     d_scalar_interp_scratch_idxs.push_back(-1);
     d_scalar_interp_specs.push_back(interp_spec);
     d_var_systems.push_back(&system);
-}// registerInterpolatedEulerianScalarVariable
+} // registerInterpolatedEulerianScalarVariable
 
-void
-IBFEPostProcessor::initializeFEData()
+void IBFEPostProcessor::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     for (unsigned int k = 0; k < d_var_systems.size(); ++k)
@@ -209,35 +214,32 @@ IBFEPostProcessor::initializeFEData()
     }
     d_fe_data_initialized = true;
     return;
-}// initializeFEData
+} // initializeFEData
 
-void
-IBFEPostProcessor::postProcessData(
-    const double data_time)
+void IBFEPostProcessor::postProcessData(const double data_time)
 {
     // First interpolate variables from the Eulerian grid, then reconstruct
     // variables on the Lagrangian mesh.
     interpolateVariables(data_time);
     reconstructVariables(data_time);
     return;
-}// postProcessData
+} // postProcessData
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-IBFEPostProcessor::interpolateVariables(
-    const double data_time)
+void IBFEPostProcessor::interpolateVariables(const double data_time)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
-    const std::pair<int,int> patch_level_range = d_fe_data_manager->getPatchLevels();
+    const std::pair<int, int> patch_level_range = d_fe_data_manager->getPatchLevels();
     const int coarsest_ln = patch_level_range.first;
-    const int finest_ln   = patch_level_range.second-1;
+    const int finest_ln = patch_level_range.second - 1;
 
     const unsigned int num_eulerian_vars = d_scalar_interp_var_systems.size();
 
     // Set up Eulerian scratch space and fill ghost cell values.
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
     Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    std::set<int> scratch_idxs;
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         int& data_idx = d_scalar_interp_data_idxs[k];
@@ -252,31 +254,40 @@ IBFEPostProcessor::interpolateVariables(
             TBOX_ASSERT(data_idx >= 0);
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
-            const int stencil_size = LEInteractor::getStencilSize(interp_spec.kernel_fcn);
-            const IntVector<NDIM> ghosts(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1);
-            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghosts);
+            const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn);
+            scratch_idx =
+                var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
+            scratch_idxs.insert(scratch_idx);
         }
         refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);
     }
+    CartExtrapPhysBdryOp refine_phys_bdry_op(scratch_idxs);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-            if (!level->checkAllocated(scratch_idx)) level->allocatePatchData(scratch_idx, data_time);
+            if (!level->checkAllocated(scratch_idx))
+                level->allocatePatchData(scratch_idx, data_time);
         }
-        refine_alg->createSchedule(level, ln-1, hierarchy, NULL)->fillData(data_time);
+        refine_alg->createSchedule(level, ln - 1, hierarchy, &refine_phys_bdry_op)
+            ->fillData(data_time);
     }
 
     // Interpolate variables.
-    NumericVector<double>* X_ghost_vec = d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
+    NumericVector<double>* X_ghost_vec =
+        d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];
         const std::string& system_name = system->name();
         const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-        d_fe_data_manager->interp(scratch_idx, *system->solution, *X_ghost_vec, system_name, d_scalar_interp_specs[k]);
+        d_fe_data_manager->interp(scratch_idx,
+                                  *system->solution,
+                                  *X_ghost_vec,
+                                  system_name,
+                                  d_scalar_interp_specs[k]);
     }
 
     // Deallocate Eulerian scratch space.
@@ -290,7 +301,7 @@ IBFEPostProcessor::interpolateVariables(
         }
     }
     return;
-}// interpolateVariables
+} // interpolateVariables
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

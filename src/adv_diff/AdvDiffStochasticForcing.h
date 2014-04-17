@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "PatchLevel.h"
 #include "SideVariable.h"
 #include "VariableContext.h"
@@ -48,19 +49,26 @@
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class AdvDiffSemiImplicitHierarchyIntegrator;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class Patch;
-template <int DIM> class PatchHierarchy;
-template <int DIM> class Variable;
-}  // namespace hier
-namespace tbox {
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
 class Database;
-}  // namespace tbox
-}  // namespace SAMRAI
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -70,8 +78,7 @@ namespace IBAMR
  * \brief Class AdvDiffStochasticForcing provides an interface for specifying a
  * stochastic forcing term for cell-centered advection-diffusion solver solver.
  */
-class AdvDiffStochasticForcing
-    : public IBTK::CartGridFunction
+class AdvDiffStochasticForcing : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -81,7 +88,7 @@ public:
     AdvDiffStochasticForcing(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > C_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
         const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -98,34 +105,31 @@ public:
      * \brief Indicates whether the concrete AdvDiffStochasticForcing object is
      * time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
      * levels of the patch hierarchy.
      */
-    void
-    setDataOnPatchHierarchy(
+    void setDataOnPatchHierarchy(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const double data_time,
-        const bool initial_time=false,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const bool initial_time = false,
+        const int coarsest_ln = -1,
+        const int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void
-    setDataOnPatch(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(const int data_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        const double data_time,
+                        const bool initial_time = false,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 
@@ -150,8 +154,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffStochasticForcing(
-        const AdvDiffStochasticForcing& from);
+    AdvDiffStochasticForcing(const AdvDiffStochasticForcing& from);
 
     /*!
      * \brief Assignment operator.
@@ -162,15 +165,13 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffStochasticForcing&
-    operator=(
-        const AdvDiffStochasticForcing& that);
+    AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that);
 
     /*!
      * Pointer to the concentration variable associated with this source term
      * generator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -200,13 +201,13 @@ private:
      * stochastic fluxes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_C_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
     int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
     int d_F_sc_idx;
     std::vector<int> d_F_sc_idxs;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -39,25 +39,36 @@
 
 #include "IntVector.h"
 #include "ibamr/StokesBcCoefStrategy.h"
+#include "ibamr/ibamr_enums.h"
 #include "tbox/Pointer.h"
 
-namespace IBAMR {
+namespace IBAMR
+{
 class INSStaggeredHierarchyIntegrator;
 class StokesSpecifications;
-}  // namespace IBAMR
-namespace SAMRAI {
-namespace hier {
-template <int DIM> class BoundaryBox;
-template <int DIM> class Patch;
-template <int DIM> class Variable;
-}  // namespace hier
-namespace pdat {
-template <int DIM, class TYPE> class ArrayData;
-}  // namespace pdat
-namespace solv {
-template <int DIM> class RobinBcCoefStrategy;
-}  // namespace solv
-}  // namespace SAMRAI
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoundaryBox;
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace pdat
+{
+template <int DIM, class TYPE>
+class ArrayData;
+} // namespace pdat
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -77,8 +88,7 @@ namespace IBAMR
  * Dirichlet, true traction, and pseudo-traction boundary conditions are
  * all supported.
  */
-class INSStaggeredVelocityBcCoef
-    : public StokesBcCoefStrategy
+class INSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
 {
 public:
     /*!
@@ -89,7 +99,7 @@ public:
         const INSStaggeredHierarchyIntegrator* fluid_solver,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         TractionBcType traction_bc_type,
-        bool homogeneous_bc=false);
+        bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -103,23 +113,17 @@ public:
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
     void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
      */
-    void
-    setSolutionTime(
-        double solution_time);
+    void setSolutionTime(double solution_time);
 
     /*!
      * \brief Set the current time interval.
      */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
+    void setTimeInterval(double current_time, double new_time);
 
     /*!
      * \name StokesBcCoefStrategy interface.
@@ -132,39 +136,31 @@ public:
      *
      * \param problem_coefs   Problem coefficients
      */
-    void
-    setStokesSpecifications(
-        const StokesSpecifications* problem_coefs);
+    void setStokesSpecifications(const StokesSpecifications* problem_coefs);
 
     /*!
      * \brief Set the target velocity data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    void
-    setTargetVelocityPatchDataIndex(
-        int u_target_data_idx);
+    void setTargetVelocityPatchDataIndex(int u_target_data_idx);
 
     /*!
      * \brief Clear the target velocity data index used when setting physical
      * boundary conditions.
      */
-    void
-    clearTargetVelocityPatchDataIndex();
+    void clearTargetVelocityPatchDataIndex();
 
     /*!
      * \brief Set the target pressure data index to use when setting physical
      * boundary conditions and the time at which it is defined.
      */
-    void
-    setTargetPressurePatchDataIndex(
-        int p_target_data_idx);
+    void setTargetPressurePatchDataIndex(int p_target_data_idx);
 
     /*!
      * \brief Clear the target pressure data index used when setting physical
      * boundary conditions.
      */
-    void
-    clearTargetPressurePatchDataIndex();
+    void clearTargetPressurePatchDataIndex();
 
     //\}
 
@@ -176,23 +172,18 @@ public:
     /*!
      * \brief Set the target data index.
      */
-    void
-    setTargetPatchDataIndex(
-        int target_idx);
+    void setTargetPatchDataIndex(int target_idx);
 
     /*!
      * \brief Clear the target data index.
      */
-    void
-    clearTargetPatchDataIndex();
+    void clearTargetPatchDataIndex();
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
+    void setHomogeneousBc(bool homogeneous_bc);
 
     //\}
 
@@ -227,18 +218,18 @@ public:
      *        If implemented for multiple variables, this parameter can be used
      *        to determine which variable's coefficients are being sought.
      * \param patch       Patch requiring bc coefficients.
-     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
-     * \param fill_time   Solution time corresponding to filling, for use when coefficients are time-dependent.
+     * \param bdry_box    Boundary box showing where on the boundary the coefficient data is
+     *needed.
+     * \param fill_time   Solution time corresponding to filling, for use when coefficients are
+     *time-dependent.
      */
-    void
-    setBcCoefs(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time=0.0) const;
+    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
+                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
+                    const SAMRAI::hier::Patch<NDIM>& patch,
+                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                    double fill_time = 0.0) const;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
@@ -255,13 +246,11 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    numberOfExtensionsFillable() const;
+    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const;
 
     //\}
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -277,8 +266,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredVelocityBcCoef(
-        const INSStaggeredVelocityBcCoef& from);
+    INSStaggeredVelocityBcCoef(const INSStaggeredVelocityBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -289,9 +277,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredVelocityBcCoef&
-    operator=(
-        const INSStaggeredVelocityBcCoef& that);
+    INSStaggeredVelocityBcCoef& operator=(const INSStaggeredVelocityBcCoef& that);
 
     /*
      * Component of the velocity which this boundary condition specification is
@@ -309,7 +295,7 @@ private:
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -46,50 +46,39 @@ namespace IBAMR
  * specify the physical parameters of the incompressible Navier-Stokes
  * equations.
  */
-class StokesSpecifications
-    : public virtual SAMRAI::tbox::DescribedClass
+class StokesSpecifications : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    inline
-    StokesSpecifications(
-        double rho=0.0,
-        double mu=0.0,
-        double lambda=0.0)
-        : d_rho(rho),
-          d_mu(mu),
-          d_lambda(lambda)
-        {
-            // intentionally blank
-            return;
-        }// StokesSpecifications
+    inline StokesSpecifications(double rho = 0.0, double mu = 0.0, double lambda = 0.0)
+        : d_rho(rho), d_mu(mu), d_lambda(lambda)
+    {
+        // intentionally blank
+        return;
+    } // StokesSpecifications
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    StokesSpecifications(
-        const StokesSpecifications& from)
-        : d_rho(from.d_rho),
-          d_mu(from.d_mu),
-          d_lambda(from.d_lambda)
-        {
-            // intentionally blank
-            return;
-        }// StokesSpecifications
+    StokesSpecifications(const StokesSpecifications& from)
+        : d_rho(from.d_rho), d_mu(from.d_mu), d_lambda(from.d_lambda)
+    {
+        // intentionally blank
+        return;
+    } // StokesSpecifications
 
     /*!
      * \brief Destructor.
      */
-    inline
-    ~StokesSpecifications()
-        {
-            // intentionally blank
-            return;
-        }// ~StokesSpecifications
+    inline ~StokesSpecifications()
+    {
+        // intentionally blank
+        return;
+    } // ~StokesSpecifications
 
     /*!
      * \brief Assignment operator.
@@ -98,80 +87,69 @@ public:
      *
      * \return A reference to this object.
      */
-    StokesSpecifications& operator=(
-        const StokesSpecifications& that)
+    StokesSpecifications& operator=(const StokesSpecifications& that)
+    {
+        if (&that != this)
         {
-            if (&that != this)
-            {
-                d_rho = that.d_rho;
-                d_mu = that.d_mu;
-                d_lambda = that.d_lambda;
-            }
-            return *this;
-        }// operator=
+            d_rho = that.d_rho;
+            d_mu = that.d_mu;
+            d_lambda = that.d_lambda;
+        }
+        return *this;
+    } // operator=
 
     /*!
      * \return The mass density coefficient of the fluid.
      */
-    inline double
-    getRho() const
-        {
-            return d_rho;
-        }// getRho
+    inline double getRho() const
+    {
+        return d_rho;
+    } // getRho
 
     /*!
      * \brief Set the mass density coefficient of the fluid.
      */
-    inline void
-    setRho(
-        double rho)
-        {
-            d_rho = rho;
-            return;
-        }// setRho
+    inline void setRho(double rho)
+    {
+        d_rho = rho;
+        return;
+    } // setRho
 
     /*!
      * \return The dynamic viscosity coefficient of the fluid.
      */
-    inline double
-    getMu() const
-        {
-            return d_mu;
-        }// getMu
+    inline double getMu() const
+    {
+        return d_mu;
+    } // getMu
 
     /*!
      * \brief Set the dynamic viscosity coefficient of the fluid.
      */
-    inline void
-    setMu(
-        double mu)
-        {
-            d_mu = mu;
-            return;
-        }// setMu
+    inline void setMu(double mu)
+    {
+        d_mu = mu;
+        return;
+    } // setMu
 
     /*!
      * \return The drag coefficient of the fluid.
      */
-    inline double
-    getLambda() const
-        {
-            return d_lambda;
-        }// getLambda
+    inline double getLambda() const
+    {
+        return d_lambda;
+    } // getLambda
 
     /*!
      * \brief Set the drag coefficient of the fluid.
      */
-    inline void
-    setLambda(
-        double lambda)
-        {
-            d_lambda = lambda;
-            return;
-        }// setLambda
+    inline void setLambda(double lambda)
+    {
+        d_lambda = lambda;
+        return;
+    } // setLambda
 
 protected:
-
 private:
     /*!
      * \brief The mass density (rho), dynamic viscosity (mu), and drag (lambda)
@@ -181,7 +159,7 @@ private:
     double d_mu;
     double d_lambda;
 };
-}// namespace IBAMR
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
