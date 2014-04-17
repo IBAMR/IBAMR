@@ -67,6 +67,9 @@
 /* Define if you have the libmuParser library. */
 #undef HAVE_LIBMUPARSER
 
+/* Define if you have the libnetcdf library. */
+#undef HAVE_LIBNETCDF
+
 /* Define if you have the libpetsc library. */
 #undef HAVE_LIBPETSC
 

@@ -111,6 +111,11 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u,
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(u, f);
 
+    // Allocate scratch data.
+    d_fac_strategy->allocateScratchData();
+    if (d_f) d_f->allocateVectorData();
+    if (d_r) d_r->allocateVectorData();
+
     // Set the initial guess to equal zero.
     u.setToScalar(0.0, /*interior_only*/ false);
 
@@ -151,6 +156,11 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u,
         }
     }
 
+    // Deallocate scratch data.
+    d_fac_strategy->deallocateScratchData();
+    if (d_f) d_f->deallocateVectorData();
+    if (d_r) d_r->deallocateVectorData();
+
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
     return true;
@@ -181,10 +191,7 @@ void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, doubl
     if (!(d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
     {
         d_f = rhs.cloneVector("");
-        d_f->allocateVectorData();
-
         d_r = rhs.cloneVector("");
-        d_r->allocateVectorData();
     }
 
     // Indicate the operator is initialized.
@@ -199,18 +206,12 @@ void FACPreconditioner::deallocateSolverState()
     // Destroy temporary vectors.
     if (d_f)
     {
-        d_f->resetLevels(d_f->getCoarsestLevelNumber(),
-                         std::min(d_f->getFinestLevelNumber(),
-                                  d_f->getPatchHierarchy()->getFinestLevelNumber()));
         d_f->freeVectorComponents();
         d_f.setNull();
     }
 
     if (d_r)
     {
-        d_r->resetLevels(d_r->getCoarsestLevelNumber(),
-                         std::min(d_r->getFinestLevelNumber(),
-                                  d_r->getPatchHierarchy()->getFinestLevelNumber()));
         d_r->freeVectorComponents();
         d_r.setNull();
     }

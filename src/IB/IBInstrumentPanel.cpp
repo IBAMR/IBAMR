@@ -102,7 +102,6 @@ static Timer* t_write_plot_data;
 
 // The rank of the root MPI process and the MPI tag number.
 static const unsigned int SILO_MPI_ROOT = 0;
-static const int SILO_MPI_TAG = 0;
 
 // The name of the Silo dumps and database filenames.
 static const int SILO_NAME_BUFSIZE = 128;

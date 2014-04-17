@@ -72,10 +72,13 @@ static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
 // hypre solver options.
-static const int RELAX_TYPE_JACOBI = 0;
-static const int RELAX_TYPE_WEIGHTED_JACOBI = 1;
-static const int RELAX_TYPE_RB_GAUSS_SEIDEL = 2;
-static const int RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3;
+enum HypreSStructRelaxType
+{
+    RELAX_TYPE_JACOBI = 0,
+    RELAX_TYPE_WEIGHTED_JACOBI = 1,
+    RELAX_TYPE_RB_GAUSS_SEIDEL = 2,
+    RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3
+};
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

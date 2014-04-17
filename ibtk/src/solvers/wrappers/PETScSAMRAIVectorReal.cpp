@@ -827,6 +827,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
             0,
             std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
                      PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
+        PSVR_CAST2(v)->deallocateVectorData();
         PSVR_CAST2(v)->freeVectorComponents();
         PSVR_CAST2(v).setNull();
         destroyPETScVector(PSVR_CAST1(v)->d_petsc_vector);

@@ -61,9 +61,6 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-
-// Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
