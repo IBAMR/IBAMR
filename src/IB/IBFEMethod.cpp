@@ -1164,7 +1164,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
-        
+
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
         //

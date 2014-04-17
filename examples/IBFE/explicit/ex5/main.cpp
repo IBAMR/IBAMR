@@ -210,11 +210,10 @@ main(
             TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
             triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+            triangle.desired_area() = 1.5*sqrt(3.0)/4.0*ds*ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
-            solid_mesh.prepare_for_use();
         }
         else
         {
@@ -224,19 +223,31 @@ main(
             MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
-        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
-        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension()-1);
-        if (use_boundary_mesh)
+        // Ensure nodes on the surface are on the boundary.
+        MeshBase::element_iterator el_end = solid_mesh.elements_end();
+        for (MeshBase::element_iterator el = solid_mesh.elements_begin();
+             el != el_end; ++el)
         {
-            solid_mesh.boundary_info->sync(boundary_mesh);
-            for (MeshBase::node_iterator n_it = boundary_mesh.nodes_begin();
-                 n_it != boundary_mesh.nodes_end(); ++n_it)
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                libMesh::Node& n = **n_it;
-                n = R*n.unit();
+                const bool at_mesh_bdry = !elem->neighbor(side);
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    if (!elem->is_node_on_side(k,side)) continue;
+                    Node& n = *elem->get_node(k);
+                    n = R*n.unit();
+                }
             }
-        }
+        }        
+        solid_mesh.prepare_for_use();
+        
+        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension()-1);
+        solid_mesh.boundary_info->sync(boundary_mesh);
+        boundary_mesh.prepare_for_use();
 
+        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
         
         bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
