@@ -219,6 +219,16 @@ public:
     virtual void deallocateOperatorState();
 
     /*!
+     * \brief Allocate scratch data.
+     */
+    virtual void allocateScratchData();
+
+    /*!
+     * \brief Deallocate scratch data.
+     */
+    virtual void deallocateScratchData();
+
+    /*!
      * \name Logging functions.
      */
     //\{

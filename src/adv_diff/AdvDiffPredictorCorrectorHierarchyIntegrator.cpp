@@ -108,10 +108,6 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
-
-// Version of AdvDiffPredictorCorrectorHierarchyIntegrator restart file data.
-// TODO: remove ?
-static const int ADV_DIFF_PREDICTOR_CORRECTOR_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

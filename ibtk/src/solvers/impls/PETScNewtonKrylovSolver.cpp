@@ -211,6 +211,10 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
+    // Allocate scratch data.
+    if (d_b) d_b->allocateVectorData();
+    if (d_r) d_r->allocateVectorData();
+
     // Solve the system using a PETSc SNES object.
     PETScSAMRAIVectorReal::replaceSAMRAIVector(
         d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
@@ -244,6 +248,10 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
+
+    // Deallocate scratch data.
+    if (d_b) d_b->deallocateVectorData();
+    if (d_r) d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -339,11 +347,9 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
     d_b = b.cloneVector(b.getName());
-    d_b->allocateVectorData();
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     d_r = b.cloneVector(b.getName());
-    d_r->allocateVectorData();
     d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_r, d_petsc_comm);
 
     // Setup the nonlinear operator.
@@ -412,25 +418,16 @@ void PETScNewtonKrylovSolver::deallocateSolverState()
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
-                     std::min(d_x->getFinestLevelNumber(),
-                              d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = NULL;
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
-                     std::min(d_b->getFinestLevelNumber(),
-                              d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
     d_petsc_r = NULL;
-    d_r->resetLevels(d_r->getCoarsestLevelNumber(),
-                     std::min(d_r->getFinestLevelNumber(),
-                              d_r->getPatchHierarchy()->getFinestLevelNumber()));
     d_r->freeVectorComponents();
     d_r.setNull();
 
@@ -657,16 +654,6 @@ void PETScNewtonKrylovSolver::resetSNESJacobian()
             MATOP_MULT,
             reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMult_SAMRAI));
         IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(
-            d_petsc_jac,
-            MATOP_MULT_ADD,
-            reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI));
-        IBTK_CHKERRQ(ierr);
-        ierr = MatShellSetOperation(
-            d_petsc_jac,
-            MATOP_GET_VECS,
-            reinterpret_cast<void (*)(void)>(PETScNewtonKrylovSolver::MatGetVecs_SAMRAI));
-        IBTK_CHKERRQ(ierr);
     }
     else
     {
@@ -763,54 +750,6 @@ PetscErrorCode PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI
-
-PetscErrorCode PETScNewtonKrylovSolver::MatVecMultAdd_SAMRAI(Mat A, Vec x, Vec y, Vec z)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(newton_solver);
-    TBOX_ASSERT(newton_solver->d_J);
-#endif
-    newton_solver->d_J->applyAdd(*PETScSAMRAIVectorReal::getSAMRAIVector(x),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(y),
-                                 *PETScSAMRAIVectorReal::getSAMRAIVector(z));
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(z));
-    IBTK_CHKERRQ(ierr);
-    PetscFunctionReturn(0);
-} // MatVecMultAdd_SAMRAI
-
-PetscErrorCode PETScNewtonKrylovSolver::MatGetVecs_SAMRAI(Mat A, Vec* right, Vec* left)
-{
-    int ierr;
-    void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
-    IBTK_CHKERRQ(ierr);
-    PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(newton_solver);
-#endif
-    if (right)
-    {
-        // vector that the matrix can be multiplied against
-        ierr = VecDuplicate(newton_solver->d_petsc_x, right);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*right));
-        IBTK_CHKERRQ(ierr);
-    }
-    if (left)
-    {
-        // vector that the matrix vector product can be stored in
-        ierr = VecDuplicate(newton_solver->d_petsc_b, left);
-        IBTK_CHKERRQ(ierr);
-        ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*left));
-        IBTK_CHKERRQ(ierr);
-    }
-    PetscFunctionReturn(0);
-} // MatGetVecs_SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 

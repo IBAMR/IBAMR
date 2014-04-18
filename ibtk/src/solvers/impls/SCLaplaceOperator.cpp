@@ -150,6 +150,9 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
     }
 #endif
 
+    // Allocate scratch data.
+    if (d_x) d_x->allocateVectorData();
+
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
     InterpolationTransactionComponent;
@@ -185,6 +188,9 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
+    // Deallocate scratch data.
+    if (d_x) d_x->deallocateVectorData();
+
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -200,7 +206,6 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
-    d_x->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -287,17 +292,10 @@ void SCLaplaceOperator::deallocateOperatorState()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Delete the solution and rhs vectors.
-    d_x->resetLevels(
-        d_x->getCoarsestLevelNumber(),
-        std::min(d_x->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_x->freeVectorComponents();
-
-    d_b->resetLevels(
-        d_b->getCoarsestLevelNumber(),
-        std::min(d_b->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    d_b->freeVectorComponents();
-
     d_x.setNull();
+
+    d_b->freeVectorComponents();
     d_b.setNull();
 
     // Indicate that the operator is NOT initialized.

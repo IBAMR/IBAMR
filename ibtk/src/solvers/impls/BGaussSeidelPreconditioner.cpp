@@ -236,6 +236,7 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     }
 
     // Free the copied right-hand-side vector data.
+    f->deallocateVectorData();
     f->freeVectorComponents();
 
     // Deallocate the preconditioner, when necessary.

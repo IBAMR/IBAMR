@@ -277,17 +277,10 @@ void CCLaplaceOperator::deallocateOperatorState()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Delete the solution and rhs vectors.
-    d_x->resetLevels(
-        d_x->getCoarsestLevelNumber(),
-        std::min(d_x->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_x->freeVectorComponents();
-
-    d_b->resetLevels(
-        d_b->getCoarsestLevelNumber(),
-        std::min(d_b->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    d_b->freeVectorComponents();
-
     d_x.setNull();
+
+    d_b->freeVectorComponents();
     d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
