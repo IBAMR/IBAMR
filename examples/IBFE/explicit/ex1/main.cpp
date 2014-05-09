@@ -178,10 +178,14 @@ main(
         const double w = 0.0625;
         const double dx0 = 1.0/64.0;
         const double dx = input_db->getDouble("DX");
-        const double ds0 = input_db->getDouble("MFAC")*dx0;
+        const double MFAC = input_db->getDouble("MFAC");
+        const double ds = MFAC*dx;
         string elem_type = input_db->getString("ELEM_TYPE");
+        bool nested_meshes = input_db->getBoolWithDefault("CONVERGENCE_STUDY", false);
+        const int n_x = nested_meshes ? round(16.0*round(2.0*M_PI*R/dx0/16.0)/MFAC)*round(dx0/dx) : ceil(2.0*M_PI*R/ds);
+        const int n_y = nested_meshes ? round(4.0*round(w/dx0/4.0)/MFAC)*round(dx0/dx) : ceil(w/ds);
         MeshTools::Generation::build_square(mesh,
-                                            4*static_cast<int>((dx0/dx)*ceil(2.0*M_PI*R/ds0/4.0)), static_cast<int>((dx0/dx)*ceil(w/ds0)),
+                                            n_x, n_y,
                                             0.0, 2.0*M_PI*R,
                                             0.0, w,
                                             Utility::string_to_enum<ElemType>(elem_type));

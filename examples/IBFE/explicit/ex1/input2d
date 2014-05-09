@@ -11,7 +11,9 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
 MFAC = 4.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI6"                             // type of element to use for structure discretization
+ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
+CONVERGENCE_STUDY = FALSE                      // indicate whether we are performing a convergence study or not;
+                                               // if so, attempt to make "nested" structural meshes
 
 // problem parameters
 SMOOTH_CASE = FALSE
