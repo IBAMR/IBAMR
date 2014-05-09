@@ -199,7 +199,7 @@ main(
         const double ds = input_db->getDouble("MFAC")*dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.5;
-        if (elem_type == "TRI3" || elem_type == "TRI6")
+        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
             const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
             for (int k = 0; k < num_circum_nodes; ++k)
@@ -223,7 +223,7 @@ main(
             MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
-        // Ensure nodes on the surface are on the boundary.
+        // Ensure nodes on the surface are on the analytic boundary.
         MeshBase::element_iterator el_end = solid_mesh.elements_end();
         for (MeshBase::element_iterator el = solid_mesh.elements_begin();
              el != el_end; ++el)
@@ -240,22 +240,18 @@ main(
                     n = R*n.unit();
                 }
             }
-        }        
+        }
         solid_mesh.prepare_for_use();
-        
+
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension()-1);
         solid_mesh.boundary_info->sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
-        
-        bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
-        if (!use_constraint_method)
-        {
-            kappa_s = input_db->getDouble("KAPPA_S");
-            eta_s = input_db->getDouble("ETA_S");
-        }
+
+        kappa_s = input_db->getDouble("KAPPA_S");
+        eta_s = input_db->getDouble("ETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -294,14 +290,7 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        if (use_constraint_method)
-        {
-            ib_method_ops->registerConstrainedPart();
-        }
-        else
-        {
-            ib_method_ops->registerLagBodyForceFunction(tether_force_function);
-        }
+        ib_method_ops->registerLagBodyForceFunction(tether_force_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -423,7 +412,9 @@ main(
             pout << "Simulation time is " << loop_time              << "\n";
 
             System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-            NumericVector<double>* U_vec = U_system.solution.get();
+            AutoPtr<NumericVector<double> > U_vec = U_system.current_local_solution->clone();
+            *U_vec = *U_system.solution;
+            U_vec->close();
             DofMap& U_dof_map = U_system.get_dof_map();
             vector<unsigned int> vars(NDIM);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -432,13 +423,13 @@ main(
             }
             U_fcn = new MeshFunction(*equation_systems, *U_vec, U_dof_map, vars);
             U_fcn->init();
-            
+
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
             delete U_fcn;
-            
+
             pout <<                                                    "\n";
             pout << "At end       of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
