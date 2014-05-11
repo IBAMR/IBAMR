@@ -28,14 +28,14 @@ For general information about the IB method, see http://math.nyu.edu/faculty/pes
 Getting Started
 ---------------
 
-IBAMR requires a number of [third-party libraries](wiki/ThirdParty.md).  [Sample build instructions are provided](wiki/Building.md) for a typical Linux installation.
+IBAMR requires a number of [third-party libraries](https://github.com/IBAMR/IBAMR/wiki/ThirdParty.md).  [Sample build instructions are provided](https://github.com/IBAMR/IBAMR/wiki/Building.md) for a typical Linux installation.
 
 Source code documentation [for IBAMR is available on-line](http://ibamr.googlecode.com/svn/doc/ibamr/HEAD/html/annotated.html).  Source code documentation is also available [for the IBTK support library](http://ibamr.googlecode.com/svn/doc/ibtk/HEAD/html/annotated.html).  File format documentation [is also available on-line](http://ibamr.googlecode.com/svn/doc/ibamr/HEAD/html/classIBAMR_1_1IBStandardInitializer.html#_details).
 
 Support
 -------
 
-Support for IBAMR is available via the [IBAMR Users Google Group (ibamr-users)](http://groups.google.com/group/ibamr-users).  Discussion related to the continued development of IBAMR is via the [IBAMR Developers Google Group (ibamr-dev)](http://groups.google.com/group/ibamr-dev). There is also list of [frequently asked questions](wiki/FAQ.md).
+Support for IBAMR is available via the [IBAMR Users Google Group (ibamr-users)](http://groups.google.com/group/ibamr-users).  Discussion related to the continued development of IBAMR is via the [IBAMR Developers Google Group (ibamr-dev)](http://groups.google.com/group/ibamr-dev). There is also list of [frequently asked questions](https://github.com/IBAMR/IBAMR/wiki/FAQ.md).
 
 Bugs and Other Issues
 ---------------------
